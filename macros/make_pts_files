@@ -1,0 +1,16 @@
+#!/bin/csh
+
+foreach i (`seq $1 $2`)
+	echo $i
+	cd $i
+	if ( $i == $1 ) then
+		make -f make.pts pts.same
+		make -f make.pts pts.up
+	else if ( $i == $2 ) then
+		make -f make.pts pts.same
+		make -f make.pts pts.down
+	else
+		make -f make.pts
+	endif
+	cd ..
+end

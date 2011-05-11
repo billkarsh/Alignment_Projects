@@ -1,0 +1,4 @@
+#!/bin/csh
+
+HEQ2Normal layer0_48_grn_rigid_montage.xml
+

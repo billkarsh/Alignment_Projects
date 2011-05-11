@@ -1,0 +1,22 @@
+#!/bin/csh
+
+setenv MRC_TRIM 12
+
+cd lou_example
+scr green_raw.xml -dtemp -p_N_
+
+cd temp
+
+cp /groups/apig/tomo/lou_stuff/thmparams.txt .
+cp /groups/apig/tomo/lou_stuff/dmeshparams.txt .
+cp /groups/apig/tomo/lou_stuff/subfm .
+cp /groups/apig/tomo/lou_stuff/sub8 .
+cp /groups/apig/tomo/lou_stuff/thmdown .
+cp /groups/apig/tomo/lou_stuff/thmsame .
+cp /groups/apig/tomo/lou_stuff/combine .
+cp /groups/apig/tomo/lou_stuff/finish .
+cp /groups/apig/tomo/lou_stuff/report.txt .
+
+cp /groups/apig/tomo/lou_stuff/runlsq stack/
+
+./subfm 0 2

@@ -1,0 +1,15 @@
+#!/bin/csh
+if ($#argv == 1) then
+    set last=$1
+else
+    set last=$2
+endif
+foreach i (`seq $1 $last`)
+@ j =  $i + 1
+echo $i $j
+./combine $i $j
+cd stack
+lsq pts.all ../../ldir -scale=1000 -square=1000 >log
+egrep 'd pair|RMS' <log
+cd ..
+end

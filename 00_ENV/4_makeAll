@@ -1,0 +1,13 @@
+
+
+DIRS := 4_Fold 4_Unfold 4_Cmap 4_Connect 4_FFT 4_Import 4_Local \
+		4_Master 4_Qa 4_Qafm 4_Qcheck 4_Sla 4_TestNormCorr \
+		4_Time_FFT 4_Two 4_Two32 4_Unmap
+
+all:
+	cd ..; \
+	for i in $(DIRS); do \
+		cd $$i && $(MAKE) && cd ..; \
+	done
+
+

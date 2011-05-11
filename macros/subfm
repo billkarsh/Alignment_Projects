@@ -1,0 +1,9 @@
+#!/bin/csh
+
+setenv MRC_TRIM 12
+
+foreach i (`seq $1 $2`)
+cd $i
+qsub -N lou-f-$i -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='""'
+cd ..
+end

@@ -1,0 +1,11 @@
+
+
+DIRS = 1_Make_ldir 1_Script 1_Tiny 1_DMesh 1_Thumbs 1_Align 1_LSQ 1_Mosaic
+
+all:
+	cd ..; \
+	for i in $(DIRS); do \
+		cd $$i && $(MAKE) && cd ..; \
+	done
+
+

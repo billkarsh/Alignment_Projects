@@ -1,0 +1,4 @@
+#!/bin/csh
+
+ls -l */lou-f*.e* > FmErrs.txt
+

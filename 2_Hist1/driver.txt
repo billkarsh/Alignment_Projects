@@ -1,0 +1,7 @@
+#!/bin/csh
+
+mkdir HST
+cd HST
+
+Hist1 '/groups/svoboda/arraytmgrphy/LM-Images/V91005p2Series/SerialImages/V91005p25_s1r1_a/Plate1_0/TIF/C1_237_0.tif' 'HST_2_5_0.bin'
+

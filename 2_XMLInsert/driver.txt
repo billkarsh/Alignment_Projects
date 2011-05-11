@@ -1,0 +1,4 @@
+#!/bin/csh
+
+XMLInsert file1.xml file2.xml -after=0
+

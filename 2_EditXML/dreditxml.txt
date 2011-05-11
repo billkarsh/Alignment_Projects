@@ -1,0 +1,4 @@
+#!/bin/csh
+
+EditXML v91005p2_slide01_12.xml -zmin=292 -zmax=298 -chn=2
+

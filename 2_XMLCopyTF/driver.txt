@@ -1,0 +1,4 @@
+#!/bin/csh
+
+XMLCopyTF file.xml tbl.txt
+

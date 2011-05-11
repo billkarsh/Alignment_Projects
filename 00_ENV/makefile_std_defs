@@ -1,0 +1,77 @@
+
+
+# ==========================
+# ==========================
+# Standard build definitions
+# ==========================
+# ==========================
+
+
+# =======================
+# text processing helpers
+# =======================
+
+empty :=
+comma := ,
+space := $(empty) $(empty)
+
+# =====
+# paths
+# =====
+
+PATH_TIF := /groups/scheffer/home/schefferl/tiff-3.9.2/libtiff
+PATH_FFT := /groups/scheffer/home/schefferl/fft/include
+PATH_XML := /groups/apig/tomo/Alignment_Projects/0_XML
+PATH_UTL := /groups/apig/tomo/Alignment_Projects/0_UTL
+PATH_GEN := /groups/apig/tomo/Alignment_Projects/0_GEN
+PATH_OUT := /groups/apig/tomo/lou_stuff/binaries
+PATH_FFT_LIB := /groups/scheffer/home/schefferl/em_reconstruction/code/lib/fftw-3.2/lib
+
+# =============
+# include paths
+# =============
+
+INCLUDES_STD := -I{$(PATH_TIF),$(PATH_FFT),$(PATH_XML),$(PATH_UTL),$(PATH_GEN)} 
+
+# ============
+# object files
+# ============
+
+OBJFILES_TIF :=  $(PATH_TIF)/{tif_getimage.o,tif_unix.o,tif_aux.o,tif_dir.o,tif_error.o,tif_open.o,tif_dirinfo.o,tif_dirread.o,tif_swab.o,tif_warning.o,tif_strip.o,tif_color.o,tif_read.o,tif_tile.o,tif_compress.o,tif_codec.o,tif_close.o,tif_dumpmode.o,tif_lzw.o,tif_packbits.o,tif_flush.o,tif_write.o,tif_jpeg.o,tif_fax3.o,tif_thunder.o,tif_zip.o,tif_fax3sm.o,tif_next.o,tif_pixarlog.o,tif_luv.o,tif_predict.o,tif_dirwrite.o,tif_ojpeg.o}
+
+# ===========================
+# archives (static libraries)
+# ===========================
+
+STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
+
+# ==================
+# standard libraries
+# ==================
+
+# jpeg:		jpeg image format
+# png:		png image format
+# z:		zlib compression
+# m:		math
+# c:		c runtime
+# rt:		posix libraries (e.g. semaphore support)
+
+OTHERLIBS_STD := -l{jpeg,png,z,m,c,rt}
+
+# ===========
+# g++ options
+# ===========
+
+CC := g++
+
+# O3:		optimizer level 3
+
+CFLAGS := -O3
+
+OUTPUT = -o $(PATH_OUT)/$@
+
+# =============================================
+# =============================================
+# =============================================
+
+

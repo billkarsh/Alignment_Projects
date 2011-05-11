@@ -1,0 +1,24 @@
+#!/bin/csh
+
+rm -f pts.all
+
+cp imagesize.txt pts.all
+
+foreach i (`seq $1 $2`)
+	cat $i/fm.same >> pts.all
+end
+
+foreach i (`seq $1 $2`)
+	echo $i
+	if ( $i == $1 ) then
+#		cat $i/pts.{same,up} >> pts.all
+		cat $i/pts.{same} >> pts.all
+	else if ( $i == $2 ) then
+		cat $i/pts.{down,same} >> pts.all
+	else
+#		cat $i/pts.{down,same,up} >> pts.all
+		cat $i/pts.{down,same} >> pts.all
+	endif
+end
+
+mv pts.all stack
