@@ -215,9 +215,17 @@ class CArgs_lsq {
 private:
 	// re_id used to extract tile id from image name.
 	// "/N" used for EM projects, "_N_" for APIG images.
+	//
 	CRegexID	re_id;
 
 public:
+	// xml_type values: these are ImagePlus codes:
+	// GRAY8		= 0
+	// GRAY16		= 1
+	// GRAY32		= 2
+	// COLOR_256	= 3
+	// COLOR_RGB	= 4
+	//
 	vector<RGN>	include_only;		// if given, include only these
 	double		same_strength,
 				square_strength,
@@ -230,7 +238,7 @@ public:
 	int			unite_layer,
 				ref_layer,
 				max_pass,
-				xml_type;			// (0=8bit gray, 1=16bit gray)
+				xml_type;
 	bool		make_layer_square,
 				use_all;			// align even if #pts < 3/tile
 

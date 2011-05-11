@@ -580,7 +580,7 @@ static void WriteXML( const vector<Fix> &fix )
 
 			// edit attributes
 			EditTitleAndPath( ptch );
-			ptch->SetAttribute( "type", 3 );
+			ptch->SetAttribute( "type", 4 );
 			ptch->SetAttribute( "min", 0 );
 			ptch->SetAttribute( "max", 255 );
 		}
