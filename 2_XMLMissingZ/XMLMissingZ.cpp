@@ -4,7 +4,6 @@
 //
 
 #include	"Cmdline.h"
-#include	"Disk.h"
 #include	"File.h"
 
 #include	"tinyxml.h"
