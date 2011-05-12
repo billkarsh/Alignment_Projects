@@ -1,70 +1,213 @@
+//
+// Make ldir file with entries:
+//
+// DIR z string
+//
+// Where the string is a file_path up to and including
+// the pattern command line argument
+//
 
-
+#include	"Cmdline.h"
 #include	"File.h"
 
-#include	<stdio.h>
-#include	<string.h>
+#include	"tinyxml.h"
+
+
+/* --------------------------------------------------------------- */
+/* Macros -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+/* --------------------------------------------------------------- */
+/* Types --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+/* --------------------------------------------------------------- */
+/* CArgs_ldir ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class CArgs_ldir {
+
+public:
+	char	*infile,
+			*pat;
+	int		zmin, zmax;
+
+public:
+	CArgs_ldir()
+	{
+		infile	= NULL;
+		pat		= NULL;
+		zmin	= 0;
+		zmax	= 32768;
+	};
+
+	void SetCmdLine( int argc, char* argv[] );
+};
+
+/* --------------------------------------------------------------- */
+/* Statics ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static CArgs_ldir	gArgs;
+static FILE*		flog = NULL;
 
 
 
 
 
 
-// Deduce Z-ordering of images from given TrackEM2.xml file.
-//
-// While one might guess that true Z corresponds to the
-// name tags "A1_", "B1_", etc. These image labels merely
-// give the slice acquisition order. It is the order of
-// these slice labels in the TrackEM2 file that gives
-// true Z order.
+/* --------------------------------------------------------------- */
+/* SetCmdLine ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-
-int main( int argc, char **argv )
+void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 {
-	char	line[2048], curKey[32];
-	FILE	*f1	= FileOpenOrDie( argv[1], "r" );
-	FILE	*f2	= FileOpenOrDie( "ldir", "w" );
-	int		Z	= 0;
+// start log
 
-	curKey[0] = 0;
+	flog = FileOpenOrDie( "makeldir.log", "w" );
 
-	for(;;) {
+// log start time
 
-		if( !fgets( line, sizeof(line), f1 ) )
-			goto close;
+	time_t	t0 = time( NULL );
+	char	atime[32];
 
-		if( !strstr( line, "file_path=" ) )
-			continue;
+	strcpy( atime, ctime( &t0 ) );
+	atime[24] = '\0';	// remove the newline
 
-		char *s = strrchr( line, '/' ) + 1;
+	fprintf( flog, "Start: %s ", atime );
 
-		for( int i = 0; i < 10; ++i ) {
+// parse command line args
 
-			if( !s[i] )
-				goto close;
-
-			if( s[i] == '_' ) {
-				s[i] = 0;
-				goto gotkey;
-			}
-		}
-
-		goto close;
-
-gotkey:
-		if( !strcmp( curKey, s ) )
-			continue;
-
-		strcpy( curKey, s );
-		fprintf( f2, "DIR %d %s_\n", Z++, s );
+	if( argc < 3 ) {
+		printf( "Usage: makeldir <xml-file> -ppat [options].\n" );
+		printf( "Suggested patterns: <optical> -p_  <EM> -psq_\n" );
+		exit( 42 );
 	}
 
-close:
-	if( f2 )
-		fclose( f2 );
+	for( int i = 1; i < argc; ++i ) {
 
-	if( f1 )
-		fclose( f1 );
+		// echo to log
+		fprintf( flog, "%s ", argv[i] );
+
+		if( argv[i][0] != '-' )
+			infile = argv[i];
+		else if( GetArgStr( pat, "-p", argv[i] ) )
+			;
+		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+			;
+		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+			;
+		else {
+			printf( "Did not understand option '%s'.\n", argv[i] );
+			exit( 42 );
+		}
+	}
+
+	fprintf( flog, "\n\n" );
+	fflush( flog );
+}
+
+/* --------------------------------------------------------------- */
+/* ParseTrakEM2 -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ParseTrakEM2()
+{
+/* ------------- */
+/* Load document */
+/* ------------- */
+
+	TiXmlDocument	doc( gArgs.infile );
+	bool			loadOK = doc.LoadFile();
+
+	if( !loadOK ) {
+		fprintf( flog,
+		"Could not open XML file [%s].\n", gArgs.infile );
+		exit( 42 );
+	}
+
+/* ---------------- */
+/* Verify <trakem2> */
+/* ---------------- */
+
+	TiXmlHandle		hDoc( &doc );
+	TiXmlElement*	layer;
+
+	if( !doc.FirstChild() ) {
+		fprintf( flog, "No trakEM2 node.\n" );
+		exit( 42 );
+	}
+
+	layer = hDoc.FirstChild( "trakem2" )
+				.FirstChild( "t2_layer_set" )
+				.FirstChild( "t2_layer" )
+				.ToElement();
+
+	if( !layer ) {
+		fprintf( flog, "No first trakEM2 child.\n" );
+		exit( 42 );
+	}
+
+/* -------------- */
+/* For each layer */
+/* -------------- */
+
+	FILE	*fldir = FileOpenOrDie( "ldir", "w" );
+
+	for( ; layer; layer = layer->NextSiblingElement() ) {
+
+		/* ----------------- */
+		/* Layer-level stuff */
+		/* ----------------- */
+
+		int	z = atoi( layer->Attribute( "z" ) );
+
+		if( z > gArgs.zmax )
+			break;
+
+		if( z < gArgs.zmin )
+			continue;
+
+		/* --------- */
+		/* DIR entry */
+		/* --------- */
+
+		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+		const char*		name = ptch->Attribute( "file_path" );
+		const char*		slsh = strrchr( name, '/' );
+		const char*		term = strstr( slsh, gArgs.pat );
+
+		fprintf( fldir, "DIR %d %.*s%s\n",
+		z, term - name, name, gArgs.pat );
+	}
+
+	fclose( fldir );
+}
+
+/* --------------------------------------------------------------- */
+/* main ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+int main( int argc, char* argv[] )
+{
+/* ------------------ */
+/* Parse command line */
+/* ------------------ */
+
+	gArgs.SetCmdLine( argc, argv );
+
+/* ---------------- */
+/* Read source file */
+/* ---------------- */
+
+	ParseTrakEM2();
+
+/* ---- */
+/* Done */
+/* ---- */
+
+	fprintf( flog, "\n" );
+	fclose( flog );
 
 	return 0;
 }

@@ -12,7 +12,7 @@ include ../00_ENV/makefile_std_defs
 # defines
 # =======
 
-SYMBOLS_MYPROJ :=
+SYMBOLS_MYPROJ := -DTIXML_USE_STL
 
 # =======
 # sources
@@ -21,17 +21,14 @@ SYMBOLS_MYPROJ :=
 SOURCES_MYPROJ := \
 	makeldir.cpp
 
-_SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
+_SRC_XML_ := \
+	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
 
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
+SOURCES_XML := \
+	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_GEN_ := \
-	File.cpp ImageIO.cpp \
-	Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp CTForm.cpp \
-	Timer.cpp
+	Cmdline.cpp File.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -48,7 +45,7 @@ $(INCLUDES_STD) \
     \
 $(SOURCES_MYPROJ) \
     \
-$(SOURCES_UTL) \
+$(SOURCES_XML) \
     \
 $(SOURCES_GEN) \
     \
