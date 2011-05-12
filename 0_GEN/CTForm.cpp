@@ -1,5 +1,6 @@
 
 
+#include	"GenDefs.h"
 #include	"CTForm.h"
 
 #include	<math.h>
@@ -198,6 +199,27 @@ void AToBTrans( TForm &atob, const TForm &a, const TForm &b )
 
 	InvertTrans( binv, b );
 	MultiplyTrans( atob, binv, a );
+}
+
+/* --------------------------------------------------------------- */
+/* CreateCWRotation ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Create a transform that performs a CW rotation of deg degrees
+// about the given pivot point (remember +deg is CW).
+//
+// That is, A' = piv + R(A-piv) = R(A) + piv - R(piv).
+//
+void CreateCWRot( TForm &T, double deg, const Point &pivot )
+{
+	double	r = deg*PI/180, c = cos( r ), s = sin( r );
+
+	T.t[0] = c;
+	T.t[1] = -s;
+	T.t[2] = pivot.x - (c*pivot.x - s*pivot.y);
+	T.t[3] = s;
+	T.t[4] = c;
+	T.t[5] = pivot.y - (s*pivot.x + c*pivot.y);
 }
 
 
