@@ -35,7 +35,8 @@ clock_t StartTiming()
 
 double DeltaSeconds( clock_t start )
 {
-	return (StartTiming() - start) / sysconf(_SC_CLK_TCK);
+	return
+	double(StartTiming() - start) / sysconf(_SC_CLK_TCK);
 }
 
 /* --------------------------------------------------------------- */

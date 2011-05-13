@@ -656,6 +656,7 @@ static void Make_TileToImage(
 	fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
 
 // Write sorted entries
+// Use given name, unless mrc images.
 
 	if( !strstr( vp[0].fname.c_str(), ".mrc" ) ) {
 
