@@ -236,6 +236,11 @@ static bool SelectSubimage(
 
 		dx = int(delta.x) / px.scl;
 		dy = int(delta.y) / px.scl;
+
+		if( GBL.thm.SLOPPY_SL ) {
+			dx /= 2;
+			dy /= 2;
+		}
 	}
 
 // Use offsets and image size to determine:
@@ -292,8 +297,14 @@ static bool SelectSubimage(
 
 // Recommend search range at full scale
 
-	olp.nnegx = olp.nposx = olp.ow / 2;
-	olp.nnegy = olp.nposy = olp.oh / 2;
+	if( GBL.thm.SLOPPY_SL ) {
+		olp.nnegx = olp.nposx = olp.ow;
+		olp.nnegy = olp.nposy = olp.oh;
+	}
+	else {
+		olp.nnegx = olp.nposx = olp.ow / 2;
+		olp.nnegy = olp.nposy = olp.oh / 2;
+	}
 
 // Set points
 

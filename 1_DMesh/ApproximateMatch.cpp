@@ -349,6 +349,11 @@ static bool SelectSubimage(
 
 		dx = int(delta.x) / px.scl;
 		dy = int(delta.y) / px.scl;
+
+		if( GBL.thm.SLOPPY_SL ) {
+			dx /= 2;
+			dy /= 2;
+		}
 	}
 
 // Use offsets and image size to determine:
@@ -382,9 +387,16 @@ static bool SelectSubimage(
 
 // Finish
 
-	olp.aC		= FindCOG( olp.a.p );
-	olp.nnegx	= olp.nposx = ow / 2;
-	olp.nnegy	= olp.nposy = oh / 2;
+	olp.aC = FindCOG( olp.a.p );
+
+	if( GBL.thm.SLOPPY_SL ) {
+		olp.nnegx = olp.nposx = ow;
+		olp.nnegy = olp.nposy = oh;
+	}
+	else {
+		olp.nnegx = olp.nposx = ow / 2;
+		olp.nnegy = olp.nposy = oh / 2;
+	}
 
 	return true;
 }

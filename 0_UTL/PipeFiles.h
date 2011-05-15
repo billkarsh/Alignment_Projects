@@ -30,6 +30,7 @@ typedef struct {
 				RTRSH_SL,
 				RTRSH_XL;
 	int			FLD,
+				SLOPPY_SL,
 				OLAP1D,
 				OLAP2D_SL,
 				OLAP2D_XL,

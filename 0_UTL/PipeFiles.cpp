@@ -88,6 +88,7 @@ bool ReadThmParams( ThmParams &T, FILE *flog )
 		GETPRM_THM( &T.XSCALE, "XSCALE=%lf" );
 		GETPRM_THM( &T.YSCALE, "YSCALE=%lf" );
 		GETPRM_THM( &T.SKEW, "SKEW=%lf" );
+		GETPRM_THM( &T.SLOPPY_SL, "SLOPPY_SL=%c" );
 		GETPRM_THM( &T.OLAP1D, "OLAP1D=%d" );
 		GETPRM_THM( &T.OLAP2D_SL, "OLAP2D_SL=%d" );
 		GETPRM_THM( &T.OLAP2D_XL, "OLAP2D_XL=%d" );
@@ -103,6 +104,7 @@ bool ReadThmParams( ThmParams &T, FILE *flog )
 
 		// finish Y/N booleans
 		T.FLD		= (T.FLD == 'Y');
+		T.SLOPPY_SL	= (T.SLOPPY_SL == 'Y');
 		T.TWEAKS	= (T.TWEAKS == 'Y');
 		T.INPALN	= (T.INPALN == 'Y');
 
