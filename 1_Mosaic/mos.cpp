@@ -647,7 +647,7 @@ for(;;){
         // at this point, all we need is w and h, so toss image as soon as we read it.
         image ii;
         if( w == 0 ) {  //read a file, then free it, just to set w and h
-            ii.raster = Raster8FromTif(tname, w, h, stdout);
+            ii.raster = Raster8FromAny(tname, w, h, stdout);
             RasterFree(ii.raster);
 	    }
 	ii.raster = NULL;
@@ -671,7 +671,7 @@ for(;;){
             ii.layer = lnums[k];
         ii.foldmap = NULL;
 	ii.fname = strdup(mname);
-        //ii.foldmap = Raster8FromTif(mname, w, h, stdout, false);
+        //ii.foldmap = Raster8FromAny(mname, w, h, stdout, false);
         // if the foldmap was blahblahblah.tif, also look for blahbladblahd.tif, and use that instead.
         // (this is the fold mask used for drawing, as opposed to that used for correlation.)
         // If layers are specified, do this only for layers that are used, since it requires a file access
@@ -907,10 +907,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         relevant_images.push_back(i);
 	uint32 ww, hh;
 	if( images[i].raster == NULL )
-	    images[i].raster  = Raster8FromTif(images[i].rname, ww, hh, stdout, false);	// Normalize param=true
+	    images[i].raster  = Raster8FromAny(images[i].rname, ww, hh, stdout, false);	// Normalize param=true
 	if( images[i].foldmap == NULL ) {
 	    if( FoldMasks ) {
-		images[i].foldmap = Raster8FromTif(images[i].fname, ww, hh, stdout);
+		images[i].foldmap = Raster8FromAny(images[i].fname, ww, hh, stdout);
 		FillInHolesInFoldmap(images[i].foldmap, ww, hh);
 		FoldmapRenumber(images[i]);
 		}
