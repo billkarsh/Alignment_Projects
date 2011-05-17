@@ -7,7 +7,7 @@
 
 int main( int argc, char **argv )
 {
-	char	*sin = "/groups/apig/tomo/TEST_23ONLY_New/TIF1/A1_2_2.tif";
+	char	*sin = "/groups/apig/tomo/EX2/TIF1/A1_2_2.tif";
 	uint16*	raster16;
 	uint8*	raster8;
 	uint32*	raster32;
