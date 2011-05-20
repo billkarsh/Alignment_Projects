@@ -34,7 +34,7 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	Maths.cpp Memory.cpp
+	File.cpp Maths.cpp Memory.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -52,6 +52,8 @@ $(INCLUDES_STD) \
 -I $(PATH_JSON) \
     \
 $(SOURCES_MYPROJ) \
+    \
+$(SOURCES_UTL) \
     \
 $(SOURCES_GEN) \
     \

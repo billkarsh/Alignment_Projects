@@ -1,21 +1,18 @@
 
+// Make a mosaic
+
 
 #include	"Maths.h"
 
 
-// make a mosaic
 #include "tiffio.h"
+#include	"mrc.h"
 #include "dmesh.h"
 #include <png.h>
 
-#include <sys/resource.h>
+#include	<sys/resource.h>
+#include	<sys/stat.h>
 
-// stuff from Numerical Recipes
-#define _USESTDVECTOR_ 1
-#include "nr3.h"
-#include "gaussj.h"
-#include "fitmrq.h"
-#include "fit_examples.h"
 
 class glob_spot {
   public:
@@ -1556,7 +1553,8 @@ for(int i=0; i<w*h; i++)
     test[i] = SPmapping[test[i]] - base;
 }
 
-#include "mrc.cpp"
+
+
 
 // Read either a TIFF or an MRC file.  Should include .png too.
 uint8* ReadAnImageFile(const char *name, uint32 &w, uint32 &h, FILE *flog, bool Transpose=false, bool Normalize=false)
