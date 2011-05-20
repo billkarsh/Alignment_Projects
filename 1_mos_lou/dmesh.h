@@ -86,7 +86,7 @@ class Picture {
    public:
      Picture(){original = NULL; raster = NULL;}
      ~Picture(){if(raster!=NULL && raster!=original) free(raster);}
-       
+
    void DownsampleIfNeeded();
    void MakeDoGExist( double r1, double r2, vector<CD> &cache);
    tform tr;  // the transform
@@ -98,7 +98,7 @@ class Picture {
    uint8 *raster;  // This is the one used in most computations (usually 2K by 2K)
    vector<uint8> DoG;  // Difference of Gaussians, if it exists
    tform Inverse;      // the inverse transform
-   CD *fft_of_frame;   // the FFT of the frame.  
+   CD *fft_of_frame;   // the FFT of the frame.
    void MakeFFTExist( int i);
    uint8 *original;    // original raster
    int scale;          // scale factor between original and processed (typically 1, 2, 4)
@@ -125,7 +125,7 @@ class QueueEl {
    };
 
 class CorrCand { // a correlation candidate
-  public: 
+  public:
     int x,y;
     double val;
     CorrCand(){x=0; y=0; val=-BIG;}
@@ -180,8 +180,8 @@ void InvertTrans(tform &inv, tform &b);
 void MultiplyTrans(tform &r, tform &a, tform &b);
 double FindNormCorrelation(vector<Point> &pts, vector<double> &vals, vector<Point> &p2, vector<double>&v2,
                 double &dx, double &dy, int tx, int ty, int radius, FILE *flog,
-		bool (*LegalRegion)(int sx, int sy, void *v), void *arg, 
-		bool (*LegalCounts)(int sx, int sy, void *v), void *arg2, 
+		bool (*LegalRegion)(int sx, int sy, void *v), void *arg,
+		bool (*LegalCounts)(int sx, int sy, void *v), void *arg2,
 	        vector<CD> &ftc);
 void SetDMeshParams(const char *arg);
 

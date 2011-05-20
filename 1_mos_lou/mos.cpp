@@ -163,7 +163,7 @@ void ReadALineAtATime(TIFF *tif, int w, int h, uint8* raster, bool write_debug_i
     uint32 imagelength;
     tdata_t buf;
     uint32 row;
-        
+
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &imagelength);
     printf("Image length is %d\n", imagelength);
     int sls = TIFFScanlineSize(tif);
@@ -283,7 +283,7 @@ if (tif == NULL) {
     fprintf(flog,"Cannot open '%s' for read\n", name);
     exit(42);
     }
-    
+
 size_t npixels;
 TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
 TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
@@ -373,7 +373,7 @@ png_set_sig_bytes(png_ptr, number);
 png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_SWAP_ENDIAN, NULL);
 fclose(fp);
 
-// now get some info about the 
+// now get some info about the
 png_uint_32 width, height;
 int bit_depth, color_type;
 png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
@@ -445,7 +445,7 @@ png_set_sig_bytes(png_ptr, number);
 png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_SWAP_ENDIAN, NULL);
 fclose(fp);
 
-// now get some info about the 
+// now get some info about the
 int bit_depth, color_type;
 png_uint_32 width, height;
 png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
@@ -628,10 +628,10 @@ double rslt = prod < 1.0e-9 ? 0.0 : sumn/sqrt(prod);
 fprintf(of,"\nNCD: s %f %f, a %f %f, ss %f %f %f, r %f\n", suma, sumb, avga, avgb, sumn, sumd1, sumd2, rslt);
 return rslt;
 }
-//Given two images, each starting at 0,0.  Image 1 is WxH and image 2 is size W2xH2.  
+//Given two images, each starting at 0,0.  Image 1 is WxH and image 2 is size W2xH2.
 // Assuming image 1 is shifted by adding (x,y) to its coordinates, then
 // where does the overlap region fall in each image?
-void BoxesFromShifts(int w, int h, int w2, int h2, int x, int y, 
+void BoxesFromShifts(int w, int h, int w2, int h2, int x, int y,
  int &xl1, int &yb1, int &xr1, int &yt1, int &xl2, int &yb2, int &xr2, int &yt2)
 {
 // after shifting, bbox for image1 will be [x, x+w-1] in x, and [y,y+h-1] in y
@@ -685,7 +685,7 @@ return rslt;
 // 'ftc' is a cache of the fourier transform of the second image.  If it is the right size, we assume
 //   it has the right data.  To enforce re-computation, make it zero size
 double FindNormCorrelation(vector<Point> &pts, vector<double> &vals, vector<Point> &ip2, vector<double> &iv2,
-double &dx, double &dy, int tx, int ty, int radius, FILE *flog, 
+double &dx, double &dy, int tx, int ty, int radius, FILE *flog,
 bool (*LegalRegion)(int, int, void *), void *arg,   // function for checking if region dimensions are legal
 bool (*LegalCounts)(int, int, void *), void *arg2,  // function for checking if point counts are legal
 vector<CD> &ftc)
@@ -729,10 +729,10 @@ vector<double>i2(N*N,0.0);
 for(int i=0; i<ip2.size(); i++) {
     int x = int(floor(ip2[i].x));
     double alpha = ip2[i].x - x;
-    x -= xmin2;  
+    x -= xmin2;
     int y = int(floor(ip2[i].y));
     double beta = ip2[i].y - y;
-    y -= ymin2;  
+    y -= ymin2;
     int f = N*y+x;   // first point, the lower left
     i2[f]     += (1-alpha)*(1-beta)*iv2[i];
     i2[f+1]   += (  alpha)*(1-beta)*iv2[i];  // next in X
@@ -757,10 +757,10 @@ vector<double> i1(N*N,0.0);
 for(int i=0; i<pts.size(); i++) {
     int x = int(floor(pts[i].x));
     double alpha = pts[i].x - x;
-    x -= xmin;  
+    x -= xmin;
     int y = int(floor(pts[i].y));
     double beta = pts[i].y - y;
-    y -= ymin;  
+    y -= ymin;
     int f = N*y+x;   // first point, the lower left
     i1[f]     += (1-alpha)*(1-beta)*vals[i];
     i1[f+1]   += (  alpha)*(1-beta)*vals[i];  // next in X
@@ -899,7 +899,7 @@ for(int i=0; i<N*N; i++) {
 
     // Compute the cross-product from the definition, for debugging only
     //NormCrossDirect(i1, i2, 4096, xl1, yb1, xr1, yt1, xl2, yb2, xr2, yt2);
- 
+
     //See if it's a legal overlap region.
     int sx = xr1-xl1+1;  // size in x
     int sy = yt1-yb1+1;  // size in y
@@ -935,7 +935,7 @@ for(int i=0; i<N*N; i++) {
     if(dp)printf("final result = %f\n", r);
     //fprintf(of,"shift %d %d, i1 (%d %d) to (%d %d), i2 (%d %d) to (%d %d)\n",
      //x,y, xl1,yb1, xr1,yt1,  xl2,yb2, xr2,yt2);
-        
+
     if (abs(r) > 1.0001) {  // too big to be true
          fprintf(of,"Very odd - i=%d rslt[i]=%f pts.size()=%d\n", i, rslt[i], pts.size());
 	fprintf(of,"shift %d %d, i1 (%d %d) to (%d %d), i2 (%d %d) to (%d %d)\n",
@@ -1414,7 +1414,7 @@ int first_tri = images[im].FirstTriangle + (patch-1)*N;  // since N triangle per
 for(int i=first_tri; i < first_tri+N; i++) {
     if (Inside(tris[i], gvtx, p)) {
 	printf("Got one - Point %f %f inside triangle (%f %f) (%f %f) (%f %f)\n",
-	 p.x, p.y, 
+	 p.x, p.y,
 	 gvtx[tris[i].v[0]].x, gvtx[tris[i].v[0]].y,
 	 gvtx[tris[i].v[1]].x, gvtx[tris[i].v[1]].y,
 	 gvtx[tris[i].v[2]].x, gvtx[tris[i].v[2]].y );
@@ -1502,7 +1502,7 @@ for(int i=0; i<w*h; i++) {
     }
 printf("Biggest value in 16 bit map is %d\n", biggest);
 SPmapping.resize(biggest+1,0);  // make the remapping vector the right size
-int base = MaxSPUsed;  // will add this to all 
+int base = MaxSPUsed;  // will add this to all
 int n=0;
 for(int i=1; i<65536; i++) {  // 0 always maps to 0
     if (vals[i] != 0) { // this value was used
@@ -1537,7 +1537,7 @@ for(int i=0; i<w*h; i++)
     vals[test[i]]++;
 
 SPmapping.resize(biggest+1,0);  // make the remapping vector the right size
-int base = MaxSPUsed;  // will add this to all 
+int base = MaxSPUsed;  // will add this to all
 int n=0;
 for(int i=1; i<=biggest; i++) {  // 0 always maps to 0
     if (vals[i] != 0) { // this value was used
@@ -1725,7 +1725,7 @@ for(pass=1; pass<=MAX_PASS; pass++) {
 	    printf("File '%s' exists, but is not a directory.\n", name);
 	    exit(42);
 	    }
-        else 
+        else
 	    break;  // file exists and is a directory
 	}
     }
@@ -2073,7 +2073,7 @@ for(unsigned int i=0; i<data.size(); i++) {
 	    tb.body_id     = t["body ID"].asInt();
 	    tb.pt.x = lo[0u].asDouble();
 	    tb.pt.y = lo[1u].asDouble();
-	    //printf("status is %s, confidence %f, loc %.1f,%lf,%d,  %d partners\n", 
+	    //printf("status is %s, confidence %f, loc %.1f,%lf,%d,  %d partners\n",
 	    //tb.status.c_str(), tb.confidence, tb.pt.x, tb.pt.y, tb.z, part.size() );
 	    for(int j=0; j<part.size(); j++) {
 		Partner prt;
@@ -2095,12 +2095,12 @@ return true;
 // Read a file of synapse annotations.  Find all the ones that map to the final image,
 // transform them into final image coordinates, then append them to the vector
 // result[].
-bool LookForAndTransform(const char *name, char *root, 
- int section, 
- int image_no, 
+bool LookForAndTransform(const char *name, char *root,
+ int section,
+ int image_no,
  vector<image> &images,
  bool Warp,
- vector<uint8> &tmap, 
+ vector<uint8> &tmap,
  vector<TBar> &result)
 {
 uint32 w = images[image_no].w;
@@ -2152,7 +2152,7 @@ return true;
 // Read a file of synapse annotations.  Find all the ones that map to the final image,
 // transform them into final image coordinates, then append them to the vector
 // result[].
-bool LookForAndTransform(const char *name, char *root, int section, int image_no, 
+bool LookForAndTransform(const char *name, char *root, int section, int image_no,
  vector<Triple> &Triples, vector<int> &relevant_images, vector<image> &images,
  vector<uint16> &imap, int nx, int ny, vector<Bookmark> &result)
 {
@@ -2214,8 +2214,8 @@ return true;
 // This sets each pixel based on how close it is the center, avoiding the edges where
 // the biggest distortions are.
 //
-void FillInFromCenterOut(vector<uint16> &imap, vector<uint8> &PatchFrom, 
- int nx, int ny, 
+void FillInFromCenterOut(vector<uint16> &imap, vector<uint8> &PatchFrom,
+ int nx, int ny,
  int w, int h,                     // size of images coming in
  double delta_image_space,         // smallest size that maps to each pixel on output
  vector<image> &images,            // the images
@@ -2224,7 +2224,7 @@ void FillInFromCenterOut(vector<uint16> &imap, vector<uint8> &PatchFrom,
 // find the center of each picture.  May not be integer
 Point center((w-1)/2.0, (h-1)/2.0);
 int report = 100;
-for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) { 
+for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
     if (r >= report) {
 	printf("Starting radius %f\n", r);
 	report += 100;
@@ -2291,8 +2291,8 @@ class NameSorter{
   };
 bool NameSortFn(NameSorter a, NameSorter b){ return strcmp(a.name, b.name) > 0;}
 
-void FillInMatlabOrder(vector<uint16> &imap, vector<uint8> &PatchFrom, 
- int nx, int ny, 
+void FillInMatlabOrder(vector<uint16> &imap, vector<uint8> &PatchFrom,
+ int nx, int ny,
  int w, int h,                     // size of images coming in
  double delta_image_space,         // smallest size that maps to each pixel on output
  vector<image> &images,            // the images
@@ -2315,7 +2315,7 @@ for(int kk=0; kk<temp.size(); kk++) {      // for each picture
     int k = temp[kk].num;
     int i = relevant_images[k];
     int report = 500;
-    for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) { 
+    for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
 	if (r >= report) {
 	    printf("Starting radius %f\n", r);
 	    report += 500;
@@ -2691,7 +2691,7 @@ if (xsize != -1) {
 // Print transforms, post offset
 //for(int i=0; i<images.size(); i++) {
     //for(int k=1; k<images[i].tf.size(); k++) {
-        //printf("Post offset: image %d, layer %d tf[%d] = %f %f %f   %f %f %f\n", i, images[i].layer, k, 
+        //printf("Post offset: image %d, layer %d tf[%d] = %f %f %f   %f %f %f\n", i, images[i].layer, k,
 	 //images[i].tf[k].t[0], images[i].tf[k].t[1], images[i].tf[k].t[2],
 	 //images[i].tf[k].t[3], images[i].tf[k].t[4], images[i].tf[k].t[5]);
 	//}
@@ -2723,7 +2723,7 @@ for(int i=0; i<images.size(); i++) {
         p[2] = Point(0.0,1.0);
         p[3] = Point(1.0,1.0);
         for(int j=0; j<4; j++)
-           Transform(p[j],images[i].tf[k]);  
+           Transform(p[j],images[i].tf[k]);
         // How big of a square might fit in global space?
         double xmin = min(p[0].x,min(p[1].x,min(p[2].x,p[3].x)));
         double ymin = min(p[0].y,min(p[1].y,min(p[2].y,p[3].y)));
@@ -2782,7 +2782,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     vector<int> relevant_images;
     // See if we find any boundary maps
     bool AnyBMap = false;
-    // Since each superpixel map is numbered independently per image, 
+    // Since each superpixel map is numbered independently per image,
     // map all of these to non-overlapping ranges.
     int MaxSPUsed = 0;
     for(int i=0; i<images.size(); i++) {      // for each picture
@@ -2885,11 +2885,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // Now the choice of fill-in methods
     if (matlab_order) {
-	FillInMatlabOrder(imap, PatchFrom, nx, ny, 
+	FillInMatlabOrder(imap, PatchFrom, nx, ny,
 	 w, h, delta_image_space, images, relevant_images);
         }
     else {
-	FillInFromCenterOut(imap, PatchFrom, nx, ny, 
+	FillInFromCenterOut(imap, PatchFrom, nx, ny,
 	 w, h, delta_image_space, images, relevant_images);
 	}
 
@@ -2923,7 +2923,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         printf("Try writing 16 bit map\n");
         write_16bit_png_file("test.png", &(imap[0]), nx, ny);
         sprintf(fname,"map.%d.png", out_layer);
-        printf("Writing  8 bit map in png format to %s\n", fname); 
+        printf("Writing  8 bit map in png format to %s\n", fname);
         vector<uint8> copy(nx*ny, 0);  // make an 8 bit copy
         for(int i=0; i<nx*ny; i++)
 	    copy[i] = imap[i];
@@ -2933,7 +2933,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         //WriteMonochromeTIFF(fname, &(PatchFrom[0]), nx, ny, 8);
         }
 
-    printf("Starting 'before' image\n"); 
+    printf("Starting 'before' image\n");
     // Now, create a 'before' picture with seams
     vector<uint8>before(nx*ny,0);
     for(int y=0; y < ny; y++) {
@@ -2965,11 +2965,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 			alpha *   beta  * pic[nn+w+1];
 		before[bi] = ROUND(pix);
 		}
-	    } // to aid debugging, draw lines at the image boundaries in the before image.  
+	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
     printf("Done creating before image; draw lines next\n");
     if (Annotate) {
-	vector<Point> edges; 
+	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
 	    edges.push_back(Point(x, h-1));
@@ -3170,7 +3170,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Now write the triangles out for debugging
     if (Debug)
         WriteTriangles("tris", tris, gvtx);
-    
+
     // Then, look for places where adjacent pixels come from different pictures.
     // For each such spot (or a reasonable subset, find the delta needed make them line up.
     vector<glob_spot> spots;
@@ -3309,7 +3309,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	NewG[i] = Point(X[2*i], X[2*i+1]);
     if (Debug)
         WriteTriangles("tris2", tris, NewG);
-    
+
     // how far did the points move?
     double MoveThresh = 110.0; // should be parameter
     int NTooFar = 0;
@@ -3317,7 +3317,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         double dx = gvtx[i].x - NewG[i].x;
         double dy = gvtx[i].y - NewG[i].y;
         double move = sqrt(dx*dx+dy*dy);
-	printf("Image %d, pt %d, was (%f,%f), now (%f,%f), moved %f %s\n", 
+	printf("Image %d, pt %d, was (%f,%f), now (%f,%f), moved %f %s\n",
 	 i/(N+1), i%(N+1), gvtx[i].x, gvtx[i].y, NewG[i].x, NewG[i].y, move, move>MoveThresh ? "<-----" : "");
         if (move > MoveThresh) {
 	    NewG[i] = gvtx[i];
@@ -3405,7 +3405,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     double report = 100;
     // find the center of each picture.  May not be integer
     Point center((w-1)/2.0, (h-1)/2.0);
-    for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space*0.9) { 
+    for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space*0.9) {
         if (r >= report) {
             printf("Starting radius %f\n", r);
             report += 100;
@@ -3567,10 +3567,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 if (Debug && px == 0)
 		    before[bi] = 255;
 		}
-	    } // to aid debugging, draw lines at the image boundaries in the before image.  
+	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
     if (Annotate) {
-	vector<Point> edges; 
+	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
 	    edges.push_back(Point(x, h-1));
@@ -3691,7 +3691,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    copy[i] = 0xFF000000 + spmap[i];
         printf("try to write the small array as a .png file\n"); fflush(stdout);
         write_32bit_png_file("try32bita.png", &(copy[0]), nx, ny);
-        int bigx = 45000; 
+        int bigx = 45000;
 	int bigy = 47000;
         printf("try to allocate a huge array\n"); fflush(stdout);
         vector<uint32> big(bigx*bigy);
@@ -3781,11 +3781,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	}
     fprintf(fw, "{\"data\": [\n");
     for(int i=0; i<tbars.size(); i++) {
-	fprintf(fw, "{\"T-bar\": {\"status\": \"%s\", \"confidence\": %f, \"body ID\": %d, \"location\": [%f, %f, %d]}, \"partners\": [\n", 
+	fprintf(fw, "{\"T-bar\": {\"status\": \"%s\", \"confidence\": %f, \"body ID\": %d, \"location\": [%f, %f, %d]}, \"partners\": [\n",
 	 tbars[i].status.c_str(), tbars[i].confidence, tbars[i].body_id, tbars[i].pt.x, ny-tbars[i].pt.y, tbars[i].z);
 	for(int j=0; j<tbars[i].partners.size(); j++) {
 	    bool last = (j == tbars[i].partners.size()-1);
-	    fprintf(fw, " {\"confidence\": %f, \"location\": [%f, %f, %d]}%c\n", 
+	    fprintf(fw, " {\"confidence\": %f, \"location\": [%f, %f, %d]}%c\n",
 	     tbars[i].partners[j].confidence, tbars[i].partners[j].pt.x, ny-tbars[i].partners[j].pt.y, tbars[i].partners[j].z,
 	     last ? ' ': ',' );  // comma separated if not last
 	    }
@@ -3819,9 +3819,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     printf("WARNINGS:  %d hit the edge, %d had bad correlation\n", nwarn_edge_interp, nwarn_bad_corr);
     }
-{int who = RUSAGE_SELF; 
-struct rusage usage; 
-int ret; 
+{int who = RUSAGE_SELF;
+struct rusage usage;
+int ret;
 
 ret=getrusage(who,&usage);
 

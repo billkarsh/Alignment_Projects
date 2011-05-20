@@ -97,7 +97,7 @@ return result;
 // fit N gaussians to the data, then find limits.
 void NGaussHist(vector<double> x, vector<int> &histo, const int Ngauss, double &rmin, double &rmax, double init_width=1000.0)
 {
-VecDoub y,s;  // create the y array (same data but double), and the s array 
+VecDoub y,s;  // create the y array (same data but double), and the s array
               // (points uniformly weighted; all have same std dev)
 double sum = 0.0;  // used for checking for plausibility later
 for(int i=0; i<x.size(); i++) {
