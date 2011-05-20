@@ -1,0 +1,63 @@
+
+
+# ==========
+# ==========
+# My Project
+# ==========
+# ==========
+
+include ../00_ENV/makefile_std_defs
+
+# =======
+# defines
+# =======
+
+SYMBOLS_MYPROJ :=
+
+# =====
+# paths
+# =====
+
+PATH_JSON := /groups/scheffer/home/schefferl/json/jsoncpp-src-0.5.0/include
+
+# =======
+# sources
+# =======
+
+SOURCES_MYPROJ := \
+	mos.cpp json_reader.cpp json_writer.cpp json_value.cpp
+
+_SRC_UTL_ := \
+	numerical_recipes.cpp mrc.cpp
+
+SOURCES_UTL := \
+	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
+
+_SRC_GEN_ := \
+	Maths.cpp 
+
+SOURCES_GEN :=  \
+	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
+
+# =====
+# build
+# =====
+
+mos:
+	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
+$(OUTPUT) \
+    \
+$(INCLUDES_STD) \
+    \
+-I $(PATH_JSON) \
+    \
+$(SOURCES_MYPROJ) \
+    \
+$(OBJFILES_TIF) \
+    \
+$(STATICLIBS_FFT) \
+    \
+$(OTHERLIBS_STD) \
+#### end $(CC) $@
+
+
