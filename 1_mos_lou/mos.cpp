@@ -1,3 +1,8 @@
+
+
+#include	"Maths.h"
+
+
 // make a mosaic
 #include "tiffio.h"
 #include "dmesh.h"
@@ -93,9 +98,8 @@ for(int i = 0; i<n; i++) {
     }
 }
 
-// Special rounding for our purpose.
-int ROUND(double x){return x >= 0.0 ? int(x+0.5) : int(x-0.5);}
-int RND(double x){return x > 0 ? int(x+0.5) : 0;}
+
+
 
 FILE *of;
 int nwarn_edge_interp = 0;   // interpolation cannot be done since max is on edge of region
@@ -139,25 +143,14 @@ InvertTrans(in, tr);
 fprintf(of,"Rev:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n", in.t[0], in.t[1], in.t[2], in.t[3], in.t[4], in.t[5]);
 }
 
-// Finds statistics on a vector of doubles.
-void Stats(vector<double> &v, double &avg, double &std)
-{
-MeanStd m;
-int n = v.size();
-for(int i=0; i<n; i++) 
-    m.Element(v[i]);
-m.Stats(avg, std);
-}
 
-// Normalizes a vector to have mean 0 and standard deviation 1
-void Normalize(vector<double> &v)
-{
-double avg, std;
-Stats(v, avg, std);
-//fprintf(of,"Average %f, std dev %f\n", avg, std);
-for(int i=0; i<v.size(); i++)
-    v[i] = (v[i] - avg)/std;
-}
+
+
+
+
+
+
+
 
 static int num = 1;  // write out converted images as 1.tif, 2.tif, etc.
 
