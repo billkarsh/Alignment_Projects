@@ -2,13 +2,12 @@
 // Make a mosaic
 
 
+#include	"ImageIO.h"
 #include	"Maths.h"
 
 
-#include "tiffio.h"
 #include	"mrc.h"
-#include "dmesh.h"
-#include <png.h>
+#include	"dmesh.h"
 
 #include	<sys/resource.h>
 #include	<sys/stat.h>
@@ -149,443 +148,10 @@ fprintf(of,"Rev:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n", in.t[0], in.t[1]
 
 
 
-static int num = 1;  // write out converted images as 1.tif, 2.tif, etc.
 
-// Some MRC images are written with 32 bit floating point samples.
-// Convert them as if they were 8 bit integer samples.
-// (This is a little odd since we later compute floating values anyway.
-// But it makes the code easier
-void ReadALineAtATime(TIFF *tif, int w, int h, uint8* raster, bool write_debug_image = false)
-{
-    uint32 imagelength;
-    tdata_t buf;
-    uint32 row;
 
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &imagelength);
-    printf("Image length is %d\n", imagelength);
-    int sls = TIFFScanlineSize(tif);
-    printf("Scan line size is %d bytes\n", sls);
 
-    // create a vector of doubles (to make it easy to normalize)
-    vector<double> v(w*h,0.0);
-    buf = _TIFFmalloc(sls);
-    for (row = 0; row < imagelength; row++) {
-	TIFFReadScanline(tif, buf, row);
-        float *b2 = (float *)buf; // convert to a pointer to an array of floats
-        int j;
-        for(j=0; j<sls/sizeof(float); j++)  // copy into vector of doubles
-	    v[row*w+j] = b2[j];
-        }
-    _TIFFfree(buf);
 
-    // Now normalize the vector
-    Normalize(v);
-
-    // Now copy into raster, in the format the rest of the code expects.
-    // Change mean to 127, std dev to 32  (4 standard dev range)
-    for(int j=0; j<w*h; j++) {
-       int pix = int (v[j]*32.0+ 127.5);
-       if (pix < 0) pix=0;
-       if (pix > 255) pix = 255;
-       raster[j] = pix;
-       }
-    if (!write_debug_image)
-	return;
-
-    // Now write it out in a format GIMP can read, for debugging
-    char newname[20];
-    sprintf(newname,"%d.tif",num++);
-    printf(" ----> writing as %d.tif, w=%d h=%d\n",num-1, w, h);
-    TIFF *image;
-    if((image = TIFFOpen(newname, "w")) == NULL){
-	printf("Could not open %s for writing\n", newname);
-	exit(42);
-	}
-// We need to set some values for basic tags before we can add any data
-    TIFFSetField(image, TIFFTAG_IMAGEWIDTH, w);
-    TIFFSetField(image, TIFFTAG_IMAGELENGTH,h);
-    TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, 8);
-    TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(image, TIFFTAG_ROWSPERSTRIP, h);
-    TIFFSetField(image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
-    TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
-    TIFFSetField(image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-// Write the information to the file
-    TIFFWriteEncodedStrip(image, 0, raster, w*h);
-// Close the file
-    TIFFClose(image);
-}
-// Some MRC images are written as 16 bit TIFFs.
-// Convert them into 8 bit integer samples.
-void Read16BitTiff(TIFF *tif, int w, int h, uint8* raster, bool write_debug_image = false)
-{
-
-    int npixels = w*h;
-    uint16 *buffer = (uint16 *)malloc(npixels*sizeof(uint16));
-    int nbr=0; // number of bytes read
-    int nb;    // number read each time
-    int j=0;
-    for(nbr=0; nbr < npixels*2; nbr = nbr + nb)
-	nb=TIFFReadEncodedStrip(tif, j++,  buffer+nbr/2, (tsize_t)-1);
-    printf("Last Encoded 16 bit strip had %d bytes\n", nb);
-
-    //copy it to a vector of doubles, then normalize it
-    vector<double>v(npixels);
-    for(int i=0; i<w*h; i++)
-	v[i] = buffer[i];
-    free(buffer);
-    Normalize(v);
-
-    // Now copy into raster, in the format the rest of the code expects.
-    // Change mean to 127, std dev to 25
-    for(int j=0; j<npixels; j++) {
-       int pix = int (v[j]*25.0+ 127.5);
-       if (pix < 0) pix=0;
-       if (pix > 255) pix = 255;
-       raster[j] = pix;
-       }
-    if (!write_debug_image)
-	return;
-
-    // Now write it out in a format GIMP can read, for debugging
-    char newname[20];
-    sprintf(newname,"%d.tif",num++);
-    printf(" ----> writing as %d.tif, w=%d h=%d\n",num-1, w, h);
-    TIFF *image;
-    if((image = TIFFOpen(newname, "w")) == NULL){
-	printf("Could not open %s for writing\n", newname);
-	exit(42);
-	}
-// We need to set some values for basic tags before we can add any data
-    TIFFSetField(image, TIFFTAG_IMAGEWIDTH, w);
-    TIFFSetField(image, TIFFTAG_IMAGELENGTH,h);
-    TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, 8);
-    TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(image, TIFFTAG_ROWSPERSTRIP, h);
-    TIFFSetField(image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
-    TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
-    TIFFSetField(image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-// Write the information to the file
-    TIFFWriteEncodedStrip(image, 0, raster, w*h);
-// Close the file
-    TIFFClose(image);
-}
-
-uint8* ReadATiffFile(const char *name, uint32 &w, uint32 &h, FILE *flog, bool Transpose=false, bool Normalize=false)
-{
-printf("OK, will open '%s'\n", name);
-TIFF* tif = TIFFOpen(name, "r");
-if (tif == NULL) {
-    printf("Cannot open '%s' for read\n", name);
-    fprintf(flog,"Cannot open '%s' for read\n", name);
-    exit(42);
-    }
-
-size_t npixels;
-TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-uint16 bs, spp;
-TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bs);
-TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
-printf("bits per sample %d, samples per pixel %d\n", bs, spp);
-npixels = w * h;
-printf("Picture is %d by %d, %d pixels total\n", w, h, npixels);
-uint8 *raster = (uint8*) _TIFFmalloc(npixels * sizeof (uint8));
-//fprintf(flog, "Raster allocated at 0x%lx\n", raster);
-if (raster != NULL) {
-    if (bs == 32 && spp == 1)  // if 32 bits per pixel, read a line at a time
-	ReadALineAtATime(tif, w, h, raster);
-    else if (bs == 16 && spp == 1)  // if 32 bits per pixel, read a line at a time
-	Read16BitTiff(tif, w, h, raster);
-    else {
-	int nbr=0; // number of bytes read
-        int nb;    // number read each time
-        int j=0;
-        for(nbr=0; nbr < npixels; nbr = nbr + nb)
-            nb=TIFFReadEncodedStrip(tif, j++,  raster+nbr, (tsize_t)-1);
-	/*...process raster data...*/
-        printf("Last Encoded strip had %d bytes\n", nb);
-	}
-    }
-else {
-    printf("Malloc failed in ReadATiffFile\n");
-    exit(42);
-    }
-TIFFClose(tif);
-if (Transpose) {
-    vector<uint8> temp;
-    temp.reserve(npixels);
-    for(int i=0; i<npixels; i++) {
-        int y = i/w;
-        int x = i-y*w;
-        temp[y+x*h] = raster[x+y*w];
-        }
-    for(int i=0; i<npixels; i++)
-	raster[i] = temp[i];
-    int t=w; w = h; h = t;  // swap w and h
-    }
-if (Normalize) {
-    MeanStd m;
-    for(int i=0; i<w*h; i++)
-	m.Element(double(raster[i]));
-    double mean, std;
-    m.Stats(mean, std);
-    for(int i=0; i<w*h; i++) {
-	int pix = RND(127 + (raster[i]-mean)/std*30.0);  // Note - RND never returns negative
-        if (pix > 255) pix = 255;
-        raster[i] = pix;
-	}
-    }
-return raster;
-}
-//----------------------------- Code for reading/writing .png files --------------------
-uint16* read_monochrome_png_file(const char *file_name)
-{
-FILE *fp = fopen(file_name, "rb");
-if (!fp) {
-    return NULL;
-    }
-const int number=8;  // read this many bytes
-png_byte header[number];
-fread(header, 1, number, fp);
-bool is_png = !png_sig_cmp(header, 0, number);
-if (!is_png) {
-    return NULL;  // not a .png file
-    }
-
-// create the structures
-png_structp png_ptr = png_create_read_struct
-        (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL); // use default error handlers
-if (!png_ptr)
-    return NULL;
-png_infop info_ptr = png_create_info_struct(png_ptr);
-if (!info_ptr) {
-    png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-    return NULL;
-    }
-
-png_init_io(png_ptr, fp);
-png_set_sig_bytes(png_ptr, number);
-
-png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_SWAP_ENDIAN, NULL);
-fclose(fp);
-
-// now get some info about the
-png_uint_32 width, height;
-int bit_depth, color_type;
-png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
-printf("width %d, height %d, bit depth %d, color_type %d\n", width, height, bit_depth, color_type);
-
-// get the pointers to each row.
-uint16* rslt = (uint16 *)malloc(height*width*sizeof(uint16));
-if (bit_depth == 16) {
-    png_uint_16 **row_ptrs = (png_uint_16**)png_get_rows(png_ptr, info_ptr);
-    int n=0;
-    for(int y=0; y<height; y++)
-	for(int x=0; x<width; x++)
-	    rslt[n++] = row_ptrs[y][x];
-    }
-else if (bit_depth == 8 && color_type == PNG_COLOR_TYPE_GRAY){
-    printf("Converting from 8 bit.  May want to re-write if memory is important.\n");
-    png_byte **row_ptrs = (png_byte**)png_get_rows(png_ptr, info_ptr);
-    int n=0;
-    for(int y=0; y<height; y++)
-	for(int x=0; x<width; x++)
-	    rslt[n++] = row_ptrs[y][x];
-    }
-else if (bit_depth == 8 && color_type == PNG_COLOR_TYPE_RGBA){
-    printf("Converting from 32 bit RGBA.  Will give bad results for values over 2^16-1.\n");
-    uint32 **row_ptrs = (uint32**)png_get_rows(png_ptr, info_ptr);
-    int n=0;
-    for(int y=0; y<height; y++)
-	for(int x=0; x<width; x++)
-	    rslt[n++] = row_ptrs[y][x];
-    }
-else {
-    printf("Cannot read .png file '%s' with bit depth %d and color %d\n", file_name, bit_depth, color_type);
-    free(rslt);
-    rslt = NULL;
-    }
-png_destroy_read_struct(&png_ptr, &info_ptr, NULL);  // we've made a copy, so free original
-return rslt;
-}
-
-// Reads an 8 bit png file.
-uint8* read_8bit_png_file(const char *file_name, int &w, int &h)
-{
-FILE *fp = fopen(file_name, "rb");
-if (!fp) {
-    return NULL;
-    }
-const int number=8;  // read this many bytes
-png_byte header[number];
-fread(header, 1, number, fp);
-bool is_png = !png_sig_cmp(header, 0, number);
-if (!is_png) {
-    return NULL;  // not a .png file
-    }
-
-// create the structures
-png_structp png_ptr = png_create_read_struct
-        (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL); // use default error handlers
-if (!png_ptr)
-    return NULL;
-png_infop info_ptr = png_create_info_struct(png_ptr);
-if (!info_ptr) {
-    png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-    return NULL;
-    }
-
-png_init_io(png_ptr, fp);
-png_set_sig_bytes(png_ptr, number);
-
-png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_SWAP_ENDIAN, NULL);
-fclose(fp);
-
-// now get some info about the
-int bit_depth, color_type;
-png_uint_32 width, height;
-png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
-printf("width %d, height %d, bit depth %d, color_type %d\n", width, height, bit_depth, color_type);
-
-// get the pointers to each row.
-uint8* rslt = (uint8 *)malloc(height*width*sizeof(uint8));
-if (bit_depth == 8){
-    png_byte **row_ptrs = (png_byte**)png_get_rows(png_ptr, info_ptr);
-    int n=0;
-    for(int y=0; y<height; y++)
-	for(int x=0; x<width; x++)
-	    rslt[n++] = row_ptrs[y][x];
-    }
-else {
-    printf("Trying 8 bit read; Cannot read .png file '%s' with bit depth %d\n", file_name, bit_depth);
-    free(rslt);
-    rslt = NULL;
-    }
-png_destroy_read_struct(&png_ptr, &info_ptr, NULL);  // we've made a copy, so free original
-w = width;   // returned values.  Just to make types 'int' for convenience
-h = height;
-return rslt;
-}
-
-// Writes an in-memory raster as an 8 bit .png file
-void write_8bit_png_file(const char* file_name, unsigned char *raster, int width, int  height)
-{
-/* create file */
-FILE *fp = fopen(file_name, "w");
-if (fp == NULL) {
-    printf("Open for write of 8-bit '%s' failed\n", file_name);
-    exit(-1);
-    }
-
-/* initialize stuff */
-png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-png_infop  info_ptr = png_create_info_struct(png_ptr);
-png_init_io(png_ptr, fp);
-
-png_byte bit_depth = 8;
-png_byte color_type = PNG_COLOR_TYPE_GRAY;
-png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, color_type, PNG_INTERLACE_NONE,
- PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-png_write_info(png_ptr, info_ptr);
-
-// create the row pointers
-vector<png_byte *> row_pointers(height);
-for(int i=0; i<height; i++)
-    row_pointers[i] = (png_byte *)(raster+i*width);
-png_write_image(png_ptr, &row_pointers[0]);
-
-png_write_end(png_ptr, NULL);
-fclose(fp);
-}
-// Writes an in-memory raster as a 16 bit .png file
-void write_16bit_png_file(const char* file_name, uint16 *raster, int width, int  height)
-{
-/* create file */
-FILE *fp = fopen(file_name, "w");
-if (fp == NULL) {
-    printf("Open for write of 16-bit '%s' failed\n", file_name);
-    exit(-1);
-    }
-
-/* initialize stuff */
-png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-png_infop  info_ptr = png_create_info_struct(png_ptr);
-png_init_io(png_ptr, fp);
-
-png_byte bit_depth = 16;
-png_byte color_type = PNG_COLOR_TYPE_GRAY;
-png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, color_type, PNG_INTERLACE_NONE,
- PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-png_write_info(png_ptr, info_ptr);
-png_set_swap(png_ptr);
-
-// create the row pointers.  Note that these are byte pointers, even though the data is uint16s.
-vector<png_byte *> row_pointers(height);
-for(int i=0; i<height; i++)
-    row_pointers[i] = (png_byte *)(raster+i*width);
-png_write_image(png_ptr, &row_pointers[0]);
-
-png_write_end(png_ptr, NULL);
-fclose(fp);
-}
-
-// Writes an in-memory raster as a 32 bit .png file.  This is really 32 bit monochrome
-// data, but since there is no 32 bit monochrome we store it this way
-void write_32bit_png_file(const char* file_name, uint32 *raster, int width, int  height)
-{
-/* create file */
-FILE *fp = fopen(file_name, "w");
-if (fp == NULL) {
-    printf("Open for write of 32-bit '%s' failed\n", file_name);
-    exit(-1);
-    }
-
-/* initialize stuff */
-png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-png_infop  info_ptr = png_create_info_struct(png_ptr);
-png_init_io(png_ptr, fp);
-
-png_byte bit_depth = 8;
-png_byte color_type = PNG_COLOR_TYPE_RGBA;
-png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, color_type, PNG_INTERLACE_NONE,
- PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-png_write_info(png_ptr, info_ptr);
-png_set_swap(png_ptr);
-
-// create the row pointers.  Note that these are byte pointers, even though the data is uint16s.
-vector<png_byte *> row_pointers(height);
-for(int i=0; i<height; i++)
-    row_pointers[i] = (png_byte *)(raster+i*width);
-png_write_image(png_ptr, &row_pointers[0]);
-
-png_write_end(png_ptr, NULL);
-fclose(fp);
-}
-// Write an 8 bit, monochrome, tif file.
-void WriteMonochromeTIFF(const char *filename, uint8* buffer, int w, int h, int BitsPerPixel)
-{
-TIFF *image;
-// write this out as (argv[2]-.tif).map.%d.tif so we can look at it.
-if((image = TIFFOpen(filename, "w")) == NULL){
-    printf("Could not open '%s' for writing\n", filename );
-    exit(42);
-    }
-// We need to set some values for basic tags before we can add any data
-TIFFSetField(image, TIFFTAG_IMAGEWIDTH, w);
-TIFFSetField(image, TIFFTAG_IMAGELENGTH,h);
-TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, BitsPerPixel);
-TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, 1);
-TIFFSetField(image, TIFFTAG_ROWSPERSTRIP, h);
-TIFFSetField(image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
-//TIFFSetField(image, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
-TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
-TIFFSetField(image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-// Write the information to the file
-TIFFWriteEncodedStrip(image, 0, buffer, w*h*BitsPerPixel/8);
-// Close the file
-TIFFClose(image);
-}
 
 //note the location of (x,y) in the array is different than the fftw doc, but this is OK in this
 // case since we use only ffti(fft(d))
@@ -1556,21 +1122,44 @@ for(int i=0; i<w*h; i++)
 
 
 
-// Read either a TIFF or an MRC file.  Should include .png too.
-uint8* ReadAnImageFile(const char *name, uint32 &w, uint32 &h, FILE *flog, bool Transpose=false, bool Normalize=false)
+
+/* --------------------------------------------------------------- */
+/* LoadNormImg --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static uint8* LoadNormImg( const char *name, uint32 &w, uint32 &h )
 {
-if (strstr(name,".tif") != NULL)
-    return ReadATiffFile(name, w, h, flog, Transpose, Normalize);
-else if (strstr(name, ".mrc") != NULL) {
-    // if normalization is asked for, do two gaussian variety, otherwise just one
-    return ReadAnMRCFile(name, w, h, flog, Transpose, Normalize ? 2 : 1);
-    }
-else {
-    printf("Unknown file suffix for '%s'\n", name);
-    exit(42);
-    return NULL;
-    }
+	if( strstr( name, ".mrc" ) )
+		return ReadAnMRCFile( name, w, h, stdout );
+	else {
+
+		uint8*	ras = Raster8FromAny( name, w, h, stdout );
+		double	mean, std;
+		int		np  = w * h;
+		MeanStd	m;
+
+		for( int i = 0; i < np; ++i )
+			m.Element( double(ras[i]) );
+
+		m.Stats( mean, std );
+
+		for( int i = 0; i < np; ++i ) {
+
+			int pix = RND( 127 + (ras[i] - mean) / std * 30.0 );
+
+			if( pix > 255 )
+				pix = 255;
+
+			ras[i] = pix;
+		}
+
+		return ras;
+	}
 }
+
+
+
+
 
 // Can we rule out that an image from (0,0) to (w-1,h-1), when transformed by
 // any of its 'tfs', will hit the image (xmin,ymin) to (xmax,ymax)?
@@ -1694,10 +1283,18 @@ free(raster);
 raster = new_ras;
 }
 
-// Makes the directory exist.  If it already exists and is not a directory,
-// or cannot be created, print an error message and exit with an error code.
-// If it does exist and is a directory, or if we can create it, return
-// normally.
+
+
+/* --------------------------------------------------------------- */
+/* MakeDirExist -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Makes the directory exist.
+// If it already exists and is not a directory, or cannot be created,
+// print an error message and exit with an error code.
+// If it does exist and is a directory, or if we can create it,
+// return normally.
+//
 void MakeDirExist(const char *name, set<string> &dir_cache)
 {
 // first, see if we already created this directory.
@@ -1771,7 +1368,7 @@ for(int x = 0; x<w; x++)
 int WriteSummaryTile(string rav_name, int section, int level, int row, int col, set<string> &dir_cache)
 {
 // open the 4 relevant tiles - (row,col), (row+1,col), (row,col+1), and (row+1,col+1)
-int w1, h1, w2, h2, w3, h3, w4, h4;
+uint32 w1, h1, w2, h2, w3, h3, w4, h4;
 char fname[1024];
 int dir = section/1000;
 char ds[32];                     // string for the final directory
@@ -1781,13 +1378,13 @@ if (dir != 0)                    // but otherwise, one per thousand layers
 
 //Tiles are named after compass directions on the screen (sw= southwest, for example)
 sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row, col, ds, section);
-uint8* sw = read_8bit_png_file(fname, w1, h1);
+uint8* sw = Raster8FromPng(fname, w1, h1);
 sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row+1, col, ds, section);
-uint8* nw = read_8bit_png_file(fname, w2, h2);
+uint8* nw = Raster8FromPng(fname, w2, h2);
 sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row, col+1, ds, section);
-uint8* se = read_8bit_png_file(fname, w3, h3);
+uint8* se = Raster8FromPng(fname, w3, h3);
 sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row+1, col+1, ds, section);
-uint8* ne = read_8bit_png_file(fname, w4, h4);
+uint8* ne = Raster8FromPng(fname, w4, h4);
 if (sw == NULL)  // if even the base tile does not exist, don't write anything.
     return 0;
 // if we are at the origin, and one tile holds everything, we don't need a tile either
@@ -1824,7 +1421,7 @@ else { // need another layer of directories
     sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%d/%03d.png", rav_name.c_str(), level, row/2, col/2, dir*1000, section);
     }
 printf("writing tile '%s', %d by %d\n", fname, w, h);
-write_8bit_png_file(fname, raster, w, h);
+Raster8ToPng8( fname, raster, w, h );
 free(raster);
 return 1;
 }
@@ -1935,7 +1532,7 @@ for(int row = 0; row*1024 < h; row++) {
 	    MakeDirExist(fname, dir_cache);
 	    sprintf(fname,"%s/%d/%d/g/%d/%03d.png", base_name.c_str(), row, col, dir*1000, section);
 	    }
-        write_8bit_png_file(fname, raster, new_w, ymax-ymin+1);
+        Raster8ToPng8( fname, raster, new_w, ymax-ymin+1 );
 	}
     }
 free(raster);
@@ -2492,8 +2089,8 @@ for(;;){
         // at this point, all we need is w and h, so toss image as soon as we read it.
         image ii;
         if (w == 0) {  //read a file, then free it, just to set w and h
-            ii.raster = ReadAnImageFile(tname, w, h, stdout);
-            _TIFFfree(ii.raster);
+            ii.raster = Raster8FromAny( tname, w, h, stdout );
+            RasterFree( ii.raster );
             w /= scale;
             h /= scale;
 	    }
@@ -2509,7 +2106,7 @@ for(;;){
         ii.layer = FileNameToLayerNumber(dnames, lnums, tname);
         ii.foldmap = NULL;
 	ii.fname = strdup(mname);
-        //ii.foldmap = ReadATiffFile(mname, w, h, stdout, false);
+        //ii.foldmap = Raster8FromAny( mname, w, h, stdout );
         // if the foldmap was blahblahblah.tif, also look for blahbladblahd.tif, and use that instead.
         // (this is the fold mask used for drawing, as opposed to that used for correlation.)
         // If layers are specified, do this only for layers that are used, since it requires a file access
@@ -2762,9 +2359,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // start by tossing out previous images, if any
     for(int i=0; i<images.size(); i++) {
 	if (images[i].raster != NULL)
-	    _TIFFfree(images[i].raster);    // free images previously used
+	    RasterFree( images[i].raster );
 	if (images[i].foldmap != NULL)
-	    _TIFFfree(images[i].foldmap);   // and previous foldmaps
+	    RasterFree( images[i].foldmap );
         images[i].raster  = NULL;
 	images[i].foldmap = NULL;
 	if (images[i].spmap != NULL && images[i].spmap != BlankSPMap) {
@@ -2793,7 +2390,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         relevant_images.push_back(i);
 	uint32 ww, hh;  // if 'scale' option is used, this is the original size
 	if (images[i].raster == NULL) {
-	    images[i].raster  = ReadAnImageFile(images[i].rname, ww, hh, stdout, false, true);
+	    images[i].raster  = LoadNormImg( images[i].rname, ww, hh );
             ImageResize(images[i].raster, ww, hh, scale);
             }
 	if (images[i].foldmap == NULL) {
@@ -2804,7 +2401,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    file_name = string(images[i].fname);
 	        else
                     file_name = fold_dir + "/" +string(images[i].fname);  //pre-pend the fold directory name
-		images[i].foldmap = ReadATiffFile(file_name.c_str(), ww, hh, stdout);
+		images[i].foldmap = Raster8FromAny( file_name.c_str(), ww, hh, stdout );
                 ImageResize(images[i].foldmap, ww, hh, scale);
 		FillInHolesInFoldmap(images[i].foldmap, w, h);
 		FoldmapRenumber(images[i]);
@@ -2823,7 +2420,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		test = BlankSPMap;
 		}
 	    else {
-		test = read_monochrome_png_file(images[i].spname);
+		uint32	wdum, hdum;
+		test = Raster16FromPng( images[i].spname, wdum, hdum );
 	        if (test == NULL) {
 		    printf("Cannot read superpixel map '%s'.\n", images[i].spname);
 	            test = BlankSPMap;
@@ -2848,11 +2446,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		}
 	    else { // name is defined; see if file exists
                 if (strstr(images[i].bname,".png") != NULL) {
-                    int wj, hj; // not used
-		    test = read_8bit_png_file(images[i].bname, wj, hj);
+                    uint32 wj, hj; // not used
+		    test = Raster8FromPng(images[i].bname, wj, hj);
                     }
                 else
-	    	    test = ReadAnImageFile(images[i].bname, ww, hh, stdout, false, true);
+	    	    test = LoadNormImg( images[i].bname, ww, hh );
 	        if (test == NULL) {
 		    printf("Cannot read boundary map file '%s'.\n", images[i].bname);
 	            test = BlankBMap;
@@ -2919,16 +2517,15 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     char fname[256];
     if (Debug) {
         printf("Try writing 16 bit map\n");
-        write_16bit_png_file("test.png", &(imap[0]), nx, ny);
+        Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
         sprintf(fname,"map.%d.png", out_layer);
         printf("Writing  8 bit map in png format to %s\n", fname);
         vector<uint8> copy(nx*ny, 0);  // make an 8 bit copy
         for(int i=0; i<nx*ny; i++)
 	    copy[i] = imap[i];
-        write_8bit_png_file(fname, (unsigned char *)&(copy[0]), nx, ny);
-        //WriteMonochromeTIFF(fname, &(copy[0]), nx, ny, 8);
-        sprintf(fname,"pf.%d.tif", out_layer);
-        //WriteMonochromeTIFF(fname, &(PatchFrom[0]), nx, ny, 8);
+        Raster8ToPng8( fname, (unsigned char *)&(copy[0]), nx, ny );
+        sprintf( fname,"pf.%d.tif", out_layer );
+        //Raster8ToTif8( fname, &(PatchFrom[0]), nx, ny );
         }
 
     printf("Starting 'before' image\n");
@@ -3002,21 +2599,21 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		}
 	    }
         }
-    //sprintf(fname,"before.%05d.tif", out_layer);
-    //WriteMonochromeTIFF(fname, &(before[0]), nx, ny, 8);
+    //sprintf( fname,"before.%05d.tif", out_layer );
+    //Raster8ToTif8( fname, &(before[0]), nx, ny );
     if (make_flat) {
 	if (nx*ny > 0x7FFFFFFFu) {  // is it *really* big?
 	    printf("write half\n");
 	    sprintf(fname,"before.%05d.a.png", out_layer);
-	    write_8bit_png_file(fname, (unsigned char *)&(before[0]), nx, ny/2);
+	    Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny/2 );
 	    printf("write the other half\n");
 	    sprintf(fname,"before.%05d.b.png", out_layer);
-	    write_8bit_png_file(fname, (unsigned char *)&(before[nx*ny/2]), nx, ny/2);
+	    Raster8ToPng8( fname, (unsigned char *)&(before[nx*ny/2]), nx, ny/2 );
 	    printf("both written\n");
 	    }
 	else {   // this is the usual case
 	    sprintf(fname,"before.%05d.png", out_layer);
-	    write_8bit_png_file(fname, (unsigned char *)&(before[0]), nx, ny);
+	    Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny );
 	    }
 	}
 
@@ -3026,7 +2623,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         if (make_map) {
             sprintf(fname,"%s/%s/map.%05d.png", region_dir.c_str(), inv_dir.c_str(), out_layer);
             printf("write Pixel mapping file %s\n", fname);
-            write_16bit_png_file(fname, &(imap[0]), nx, ny);
+            Raster16ToPng16( fname, &(imap[0]), nx, ny );
 	    // ------------------------------------------------ write the mapping text file  --------------------
 	    // This is the text file that contains the transformations that describe how each pixel got there.
 	    sprintf(fname,"%s/%s/mapping.%05d.txt", region_dir.c_str(), inv_dir.c_str(), out_layer);
@@ -3127,7 +2724,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	}
     if (bogus)
 	exit(42);
-    //WriteMonochromeTIFF("tmap.tif", &(tmap[0]), w, h, 8);
+    //Raster8ToTif8( "tmap.tif", &(tmap[0]), w, h );
 
     // Now, for each patch of each relevant image create N triangles using N+1 pts each, all transferred
     // to the global reference frame.
@@ -3203,7 +2800,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
             if (!Debug) {
 		printf("Writing map as 'test.png'\n");
-        	write_16bit_png_file("test.png", &(imap[0]), nx, ny);
+        	Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
 		}
             return 42;
 	    }
@@ -3238,7 +2835,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
             if (!Debug) {
 		printf("Writing map as 'test.png'\n");
-        	write_16bit_png_file("test.png", &(imap[0]), nx, ny);
+        	Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
 		}
             return 42;
 	    }
@@ -3504,7 +3101,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     if (make_map) {
         sprintf(fname,"%s/%s/map.%05d.png", region_dir.c_str(), inv_dir.c_str(), out_layer);
         printf("write Pixel mapping file %s\n", fname);
-        write_16bit_png_file(fname, &(imap[0]), nx, ny);
+        Raster16ToPng16( fname, &(imap[0]), nx, ny );
         }
     else
         printf("User requested no map file.\n");
@@ -3598,11 +3195,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		}
 	    }
         }
-    //sprintf(fname,"after.%05d.tif", out_layer);
-    //WriteMonochromeTIFF(fname, &(before[0]), nx, ny, 8);
+    //sprintf( fname, "after.%05d.tif", out_layer );
+    //Raster8ToTif8( fname, &(before[0]), nx, ny );
     sprintf(fname,"%s/%s/after.%05d.png", region_dir.c_str(), gray_dir.c_str(), out_layer);
     if (make_flat)
-        write_8bit_png_file(fname, (unsigned char *)&(before[0]), nx, ny);
+        Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny );
     if (make_tiles)
         WriteImageTiles(rav_dir, out_layer, (unsigned char *)&(before[0]), nx, ny);
 
@@ -3642,7 +3239,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     if (AnyBMap) {
         sprintf(fname,"%s/%s/bmap.%05d.png", region_dir.c_str(), bmap_dir.c_str(), out_layer);
 	if (make_flat)
-            write_8bit_png_file(fname, (unsigned char *)&(before[0]), nx, ny);
+            Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny );
 	}
 
     // ------------------------------------------------ write the mapping text file  --------------------
@@ -3681,14 +3278,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     for(uint32 i=0; i<nx*ny; i++)  // set the transparecy
 	spmap[i] = spmap[i] | 0xFF000000;
     if (make_flat)
-        write_32bit_png_file(fname, &(spmap[0]), nx, ny);
+        Raster32ToPngRGBA( fname, &(spmap[0]), nx, ny );
     bool experiment = false;
     if (experiment) {
         vector<uint32> copy(nx*ny,0);
 	for(int i=0; i<nx*ny; i++)
 	    copy[i] = 0xFF000000 + spmap[i];
         printf("try to write the small array as a .png file\n"); fflush(stdout);
-        write_32bit_png_file("try32bita.png", &(copy[0]), nx, ny);
+        Raster32ToPngRGBA( "try32bita.png", &(copy[0]), nx, ny );
         int bigx = 45000;
 	int bigy = 47000;
         printf("try to allocate a huge array\n"); fflush(stdout);
@@ -3699,7 +3296,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         for(int i=0; i<p2; i++)
 	    big[i] = copy[i % p1];
         printf("try to write the huge array as a .png file\n"); fflush(stdout);
-        write_32bit_png_file("try32bitb.png", &(big[0]), bigx, bigy);
+        Raster32ToPngRGBA( "try32bitb.png", &(big[0]), bigx, bigy );
         printf("done writing the huge array as a .png file\n"); fflush(stdout);
         }
 

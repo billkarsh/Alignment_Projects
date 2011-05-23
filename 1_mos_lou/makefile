@@ -34,7 +34,7 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	File.cpp Maths.cpp Memory.cpp
+	File.cpp ImageIO.cpp Maths.cpp Memory.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
