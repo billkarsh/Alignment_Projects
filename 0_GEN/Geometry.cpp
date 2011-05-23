@@ -520,6 +520,14 @@ double SegPointDist(
 
 // Return true if point c is on the left side of vector a -> b.
 //
+bool LeftSide( const Point &a, const Point &b, const Point &c )
+{
+	return CROSS( a, b, c ) > 0;
+}
+
+
+// Return true if point c is on the left side of vector a -> b.
+//
 bool LeftSide( const vertex &a, const vertex &b, const vertex &c )
 {
 	return CROSS( a, b, c ) > 0;
@@ -1103,6 +1111,15 @@ double triangle::Area( const vector<Point> &ctl ) const
 /* --------------------------------------------------------------- */
 /* AreaOfTriangle ------------------------------------------------ */
 /* --------------------------------------------------------------- */
+
+double AreaOfTriangle(
+	const Point		&v0,
+	const Point		&v1,
+	const Point		&v2 )
+{
+	return 0.5 * abs( CROSS( v0, v1, v2 ) );
+}
+
 
 double AreaOfTriangle(
 	const vertex	&v0,

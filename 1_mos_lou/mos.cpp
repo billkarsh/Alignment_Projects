@@ -4,14 +4,21 @@
 
 #include	"ImageIO.h"
 #include	"Maths.h"
+#include	"Geometry.h"
+#include	"CTForm.h"
 
-
-#include	"mrc.h"
-#include	"dmesh.h"
+#include	<fftw3.h>
 
 #include	<sys/resource.h>
 #include	<sys/stat.h>
 
+#include	<set>
+using namespace std;
+
+
+/* --------------------------------------------------------------- */
+/* Types --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
 class glob_spot {
   public:
@@ -36,10 +43,10 @@ class image {
     uint16 *spmap;
     int spbase;   // should be added to all sp ids in this image, for uniqueness
     vector<int> SPmapping;  // tells what original SP numbers are mapped to
-    vector<tform>  tf;  // from image to global space, one for each patch (0 unused)
-    vector<tform> inv;  // inverse transform
-    vector<vector<tform> > sectors;  // forward transform for each sector of each patch
-    vector<vector<tform> > sinvs;    // Sector inverses
+    vector<TForm>  tf;  // from image to global space, one for each patch (0 unused)
+    vector<TForm> inv;  // inverse transform
+    vector<vector<TForm> > sectors;  // forward transform for each sector of each patch
+    vector<vector<TForm> > sinvs;    // Sector inverses
     int FirstGlobalPoint;
     int FirstTriangle;
     int layer; // layer number
@@ -58,6 +65,96 @@ class Triple {
     Triple(){this->image = 0; this->patch = 0; this->sector = 0;}
     Triple(uint16 i, uint8 p, uint8 s){this->image=i; this->patch=p; this->sector=s;}
     };
+
+/* --------------------------------------------------------------- */
+/* Statics ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static FILE *of;
+static int nwarn_edge_interp = 0;   // interpolation cannot be done since max is on edge of region
+static int nwarn_bad_corr = 0;      // could not find a good correlation
+static int nwarn_good_on_edge = 0;  // worst case - good correlation, but on edge
+
+static bool dp = false;  // debug print
+
+
+
+
+
+
+/* --------------------------------------------------------------- */
+/* PrintTransform ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void PrintTransform( FILE *of, TForm &tr )
+{
+	fprintf( of,
+	"%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n",
+	tr.t[0], tr.t[1], tr.t[2],
+	tr.t[3], tr.t[4], tr.t[5] );
+}
+
+/* --------------------------------------------------------------- */
+/* PrintTransAndInv ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void PrintTransAndInv( FILE *of, TForm &tr )
+{
+	TForm	in;
+
+	InvertTrans( in, tr );
+
+	fprintf( of,
+	"Fwd:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n",
+	tr.t[0], tr.t[1], tr.t[2],
+	tr.t[3], tr.t[4], tr.t[5] );
+
+	fprintf( of,
+	"Rev:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n",
+	in.t[0], in.t[1], in.t[2],
+	in.t[3], in.t[4], in.t[5] );
+}
+
+/* --------------------------------------------------------------- */
+/* LoadNormImg --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static uint8* LoadNormImg( const char *name, uint32 &w, uint32 &h )
+{
+	uint8*	ras = Raster8FromAny( name, w, h, stdout );
+
+	if( !strstr( name, ".mrc" ) ) {
+
+		double	mean, std;
+		int		np  = w * h;
+		MeanStd	m;
+
+		for( int i = 0; i < np; ++i )
+			m.Element( double(ras[i]) );
+
+		m.Stats( mean, std );
+
+		for( int i = 0; i < np; ++i ) {
+
+			int pix = RND( 127 + (ras[i] - mean) / std * 30.0 );
+
+			if( pix > 255 )
+				pix = 255;
+
+			ras[i] = pix;
+		}
+	}
+
+	return ras;
+}
+
+
+
+
+
+
+
+
 
 //---------------------- Sparse matrix stuff -----------------
 class entry {
@@ -95,49 +192,6 @@ for(int i = 0; i<n; i++) {
 }
 
 
-
-
-FILE *of;
-int nwarn_edge_interp = 0;   // interpolation cannot be done since max is on edge of region
-int nwarn_bad_corr = 0;      // could not find a good correlation
-int nwarn_good_on_edge = 0;  // worst case - good correlation, but on edge
-
-bool dp;  // debug print
-
-void Transform(Point &p, tform &t)
-{
-double x = p.x*t.t[0] + p.y*t.t[1] + t.t[2];
-double y = p.x*t.t[3] + p.y*t.t[4] + t.t[5];
-p.x = x;
-p.y = y;
-}
-
-void InvertTrans(tform &inv, tform &b)
-{
-double det = b.t[0]*b.t[4] - b.t[1]*b.t[3];
-inv.t[0] = b.t[4]/det; inv.t[1] = -b.t[1]/det; inv.t[2] = (b.t[5]*b.t[1]-b.t[4]*b.t[2])/det;
-inv.t[3] =-b.t[3]/det; inv.t[4] =  b.t[0]/det; inv.t[5] = (b.t[2]*b.t[3]-b.t[0]*b.t[5])/det;
-}
-
-// Compute r = a*b
-void MultiplyTrans(tform &r, tform &a, tform &b)
-{
-r.t[0] = a.t[0]*b.t[0]+a.t[1]*b.t[3]; r.t[1] = a.t[0]*b.t[1]+a.t[1]*b.t[4]; r.t[2] = a.t[0]*b.t[2]+a.t[1]*b.t[5]+a.t[2];
-r.t[3] = a.t[3]*b.t[0]+a.t[4]*b.t[3]; r.t[4] = a.t[3]*b.t[1]+a.t[4]*b.t[4]; r.t[5] = a.t[3]*b.t[2]+a.t[4]*b.t[5]+a.t[5];
-}
-
-void PrintTransform(FILE *of, tform &tr)
-{
-fprintf(of,"%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n", tr.t[0], tr.t[1], tr.t[2], tr.t[3], tr.t[4], tr.t[5]);
-}
-
-void PrintTransAndInv(FILE *of, tform &tr)
-{
-fprintf(of,"Fwd:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n", tr.t[0], tr.t[1], tr.t[2], tr.t[3], tr.t[4], tr.t[5]);
-tform in;
-InvertTrans(in, tr);
-fprintf(of,"Rev:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n", in.t[0], in.t[1], in.t[2], in.t[3], in.t[4], in.t[5]);
-}
 
 
 
@@ -247,11 +301,22 @@ return rslt;
 //  also passed to this function.
 // 'ftc' is a cache of the fourier transform of the second image.  If it is the right size, we assume
 //   it has the right data.  To enforce re-computation, make it zero size
-double FindNormCorrelation(vector<Point> &pts, vector<double> &vals, vector<Point> &ip2, vector<double> &iv2,
-double &dx, double &dy, int tx, int ty, int radius, FILE *flog,
-bool (*LegalRegion)(int, int, void *), void *arg,   // function for checking if region dimensions are legal
-bool (*LegalCounts)(int, int, void *), void *arg2,  // function for checking if point counts are legal
-vector<CD> &ftc)
+static double FindNormCorrelation(
+	vector<Point>	&pts,
+	vector<double>	&vals,
+	vector<Point>	&ip2,
+	vector<double>	&iv2,
+	double			&dx,
+	double			&dy,
+	int				tx,
+	int				ty,
+	int				radius,
+	FILE			*flog,
+	bool			(*LegalRegion)(int, int, void *),
+	void			*arg,
+	bool			(*LegalCounts)(int, int, void *),
+	void			*arg2,
+	vector<CD>		&ftc )
 {
 of = flog;
 
@@ -660,7 +725,7 @@ void CommonPoint(vector<image> &images, Point pt, int i1, int patch1, int out_la
 {
 Point p1 = pt;
 printf("image %d, global x,y= %f %f\n", i1, p1.x, p1.y);
-Transform(p1, images[i1].inv[patch1]);
+images[i1].inv[patch1].Transform( p1 );
 const int PATCH=10;  // radius of patch
 //const int LOOK=25;   // radius of region to look.  For Marta, must be smaller
 const int LOOK=52;   // radius of region to look
@@ -703,7 +768,7 @@ for(int i=0; i<images.size(); i++) {
         if (images[i].tf[patch].det() == 0.0)
 	    continue;
         Point p1 = pt;
-        Transform(p1, images[i].inv[patch]);
+        images[i].inv[patch].Transform( p1 );
         //printf(" image %d, x,y= %f %f\n", i, p1.x, p1.y);
         // first, make sure it lands in the image, and we have enough pixels in the image
         int p1x = RND(p1.x);
@@ -848,10 +913,6 @@ else {  // mostly vertical
     }
 }
 
-double AreaOfTriangle(const Point &v0, const Point &v1, const Point &v2)
-{
-return abs((v2.x-v0.x)*(v1.y-v0.y) - (v1.x-v0.x)*(v2.y-v0.y))/2.0;
-}
 
 // an angle like atan2(y,x), but runs from -4 to +4, and is continuous, but not uniform
 double PseudoAngle(double y, double x) {
@@ -934,27 +995,6 @@ printf("Filled in %d holes\n", nholes);
 
 double cot(double x) { return 1.0/tan(x);}
 
-// Invert a 3x3 matrix.
-double Invert3x3matrix( double i[3][3], double a[3][3])
-{
-double det = a[0][0]*a[1][1]*a[2][2] + a[0][1]*a[1][2]*a[2][0] + a[1][0]*a[2][1]*a[0][2] -
-             a[0][2]*a[1][1]*a[2][0] - a[0][1]*a[1][0]*a[2][2] - a[1][2]*a[2][1]*a[0][0];
-i[0][0] =  (a[1][1]*a[2][2] - a[1][2]*a[2][1])/det;
-i[1][0] = -(a[1][0]*a[2][2] - a[1][2]*a[2][0])/det;
-i[2][0] =  (a[1][0]*a[2][1] - a[1][1]*a[2][0])/det;
-i[0][1] = -(a[0][1]*a[2][2] - a[0][2]*a[2][1])/det;
-i[1][1] =  (a[0][0]*a[2][2] - a[0][2]*a[2][0])/det;
-i[2][1] = -(a[0][0]*a[2][1] - a[0][1]*a[2][0])/det;
-i[0][2] =  (a[0][1]*a[1][2] - a[0][2]*a[1][1])/det;
-i[1][2] = -(a[0][0]*a[1][2] - a[0][2]*a[1][0])/det;
-i[2][2] =  (a[0][0]*a[1][1] - a[0][1]*a[1][0])/det;
-return det;
-}
-// Tells if point c is on the left side of the vector a->b by using the cross product
-bool LeftSide(const Point &a, const Point &b, const Point &c)
-{
-return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x) > 0;
-}
 
 bool Inside(triangle &tri, vector<Point> gvtx, Point &p)
 {
@@ -971,7 +1011,7 @@ void FindTriangle(vector<image> &images, int im, int patch, Point p1, vector<tri
 int *which, double *amts)
 {
 Point p = p1;
-Transform(p, images[im].tf[patch]);
+images[im].tf[patch].Transform( p );
 int first_tri = images[im].FirstTriangle + (patch-1)*N;  // since N triangle per patch, and
 					                // first one is #1
 for(int i=first_tri; i < first_tri+N; i++) {
@@ -1123,40 +1163,6 @@ for(int i=0; i<w*h; i++)
 
 
 
-/* --------------------------------------------------------------- */
-/* LoadNormImg --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static uint8* LoadNormImg( const char *name, uint32 &w, uint32 &h )
-{
-	if( strstr( name, ".mrc" ) )
-		return ReadAnMRCFile( name, w, h, stdout );
-	else {
-
-		uint8*	ras = Raster8FromAny( name, w, h, stdout );
-		double	mean, std;
-		int		np  = w * h;
-		MeanStd	m;
-
-		for( int i = 0; i < np; ++i )
-			m.Element( double(ras[i]) );
-
-		m.Stats( mean, std );
-
-		for( int i = 0; i < np; ++i ) {
-
-			int pix = RND( 127 + (ras[i] - mean) / std * 30.0 );
-
-			if( pix > 255 )
-				pix = 255;
-
-			ras[i] = pix;
-		}
-
-		return ras;
-	}
-}
-
 
 
 
@@ -1164,7 +1170,7 @@ static uint8* LoadNormImg( const char *name, uint32 &w, uint32 &h )
 // Can we rule out that an image from (0,0) to (w-1,h-1), when transformed by
 // any of its 'tfs', will hit the image (xmin,ymin) to (xmax,ymax)?
 // try to find a separating line...
-bool RuleOutIntersection(uint32 w, uint32 h, vector<tform>& tfs,  int xmin, int ymin, int xmax, int ymax)
+bool RuleOutIntersection(uint32 w, uint32 h, vector<TForm>& tfs,  int xmin, int ymin, int xmax, int ymax)
 {
 // make the four corners
 vector<Point> corners;
@@ -1179,7 +1185,7 @@ for(int j=1; j<tfs.size(); j++) {  // patches start at 1
     PrintTransform(stdout, tfs[j]);
     for(int i=0; i < corners.size(); i++) {
         Point p = corners[i];
-        Transform(p, tfs[j]);
+        tfs[j].Transform( p );
         printf("Now (%f %f)\n", p.x, p.y);
         all.push_back(p);
 	}
@@ -1728,17 +1734,17 @@ if (strstr(name, "annotations-synapse") != NULL) {
         //             // No longer needed since we compress patches and foldmaps on input
         if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
             continue;
-        tform t;
+        TForm t;
         if (!Warp)  // just one transform per image
             t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
             int sector = tmap[ix+iy*w];
             t = images[image_no].sectors[patch][sector];;
 	    }
-        Transform(p, t);
+        t.Transform( p );
         tbs[j].pt = p;
 	for(int m=0; m<tbs[j].partners.size(); m++)
-	    Transform(tbs[j].partners[m].pt, t);
+	    t.Transform( tbs[j].partners[m].pt );
 	result.push_back(tbs[j]);
 	}
     }
@@ -1778,11 +1784,11 @@ if (strstr(name, "annotations-bookmarks") != NULL) {
 	    if (image == image_no) {
 		int patch = Triples[k].patch;
 		int sector = Triples[k].sector;
-		tform t = images[image].sectors[patch][sector];  // transform from global to image
+		TForm t = images[image].sectors[patch][sector];  // transform from global to image
 		printf("Testing: %d %d ", k, from-1);
 		PrintTransform(stdout, t);
                 Point p2 = bookmarks[j].pt;
-                Transform(p2, images[image].sectors[patch][sector]);
+                images[image].sectors[patch][sector].Transform( p2 );
                 PrintTransAndInv(stdout, images[image].sectors[patch][sector]);
                 printf(" Point in output image is %f %f\n", p2.x, p2.y);
                 int ix = ROUND(p2.x);
@@ -1839,7 +1845,7 @@ for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
 	    // No longer needed since we compress patches and foldmaps on input
 	    if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
 		continue;
-	    Transform(p, images[i].tf[patch]);  // change to global coordinates
+	    images[i].tf[patch].Transform( p );  // change to global coordinates
 	    ix = ROUND(p.x);
 	    iy = ROUND(p.y);
 	    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny)
@@ -1857,8 +1863,8 @@ for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
 		// transform back into original frames.
 		int oi = relevant_images[imap[nn]-1];     // other image
 		int op = PatchFrom[nn]; // other patch
-		Transform(pt_ot, images[oi].inv[op]);
-		Transform(pt_us, images[ i].inv[patch]);
+		images[oi].inv[op].Transform( pt_ot );
+		images[i].inv[patch].Transform( pt_us );
 
 		double d_us = max(abs(pt_us.x-center.x), abs(pt_us.y-center.y));  // L-infinity norm
 		double d_ot = max(abs(pt_ot.x-center.x), abs(pt_ot.y-center.y));  // L-infinity norm
@@ -1928,7 +1934,7 @@ for(int kk=0; kk<temp.size(); kk++) {      // for each picture
 	    // No longer needed since we compress patches and foldmaps on input
 	    if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
 		continue;
-	    Transform(p, images[i].tf[patch]);  // change to global coordinates
+	    images[i].tf[patch].Transform( p );  // change to global coordinates
 	    ix = ROUND(p.x);
 	    iy = ROUND(p.y);
 	    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny)
@@ -2143,7 +2149,7 @@ for(;;){
             printf("Not expecting this in TRANSFORM: %s", lineptr);
 	    break;
             }
-        tform tf(a,b,c/scale,d,e,f/scale);
+        TForm tf(a,b,c/scale,d,e,f/scale);
         char *fname = strtok(name," ':");
         //printf("File '%s'\n", fname);
         map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
@@ -2159,7 +2165,7 @@ for(;;){
         printf("rest = '%s', patch = %d\n", rest, patch);
         // Make sure vector is big enough
         if (images[k].tf.size() <= patch) {
-             images[k].tf.resize(patch+1, tform(0,0,0,0,0,0));  // initialize to an illegal transform
+             images[k].tf.resize(patch+1, TForm(0,0,0,0,0,0));  // initialize to an illegal transform
              images[k].inv.resize(patch+1);
              }
         images[k].tf[patch] = tf;
@@ -2251,7 +2257,7 @@ if (xmin > BIG/2) {
 	    pts.push_back(Point(w-1, h-1));
 	    pts.push_back(Point(0.0, h-1));
 	    for(int j=0; j<4; j++) {
-		Transform(pts[j], images[i].tf[k]);
+		images[i].tf[k].Transform( pts[j] );
 		xmin = fmin(xmin, pts[j].x);
 		ymin = fmin(ymin, pts[j].y);
 		xmax = fmax(xmax, pts[j].x);
@@ -2318,7 +2324,7 @@ for(int i=0; i<images.size(); i++) {
         p[2] = Point(0.0,1.0);
         p[3] = Point(1.0,1.0);
         for(int j=0; j<4; j++)
-           Transform(p[j],images[i].tf[k]);
+           images[i].tf[k].Transform( p[j] );
         // How big of a square might fit in global space?
         double xmin = min(p[0].x,min(p[1].x,min(p[2].x,p[3].x)));
         double ymin = min(p[0].y,min(p[1].y,min(p[2].y,p[3].y)));
@@ -2544,7 +2550,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		continue;  // no image sets this pixel
 	    int img = relevant_images[from-1];
 	    Point p(x, y);
-	    Transform(p, images[img].inv[patch]);
+	    images[img].inv[patch].Transform( p );
 	    // of course, this should be in the image, but let's double check
 	    if (p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1) { // then we can interpolate
 		int ix = int(p.x);
@@ -2583,7 +2589,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    continue;
 		for(int j=0; j<edges.size(); j++) {
 		    Point p = edges[j];
-		    Transform(p, images[i].tf[k]);
+		    images[i].tf[k].Transform( p );
 		    int ix = ROUND(p.x);
 		    int iy = ROUND(p.y);
 		    if (0 <= ix && ix < nx && 0 <= iy && iy < ny)
@@ -2642,7 +2648,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		int image = relevant_images[from-1];  // actual image number
 		int patch = Triples[k].patch;
 		//int sector = Triples[k].sector;     // not used since no sectors yet
-		tform t = images[image].inv[patch];  // transform from global to image
+		TForm t = images[image].inv[patch];  // transform from global to image
 		fprintf(ftxt, "TRANS %d %d ", k, from-1);
 		PrintTransform(ftxt, t);
 		}
@@ -2739,7 +2745,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
             int n0 = gvtx.size();
 	    for(int k=0; k<N+1; k++) {
 	        Point p = vtx[k];
-                Transform(p, images[i].tf[j]);
+                images[i].tf[j].Transform( p );
 		gvtx.push_back(p);
 	        }
             for(int k=0; k<N; k++) {
@@ -2759,7 +2765,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
         a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
         a[2][0] = 1.0;       a[2][1] = 1.0;       a[2][2] = 1.0;
-        Invert3x3matrix(tris[k].a, a);
+        Invert3x3Matrix( tris[k].a, a );
         }
 
     // Now write the triangles out for debugging
@@ -2923,12 +2929,12 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // to each original triangle.
     for(int m=0; m<relevant_images.size(); m++) {
         int i = relevant_images[m];
-        vector<tform> empty;
+        vector<TForm> empty;
         images[i].sectors.push_back(empty);  // since there is no patch 0
         images[i].sinvs  .push_back(empty);
 	for(int j=1; j<images[i].tf.size(); j++) {
-	    vector<tform> ltfs(N);  // an N element vector of transforms
-	    vector<tform> invs(N);  // and the inverses to these
+	    vector<TForm> ltfs(N);  // an N element vector of transforms
+	    vector<TForm> invs(N);  // and the inverses to these
             printf("Image %d, patch %d\n", i, j);
             PrintTransform(stdout, images[i].tf[j]);
 	    for(int k=0; k<N; k++) {
@@ -2938,17 +2944,17 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 int i2 = (k+1)%N;
 		// Now, find a transformation that maps ORIG into the new cpts
 		// first, create a transform that maps a unit right triangle to the original pts
-                tform o(vtx[i1].x-vtx[i0].x, vtx[i2].x-vtx[i0].x, vtx[i0].x,
+                TForm o(vtx[i1].x-vtx[i0].x, vtx[i2].x-vtx[i0].x, vtx[i0].x,
                  vtx[i1].y-vtx[i0].y, vtx[i2].y-vtx[i0].y, vtx[i0].y);
 
 		// and the final points, in global space are
 		int n0 = images[i].FirstGlobalPoint + (j-1)*(N+1);
                 i0 += n0; i1 += n0; i2 += n0;
                 // now one that maps the a unit right triangle to the desired final points
-                tform c(NewG[i1].x-NewG[i0].x, NewG[i2].x-NewG[i0].x, NewG[i0].x,
+                TForm c(NewG[i1].x-NewG[i0].x, NewG[i2].x-NewG[i0].x, NewG[i0].x,
                  NewG[i1].y-NewG[i0].y, NewG[i2].y-NewG[i0].y, NewG[i0].y);
                  // now, to get from the original to the final, apply o^-1, then c;
-                tform oi,t;
+                TForm oi,t;
                 InvertTrans(oi, o);
 	        MultiplyTrans(t, c, oi);
                 PrintTransform(stdout, t);
@@ -2965,9 +2971,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     for(int i=0; i<spots.size(); i++) {
 	// should do all pairs, but at least do two.  First, use original affine map
 	Point p0 = spots[i].where[0];
-        Transform(p0, images[spots[i].which[0]].tf[spots[i].patch[0]]);
+        images[spots[i].which[0]].tf[spots[i].patch[0]].Transform( p0 );
         Point p1 = spots[i].where[1];
-        Transform(p1, images[spots[i].which[1]].tf[spots[i].patch[1]]);
+        images[spots[i].which[1]].tf[spots[i].patch[1]].Transform( p1 );
         printf(" (%f %f) (%f %f) %f\n", p0.x, p0.y, p1.x, p1.y, PtPtDist(p0,p1) );
         pre.Element(PtPtDist(p0,p1));
 
@@ -2979,9 +2985,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         iy = int(spots[i].where[1].y);
         int sect1 = tmap[ix + w*iy];
 	p0 = spots[i].where[0];
-        Transform(p0, images[spots[i].which[0]].sectors[spots[i].patch[0]][sect0]);
+        images[spots[i].which[0]].sectors[spots[i].patch[0]][sect0].Transform( p0 );
         p1 = spots[i].where[1];
-        Transform(p1, images[spots[i].which[1]].sectors[spots[i].patch[1]][sect1]);
+        images[spots[i].which[1]].sectors[spots[i].patch[1]][sect1].Transform( p1 );
         printf("   (%f %f) (%f %f) %f\n", p0.x, p0.y, p1.x, p1.y, PtPtDist(p0,p1) );
         post.Element(PtPtDist(p0,p1));
         }
@@ -3023,7 +3029,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 // Again, should no longer be needed
                 if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
 		    continue;
-		Transform(p, images[i].sectors[patch][sector]);  // change to global coordinates
+		images[i].sectors[patch][sector].Transform( p );  // change to global coordinates
 		ix = ROUND(p.x);
 		iy = ROUND(p.y);
                 if (ix == 8557 && iy == 431) {
@@ -3052,8 +3058,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    int oi = relevant_images[imap[nn]-1];     // other image
 		    int op = PatchFrom[nn];                   // other patch
                     int os = SectorFrom[nn];                  // other sector
-		    Transform(pt_ot, images[oi].sinvs[op][os]);
-		    Transform(pt_us, images[ i].sinvs[patch][sector]);
+		    images[oi].sinvs[op][os].Transform( pt_ot );
+		    images[i].sinvs[patch][sector].Transform( pt_us );
 
 		    double d_us = max(abs(pt_us.x-center.x), abs(pt_us.y-center.y));  // L-infinity norm
 		    double d_ot = max(abs(pt_ot.x-center.x), abs(pt_ot.y-center.y));  // L-infinity norm
@@ -3129,7 +3135,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		continue;  // no image sets this pixel
             int img = relevant_images[from-1];
 	    Point p(x, y);
-	    Transform(p, images[img].sinvs[patch][sector]);
+	    images[img].sinvs[patch][sector].Transform( p );
 	    // of course, this should be in the image, but let's double check
 	    if (p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1) { // then we can interpolate
 		int ix = int(p.x);
@@ -3184,7 +3190,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    continue;
 		for(int j=0; j<edges.size(); j++) {
 		    Point p = edges[j];
-		    Transform(p, images[i].tf[k]);
+		    images[i].tf[k].Transform( p );
 		    int ix = ROUND(p.x);
 		    int iy = ROUND(p.y);
 		    if (0 <= ix && ix < nx && 0 <= iy && iy < ny) {
@@ -3218,7 +3224,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		continue;  // no image sets this pixel
             int img = relevant_images[from-1];
 	    Point p(x, y);
-	    Transform(p, images[img].sinvs[patch][sector]);
+	    images[img].sinvs[patch][sector].Transform( p );
 	    // of course, this should be in the image, but let's double check
 	    if (p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1) { // then we can interpolate
 		int ix = int(p.x);
@@ -3260,7 +3266,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         int image = relevant_images[from-1];  // actual image number
         int patch = Triples[k].patch;
         int sector = Triples[k].sector;
-	tform t = images[image].sinvs[patch][sector];  // transform from global to image
+	TForm t = images[image].sinvs[patch][sector];  // transform from global to image
         fprintf(ftxt, "TRANS %d %d ", k, from-1);
         PrintTransform(ftxt, t);
         }

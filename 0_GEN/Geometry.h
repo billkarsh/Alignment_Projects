@@ -171,6 +171,7 @@ double SegPointDist(
 	const vertex	&v1,
 	const vertex	&v2 );
 
+bool LeftSide( const Point &a, const Point &b, const Point &c );
 bool LeftSide( const vertex &a, const vertex &b, const vertex &c );
 
 bool LinesCross(
@@ -222,9 +223,9 @@ bool AnyInside(
 	const vector<vertex>	&ips );
 
 double AreaOfTriangle(
-	const Point		&p0,
-	const Point		&p1,
-	const Point		&p2 );
+	const Point		&v0,
+	const Point		&v1,
+	const Point		&v2 );
 
 double AreaOfTriangle(
 	const vertex	&v0,
