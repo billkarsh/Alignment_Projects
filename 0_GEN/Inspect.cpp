@@ -371,7 +371,7 @@ static void CorrView(
 		vector<CD>	ftc;	// cache for Fourier transform
 
 		double co	= CorrPatches(
-						stdout, dx, dy,
+						stdout, false, dx, dy,
 						pts1, vals1, pts2, vals2, 0, 0, 4000,
 						lr31x31, NULL, lcTRUE, NULL, ftc );
 

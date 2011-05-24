@@ -882,6 +882,7 @@ int CCrossCorr::SizeIndex()
 //
 double CorrPatches(
 	FILE					*flog,
+	int						verbose,
 	double					&dx,
 	double					&dy,
 	const vector<Point>		&ip1,
@@ -911,13 +912,16 @@ double CorrPatches(
 	w2 = B2.R - B2.L + 1;
 	h2 = B2.T - B2.B + 1;
 
-	fprintf( flog,
-	"NormCorr: region size is [%d %d] in x, [%d %d] in y.\n",
-	B1.L, B1.R, B1.B, B1.T );
+	if( verbose ) {
 
-	fprintf( flog,
-	"NormCorr: target size is [%d %d] in x, [%d %d] in y.\n",
-	B2.L, B2.R, B2.B, B2.T );
+		fprintf( flog,
+		"NormCorr: region size is [%d %d] in x, [%d %d] in y.\n",
+		B1.L, B1.R, B1.B, B1.T );
+
+		fprintf( flog,
+		"NormCorr: target size is [%d %d] in x, [%d %d] in y.\n",
+		B2.L, B2.R, B2.B, B2.T );
+	}
 
 // Get array sizes (Nx,Ny) and FFT size M
 
@@ -929,7 +933,8 @@ double CorrPatches(
 		Ny		= FFTSize( h1, h2, nnegy, nposy ),
 		M		= Ny*(Nx/2+1);
 
-	fprintf( flog, "NormCorr: Nx = %d, Ny = %d.\n", Nx, Ny );
+	if( verbose )
+		fprintf( flog, "NormCorr: Nx = %d, Ny = %d.\n", Nx, Ny );
 
 // Create images from point lists.
 
@@ -963,8 +968,8 @@ double CorrPatches(
 
 // Prepare correlation calculator
 
-//	CLinCorr	ccalc;	// uses lin corr coeff
-	CCrossCorr	ccalc;	// uses 1/n * SUM(a*b)
+	CLinCorr	ccalc;	// uses lin corr coeff
+//	CCrossCorr	ccalc;	// uses 1/n * SUM(a*b)
 
 	ccalc.Initialize( flog, i1, w1, h1, i2, w2, h2, Nx, Ny );
 
@@ -1045,12 +1050,15 @@ skip:
 		return 0.0;
 	}
 
-	PrintCorLandscape( biggest, bigx, bigy, Ox, Oy, radius,
-	3, 1, &rslt[0], Nx, Ny, 1.0, flog );
+	if( verbose ) {
 
-	fprintf( flog, "----v-center-v---\n" );
-	PrintCorLandscape( biggest, 32, 32, Ox, Oy, radius,
-	3, 1, &rslt[0], Nx, Ny, 1.0, flog );
+		PrintCorLandscape( biggest, bigx, bigy, Ox, Oy, radius,
+		3, 1, &rslt[0], Nx, Ny, 1.0, flog );
+
+		fprintf( flog, "----v-center-v---\n" );
+		PrintCorLandscape( biggest, 32, 32, Ox, Oy, radius,
+		3, 1, &rslt[0], Nx, Ny, 1.0, flog );
+	}
 
 // For debugging, print the results of correlation by region size.
 // If we find a larger region with a correlation almost as good,

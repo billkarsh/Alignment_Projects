@@ -260,7 +260,7 @@ for(double fx = 0.0; fx < w-P/2; fx += double(w)/ow) {
         if( stda > 0.001 && stdb > 0.001 ) { // then measure it
             vector<CD> ftc;  // fourier transform cache
             corr = CorrPatches(
-					stdout, dx, dy,
+					stdout, false, dx, dy,
 					pb, bb, pa, aa, 0, 0, 4000,
 					lr, NULL, lc, NULL, ftc );
             dx -= offset;

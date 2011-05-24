@@ -13,7 +13,7 @@ for(int i=0; i<8; i++) {
     double dx, dy;
     ftc.clear(); // no caching wanted here
     double c = CorrPatches(
-					of, dx, dy,
+					of, false, dx, dy,
 					ap, av, bp, bv, 0, 0, 4000,
 					BigEnough, (void *)size,
 					NULL, NULL, ftc );

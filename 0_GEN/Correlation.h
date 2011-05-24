@@ -75,6 +75,7 @@ typedef bool (*EvalType)( int sx, int sy, void *v );
 
 double CorrPatches(
 	FILE					*flog,
+	int						verbose,
 	double					&dx,
 	double					&dy,
 	const vector<Point>		&ip1,

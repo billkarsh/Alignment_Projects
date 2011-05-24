@@ -186,7 +186,7 @@ void InSectionOverlap(
 	double		dx, dy;
 	vector<CD>	ftc;
 	double		c = CorrPatches(
-						flog, dx, dy,
+						flog, false, dx, dy,
 						ap, av, bp, bv, 0, 0, 4000,
 						InSectionLegal, NULL,
 						NULL, NULL, ftc );

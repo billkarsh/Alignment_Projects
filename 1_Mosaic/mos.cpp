@@ -237,10 +237,15 @@ for(int i=0; i<images.size(); i++) {
         // dp = (pt.x == 5570.0 && pt.y == 10356);
         // dp = false;
         double co = CorrPatches(
-						stdout, dx, dy,
+						stdout, false, dx, dy,
 						pts1, vals1, pts2, vals2, 0, 0, 4000,
 						lr, NULL, lc, NULL, ftc );
-        printf(" tx=%f, ---> dx, dy= %f, %f, corr %f\n\n", pt.x, dx, dy, co);
+
+		// undo correlator's automatic coord adjust
+		dx += pts2[0].x - pts1[0].x;
+		dy += pts2[0].y - pts1[0].y;
+
+       printf(" tx=%f, ---> dx, dy= %f, %f, corr %f\n\n", pt.x, dx, dy, co);
         if( co < 0.7 ) {
              printf("WARNING - poor image correlation %f - ignored\n", co);
              nwarn_bad_corr++;

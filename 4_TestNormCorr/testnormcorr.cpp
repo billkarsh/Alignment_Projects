@@ -53,7 +53,7 @@ static void TestNormCorr()
 	clock_t		t1 = StartTiming();
 
 	double	c = CorrPatches(
-					stdout, dx, dy,
+					stdout, false, dx, dy,
 					pts, vals, pb, vb, 0, 0, 4096,
 					SomeArea, NULL, NULL, NULL, ftc );
 
