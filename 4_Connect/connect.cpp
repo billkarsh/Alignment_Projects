@@ -1,5 +1,6 @@
 
 
+#include	"LinEqu.h"
 #include	"File.h"
 #include	"CPicBase.h"
 
@@ -49,148 +50,24 @@ class CorrPts {
     vector<Point> pb;
     };
 
-//------------------------------- sparse matrix representation ---------------------------------------
-class entry {
-  public:
-    int num;
-    double val;
-    };
 
-typedef vector<entry> column;
+/* --------------------------------------------------------------- */
+/* PrintMagnitude ------------------------------------------------ */
+/* --------------------------------------------------------------- */
 
-void AddToEntry(vector<column> &LHS, int row, int col, double val)
+static void PrintMagnitude( const vector<double> &X )
 {
-for(int i=0; i<LHS[col].size(); i++) {
-    if( LHS[col][i].num == row ) {
-	LHS[col][i].val += val;
-	return;
+	int	k = X.size() - 6;
+
+	if( k >= 0 ) {
+
+		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
+
+		printf( "Final magnitude is %f = %.6e.\n", mag, mag );
 	}
-    }
-// did not find it - add it
-entry e; e.num = row; e.val = val;
-LHS[col].push_back(e);
 }
 
-void AddConstraint(vector<column> &LHS, vector<double> &RHS, int n, int *indices, double *vals, double rslt)
-{
-for(int i = 0; i<n; i++) {
-    int ii = indices[i];
-    for(int j=0; j<n; j++) {
-	int jj = indices[j];
-        //printf("Adding %d %d\n", ii, jj);
-	AddToEntry(LHS, ii, jj, vals[i]*vals[j]);
-	}
-    RHS[ii] += vals[i]*rslt;
-    }
-}
 
-void SolveExplicit4x4(vector<column> &LHS, vector<double> &RHS, vector<double> &X)
-{
-double a[4][4];
-double b[4][4];
-
-// all entries are 0.0 unless specified
-for(int i=0; i<4; i++)
-    for(int j=0; j<4; j++)
-	a[i][j] = 0.0;
-//convert from sparse
-for(int col=0; col<4; col++)
-    for(int i=0; i<LHS[col].size(); i++)
-	a[LHS[col][i].num][col] = LHS[col][i].val;
-
-// print matrix in matlab format
-//printf("[ ");
-//for(int row=0; row<4; row++) {
-    //for(int col=0; col<4; col++)
-	//printf("%f ", a[row][col]);
-    //if (row != 3) printf(";");
-    //}
-//printf(" ]\n");
-
-double det =
-     a[0][3]*a[1][2]*a[2][1]*a[3][0] - a[0][2]*a[1][3]*a[2][1]*a[3][0] -
-     a[0][3]*a[1][1]*a[2][2]*a[3][0] + a[0][1]*a[1][3]*a[2][2]*a[3][0] +
-     a[0][2]*a[1][1]*a[2][3]*a[3][0] - a[0][1]*a[1][2]*a[2][3]*a[3][0] -
-     a[0][3]*a[1][2]*a[2][0]*a[3][1] + a[0][2]*a[1][3]*a[2][0]*a[3][1] +
-     a[0][3]*a[1][0]*a[2][2]*a[3][1] - a[0][0]*a[1][3]*a[2][2]*a[3][1] -
-     a[0][2]*a[1][0]*a[2][3]*a[3][1] + a[0][0]*a[1][2]*a[2][3]*a[3][1] +
-     a[0][3]*a[1][1]*a[2][0]*a[3][2] - a[0][1]*a[1][3]*a[2][0]*a[3][2] -
-     a[0][3]*a[1][0]*a[2][1]*a[3][2] + a[0][0]*a[1][3]*a[2][1]*a[3][2] +
-     a[0][1]*a[1][0]*a[2][3]*a[3][2] - a[0][0]*a[1][1]*a[2][3]*a[3][2] -
-     a[0][2]*a[1][1]*a[2][0]*a[3][3] + a[0][1]*a[1][2]*a[2][0]*a[3][3] +
-     a[0][2]*a[1][0]*a[2][1]*a[3][3] - a[0][0]*a[1][2]*a[2][1]*a[3][3] -
-     a[0][1]*a[1][0]*a[2][2]*a[3][3] + a[0][0]*a[1][1]*a[2][2]*a[3][3] ;
-
-//printf("det = %f\n", det);
-
-b[0][0] = (-a[1][3]*a[2][2]*a[3][1] + a[1][2]*a[2][3]*a[3][1] + a[1][3]*a[2][1]*a[3][2] - a[1][1]*a[2][3]*a[3][2] - a[1][2]*a[2][1]*a[3][3] + a[1][1]*a[2][2]*a[3][3])/det;
-b[0][1] = ( a[0][3]*a[2][2]*a[3][1] - a[0][2]*a[2][3]*a[3][1] - a[0][3]*a[2][1]*a[3][2] + a[0][1]*a[2][3]*a[3][2] + a[0][2]*a[2][1]*a[3][3] - a[0][1]*a[2][2]*a[3][3])/det;
-b[0][2] = (-a[0][3]*a[1][2]*a[3][1] + a[0][2]*a[1][3]*a[3][1] + a[0][3]*a[1][1]*a[3][2] - a[0][1]*a[1][3]*a[3][2] - a[0][2]*a[1][1]*a[3][3] + a[0][1]*a[1][2]*a[3][3])/det;
-b[0][3] = ( a[0][3]*a[1][2]*a[2][1] - a[0][2]*a[1][3]*a[2][1] - a[0][3]*a[1][1]*a[2][2] + a[0][1]*a[1][3]*a[2][2] + a[0][2]*a[1][1]*a[2][3] - a[0][1]*a[1][2]*a[2][3])/det;
-
-b[1][0] = ( a[1][3]*a[2][2]*a[3][0] - a[1][2]*a[2][3]*a[3][0] - a[1][3]*a[2][0]*a[3][2] + a[1][0]*a[2][3]*a[3][2] + a[1][2]*a[2][0]*a[3][3] - a[1][0]*a[2][2]*a[3][3])/det;
-b[1][1] = (-a[0][3]*a[2][2]*a[3][0] + a[0][2]*a[2][3]*a[3][0] + a[0][3]*a[2][0]*a[3][2] - a[0][0]*a[2][3]*a[3][2] - a[0][2]*a[2][0]*a[3][3] + a[0][0]*a[2][2]*a[3][3])/det;
-b[1][2] = ( a[0][3]*a[1][2]*a[3][0] - a[0][2]*a[1][3]*a[3][0] - a[0][3]*a[1][0]*a[3][2] + a[0][0]*a[1][3]*a[3][2] + a[0][2]*a[1][0]*a[3][3] - a[0][0]*a[1][2]*a[3][3])/det;
-b[1][3] = (-a[0][3]*a[1][2]*a[2][0] + a[0][2]*a[1][3]*a[2][0] + a[0][3]*a[1][0]*a[2][2] - a[0][0]*a[1][3]*a[2][2] - a[0][2]*a[1][0]*a[2][3] + a[0][0]*a[1][2]*a[2][3])/det;
-
-b[2][0] = (-a[1][3]*a[2][1]*a[3][0] + a[1][1]*a[2][3]*a[3][0] + a[1][3]*a[2][0]*a[3][1] - a[1][0]*a[2][3]*a[3][1] - a[1][1]*a[2][0]*a[3][3] + a[1][0]*a[2][1]*a[3][3])/det;
-b[2][1] = ( a[0][3]*a[2][1]*a[3][0] - a[0][1]*a[2][3]*a[3][0] - a[0][3]*a[2][0]*a[3][1] + a[0][0]*a[2][3]*a[3][1] + a[0][1]*a[2][0]*a[3][3] - a[0][0]*a[2][1]*a[3][3])/det;
-b[2][2] = (-a[0][3]*a[1][1]*a[3][0] + a[0][1]*a[1][3]*a[3][0] + a[0][3]*a[1][0]*a[3][1] - a[0][0]*a[1][3]*a[3][1] - a[0][1]*a[1][0]*a[3][3] + a[0][0]*a[1][1]*a[3][3])/det;
-b[2][3] = ( a[0][3]*a[1][1]*a[2][0] - a[0][1]*a[1][3]*a[2][0] - a[0][3]*a[1][0]*a[2][1] + a[0][0]*a[1][3]*a[2][1] + a[0][1]*a[1][0]*a[2][3] - a[0][0]*a[1][1]*a[2][3])/det;
-
-b[3][0] = ( a[1][2]*a[2][1]*a[3][0] - a[1][1]*a[2][2]*a[3][0] - a[1][2]*a[2][0]*a[3][1] + a[1][0]*a[2][2]*a[3][1] + a[1][1]*a[2][0]*a[3][2] - a[1][0]*a[2][1]*a[3][2])/det;
-b[3][1] = (-a[0][2]*a[2][1]*a[3][0] + a[0][1]*a[2][2]*a[3][0] + a[0][2]*a[2][0]*a[3][1] - a[0][0]*a[2][2]*a[3][1] - a[0][1]*a[2][0]*a[3][2] + a[0][0]*a[2][1]*a[3][2])/det;
-b[3][2] = ( a[0][2]*a[1][1]*a[3][0] - a[0][1]*a[1][2]*a[3][0] - a[0][2]*a[1][0]*a[3][1] + a[0][0]*a[1][2]*a[3][1] + a[0][1]*a[1][0]*a[3][2] - a[0][0]*a[1][1]*a[3][2])/det;
-b[3][3] = (-a[0][2]*a[1][1]*a[2][0] + a[0][1]*a[1][2]*a[2][0] + a[0][2]*a[1][0]*a[2][1] - a[0][0]*a[1][2]*a[2][1] - a[0][1]*a[1][0]*a[2][2] + a[0][0]*a[1][1]*a[2][2])/det;
-
-for(int i=0; i<4; i++) {
-    double sum = 0.0;
-    for(int j=0; j<4; j++) {
-	sum += b[i][j] * RHS[j];
-        }
-    X[i] = sum;
-    }
-
-}
-void WriteSolveRead(vector<column> &LHS, vector<double> &RHS, vector<double> &X)
-{
-int nvars = RHS.size();
-if( nvars == 4 ) { // one special case. Many others could sensibly be included.
-    SolveExplicit4x4(LHS, RHS, X);
-    return;
-    }
-
-FILE	*fout = FileOpenOrDie( "triples", "w" );
-
-// OK, write the equations out
-int nnz = 0;  // number of non-zero terms
-for(int col=0; col < nvars; col++)
-    nnz += LHS[col].size();
-fprintf(fout, "%d %d\n", nvars, nnz);
-for(int col=0; col<nvars; col++) {
-     for(int i=0; i<LHS[col].size(); i++) {
-	int row = LHS[col][i].num;
-	fprintf(fout, "%d %d %.16f\n", row+1, col+1, LHS[col][i].val); // convert to 1 based indexing
-	}
-     }
-for(int i=0; i<nvars; i++)
-    fprintf(fout, "%.16f\n", RHS[i]);
-fclose(fout);
-system("SuperLUSymSolve -t <triples");
-
-// Read the results
-FILE	*fin = FileOpenOrDie( "results", "r" );
-
-for( int i = 0; i < nvars; ++i )
-    fscanf( fin, "%lf", &X[i] );
-
-fclose( fin );
-int k = nvars-6;
-double mag = sqrt(X[k]*X[k] + X[k+1]*X[k+1]);
-printf( "final magnitude is %f = %.6e\n", mag, mag );
-}
-//-------------------------- End of sparse matrix stuff -------------------------------------------
-//
 //----------------------Start stuff for pairwise testing ------------------------------------------
 //tells if two vectors of points can be aligned by a single transform of the form
 //   a x - b y + c  = x'
@@ -200,7 +77,7 @@ double CanAlign(vector<Point> &p1, vector<Point> &p2, bool print)
 
 // create the system of normal equations
 vector<double> RHS(4, 0.0);   // create a vector for the right hand side
-vector<column> LHS(4);        // a vector of columns
+vector<LHSCol> LHS(4);        // a vector of columns
 for(int i=0; i<p1.size(); i++) {
     int indices[3] = {0, 1, 2};
     double vals[3] = {p1[i].x,  -p1[i].y, 1.0};
@@ -210,7 +87,8 @@ for(int i=0; i<p1.size(); i++) {
     AddConstraint(LHS, RHS, 3, i2     ,v2, p2[i].y);   // 0.0 is the right hand side of the constraint
     }
 vector<double> X(4);
-WriteSolveRead(LHS, RHS, X);
+WriteSolveRead( X, LHS, RHS, false );
+PrintMagnitude( X );
 if( print ) {
     double mag = sqrt(X[0]*X[0] + X[1]*X[1]);
     printf(" a=%f b=%f x0=%f y0=%f mag=%f\n", X[0], X[1], X[2], X[3], mag);
@@ -712,7 +590,7 @@ int neqs  = 2*nc + 6 + 2*nt;  // each point makes 2 constraints (x and y)
 printf("%d equations in %d unknowns\n", neqs, nvars);
 // create the system of normal equations
 vector<double> RHS(nvars, 0.0);   // create a vector for the right hand side
-vector<column> LHS(nvars);       // a vector of columns
+vector<LHSCol> LHS(nvars);       // a vector of columns
 
 // write directory out first.  Write the directory to layer number map
 for(int i=0; i<dnames.size(); i++)
@@ -776,7 +654,8 @@ for(int i=0; i<nt; i++) {
     }
 
 vector<double> X(nvars);
-WriteSolveRead(LHS, RHS, X);
+WriteSolveRead( X, LHS, RHS, false );
+PrintMagnitude( X );
 
 // add some constraints so the left edge of the array needs to be the same as the right edge,
 // and the same for top and bottom. Directions are for conventional xy coordinates.
@@ -816,7 +695,8 @@ int indice2[4] = {sebest+5, swbest+5, nebest+5, nwbest+5};
 AddConstraint(LHS, RHS, 4, indice2, va, 0.0);
 }
 
-WriteSolveRead(LHS, RHS, X);
+WriteSolveRead( X, LHS, RHS, false );
+PrintMagnitude( X );
 
 // Now add the new constraints to preserve the angle, but push the magnitude to 1
 double scale_stiff = 1E4/scale;
@@ -829,7 +709,8 @@ for(int i=0; i<nt; i++) {
     double va[2] = {a/m*scale_stiff, b/m*scale_stiff};
     AddConstraint(LHS, RHS, 2, ind, va, scale_stiff);
     }
-WriteSolveRead(LHS, RHS, X);
+WriteSolveRead( X, LHS, RHS, false );
+PrintMagnitude( X );
 
 //rescale the constant terms back to pixel space
 map<string,int>::iterator it;

@@ -3,6 +3,7 @@
 // make a mosaic
 
 
+#include	"LinEqu.h"
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
@@ -73,42 +74,6 @@ public:
 		{image = i; patch = p; sector = s;};
 };
 
-//---------------------- Sparse matrix stuff -----------------
-class entry {
-
-public:
-	int		num;
-	double	val;
-};
-
-typedef vector<entry> column;
-
-void AddToEntry(vector<column> &LHS, int row, int col, double val)
-{
-for(int i=0; i<LHS[col].size(); i++) {
-    if( LHS[col][i].num == row ) {
-	LHS[col][i].val += val;
-	return;
-	}
-    }
-// did not find it - add it
-entry e; e.num = row; e.val = val;
-LHS[col].push_back(e);
-}
-
-void AddConstraint(vector<column> &LHS, vector<double> &RHS, int n, int *indices, double *vals, double rslt)
-{
-for(int i = 0; i<n; i++) {
-    int ii = indices[i];
-    for(int j=0; j<n; j++) {
-	int jj = indices[j];
-        //printf("Adding %d %d\n", ii, jj);
-	AddToEntry(LHS, ii, jj, vals[i]*vals[j]);
-	}
-    RHS[ii] += vals[i]*rslt;
-    }
-}
-
 
 int nwarn_edge_interp = 0;   // interpolation cannot be done since max is on edge of region
 int nwarn_bad_corr = 0;      // could not find a good correlation
@@ -119,6 +84,23 @@ bool dp;  // debug print
 
 
 
+
+
+/* --------------------------------------------------------------- */
+/* PrintMagnitude ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void PrintMagnitude( const vector<double> &X )
+{
+	int	k = X.size() - 6;
+
+	if( k >= 0 ) {
+
+		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
+
+		printf( "Final magnitude is %f = %.6e.\n", mag, mag );
+	}
+}
 
 
 //Produce the points at radius R (a square) around the center, in steps  < 1 in size
@@ -238,7 +220,8 @@ for(int i=0; i<images.size(); i++) {
         // dp = false;
         double co = CorrPatches(
 						stdout, false, dx, dy,
-						pts1, vals1, pts2, vals2, 0, 0, 4000,
+						pts1, vals1, pts2, vals2,
+						0, 0, 200,
 						lr, NULL, lc, NULL, ftc );
 
 		// undo correlator's automatic coord adjust
@@ -269,56 +252,6 @@ if( s.which.size() > 1 ) {
 	}
     spots.push_back(s);  // so we can re-evaluate residuals later.
     }
-}
-
-
-// writes a sparse matrix, calls the sparse solver to solve it, then reads the results.
-// If 'debug' is set, uses the file names 'triples' and 'results'.  Otherwise makes
-// complex but unique names.
-void WriteSolveRead(vector<column> &LHS, vector<double> &RHS, vector<double> &X, bool Debug)
-{
-int nvars = RHS.size();
-char tname[1024], rname[1024];
-if( Debug ) {
-    strcpy(tname, "triples");
-    strcpy(rname, "results");
-    }
-else {
-    char hname[1024];
-    gethostname(hname, 1024);
-    sprintf(tname,"/tmp/triples.%s.%d", hname, getpid() );
-    sprintf(rname,"/tmp/results.%s.%d", hname, getpid() );
-    }
-
-FILE	*fout = FileOpenOrDie( tname, "w" );
-
-// OK, write the equations out
-int nnz = 0;  // number of non-zero terms
-for(int col=0; col < nvars; col++)
-    nnz += LHS[col].size();
-fprintf(fout, "%d %d\n", nvars, nnz);
-for(int col=0; col<nvars; col++) {
-     for(int i=0; i<LHS[col].size(); i++) {
-	int row = LHS[col][i].num;
-	fprintf(fout, "%d %d %.16f\n", row+1, col+1, LHS[col][i].val); // convert to 1 based indexing
-	}
-     }
-for(int i=0; i<nvars; i++)
-    fprintf(fout, "%.16f\n", RHS[i]);
-fclose(fout);
-char cmd[1024];
-sprintf(cmd, "SuperLUSymSolve -t -o=%s <%s", rname, tname);
-system(cmd);
-
-// Read the results
-FILE	*fin = FileOpenOrDie( rname, "r" );
-
-for( int i = 0; i < nvars; ++i )
-    fscanf( fin, "%lf", &X[i] );
-fclose( fin );
-int k = nvars-6;
-double mag = sqrt(X[k]*X[k] + X[k+1]*X[k+1]);
-printf( "final magnitude is %f = %.6e\n", mag, mag );
 }
 
 
@@ -395,11 +328,6 @@ printf("Filled in %d holes\n", nholes);
 double cot(double x) { return 1.0/tan(x);}
 
 
-// Tells if point c is on the left side of the vector a->b by using the cross product
-bool LeftSide(const Point &a, const Point &b, const Point &c)
-{
-return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x) > 0;
-}
 
 bool Inside(triangle &tri, vector<Point> gvtx, Point &p)
 {
@@ -1269,7 +1197,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // Now generate the constraints.  Declare the (sparse) normal matrix and the RHS
     // This whole section needs to be changed to use patches.
-    vector<column> norm_mat(2*nvs);  // 2 coordinates for each spot
+    vector<LHSCol> norm_mat(2*nvs);  // 2 coordinates for each spot
     vector<double> RHS(2*nvs, 0.0); //
     // first, add the constraints that each should be near where they started...
     for(int i=0; i<nvs; i++) {
@@ -1319,7 +1247,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Solve the system
     vector<double> X(2*nvs);
     fflush(stdout);
-    WriteSolveRead(norm_mat, RHS, X, Debug);
+    WriteSolveRead( X, norm_mat, RHS, !Debug );
+    PrintMagnitude( X );
     fflush(stdout);
 
     vector<Point> NewG(nvs);

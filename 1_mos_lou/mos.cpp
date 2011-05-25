@@ -2,6 +2,7 @@
 // Make a mosaic
 
 
+#include	"LinEqu.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
@@ -26,61 +27,67 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class glob_spot {
-  public:
-    vector<int> which;    // which picture?
-    vector<int> patch;    // which patch?
-    vector<Point> where;  // where is it, in local coords?
-    double moved;         // distance it moved
-    Point gpt;            // the point in global coordinates that spawned these
-    };
+public:
+	vector<int>		which;	// which picture
+	vector<int>		patch;	// which patch
+	vector<Point>	where;	// local coords
+	Point			gpt;	// point in global coords spawning these
+	double			moved;	// distance it moved
+};
 
 
 class image {
-  public:
-    uint8* raster;   // the gray scale image
-    uint8* foldmap;  // the fold map
-    uint8* bmap;     // the boundary map
-    uint32 w,h;
-    char *rname;  // name of raster file
-    char *fname;  // name of the foldmap file
-    char *spname; // name of the super-pixel file for this tile
-    char *bname;  // name of the boundary-map file
-    uint16 *spmap;
-    int spbase;   // should be added to all sp ids in this image, for uniqueness
-    vector<int> SPmapping;  // tells what original SP numbers are mapped to
-    vector<TForm>  tf;  // from image to global space, one for each patch (0 unused)
-    vector<TForm> inv;  // inverse transform
-    vector<vector<TForm> > sectors;  // forward transform for each sector of each patch
-    vector<vector<TForm> > sinvs;    // Sector inverses
-    int FirstGlobalPoint;
-    int FirstTriangle;
-    int layer; // layer number
-    vector<uint8> FoldmapRenumber;
-    };
+public:
+	uint8*					raster;		// gray scale image
+	uint8*					foldmap;	// fold map
+	uint8*					bmap;		// boundary map
+	uint32					w, h;
+	int						layer;		// layer number
+	int						FirstGlobalPoint;
+	int						FirstTriangle;
+	int						spbase;		// should be added to all sp ids in this image, for uniqueness
+	char					*rname;		// raster filename
+	char					*fname;		// foldmap filename
+	char					*spname;	// super-pixel filename
+	char					*bname;		// boundary-map filename
+	uint16					*spmap;
+	vector<int>				SPmapping;  // tells what original SP numbers are mapped to
+	vector<TForm>			tf;			// image to global space, one for each patch (0 unused)
+	vector<TForm>			inv;		// inverse transform
+	vector<vector<TForm> >	sectors;	// forward transform for each sector of each patch
+	vector<vector<TForm> >	sinvs;		// sector inverses
+	vector<uint8>			FoldmapRenumber;
+};
 
-// a class describing a triple of numbers that in turn describe where the point is
-// that maps to a given point in global space.  It comes from a particular image,
-// a particular patch within the image, and a sector within the patch (the sectors
-// are used to deform the patch so the edges line up better.)
+// Class describing a triple of numbers that in turn describe
+// where the point is that maps to a given point in global space.
+// It comes from a particular image, a particular patch within
+// the image, and a sector within the patch (the sectors are
+// used to deform the patch so the edges line up better.)
+//
 class Triple {
- public:
-    uint16 image;
-    uint8  patch;
-    uint8  sector;
-    Triple(){this->image = 0; this->patch = 0; this->sector = 0;}
-    Triple(uint16 i, uint8 p, uint8 s){this->image=i; this->patch=p; this->sector=s;}
-    };
+public:
+	uint16 image;
+	uint8  patch;
+	uint8  sector;
+
+public:
+	Triple()
+		{image = 0; patch = 0; sector = 0;};
+
+	Triple( uint16 i, uint8 p, uint8 s )
+		{image=i; patch=p; sector=s;};
+};
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 static FILE *of;
-static int nwarn_edge_interp = 0;   // interpolation cannot be done since max is on edge of region
-static int nwarn_bad_corr = 0;      // could not find a good correlation
-static int nwarn_good_on_edge = 0;  // worst case - good correlation, but on edge
-
-static bool dp = false;  // debug print
+static bool dp = false;				// debug print
+static int nwarn_edge_interp = 0;	// interpolation cannot be done since max is on edge of region
+static int nwarn_bad_corr = 0;		// could not find a good correlation
+static int nwarn_good_on_edge = 0;	// worst case - good correlation, but on edge
 
 
 
@@ -91,7 +98,7 @@ static bool dp = false;  // debug print
 /* PrintTransform ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void PrintTransform( FILE *of, TForm &tr )
+static void PrintTransform( FILE *of, const TForm &tr )
 {
 	fprintf( of,
 	"%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n",
@@ -103,7 +110,7 @@ static void PrintTransform( FILE *of, TForm &tr )
 /* PrintTransAndInv ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void PrintTransAndInv( FILE *of, TForm &tr )
+static void PrintTransAndInv( FILE *of, const TForm &tr )
 {
 	TForm	in;
 
@@ -153,49 +160,21 @@ static uint8* LoadNormImg( const char *name, uint32 &w, uint32 &h )
 	return ras;
 }
 
+/* --------------------------------------------------------------- */
+/* PrintMagnitude ------------------------------------------------ */
+/* --------------------------------------------------------------- */
 
-
-
-
-
-
-
-
-//---------------------- Sparse matrix stuff -----------------
-class entry {
-  public:
-    int num;
-    double val;
-    };
-
-typedef vector<entry> column;
-
-void AddToEntry(vector<column> &LHS, int row, int col, double val)
+static void PrintMagnitude( const vector<double> &X )
 {
-for(int i=0; i<LHS[col].size(); i++) {
-    if (LHS[col][i].num == row) {
-	LHS[col][i].val += val;
-	return;
-	}
-    }
-// did not find it - add it
-entry e; e.num = row; e.val = val;
-LHS[col].push_back(e);
-}
+	int	k = X.size() - 6;
 
-void AddConstraint(vector<column> &LHS, vector<double> &RHS, int n, int *indices, double *vals, double rslt)
-{
-for(int i = 0; i<n; i++) {
-    int ii = indices[i];
-    for(int j=0; j<n; j++) {
-	int jj = indices[j];
-        //printf("Adding %d %d\n", ii, jj);
-	AddToEntry(LHS, ii, jj, vals[i]*vals[j]);
-	}
-    RHS[ii] += vals[i]*rslt;
-    }
-}
+	if( k >= 0 ) {
 
+		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
+
+		printf( "Final magnitude is %f = %.6e.\n", mag, mag );
+	}
+}
 
 
 
@@ -365,68 +344,15 @@ if (s.which.size() > 1) {
     }
 }
 
-// Find the distance between two points
-double PtPtDist(Point &a, Point &b)
-{
-double dx = a.x - b.x;
-double dy = a.y - b.y;
-return sqrt(dx*dx + dy*dy);
-}
 
-// writes a sparse matrix, calls the sparse solver to solve it, then reads the results.
-// If 'debug' is set, uses the file names 'triples' and 'results'.  Otherwise makes
-// complex but unique names.
-void WriteSolveRead(vector<column> &LHS, vector<double> &RHS, vector<double> &X, bool Debug)
-{
-int nvars = RHS.size();
-char tname[1024], rname[1024];
-if (Debug) {
-    strcpy(tname, "triples");
-    strcpy(rname, "results");
-    }
-else {
-    char hname[1024];
-    gethostname(hname, 1024);
-    sprintf(tname,"/tmp/triples.%s.%d", hname, getpid() );
-    sprintf(rname,"/tmp/results.%s.%d", hname, getpid() );
-    }
-FILE *fout = fopen(tname,"w");
-if (fout == NULL) {
-    printf("Could not open output file '%s'\n", tname);
-    exit(42);
-    }
-// OK, write the equations out
-int nnz = 0;  // number of non-zero terms
-for(int col=0; col < nvars; col++)
-    nnz += LHS[col].size();
-fprintf(fout, "%d %d\n", nvars, nnz);
-for(int col=0; col<nvars; col++) {
-     for(int i=0; i<LHS[col].size(); i++) {
-	int row = LHS[col][i].num;
-	fprintf(fout, "%d %d %.16f\n", row+1, col+1, LHS[col][i].val); // convert to 1 based indexing
-	}
-     }
-for(int i=0; i<nvars; i++)
-    fprintf(fout, "%.16f\n", RHS[i]);
-fclose(fout);
-char cmd[1024];
-sprintf(cmd, "SuperLUSymSolve -t -o=%s <%s", rname, tname);
-system(cmd);
 
-// Read the results
-FILE *fin = fopen(rname,"r");
-if (fout == NULL) {
-    printf("Could not open file '%s'\n", rname);
-    exit(42);
-    }
-for(int i=0; i<nvars; i++)
-    fscanf(fin, "%lf", &X[i]);
-fclose(fin);
-int k = nvars-6;
-double mag = sqrt(X[k]*X[k] + X[k+1]*X[k+1]);
-printf("final magnitude is %f = %.6e\n", mag, mag);
 
-}
+
+
+
+
+
+
 
 // draw a line in a raster
 void DrawLine(uint8 *r, int w, double x1, double y1, double x2, double y2)
@@ -2392,7 +2318,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // Now generate the constraints.  Declare the (sparse) normal matrix and the RHS
     // This whole section needs to be changed to use patches.
-    vector<column> norm_mat(2*nvs);  // 2 coordinates for each spot
+    vector<LHSCol> norm_mat(2*nvs);  // 2 coordinates for each spot
     vector<double> RHS(2*nvs, 0.0); //
     // first, add the constraints that each should be near where they started...
     for(int i=0; i<nvs; i++) {
@@ -2442,7 +2368,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Solve the system
     vector<double> X(2*nvs);
     fflush(stdout);
-    WriteSolveRead(norm_mat, RHS, X, Debug);
+    WriteSolveRead( X, norm_mat, RHS, !Debug );
+    PrintMagnitude( X );
     fflush(stdout);
 
     vector<Point> NewG(nvs);
@@ -2514,8 +2441,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         images[spots[i].which[0]].tf[spots[i].patch[0]].Transform( p0 );
         Point p1 = spots[i].where[1];
         images[spots[i].which[1]].tf[spots[i].patch[1]].Transform( p1 );
-        printf(" (%f %f) (%f %f) %f\n", p0.x, p0.y, p1.x, p1.y, PtPtDist(p0,p1) );
-        pre.Element(PtPtDist(p0,p1));
+        printf(" (%f %f) (%f %f) %f\n", p0.x, p0.y, p1.x, p1.y, p0.Dist( p1 ) );
+        pre.Element( p0.Dist( p1 ) );
 
         //Now, re-do with new sector maps
         int ix = int(spots[i].where[0].x);
@@ -2528,8 +2455,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         images[spots[i].which[0]].sectors[spots[i].patch[0]][sect0].Transform( p0 );
         p1 = spots[i].where[1];
         images[spots[i].which[1]].sectors[spots[i].patch[1]][sect1].Transform( p1 );
-        printf("   (%f %f) (%f %f) %f\n", p0.x, p0.y, p1.x, p1.y, PtPtDist(p0,p1) );
-        post.Element(PtPtDist(p0,p1));
+        printf("   (%f %f) (%f %f) %f\n", p0.x, p0.y, p1.x, p1.y, p0.Dist( p1 ) );
+        post.Element( p0.Dist( p1 ) );
         }
     double mean, std, mean2, std2;
     pre. Stats(mean,  std);

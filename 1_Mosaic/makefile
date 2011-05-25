@@ -22,7 +22,7 @@ SOURCES_MYPROJ := \
 	mos.cpp
 
 _SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
+	numerical_recipes.cpp mrc.cpp LinEqu.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}

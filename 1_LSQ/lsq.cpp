@@ -681,7 +681,7 @@ double RGD::CanAlign(
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS );
+	WriteSolveRead( X, LHS, RHS, false );
 
 	if( print ) {
 
@@ -1470,7 +1470,7 @@ static void PrintMagnitude( const vector<double> &X, int nvars )
 
 		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
 
-		printf( "Final magnitude is %f = %.6e\n", mag, mag );
+		printf( "Final magnitude is %f = %.6e.\n", mag, mag );
 	}
 }
 
@@ -1519,7 +1519,7 @@ static void SolveWithSquareness(
 // constraints on the global shape and scale.
 
 	printf( "Solve with [transform squareness].\n" );
-	WriteSolveRead( X, LHS, RHS );
+	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X, 6 );
 }
 
@@ -1638,7 +1638,7 @@ static void SolveWithMontageSqr(
 /* --------------- */
 
 	printf( "Solve with [montage squareness].\n" );
-	WriteSolveRead( X, LHS, RHS );
+	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X, 6 );
 }
 
@@ -1676,7 +1676,7 @@ static void SolveWithUnitMag(
 	}
 
 	printf( "Solve with [unit magnitude].\n" );
-	WriteSolveRead( X, LHS, RHS );
+	WriteSolveRead( X, LHS, RHS, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( X, 6 );
 }
@@ -1831,7 +1831,7 @@ static void SolveSystemRigid( vector<double> &X )
 // constraints on the global shape and scale.
 
 	printf( "Solve with [rigid only].\n" );
-	WriteSolveRead( Y, LHS, RHS );
+	WriteSolveRead( Y, LHS, RHS, false );
 	PrintMagnitude( Y, 4 );
 
 /* ------------------- */
@@ -1939,7 +1939,7 @@ static void SolveSystemRigid( vector<double> &X )
 		// Update solution
 
 		printf( "Solve with [montage squareness].\n" );
-		WriteSolveRead( Y, LHS, RHS );
+		WriteSolveRead( Y, LHS, RHS, false );
 		PrintMagnitude( Y, 4 );
 	}
 
@@ -1972,7 +1972,7 @@ static void SolveSystemRigid( vector<double> &X )
 	}
 
 	printf( "Solve with [unit magnitude].\n" );
-	WriteSolveRead( Y, LHS, RHS );
+	WriteSolveRead( Y, LHS, RHS, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( Y, 4 );
 

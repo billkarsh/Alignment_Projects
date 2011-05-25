@@ -191,7 +191,8 @@ void AddConstraint(
 void WriteSolveRead(
 	vector<double>			&X,
 	const vector<LHSCol>	&LHS,
-	const vector<double>	&RHS )
+	const vector<double>	&RHS,
+	bool					uniqueNames )
 {
 	int	nvars = RHS.size();
 
@@ -208,9 +209,27 @@ void WriteSolveRead(
 /* Print equations into 'triples' file */
 /* ----------------------------------- */
 
+// Name files
+
+	char	tname[1024], rname[1024], buf[1024];
+
+	if( uniqueNames ) {
+
+		int	pid = getpid();
+
+		gethostname( buf, sizeof(buf) );
+
+		sprintf( tname, "/tmp/triples_%s_%d", buf, pid );
+		sprintf( rname, "/tmp/results_%s_%d", buf, pid );
+	}
+	else {
+		strcpy( tname, "triples" );
+		strcpy( rname, "results" );
+	}
+
 // Open file
 
-	FILE	*f	= FileOpenOrDie( "triples", "w" );
+	FILE	*f	= FileOpenOrDie( tname, "w" );
 	int		nnz	= 0;	// number of non-zero terms
 
 // Header
@@ -254,7 +273,8 @@ void WriteSolveRead(
 	printf( "\n[[ Invoke solver ]]\n" );
 	fflush( stdout );
 
-	system( "SuperLUSymSolve -t <triples" );
+	sprintf( buf, "SuperLUSymSolve -t -o=%s <%s", rname, tname );
+	system( buf );
 
 	fflush( stdout );
 	printf( "[[ Exit solver ]]\n\n" );
@@ -263,7 +283,7 @@ void WriteSolveRead(
 /* Read results */
 /* ------------ */
 
-	f = FileOpenOrDie( "results", "r" );
+	f = FileOpenOrDie( rname, "r" );
 
 	for( int i = 0; i < nvars; ++i )
 		fscanf( f, "%lf", &X[i] );
