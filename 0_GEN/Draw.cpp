@@ -14,7 +14,7 @@
 /* DrawLine ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Draw a line in a raster
+// Draw a line in a raster.
 //
 void DrawLine(
 	uint8*	r,
@@ -71,7 +71,7 @@ void DrawLine(
 /* DrawCircle ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Draw a circle in a raster
+// Draw a circle in a raster.
 //
 void DrawCircle(
 	uint8*	r,

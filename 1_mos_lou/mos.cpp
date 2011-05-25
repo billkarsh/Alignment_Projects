@@ -3,11 +3,14 @@
 
 
 #include	"LinEqu.h"
+#include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
 #include	"Geometry.h"
 #include	"CTForm.h"
+#include	"Draw.h"
+#include	"Memory.h"
 
 #include	<sys/resource.h>
 #include	<sys/stat.h>
@@ -76,7 +79,7 @@ public:
 		{image = 0; patch = 0; sector = 0;};
 
 	Triple( uint16 i, uint8 p, uint8 s )
-		{image=i; patch=p; sector=s;};
+		{image = i; patch = p; sector = s;};
 };
 
 /* --------------------------------------------------------------- */
@@ -176,23 +179,20 @@ static void PrintMagnitude( const vector<double> &X )
 	}
 }
 
+/* --------------------------------------------------------------- */
+/* PointsInRing -------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Produce the points at radius R (a square) around the center, in steps  < 1 in size
-//Might include duplicates
-void PointsInRing(vector<Point> &pts, Point &center, double r, double delta, uint32 w, uint32 h)
+// Produce the points at radius R (a square) around the center,
+// in steps < 1 in size. Might include duplicates.
+//
+static void PointsInRing(
+	vector<Point>	&pts,
+	Point			&center,
+	double			r,
+	double			delta,
+	uint32			w,
+	uint32			h )
 {
 double lx = center.x-r;  // left and right X
 double rx = center.x+r;
@@ -209,29 +209,48 @@ for(double d=-r; d <= r; d+= delta) {
 ppts.push_back(Point(rx, ty));
 // Now keep only those within the image (can happen if image is a rectangle, not a square)
 for(int i=0; i<ppts.size(); i++)
-    if (ppts[i].x >= 0.0 && ppts[i].x <= w-1 && ppts[i].y >= 0.0 && ppts[i].y <= h-1)
+    if( ppts[i].x >= 0.0 && ppts[i].x <= w-1 && ppts[i].y >= 0.0 && ppts[i].y <= h-1 )
 	pts.push_back(ppts[i]);
 }
 
-// is it a legal region?
-bool lr(int sx, int sy, void *arg)
+/* --------------------------------------------------------------- */
+/* lr ------------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Legal region for correlation?
+//
+static bool lr( int sx, int sy, void *arg )
 {
-//printf("lr: sx, sy %d %d\n", sx, sy);
-return sx == 21 && sy == 21;
+	return sx == 21 && sy == 21;
 }
 
-// is the pixel count legal?
-bool lc(int c1, int c2, void *arg)
+/* --------------------------------------------------------------- */
+/* lc ------------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Legal count for correlation?
+//
+static bool lc( int c1, int c2, void *arg )
 {
-//printf("lc: c1,c2 %d %d\n", c1, c2);
-//return c1 == 441 && c2 == 441;
-return true;
+	return true;
 }
 
-// In the set of images 'images', point pt (in global space) occurs in more than one
-// image.  Find out which, create a spot, and add it to the vector of spots.
-// We know for sure the point is part of the image i1, patch patch1.
-void CommonPoint(vector<image> &images, Point pt, int i1, int patch1, int out_layer, vector<glob_spot> &spots)
+/* --------------------------------------------------------------- */
+/* CommonPoint --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// In the set of 'images', point pt (in global space) occurs
+// in more than one image. Find out which, create a spot, and
+// add it to the vector of spots. We know for sure the point
+// is part of the image i1, patch patch1.
+//
+static void CommonPoint(
+	vector<image>		&images,
+	Point				pt,
+	int					i1,
+	int					patch1,
+	int					out_layer,
+	vector<glob_spot>	&spots )
 {
 Point p1 = pt;
 printf("image %d, global x,y= %f %f\n", i1, p1.x, p1.y);
@@ -242,8 +261,8 @@ const int LOOK=52;   // radius of region to look
 // first, make sure we have enough pixels in the image
 int p1x = RND(p1.x);
 int p1y = RND(p1.y);
-if (p1x < PATCH || p1x > images[i1].w-1-PATCH) return;
-if (p1y < PATCH || p1y > images[i1].h-1-PATCH) return;
+if( p1x < PATCH || p1x > images[i1].w-1-PATCH ) return;
+if( p1y < PATCH || p1y > images[i1].h-1-PATCH ) return;
 
 // Surrounding pixels exist, so go find the data
 vector<Point> pts1;
@@ -251,7 +270,7 @@ vector<double> vals1;
 int nv = 0;   // number of pixels with 'reasonable values'
 for(int ix = p1x-PATCH; ix <= p1x+PATCH; ix++) {
     for(int iy = p1y-PATCH; iy <= p1y+PATCH; iy++) {
-        uint8 v = images[i1].raster[ix+iy*images[i1].w];
+        uint8 v = images[i1].raster[ix + images[i1].w * iy];
         vals1.push_back(v);
         pts1.push_back(Point(ix-p1x, iy-p1y));
         nv += (v > 12);  // 12 is sort of arbitrary
@@ -259,7 +278,7 @@ for(int ix = p1x-PATCH; ix <= p1x+PATCH; ix++) {
     }
 int side = 2*PATCH+1;
 double frac = nv/double(side*side);
-if (frac < 0.5) {
+if( frac < 0.5 ) {
     printf("Too many dark pixels (%d light of %d, %f) - skipped\n", nv, side*side, frac);
     return;
     }
@@ -270,12 +289,12 @@ if (frac < 0.5) {
 glob_spot s;   // this will contain all the detailed info
 s.gpt = pt;
 for(int i=0; i<images.size(); i++) {
-    if (images[i].layer != out_layer)
+    if( images[i].layer != out_layer )
 	continue;
     // need to go through all patches.  Just because the inverse transform maps into the image,
     // it's not enough.  It also needs to land in the corresponding patch
     for(int patch=1; patch < images[i].tf.size(); patch++) {
-        if (images[i].tf[patch].det() == 0.0)
+        if( images[i].tf[patch].det() == 0.0 )
 	    continue;
         Point p1 = pt;
         images[i].inv[patch].Transform( p1 );
@@ -283,15 +302,15 @@ for(int i=0; i<images.size(); i++) {
         // first, make sure it lands in the image, and we have enough pixels in the image
         int p1x = RND(p1.x);
         int p1y = RND(p1.y);
-        if (p1x < LOOK || p1x > images[i].w-1-LOOK) continue;
-        if (p1y < LOOK || p1y > images[i].h-1-LOOK) continue;
+        if( p1x < LOOK || p1x > images[i].w-1-LOOK ) continue;
+        if( p1y < LOOK || p1y > images[i].h-1-LOOK ) continue;
 
         bool nip = false;   // stands for Not In Patch
         vector<Point> pts2;
         vector<double> vals2;
         for(int ix = p1x-LOOK; ix <= p1x+LOOK; ix++) {
             for(int iy = p1y-LOOK; iy <= p1y+LOOK; iy++) {
-                int loc = ix+iy*images[i].w;
+                int loc = ix + images[i].w * iy;
                 nip = nip || (images[i].foldmap[loc] != patch);
                 uint8 v = images[i].raster[loc];
                 vals2.push_back(v);
@@ -299,7 +318,7 @@ for(int i=0; i<images.size(); i++) {
                 }
             }
         // if any of the pixels were not in the relevant patch, we should not use this
-        if (nip)
+        if( nip )
 	    continue;
 
         double dx, dy;
@@ -309,7 +328,7 @@ for(int i=0; i<images.size(); i++) {
         // dp = false;
 
 		double	co = CorrPatches(
- 						stdout, false, dx, dy,
+						stdout, false, dx, dy,
 						pts1, vals1, pts2, vals2,
 						0, 0, kCorrRadius,
 						lr, NULL, lc, NULL, ftc );
@@ -319,7 +338,7 @@ for(int i=0; i<images.size(); i++) {
 		dy += pts2[0].y - pts1[0].y;
 
         printf(" tx=%f, ---> dx, dy= %f, %f, corr %f\n\n", pt.x, dx, dy, co);
-        if (co < 0.7) {
+        if( co < 0.7 ) {
              printf("WARNING - poor image correlation %f - ignored\n", co);
              nwarn_bad_corr++;
              nwarn_edge_interp = save;  // reset this since we don't care since we are not using the point
@@ -334,7 +353,7 @@ for(int i=0; i<images.size(); i++) {
         }
     }
 // OK, now s contains all the matches. If there's more than one, we've got a stitch point
-if (s.which.size() > 1) {
+if( s.which.size() > 1 ) {
     printf("More than one image for global point (%f %f)\n", pt.x, pt.y);
     // and add all the matching spots to the list for each image
     for(int i=0; i<s.which.size(); i++) {
@@ -344,104 +363,70 @@ if (s.which.size() > 1) {
     }
 }
 
+/* --------------------------------------------------------------- */
+/* PseudoAngle --------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-
-
-
-
-
-
-
-
-
-// draw a line in a raster
-void DrawLine(uint8 *r, int w, double x1, double y1, double x2, double y2)
+// An angle like atan2(y,x), but runs from -4 to +4,
+// and is continuous, but not uniform.
+//
+static double PseudoAngle( double y, double x )
 {
-if (fabs(x1-x2) > fabs(y1 - y2)) {  // mostly horizontal
-    if (x1 > x2)
-        {double t = x1; x1=x2; x2=t; t=y1; y1=y2; y2=t;}
-    int ix;
-    for(ix = ROUND(x1); ix <= ROUND(x2); ix++) {
-         double y = y1 +(ix-x1)/(x2-x1)*(y2-y1);
-         int iy = ROUND(y);
-         r[iy*w+ix] = 255;
-         }
-    }
-else {  // mostly vertical
-    if (y1 > y2)
-        {double t = x1; x1=x2; x2=t; t=y1; y1=y2; y2=t;}
-    int iy;
-    for(iy = ROUND(y1); iy <= ROUND(y2); iy++) {
-         double x = x1 + (iy-y1)/(y2-y1)*(x2-x1);
-         int ix = ROUND(x);
-         r[iy*w+ix] = 255;
-         }
-    }
-}
-
-
-// an angle like atan2(y,x), but runs from -4 to +4, and is continuous, but not uniform
-double PseudoAngle(double y, double x) {
 bool xish = fabs(y) <= fabs(x);  // closer to x than y axis
-if (x > 0 && xish)
+if( x > 0 && xish )
 	return y/x;
-if (y > 0) {
-    if (xish)
+if( y > 0 ) {
+    if( xish )
 	return 4 + y/x;
     else
         return 2 - x/y;
     }
 // now we know y < 0
-if (xish)
+if( xish )
     return -4 +y/x;
 return -2 - x/y;
 }
 
-// Draw a circle into the buffer
-void DrawCircle(vector<uint8> &buf, int nx, int ny, double xc, double yc, double radius)
-{
-for(int i=0; i<100; i++) {
-    double theta = 2*PI/100.0*i;
-    int ix = RND(xc + radius*cos(theta));
-    int iy = RND(yc + radius*sin(theta));
-    if (0 <= ix && ix < nx && 0 <= iy && iy < ny)
-	buf[uint32(ix)+uint32(nx)*uint32(iy)] = 255;
-    }
-}
+/* --------------------------------------------------------------- */
+/* FillInHolesInFoldmap ------------------------------------------ */
+/* --------------------------------------------------------------- */
 
-void FillInHolesInFoldmap(uint8 *map, uint32 w, uint32 h)
+// We consider every 0 in the foldmap, and decide whether to
+// fill it in. We will change each 0 to 255 as we examine it
+// so we only see it once. After we see each hole, we will
+// either fill it in, or add it to the list of 0s to be
+// restored at the end.
+//
+static void FillInHolesInFoldmap( uint8 *map, uint32 w, uint32 h )
 {
-// we consider every 0 in the foldmap, and decide whether to fill it in.  We will change each 0 to 255 as we examine
-// it, so we only see it once.  After we see each hole, we will either fill it in, or add it to the list of 0s to
-// be restored at the end.
 uint32 np = w*h;  // number of pixels
 int start = 0;
 vector<int> setback;  // pixels we will set back to 0 when we are done
 int nholes = 0;
 for(int i=start; i < np; i++) {
-    if (map[i] == 0) {
+    if( map[i] == 0 ) {
 	start = i;  // so next time resume here
 	stack<int> st;
 	st.push(i);
 	set<int> boundary;  // all the values we find on the boundary
         vector<int> pixels; // 0 valued pixels in this area
-	while (!st.empty()) {
+	while( !st.empty() ) {
 	    int j = st.top(); st.pop();
-            if (map[j] == 0) {
+            if( map[j] == 0 ) {
 	        map[j] = 255;  // so we won't get it again
                 pixels.push_back(j);
-	        int y = j/w;
-	        int x = j-y*w;
-	        if (x-1 >= 0) st.push(j-1); else boundary.insert(-1);
-                if (x+1 < w)  st.push(j+1); else boundary.insert(-1);
-                if (y-1 >= 0) st.push(j-w); else boundary.insert(-1);
-                if (y+1 < h)  st.push(j+w); else boundary.insert(-1);
+	        int y = j / w;
+	        int x = j - w * y;
+	        if( x-1 >= 0 ) st.push(j-1); else boundary.insert(-1);
+            if( x+1 <  w ) st.push(j+1); else boundary.insert(-1);
+            if( y-1 >= 0 ) st.push(j-w); else boundary.insert(-1);
+            if( y+1 <  h ) st.push(j+w); else boundary.insert(-1);
 		}
             else {// map value is not 0, add what we ran into to the set of boundary values
-		if (map[j] != 255) boundary.insert(map[j]);
+		if( map[j] != 255 ) boundary.insert( map[j] );
 		}
 	    }
-        if (boundary.size() == 1 && *(boundary.begin()) != -1) { // then we have a hole
+        if( boundary.size() == 1 && *(boundary.begin()) != -1 ) { // then we have a hole
 	    int pval = *(boundary.begin());
 	    for(int k=0; k<pixels.size(); k++)
 		map[pixels[k]] = pval;
@@ -459,10 +444,20 @@ for(int k=0; k<setback.size(); k++)
 printf("Filled in %d holes\n", nholes);
 }
 
-double cot(double x) { return 1.0/tan(x);}
+/* --------------------------------------------------------------- */
+/* cot ----------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
+static double cot( double x )
+{
+	return 1.0 / tan( x );
+}
 
-bool Inside(triangle &tri, vector<Point> gvtx, Point &p)
+/* --------------------------------------------------------------- */
+/* Inside -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static bool Inside( triangle &tri, vector<Point> gvtx, Point &p )
 {
 Point p1(gvtx[tri.v[0]]);
 Point p2(gvtx[tri.v[1]]);
@@ -470,18 +465,32 @@ Point p3(gvtx[tri.v[2]]);
 return LeftSide(p1,p2,p) && LeftSide(p2,p3,p) && LeftSide(p3,p1,p);
 }
 
-// Find the triangle where a point resides.  This calculation can be done equally well
-// in global or local coordinates.  We will use global coords.
-// Last two args are returned.  Which 3 variables, and which 3 proportions.
-void FindTriangle(vector<image> &images, int im, int patch, Point p1, vector<triangle> &tris, vector<Point> &gvtx, int N,
-int *which, double *amts)
+/* --------------------------------------------------------------- */
+/* FindTriangle -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Find the triangle where a point resides. This calculation
+// can be done equally well in global or local coordinates.
+// We will use global coords. Last two args are returned.
+// Which 3 variables, and which 3 proportions.
+//
+static void FindTriangle(
+	vector<image>		&images,
+	int					im,
+	int					patch,
+	Point				p1,
+	vector<triangle>	&tris,
+	vector<Point>		&gvtx,
+	int					N,
+	int					*which,
+	double				*amts )
 {
 Point p = p1;
 images[im].tf[patch].Transform( p );
 int first_tri = images[im].FirstTriangle + (patch-1)*N;  // since N triangle per patch, and
 					                // first one is #1
 for(int i=first_tri; i < first_tri+N; i++) {
-    if (Inside(tris[i], gvtx, p)) {
+    if( Inside(tris[i], gvtx, p) ) {
 	printf("Got one - Point %f %f inside triangle (%f %f) (%f %f) (%f %f)\n",
 	 p.x, p.y,
 	 gvtx[tris[i].v[0]].x, gvtx[tris[i].v[0]].y,
@@ -498,17 +507,22 @@ for(int i=first_tri; i < first_tri+N; i++) {
 	}
     }
 printf("Oops - no triangle for point (%f %f)\n", p.x, p.y);
-exit(42);
+exit( 42 );
 }
 
+/* --------------------------------------------------------------- */
+/* WriteTriangles ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
 // Write triangles out to a text file in a format gnuplot can read.
-void WriteTriangles(const char *name, vector<triangle> &tris, vector<Point> &pts)
+//
+static void WriteTriangles(
+	const char			*name,
+	vector<triangle>	&tris,
+	vector<Point>		&pts )
 {
-FILE *ft = fopen(name,"w");
-if (ft == NULL) {
-    printf("could not open '%s' for write.\n", name);
-    exit(42);
-    }
+FILE *ft = FileOpenOrDie( name, "w" );
+
 for(int i=0; i<tris.size(); i++) {
     Point ps[3];
     for(int k=0; k<3; k++)
@@ -520,15 +534,19 @@ for(int i=0; i<tris.size(); i++) {
 fclose(ft);
 }
 
-void FoldmapRenumber(image &im)
+/* --------------------------------------------------------------- */
+/* FoldmapRenumber ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FoldmapRenumber( image &im )
 {
 // if not computed yet, make the renumbering
-if (im.FoldmapRenumber.size() == 0) {
+if( im.FoldmapRenumber.size() == 0 ) {
     // compute it
     im.FoldmapRenumber.push_back(0);  // 0 always maps to 0
     int k=1;
     for(int i=1; i<im.tf.size(); i++) {
-	if (im.tf[i].det() != 0.0) {           // used
+	if( im.tf[i].det() != 0.0 ) {           // used
 	    im.tf[k]  = im.tf[i];
             im.inv[k] = im.inv[i];
             im.FoldmapRenumber.push_back(k++);
@@ -551,9 +569,14 @@ for(int i=0; i<np; i++) {
     }
 }
 
-// Modify a super-pixel map so the numbers are assigned consectively from MaxSPUsed+1
-// on up, and update MaxSPUsed accordingly.  Fill the vector SPmapping to record
-// what was done.
+/* --------------------------------------------------------------- */
+/* RemapSuperPixelsOneImage -------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Modify a super-pixel map so numbers are assigned consectively
+// from MaxSPUsed+1 on up, and update MaxSPUsed accordingly. 
+// Fill the vector SPmapping to record what was done.
+//
 // So if input was 0 0 0 0 0 0 1 2 4 0 0 0 0 and MAXSPUsed = 3000
 // The output is   0 0 0 0 0 0 1 2 3 0 0 0 0
 // and SPMapping[0] = 0
@@ -561,7 +584,13 @@ for(int i=0; i<np; i++) {
 //     SPMapping[2] = 3002
 //     SPMapping[4] = 3003
 // on exit, MAXSPused = 3003
-void RemapSuperPixelsOneImage(uint16* test, int w, int h, int &MaxSPUsed, vector<int> &SPmapping)
+//
+static void RemapSuperPixelsOneImage(
+	uint16		*test,
+	int			w,
+	int			h,
+	int			&MaxSPUsed,
+	vector<int>	&SPmapping )
 {
 int biggest = -1;
 vector<int> vals(65536,0);
@@ -574,7 +603,7 @@ SPmapping.resize(biggest+1,0);  // make the remapping vector the right size
 int base = MaxSPUsed;  // will add this to all
 int n=0;
 for(int i=1; i<65536; i++) {  // 0 always maps to 0
-    if (vals[i] != 0) { // this value was used
+    if( vals[i] != 0 ) { // this value was used
 	MaxSPUsed++;
         SPmapping[i] = MaxSPUsed;
 	n++;
@@ -583,12 +612,22 @@ for(int i=1; i<65536; i++) {  // 0 always maps to 0
 printf("--- %d different values were used\n", n);
 // Now do the remapping
 for(int i=0; i<w*h; i++)
-    if (test[i] != 0)
+    if( test[i] != 0 )
         test[i] = SPmapping[test[i]] - base;  // cannot overflow, since cannot have more than 65535 new values
 }
 
-// same thing, but with ints.  Could templatize this.
-void RemapSuperPixelsOneImage(uint32* test, int w, int h, int &MaxSPUsed, vector<int> &SPmapping)
+/* --------------------------------------------------------------- */
+/* RemapSuperPixelsOneImage -------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Same thing, but with ints. Could templatize this.
+//
+static void RemapSuperPixelsOneImage(
+	uint32		*test,
+	int			w,
+	int			h,
+	int			&MaxSPUsed,
+	vector<int>	&SPmapping )
 {
 // First find the biggest
 int biggest = -1;
@@ -596,7 +635,7 @@ for(int i=0; i<w*h; i++)
     biggest = max(int(test[i]), biggest);
 printf("Biggest value in 32 bit map is %d\n", biggest);
 //for(int i=0; i<w*h; i++) {
-    //if (int(test[i]) == biggest)
+    //if( int(test[i]) == biggest )
 	//printf("Occurs: test[%d] = %d\n", i, test[i]);
     //}
 
@@ -609,7 +648,7 @@ SPmapping.resize(biggest+1,0);  // make the remapping vector the right size
 int base = MaxSPUsed;  // will add this to all
 int n=0;
 for(int i=1; i<=biggest; i++) {  // 0 always maps to 0
-    if (vals[i] != 0) { // this value was used
+    if( vals[i] != 0 ) { // this value was used
 	MaxSPUsed++;
         SPmapping[i] = MaxSPUsed;
 	n++;
@@ -617,26 +656,30 @@ for(int i=1; i<=biggest; i++) {  // 0 always maps to 0
     }
 printf("--- %d different values were used\n", n);
 // Now do the remapping.  'Base' not currently used for 32 bit version
-if (base != 0) {
+if( base != 0 ) {
     printf("Expected base to be 0, not %d\n", base);
-    exit(42);
+    exit( 42 );
     }
 for(int i=0; i<w*h; i++)
     test[i] = SPmapping[test[i]] - base;
 }
 
+/* --------------------------------------------------------------- */
+/* RuleOutIntersection ------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-
-
-
-
-
-
-
-// Can we rule out that an image from (0,0) to (w-1,h-1), when transformed by
-// any of its 'tfs', will hit the image (xmin,ymin) to (xmax,ymax)?
-// try to find a separating line...
-bool RuleOutIntersection(uint32 w, uint32 h, vector<TForm>& tfs,  int xmin, int ymin, int xmax, int ymax)
+// Can we rule out that an image from (0,0) to (w-1,h-1),
+// when transformed by any of its 'tfs', will hit the image
+// (xmin,ymin) to (xmax,ymax)? Try to find a separating line...
+//
+static bool RuleOutIntersection(
+	uint32			w,
+	uint32			h,
+	vector<TForm>	&tfs,
+	int				xmin,
+	int				ymin,
+	int				xmax,
+	int				ymax )
 {
 // make the four corners
 vector<Point> corners;
@@ -660,67 +703,85 @@ for(int j=1; j<tfs.size(); j++) {  // patches start at 1
 bool AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].x < xmin);
-if (AllOut) return true;          // all on left of view
+if( AllOut ) return true;          // all on left of view
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].x > xmax);
-if (AllOut) return true;          // all on right
+if( AllOut ) return true;          // all on right
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].y < ymin);
-if (AllOut) return true;          // all on bottom
+if( AllOut ) return true;          // all on bottom
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].y > ymax);
-if (AllOut) return true;          // all off the top
+if( AllOut ) return true;          // all off the top
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].x + all[i].y > xmax + ymax);
-if (AllOut) return true;          // all off northeast
+if( AllOut ) return true;          // all off northeast
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].x + all[i].y < xmin + ymin);
-if (AllOut) return true;          // all off southwest
+if( AllOut ) return true;          // all off southwest
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].x - all[i].y < xmin - ymax);
-if (AllOut) return true;          // all off northwest
+if( AllOut ) return true;          // all off northwest
 AllOut = true;
 for(int i=0; i<all.size(); i++)
     AllOut &= (all[i].x - all[i].y > xmax - ymin);
-if (AllOut) return true;          // all off southeast
+if( AllOut ) return true;          // all off southeast
 return false;
 }
 
-// find the layer number.  We have a list of sub-strings; if the file name contains
-// the sub-string then that defines the layer.  Sub-strings and layer numbers
-// are contained in two parallel vectors.
-int FileNameToLayerNumber(vector<char *> &dnames, vector<int> &lnums, char *fname)
+/* --------------------------------------------------------------- */
+/* FileNameToLayerNumber ----------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Find the layer number. We have a list of sub-strings; if the
+// file name contains the sub-string then that defines the layer.
+// Sub-strings and layer numbers stored in two parallel vectors.
+//
+static int FileNameToLayerNumber(
+	vector<char*>	&dnames,
+	vector<int>		&lnums,
+	char			*fname )
 {
 int k;
 for(k=0; k<dnames.size(); k++)
-    if (strstr(fname, dnames[k]) != NULL)
+    if( strstr(fname, dnames[k]) != NULL )
 	break;
-if (k >= dnames.size()) {
+if( k >= dnames.size() ) {
     printf("Oops - '%s' not in layer directory.\n", fname);
-    exit(42);
+    exit( 42 );
     }
 return lnums[k];
 }
 
-// Routines to re-size an image down by a factor of 'scale'
-// ww and hh are the original size; scale is the integer factor
-void ImageResize(uint8 *&raster, int ww, int hh, int scale, bool sampling = true)
+/* --------------------------------------------------------------- */
+/* ImageResize --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Routines to re-size an image down by a factor of 'scale';
+// ww and hh are the original size; scale is the integer factor.
+//
+static void ImageResize(
+	uint8	*&raster,
+	int		ww,
+	int		hh,
+	int		scale,
+	bool	sampling = true )
 {
-if (scale == 1)
+if( scale == 1 )
     return;
 int w = ww/scale;
 int h = hh/scale;
 uint8* new_ras = (uint8 *)malloc(w*h*sizeof(uint8));
-if (sampling) { // just pick one of the pixels
+if( sampling ) { // just pick one of the pixels
     for(int y=0; y<h; y++)
 	for(int x=0; x<w; x++)
-	    new_ras[x+y*w] = raster[x*scale + y*scale*ww];
+	    new_ras[x + w*y] = raster[scale*(x + ww*y)];
     }
 else {
     for(int y=0; y<h; y++) {
@@ -730,9 +791,9 @@ else {
 	    int sum = 0;
 	    for(int i=0; i<scale; i++) {
 		for(int j=0; j < scale; j++)
-		    sum += raster[x0+x + (y0+y)*ww];
+		    sum += raster[x0+x + ww*(y0+y)];
 		}
-	    new_ras[x+y*w] = sum/(scale*scale);
+	    new_ras[x + w*y] = sum/(scale*scale);
 	    }
 	}
     }
@@ -740,22 +801,29 @@ free(raster);
 raster = new_ras;
 }
 
-// Only used for super-pixels, so only sampling and not averaging
-void ImageResize16bits(uint16 *&raster, int ww, int hh, int scale)
+/* --------------------------------------------------------------- */
+/* ImageResize16bits --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Only used for super-pixels, so only sampling and not averaging.
+//
+static void ImageResize16bits(
+	uint16	*&raster,
+	int		ww,
+	int		hh,
+	int		scale )
 {
-if (scale == 1)
+if( scale == 1 )
     return;
 int w = ww/scale;
 int h = hh/scale;
 uint16* new_ras = (uint16 *)malloc(w*h*sizeof(uint16));
 for(int y=0; y<h; y++)
     for(int x=0; x<w; x++)
-	new_ras[x+y*w] = raster[x*scale + y*scale*ww];
+	new_ras[x + w*y] = raster[scale*(x + ww*y)];
 free(raster);
 raster = new_ras;
 }
-
-
 
 /* --------------------------------------------------------------- */
 /* MakeDirExist -------------------------------------------------- */
@@ -767,10 +835,10 @@ raster = new_ras;
 // If it does exist and is a directory, or if we can create it,
 // return normally.
 //
-void MakeDirExist(const char *name, set<string> &dir_cache)
+static void MakeDirExist( const char *name, set<string> &dir_cache )
 {
 // first, see if we already created this directory.
-if (dir_cache.find(string(name)) != dir_cache.end())
+if( dir_cache.find(string(name)) != dir_cache.end() )
     return;
 
 // OK, have not created it already.  One pass occasionally fails when running many
@@ -780,42 +848,55 @@ const int MAX_PASS = 3;
 int pass;
 for(pass=1; pass<=MAX_PASS; pass++) {
     struct stat buf;
-    if (stat(name, &buf)) {
+    if( stat(name, &buf) ) {
         // error, assume directory does not exist
-        if (mkdir(name,0775))
+        if( mkdir(name,0775) )
 	    printf("mkdir('%s') failed.\n", name);
         else // it worked, stop trying
 	    break;
         }
     else {  // was able to stat the file; see if it's a directory
-        if (!S_ISDIR(buf.st_mode)) {
+        if( !S_ISDIR(buf.st_mode) ) {
 	    printf("File '%s' exists, but is not a directory.\n", name);
-	    exit(42);
+	    exit( 42 );
 	    }
         else
 	    break;  // file exists and is a directory
 	}
     }
-if (pass > MAX_PASS)
-    exit(42);
+if( pass > MAX_PASS )
+    exit( 42 );
 // if we get here, either the directory already exists, or we created it.  In
 // either case, no need to make it again.
 dir_cache.insert(string(name));
 }
 
+/* --------------------------------------------------------------- */
+/* CopyRaster ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
 // Copy and condense the raster at src into the location in dest
 // (dest, w, h) = describes dest
 // (dx, dy)     = where to write
 // (src, sw, sh)= describes the source
-// Only problem is that sw, or sh, or both could be odd, so each pixel
-// can get a contribution from 1, 2, or 4 pixels.
-void CopyRaster(uint8* dest, int w, int h, int dx, int dy, uint8* src, int sw, int sh)
+// Only problem is that sw, or sh, or both could be odd,
+// so each pixel can get a contribution from 1, 2, or 4 pixels.
+//
+static void CopyRaster(
+	uint8	*dest,
+	int		w,
+	int		h,
+	int		dx,
+	int		dy,
+	uint8	*src,
+	int		sw,
+	int		sh )
 {
 // Do this a brute force way.  Go through all the src pixels, mapping each to dest,
 // and counting how many map to each.  Then average.
 // Note added later:  This is now too general, as Phil says the tile size always
 // rounds down, so don't worry about the half pixels.  Could now make make more efficient.
-if (src == NULL)
+if( src == NULL )
     return;
 vector<int> N(w*h,0);
 vector<int> d(w*h,0);
@@ -832,12 +913,23 @@ for(int y=0; y<sht; y++) {
 // now, for every pixel that was written at least once, average it
 for(int x = 0; x<w; x++)
     for(int y=0; y<h; y++)
-	if (N[x + w*y] != 0)
+	if( N[x + w*y] != 0 )
 	    dest[x + w*y] = d[x +w*y]/N[x+w*y];
 }
 
-//condenses 4 tiles into 1
-int WriteSummaryTile(string rav_name, int section, int level, int row, int col, set<string> &dir_cache)
+/* --------------------------------------------------------------- */
+/* WriteSummaryTile ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Condenses 4 tiles into 1.
+//
+static int WriteSummaryTile(
+	string		rav_name,
+	int			section,
+	int			level,
+	int			row,
+	int			col,
+	set<string>	&dir_cache )
 {
 // open the 4 relevant tiles - (row,col), (row+1,col), (row,col+1), and (row+1,col+1)
 uint32 w1, h1, w2, h2, w3, h3, w4, h4;
@@ -845,7 +937,7 @@ char fname[1024];
 int dir = section/1000;
 char ds[32];                     // string for the final directory
 strcpy(ds,"");                   // for layers 0-999, it's blank (no directory)
-if (dir != 0)                    // but otherwise, one per thousand layers
+if( dir != 0 )                    // but otherwise, one per thousand layers
     sprintf(ds, "%d/", dir*1000);// for example, layer 1761 would be in directory "1000/"
 
 //Tiles are named after compass directions on the screen (sw= southwest, for example)
@@ -857,10 +949,10 @@ sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1,
 uint8* se = Raster8FromPng(fname, w3, h3);
 sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row+1, col+1, ds, section);
 uint8* ne = Raster8FromPng(fname, w4, h4);
-if (sw == NULL)  // if even the base tile does not exist, don't write anything.
+if( sw == NULL )  // if even the base tile does not exist, don't write anything.
     return 0;
 // if we are at the origin, and one tile holds everything, we don't need a tile either
-if (nw == NULL && se == NULL && row == 0 & col == 0)
+if( nw == NULL && se == NULL && row == 0 & col == 0 )
     return 0;
 
 // otherwise, create the tile...
@@ -885,7 +977,7 @@ sprintf(fname, "%s/tiles/1024/%d/%d/%d", rav_name.c_str(), level, row/2, col/2);
 MakeDirExist(fname, dir_cache);
 sprintf(fname, "%s/tiles/1024/%d/%d/%d/g", rav_name.c_str(), level, row/2, col/2);
 MakeDirExist(fname, dir_cache);
-if (dir == 0) // first layers are written in the root directory
+if( dir == 0 ) // first layers are written in the root directory
     sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%03d.png", rav_name.c_str(), level, row/2, col/2, section);
 else { // need another layer of directories
     sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%d", rav_name.c_str(), level, row/2, col/2, dir*1000);
@@ -898,8 +990,16 @@ free(raster);
 return 1;
 }
 
+/* --------------------------------------------------------------- */
+/* CreateLevelNTiles --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
 //Create smaller tiles.
-void CreateLevelNTiles(string rav_name, int section, set<string> &dir_cache)
+//
+static void CreateLevelNTiles(
+	string		rav_name,
+	int			section,
+	set<string>	&dir_cache )
 {
 int at_this_level = 1;  // so we loop at least once
 for(int level=1; level < 20 && at_this_level > 0; level++) {  // enough for trillions of tiles
@@ -920,24 +1020,33 @@ for(int level=1; level < 20 && at_this_level > 0; level++) {  // enough for tril
     }
 }
 
-//Updates the meta-data file.  For now, just writes
-void UpdateMetaData(const char *name, int section, int w, int h)
+/* --------------------------------------------------------------- */
+/* UpdateMetaData ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Updates the meta-data file. For now, just writes.
+//
+static void UpdateMetaData(
+	const char	*name,
+	int			section,
+	int			w,
+	int			h )
 {
 int zmin, zmax;
-FILE *fd = fopen(name, "r");
-if (fd != NULL) {
+FILE *fd = fopen( name, "r" );
+if( fd != NULL ) {
     // read existing file
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
-    while ((read = getline(&line, &len, fd)) != -1) {
+    while( (read = getline(&line, &len, fd)) != -1 ) {
 	//printf("Retrieved line of length %zu :\n", read);
-	if (strncmp(line,"zmin=",5) == 0)
+	if( strncmp(line,"zmin=",5) == 0 )
 	    zmin = min(section, atoi(line+5));
-	if (strncmp(line,"zmax=",5) == 0)
+	if( strncmp(line,"zmax=",5) == 0 )
 	    zmax = max(section,atoi(line+5));
 	}
-    if (line)
+    if( line )
 	free(line);
     fclose(fd);
     }
@@ -946,11 +1055,8 @@ else {  // no file yet; make one with one layer
     zmax = section;
     }
 // Now write the new file
-fd = fopen(name, "w");
-if (fd == NULL) {
-    printf("could not write meta-data file '%s'\n", name);
-    exit(42);
-    }
+fd = FileOpenOrDie( name, "w" );
+
 fprintf(fd, "version=1\n");
 fprintf(fd, "width=%d\n", w);
 fprintf(fd, "height=%d\n", h);
@@ -961,8 +1067,18 @@ fprintf(fd, "channels=\"g\"\n");
 fclose(fd);
 }
 
-// writes the lowest level image tiles.
-int WriteImageTiles(const string rav_name, int section, unsigned char *image, int w, int h)
+/* --------------------------------------------------------------- */
+/* WriteImageTiles ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Writes the lowest level image tiles.
+//
+static int WriteImageTiles(
+	const string	rav_name,
+	int				section,
+	unsigned char	*image,
+	int				w,
+	int				h )
 {
 set<string> dir_cache;  // names of directories already created
 string base_name = rav_name;
@@ -997,7 +1113,7 @@ for(int row = 0; row*1024 < h; row++) {
 		raster[n++] = image[m++];
 	    }
         int dir = section/1000;
-        if (dir == 0) // first layers are written in the root directory
+        if( dir == 0 ) // first layers are written in the root directory
 	    sprintf(fname,"%s/%d/%d/g/%03d.png", base_name.c_str(), row, col, section);
         else { // need another layer of directories
 	    sprintf(fname,"%s/%d/%d/g/%d", base_name.c_str(), row, col, dir*1000);
@@ -1014,45 +1130,62 @@ CreateLevelNTiles(rav_name, section, dir_cache);
 return 0;
 }
 
-//------------------------- Section for inverting annotations of various types
-//
-#include "json/json.h"
+/* --------------------------------------------------------------- */
+/* Annotation Inversion ------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+#include	"json/json.h"
 
 class Bookmark {
-  public:
-    string text;
-    Point pt;
-    int z;
-    int body_id;
-    int image_number;
-    bool operator<(const Bookmark &rhs) const {return this->image_number < rhs.image_number;}
-    };
+public:
+	string	text;
+	Point	pt;
+	int		z;
+	int		body_id;
+	int		image_number;
+
+public:
+	bool operator < ( const Bookmark &rhs ) const
+		{return image_number < rhs.image_number;};
+};
+
 
 class Partner {
-  public:
-    double confidence;
-    Point pt;
-    int z;
-    };
+public:
+	double	confidence;
+	Point	pt;
+	int		z;
+};
+
 
 class TBar {
-  public:
-    std::string status;
-    double confidence;
-    Point pt;
-    int z;
-    std::vector<Partner> partners;
-    int body_id;
-    int image_number;
-    bool operator<(const TBar &rhs) const {return this->image_number < rhs.image_number;}
-    };
+public:
+	string			status;
+	double			confidence;
+	Point			pt;
+	int				z;
+	vector<Partner>	partners;
+	int				body_id;
+	int				image_number;
 
-bool ReadBookmarks(char *fname, int section, vector<Bookmark> &bookmarks)
+public:
+	bool operator < ( const TBar &rhs ) const
+		{return image_number < rhs.image_number;};
+};
+
+/* --------------------------------------------------------------- */
+/* ReadBookmarks ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static bool ReadBookmarks(
+	char				*fname,
+	int					section,
+	vector<Bookmark>	&bookmarks )
 {
 Json::Value root;   // will contains the root value after parsing.
 Json::Reader reader;
-FILE *fd = fopen(fname, "r");
-if (fd == NULL) {
+FILE *fd = fopen( fname, "r" );
+if( fd == NULL ) {
     printf("Cannot open '%s' for read.\n", fname);
     return false;
     }
@@ -1061,17 +1194,17 @@ char huge[N];
 fread(huge, 1, N, fd);
 fclose(fd);
 bool parsingSuccessful = reader.parse(huge, root );
-if ( !parsingSuccessful )
+if( !parsingSuccessful )
 {
     // report to the user the failure and their locations in the document.
     std::cout  << "Failed to parse configuration\n"
                << reader.getFormatedErrorMessages();
-    exit(42);
+    exit( 42 );
     }
 
 printf("parsed file...\n");
 Json::Value md = root["metadata"];
-std::string des = md["description"].asString();
+string des = md["description"].asString();
 int         ver = md["version"].asInt();
 
 printf("Description: '%s', version %d\n", des.c_str(), ver );
@@ -1086,7 +1219,7 @@ for(unsigned int i=0; i<data.size(); i++) {
     b.body_id = v["body ID"].isInt();
     Json::Value lo = v["location"];
     b.z = lo[2u].asInt();
-    if (b.z == section) {
+    if( b.z == section ) {
 	b.pt.x = lo[0u].asDouble();
 	b.pt.y = lo[1u].asDouble();
         bookmarks.push_back(b);
@@ -1094,12 +1227,20 @@ for(unsigned int i=0; i<data.size(); i++) {
     }
 return true;
 }
-bool ReadSynAnnot(char *fname, int section, std::vector<TBar> &tbs)
+
+/* --------------------------------------------------------------- */
+/* ReadSynAnnot -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static bool ReadSynAnnot(
+	char			*fname,
+	int				section,
+	vector<TBar>	&tbs )
 {
 Json::Value root;   // will contains the root value after parsing.
 Json::Reader reader;
-FILE *fd = fopen(fname, "r");
-if (fd == NULL) {
+FILE *fd = fopen( fname, "r" );
+if( fd == NULL ) {
     printf("Cannot open '%s' for read.\n", fname);
     return false;
     }
@@ -1108,17 +1249,17 @@ char huge[N];
 fread(huge, 1, N, fd);
 fclose(fd);
 bool parsingSuccessful = reader.parse(huge, root );
-if ( !parsingSuccessful )
+if( !parsingSuccessful )
 {
     // report to the user the failure and their locations in the document.
     std::cout  << "Failed to parse configuration\n"
                << reader.getFormatedErrorMessages();
-    exit(42);
+    exit( 42 );
     }
 
 printf("parsed file...\n");
 Json::Value md = root["metadata"];
-std::string des = md["description"].asString();
+string des = md["description"].asString();
 int         ver = md["version"].asInt();
 
 printf("Description: '%s', version %d\n", des.c_str(), ver );
@@ -1130,11 +1271,11 @@ for(unsigned int i=0; i<data.size(); i++) {
     // read the different things that can be in 'data'.  For now only {"T-bar","partner"} is known
     Json::Value t = v["T-bar"];
     Json::Value part = v["partners"];
-    if (!t.isNull()) {
+    if( !t.isNull() ) {
         Json::Value lo = t["location"];
         TBar tb;
         tb.z = lo[2u].asInt();
-        if (tb.z == section) {
+        if( tb.z == section ) {
 	    tb.status      = t["status"].asString();
 	    tb.confidence  = t["confidence"].asDouble();
 	    tb.body_id     = t["body ID"].asInt();
@@ -1159,29 +1300,36 @@ for(unsigned int i=0; i<data.size(); i++) {
 return true;
 }
 
-// Read a file of synapse annotations.  Find all the ones that map to the final image,
-// transform them into final image coordinates, then append them to the vector
-// result[].
-bool LookForAndTransform(const char *name, char *root,
- int section,
- int image_no,
- vector<image> &images,
- bool Warp,
- vector<uint8> &tmap,
- vector<TBar> &result)
+/* --------------------------------------------------------------- */
+/* LookForAndTransform ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Read a file of synapse annotations. Find all the ones that
+// map to the final image, transform them into final image
+// coordinates, then append them to the vector result[].
+//
+static bool LookForAndTransform(
+	const char		*name,
+	char			*root,
+	int				section,
+	int				image_no,
+	vector<image>	&images,
+	bool			Warp,
+	vector<uint8>	&tmap,
+	vector<TBar>	&result )
 {
 uint32 w = images[image_no].w;
 uint32 h = images[image_no].h;
 char lname[2048];
 sprintf(lname, "%s/%s", root, name);
-FILE *fp = fopen(lname, "r");
-if (fp == NULL) {
+FILE *fp = fopen( lname, "r" );
+if( fp == NULL ) {
     printf("No file '%s'\n", lname);
     return false;
     }
 printf("Found '%s', copying annotation.\n", lname);
 fclose(fp);
-if (strstr(name, "annotations-synapse") != NULL) {
+if( strstr(name, "annotations-synapse") != NULL ) {
     vector<TBar> tbs;
     ReadSynAnnot(lname, section, tbs);
     // Use the location to find the patch
@@ -1191,20 +1339,20 @@ if (strstr(name, "annotations-synapse") != NULL) {
         int ix = int(p.x);
         int iy = int(p.y);
 	// make sure it's legal
-	if (ix < 0 ||  ix >= w || iy < 0 || iy >= h) {
+	if( ix < 0 ||  ix >= w || iy < 0 || iy >= h ) {
 	    printf("Synapse outside diagram?? %d %d %d %d\n", ix, w, iy, h);
 	    continue;
 	    }
-        int patch = images[image_no].foldmap[ix + iy*w];
+        int patch = images[image_no].foldmap[ix + w*iy];
         // There can be small patches which were not used, so need to check for legality here
         //             // No longer needed since we compress patches and foldmaps on input
-        if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
+        if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0 )
             continue;
         TForm t;
-        if (!Warp)  // just one transform per image
+        if( !Warp )  // just one transform per image
             t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
-            int sector = tmap[ix+iy*w];
+            int sector = tmap[ix + w*iy];
             t = images[image_no].sectors[patch][sector];;
 	    }
         t.Transform( p );
@@ -1216,23 +1364,38 @@ if (strstr(name, "annotations-synapse") != NULL) {
     }
 return true;
 }
-// Read a file of synapse annotations.  Find all the ones that map to the final image,
-// transform them into final image coordinates, then append them to the vector
-// result[].
-bool LookForAndTransform(const char *name, char *root, int section, int image_no,
- vector<Triple> &Triples, vector<int> &relevant_images, vector<image> &images,
- vector<uint16> &imap, int nx, int ny, vector<Bookmark> &result)
+
+/* --------------------------------------------------------------- */
+/* LookForAndTransform ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Read a file of synapse annotations. Find all the ones that
+// map to the final image, transform them into final image
+// coordinates, then append them to the vector result[].
+//
+static bool LookForAndTransform(
+	const char			*name,
+	char				*root,
+	int					section,
+	int					image_no,
+	vector<Triple>		&Triples,
+	vector<int>			&relevant_images,
+	vector<image>		&images,
+	vector<uint16>		&imap,
+	int					nx,
+	int					ny,
+	vector<Bookmark>	&result )
 {
 char lname[2048];
 sprintf(lname, "%s/%s", root, name);
-FILE *fp = fopen(lname, "r");
-if (fp == NULL) {
+FILE *fp = fopen( lname, "r" );
+if( fp == NULL ) {
     printf("No file '%s'\n", lname);
     return false;
     }
 printf("Found '%s', copying bookmarks.\n", lname);
 fclose(fp);
-if (strstr(name, "annotations-bookmarks") != NULL) {
+if( strstr(name, "annotations-bookmarks") != NULL ) {
     vector<Bookmark> bookmarks;
     ReadBookmarks(lname, section, bookmarks);
     // Since each image is divided into patches (often 3 or more), and each patch
@@ -1247,7 +1410,7 @@ if (strstr(name, "annotations-bookmarks") != NULL) {
 	for(k=1; k<Triples.size(); k++) {
 	    int from = Triples[k].image;          // index into the relevant pictures array
 	    int image = relevant_images[from-1];  // actual image number
-	    if (image == image_no) {
+	    if( image == image_no ) {
 		int patch = Triples[k].patch;
 		int sector = Triples[k].sector;
 		TForm t = images[image].sectors[patch][sector];  // transform from global to image
@@ -1259,12 +1422,12 @@ if (strstr(name, "annotations-bookmarks") != NULL) {
                 printf(" Point in output image is %f %f\n", p2.x, p2.y);
                 int ix = ROUND(p2.x);
                 int iy = ROUND(p2.y);
-                if (ix >= 0 && ix < nx && iy >= 0 && iy < ny) {
+                if( ix >= 0 && ix < nx && iy >= 0 && iy < ny ) {
                     printf("OK, it's at least in the image\n");
-                    int indx = imap[ix+iy*nx];  // the index into the triples array
+                    int indx = imap[ix + nx*iy];  // the index into the triples array
                     bool consistent = (k == indx);
                     printf("%d %d %s\n", k, indx, consistent ? "-Got one-" : "");
-		    if (consistent) {
+		    if( consistent ) {
                         bookmarks[j].pt = p2;
 			result.push_back(bookmarks[j]);
 			break;
@@ -1277,22 +1440,31 @@ if (strstr(name, "annotations-bookmarks") != NULL) {
 return true;
 }
 
-// Routine to fill in the map, starting with the center of each image and filling outward.
-// This sets each pixel based on how close it is the center, avoiding the edges where
-// the biggest distortions are.
+/* --------------------------------------------------------------- */
+/* FillInFromCenterOut ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Routine to fill in the map, starting with the center of each
+// image and filling outward. This sets each pixel based on how
+// close it is the center, avoiding the edges where the biggest
+// distortions are.
 //
-void FillInFromCenterOut(vector<uint16> &imap, vector<uint8> &PatchFrom,
- int nx, int ny,
- int w, int h,                     // size of images coming in
- double delta_image_space,         // smallest size that maps to each pixel on output
- vector<image> &images,            // the images
- vector<int> &relevant_images)     // the ones that are used among them
+static void FillInFromCenterOut(
+	vector<uint16>	&imap,
+	vector<uint8>	&PatchFrom,
+	int				nx,
+	int				ny,
+	int				w,
+	int				h,					// size of images coming in
+	double			delta_image_space,	// smallest size that maps to each pixel on output
+	vector<image>	&images,			// the images
+	vector<int>		&relevant_images )	// the ones that are used among them
 {
 // find the center of each picture.  May not be integer
 Point center((w-1)/2.0, (h-1)/2.0);
 int report = 100;
 for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
-    if (r >= report) {
+    if( r >= report ) {
 	printf("Starting radius %f\n", r);
 	report += 100;
 	}
@@ -1306,19 +1478,19 @@ for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
 	    Point p(pts[j]);
 	    int ix = int(p.x);  // PointsInRing only returns legal points
 	    int iy = int(p.y);
-	    int patch = images[i].foldmap[ix + iy*w];
+	    int patch = images[i].foldmap[ix + w*iy];
 	    // There can be small patches which were not used, so need to check for legality here
 	    // No longer needed since we compress patches and foldmaps on input
-	    if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
+	    if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0 )
 		continue;
 	    images[i].tf[patch].Transform( p );  // change to global coordinates
 	    ix = ROUND(p.x);
 	    iy = ROUND(p.y);
-	    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny)
+	    if( ix < 0 || ix >= nx || iy < 0 || iy >= ny )
 		continue;  // outside the image
 	    //printf("%f i=%d ix,iy=%d %d\n", r, i, ix, iy);
 	    uint32 nn = ix + uint32(iy)*uint32(nx);   // index into array
-	    if (imap[nn] == 0) {
+	    if( imap[nn] == 0 ) {
 		imap[nn] = k+1;       // this pixel will be set by the kth relevant picture
 		PatchFrom[nn] = patch;
 		}
@@ -1334,7 +1506,7 @@ for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
 
 		double d_us = max(abs(pt_us.x-center.x), abs(pt_us.y-center.y));  // L-infinity norm
 		double d_ot = max(abs(pt_ot.x-center.x), abs(pt_ot.y-center.y));  // L-infinity norm
-		if (d_us < d_ot) {
+		if( d_us < d_ot ) {
 		    //printf("It CAN happen... d_us= %f, d_ot= %f\n", d_us, d_ot);
 		    imap[nn] = k+1;       // this pixel will be set by the ith picture
 		    PatchFrom[nn] = patch;
@@ -1345,25 +1517,49 @@ for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
     }
 }
 
-//  An alternate to the above routine, this one fills in as the Matlab version did, to
-//  help with re-preducing earlier Matlab results for ease of back-annotation of synapse
-//  and other annotations.  Here each tile is completely rendered in alphabetical
-//  order (emperically true of the XML files matlab used for ordering)
+/* --------------------------------------------------------------- */
+/* NameSorter ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// An alternate to the above routine, this one fills in as the
+// Matlab version did, to help with re-preducing earlier Matlab
+// results for ease of back-annotation of synapse and other
+// annotations. Here each tile is completely rendered in alphabetical
+// order (emperically true of the XML files matlab used for ordering).
 //
 class NameSorter{
-  public:
-  int num;
-  char *name;
-  bool operator<(const NameSorter &rhs) const {return strcmp(this->name,rhs.name) < 0;}
-  };
-bool NameSortFn(NameSorter a, NameSorter b){ return strcmp(a.name, b.name) > 0;}
+public:
+	char	*name;
+	int		num;
 
-void FillInMatlabOrder(vector<uint16> &imap, vector<uint8> &PatchFrom,
- int nx, int ny,
- int w, int h,                     // size of images coming in
- double delta_image_space,         // smallest size that maps to each pixel on output
- vector<image> &images,            // the images
- vector<int> &relevant_images)     // the ones that are used among them
+public:
+	bool operator < ( const NameSorter &rhs ) const
+		{return strcmp( name, rhs.name ) < 0;};
+};
+
+/* --------------------------------------------------------------- */
+/* NameSortFn ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static bool NameSortFn( NameSorter a, NameSorter b )
+{
+	return strcmp( a.name, b.name ) > 0;
+}
+
+/* --------------------------------------------------------------- */
+/* FillInMatlabOrder --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FillInMatlabOrder(
+	vector<uint16>	&imap,
+	vector<uint8>	&PatchFrom,
+	int				nx,
+	int				ny,
+	int				w,
+	int				h,					// size of images coming in
+	double			delta_image_space,	// smallest size that maps to each pixel on output
+	vector<image>	&images,			// the images
+	vector<int>		&relevant_images)	// the ones that are used among them
 {
 // find the center of each picture.  May not be integer
 Point center((w-1)/2.0, (h-1)/2.0);
@@ -1383,7 +1579,7 @@ for(int kk=0; kk<temp.size(); kk++) {      // for each picture
     int i = relevant_images[k];
     int report = 500;
     for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
-	if (r >= report) {
+	if( r >= report ) {
 	    printf("Starting radius %f\n", r);
 	    report += 500;
 	    }
@@ -1395,19 +1591,19 @@ for(int kk=0; kk<temp.size(); kk++) {      // for each picture
 	    Point p(pts[j]);
 	    int ix = int(p.x);  // PointsInRing only returns legal points
 	    int iy = int(p.y);
-	    int patch = images[i].foldmap[ix + iy*w];
+	    int patch = images[i].foldmap[ix + w*iy];
 	    // There can be small patches which were not used, so need to check for legality here
 	    // No longer needed since we compress patches and foldmaps on input
-	    if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
+	    if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0 )
 		continue;
 	    images[i].tf[patch].Transform( p );  // change to global coordinates
 	    ix = ROUND(p.x);
 	    iy = ROUND(p.y);
-	    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny)
+	    if( ix < 0 || ix >= nx || iy < 0 || iy >= ny )
 		continue;  // outside the image
 	    //printf("%f i=%d ix,iy=%d %d\n", r, i, ix, iy);
 	    uint32 nn = ix + uint32(iy)*uint32(nx);   // index into array
-	    if (imap[nn] == 0) {
+	    if( imap[nn] == 0 ) {
 		imap[nn] = k+1;       // this pixel will be set by the kth relevant picture
 		PatchFrom[nn] = patch;
 		}
@@ -1415,11 +1611,17 @@ for(int kk=0; kk<temp.size(); kk++) {      // for each picture
 	}
     }
 }
-// Main program for creating mosaics of grayscale, superpixel, and boundary maps
-// from individual em images.  Needs a file containing transforms and a mapping
-// of image names to sections (layers).
 
-int main(int argc, char **argv)
+/* --------------------------------------------------------------- */
+/* main ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Main program for creating mosaics of grayscale, superpixel,
+// and boundary maps from individual em images. Needs a file
+// containing transforms and a mapping of image names to sections
+// (layers).
+
+int main( int argc, char **argv )
 {
 
 bool Debug = false;
@@ -1445,61 +1647,57 @@ int scale = 1;                // scale everything down by a factor of 'scale'
 vector<char *>noa;  // non-option arguments
 for(int i=1; i<argc; i++) {
     // process arguments here
-    if (argv[i][0] != '-')
+    if( argv[i][0] != '-' )
 	noa.push_back(argv[i]);
-    else if (strcmp(argv[i],"-d") == 0)
+    else if( strcmp(argv[i],"-d") == 0 )
 	Debug = true;
-    else if (strncmp(argv[i],"-warp", 5) == 0)
+    else if( strncmp(argv[i],"-warp", 5) == 0 )
 	Warp = true;
-    else if (strcmp(argv[i],"-tiles") == 0)
+    else if( strcmp(argv[i],"-tiles") == 0 )
 	make_tiles = true;
-    else if (strcmp(argv[i],"-noflat") == 0)
+    else if( strcmp(argv[i],"-noflat") == 0 )
 	make_flat = false;
-    else if (strcmp(argv[i],"-nomap") == 0)
+    else if( strcmp(argv[i],"-nomap") == 0 )
 	make_map = false;
-    else if (strcmp(argv[i], "-nf") == 0)
+    else if( strcmp(argv[i], "-nf") == 0 )
 	FoldMasks = false;
-    else if (strcmp(argv[i], "-a") == 0)
+    else if( strcmp(argv[i], "-a") == 0 )
 	Annotate = true;
-    else if (strcmp(argv[i], "-matlab") == 0)
+    else if( strcmp(argv[i], "-matlab") == 0 )
 	matlab_order = true;
-    else if (strcmp(argv[i], "-drn") == 0)
+    else if( strcmp(argv[i], "-drn") == 0 )
 	RenumberSuperPixels = false;
-    else if (strncmp(argv[i], "-dms=",5) == 0) {
+    else if( strncmp(argv[i], "-dms=",5) == 0 ) {
 	DontMoveStrength = atof(argv[i]+5);
 	}
-    else if (strncmp(argv[i], "-fold_dir=",10) == 0)
+    else if( strncmp(argv[i], "-fold_dir=",10) == 0 )
         fold_dir = string(argv[i]+10);
-    else if (strncmp(argv[i], "-region_dir=",12) == 0)
+    else if( strncmp(argv[i], "-region_dir=",12) == 0 )
         region_dir = string(argv[i]+12);
-    else if (strncmp(argv[i], "-gray_dir=",10) == 0)
+    else if( strncmp(argv[i], "-gray_dir=",10) == 0 )
         gray_dir = string(argv[i]+10);
-    else if (strncmp(argv[i], "-grey_dir=",10) == 0)   // both spellings of grey, just in case
+    else if( strncmp(argv[i], "-grey_dir=",10) == 0 )   // both spellings of grey, just in case
         gray_dir = string(argv[i]+10);
-    else if (strncmp(argv[i], "-sp_dir=",8) == 0)
+    else if( strncmp(argv[i], "-sp_dir=",8) == 0 )
         sp_dir = string(argv[i]+8);
-    else if (strncmp(argv[i], "-inv_dir=",9) == 0)
+    else if( strncmp(argv[i], "-inv_dir=",9) == 0 )
         inv_dir = string(argv[i]+9);
-    else if (strncmp(argv[i], "-rav_dir=",9) == 0)
+    else if( strncmp(argv[i], "-rav_dir=",9) == 0 )
         rav_dir = string(argv[i]+9);
-    else if (strncmp(argv[i], "-bmap_dir=",10) == 0)
+    else if( strncmp(argv[i], "-bmap_dir=",10) == 0 )
         inv_dir = string(argv[i]+10);
-    else if (strncmp(argv[i], "-s=",3) == 0)
+    else if( strncmp(argv[i], "-s=",3) == 0 )
         scale = atoi(argv[i]+3);
     else
 	printf("Ignored option '%s'\n", argv[i]);
     }
-if (Warp)
+if( Warp )
     printf("Don't Move Strength = %f\n", DontMoveStrength);
-if (noa.size() < 1) {
+if( noa.size() < 1 ) {
     printf("Usage: mos <simple file> [region xmin,ymin,dx,dy] [minlayer,maxlayer] [options]\n");
-    exit(42);
+    exit( 42 );
     }
-FILE *fp;
-if ((fp = fopen(noa[0],"r")) == NULL) {
-    printf("could not open input file\n");
-    return 42;
-    }
+FILE *fp = FileOpenOrDie( noa[0], "r" );
 int ni = 0;  // number of images
 vector<char *>dnames;   // directory names
 vector<int>   lnums;    // parallel vector of layer numbers
@@ -1511,17 +1709,17 @@ uint32 w=0,h=0;        // size of each sub-image
 
 int x0=0,y0=0;           // where to start output image
 int xsize=-1,ysize=-1;;  // size of output image, if specified
-if (noa.size() >= 2) {
-    if (sscanf(noa[1],"%d,%d,%d,%d", &x0, &y0, &xsize, &ysize) != 4) {
+if( noa.size() >= 2 ) {
+    if( sscanf(noa[1],"%d,%d,%d,%d", &x0, &y0, &xsize, &ysize) != 4 ) {
 	printf("Expected x0,y0,xsize,ysize, got '%s'\n", noa[1]);
-	exit(42);
+	exit( 42 );
 	}
     }
 int lspec1=-1, lspec2;   //layers specified by the user
-if (noa.size() >= 3) {
-    if (sscanf(noa[2],"%d,%d", &lspec1, &lspec2) != 2) {
+if( noa.size() >= 3 ) {
+    if( sscanf(noa[2],"%d,%d", &lspec1, &lspec2) != 2 ) {
 	printf("Expected min,max layers, got '%s'\n", noa[2]);
-	exit(42);
+	exit( 42 );
 	}
     }
 printf("Fold mask   directory = '%s'\n",   fold_dir.c_str());
@@ -1540,27 +1738,27 @@ char *lineptr = NULL;
 vector<double> x1, y1, x2, y2;
 vector<int>    z1, z2;
 for(;;){
-    if (getline(&lineptr, &nl, fp) == -1)
+    if( getline(&lineptr, &nl, fp) == -1 )
 	break;
-    if (strncmp(lineptr,"DIR",3) == 0) {      // simply store directory string
+    if( strncmp(lineptr,"DIR",3) == 0 ) {      // simply store directory string
         char *anum = strtok(lineptr+3," ");  // and layer number in parallel
         char *dname = strtok(NULL," \n");     // vectors
         dnames.push_back(strdup(dname));
         lnums.push_back(atoi(anum));
         }
-    else if (strncmp(lineptr,"FOLDMAP",7) == 0) {
+    else if( strncmp(lineptr,"FOLDMAP",7) == 0 ) {
 	char *tname = strtok(lineptr+7," '\n");
 	char *mname = strtok(NULL, " '\n");
-        if (tname == NULL || mname == NULL) {
+        if( tname == NULL || mname == NULL ) {
 	    printf("Not expecting NULL in FOLDMAP parsing.\n");
-	    exit(42);
+	    exit( 42 );
 	    }
         map<string,int>::iterator lookup = imap.find(string(tname));
-        if (lookup != imap.end())
+        if( lookup != imap.end() )
 	     continue;  // already seen this one
         // at this point, all we need is w and h, so toss image as soon as we read it.
         image ii;
-        if (w == 0) {  //read a file, then free it, just to set w and h
+        if( w == 0 ) {  //read a file, then free it, just to set w and h
             ii.raster = Raster8FromAny( tname, w, h, stdout );
             RasterFree( ii.raster );
             w /= scale;
@@ -1584,15 +1782,15 @@ for(;;){
         // If layers are specified, do this only for layers that are used, since it requires a file access
         // and hence is slow.
 	char *suf = strstr(mname, ".tif");
-        if (suf != NULL) {
+        if( suf != NULL ) {
             // see if it's a layer we care about.
-            if (lspec1 == -1 || (lspec1 <= ii.layer && ii.layer <= lspec2)) {
+            if( lspec1 == -1 || (lspec1 <= ii.layer && ii.layer <= lspec2) ) {
                 *suf = '\0';
                 char temp[1024];
                 sprintf(temp, "%sd.tif", mname);
 	        *suf = '.';  // put name back, in case we don't find it.
                 FILE *fd = fopen(temp, "r");
-                if (fd) {
+                if( fd ) {
                     fclose(fd);
 		    printf("Swapping to drawing file '%s'\n", temp);
                     free(ii.fname);
@@ -1601,17 +1799,17 @@ for(;;){
 		}
 	    }
         // is this a layer we care about?  If layer range not specified, or specified and in it, save
-        if (lspec1 < 0 || (lspec1 <= ii.layer && ii.layer <= lspec2) ) {
+        if( lspec1 < 0 || (lspec1 <= ii.layer && ii.layer <= lspec2)  ) {
             lowest  = min(lowest,  ii.layer);
             highest = max(highest, ii.layer);
             images.push_back(ii);
             imap[string(tname)] = images.size() - 1;
 	    }
         }
-    else if (strncmp(lineptr,"TRANSFORM",9) == 0) {
+    else if( strncmp(lineptr,"TRANSFORM",9) == 0 ) {
         double a,b,c,d,e,f;
         char name[1024];
-        if (sscanf(lineptr+9, "%s %lf %lf %lf %lf %lf %lf", name, &a, &b, &c, &d, &e, &f) != 7) {
+        if( sscanf(lineptr+9, "%s %lf %lf %lf %lf %lf %lf", name, &a, &b, &c, &d, &e, &f) != 7 ) {
             printf("Not expecting this in TRANSFORM: %s", lineptr);
 	    break;
             }
@@ -1619,7 +1817,7 @@ for(;;){
         char *fname = strtok(name," ':");
         //printf("File '%s'\n", fname);
         map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
-        if (imit == imap.end()) {
+        if( imit == imap.end() ) {
 	    // this is now normal with single layer image generation
 	    //printf("File in TRANSFORM statement has no FOLDMAP - ignored.\n");
 	    continue;
@@ -1630,26 +1828,26 @@ for(;;){
         int patch = atoi(rest);
         printf("rest = '%s', patch = %d\n", rest, patch);
         // Make sure vector is big enough
-        if (images[k].tf.size() <= patch) {
+        if( images[k].tf.size() <= patch ) {
              images[k].tf.resize(patch+1, TForm(0,0,0,0,0,0));  // initialize to an illegal transform
              images[k].inv.resize(patch+1);
              }
         images[k].tf[patch] = tf;
 	}
-    else if (strncmp(lineptr,"SPMAP",5) == 0) {
+    else if( strncmp(lineptr,"SPMAP",5) == 0 ) {
         char name[1024], where[1024];
-        if (sscanf(lineptr+5, "%s %s", name, where) != 2) {
+        if( sscanf(lineptr+5, "%s %s", name, where) != 2 ) {
             printf("Not expecting this in SPMAP: %s", lineptr);
 	    break;
             }
         char *fname = strtok(name," ':");
         //printf("File '%s'\n", fname);
         map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
-        if (imit == imap.end()) {
+        if( imit == imap.end() ) {
 	    // This is now normal with single layer image generation.  If it's a layer
 	    // we care about, print the message.  Otherwise silently ignore.
 	    int layer = FileNameToLayerNumber(dnames, lnums, fname);
-            if (lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
+            if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
 	        printf("File in SPMAP statement has no image - ignored.\n");
 	    continue;
 	    }
@@ -1657,20 +1855,20 @@ for(;;){
         printf("Image = %d\n", k);
         images[k].spname = strdup(where);
         }
-    else if (strncmp(lineptr,"BOUNDARYMAP",11) == 0) {
+    else if( strncmp(lineptr,"BOUNDARYMAP",11) == 0 ) {
         char name[1024], where[1024];
-        if (sscanf(lineptr+11, "%s %s", name, where) != 2) {
+        if( sscanf(lineptr+11, "%s %s", name, where) != 2 ) {
             printf("Not expecting this in BOUNDARYMAP: %s", lineptr);
 	    break;
             }
         char *fname = strtok(name," ':");
         //printf("File '%s'\n", fname);
         map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
-        if (imit == imap.end()) {
+        if( imit == imap.end() ) {
 	    // This is now normal with single layer image generation.  If it's a layer
 	    // we care about, print a message.  Otherwise silently ignore.
 	    int layer = FileNameToLayerNumber(dnames, lnums, fname);
-            if (lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
+            if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
 	        printf("File in BOUNDARYMAP statement refers to image '%s' which does not exist - ignored.\n", fname);
 	    continue;
 	    }
@@ -1678,27 +1876,27 @@ for(;;){
         printf("Image = %d\n", k);
         images[k].bname = strdup(where);
         }
-    else if (strncmp(lineptr,"MPOINTS",7) == 0) {
+    else if( strncmp(lineptr,"MPOINTS",7) == 0 ) {
         double a,b,c,d;
         int za, zc;
-        if (sscanf(lineptr+7, "%d %lf %lf %d %lf %lf", &za,  &a, &b, &zc, &c, &d) != 6) {
+        if( sscanf(lineptr+7, "%d %lf %lf %d %lf %lf", &za,  &a, &b, &zc, &c, &d) != 6 ) {
             printf("Not expecting this: %s", lineptr);
 	    break;
             }
-        if (lspec1 < 0 || (lspec1-1 <= za && za <= lspec2+1) || (lspec1-1 <= zc && zc <= lspec2)) {
+        if( lspec1 < 0 || (lspec1-1 <= za && za <= lspec2+1) || (lspec1-1 <= zc && zc <= lspec2) ) {
             z1.push_back(za); x1.push_back(a/scale); y1.push_back(b/scale);
             z2.push_back(zc); x2.push_back(c/scale); y2.push_back(d/scale);
 	    }
 	}
-    else if (strncmp(lineptr,"BBOX",4) == 0) {
-        if (sscanf(lineptr+4, "%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4) {
+    else if( strncmp(lineptr,"BBOX",4) == 0 ) {
+        if( sscanf(lineptr+4, "%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
 	     printf("Bad BBOX statement %s\n", lineptr);
 	     return 42;
              }
         xmin /= scale; ymin /= scale;
         xmax /= scale; ymax /= scale;
 	}
-    else if (strncmp(lineptr,"IMAGESIZE",9) == 0) {
+    else if( strncmp(lineptr,"IMAGESIZE",9) == 0 ) {
 	// ignore for now - so we do not read to compute BBs
 	}
     else {
@@ -1706,16 +1904,16 @@ for(;;){
 	return 42;
         }
     }
-if (images.size() == 0) {
+if( images.size() == 0 ) {
     printf("No images in input\n");
     return 42;
     }
 // Now find the bounding box in global space, if not already specified
-if (xmin > BIG/2) {
+if( xmin > BIG/2 ) {
     for(int i=0; i<images.size(); i++) {
 	for(int k=1; k<images[i].tf.size(); k++) {
 	    double det = images[i].tf[k].det();  // no legal transform will have a 0 determinant
-	    if (det == 0.0)
+	    if( det == 0.0 )
 		continue;
 	    vector<Point> pts;
 	    pts.push_back(Point(0.0,0.0));
@@ -1742,7 +1940,7 @@ xmin -= xfl; xmax -= xfl;              // change the bounding box
 ymin -= yfl; ymax -= yfl;
 for(int i=0; i<images.size(); i++) {
     for(int k=1; k<images[i].tf.size(); k++) {
-	if (images[i].tf[k].det() == 0.0)
+	if( images[i].tf[k].det() == 0.0 )
 	    continue;
         images[i].tf[k].t[2] -= (xfl+x0);          // and each transform
         images[i].tf[k].t[5] -= (yfl+y0);
@@ -1750,7 +1948,7 @@ for(int i=0; i<images.size(); i++) {
 	}
     }
 printf("Bounds of global image are x=[%f %f] y=[%f %f]\n", xmin, xmax, ymin, ymax);
-if (xsize != -1) {
+if( xsize != -1 ) {
     xmax = xsize;
     ymax = ysize;
     }
@@ -1770,7 +1968,7 @@ for(int i=0; i<x1.size(); i++) {
     }
 
 // Now we will need to create one map, and one image, per layer.
-if (lspec1 >= 0) {  // layer numbers were specified
+if( lspec1 >= 0 ) {  // layer numbers were specified
     lowest = max(lowest, lspec1);
     highest= min(highest, lspec2);
     printf("Layers reset to %d - %d\n", lowest, highest);
@@ -1782,7 +1980,7 @@ if (lspec1 >= 0) {  // layer numbers were specified
 double delta_image_space = 2.0;  // implausibly high value
 for(int i=0; i<images.size(); i++) {
     for(int k=1; k<images[i].tf.size(); k++) {
-	if (images[i].tf[k].det() == 0.0)
+	if( images[i].tf[k].det() == 0.0 )
 	    continue;
         Point p[4];
         p[0] = Point(0.0,0.0);  // compose a unit square in image space
@@ -1811,8 +2009,7 @@ printf("Image space delta is %f\n", delta_image_space);
 // can point to.
 // Likewise for boundary maps.
 uint16 *BlankSPMap = (uint16*)malloc(w*h*sizeof(uint16));
-for(int i=0; i<w*h; i++)
-	BlankSPMap[i] = 0;
+memset( BlankSPMap, 0, w * h * sizeof(uint16) );
 uint8* BlankBMap = (uint8*)BlankSPMap;
 
 // The following huge loop goes through the layers one at a time, producing 6 outputs
@@ -1830,17 +2027,17 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     printf("starting to generate layer %d...\n", out_layer);
     // start by tossing out previous images, if any
     for(int i=0; i<images.size(); i++) {
-	if (images[i].raster != NULL)
+	if( images[i].raster != NULL )
 	    RasterFree( images[i].raster );
-	if (images[i].foldmap != NULL)
+	if( images[i].foldmap != NULL )
 	    RasterFree( images[i].foldmap );
         images[i].raster  = NULL;
 	images[i].foldmap = NULL;
-	if (images[i].spmap != NULL && images[i].spmap != BlankSPMap) {
+	if( images[i].spmap != NULL && images[i].spmap != BlankSPMap ) {
 	     free(images[i].spmap);
              images[i].spmap = NULL;   // don't keep a pointer to a free'd item.
 	     }
-	if (images[i].bmap != NULL && images[i].bmap != BlankBMap) {
+	if( images[i].bmap != NULL && images[i].bmap != BlankBMap ) {
 	    free(images[i].bmap);      // and previous boundary maps
             images[i].bmap = NULL;
             }
@@ -1853,23 +2050,23 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // map all of these to non-overlapping ranges.
     int MaxSPUsed = 0;
     for(int i=0; i<images.size(); i++) {      // for each picture
-        if (images[i].layer != out_layer)     // if it's not the layer we're looking for
+        if( images[i].layer != out_layer )     // if it's not the layer we're looking for
 	    continue;
-        if (RuleOutIntersection(w, h, images[i].tf,  0,0, ROUND(xmax), ROUND(ymax))) {
+        if( RuleOutIntersection(w, h, images[i].tf,  0,0, ROUND(xmax), ROUND(ymax)) ) {
             printf("Image %d ruled out\n", i);
 	    continue;
             }
         relevant_images.push_back(i);
 	uint32 ww, hh;  // if 'scale' option is used, this is the original size
-	if (images[i].raster == NULL) {
+	if( images[i].raster == NULL ) {
 	    images[i].raster  = LoadNormImg( images[i].rname, ww, hh );
             ImageResize(images[i].raster, ww, hh, scale);
             }
-	if (images[i].foldmap == NULL) {
-	    if (FoldMasks) {
+	if( images[i].foldmap == NULL ) {
+	    if( FoldMasks ) {
                 // if the fold mask name is not rooted, pre-pend the fold directory name
                 string file_name;
-                if (images[i].fname[0] == '/')
+                if( images[i].fname[0] == '/' )
 		    file_name = string(images[i].fname);
 	        else
                     file_name = fold_dir + "/" +string(images[i].fname);  //pre-pend the fold directory name
@@ -1885,22 +2082,22 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		}
 	    }
         // Now read the super-pixel maps, if they exist, otherwise point to blanks
-	if (images[i].spmap == NULL) {
+	if( images[i].spmap == NULL ) {
             uint16 *test = NULL;
-            if (images[i].spname == NULL) {
+            if( images[i].spname == NULL ) {
 		printf("No SPmap defined for image '%s'\n", images[i].rname);
 		test = BlankSPMap;
 		}
 	    else {
 		uint32	wdum, hdum;
 		test = Raster16FromPng( images[i].spname, wdum, hdum );
-	        if (test == NULL) {
+	        if( test == NULL ) {
 		    printf("Cannot read superpixel map '%s'.\n", images[i].spname);
 	            test = BlankSPMap;
 		    }
 	        else {
                     ImageResize16bits(test, ww, hh, scale);
-                    if (RenumberSuperPixels) {
+                    if( RenumberSuperPixels ) {
                         images[i].spbase = MaxSPUsed;
 		        RemapSuperPixelsOneImage(test, w, h, MaxSPUsed, images[i].SPmapping);
 			}
@@ -1910,20 +2107,20 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    images[i].spmap = test;
 	    }
         // Now read the boundary maps if they exist
-	if (images[i].bmap == NULL) {
+	if( images[i].bmap == NULL ) {
             uint8 *test = NULL;
-            if (images[i].bname == NULL) {
+            if( images[i].bname == NULL ) {
 		printf("No boundary map defined for image '%s'\n", images[i].rname);
 		test = BlankBMap;
 		}
 	    else { // name is defined; see if file exists
-                if (strstr(images[i].bname,".png") != NULL) {
+                if( strstr(images[i].bname,".png") != NULL ) {
                     uint32 wj, hj; // not used
 		    test = Raster8FromPng(images[i].bname, wj, hj);
                     }
                 else
-	    	    test = LoadNormImg( images[i].bname, ww, hh );
-	        if (test == NULL) {
+				test = LoadNormImg( images[i].bname, ww, hh );
+	        if( test == NULL ) {
 		    printf("Cannot read boundary map file '%s'.\n", images[i].bname);
 	            test = BlankBMap;
 		    }
@@ -1945,14 +2142,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     uint32 ny = ROUND(ymax)+1;
     printf("Image size is %d by %d, %d images\n", nx, ny, images.size());
     vector<uint16>imap(nx*ny,0);
-    if (relevant_images.size() > 0xFFFF) {  // since we hold this as 16 bits
+    if( relevant_images.size() > 0xFFFF ) {  // since we hold this as 16 bits
 	printf("Too many images (%d) on layer %d.\n", relevant_images.size(), out_layer);
-	exit(42);
+	exit( 42 );
 	}
     vector<uint8>PatchFrom(nx*ny,0);
 
     // Now the choice of fill-in methods
-    if (matlab_order) {
+    if( matlab_order ) {
 	FillInMatlabOrder(imap, PatchFrom, nx, ny,
 	 w, h, delta_image_space, images, relevant_images);
         }
@@ -1967,11 +2164,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     vector<Triple> Triples(1);  // will fill up as they are found
     vector<int>histo(10);       // small histogram, for testing
     for(uint32 i=0; i<imap.size(); i++) {
-        if (imap[i] == 0)
+        if( imap[i] == 0 )
 	    continue;	   // was never set - leave as is
 	int id = imap[i] + (PatchFrom[i] << 16);  // create an int.
         map<int,int>::iterator it = temp.find(id);
-        if (it == temp.end()) { // add it
+        if( it == temp.end() ) { // add it
 	    Triple t(imap[i], PatchFrom[i], 0);
 	    temp.insert(pair<int,int>(id, Triples.size()));
             printf("New combo %5d: %d %d at %d\n", Triples.size(), t.image, t.patch, i);
@@ -1979,7 +2176,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    it = temp.find(id);   // now should find it, since we just added it
 	    }
         imap[i] = it->second;
-        if (it->second < 10)
+        if( it->second < 10 )
 	    histo[it->second]++;
 	}
     for(int i=0; i<10; i++)
@@ -1987,7 +2184,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // write the map; only used for debugging for now
     char fname[256];
-    if (Debug) {
+    if( Debug ) {
         printf("Try writing 16 bit map\n");
         Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
         sprintf(fname,"map.%d.png", out_layer);
@@ -2004,7 +2201,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Now, create a 'before' picture with seams
     vector<uint8>before(nx*ny,0);
     for(int y=0; y < ny; y++) {
-        if ((y & 0x3FF) == 0) {
+        if( (y & 0x3FF) == 0 ) {
 	    printf("."); fflush(stdout);
             }
 	for(int x=0; x<nx; x++) {
@@ -2012,18 +2209,18 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
             uint16 indx = imap[bi];
 	    uint16 from = Triples[indx].image;  // what image does this pixel come from?
             uint8 patch = Triples[indx].patch;
-	    if (from == 0)
+	    if( from == 0 )
 		continue;  // no image sets this pixel
 	    int img = relevant_images[from-1];
 	    Point p(x, y);
 	    images[img].inv[patch].Transform( p );
 	    // of course, this should be in the image, but let's double check
-	    if (p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1) { // then we can interpolate
+	    if( p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1 ) { // then we can interpolate
 		int ix = int(p.x);
 		int iy = int(p.y);
 		double alpha = p.x-ix;
 		double beta  = p.y-iy;
-		int nn = ix+iy*w;  // index into original image
+		int nn = ix + w*iy;  // index into original image
 		uint8* pic = images[img].raster;
 		double pix =
 		     (1-alpha)*(1-beta) * pic[nn] +
@@ -2035,7 +2232,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
     printf("Done creating before image; draw lines next\n");
-    if (Annotate) {
+    if( Annotate ) {
 	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
@@ -2048,33 +2245,33 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	printf("%d edge pixels\n", edges.size());
 	// OK, now transform this edge list by each of the transforms, then color it in.
 	for(int i=0; i<images.size(); i++) {
-	    if (images[i].layer != out_layer) // only want edges on current layer
+	    if( images[i].layer != out_layer ) // only want edges on current layer
 		continue;
 	    for(int k=1; k<images[i].tf.size(); k++) {
-		if (images[i].tf[k].det() == 0.0)
+		if( images[i].tf[k].det() == 0.0 )
 		    continue;
 		for(int j=0; j<edges.size(); j++) {
 		    Point p = edges[j];
 		    images[i].tf[k].Transform( p );
 		    int ix = ROUND(p.x);
 		    int iy = ROUND(p.y);
-		    if (0 <= ix && ix < nx && 0 <= iy && iy < ny)
+		    if( 0 <= ix && ix < nx && 0 <= iy && iy < ny )
 			before[uint32(ix) + nx*uint32(iy)] = 255;
 		    }
 		}
 	    }
 	//also to aid in debugging, draw circles at correspondence points
 	for(int i=0; i<x1.size(); i++) {
-	    if (z1[i] == out_layer || z2[i] == out_layer) {
-		DrawCircle(before, nx, ny, x1[i], y1[i], 10.0);
-		DrawCircle(before, nx, ny, x2[i], y2[i], 10.0);
+	    if( z1[i] == out_layer || z2[i] == out_layer ) {
+		DrawCircle( &before[0], nx, ny, x1[i], y1[i], 10.0 );
+		DrawCircle( &before[0], nx, ny, x2[i], y2[i], 10.0 );
 		}
 	    }
         }
     //sprintf( fname,"before.%05d.tif", out_layer );
     //Raster8ToTif8( fname, &(before[0]), nx, ny );
-    if (make_flat) {
-	if (nx*ny > 0x7FFFFFFFu) {  // is it *really* big?
+    if( make_flat ) {
+	if( nx*ny > 0x7FFFFFFFu ) {  // is it *really* big?
 	    printf("write half\n");
 	    sprintf(fname,"before.%05d.a.png", out_layer);
 	    Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny/2 );
@@ -2090,20 +2287,16 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	}
 
     // if only simple output is needed, we are done with this layer.  Write map and mapping file
-    if (!Warp) {
+    if( !Warp ) {
         // write the map file, if requested.
-        if (make_map) {
+        if( make_map ) {
             sprintf(fname,"%s/%s/map.%05d.png", region_dir.c_str(), inv_dir.c_str(), out_layer);
             printf("write Pixel mapping file %s\n", fname);
             Raster16ToPng16( fname, &(imap[0]), nx, ny );
 	    // ------------------------------------------------ write the mapping text file  --------------------
 	    // This is the text file that contains the transformations that describe how each pixel got there.
 	    sprintf(fname,"%s/%s/mapping.%05d.txt", region_dir.c_str(), inv_dir.c_str(), out_layer);
-	    FILE *ftxt = fopen(fname,"w");
-	    if (ftxt == NULL) {
-		printf("Could not open '%s' for write\n", fname);
-		exit(42);
-		}
+	    FILE *ftxt = FileOpenOrDie( fname, "w" );
 	    //write the image names, and their indexes
 	    for(int k=0; k<relevant_images.size(); k++) {      // for each picture
 		int i = relevant_images[k];
@@ -2138,15 +2331,15 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     for(int i=0; i<N; i++) {
         double theta = 2*PI*(i)/N;
         double x,y;
-        if (N/8 <= i && i <= 3*N/8) { // top side
+        if( N/8 <= i && i <= 3*N/8 ) { // top side
             x = ctrx + ctrx*cot(theta);
             y = h-1;
 	    }
-        else if (3*N/8 <= i && i <= 5*N/8) { // left side
+        else if( 3*N/8 <= i && i <= 5*N/8 ) { // left side
             x = 0;
             y = ctry - ctry*tan(theta);
             }
-       else if (5*N/8 <= i && i <= 7*N/8) { // bottom
+       else if( 5*N/8 <= i && i <= 7*N/8 ) { // bottom
             x = ctrx - ctrx*cot(theta);
             y = 0;
 	    }
@@ -2155,10 +2348,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
             y = ctry + ctry*tan(theta);
             }
        // if to close to the very edge, move outside by a tiny amount
-       if (abs(x)       < 0.1) x -= tiny;
-       if (abs(x-(w-1)) < 0.1) x += tiny;
-       if (abs(y)       < 0.1) y -= tiny;
-       if (abs(y-(h-1)) < 0.1) y += tiny;
+       if( abs(x)       < 0.1 ) x -= tiny;
+       if( abs(x-(w-1)) < 0.1 ) x += tiny;
+       if( abs(y)       < 0.1 ) y -= tiny;
+       if( abs(y-(h-1)) < 0.1 ) y += tiny;
        vtx[i].x = x;
        vtx[i].y = y;
        }
@@ -2179,7 +2372,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         for(int x = int(max(xmin,0.0)); x < w && x <= xmax+1.0; x++) {
 	    for(int y = int(max(ymin,0.0)); y < h && y <= ymax+1.0; y++) {
                 Point p(x,y);
-	        if (LeftSide(va,vb,p) && LeftSide(vb,vc,p) && LeftSide(vc,va,p))
+	        if( LeftSide(va,vb,p) && LeftSide(vb,vc,p) && LeftSide(vc,va,p) )
 		    tmap[x+w*y] = i;
 		}
 	    }
@@ -2194,8 +2387,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		}
 	    }
 	}
-    if (bogus)
-	exit(42);
+    if( bogus )
+	exit( 42 );
     //Raster8ToTif8( "tmap.tif", &(tmap[0]), w, h );
 
     // Now, for each patch of each relevant image create N triangles using N+1 pts each, all transferred
@@ -2235,7 +2428,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         }
 
     // Now write the triangles out for debugging
-    if (Debug)
+    if( Debug )
         WriteTriangles("tris", tris, gvtx);
 
     // Then, look for places where adjacent pixels come from different pictures.
@@ -2253,7 +2446,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
             int indx2 = imap[ind+1];
             int image1 = Triples[indx1].image;
             int image2 = Triples[indx2].image;
-	    if (image1 != image2 && image1 > 0 && image2 > 0) { // found a boundary
+	    if( image1 != image2 && image1 > 0 && image2 > 0 ) { // found a boundary
                 if (tx - prev_x < delta && // see if it's a duplicate of previous one
                  (indx1 == prev_i1 && indx2 == prev_i2 || indx1 == prev_i2 && indx2 == prev_i1))
 		    printf("Same images, too close, at %d\n", tx);
@@ -2268,11 +2461,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    }
 		}
 	    }
-        if (Ntrans > 100) {
+        if( Ntrans > 100 ) {
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
-            if (!Debug) {
+            if( !Debug ) {
 		printf("Writing map as 'test.png'\n");
-        	Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
+		Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
 		}
             return 42;
 	    }
@@ -2288,7 +2481,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
             int indx2 = imap[ind+nx];
             int image1 = Triples[indx1].image;
             int image2 = Triples[indx2].image;
-	    if (image1 != image2 && image1 > 0 && image2 > 0) { // found a boundary
+	    if( image1 != image2 && image1 > 0 && image2 > 0 ) { // found a boundary
                 if (ty - prev_y < delta && // see if it's a duplicate of previous one
                  (indx1 == prev_i1 && indx2 == prev_i2 || indx1 == prev_i2 && indx2 == prev_i1))
 		    printf("Same images, too close, at %d\n", ty);
@@ -2303,11 +2496,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    }
 		}
 	    }
-        if (Ntrans > 100) {
+        if( Ntrans > 100 ) {
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
-            if (!Debug) {
+            if( !Debug ) {
 		printf("Writing map as 'test.png'\n");
-        	Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
+		Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
 		}
             return 42;
 	    }
@@ -2375,7 +2568,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     vector<Point> NewG(nvs);
     for(int i=0; i<nvs; i++)
 	NewG[i] = Point(X[2*i], X[2*i+1]);
-    if (Debug)
+    if( Debug )
         WriteTriangles("tris2", tris, NewG);
 
     // how far did the points move?
@@ -2387,7 +2580,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         double move = sqrt(dx*dx+dy*dy);
 	printf("Image %d, pt %d, was (%f,%f), now (%f,%f), moved %f %s\n",
 	 i/(N+1), i%(N+1), gvtx[i].x, gvtx[i].y, NewG[i].x, NewG[i].y, move, move>MoveThresh ? "<-----" : "");
-        if (move > MoveThresh) {
+        if( move > MoveThresh ) {
 	    NewG[i] = gvtx[i];
 	    NTooFar++;
 	    }
@@ -2467,14 +2660,13 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // changed a little.  Could/Should re-calculate from scratch, but since we only allow minor changes
     // this should be OK.
     printf("Create the new map\n");
-    for(uint32 i=0; i<nx*ny; i++)
-	imap[i] = 0;
+    memset( &imap[0], 0, nx * ny * sizeof(uint16) );
     vector<uint8>SectorFrom(nx*ny,0);
     double report = 100;
     // find the center of each picture.  May not be integer
     Point center((w-1)/2.0, (h-1)/2.0);
     for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space*0.9) {
-        if (r >= report) {
+        if( r >= report ) {
             printf("Starting radius %f\n", r);
             report += 100;
             }
@@ -2489,33 +2681,33 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		int ix = int(p.x);  // PointsInRing only returns legal points
 		int iy = int(p.y);
                 //printf("j=%d ix=%d iy=%d\n", j, ix, iy);
-                int patch = images[i].foldmap[ix + iy*w];
-                int sector = tmap[ix+iy*w];
+                int patch = images[i].foldmap[ix + w*iy];
+                int sector = tmap[ix + w*iy];
                 //printf("sector %d %d = %d\n", ix, iy, sector);
                 // There can be small patches which were not used, so need to check for legality here
                 // Again, should no longer be needed
-                if (patch == 0)  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
+                if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0 )
 		    continue;
 		images[i].sectors[patch][sector].Transform( p );  // change to global coordinates
 		ix = ROUND(p.x);
 		iy = ROUND(p.y);
-                if (ix == 8557 && iy == 431) {
+                if( ix == 8557 && iy == 431 ) {
                     printf("Point %f %f in image %s\n", pts[j].x, pts[j].y, images[i].rname);
 		    printf("Maps to pixel %d %d, image %d patch %d sector %d\n", ix, iy, i, patch, sector);
                     printf("Transform is"); PrintTransform(stdout, images[i].sectors[patch][sector]);
                     printf(" Inverse  is"); PrintTransform(stdout, images[i].  sinvs[patch][sector]);
 		    }
-                if (ix < 0 || ix >= nx || iy < 0 || iy >= ny)
+                if( ix < 0 || ix >= nx || iy < 0 || iy >= ny )
 		    continue;  // outside the image
 		//printf("%f i=%d ix,iy=%d %d\n", r, i, ix, iy);
 		bool dbg = (2642 <= ix && ix <= 2644 && 3398 <= iy && iy <= 3400);
-                if (dbg) printf("\nDebugging point %d %d, r=%f, p= %f %f, pts[%d]= %f %f\n", ix, iy, r, p.x, p.y, j, pts[j].x, pts[j].y);
+                if( dbg ) printf("\nDebugging point %d %d, r=%f, p= %f %f, pts[%d]= %f %f\n", ix, iy, r, p.x, p.y, j, pts[j].x, pts[j].y );
 		uint32 nn = uint32(ix) + uint32(iy)*nx;   // index into array
-		if (imap[nn] == 0) {
+		if( imap[nn] == 0 ) {
 		    imap[nn] = k+1;                        // this pixel will be set by the kth relevant picture
 		    PatchFrom[nn] =  patch;  // patch 'patch', sector 'sector'
                     SectorFrom[nn]= sector;
-                    if (dbg) printf("Not set, setting to %d %d %d %d\n", k, i, patch, sector);
+                    if( dbg ) printf("Not set, setting to %d %d %d %d\n", k, i, patch, sector);
                     }
 		else { // already set, but we still might be better (because of finite
 		   // grid in source, rounding to int, ordering ).
@@ -2530,9 +2722,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
 		    double d_us = max(abs(pt_us.x-center.x), abs(pt_us.y-center.y));  // L-infinity norm
 		    double d_ot = max(abs(pt_ot.x-center.x), abs(pt_ot.y-center.y));  // L-infinity norm
-			    if (dbg) printf("Already set to %d %d %d %d, d_us %f, d_ot %f\n", imap[nn]-1, oi, op, os, d_us, d_ot);
-		    if (d_us < d_ot) {
-			if (dbg) printf("It CAN happen #2... d_us= %f, d_ot= %f\n", d_us, d_ot);
+			    if( dbg ) printf("Already set to %d %d %d %d, d_us %f, d_ot %f\n", imap[nn]-1, oi, op, os, d_us, d_ot);
+		    if( d_us < d_ot ) {
+			if( dbg ) printf("It CAN happen #2... d_us= %f, d_ot= %f\n", d_us, d_ot);
 			// Set it, even though it was previously set, since this is better
 			imap[nn] = k+1;       // this pixel will be set by the ith picture
 			PatchFrom[nn] = patch;
@@ -2547,11 +2739,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     temp.clear();               // clear the mapping file
     Triples.resize(1);          // and the triples; will fill up as they are found; first entry remains (0,0,0)
     for(uint32 i=0; i<imap.size(); i++) {
-        if (imap[i] == 0)
+        if( imap[i] == 0 )
 	    continue;       // pixel was never mapped
 	int id = imap[i] + (PatchFrom[i] << 16) + (SectorFrom[i] << 24);  // create an int.
         map<int,int>::iterator it = temp.find(id);
-        if (it == temp.end()) { // add it
+        if( it == temp.end() ) { // add it
 	    Triple t(imap[i], PatchFrom[i], SectorFrom[i]);
 	    temp.insert(pair<int,int>(id, Triples.size()));
             printf("New combo %5d: %3d %3d %3d\n", Triples.size(), t.image, t.patch, t.sector);
@@ -2560,10 +2752,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
         uint32 iy = i/nx;
         uint32 ix = i - nx*iy;
-	if (ix == 8557 && iy == 431) {
+	if( ix == 8557 && iy == 431 ) {
 	    printf("Compress map ix=%d iy=%d\n", ix, iy);
             printf(" imap %d, patch %d, sector %d\n", imap[i], PatchFrom[i], SectorFrom[i]);
-            if (imap[i] > 0)
+            if( imap[i] > 0 )
 		printf("Image %d\n", relevant_images[imap[i]-1] );
 	    printf(" id = %d = %x\n", id, id);
             printf(" it->second = %d\n", it->second);
@@ -2571,7 +2763,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         imap[i] = it->second;
 	}
     // write the new map file, if requested
-    if (make_map) {
+    if( make_map ) {
         sprintf(fname,"%s/%s/map.%05d.png", region_dir.c_str(), inv_dir.c_str(), out_layer);
         printf("write Pixel mapping file %s\n", fname);
         Raster16ToPng16( fname, &(imap[0]), nx, ny );
@@ -2582,14 +2774,13 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // Now redraw the image, using the new map.  We'll write it into 'before', which is somewhat
     // confusing, but we already have it allocated.
-    for(uint32 i=0; i<nx*ny; i++)
-	before[i] = 0;
+    memset( &before[0], 0, nx * ny * sizeof(uint8) );
     // also, create a super-pixel map.  This needs to be 32 bit, even though that's a humongous
     // array, since there are typically 10K superpixels per image, and 9x9 arrays are typical,
     // so there are way more than 2^16 superpixel IDs.
     vector<uint32> spmap(nx*ny,0);
     for(int y=0; y < ny; y++) {
-        if ((y & 0x3FF) == 0) {
+        if( (y & 0x3FF) == 0 ) {
             printf("."); fflush(stdout);
             }
         for(int x=0; x<nx; x++) {
@@ -2598,18 +2789,18 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    uint16 from = Triples[indx].image;  // what image does this pixel come from?
             uint8 patch = Triples[indx].patch;  // what patch
             int sector =  Triples[indx].sector; // what sector
-	    if (from == 0)
+	    if( from == 0 )
 		continue;  // no image sets this pixel
             int img = relevant_images[from-1];
 	    Point p(x, y);
 	    images[img].sinvs[patch][sector].Transform( p );
 	    // of course, this should be in the image, but let's double check
-	    if (p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1) { // then we can interpolate
+	    if( p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1 ) { // then we can interpolate
 		int ix = int(p.x);
 		int iy = int(p.y);
 		double alpha = p.x-ix;
 		double beta  = p.y-iy;
-		int nn = ix+iy*w;  // index into original image
+		int nn = ix + w*iy;  // index into original image
 		uint8* pic = images[img].raster;
 		double pix =
 		     (1-alpha)*(1-beta) * pic[nn] +
@@ -2618,26 +2809,26 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 			alpha *   beta  * pic[nn+w+1];
 		before[bi] = ROUND(pix);
                 // for the super-pixel map we want nearest, not interpolation.
-                if (p.x - ix >= 0.5)
+                if( p.x - ix >= 0.5 )
 		    ix++;
-                if (p.y - iy >= 0.5)
+                if( p.y - iy >= 0.5 )
 		    iy++;
-                int px = images[img].spmap[ix+iy*w];
-                if (px != 0)  // 0 valued pixels are unassigned, and not translated
+                int px = images[img].spmap[ix + w*iy];
+                if( px != 0 )  // 0 valued pixels are unassigned, and not translated
                     px += images[img].spbase;
                 spmap[bi] = px;
-                //if (spmap[x+y*nx] == 65536) {  // Just debugging
+                //if( spmap[x+y*nx] == 65536 ) {  // Just debugging
                     //printf("w=%d h=%d nx=%d ny=%d patch=%d sector=%d\n", w, h, nx, ny, patch, sector);
-		    //printf("Set to %d.  x=%d y=%d ix=%d iy=%d img=%d images[img].spbase=%d images[img].spmap[ix+iy*w] = %d\n",
-                     //px, x, y, ix, iy, img, images[img].spbase, images[img].spmap[ix+iy*w] );
+		    //printf("Set to %d.  x=%d y=%d ix=%d iy=%d img=%d images[img].spbase=%d images[img].spmap[ix + w*iy] = %d\n",
+                     //px, x, y, ix, iy, img, images[img].spbase, images[img].spmap[ix + w*iy] );
                     //return 42;
 		    //}
-                if (Debug && px == 0)
+                if( Debug && px == 0 )
 		    before[bi] = 255;
 		}
 	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
-    if (Annotate) {
+    if( Annotate ) {
 	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
@@ -2650,17 +2841,17 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	printf("%d edge pixels\n", edges.size());
 	// OK, now transform this edge list by each of the transforms, then color it in.
 	for(int i=0; i<images.size(); i++) {
-	    if (images[i].layer != out_layer) // only want edges on current layer
+	    if( images[i].layer != out_layer ) // only want edges on current layer
 		continue;
 	    for(int k=1; k<images[i].tf.size(); k++) {
-		if (images[i].tf[k].det() == 0.0)
+		if( images[i].tf[k].det() == 0.0 )
 		    continue;
 		for(int j=0; j<edges.size(); j++) {
 		    Point p = edges[j];
 		    images[i].tf[k].Transform( p );
 		    int ix = ROUND(p.x);
 		    int iy = ROUND(p.y);
-		    if (0 <= ix && ix < nx && 0 <= iy && iy < ny) {
+		    if( 0 <= ix && ix < nx && 0 <= iy && iy < ny ) {
                         uint32 bi = uint32(ix) + nx*uint32(iy);
 			before[ix + nx*iy] = 255;
                         }
@@ -2671,15 +2862,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     //sprintf( fname, "after.%05d.tif", out_layer );
     //Raster8ToTif8( fname, &(before[0]), nx, ny );
     sprintf(fname,"%s/%s/after.%05d.png", region_dir.c_str(), gray_dir.c_str(), out_layer);
-    if (make_flat)
+    if( make_flat )
         Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny );
-    if (make_tiles)
+    if( make_tiles )
         WriteImageTiles(rav_dir, out_layer, (unsigned char *)&(before[0]), nx, ny);
 
     // If any boundarymap files were found, write the boundary map
     // Again, use the array 'before'
-    for(uint32 i=0; i<nx*ny; i++)
-	before[i] = 0;
+    memset( &before[0], 0, nx * ny * sizeof(uint8) );
     for(int x=0; x<nx && AnyBMap; x++) {
 	for(int y=0; y < ny; y++) {
             uint32 bi = uint32(x) + uint32(y)*nx;  // big index
@@ -2687,18 +2877,18 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    uint16 from = Triples[indx].image;  // what image does this pixel come from?
             uint8 patch = Triples[indx].patch;  // what patch
             int sector =  Triples[indx].sector; // what sector
-	    if (from == 0)
+	    if( from == 0 )
 		continue;  // no image sets this pixel
             int img = relevant_images[from-1];
 	    Point p(x, y);
 	    images[img].sinvs[patch][sector].Transform( p );
 	    // of course, this should be in the image, but let's double check
-	    if (p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1) { // then we can interpolate
+	    if( p.x >= 0.0 && p.x < w-1 && p.y >= 0.0 && p.y < h-1 ) { // then we can interpolate
 		int ix = int(p.x);
 		int iy = int(p.y);
 		double alpha = p.x-ix;
 		double beta  = p.y-iy;
-		int nn = ix+iy*w;  // index into original image
+		int nn = ix + w*iy;  // index into original image
 		uint8* pic = images[img].bmap;
 		double pix =
 		     (1-alpha)*(1-beta) * pic[nn] +
@@ -2709,20 +2899,16 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	        }
 	    }
 	}
-    if (AnyBMap) {
+    if( AnyBMap ) {
         sprintf(fname,"%s/%s/bmap.%05d.png", region_dir.c_str(), bmap_dir.c_str(), out_layer);
-	if (make_flat)
+	if( make_flat )
             Raster8ToPng8( fname, (unsigned char *)&(before[0]), nx, ny );
 	}
 
     // ------------------------------------------------ write the mapping text file  --------------------
     // This is the text file that contains the transformations that describe how each pixel got there.
     sprintf(fname,"%s/%s/mapping.%05d.txt", region_dir.c_str(), inv_dir.c_str(), out_layer);
-    FILE *ftxt = fopen(fname,"w");
-    if (ftxt == NULL) {
-	printf("Could not open '%s' for write\n", fname);
-	exit(42);
-        }
+    FILE *ftxt = FileOpenOrDie( fname, "w" );
     //write the image names, and their indexes
     for(int k=0; k<relevant_images.size(); k++) {      // for each picture
         int i = relevant_images[k];
@@ -2744,16 +2930,16 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // efficiency in Raveler.
     int SPmax = 0;
     vector<int> FinalMapping;
-    if (RenumberSuperPixels)
+    if( RenumberSuperPixels )
         RemapSuperPixelsOneImage(&(spmap[0]), nx, ny, SPmax, FinalMapping);
     printf("SPmax now %d\n", SPmax);
     sprintf(fname,"%s/%s/sp.%05d.png", region_dir.c_str(), sp_dir.c_str(), out_layer);
     for(uint32 i=0; i<nx*ny; i++)  // set the transparecy
 	spmap[i] = spmap[i] | 0xFF000000;
-    if (make_flat)
+    if( make_flat )
         Raster32ToPngRGBA( fname, &(spmap[0]), nx, ny );
     bool experiment = false;
-    if (experiment) {
+    if( experiment ) {
         vector<uint32> copy(nx*ny,0);
 	for(int i=0; i<nx*ny; i++)
 	    copy[i] = 0xFF000000 + spmap[i];
@@ -2780,27 +2966,23 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     //              image 3 might have IDs 1-9100   These are mapped to 15501-24601 in the output
     //              etc.
     sprintf(fname,"%s/map-sp.%05d.txt", region_dir.c_str(), out_layer);
-    FILE *fmap = fopen(fname,"w");
-    if (fmap == NULL) {
-	printf("Could not open super-pixel mapping file '%s' for write.\n", fname);
-	return 42;
-	}
+    FILE *fmap = FileOpenOrDie( fname, "w" );
     // For every image that has a non-blank sp map;
     for(int j=0; j<relevant_images.size(); j++) {
 	int i = relevant_images[j];
-	if (images[i].spmap != NULL && images[i].spmap != BlankSPMap) { // one was defined
+	if( images[i].spmap != NULL && images[i].spmap != BlankSPMap ) { // one was defined
             fprintf(fmap,"Map '%s'\n", images[i].spname);
             fprintf(fmap,"NUM_MAP %d\n", images[i].SPmapping.size()-1);  // number of entries to follow
 	    for(int k=1; k<images[i].SPmapping.size(); k++) {
 		int m = images[i].SPmapping[k];
-		if (m == 0)
+		if( m == 0 )
 		    fprintf(fmap,"%d -1\n", k);  // -1 => not in the original image
 		else {
 		    //printf("%6d maps to %d (global set of maps)\n", k, m);
                     // this could go off the end of the Final Mapping array, if the biggest number
                     // assigned is not used in the final image.  Test for this:
                     int n =  (m < FinalMapping.size()) ? FinalMapping[m] : 0;
-		    if (n == 0)
+		    if( n == 0 )
 			fprintf(fmap, "%d -2\n", k); // -2 => not used in final image
 		    else
 			fprintf(fmap, "%d %d\n", k, n);
@@ -2819,17 +3001,17 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         // find where the super pixel map is - that is where the annotations will be
         char *p = NULL;
         char *root;
-        if (images[i].spname != NULL) {
+        if( images[i].spname != NULL ) {
 	     root = strdup(images[i].spname);
              p = strrchr(root, '/');
              }
-        if (p == NULL) {
+        if( p == NULL ) {
 	    printf("Oops - no '/' in super-pixel path '%s'.  Try fold mask.\n", images[i].spname == NULL ?"none":images[i].spname);
             root = strdup(images[i].fname);
             p = strrchr(root, '/');
-            if (p == NULL) {
+            if( p == NULL ) {
 	        printf("Oops - no '/' in fold mask path either '%s'.\n", root);
-	        exit(42);
+	        exit( 42 );
                 }
 	    }
         *(++p) = '\0';  // truncate at trailing '/', leaving directory name
@@ -2842,11 +3024,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     char tbar_name[1024];
     sprintf(tbar_name, "annot-syn-%d.json", out_layer);
     printf("Writing to '%s'\n", tbar_name);
-    FILE *fw = fopen(tbar_name, "w");
-    if(fw == NULL) {
-	printf("Could not open '%s' for write.\n", tbar_name);
-	exit(42);
-	}
+    FILE *fw = FileOpenOrDie( tbar_name, "w" );
     fprintf(fw, "{\"data\": [\n");
     for(int i=0; i<tbars.size(); i++) {
 	fprintf(fw, "{\"T-bar\": {\"status\": \"%s\", \"confidence\": %f, \"body ID\": %d, \"location\": [%f, %f, %d]}, \"partners\": [\n",
@@ -2868,11 +3046,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     char book_name[1024];
     sprintf(book_name, "annot-book-%d.json", out_layer);
     printf("Writing to '%s'\n", book_name);
-    fw = fopen(book_name, "w");
-    if(fw == NULL) {
-	printf("Could not open '%s' for write.\n", book_name);
-	exit(42);
-	}
+    fw = FileOpenOrDie( book_name, "w" );
     fprintf(fw, "{\"data\": [\n");
     for(int i=0; i<bookmarks.size(); i++) {
 	fprintf(fw, "{\"text\": \"%s\", \"body ID\": %d, \"location\": [%f, %f, %d]}",
@@ -2887,28 +3061,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     printf("WARNINGS:  %d hit the edge, %d had bad correlation\n", nwarn_edge_interp, nwarn_bad_corr);
     }
-{int who = RUSAGE_SELF;
-struct rusage usage;
-int ret;
 
-ret=getrusage(who,&usage);
 
-printf("User time: %d seconds\n", usage.ru_utime);
-printf("System time: %d seconds\n", usage.ru_stime);
-int pid = getpid();
-char fname[1024];
-sprintf(fname, "/proc/%d/status", pid);
-FILE *fd = fopen(fname, "r");
-char *line = NULL;
-size_t len = 0;
-ssize_t read;
-while ((read = getline(&line, &len, fd)) != -1) {
-    //printf("Retrieved line of length %zu :\n", read);
-    if (strstr(line,"Vm") || strstr(line,"ctxt"))
-        printf("%s", line);
-    }
-if (line)
-    free(line);
-}
+VMStats( stdout );
+
 return 0;
 }
+
+

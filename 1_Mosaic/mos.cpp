@@ -1,6 +1,5 @@
 
-
-// make a mosaic
+// Make a mosaic
 
 
 #include	"LinEqu.h"
@@ -20,47 +19,55 @@ using namespace std;
 
 
 /* --------------------------------------------------------------- */
+/* Macros -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	kCorrRadius	200
+
+/* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 class glob_spot {
-  public:
-    vector<int> which;    // which picture?
-    vector<int> patch;    // which patch?
-    vector<Point> where;  // where is it, in local coords?
-    double moved;         // distance it moved
-    Point gpt;            // the point in global coordinates that spawned these
-    };
+public:
+	vector<int>		which;	// which picture
+	vector<int>		patch;	// which patch
+	vector<Point>	where;	// local coords
+	Point			gpt;	// point in global coords spawning these
+	double			moved;	// distance it moved
+};
 
 vector<glob_spot> spots;
 
 class image {
-  public:
-    uint8* raster;
-    uint8* foldmap;
-    uint32 w,h;
-    char *rname;  // name of raster file
-    char *fname;  // name of the foldmap file
-    char *spname; // name of the super-pixel file for this tile
-    uint16 *spmap;
-    int spbase;   // should be added to all sp ids in this image, for uniqueness
-    vector<int> SPmapping;  // tells what original SP numbers are mapped to
-    vector<TForm>  tf;  // from image to global space, one for each patch (0 unused)
-    vector<TForm> inv;  // inverse transform
-    vector<vector<TForm> > sectors;  // forward transform for each sector of each patch
-    vector<vector<TForm> > sinvs;    // Sector inverses
-    int FirstGlobalPoint;
-    int FirstTriangle;
-    int layer; // layer number
-    vector<uint8> FoldmapRenumber;
-    };
+public:
+	uint8*					raster;		// gray scale image
+	uint8*					foldmap;	// fold map
+	uint32					w, h;
+	int						layer;		// layer number
+	int						FirstGlobalPoint;
+	int						FirstTriangle;
+	int						spbase;		// should be added to all sp ids in this image, for uniqueness
+	char					*rname;		// raster filename
+	char					*fname;		// foldmap filename
+	char					*spname;	// super-pixel filename
+	char					*bname;		// boundary-map filename
+	uint16					*spmap;
+	vector<int>				SPmapping;  // tells what original SP numbers are mapped to
+	vector<TForm>			tf;			// image to global space, one for each patch (0 unused)
+	vector<TForm>			inv;		// inverse transform
+	vector<vector<TForm> >	sectors;	// forward transform for each sector of each patch
+	vector<vector<TForm> >	sinvs;		// sector inverses
+	vector<uint8>			FoldmapRenumber;
+};
 
-// a class describing a triple of numbers that in turn describe where the point is
-// that maps to a given point in global space.  It comes from a particular image,
-// a particular patch within the image, and a sector within the patch (the sectors
-// are used to deform the patch so the edges line up better.)
+// Class describing a triple of numbers that in turn describe
+// where the point is that maps to a given point in global space.
+// It comes from a particular image, a particular patch within
+// the image, and a sector within the patch (the sectors are
+// used to deform the patch so the edges line up better.)
+//
 class Triple {
-
 public:
 	uint16 image;
 	uint8  patch;
@@ -74,12 +81,14 @@ public:
 		{image = i; patch = p; sector = s;};
 };
 
+/* --------------------------------------------------------------- */
+/* Statics ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-int nwarn_edge_interp = 0;   // interpolation cannot be done since max is on edge of region
-int nwarn_bad_corr = 0;      // could not find a good correlation
-int nwarn_good_on_edge = 0;  // worst case - good correlation, but on edge
-
-bool dp;  // debug print
+static bool dp = false;				// debug print
+static int nwarn_edge_interp = 0;	// interpolation cannot be done since max is on edge of region
+static int nwarn_bad_corr = 0;		// could not find a good correlation
+static int nwarn_good_on_edge = 0;	// worst case - good correlation, but on edge
 
 
 
@@ -102,9 +111,13 @@ static void PrintMagnitude( const vector<double> &X )
 	}
 }
 
+/* --------------------------------------------------------------- */
+/* PointsInRing -------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-//Produce the points at radius R (a square) around the center, in steps  < 1 in size
-//Might include duplicates
+// Produce the points at radius R (a square) around the center,
+// in steps < 1 in size. Might include duplicates.
+//
 void PointsInRing(vector<Point> &pts, Point &center, double r, uint32 w, uint32 h)
 {
 double lx = center.x-r;  // left and right X
@@ -124,25 +137,43 @@ for(int i=0; i<ppts.size(); i++)
 	pts.push_back(ppts[i]);
 }
 
-// is it a legal region?
-bool lr(int sx, int sy, void *arg)
+/* --------------------------------------------------------------- */
+/* lr ------------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Legal region for correlation?
+//
+static bool lr( int sx, int sy, void *arg )
 {
-//printf("lr: sx, sy %d %d\n", sx, sy);
-return sx == 21 && sy == 21;
+	return sx == 21 && sy == 21;
 }
 
-// is the pixel count legal?
-bool lc(int c1, int c2, void *arg)
+/* --------------------------------------------------------------- */
+/* lc ------------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Legal count for correlation?
+//
+static bool lc( int c1, int c2, void *arg )
 {
-//printf("lc: c1,c2 %d %d\n", c1, c2);
-//return c1 == 441 && c2 == 441;
-return true;
+	return true;
 }
 
-// In the set of images 'images', point pt (in global space) occurs in more than one
-// image.  Find out which, create a spot, and add it to the vector of spots.
-// We know for sure the point is part of the image i1, patch patch1.
-void CommonPoint(vector<image> &images, Point pt, int i1, int patch1, int out_layer)
+/* --------------------------------------------------------------- */
+/* CommonPoint --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// In the set of 'images', point pt (in global space) occurs
+// in more than one image. Find out which, create a spot, and
+// add it to the vector of spots. We know for sure the point
+// is part of the image i1, patch patch1.
+//
+static void CommonPoint(
+	vector<image>		&images,
+	Point				pt,
+	int					i1,
+	int					patch1,
+	int					out_layer )
 {
 Point p1 = pt;
 printf("image %d, global x,y= %f %f\n", i1, p1.x, p1.y);
@@ -153,8 +184,8 @@ const int LOOK=52;   // radius of region to look
 // first, make sure we have enough pixels in the image
 int p1x = RND(p1.x);
 int p1y = RND(p1.y);
-if (p1x < PATCH || p1x > images[i1].w-1-PATCH) return;
-if (p1y < PATCH || p1y > images[i1].h-1-PATCH) return;
+if( p1x < PATCH || p1x > images[i1].w-1-PATCH ) return;
+if( p1y < PATCH || p1y > images[i1].h-1-PATCH ) return;
 
 // Surrounding pixels exist, so go find the data
 vector<Point> pts1;
@@ -194,8 +225,8 @@ for(int i=0; i<images.size(); i++) {
         // first, make sure it lands in the image, and we have enough pixels in the image
         int p1x = RND(p1.x);
         int p1y = RND(p1.y);
-        if (p1x < LOOK || p1x > images[i].w-1-LOOK) continue;
-        if (p1y < LOOK || p1y > images[i].h-1-LOOK) continue;
+        if( p1x < LOOK || p1x > images[i].w-1-LOOK ) continue;
+        if( p1y < LOOK || p1y > images[i].h-1-LOOK ) continue;
 
         bool nip = false;   // stands for Not In Patch
         vector<Point> pts2;
@@ -209,7 +240,7 @@ for(int i=0; i<images.size(); i++) {
                 pts2.push_back(Point(ix-p1x, iy-p1y));
                 }
             }
-        // if any of the pixels were not in the relevent patch, we should not use this
+        // if any of the pixels were not in the relevant patch, we should not use this
         if( nip )
 	    continue;
 
@@ -218,17 +249,18 @@ for(int i=0; i<images.size(); i++) {
         int save = nwarn_edge_interp;
         // dp = (pt.x == 5570.0 && pt.y == 10356);
         // dp = false;
-        double co = CorrPatches(
+
+		double	co = CorrPatches(
 						stdout, false, dx, dy,
 						pts1, vals1, pts2, vals2,
-						0, 0, 200,
+						0, 0, kCorrRadius,
 						lr, NULL, lc, NULL, ftc );
 
 		// undo correlator's automatic coord adjust
 		dx += pts2[0].x - pts1[0].x;
 		dy += pts2[0].y - pts1[0].y;
 
-       printf(" tx=%f, ---> dx, dy= %f, %f, corr %f\n\n", pt.x, dx, dy, co);
+        printf(" tx=%f, ---> dx, dy= %f, %f, corr %f\n\n", pt.x, dx, dy, co);
         if( co < 0.7 ) {
              printf("WARNING - poor image correlation %f - ignored\n", co);
              nwarn_bad_corr++;
@@ -254,11 +286,15 @@ if( s.which.size() > 1 ) {
     }
 }
 
+/* --------------------------------------------------------------- */
+/* PseudoAngle --------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-
-
-// an angle like atan2(y,x), but runs from -4 to +4, and is continuous, but not uniform
-double PseudoAngle(double y, double x) {
+// An angle like atan2(y,x), but runs from -4 to +4,
+// and is continuous, but not uniform.
+//
+static double PseudoAngle( double y, double x )
+{
 bool xish = fabs(y) <= fabs(x);  // closer to x than y axis
 if( x > 0 && xish )
 	return y/x;
@@ -274,12 +310,18 @@ if( xish )
 return -2 - x/y;
 }
 
+/* --------------------------------------------------------------- */
+/* FillInHolesInFoldmap ------------------------------------------ */
+/* --------------------------------------------------------------- */
 
-void FillInHolesInFoldmap(uint8 *map, uint32 w, uint32 h)
+// We consider every 0 in the foldmap, and decide whether to
+// fill it in. We will change each 0 to 255 as we examine it
+// so we only see it once. After we see each hole, we will
+// either fill it in, or add it to the list of 0s to be
+// restored at the end.
+//
+static void FillInHolesInFoldmap( uint8 *map, uint32 w, uint32 h )
 {
-// we consider every 0 in the foldmap, and decide whether to fill it in.  We will change each 0 to 255 as we examine
-// it, so we only see it once.  After we see each hole, we will either fill it in, or add it to the list of 0s to
-// be restored at the end.
 uint32 np = w*h;  // number of pixels
 int start = 0;
 vector<int> setback;  // pixels we will set back to 0 when we are done
@@ -291,20 +333,20 @@ for(int i=start; i < np; i++) {
 	st.push(i);
 	set<int> boundary;  // all the values we find on the boundary
         vector<int> pixels; // 0 valued pixels in this area
-	while (!st.empty()) {
+	while( !st.empty() ) {
 	    int j = st.top(); st.pop();
             if( map[j] == 0 ) {
 	        map[j] = 255;  // so we won't get it again
                 pixels.push_back(j);
 	        int y = j / w;
 	        int x = j - w * y;
-	        if (x-1 >= 0) st.push(j-1); else boundary.insert(-1);
-                if (x+1 < w)  st.push(j+1); else boundary.insert(-1);
-                if (y-1 >= 0) st.push(j-w); else boundary.insert(-1);
-                if (y+1 < h)  st.push(j+w); else boundary.insert(-1);
+	        if( x-1 >= 0 ) st.push(j-1); else boundary.insert(-1);
+            if( x+1 <  w ) st.push(j+1); else boundary.insert(-1);
+            if( y-1 >= 0 ) st.push(j-w); else boundary.insert(-1);
+            if( y+1 <  h ) st.push(j+w); else boundary.insert(-1);
 		}
             else {// map value is not 0, add what we ran into to the set of boundary values
-		if (map[j] != 255) boundary.insert(map[j]);
+		if( map[j] != 255 ) boundary.insert( map[j] );
 		}
 	    }
         if( boundary.size() == 1 && *(boundary.begin()) != -1 ) { // then we have a hole
@@ -325,11 +367,20 @@ for(int k=0; k<setback.size(); k++)
 printf("Filled in %d holes\n", nholes);
 }
 
-double cot(double x) { return 1.0/tan(x);}
+/* --------------------------------------------------------------- */
+/* cot ----------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
+static double cot( double x )
+{
+	return 1.0 / tan( x );
+}
 
+/* --------------------------------------------------------------- */
+/* Inside -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-bool Inside(triangle &tri, vector<Point> gvtx, Point &p)
+static bool Inside( triangle &tri, vector<Point> gvtx, Point &p )
 {
 Point p1(gvtx[tri.v[0]]);
 Point p2(gvtx[tri.v[1]]);
@@ -337,11 +388,25 @@ Point p3(gvtx[tri.v[2]]);
 return LeftSide(p1,p2,p) && LeftSide(p2,p3,p) && LeftSide(p3,p1,p);
 }
 
-// Find the triangle where a point resides.  This calculation can be done equally well
-// in global or local coordinates.  We will use global coords.
-// Last two args are returned.  Which 3 variables, and which 3 proportions.
-void FindTriangle(vector<image> &images, int im, int patch, Point p1, vector<triangle> &tris, vector<Point> &gvtx, int N,
-int *which, double *amts)
+/* --------------------------------------------------------------- */
+/* FindTriangle -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Find the triangle where a point resides. This calculation
+// can be done equally well in global or local coordinates.
+// We will use global coords. Last two args are returned.
+// Which 3 variables, and which 3 proportions.
+//
+static void FindTriangle(
+	vector<image>		&images,
+	int					im,
+	int					patch,
+	Point				p1,
+	vector<triangle>	&tris,
+	vector<Point>		&gvtx,
+	int					N,
+	int					*which,
+	double				*amts )
 {
 Point p = p1;
 images[im].tf[patch].Transform( p );
@@ -368,10 +433,18 @@ printf("Oops - no triangle for point (%f %f)\n", p.x, p.y);
 exit( 42 );
 }
 
+/* --------------------------------------------------------------- */
+/* WriteTriangles ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
 // Write triangles out to a text file in a format gnuplot can read.
-void WriteTriangles(const char *name, vector<triangle> &tris, vector<Point> &pts)
+//
+static void WriteTriangles(
+	const char			*name,
+	vector<triangle>	&tris,
+	vector<Point>		&pts )
 {
-FILE	*ft = FileOpenOrDie( name, "w" );
+FILE *ft = FileOpenOrDie( name, "w" );
 
 for(int i=0; i<tris.size(); i++) {
     Point ps[3];
@@ -384,7 +457,11 @@ for(int i=0; i<tris.size(); i++) {
 fclose(ft);
 }
 
-void FoldmapRenumber(image &im)
+/* --------------------------------------------------------------- */
+/* FoldmapRenumber ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FoldmapRenumber( image &im )
 {
 // if not computed yet, make the renumbering
 if( im.FoldmapRenumber.size() == 0 ) {
@@ -415,9 +492,14 @@ for(int i=0; i<np; i++) {
     }
 }
 
-// Modify a super-pixel map so the numbers are assigned consectively from MaxSPUsed+1
-// on up, and update MaxSPUsed accordingly.  Fill the vector SPmapping to record
-// what was done.
+/* --------------------------------------------------------------- */
+/* RemapSuperPixelsOneImage -------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Modify a super-pixel map so numbers are assigned consectively
+// from MaxSPUsed+1 on up, and update MaxSPUsed accordingly. 
+// Fill the vector SPmapping to record what was done.
+//
 // So if input was 0 0 0 0 0 0 1 2 4 0 0 0 0 and MAXSPUsed = 3000
 // The output is   0 0 0 0 0 0 1 2 3 0 0 0 0
 // and SPMapping[0] = 0
@@ -425,7 +507,13 @@ for(int i=0; i<np; i++) {
 //     SPMapping[2] = 3002
 //     SPMapping[4] = 3003
 // on exit, MAXSPused = 3003
-void RemapSuperPixelsOneImage(uint16* test, int w, int h, int &MaxSPUsed, vector<int> &SPmapping)
+//
+static void RemapSuperPixelsOneImage(
+	uint16		*test,
+	int			w,
+	int			h,
+	int			&MaxSPUsed,
+	vector<int>	&SPmapping )
 {
 int biggest = -1;
 vector<int> vals(65536,0);
@@ -451,8 +539,18 @@ for(int i=0; i<w*h; i++)
         test[i] = SPmapping[test[i]] - base;  // cannot overflow, since cannot have more than 65535 new values
 }
 
-// same thing, but with ints.  Could templatize this.
-void RemapSuperPixelsOneImage(uint32* test, int w, int h, int &MaxSPUsed, vector<int> &SPmapping)
+/* --------------------------------------------------------------- */
+/* RemapSuperPixelsOneImage -------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Same thing, but with ints. Could templatize this.
+//
+static void RemapSuperPixelsOneImage(
+	uint32		*test,
+	int			w,
+	int			h,
+	int			&MaxSPUsed,
+	vector<int>	&SPmapping )
 {
 // First find the biggest
 int biggest = -1;
@@ -489,7 +587,16 @@ for(int i=0; i<w*h; i++)
     test[i] = SPmapping[test[i]] - base;
 }
 
-int main(int argc, char **argv)
+/* --------------------------------------------------------------- */
+/* main ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Main program for creating mosaics of grayscale, superpixel,
+// and boundary maps from individual em images. Needs a file
+// containing transforms and a mapping of image names to sections
+// (layers).
+
+int main( int argc, char **argv )
 {
 
 bool Debug = false;
@@ -604,7 +711,7 @@ for(;;){
             ii.layer = lnums[k];
         ii.foldmap = NULL;
 	ii.fname = strdup(mname);
-        //ii.foldmap = Raster8FromAny(mname, w, h, stdout, false);
+        //ii.foldmap = Raster8FromAny( mname, w, h, stdout );
         // if the foldmap was blahblahblah.tif, also look for blahbladblahd.tif, and use that instead.
         // (this is the fold mask used for drawing, as opposed to that used for correlation.)
         // If layers are specified, do this only for layers that are used, since it requires a file access
@@ -835,7 +942,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // map all of these to non-overlapping ranges.
     int MaxSPUsed = 0;
     for(int i=0; i<images.size(); i++) {      // for each picture
-        if (images[i].layer != out_layer)     // in the correct layer
+        if( images[i].layer != out_layer )     // in the correct layer
 	    continue;
         relevant_images.push_back(i);
 	uint32 ww, hh;
@@ -1008,7 +1115,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	printf("%d edge pixels\n", edges.size());
 	// OK, now transform this edge list by each of the transforms, then color it in.
 	for(int i=0; i<images.size(); i++) {
-	    if (images[i].layer != out_layer) // only want edges on current layer
+	    if( images[i].layer != out_layer ) // only want edges on current layer
 		continue;
 	    for(int k=1; k<images[i].tf.size(); k++) {
 		if( images[i].tf[k].det() == 0.0 )
@@ -1443,7 +1550,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 if( p.y - iy >= 0.5 )
 		    iy++;
                 int px = images[img].spmap[ix + w*iy];
-                if (px != 0)  // 0 valued pixels are unassigned, and not translated
+                if( px != 0 )  // 0 valued pixels are unassigned, and not translated
                     px += images[img].spbase;
                 spmap[x + nx*y] = px;
                 if( spmap[x + nx*y] == 65536 ) {  // Just debugging
@@ -1470,7 +1577,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	printf("%d edge pixels\n", edges.size());
 	// OK, now transform this edge list by each of the transforms, then color it in.
 	for(int i=0; i<images.size(); i++) {
-	    if (images[i].layer != out_layer) // only want edges on current layer
+	    if( images[i].layer != out_layer ) // only want edges on current layer
 		continue;
 	    for(int k=1; k<images[i].tf.size(); k++) {
 		if( images[i].tf[k].det() == 0.0 )
@@ -1575,3 +1682,5 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     }
 return 0;
 }
+
+
