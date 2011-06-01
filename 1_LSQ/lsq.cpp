@@ -231,7 +231,8 @@ public:
 				square_strength,
 				scale_strength,
 				thresh,				// outlier if worse than this
-				trim;				// trim this off XML images
+				trim,				// trim this off XML images
+				degcw;				// rotate clockwise degrees
 	char		*pts_file,
 				*dir_file,
 				*tfm_file;
@@ -250,6 +251,7 @@ public:
 		scale_strength		= 1.0;
 		thresh				= 700.0;
 		trim				= 0.0;
+		degcw				= 0.0;
 		pts_file			= NULL;
 		dir_file			= NULL;
 		tfm_file			= NULL;
@@ -479,6 +481,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting threshold to %f.\n", thresh );
 		else if( GetArg( &trim, "-trim=%lf", argv[i] ) )
 			printf( "Setting trim amount to %f.\n", trim );
+		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
+			printf( "Setting deg-cw to %f.\n", degcw );
 		else if( GetArgStr( unite, "-unite=", argv[i] ) ) {
 
 			char	buf[2048];
@@ -2167,14 +2171,19 @@ static void Bounds(
 	printf( "---- Global bounds ----\n" );
 
 // For plotting, we'd like to know the global XY-bounds.
-// So transform each included regions's rectangle and find
+// Transform each included regions's rectangle to global
+// space, including any global rotation (degcw) and find
 // bounds over whole set.
 
 	const double	BIGD = 1.0e30;
 
+	TForm	T, R;
 	double	xmin = BIGD, xmax = -BIGD,
 			ymin = BIGD, ymax = -BIGD;
 	int		nr   = vRgn.size();
+
+	if( gArgs.degcw )
+		CreateCWRot( R, gArgs.degcw, Point(0,0) );
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -2183,8 +2192,11 @@ static void Bounds(
 		if( itr < 0 )
 			continue;
 
-		TForm			T( &X[itr * 6] );
+		TForm			t( &X[itr * 6] );
 		vector<Point>	cnr( 4 );
+
+		MultiplyTrans( T, R, t );
+		T.CopyOut( &X[itr * 6] );
 
 		cnr[0] = Point(  0.0, 0.0 );
 		cnr[1] = Point( gW-1, 0.0 );

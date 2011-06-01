@@ -574,7 +574,7 @@ for(int i=0; i<np; i++) {
 /* --------------------------------------------------------------- */
 
 // Modify a super-pixel map so numbers are assigned consectively
-// from MaxSPUsed+1 on up, and update MaxSPUsed accordingly. 
+// from MaxSPUsed+1 on up, and update MaxSPUsed accordingly.
 // Fill the vector SPmapping to record what was done.
 //
 // So if input was 0 0 0 0 0 0 1 2 4 0 0 0 0 and MAXSPUsed = 3000
