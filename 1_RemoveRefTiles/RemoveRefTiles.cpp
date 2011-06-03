@@ -71,7 +71,9 @@ int main( int argc, char **argv )
 	sprintf( buf, "%.*s_v2%s", s - argv[1], argv[1], s );
 	FILE	*fou = FileOpenOrDie( buf, "w" );
 
-// read lines
+// read lines - ref tiles, if present, are at the start of
+// the list for that layer and their id's are much higher
+// than those of the real tiles that follow.
 
 	vector<LineRec>	pends;
 	int				zcur = -1;
@@ -87,20 +89,36 @@ int main( int argc, char **argv )
 		}
 		else if( L.z != zcur ) {
 
+			// new layer - don't yet know if has ref tiles or not
+
 			FlushPends( pends, fou );
 			pends.push_back( L );
 			zcur = L.z;
 		}
-		else if( !pends.size() )
+		else if( !pends.size() ) {
+
+			// resolved already - just output real tiles
+
 			fprintf( fou, L.line );
+		}
 		else if( L.id < pends[0].id ) {
+
+			// found id step-down, so only real tiles hereafter
+
 			pends.clear();
 			fprintf( fou, L.line );
 		}
-		else if( L.id == pends[pends.size()-1].id )
-			;
-		else
+		else if( L.id == pends[pends.size()-1].id ) {
+
+			// repeated id also implies ref tile
+		}
+		else {
+
+			// not sure - could be real tiles,
+			// or, more than one ref tile id
+
 			pends.push_back( L );
+		}
 	}
 
 // close files
