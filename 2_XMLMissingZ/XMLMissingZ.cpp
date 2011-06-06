@@ -89,7 +89,7 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 
 // header
 
-	fprintf( flog, "\n\nMissing Z---\n" );
+	fprintf( flog, "\n\n" );
 	fflush( flog );
 }
 
@@ -162,7 +162,17 @@ static void ParseTrakEM2( vector<char> &bz )
 
 static void Report( const vector<char> &bz )
 {
-	for( int i = gArgs.zmin; i < gArgs.zmax; ++i ) {
+	int	hi = gArgs.zmax;
+ 
+	for( ; hi >= gArgs.zmin; --hi ) {
+
+		if( bz[hi] )
+			break;
+	}
+
+	fprintf( flog, "Missing Z (highest=%d)---\n", hi );
+
+	for( int i = gArgs.zmin; i < hi; ++i ) {
 
 		if( !bz[i] )
 			fprintf( flog, "%d\n", i );
@@ -175,7 +185,7 @@ static void Report( const vector<char> &bz )
 
 int main( int argc, char* argv[] )
 {
-	vector<char>	bz( 32768, 0 );
+	vector<char>	bz( gArgs.zmax + 1, 0 );
 
 /* ------------------ */
 /* Parse command line */
