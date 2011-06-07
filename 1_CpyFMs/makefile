@@ -1,0 +1,51 @@
+
+
+# ==========
+# ==========
+# My Project
+# ==========
+# ==========
+
+include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
+
+# =======
+# defines
+# =======
+
+SYMBOLS_MYPROJ :=
+
+# =======
+# sources
+# =======
+
+SOURCES_MYPROJ := \
+	CpyFMs.cpp
+
+_SRC_GEN_ := \
+	Cmdline.cpp File.cpp
+
+SOURCES_GEN :=  \
+	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
+
+# =====
+# build
+# =====
+
+CpyFMs:
+	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
+$(OUTPUT) \
+    \
+$(INCLUDES_STD) \
+    \
+$(SOURCES_MYPROJ) \
+    \
+$(SOURCES_GEN) \
+    \
+$(OBJFILES_TIF) \
+    \
+$(STATICLIBS_FFT) \
+    \
+$(OTHERLIBS_STD) \
+#### end $(CC) $@
+
+

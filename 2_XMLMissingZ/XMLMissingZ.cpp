@@ -163,7 +163,7 @@ static void ParseTrakEM2( vector<char> &bz )
 static void Report( const vector<char> &bz )
 {
 	int	hi = gArgs.zmax;
- 
+
 	for( ; hi >= gArgs.zmin; --hi ) {
 
 		if( bz[hi] )
