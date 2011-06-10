@@ -1180,6 +1180,9 @@ bool ApproximateMatch(
 //	DebugAngs( 0, 2, .1, thm );
 // -----------------------------------------------------------
 
+	//QFromAngle( best, ang0, thm, flog );
+	//return false;
+
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */
 /* ------------------------------------------- */
