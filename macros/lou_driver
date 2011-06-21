@@ -15,7 +15,7 @@ cp /groups/apig/tomo/lou_stuff/thmdown .
 cp /groups/apig/tomo/lou_stuff/thmsame .
 cp /groups/apig/tomo/lou_stuff/combine .
 cp /groups/apig/tomo/lou_stuff/finish .
-cp /groups/apig/tomo/lou_stuff/report.txt .
+cp /groups/apig/tomo/lou_stuff/report .
 
 cp /groups/apig/tomo/lou_stuff/runlsq stack/
 
