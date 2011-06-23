@@ -471,6 +471,11 @@ void IFT_2D(
 // xpk' = - * -------------- + xpk
 //        2    z0 + z2 - 2z1
 //
+// Note: Although solution is analytic, the quality of the result
+// depends upon the quality of the data and wild displacements do
+// occur. Therefore we limit displacements to some small multiple
+// of the sampling distance.
+//
 void ParabPeakFFT(
 	double			&xpk,
 	double			&ypk,
@@ -488,13 +493,19 @@ void ParabPeakFFT(
 	if( (z0 = LkFFT( I, nx, ny, ix - d, iy )) &&
 		(z2 = LkFFT( I, nx, ny, ix + d, iy )) ) {
 
-		xpk += d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+
+		if( fabs( z0 ) <= 8 * d )
+			xpk += z0;
 	}
 
 	if( (z0 = LkFFT( I, nx, ny, ix, iy - d )) &&
 		(z2 = LkFFT( I, nx, ny, ix, iy + d )) ) {
 
-		ypk += d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+
+		if( fabs( z0 ) <= 8 * d )
+			ypk += z0;
 	}
 }
 
@@ -1959,6 +1970,11 @@ static void OffsetResults( vector<double> &R )
 //
 // Uses standard C ordering.
 //
+// Note: Although solution is analytic, the quality of the result
+// depends upon the quality of the data and wild displacements do
+// occur. Therefore we limit displacements to some small multiple
+// of the sampling distance.
+//
 static void ParabPeak(
 	double			&xpk,
 	double			&ypk,
@@ -1975,13 +1991,19 @@ static void ParabPeak(
 	if( (z0 = I[ix-d + N*iy]) &&
 		(z2 = I[ix+d + N*iy]) ) {
 
-		xpk += d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+
+		if( fabs( z0 ) <= 8 * d )
+			xpk += z0;
 	}
 
 	if( (z0 = I[ix + N*(iy-d)]) &&
 		(z2 = I[ix + N*(iy+d)]) ) {
 
-		ypk += d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+
+		if( fabs( z0 ) <= 8 * d )
+			ypk += z0;
 	}
 }
 
