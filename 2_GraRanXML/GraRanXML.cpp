@@ -111,7 +111,7 @@ static void ReadScales( vector<Scale> &vs )
 {
 	int	z0, nz;
 
-	FILE	*f = FileOpenOrDie( "GRTemp/range.txt", "r" );
+	FILE	*f = FileOpenOrDie( "GRTemp/range.txt", "r", flog );
 	fscanf( f, "%d\t%d", &z0, &nz );
 	fclose( f );
 

@@ -242,7 +242,7 @@ static void GRTemp( vector<int> &zlist )
 {
 	DskCreateDir( "GRTemp", flog );
 
-	FILE	*f = FileOpenOrDie( "GRTemp/range.txt", "w" );
+	FILE	*f = FileOpenOrDie( "GRTemp/range.txt", "w", flog );
 
 	fprintf( f, "%d\t%d\n", zlist[0], zlist.size() );
 	fclose( f );

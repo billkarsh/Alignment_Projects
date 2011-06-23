@@ -101,7 +101,7 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 
 static void Process()
 {
-	FILE	*f = FileOpenOrDie( gArgs.infile, "r" );
+	FILE	*f = FileOpenOrDie( gArgs.infile, "r", flog );
 
 	for(;;) {
 

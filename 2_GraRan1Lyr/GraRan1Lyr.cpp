@@ -286,7 +286,7 @@ static void WriteScaleEntry( int smin, int smax )
 	char	buf[2048];
 
 	sprintf( buf, "GRTemp/z_%d.txt", gArgs.z );
-	FILE *f = FileOpenOrDie( buf, "w" );
+	FILE *f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "%d\t%d\n", smin, smax );
 	fclose( f );

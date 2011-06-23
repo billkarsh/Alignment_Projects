@@ -141,7 +141,7 @@ if( w1 != gw || w2 != gw || h1 != gh || h2 != gh ) {
 
 
 // Read the array of transforms
-FILE	*ftxt = FileOpenOrDie( noa[5], "r" );
+FILE	*ftxt = FileOpenOrDie( noa[5], "r", flog );
 
 vector<double> array_of_transforms;
 double v;
@@ -297,11 +297,11 @@ fprintf(flog,"\n");
 
 // open file for the corresponding points
 FILE	*fcorr =  FileOpenOrDie(
-		(WhereToWrite ? WhereToWrite : "corr_pts.txt"), "w" );
+		(WhereToWrite ? WhereToWrite : "corr_pts.txt"), "w", flog );
 
 for(int i=0; i<noa.size(); i++) {
 
-    FILE	*fp = FileOpenOrDie( noa[i], "r" );
+    FILE	*fp = FileOpenOrDie( noa[i], "r", flog );
 
     // read each line of the file
     char *lineptr = NULL;

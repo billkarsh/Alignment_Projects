@@ -553,10 +553,11 @@ static void WriteImageSizeFile()
 
 	sprintf( name, "%s/imagesize.txt", gArgs.outdir );
 
-	if( f = fopen( name, "w" ) ) {
-		fprintf( f, "IMAGESIZE %d %d\n", gW, gH );
-		fclose( f );
-	}
+	f = FileOpenOrDie( name, "w", flog );
+
+	fprintf( f, "IMAGESIZE %d %d\n", gW, gH );
+
+	fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -705,11 +706,12 @@ static void OneTprFile( const char *lyrdir, int a, int b )
 
 	sprintf( name, "%s/ThmPair_%d_@_%d.txt", lyrdir, a, b );
 
-	if( f = fopen( name, "w" ) ) {
-		fprintf( f, "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tQ\tR"
-		"\tT0\tT1\tX\tT3\tT4\tY\n" );
-		fclose( f );
-	}
+	f = FileOpenOrDie( name, "w", flog );
+
+	fprintf( f, "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tQ\tR"
+	"\tT0\tT1\tX\tT3\tT4\tY\n" );
+
+	fclose( f );
 }
 
 

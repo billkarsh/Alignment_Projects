@@ -152,7 +152,7 @@ static void ParseTrakEM2()
 /* For each layer */
 /* -------------- */
 
-	FILE	*fldir = FileOpenOrDie( "ldir", "w" );
+	FILE	*fldir = FileOpenOrDie( "ldir", "w", flog );
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
