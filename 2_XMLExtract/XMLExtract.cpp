@@ -22,12 +22,13 @@
 class CArgs_xml {
 
 public:
-	vector<char*>	infile;
-	int				zmin, zmax;
+	char	*infile;
+	int		zmin, zmax;
 
 public:
 	CArgs_xml()
 	{
+		infile	= NULL;
 		zmin	= 0;
 		zmax	= 32768;
 	};
@@ -69,10 +70,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf(
-		"Usage: XMLExtract <xml-file1> <xml-file2>"
-		" [<xml-filej> ...] -zmin=i -zmax=j [options].\n" );
+	if( argc < 4 ) {
+		printf( "Usage: XMLExtract <xml-file1> -zmin=i -zmax=j.\n" );
 		exit( 42 );
 	}
 
@@ -82,7 +81,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			infile.push_back( argv[i] );
+			infile = argv[i];
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -97,17 +96,17 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* Extract ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Extract( int i )
+static void Extract()
 {
 /* ------------- */
 /* Load document */
 /* ------------- */
 
-	TiXmlDocument	doc( gArgs.infile[i] );
+	TiXmlDocument	doc( gArgs.infile );
 
 	if( !doc.LoadFile() ) {
 		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile[i] );
+		"Could not open XML file [%s].\n", gArgs.infile );
 		exit( 42 );
 	}
 
@@ -119,8 +118,7 @@ static void Extract( int i )
 	TiXmlElement	*layer;
 
 	if( !doc.FirstChild() ) {
-		fprintf( flog,
-		"No trakEM2 node [%s].\n", gArgs.infile[i] );
+		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
 		exit( 42 );
 	}
 
@@ -130,8 +128,7 @@ static void Extract( int i )
 				.ToElement();
 
 	if( !layer ) {
-		fprintf( flog,
-		"No t2_layer [%s].\n", gArgs.infile[i] );
+		fprintf( flog, "No t2_layer [%s].\n", gArgs.infile );
 		exit( 42 );
 	}
 
@@ -163,7 +160,7 @@ static void Extract( int i )
 /* Copy !DOCTYPE tag */
 /* ----------------- */
 
-	CopyDTD( gArgs.infile[i], "xmltmp.txt" );
+	CopyDTD( gArgs.infile, "xmltmp.txt" );
 }
 
 /* --------------------------------------------------------------- */
@@ -182,8 +179,7 @@ int main( int argc, char* argv[] )
 /* Write new xml */
 /* ------------- */
 
-	for( int i = 0; i < gArgs.infile.size(); ++i )
-		Extract( i );
+	Extract();
 
 /* ---- */
 /* Done */
