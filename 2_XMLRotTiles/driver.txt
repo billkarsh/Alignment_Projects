@@ -1,0 +1,5 @@
+#!/bin/csh
+
+XMLRotTiles file.xml -mode=0 -p_N_ -id1=i -id2=j -zmin=z1 -zmax=z2
+XMLRotTiles file.xml -mode=1 -z=i -degcw=10
+XMLRotTiles file.xml -mode=2 -p_N_ -id1=i -id2=j -zmin=z1 -zmax=z2 -tdeg=0
