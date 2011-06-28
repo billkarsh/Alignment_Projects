@@ -1,0 +1,46 @@
+
+=========================
+Add Environment Variable
+=========================
+
+All the make files have an include statement:
+"include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs".
+
+You have to copy the file:
+"00_ENV/aln_makefile_std_defs"
+
+from your git folder to somewhere else so that git will not overwrite it. This is your private copy of the file. It contains full paths you should edit according to where your project folder lives. There are also paths into Lou's directory that should work for anyone at Janelia. I didn't need to get special permission or group membership to see these.
+
+Finally, add an environment variable to your bash_profile like this:
+"export ALN_LOCAL_MAKE_PATH=/groups/~location_of_my_std_defs"
+
+====================
+Edit .bash_profile
+====================
+
+Our bash_profile includes these lines:
+
+# ---------------------------------------------------------
+# Alignment specific definitions
+#
+
+# Set path for local builds
+export ALN_LOCAL_MAKE_PATH=/groups/apig/tomo
+
+# Set universal mrc image file margin
+export MRC_TRIM=12
+
+# Set our locally built binaries path
+# and append Lou's cluster-bins path
+PATH=$PATH:$HOME/bin
+PATH=$PATH:/groups/apig/tomo/lou_stuff/binaries
+PATH=$PATH:/groups/scheffer/home/schefferl/cluster-bins
+export PATH
+
+# Set place to look for libpng14 library
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+export LD_LIBRARY_PATH
+
+#
+# End alignment definitions
+# ---------------------------------------------------------
