@@ -743,11 +743,27 @@ return false;
 // file name contains the sub-string then that defines the layer.
 // Sub-strings and layer numbers stored in two parallel vectors.
 //
+// BK added: If fname is an nmrc file, then the name has the form
+// 'nmrc_z_tile.png' and we decode the z from that.
+//
 static int FileNameToLayerNumber(
 	vector<char*>	&dnames,
 	vector<int>		&lnums,
 	char			*fname )
 {
+/* ----- */
+/* nmrc? */
+/* ----- */
+
+	char	*s = strrchr( fname, '/' );
+
+	if( s && !strncmp( s + 1, "nmrc_", 5 ) )
+		return atoi( s + 6 );	// just past '/nmrc_'
+
+/* ------------------ */
+/* Otherwise use ldir */
+/* ------------------ */
+
 int k;
 for(k=0; k<dnames.size(); k++)
     if( strstr(fname, dnames[k]) != NULL )
