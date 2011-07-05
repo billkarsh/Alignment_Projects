@@ -5,6 +5,7 @@
 #include	"PipeFiles.h"
 #include	"LinEqu.h"
 #include	"File.h"
+#include	"Disk.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
@@ -1752,211 +1753,286 @@ printf( "Raveler     directory = '%s'\n",    rav_dir.c_str() );
 
 double xmin = BIG, ymin = BIG;
 double xmax = -BIG, ymax = -BIG;
-size_t nl;
-char *lineptr = NULL;
 vector<double> x1, y1, x2, y2;
 vector<int>    z1, z2;
 
-for(;;){
-    if( getline(&lineptr, &nl, fp) == -1 )
-	break;
-    if( strncmp(lineptr,"DIR",3) == 0 ) {      // simply store directory string
-        char *anum = strtok(lineptr+3," ");  // and layer number in parallel
-        char *dname = strtok(NULL," \n");     // vectors
-        dnames.push_back(strdup(dname));
-        lnums.push_back(atoi(anum));
-        }
-    else if( strncmp(lineptr,"FOLDMAP",7) == 0 ) {
-	char *tname = strtok(lineptr+7," '\n");
-	char *mname = strtok(NULL, " '\n");
-	int	id_dum;
-        if( tname == NULL || mname == NULL ) {
-	    printf("Not expecting NULL in FOLDMAP parsing.\n");
-	    exit( 42 );
-	    }
-        map<string,int>::iterator lookup = imap.find(string(tname));
-        if( lookup != imap.end() )
-	     continue;  // already seen this one
-        // at this point, all we need is w and h, so toss image as soon as we read it.
-        image ii;
-        if( w == 0 ) {  //read a file, then free it, just to set w and h
-            ii.raster = Raster8FromAny( tname, w, h, stdout );
-            RasterFree( ii.raster );
-            w /= scale;
-            h /= scale;
-	    }
-	ii.raster  = NULL;
-	ii.foldmap = NULL;
-	ii.spname  = NULL;      // No super-pixel map is defined for this tile
-        ii.bname   = NULL;
-	ii.spmap   = NULL;
-        ii.bmap    = NULL;
-	ii.spbase  = 0;
-	ii.rname = strdup(tname);
-        ii.w = w; ii.h = h;
-        ii.foldmap = NULL;
-	ii.fname = strdup(mname);
-        //ii.foldmap = Raster8FromAny( mname, w, h, stdout );
-        // if the foldmap was blahblahblah.tif, also look for blahbladblahd.tif, and use that instead.
-        // (this is the fold mask used for drawing, as opposed to that used for correlation.)
-        // If layers are specified, do this only for layers that are used, since it requires a file access
-        // and hence is slow.
+	for(;;){
 
-    ZIDFromFMPath( ii.layer, id_dum, mname );
+		char	*lineptr = NULL;
+		size_t	nl;
 
-	char *suf = strstr(mname, ".tif");
-        if( suf != NULL ) {
-            // see if it's a layer we care about.
-            if( lspec1 == -1 || (lspec1 <= ii.layer && ii.layer <= lspec2) ) {
-                *suf = '\0';
-                char temp[1024];
-                sprintf(temp, "%sd.tif", mname);
-	        *suf = '.';  // put name back, in case we don't find it.
-                FILE *fd = fopen(temp, "r");
-                if( fd ) {
-                    fclose(fd);
-					printf("Swapping to drawing file '%s'\n", temp);
-                    free(ii.fname);
-                    ii.fname = strdup(temp);
-				}
-			}
-	    }
-        // is this a layer we care about?  If layer range not specified, or specified and in it, save
-        if( lspec1 < 0 || (lspec1 <= ii.layer && ii.layer <= lspec2)  ) {
-            lowest  = min(lowest,  ii.layer);
-            highest = max(highest, ii.layer);
-            images.push_back(ii);
-            imap[string(tname)] = images.size() - 1;
-	    }
-        }
-    else if( strncmp(lineptr,"TRANSFORM",9) == 0 ) {
-        double a,b,c,d,e,f;
-        char name[1024];
-        if( sscanf(lineptr+9, "%s %lf %lf %lf %lf %lf %lf", name, &a, &b, &c, &d, &e, &f) != 7 ) {
-            printf("Not expecting this in TRANSFORM: %s", lineptr);
-	    break;
-            }
-        TForm tf(a,b,c/scale,d,e,f/scale);
-        char *fname = strtok(name," ':");
-        //printf("File '%s'\n", fname);
-        map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
-        if( imit == imap.end() ) {
-	    // this is now normal with single layer image generation
-	    //printf("File in TRANSFORM statement has no FOLDMAP - ignored.\n");
-	    continue;
-	    }
-        int k = imit->second;
-        printf("Image = %d\n", k);
-        char *rest = strtok(NULL," :'\n"); // get the rest of the string, now of the form ::123
-        int patch = atoi(rest);
-        printf("rest = '%s', patch = %d\n", rest, patch);
-        // Make sure vector is big enough
-        if( images[k].tf.size() <= patch ) {
-             images[k].tf.resize(patch+1, TForm(0,0,0,0,0,0));  // initialize to an illegal transform
-             images[k].inv.resize(patch+1);
-             }
-        images[k].tf[patch] = tf;
-	}
-    else if( strncmp(lineptr,"SPMAP",5) == 0 ) {
-        char	name[1024], where[1024];
-        int		z, nprm;
-
-        nprm = sscanf( lineptr+5, "%s %s %d", name, where, &z );
-
-        if( nprm < 2 ) {
-			printf("Not expecting this in SPMAP: %s", lineptr);
+		if( -1 == getline( &lineptr, &nl, fp ) )
 			break;
-        }
 
-        char *fname = strtok(name," ':");
-        //printf("File '%s'\n", fname);
-        map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
-        if( imit == imap.end() ) {
-	    // This is now normal with single layer image generation.  If it's a layer
-	    // we care about, print the message.  Otherwise silently ignore.
+		if( !strncmp( lineptr, "DIR", 3 ) ) {
 
-	    int	layer;
+			// parallel vectors
+			char *z = strtok( lineptr + 4, " " );
+			char *n = strtok( NULL, " \n" );
 
-	    if( nprm > 2 )
-			layer = z;
-		else
-			layer = FileNameToLayerNumber( dnames, lnums, fname );
-
-        if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
-	        printf("File in SPMAP statement has no image - ignored.\n");
-	    continue;
-	    }
-        int k = imit->second;
-        printf("Image = %d\n", k);
-        images[k].spname = strdup(where);
-        }
-    else if( strncmp(lineptr,"BOUNDARYMAP",11) == 0 ) {
-        char	name[1024], where[1024];
-        int		z, nprm;
-
-		nprm = sscanf( lineptr+11, "%s %s %d", name, where, &z );
-
-        if( nprm < 2 ) {
-			printf("Not expecting this in BOUNDARYMAP: %s", lineptr);
-			break;
+			lnums.push_back( atoi( z ) );
+			dnames.push_back( strdup( n ) );
 		}
-        char *fname = strtok(name," ':");
-        //printf("File '%s'\n", fname);
-        map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
-        if( imit == imap.end() ) {
-	    // This is now normal with single layer image generation.  If it's a layer
-	    // we care about, print a message.  Otherwise silently ignore.
+		else if( !strncmp( lineptr, "FOLDMAP", 7 ) ) {
 
-	    int	layer;
+			char	*tname = strtok( lineptr + 7, " '\n" );
+			char	*mname = strtok( NULL, " '\n" );
+			int		id_dum;
 
-	    if( nprm > 2 )
-			layer = z;
-		else
-			layer = FileNameToLayerNumber( dnames, lnums, fname );
+			if( !tname || !mname ) {
+				printf( "Bad FOLDMAP statement '%s'.", lineptr );
+				exit( 42 );
+			}
 
-        if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
-	        printf("File in BOUNDARYMAP statement refers to image '%s' which does not exist - ignored.\n", fname);
-	    continue;
-	    }
-        int k = imit->second;
-        printf("Image = %d\n", k);
-        images[k].bname = strdup(where);
-        }
-    else if( strncmp(lineptr,"MPOINTS",7) == 0 ) {
-        double a,b,c,d;
-        int za, zc;
-        if( sscanf(lineptr+7, "%d %lf %lf %d %lf %lf", &za,  &a, &b, &zc, &c, &d) != 6 ) {
-            printf("Not expecting this: %s", lineptr);
-	    break;
-            }
-        if( lspec1 < 0 || (lspec1-1 <= za && za <= lspec2+1) || (lspec1-1 <= zc && zc <= lspec2) ) {
-            z1.push_back(za); x1.push_back(a/scale); y1.push_back(b/scale);
-            z2.push_back(zc); x2.push_back(c/scale); y2.push_back(d/scale);
-	    }
-	}
-    else if( strncmp(lineptr,"BBOX",4) == 0 ) {
-        if( sscanf(lineptr+4, "%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
-	     printf("Bad BBOX statement %s\n", lineptr);
-	     exit( 42 );
-             }
-        xmin /= scale; ymin /= scale;
-        xmax /= scale; ymax /= scale;
-	}
-    else if( !strncmp( lineptr, "IMAGESIZE", 9 ) ) {
+			map<string,int>::iterator it = imap.find(string(tname));
 
-		if( 2 != sscanf( lineptr + 10, "%d %d", &w, &h ) ) {
-			printf( "Bad IMAGESIZE line '%s'.\n", lineptr );
+			if( it != imap.end() )
+				continue;  // already seen this one
+
+			// Get image dimensions
+			if( !w ) {
+				uint8	*r = Raster8FromAny( tname, w, h, stdout );
+				RasterFree( r );
+				w /= scale;
+				h /= scale;
+			}
+
+			image ii;
+
+			ii.raster	= NULL;
+			ii.foldmap	= NULL;
+			ii.bmap		= NULL;
+			ii.w		= w;
+			ii.h		= h;
+			ii.spbase	= 0;
+			ii.rname	= strdup( tname );
+			ii.fname	= strdup( mname );
+			ii.spname	= NULL;
+			ii.bname	= NULL;
+			ii.spmap	= NULL;
+
+			ZIDFromFMPath( ii.layer, id_dum, mname );
+
+			if( lspec1 < 0 ||
+				(lspec1 <= ii.layer && ii.layer <= lspec2) ) {
+
+				// Point at drawing (d-suffixed) foldmap if exists
+
+				char	*suf = strstr( mname, ".tif" );
+
+				if( suf ) {
+
+					char	buf[1024];
+
+					sprintf( buf, "%.*sd.tif", suf - mname, mname );
+
+					if( DskExists( buf ) ) {
+						printf( "Using drawing file '%s'.\n", buf );
+						free( ii.fname );
+						ii.fname = strdup( buf );
+					}
+				}
+
+				// Finally, add to collection
+				imap[string(tname)] = images.size();
+				images.push_back( ii );
+
+				lowest  = min( lowest, ii.layer );
+				highest = max( highest, ii.layer );
+			}
+		}
+		else if( !strncmp( lineptr, "TRANSFORM", 9 ) ) {
+
+			char	name[1024];
+			double	a, b, c, d, e, f;
+
+			if( 7 != sscanf(
+				lineptr + 9, "%s %lf %lf %lf %lf %lf %lf",
+				name, &a, &b, &c, &d, &e, &f ) ) {
+
+				printf( "Bad TRANSFORM statement '%s'.", lineptr );
+				exit( 42 );
+			}
+
+			TForm	tf( a, b, c/scale, d, e, f/scale );
+			char	*fname = strtok( name, " ':" );
+
+			//printf("File '%s'\n", fname);
+
+			map<string,int>::iterator imit = imap.find(string(fname));
+
+			if( imit == imap.end() ) {
+
+				// This is normal with single layer image generation.
+
+				//printf( "File in TRANSFORM has no FOLDMAP - ignored.\n" );
+				continue;
+			}
+
+			int	k = imit->second;
+
+			// get the rest of the string, now of the form ::123
+			int	patch = atoi( strtok( NULL, " :'\n" ) );
+
+			printf( "ImageIdx::patch = %d::%d\n", k, patch );
+
+			// Make new slot?
+			if( images[k].tf.size() <= patch ) {
+
+				// initialize to an illegal transform
+				images[k].tf.resize( patch+1, TForm(0,0,0,0,0,0) );
+				images[k].inv.resize( patch+1 );
+			}
+
+			images[k].tf[patch] = tf;
+		}
+		else if( !strncmp( lineptr, "SPMAP", 5 ) ) {
+
+			char	name[1024], where[1024];
+			int		z, nprm;
+
+			nprm = sscanf( lineptr + 5, "%s %s %d", name, where, &z );
+
+			if( nprm < 2 ) {
+				printf( "Bad SPMAP statement '%s'.", lineptr );
+				exit( 42 );
+			}
+
+			char	*fname = strtok( name, " ':" );
+
+			//printf("File '%s'\n", fname);
+
+			map<string,int>::iterator imit = imap.find(string(fname));
+
+			if( imit == imap.end() ) {
+
+				// This is normal with single layer image generation.
+				// If it's a layer we care about, print a message.
+				// Otherwise silently ignore.
+
+				int	layer;
+
+				if( nprm > 2 )
+					layer = z;
+				else
+					layer = FileNameToLayerNumber( dnames, lnums, fname );
+
+				if( lspec1 < 0 ||
+					(lspec1 <= layer && layer <= lspec2) ) {
+
+					printf(
+					"File in SPMAP has no image - ignored.\n" );
+				}
+
+				continue;
+			}
+
+			int	k = imit->second;
+
+			printf( "ImageIdx = %d\n", k );
+			images[k].spname = strdup( where );
+		}
+		else if( !strncmp( lineptr, "BOUNDARYMAP", 11 ) ) {
+
+			char	name[1024], where[1024];
+			int		z, nprm;
+
+			nprm = sscanf( lineptr + 11, "%s %s %d", name, where, &z );
+
+			if( nprm < 2 ) {
+				printf( "Bad BOUNDARYMAP statement '%s'.", lineptr );
+				exit( 42 );
+			}
+
+			char	*fname = strtok( name, " ':" );
+
+			//printf("File '%s'\n", fname);
+
+			map<string,int>::iterator imit = imap.find(string(fname));
+
+			if( imit == imap.end() ) {
+
+				// This is normal with single layer image generation.
+				// If it's a layer we care about, print a message.
+				// Otherwise silently ignore.
+
+				int	layer;
+
+				if( nprm > 2 )
+					layer = z;
+				else
+					layer = FileNameToLayerNumber( dnames, lnums, fname );
+
+				if( lspec1 < 0 ||
+					(lspec1 <= layer && layer <= lspec2) ) {
+
+					printf(
+					"File in BOUNDARYMAP has no image - ignored.\n" );
+				}
+
+				continue;
+			}
+
+			int	k = imit->second;
+
+			printf( "ImageIdx = %d\n", k );
+			images[k].bname = strdup( where );
+		}
+		else if( !strncmp( lineptr, "MPOINTS", 7 ) ) {
+
+			double	a, b, c, d;
+			int		za, zc;
+
+			if( 6 != sscanf(lineptr + 7,
+				"%d %lf %lf %d %lf %lf",
+				&za, &a, &b, &zc, &c, &d ) ) {
+
+				printf( "Bad MPOINTS statement '%s'.", lineptr );
+				exit( 42 );
+			}
+
+			if( lspec1 < 0 ||
+				(lspec1-1 <= za && za <= lspec2+1) ||
+				(lspec1-1 <= zc && zc <= lspec2+1) ) {
+
+				z1.push_back( za );
+				x1.push_back( a/scale );
+				y1.push_back( b/scale );
+
+				z2.push_back( zc );
+				x2.push_back( c/scale );
+				y2.push_back( d/scale );
+			}
+		}
+		else if( !strncmp( lineptr, "BBOX", 4 ) ) {
+
+			if( 4 != sscanf( lineptr + 4,
+				"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax ) ) {
+
+				printf( "Bad BBOX statement '%s'.\n", lineptr );
+				exit( 42 );
+			}
+
+			xmin /= scale;
+			ymin /= scale;
+			xmax /= scale;
+			ymax /= scale;
+		}
+		else if( !strncmp( lineptr, "IMAGESIZE", 9 ) ) {
+
+			if( 2 != sscanf( lineptr + 10, "%d %d", &w, &h ) ) {
+				printf( "Bad IMAGESIZE line '%s'.\n", lineptr );
+				exit( 42 );
+			}
+
+			w /= scale;
+			h /= scale;
+		}
+		else {
+			printf( "Unknown line '%s'.", lineptr );
 			exit( 42 );
 		}
-
-		w /= scale;
-		h /= scale;
 	}
-    else {
-	printf("Unknown line '%s'", lineptr);
-	exit( 42 );
-        }
-    }
 
 
 if( images.size() == 0 ) {
