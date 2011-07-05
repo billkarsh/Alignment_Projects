@@ -2,6 +2,7 @@
 // Make a mosaic
 
 
+#include	"PipeFiles.h"
 #include	"LinEqu.h"
 #include	"File.h"
 #include	"ImageIO.h"
@@ -1765,6 +1766,7 @@ for(;;){
     else if( strncmp(lineptr,"FOLDMAP",7) == 0 ) {
 	char *tname = strtok(lineptr+7," '\n");
 	char *mname = strtok(NULL, " '\n");
+	int	id_dum;
         if( tname == NULL || mname == NULL ) {
 	    printf("Not expecting NULL in FOLDMAP parsing.\n");
 	    exit( 42 );
@@ -1789,7 +1791,7 @@ for(;;){
 	ii.spbase  = 0;
 	ii.rname = strdup(tname);
         ii.w = w; ii.h = h;
-        ii.layer = FileNameToLayerNumber(dnames, lnums, tname);
+//        ii.layer = FileNameToLayerNumber(dnames, lnums, tname);
         ii.foldmap = NULL;
 	ii.fname = strdup(mname);
         //ii.foldmap = Raster8FromAny( mname, w, h, stdout );
@@ -1797,6 +1799,12 @@ for(;;){
         // (this is the fold mask used for drawing, as opposed to that used for correlation.)
         // If layers are specified, do this only for layers that are used, since it requires a file access
         // and hence is slow.
+
+    if( lspec1 == lspec2 )
+		ii.layer = lspec1;
+	else
+		ZIDFromFMPath( ii.layer, id_dum, mname );
+
 	char *suf = strstr(mname, ".tif");
         if( suf != NULL ) {
             // see if it's a layer we care about.
@@ -1907,22 +1915,29 @@ for(;;){
     else if( strncmp(lineptr,"BBOX",4) == 0 ) {
         if( sscanf(lineptr+4, "%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
 	     printf("Bad BBOX statement %s\n", lineptr);
-	     return 42;
+	     exit( 42 );
              }
         xmin /= scale; ymin /= scale;
         xmax /= scale; ymax /= scale;
 	}
-    else if( strncmp(lineptr,"IMAGESIZE",9) == 0 ) {
-	// ignore for now - so we do not read to compute BBs
+    else if( !strncmp( lineptr, "IMAGESIZE", 9 ) ) {
+
+		if( 2 != sscanf( lineptr + 10, "%d %d", &w, &h ) ) {
+			printf( "Bad IMAGESIZE line '%s'.\n", lineptr );
+			exit( 42 );
+		}
+
+		w /= scale;
+		h /= scale;
 	}
     else {
 	printf("Unknown line '%s'", lineptr);
-	return 42;
+	exit( 42 );
         }
     }
 if( images.size() == 0 ) {
     printf("No images in input\n");
-    return 42;
+    exit( 42 );
     }
 // Now find the bounding box in global space, if not already specified
 if( xmin > BIG/2 ) {
@@ -2483,7 +2498,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		printf("Writing map as 'test.png'\n");
 		Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
 		}
-            return 42;
+            exit( 42 );
 	    }
 	}
     for(int tx=0; tx <nx; tx += delta) {
@@ -2518,7 +2533,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		printf("Writing map as 'test.png'\n");
 		Raster16ToPng16( "test.png", &(imap[0]), nx, ny );
 		}
-            return 42;
+            exit( 42 );
 	    }
 	}
 
@@ -2837,7 +2852,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                     //printf("w=%d h=%d nx=%d ny=%d patch=%d sector=%d\n", w, h, nx, ny, patch, sector);
 		    //printf("Set to %d.  x=%d y=%d ix=%d iy=%d img=%d images[img].spbase=%d images[img].spmap[ix + w*iy] = %d\n",
                      //px, x, y, ix, iy, img, images[img].spbase, images[img].spmap[ix + w*iy] );
-                    //return 42;
+                    //exit( 42 );
 		    //}
                 if( Debug && px == 0 )
 		    before[bi] = 255;

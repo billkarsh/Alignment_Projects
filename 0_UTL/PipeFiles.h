@@ -125,4 +125,6 @@ void WriteThmPair(
 	int				btl,
 	int				bcr );
 
+bool ZIDFromFMPath( int &z, int &id, const char *path );
+
 

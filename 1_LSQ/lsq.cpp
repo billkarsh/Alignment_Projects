@@ -7,6 +7,7 @@
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"LinEqu.h"
 #include	"TrakEM2_DTD.h"
 #include	"CPoint.h"
@@ -1246,9 +1247,8 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			int	z, id, nrgn = -1;
 
-			sscanf( line + 8,
-			"'%*[^']' ../%d/%d%*s %d", &z, &id, &nrgn );
-
+			sscanf( line + 8, "'%*[^']' %s %d", name1, &nrgn );
+			ZIDFromFMPath( z, id, name1 );
 			nConRgn[ZID( z, id )] = nrgn;
 
 			fprintf( FOUT, line );

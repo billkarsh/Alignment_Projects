@@ -464,4 +464,58 @@ void WriteThmPair(
 	M.Release();
 }
 
+/* --------------------------------------------------------------- */
+/* ZIDFromFMPath ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Given path to a foldmask (or other) file located in the
+// standard working directory hierarchy:
+//
+//	e.g. '/groups/.../temp/z/id/fm.tif'
+//	e.g. '../z/id/fm.png'
+//
+// attempt to extract the z and tile-id values.
+//
+// Return true if success.
+//
+bool ZIDFromFMPath( int &z, int &id, const char *path )
+{
+	const char	*s;
+	int			nprev;
+
+// back over filename
+
+	s = path + (nprev = strlen( path ));
+
+	while( nprev-- > 0 && *--s != '/' )
+		;
+
+	if( *s != '/' )
+		return false;
+
+// back over id and translate
+
+	while( nprev-- > 0 && *--s != '/' )
+		;
+
+	if( nprev <= 0 )
+		return false;
+
+	if( 1 != sscanf( s + 1, "%d", &id ) )
+		return false;
+
+// back over z and translate
+
+	while( nprev-- > 0 && *--s != '/' )
+		;
+
+	if( *s != '/' )
+		return false;
+
+	if( 1 != sscanf( s + 1, "%d", &z ) )
+		return false;
+
+	return true;
+}
+
 
