@@ -1739,21 +1739,24 @@ if( noa.size() >= 3 ) {
 	exit( 42 );
 	}
     }
-printf("Fold mask   directory = '%s'\n",   fold_dir.c_str());
-printf("Region      directory = '%s'\n", region_dir.c_str());
-printf("Gray scale  directory = '%s'\n",   gray_dir.c_str());
-printf("Super-pixel directory = '%s'\n",     sp_dir.c_str());
-printf("Inverse-map directory = '%s'\n",    inv_dir.c_str());
-printf("Raveler     directory = '%s'\n",    rav_dir.c_str());
+printf( "layer range = [%d, %d].\n", lspec1, lspec2 );
+printf( "Fold mask   directory = '%s'\n",   fold_dir.c_str() );
+printf( "Region      directory = '%s'\n", region_dir.c_str() );
+printf( "Gray scale  directory = '%s'\n",   gray_dir.c_str() );
+printf( "Super-pixel directory = '%s'\n",     sp_dir.c_str() );
+printf( "Inverse-map directory = '%s'\n",    inv_dir.c_str() );
+printf( "Raveler     directory = '%s'\n",    rav_dir.c_str() );
 
 // read the file.  Here we assume all images are the same size, so if w and/or h are non-zero, we don't really need to read the
 // images, since we already read at least one.
+
 double xmin = BIG, ymin = BIG;
 double xmax = -BIG, ymax = -BIG;
 size_t nl;
 char *lineptr = NULL;
 vector<double> x1, y1, x2, y2;
 vector<int>    z1, z2;
+
 for(;;){
     if( getline(&lineptr, &nl, fp) == -1 )
 	break;
@@ -1791,7 +1794,6 @@ for(;;){
 	ii.spbase  = 0;
 	ii.rname = strdup(tname);
         ii.w = w; ii.h = h;
-//        ii.layer = FileNameToLayerNumber(dnames, lnums, tname);
         ii.foldmap = NULL;
 	ii.fname = strdup(mname);
         //ii.foldmap = Raster8FromAny( mname, w, h, stdout );
@@ -1800,10 +1802,7 @@ for(;;){
         // If layers are specified, do this only for layers that are used, since it requires a file access
         // and hence is slow.
 
-    if( lspec1 == lspec2 )
-		ii.layer = lspec1;
-	else
-		ZIDFromFMPath( ii.layer, id_dum, mname );
+    ZIDFromFMPath( ii.layer, id_dum, mname );
 
 	char *suf = strstr(mname, ".tif");
         if( suf != NULL ) {
@@ -1816,11 +1815,11 @@ for(;;){
                 FILE *fd = fopen(temp, "r");
                 if( fd ) {
                     fclose(fd);
-		    printf("Swapping to drawing file '%s'\n", temp);
+					printf("Swapping to drawing file '%s'\n", temp);
                     free(ii.fname);
                     ii.fname = strdup(temp);
-		    }
-		}
+				}
+			}
 	    }
         // is this a layer we care about?  If layer range not specified, or specified and in it, save
         if( lspec1 < 0 || (lspec1 <= ii.layer && ii.layer <= lspec2)  ) {
@@ -1859,19 +1858,31 @@ for(;;){
         images[k].tf[patch] = tf;
 	}
     else if( strncmp(lineptr,"SPMAP",5) == 0 ) {
-        char name[1024], where[1024];
-        if( sscanf(lineptr+5, "%s %s", name, where) != 2 ) {
-            printf("Not expecting this in SPMAP: %s", lineptr);
-	    break;
-            }
+        char	name[1024], where[1024];
+        int		z, nprm;
+
+        nprm = sscanf( lineptr+5, "%s %s %d", name, where, &z );
+
+        if( nprm < 2 ) {
+			printf("Not expecting this in SPMAP: %s", lineptr);
+			break;
+        }
+
         char *fname = strtok(name," ':");
         //printf("File '%s'\n", fname);
         map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
         if( imit == imap.end() ) {
 	    // This is now normal with single layer image generation.  If it's a layer
 	    // we care about, print the message.  Otherwise silently ignore.
-	    int layer = FileNameToLayerNumber(dnames, lnums, fname);
-            if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
+
+	    int	layer;
+
+	    if( nprm > 2 )
+			layer = z;
+		else
+			layer = FileNameToLayerNumber( dnames, lnums, fname );
+
+        if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
 	        printf("File in SPMAP statement has no image - ignored.\n");
 	    continue;
 	    }
@@ -1880,19 +1891,30 @@ for(;;){
         images[k].spname = strdup(where);
         }
     else if( strncmp(lineptr,"BOUNDARYMAP",11) == 0 ) {
-        char name[1024], where[1024];
-        if( sscanf(lineptr+11, "%s %s", name, where) != 2 ) {
-            printf("Not expecting this in BOUNDARYMAP: %s", lineptr);
-	    break;
-            }
+        char	name[1024], where[1024];
+        int		z, nprm;
+
+		nprm = sscanf( lineptr+11, "%s %s %d", name, where, &z );
+
+        if( nprm < 2 ) {
+			printf("Not expecting this in BOUNDARYMAP: %s", lineptr);
+			break;
+		}
         char *fname = strtok(name," ':");
         //printf("File '%s'\n", fname);
         map<string,int>::iterator imit = imap.find(string(fname));  // imap iterator
         if( imit == imap.end() ) {
 	    // This is now normal with single layer image generation.  If it's a layer
 	    // we care about, print a message.  Otherwise silently ignore.
-	    int layer = FileNameToLayerNumber(dnames, lnums, fname);
-            if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
+
+	    int	layer;
+
+	    if( nprm > 2 )
+			layer = z;
+		else
+			layer = FileNameToLayerNumber( dnames, lnums, fname );
+
+        if( lspec1 < 0 || (lspec1 <= layer && layer <= lspec2) )
 	        printf("File in BOUNDARYMAP statement refers to image '%s' which does not exist - ignored.\n", fname);
 	    continue;
 	    }
@@ -1935,6 +1957,8 @@ for(;;){
 	exit( 42 );
         }
     }
+
+
 if( images.size() == 0 ) {
     printf("No images in input\n");
     exit( 42 );
