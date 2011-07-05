@@ -3,14 +3,18 @@
 //
 // DIR z string
 //
-// Where the string is a file_path up to and including
-// the pattern command line argument
+// Where the string is a file_path up to and including the pattern
+// command line argument. Note that the pattern is applied to the
+// filename part of the full path string.
 //
 
 #include	"Cmdline.h"
 #include	"File.h"
 
 #include	"tinyxml.h"
+
+#include	<set>
+using namespace std;
 
 
 /* --------------------------------------------------------------- */
@@ -148,11 +152,15 @@ static void ParseTrakEM2()
 		exit( 42 );
 	}
 
+/* --------- */
+/* Open file */
+/* --------- */
+
+	FILE	*fldir = FileOpenOrDie( "ldir", "w", flog );
+
 /* -------------- */
 /* For each layer */
 /* -------------- */
-
-	FILE	*fldir = FileOpenOrDie( "ldir", "w", flog );
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
@@ -168,18 +176,40 @@ static void ParseTrakEM2()
 		if( z < gArgs.zmin )
 			continue;
 
-		/* --------- */
-		/* DIR entry */
-		/* --------- */
+		/* ----------------------------------------- */
+		/* Collect all unique folders for this layer */
+		/* ----------------------------------------- */
 
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-		const char*		name = ptch->Attribute( "file_path" );
-		const char*		slsh = strrchr( name, '/' );
-		const char*		term = strstr( slsh, gArgs.pat );
+		set<string>		S;
+		TiXmlElement*	p;
 
-		fprintf( fldir, "DIR %d %.*s%s\n",
-		z, term - name, name, gArgs.pat );
+		for(
+			p = layer->FirstChildElement( "t2_patch" );
+			p;
+			p = p->NextSiblingElement() ) {
+
+			char		buf[2048];
+			const char*	name = p->Attribute( "file_path" );
+			const char*	slsh = strrchr( name, '/' );
+			const char*	term = strstr( slsh, gArgs.pat );
+
+			sprintf( buf, "%.*s%s", term - name, name, gArgs.pat );
+			S.insert( string( buf ) );
+		}
+
+		/* ------------------ */
+		/* And write them out */
+		/* ------------------ */
+
+		set<string>::iterator	it;
+
+		for( it = S.begin(); it != S.end(); ++it )
+			fprintf( fldir, "DIR %d %s\n", z, it->c_str() );
 	}
+
+/* ---- */
+/* Done */
+/* ---- */
 
 	fclose( fldir );
 }
