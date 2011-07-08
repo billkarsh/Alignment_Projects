@@ -2034,6 +2034,8 @@ vector<int>    z1, z2;
 		}
 	}
 
+//VMStats( stdout );
+//exit( 11 );
 
 if( images.size() == 0 ) {
     printf("No images in input\n");
