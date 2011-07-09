@@ -25,7 +25,8 @@ public:
 	char	*infile,
 			*outfile;
 	int		Z;
-	bool	oneregion,
+	bool	nomasks,
+			oneregion,
 			transpose,
 			dumphist;
 
@@ -37,6 +38,7 @@ public:
 		infile			= NULL;
 		outfile			= NULL;
 		Z				= -1;
+		nomasks			= false;
 		oneregion		= false;
 		transpose		= false;
 		dumphist		= false;
@@ -87,6 +89,11 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 
 			printf( "Fold Mask Threshold over-ridden, now %f.\n",
 			fmTOverride );
+		}
+		else if( IsArg( "-nf", argv[i] ) ) {
+
+			nomasks = true;
+			printf( "Not generating mask files.\n" );
 		}
 		else if( IsArg( "-one", argv[i] ) ) {
 
@@ -329,11 +336,10 @@ static bool IsTooGaussian( const vector<int> &histo )
 // Return maximal region id.
 //
 static int ImageToFoldMap(
-	PicBase	&pic,
-	uint8*	FoldMask,
-	bool	remove_low_contrast = false,
-	bool	one_region = false,
-	double	FoldMaskThresholdOverride = 0.0 )
+	uint8*			FoldMask,
+	const PicBase	&pic,
+	bool			remove_low_contrast = false,
+	double			FoldMaskThresholdOverride = 0.0 )
 {
 
 // Here, define the connected region(s) on the above layer.
@@ -341,13 +347,6 @@ int w = pic.w;
 int h = pic.h;
 uint8 *raster = pic.raster;
 int npixels = w * h;
-
-// if they asked for one region, do that
-if( one_region ) {
-    printf("Generating one uniform region\n");
-    memset( FoldMask, 1, npixels );
-    return 1;
-}
 
 // First, find the mean and standard deviation of the 'real'
 // non-saturated pixels. Create a mask to remove pixels from
@@ -642,6 +641,115 @@ for(int k=0; k<nbig; k++) {
 }
 
 /* --------------------------------------------------------------- */
+/* MakeDrawingMask ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Create optimized drawing mask.
+//
+// Notes:
+// For alignment, we remove/ignore low contrast areas to avoid poor
+// alignment results. However, for drawing, once the transforms are
+// already determined, we want to assign as many image pixels (hence
+// map pixels) as possible to some appropriate transform ID, that is,
+// to a map pixel value.
+//
+// The drawing mask typically has more non-zero pixels in it than
+// the alignment mask and that's sufficient to cause the raster
+// scanner that finds connected regions to find them in a different
+// order, and so give them different ID's. Moreover, the extra
+// pixels in the drawing map may bridge regions that are separate
+// in the alignment map giving the two maps different region counts
+// AND different labels.
+//
+// Getting the labels adjusted correctly has an easy part and a
+// hard part. First, for a given pixel coordinate, if the alignment
+// map has a non-zero value there, that's the value we want in the
+// drawing map--easy. But if there is a (non-zero) pixel in the
+// drawing map that has no (non-zero) pixel in the alignment map,
+// what ID shall we use? There are several possible procedures, but
+// what we elect to do here is to examine the drawing map (before
+// it is relabeled) and for every non-zero region in it, determine
+// which non-zero alignment region it has the largest area overlap
+// with. This gives a mapping from any drawing label to an alignment
+// label. This is simple to implement and probably good enough since
+// low contrast cases are few.
+//
+static uint8* MakeDrawingMask(
+	PicBase			&pic,
+	const uint8		*FoldMaskAlign,
+	int				np )
+{
+// First we generate the drawing mask in pretty much the same way
+// as the alignment mask, except that low contrast regions are
+// not removed for the drawing version.
+
+	uint8	*FoldMaskDraw = (uint8*)malloc( np );
+
+	ImageToFoldMap( FoldMaskDraw, pic, false, gArgs.fmTOverride );
+
+// Next create the mapping from labels in the drawing map to
+// that label/region in the alignment map with which there is
+// greatest overlap.
+
+	vector<int>	map( 256, 0 );
+
+// Get a mapping for each label value used in the drawing map.
+// Since region labels are assigned consecutively, as soon as
+// we advance to a label that isn't used we are done.
+
+	int used = true;
+
+	for( int drawlabel = 1; drawlabel < 256 && used; ++drawlabel ) {
+
+		vector<int>	alnarea( 256, 0 );
+
+		used = false;
+
+		for( int i = 0; i < np; ++i ) {
+
+			if( FoldMaskDraw[i] == drawlabel ) {
+				++alnarea[FoldMaskAlign[i]];
+				used = true;
+			}
+		}
+
+		if( used ) {
+
+			// Find largest overlapped area, if any.
+
+			int	max_A = 0;
+			int	max_j = 0;
+
+			for( int j = 1; j < 256; ++j ) {
+
+				if( alnarea[j] > max_A ) {
+					max_A = alnarea[j];
+					max_j = j;
+				}
+			}
+
+			printf(
+			"Mapping drawing region %d to alignment region %d.\n",
+			drawlabel, max_j );
+
+			map[drawlabel] = max_j;
+		}
+	}
+
+// Now relabel drawing map pixels
+
+	for( int i = 0; i < np; ++i ) {
+
+		if( FoldMaskAlign[i] )
+			FoldMaskDraw[i] = FoldMaskAlign[i];
+		else if( FoldMaskDraw[i] )
+			FoldMaskDraw[i] = map[FoldMaskDraw[i]];
+	}
+
+	return FoldMaskDraw;
+}
+
+/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -672,95 +780,58 @@ int main( int argc, char **argv )
 
 		sprintf( path, "%d/nmrc_%d_%d.png", id, gArgs.Z, id );
 		Raster8ToPng8( path, p.original, p.w, p.h );
+
+		// if .mrc files AND if -nf option, then skip making
+		// actual foldmask files. However, we still write
+		// FOLDMAP entries for later use by the mos program,
+		// which should also be run with its own -nf option.
+
+		if( gArgs.nomasks ) {
+
+			WriteFOLDMAPEntry( gArgs.infile, gArgs.outfile,
+				gArgs.Z, 1 );
+
+			return 0;
+		}
 	}
 
+/* ------------ */
+/* Create masks */
+/* ------------ */
+
 // Create two different fold masks - one optimized for alignment,
-// with all low constrast regions removed, and one optimized for
-// drawing, with regions as big as possible. But the two must be
-// consistent, so make sure this is the case.
+// with all low contrast regions removed, and one optimized for
+// drawing, with regions as big as possible.
 
-	int		np = p.w * p.h;
-	bool	remove_low_contrast = true;
+	int		ncr, np = p.w * p.h;
 	uint8	*FoldMaskAlign = (uint8*)malloc( np );
-	int		ncr = ImageToFoldMap( p, FoldMaskAlign,
-					remove_low_contrast, gArgs.oneregion,
-					gArgs.fmTOverride );
+	uint8	*FoldMaskDraw;
 
-	uint8 *FoldMaskDraw = (uint8*)malloc( np );
-	ImageToFoldMap( p, FoldMaskDraw,
-		!remove_low_contrast, gArgs.oneregion,
-		gArgs.fmTOverride );
+	if( gArgs.oneregion ) {
+
+		// Efficiently handle the '-one' option. In this case
+		// the drawing and alignment masks are identical.
+
+		ncr				= 1;
+		FoldMaskDraw	= FoldMaskAlign;
+		memset( FoldMaskAlign, 1, np );
+	}
+	else {
+
+		// Otherwise, calculate real foldmasks
+
+		ncr = ImageToFoldMap( FoldMaskAlign, p,
+				true, gArgs.fmTOverride );
+
+		FoldMaskDraw = MakeDrawingMask( p, FoldMaskAlign, np );
+	}
+
+/* ------------------------------- */
+/* Write masks and FOLDMAP entries */
+/* ------------------------------- */
 
 	Raster8ToTif8( gArgs.outfile, FoldMaskAlign, p.w, p.h );
 	WriteFOLDMAPEntry( gArgs.infile, gArgs.outfile, gArgs.Z, ncr );
-
-// Now the additional removal of low contrast regions means that
-// one region in the drawing mask may be split into multiple
-// regions in the alignment mask. Find the ID with the most pixels
-// in common, and use that. First, create an identity map for pixel
-// values.
-
-	vector<int>	map( 256 );
-
-	int	nm = map.size();
-
-	for( int i = 0; i < nm; i++ )
-		map[i] = i;
-
-	int n = 1;	// number of pixels found on previous layer
-
-	for( int mask = 1; mask <= 255 && n != 0; ++mask ) {
-
-		// Does this value exist in the drawing mask?
-		// If so, what's the most common value in
-		// the alignment mask?
-
-		vector<int>	counts( 255, 0 );
-
-		n = 0;
-
-		for( int i = 0; i < np; ++i ) {
-
-			if( FoldMaskDraw[i] == mask ) {
-				++counts[FoldMaskAlign[i]];
-				++n;
-			}
-		}
-
-		if( n > 0 ) {
-
-			// Found some.
-			// Find the most common non-zero value, if any.
-
-			int	max_val = 0;
-			int	max_ind = 0;
-
-			for( int j = 1; j < 255; ++j ) {
-
-				if( counts[j] > max_val ) {
-					max_val = counts[j];
-					max_ind = j;
-				}
-			}
-
-			printf( "Mapping %d to %d on fold mask for drawing.\n",
-				mask, max_ind );
-
-			map[mask] = max_ind;
-		}
-	}
-
-// Now change all the pixels
-
-	for( int i = 0; i < np; ++i ) {
-
-		if( FoldMaskAlign[i] != 0 )
-			FoldMaskDraw[i] = FoldMaskAlign[i];
-		else
-			FoldMaskDraw[i] = map[FoldMaskDraw[i]];
-	}
-
-// Now write it out.
 
 	char	*suf = strstr( gArgs.outfile, ".tif" );
 
