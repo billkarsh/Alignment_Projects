@@ -37,13 +37,13 @@ static bool GetPrm(
 	FILE		*fin,
 	FILE		*flog )
 {
-	char	line[1024];
-	bool	ok = false;
+	CLineScan	LS;
+	bool		ok = false;
 
-	while( fgets( line, sizeof(line), fin ) ) {
+	while( LS.Get( fin ) > 0 ) {
 
-		if( 1 == sscanf( line, fmt, v ) ) {
-			fprintf( flog, line );
+		if( 1 == sscanf( LS.line, fmt, v ) ) {
+			fprintf( flog, LS.line );
 			ok = true;
 			goto exit;
 		}
@@ -221,23 +221,23 @@ bool ReadTil2Img(
 
 	if( f ) {
 
-		char	line[2048];
+		CLineScan	LS;
 
-		if( !fgets( line, sizeof(line), f ) ) {
+		if( LS.Get( f ) <= 0 ) {
 			fprintf( flog, "ReadTil2Img: Empty file [%s].\n", name );
 			goto exit;
 		}
 
-		while( fgets( line, sizeof(line), f ) ) {
+		while( LS.Get( f ) > 0 ) {
 
 			t2i.tile = -1;
 
-			sscanf( line, "%d", &t2i.tile );
+			sscanf( LS.line, "%d", &t2i.tile );
 
 			if( t2i.tile != tile )
 				continue;
 
-			sscanf( line, "%d\t%lf\t%lf\t%lf"
+			sscanf( LS.line, "%d\t%lf\t%lf\t%lf"
 			"\t%lf\t%lf\t%lf\t%s",
 			&t2i.tile,
 			&t2i.T.t[0], &t2i.T.t[1], &t2i.T.t[2],
@@ -306,18 +306,18 @@ bool ReadThmPair(
 
 		if( f ) {
 
-			char	line[256];
+			CLineScan	LS;
 
-			if( !fgets( line, sizeof(line), f ) ) {
+			if( LS.Get( f ) <= 0 ) {
 
 				fprintf( flog,
 				"ReadThmPair: Empty file [%s].\n", name );
 				goto exit;
 			}
 
-			while( fgets( line, sizeof(line), f ) ) {
+			while( LS.Get( f ) > 0 ) {
 
-				sscanf( line, "%d\t%d\t%d\t%d\t%d"
+				sscanf( LS.line, "%d\t%d\t%d\t%d\t%d"
 				"\t%lf\t%lf\t%lf"
 				"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				&tpr.atl, &tpr.btl, &tpr.acr, &tpr.bcr, &tpr.err,
@@ -387,20 +387,20 @@ bool ReadAllThmPair(
 
 		if( f ) {
 
-			char	line[256];
+			CLineScan	LS;
 
-			if( !fgets( line, sizeof(line), f ) ) {
+			if( LS.Get( f ) <= 0 ) {
 
 				fprintf( flog,
 				"ReadThmPair: Empty file [%s].\n", name );
 				goto exit;
 			}
 
-			while( fgets( line, sizeof(line), f ) ) {
+			while( LS.Get( f ) > 0 ) {
 
 				ThmPair		P;
 
-				sscanf( line, "%d\t%d\t%d\t%d\t%d"
+				sscanf( LS.line, "%d\t%d\t%d\t%d\t%d"
 				"\t%lf\t%lf\t%lf"
 				"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				&P.atl, &P.btl, &P.acr, &P.bcr, &P.err,

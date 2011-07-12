@@ -566,21 +566,20 @@ void DIR::ReadDIRFile()
 
 // Read file
 
-	FILE	*f = FileOpenOrDie( gArgs.dir_file, "r" );
+	FILE		*f = FileOpenOrDie( gArgs.dir_file, "r" );
+	CLineScan	LS;
 
 	for(;;) {
 
-		char	line[2048];
-
-		if( !fgets( line, sizeof(line), f ) )
+		if( LS.Get( f ) <= 0 )
 			break;
 
-		if( !strncmp( line, "DIR", 3 ) ) {
-			fprintf( FOUT, line );
-			dirTbl.push_back( DirEntry( line ) );
+		if( !strncmp( LS.line, "DIR", 3 ) ) {
+			fprintf( FOUT, LS.line );
+			dirTbl.push_back( DirEntry( LS.line ) );
 		}
 		else {
-			printf( "Bad line '%s' in DIR file.\n", line );
+			printf( "Bad line '%s' in DIR file.\n", LS.line );
 			exit( 42 );
 		}
 	}
@@ -1166,25 +1165,26 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 {
 	printf( "---- Read pts ----\n" );
 
-	FILE	*f = FileOpenOrDie( gArgs.pts_file, "r" );
+	FILE		*f = FileOpenOrDie( gArgs.pts_file, "r" );
+	CLineScan	LS;
 
 	map<ZIDR, int>	getRGN;
 	int				nr = 0, nlines = 0;
 
 	for(;;) {
 
-		char	line[4096], name1[2048], name2[2048];
+		char	name1[2048], name2[2048];
 
-		if( !fgets( line, sizeof(line), f ) )
+		if( LS.Get( f ) <= 0 )
 			break;
 
 		++nlines;
 
-		if( !strncmp( line, "POINT", 5 ) ) {
+		if( !strncmp( LS.line, "POINT", 5 ) ) {
 
 			Point	p1, p2;
 
-			if( 6 != sscanf( line + 6,
+			if( 6 != sscanf( LS.line + 6,
 						"%s %lf %lf %s %lf %lf",
 						name1, &p1.x, &p1.y,
 						name2, &p2.x, &p2.y ) ) {
@@ -1206,12 +1206,12 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}
-		else if( !strncmp( line, "CPOINT", 6 ) ) {
+		else if( !strncmp( LS.line, "CPOINT", 6 ) ) {
 
 			char	key1[32], key2[32];
 			Point	p1, p2;
 
-			if( 8 != sscanf( line + 7,
+			if( 8 != sscanf( LS.line + 7,
 						"'%[^']' %s %lf %lf '%[^']' %s %lf %lf",
 						name1, key1, &p1.x, &p1.y,
 						name2, key2, &p2.x, &p2.y ) ) {
@@ -1233,25 +1233,25 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}
-		else if( !strncmp( line, "IMAGESIZE", 9 ) ) {
+		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
 
-			if( 2 != sscanf( line + 10, "%d %d", &gW, &gH ) ) {
-				printf( "Bad IMAGESIZE line '%s'.\n", line );
+			if( 2 != sscanf( LS.line + 10, "%d %d", &gW, &gH ) ) {
+				printf( "Bad IMAGESIZE line '%s'.\n", LS.line );
 				exit( 42 );
 			}
 
-			fprintf( FOUT, line );
-			printf( line );
+			fprintf( FOUT, LS.line );
+			printf( LS.line );
 		}
-		else if( !strncmp( line, "FOLDMAP", 7 ) ) {
+		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
 
 			int	z, id, nrgn = -1;
 
-			sscanf( line + 8, "'%*[^']' %s %d", name1, &nrgn );
+			sscanf( LS.line + 8, "'%*[^']' %s %d", name1, &nrgn );
 			ZIDFromFMPath( z, id, name1 );
 			nConRgn[ZID( z, id )] = nrgn;
 
-			fprintf( FOUT, line );
+			fprintf( FOUT, LS.line );
 		}
 		else {
 
@@ -1399,19 +1399,18 @@ static void SetUniteLayer(
 
 	map<MZIDR, TForm>	M;
 
-	FILE	*f = FileOpenOrDie( gArgs.tfm_file, "r" );
+	FILE		*f = FileOpenOrDie( gArgs.tfm_file, "r" );
+	CLineScan	LS;
 
 	for(;;) {
 
-		char	line[256];
-
-		if( !fgets( line, sizeof(line), f ) )
+		if( LS.Get( f ) <= 0 )
 			break;
 
 		MZIDR	R;
 		TForm	T;
 
-		R.z = atoi( line );
+		R.z = atoi( LS.line );
 
 		if( R.z < gArgs.unite_layer )
 			continue;
@@ -1419,7 +1418,7 @@ static void SetUniteLayer(
 		if( R.z > gArgs.unite_layer )
 			break;
 
-		sscanf( line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 		&R.z, &R.id, &R.rgn,
 		&T.t[0], &T.t[1], &T.t[2],
 		&T.t[3], &T.t[4], &T.t[5] );
