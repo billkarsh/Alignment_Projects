@@ -4,7 +4,6 @@
 #include	"Maths.h"
 #include	"CTForm.h"
 
-#include	<stdio.h>
 #include	<math.h>
 
 

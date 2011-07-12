@@ -57,40 +57,44 @@ vector<orig_image> images;
 vector<one_tform> tforms(1);
 FILE *fp = FileOpenOrDie( noa[2], "r" );
 
-char *lineptr = NULL;
-size_t nl;
-for(;;){
-    if( getline(&lineptr, &nl, fp) == -1 )
-	break;
-    if(strncmp(lineptr,"IMAGE",5) == 0) {
-        int id;
-        char fname[1024];
-        sscanf(lineptr+5, "%d %s", &id, fname);
-        printf("id %3d name %s\n", id, fname);
-        if( id != images.size() ) {
-	    printf("Oops - bad image sequence number %d\n", id);
-	    return 42;
-	    }
-        images.push_back(orig_image(strdup(strtok(fname," '\n"))));
+{
+	CLineScan	LS;
+
+	for(;;) {
+		if( LS.Get( fp ) <= 0 )
+			break;
+		if(strncmp(LS.line,"IMAGE",5) == 0) {
+			int id;
+			char fname[1024];
+			sscanf(LS.line+5, "%d %s", &id, fname);
+			printf("id %3d name %s\n", id, fname);
+			if( id != images.size() ) {
+			printf("Oops - bad image sequence number %d\n", id);
+			return 42;
+			}
+			images.push_back(orig_image(strdup(strtok(fname," '\n"))));
+		}
+		else if(strncmp(LS.line,"TRANS",5) == 0) {
+			int id, image_no;
+			double a,b,c,d,e,f;
+			sscanf(LS.line+5,"%d %d %lf %lf %lf %lf %lf %lf", &id, &image_no, &a, &b, &c, &d, &e, &f);
+			if( id != tforms.size() ) {
+			printf("Oops - bad transform sequence number %d\n", id);
+			return 42;
+			}
+			one_tform o;
+			o.image_id = image_no;
+			o.tr = TForm(a,b,c,d,e,f);
+			tforms.push_back(o);
+		}
+		else {
+			printf("UNknown line %s\n", LS.line);
+		}
 	}
-    else if(strncmp(lineptr,"TRANS",5) == 0) {
-        int id, image_no;
-        double a,b,c,d,e,f;
-        sscanf(lineptr+5,"%d %d %lf %lf %lf %lf %lf %lf", &id, &image_no, &a, &b, &c, &d, &e, &f);
-        if( id != tforms.size() ) {
-	    printf("Oops - bad transform sequence number %d\n", id);
-	    return 42;
-	    }
-        one_tform o;
-        o.image_id = image_no;
-        o.tr = TForm(a,b,c,d,e,f);
-        tforms.push_back(o);
-	}
-    else {
-        printf("UNknown line %s\n", lineptr);
-	}
-    }
+}
+
 fclose(fp);
+
 // OK, find the bounding bozes for all the images
 for(int y=0; y<h; y++) {
     for(int x=0; x<w; x++) {

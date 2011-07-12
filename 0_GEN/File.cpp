@@ -2,9 +2,6 @@
 
 #include	"File.h"
 
-#include	<cstdlib>
-using namespace std;
-
 
 
 

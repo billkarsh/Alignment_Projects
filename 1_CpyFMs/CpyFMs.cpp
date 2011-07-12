@@ -101,17 +101,18 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 
 static void Process()
 {
-	FILE	*f = FileOpenOrDie( gArgs.infile, "r", flog );
+	FILE		*f = FileOpenOrDie( gArgs.infile, "r", flog );
+	CLineScan	LS;
 
 	for(;;) {
 
-		char	line[2048], path[2048], cmd[2048];
+		char	path[2048], cmd[2048];
 		int		z, id;
 
-		if( !fgets( line, sizeof(line), f ) )
+		if( LS.Get( f ) <= 0 )
 			break;
 
-		sscanf( line, "%d;%d;%[^;]", &z, &id, path );
+		sscanf( LS.line, "%d;%d;%[^;]", &z, &id, path );
 
 		sprintf( cmd, "cp '%s' '%s/%d/%d/fm.tif'",
 			path, gArgs.outdir, z, id );

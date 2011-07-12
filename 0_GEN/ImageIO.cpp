@@ -8,7 +8,6 @@
 #include	"tiffio.h"
 
 #include	<png.h>
-#include	<stdio.h>
 
 
 #define	USE_TIF_DEFLATE		0

@@ -299,32 +299,41 @@ fprintf(flog,"\n");
 FILE	*fcorr =  FileOpenOrDie(
 		(WhereToWrite ? WhereToWrite : "corr_pts.txt"), "w", flog );
 
-for(int i=0; i<noa.size(); i++) {
+for( int i = 0; i < noa.size(); ++i ) {
 
-    FILE	*fp = FileOpenOrDie( noa[i], "r", flog );
+    FILE		*fp = FileOpenOrDie( noa[i], "r", flog );
+    CLineScan	LS;
+    int			n;
 
-    // read each line of the file
-    char *lineptr = NULL;
-    size_t nb = 0;
-    int n;
-    for(n=getline(&lineptr, &nb, fp); n != -1; n=getline(&lineptr, &nb, fp)) {
-	//printf("line is '%s'\n", lineptr);
-	char *p = strtok(lineptr, " \"\n");
-        if( p != NULL && (strstr(p, "deformable") != NULL || strstr(p, "ptest") != NULL) ) {
-            // line starts with a token containing 'deformable' or 'ptest'.  THis is an alignment command
-            vector<char *> args;
-	    for(p=strtok(NULL, " \"\n"); p!= NULL; p = strtok(NULL, " \"\n")) {
-	        //printf("Token is '%s'\n", p);
-                if( p[0] != '-' )
-                    args.push_back(p);
-	        }
+    for( n = LS.Get( fp ); n > 0; n = LS.Get( fp ) ) {
 
-            ReadAFileSet( args, flog, fcorr, NoFolds );
-	    }
+		//printf( "line is '%s'\n", LS.line );
+
+		char *p = strtok( LS.line, " \"\n" );
+
+		if( p != NULL &&
+			(strstr( p, "deformable" ) || strstr( p, "ptest" )) ) {
+
+			// line starts with a token containing 'deformable' or 'ptest'.  THis is an alignment command
+			vector<char *>	args;
+
+			for(
+				p = strtok( NULL, " \"\n" );
+				p != NULL;
+				p = strtok( NULL, " \"\n" ) ) {
+
+				//printf( "Token is '%s'\n", p );
+
+				if( p[0] != '-' )
+					args.push_back( p );
+			}
+
+			ReadAFileSet( args, flog, fcorr, NoFolds );
+		}
 	}
 
-    fclose(fp);
-    }
+    fclose( fp );
+}
 
 fprintf(flog, "Normal completion for align run.\n");
 fclose(flog);

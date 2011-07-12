@@ -5,8 +5,8 @@
 #include	"CPicBase.h"
 
 #include	<math.h>
-#include	<stdlib.h>
 #include	<string.h>
+
 #include	<map>
 #include	<stack>
 #include	<set>
@@ -261,23 +261,20 @@ return n;
 //  Compiles a list of images, sorted by their distance from the center
 int ReadAFile(char *name, vector<Picture> &ps)
 {
-// for reading files a line at a time
-char *lineptr = NULL;
-size_t nl;
-
 double xmin, xmax, ymin, ymax;  // BBOX of layer
 double w, h;                    // W and H of images
 
-FILE	*fdir = FileOpenOrDie( name, "r" );
+FILE		*fdir = FileOpenOrDie( name, "r" );
+CLineScan	LS;
 
 for(;;) {
-    if( getline(&lineptr, &nl, fdir) == -1 )
-	break;
-   if( strncmp(lineptr,"TRANSFORM",9) == 0 ) {
+	if( LS.Get( fdir ) <= 0 )
+		break;
+   if( strncmp(LS.line,"TRANSFORM",9) == 0 ) {
         char fname[10240];
         double a,b,c,d,e,f;
-        if( sscanf(lineptr+9,"%s %lf %lf %lf %lf %lf %lf", fname, &a, &b, &c, &d, &e, &f) != 7 ) {
-	    printf("Not expecting this IMAGESIZE: '%s'\n", lineptr);
+        if( sscanf(LS.line+9,"%s %lf %lf %lf %lf %lf %lf", fname, &a, &b, &c, &d, &e, &f) != 7 ) {
+	    printf("Not expecting this IMAGESIZE: '%s'\n", LS.line);
 	    exit( 42 );
 	    }
         Picture p;
@@ -285,23 +282,23 @@ for(;;) {
         p.tr = TForm(a,b,c,d,e,f);
         ps.push_back(p);
 	}
-   if( strncmp(lineptr,"IMAGESIZE",9) == 0 ) {
-        if( sscanf(lineptr+9,"%lf %lf", &w, &h) != 2 ) {
-	    printf("Not expecting this IMAGESIZE: '%s'\n", lineptr);
+   if( strncmp(LS.line,"IMAGESIZE",9) == 0 ) {
+        if( sscanf(LS.line+9,"%lf %lf", &w, &h) != 2 ) {
+	    printf("Not expecting this IMAGESIZE: '%s'\n", LS.line);
 	    exit( 42 );
 	    }
 	}
-   if( strncmp(lineptr,"BBOX",4) == 0 ) {
-        if( sscanf(lineptr+4,"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
-	    printf("Not expecting this BBOX: '%s'\n", lineptr);
+   if( strncmp(LS.line,"BBOX",4) == 0 ) {
+        if( sscanf(LS.line+4,"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
+	    printf("Not expecting this BBOX: '%s'\n", LS.line);
 	    exit( 42 );
 	    }
 	}
-    }
+}
+
 printf("read %d transform statements\n", ps.size());
 fclose(fdir);
-if( lineptr != NULL )
-    free(lineptr);
+
 // Compute the distance from the center for each image read.
 for(int i=0; i<ps.size(); i++) {
     Point p(w/2, h/2);  // midpoint of the picture
@@ -327,7 +324,8 @@ if( argc < 4 ) {
     return 42;
     }
 
-FILE	*FP = FileOpenOrDie( argv[1], "r" );
+FILE		*FP = FileOpenOrDie( argv[1], "r" );
+CLineScan	LS;
 
 // How many close to the center images should we try.  Time will be N^2
 int HowMany = 4;  // How many to try
@@ -345,35 +343,34 @@ ReadAFile(argv[2], l2);
 
 int w=4056, h=4056; // size of the images (all assumed to be the same)
 
-// for reading files a line at a time
-char *lineptr = NULL;
-size_t nl;
-
 // (d) read the layer directory to map layer numbers and directory names, if specified
 vector<int> lnums;    // layer numbers
 vector<char*> dnames; // directory names where these layers are found
 if( argc > 3 ) {
 
-    FILE	*fdir = FileOpenOrDie( argv[3], "r" );
+	FILE	*fdir = FileOpenOrDie( argv[3], "r" );
 
-    for(;;) {
-	if( getline(&lineptr, &nl, fdir) == -1 )
-	    break;
-       if( strncmp(lineptr,"DIR",3) == 0 ) {      // simply store directory string
-	    char *anum = strtok(lineptr+3," ");  // and layer number in parallel
-	    char *dname = strtok(NULL," \n");     // vectors
-	    dnames.push_back(strdup(dname));
-	    lnums.push_back(atoi(anum));
-            //printf("got %s = %s\n", anum, dname);
-	    }
-	else {
-	    printf("Bad line '%s' in dir file\n", lineptr);
-            exit( 42 );
-	    }
+	for(;;) {
+
+		if( LS.Get( fdir ) <= 0 )
+			break;
+		if( strncmp(LS.line,"DIR",3) == 0 ) {      // simply store directory string
+			char *anum = strtok(LS.line+3," ");  // and layer number in parallel
+			char *dname = strtok(NULL," \n");     // vectors
+			dnames.push_back(strdup(dname));
+			lnums.push_back(atoi(anum));
+			//printf("got %s = %s\n", anum, dname);
+		}
+		else {
+			printf("Bad line '%s' in dir file\n", LS.line);
+			exit( 42 );
+		}
 	}
-    fclose(fdir);
-    printf("Read %d name:layer-number pairs.\n", dnames.size());
-    }
+
+	fclose(fdir);
+	printf("Read %d name:layer-number pairs.\n", dnames.size());
+}
+
 if( l1.size() < 1 || l2.size() < 1 ) {
     printf("Need at least one image on each layer - got %d %d\n", l1.size(), l2.size());
     return 42;
@@ -483,12 +480,13 @@ int nt = 0;
 int nc = 0;  // number of correspondences
 map<string,int> mapping;   // maps the name to a zero based index
 char name1[10240], name2[10240];  // make big enough to avoid obvious problems
+
 for(;;) {
-    if( getline(&lineptr, &nl, FP) == -1 )
-	break;
-    if( strncmp(lineptr,"POINT",5) == 0 ) {
+	if( LS.Get( FP ) <= 0 )
+		break;
+    if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
-        if( sscanf(lineptr+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, &name2, &x2, &y2) != 6 )
+        if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, &name2, &x2, &y2) != 6 )
 	    break;
         int n1 = LookupAddIfNeeded(name1, mapping, nt);
         int n2 = LookupAddIfNeeded(name2, mapping, nt);
@@ -496,7 +494,8 @@ for(;;) {
         AddCorrespondence(n1, n2);
         AddPairwisePoints(name1, x1, y1, name2, x2, y2);
 	}
-    }
+}
+
 // Look for suspiciouos connections. Save in a table of bad pairs
 set<string> BadPairs;
 for(int i=0; i<ConnTable.size(); i++) {
@@ -559,12 +558,13 @@ rewind(FP);
 mapping.clear();
 nt = 0;
 nc = 0;
+
 for(;;) {
-    if( getline(&lineptr, &nl, FP) == -1 )
-	break;
-    if( strncmp(lineptr,"POINT",5) == 0 ) {
+	if( LS.Get( FP ) <= 0 )
+		break;
+    if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
-        if( sscanf(lineptr+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, &name2, &x2, &y2) != 6 )
+        if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, &name2, &x2, &y2) != 6 )
 	    break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
 	    continue;
@@ -572,13 +572,14 @@ for(;;) {
         int n2 = LookupAddIfNeeded(name2, mapping, nt);
         nc++;
 	}
-    else if( strncmp(lineptr,"IMAGESIZE",9) == 0 ) {
-        if( sscanf(lineptr+9, "%d %d", &w, &h) != 2 ) {
-	    printf("Bad image size line '%s'\n", lineptr);
+    else if( strncmp(LS.line,"IMAGESIZE",9) == 0 ) {
+        if( sscanf(LS.line+9, "%d %d", &w, &h) != 2 ) {
+	    printf("Bad image size line '%s'\n", LS.line);
 	    return 42;
 	    }
 	}
-    }
+}
+
 printf("Image size is w=%d h=%d\n", w, h);
 
 printf("%d transforms to be determined, %d point correspondences\n", nt, nc);
@@ -599,12 +600,13 @@ for(int i=0; i<dnames.size(); i++)
 double scale = 10000.0;
 rewind(FP);
 vector<int> z(nt, -1);
+
 for(;;) {
-    if( getline(&lineptr, &nl, FP) == -1 )
-	break;
-    if( strncmp(lineptr,"POINT",5) == 0 ) {
+	if( LS.Get( FP ) <= 0 )
+		break;
+    if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
-        if( sscanf(lineptr+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
+        if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
 	    break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
 	    continue;
@@ -623,13 +625,13 @@ for(;;) {
         int i2[6] =      {j+3, j+4, j+5, k+3, k+4,  k+5};
         AddConstraint(LHS, RHS, 6, i2     , vals, 0.0);   // 0.0 is the right hand side of the constraint
         }
-    else if( strncmp(lineptr,"FOLDMAP",7) == 0 )
-	fprintf(FOUT, "%s", lineptr);
-    else if (strncmp(lineptr,"IMAGESIZE",9) != 0){
-	printf("Unknown line type '%s'", lineptr);
+    else if( strncmp(LS.line,"FOLDMAP",7) == 0 )
+	fprintf(FOUT, "%s", LS.line);
+    else if (strncmp(LS.line,"IMAGESIZE",9) != 0){
+	printf("Unknown line type '%s'", LS.line);
 	return 42;
 	}
-    }
+}
 
 // OK, add constraints for the initial square
 double InitStiff = 10000.0/scale;
@@ -776,12 +778,13 @@ vector<Error> Errors;
 double sum = 0.0;
 double biggest = 0.0;
 int nn = 0;
+
 for(;;) {
-    if( getline(&lineptr, &nl, FP) == -1 )
-	break;
-    if( strncmp(lineptr,"POINT",5) == 0 ) {
+	if( LS.Get( FP ) <= 0 )
+		break;
+    if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
-        if( sscanf(lineptr+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
+        if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
 	    break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
 	    continue;
@@ -806,7 +809,8 @@ for(;;) {
         biggest = max(biggest, err);
         nn++;
         }
-    }
+}
+
 const char *flag = (sqrt(sum/nn) > 20.0 || sqrt(biggest) > 75.0) ? "<-------------------" : "";
 printf("RMS error %8.2f, max error %8.2f %s\n", sqrt(sum/nn), sqrt(biggest), flag);
 sort(Errors.begin(), Errors.end());
@@ -817,12 +821,13 @@ for(int i=max(0,int(Errors.size())-10); i<Errors.size(); i++)
 double big = Errors.size() > 10 ? Errors[Errors.size()-10].amt : 0.0;
 rewind(FP);
 nn = 0;
+
 for(;;) {
-    if( getline(&lineptr, &nl, FP) == -1 )
-	break;
-    if( strncmp(lineptr,"POINT",5) == 0 ) {
+	if( LS.Get( FP ) <= 0 )
+		break;
+    if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
-        if( sscanf(lineptr+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
+        if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
 	    break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
 	    continue;
@@ -842,7 +847,8 @@ for(;;) {
 	    }
         nn++;
         }
-    }
+}
+
 fclose(FP);
 
 return 0;

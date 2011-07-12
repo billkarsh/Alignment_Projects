@@ -4,8 +4,8 @@
 
 #include	"PipeFiles.h"
 #include	"LinEqu.h"
-#include	"File.h"
 #include	"Disk.h"
+#include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
@@ -1050,39 +1050,45 @@ static void UpdateMetaData(
 	int			w,
 	int			h )
 {
-int zmin, zmax;
-FILE *fd = fopen( name, "r" );
-if( fd != NULL ) {
-    // read existing file
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    while( (read = getline(&line, &len, fd)) != -1 ) {
-	//printf("Retrieved line of length %zu :\n", read);
-	if( strncmp(line,"zmin=",5) == 0 )
-	    zmin = min(section, atoi(line+5));
-	if( strncmp(line,"zmax=",5) == 0 )
-	    zmax = max(section,atoi(line+5));
-	}
-    if( line )
-	free(line);
-    fclose(fd);
-    }
-else {  // no file yet; make one with one layer
-    zmin = section;
-    zmax = section;
-    }
-// Now write the new file
-fd = FileOpenOrDie( name, "w" );
+	int		zmin, zmax;
+	FILE	*fd = fopen( name, "r" );
 
-fprintf(fd, "version=1\n");
-fprintf(fd, "width=%d\n", w);
-fprintf(fd, "height=%d\n", h);
-fprintf(fd, "zmin=%d\n", zmin);
-fprintf(fd, "zmax=%d\n", zmax);
-fprintf(fd, "channels=\"g\"\n");
-//fprintf(fd, "superpixel-format=RGBA\n");
-fclose(fd);
+	if( fd ) {
+
+		CLineScan	LS;
+		ssize_t		read;
+
+		while( (read = LS.Get( fd )) > 0 ) {
+
+			//printf( "Retrieved line of length %zu :\n", read );
+
+			if( !strncmp( LS.line, "zmin=", 5 ) )
+				zmin = min( section, atoi(LS.line+5) );
+			if( !strncmp( LS.line, "zmax=", 5 ) )
+				zmax = max( section, atoi(LS.line+5) );
+		}
+
+		fclose( fd );
+	}
+	else {	// no file yet; make one with one layer
+		zmin = section;
+		zmax = section;
+	}
+
+// Now write the new file
+
+	fd = FileOpenOrDie( name, "w" );
+
+	fprintf( fd, "version=1\n" );
+	fprintf( fd, "width=%d\n", w );
+	fprintf( fd, "height=%d\n", h );
+	fprintf( fd, "zmin=%d\n", zmin );
+	fprintf( fd, "zmax=%d\n", zmax );
+	fprintf( fd, "channels=\"g\"\n" );
+
+	//fprintf( fd, "superpixel-format=RGBA\n" );
+
+	fclose( fd );
 }
 
 /* --------------------------------------------------------------- */
@@ -1715,7 +1721,6 @@ if( noa.size() < 1 ) {
     printf("Usage: mos <simple file> [region xmin,ymin,dx,dy] [minlayer,maxlayer] [options]\n");
     exit( 42 );
     }
-FILE *fp = FileOpenOrDie( noa[0], "r" );
 int ni = 0;  // number of images
 vector<char *>dnames;   // directory names
 vector<int>   lnums;    // parallel vector of layer numbers
@@ -1751,36 +1756,35 @@ printf( "Raveler     directory = '%s'\n",    rav_dir.c_str() );
 // read the file.  Here we assume all images are the same size, so if w and/or h are non-zero, we don't really need to read the
 // images, since we already read at least one.
 
-double xmin = BIG, ymin = BIG;
-double xmax = -BIG, ymax = -BIG;
-vector<double> x1, y1, x2, y2;
-vector<int>    z1, z2;
+double	xmin =  BIG, ymin =  BIG;
+double	xmax = -BIG, ymax = -BIG;
+vector<double>	x1, y1, x2, y2;
+vector<int>		z1, z2;
+FILE			*fp = FileOpenOrDie( noa[0], "r" );
+CLineScan		*ls = new CLineScan;
 
-	for(;;){
+	for(;;) {
 
-		char	*lineptr = NULL;
-		size_t	nl;
-
-		if( -1 == getline( &lineptr, &nl, fp ) )
+		if( ls->Get( fp ) <= 0 )
 			break;
 
-		if( !strncmp( lineptr, "DIR", 3 ) ) {
+		if( !strncmp( ls->line, "DIR", 3 ) ) {
 
 			// parallel vectors
-			char *z = strtok( lineptr + 4, " " );
+			char *z = strtok( ls->line + 4, " " );
 			char *n = strtok( NULL, " \n" );
 
 			lnums.push_back( atoi( z ) );
 			dnames.push_back( strdup( n ) );
 		}
-		else if( !strncmp( lineptr, "FOLDMAP", 7 ) ) {
+		else if( !strncmp( ls->line, "FOLDMAP", 7 ) ) {
 
-			char	*tname = strtok( lineptr + 7, " '\n" );
+			char	*tname = strtok( ls->line + 7, " '\n" );
 			char	*mname = strtok( NULL, " '\n" );
 			int		id_dum;
 
 			if( !tname || !mname ) {
-				printf( "Bad FOLDMAP statement '%s'.", lineptr );
+				printf( "Bad FOLDMAP statement '%s'.", ls->line );
 				exit( 42 );
 			}
 
@@ -1841,16 +1845,16 @@ vector<int>    z1, z2;
 				highest = max( highest, ii.layer );
 			}
 		}
-		else if( !strncmp( lineptr, "TRANSFORM", 9 ) ) {
+		else if( !strncmp( ls->line, "TRANSFORM", 9 ) ) {
 
 			char	name[1024];
 			double	a, b, c, d, e, f;
 
 			if( 7 != sscanf(
-				lineptr + 9, "%s %lf %lf %lf %lf %lf %lf",
+				ls->line + 9, "%s %lf %lf %lf %lf %lf %lf",
 				name, &a, &b, &c, &d, &e, &f ) ) {
 
-				printf( "Bad TRANSFORM statement '%s'.", lineptr );
+				printf( "Bad TRANSFORM statement '%s'.", ls->line );
 				exit( 42 );
 			}
 
@@ -1886,15 +1890,15 @@ vector<int>    z1, z2;
 
 			images[k].tf[patch] = tf;
 		}
-		else if( !strncmp( lineptr, "SPMAP", 5 ) ) {
+		else if( !strncmp( ls->line, "SPMAP", 5 ) ) {
 
 			char	name[1024], where[1024];
 			int		z, nprm;
 
-			nprm = sscanf( lineptr + 5, "%s %s %d", name, where, &z );
+			nprm = sscanf( ls->line + 5, "%s %s %d", name, where, &z );
 
 			if( nprm < 2 ) {
-				printf( "Bad SPMAP statement '%s'.", lineptr );
+				printf( "Bad SPMAP statement '%s'.", ls->line );
 				exit( 42 );
 			}
 
@@ -1932,15 +1936,15 @@ vector<int>    z1, z2;
 			printf( "ImageIdx = %d\n", k );
 			images[k].spname = strdup( where );
 		}
-		else if( !strncmp( lineptr, "BOUNDARYMAP", 11 ) ) {
+		else if( !strncmp( ls->line, "BOUNDARYMAP", 11 ) ) {
 
 			char	name[1024], where[1024];
 			int		z, nprm;
 
-			nprm = sscanf( lineptr + 11, "%s %s %d", name, where, &z );
+			nprm = sscanf( ls->line + 11, "%s %s %d", name, where, &z );
 
 			if( nprm < 2 ) {
-				printf( "Bad BOUNDARYMAP statement '%s'.", lineptr );
+				printf( "Bad BOUNDARYMAP statement '%s'.", ls->line );
 				exit( 42 );
 			}
 
@@ -1978,16 +1982,16 @@ vector<int>    z1, z2;
 			printf( "ImageIdx = %d\n", k );
 			images[k].bname = strdup( where );
 		}
-		else if( !strncmp( lineptr, "MPOINTS", 7 ) ) {
+		else if( !strncmp( ls->line, "MPOINTS", 7 ) ) {
 
 			double	a, b, c, d;
 			int		za, zc;
 
-			if( 6 != sscanf(lineptr + 7,
+			if( 6 != sscanf(ls->line + 7,
 				"%d %lf %lf %d %lf %lf",
 				&za, &a, &b, &zc, &c, &d ) ) {
 
-				printf( "Bad MPOINTS statement '%s'.", lineptr );
+				printf( "Bad MPOINTS statement '%s'.", ls->line );
 				exit( 42 );
 			}
 
@@ -2004,12 +2008,12 @@ vector<int>    z1, z2;
 				y2.push_back( d/scale );
 			}
 		}
-		else if( !strncmp( lineptr, "BBOX", 4 ) ) {
+		else if( !strncmp( ls->line, "BBOX", 4 ) ) {
 
-			if( 4 != sscanf( lineptr + 4,
+			if( 4 != sscanf( ls->line + 4,
 				"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax ) ) {
 
-				printf( "Bad BBOX statement '%s'.\n", lineptr );
+				printf( "Bad BBOX statement '%s'.\n", ls->line );
 				exit( 42 );
 			}
 
@@ -2018,10 +2022,10 @@ vector<int>    z1, z2;
 			xmax /= scale;
 			ymax /= scale;
 		}
-		else if( !strncmp( lineptr, "IMAGESIZE", 9 ) ) {
+		else if( !strncmp( ls->line, "IMAGESIZE", 9 ) ) {
 
-			if( 2 != sscanf( lineptr + 10, "%d %d", &w, &h ) ) {
-				printf( "Bad IMAGESIZE line '%s'.\n", lineptr );
+			if( 2 != sscanf( ls->line + 10, "%d %d", &w, &h ) ) {
+				printf( "Bad IMAGESIZE line '%s'.\n", ls->line );
 				exit( 42 );
 			}
 
@@ -2029,10 +2033,12 @@ vector<int>    z1, z2;
 			h /= scale;
 		}
 		else {
-			printf( "Unknown line '%s'.", lineptr );
+			printf( "Unknown line '%s'.", ls->line );
 			exit( 42 );
 		}
 	}
+
+	delete ls;
 
 //VMStats( stdout );
 //exit( 11 );

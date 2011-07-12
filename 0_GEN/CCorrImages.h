@@ -6,6 +6,7 @@
 #include	"CPoint.h"
 
 #include	<stdio.h>
+
 #include	<map>
 #include	<set>
 #include	<string>

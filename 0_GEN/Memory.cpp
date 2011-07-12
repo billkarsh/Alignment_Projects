@@ -1,8 +1,8 @@
 
 
 #include	"Memory.h"
+#include	"File.h"
 
-#include	<stdlib.h>
 #include	<string.h>
 #include	<sys/resource.h>
 #include	<unistd.h>
@@ -29,18 +29,21 @@ void VMStats( FILE *flog )
 	fprintf( flog, "User time:   %5d seconds.\n", usage.ru_utime );
 	fprintf( flog, "System time: %5d seconds.\n", usage.ru_stime );
 
-	char	line[1024];
+	CLineScan	LS;
+	
+	LS.bufsize	= 1024;
+	LS.line		= (char*)malloc( LS.bufsize );
 
-	sprintf( line, "/proc/%d/status", getpid() );
+	sprintf( LS.line, "/proc/%d/status", getpid() );
 
-	FILE	*f = fopen( line, "r" );
+	FILE	*f = fopen( LS.line, "r" );
 
 	if( f ) {
 
-		while( fgets( line, sizeof(line), f ) ) {
+		while( LS.Get( f ) > 0 ) {
 
-			if( strstr( line, "Vm" ) || strstr( line, "ctxt" ) )
-				fprintf( flog, "%s", line );
+			if( strstr( LS.line, "Vm" ) || strstr( LS.line, "ctxt" ) )
+				fprintf( flog, "%s", LS.line );
 		}
 
 		fclose( f );

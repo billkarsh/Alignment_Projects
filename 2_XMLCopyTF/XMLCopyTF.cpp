@@ -166,21 +166,20 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 
 static void LoadTForms()
 {
-	FILE	*f		= FileOpenOrDie( gArgs.tblfile, "r", flog );
-	int		lastz	= -1;
+	FILE		*f		= FileOpenOrDie( gArgs.tblfile, "r", flog );
+	CLineScan	LS;
+	int			lastz	= -1;
 
 	for(;;) {
 
-		char	line[256];
-
-		if( !fgets( line, sizeof(line), f ) )
+		if( LS.Get( f ) <= 0 )
 			break;
 
 		MZID	R;
 		TForm	T;
 		int		rgn;
 
-		sscanf( line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 		&R.z, &R.id, &rgn,
 		&T.t[0], &T.t[1], &T.t[2],
 		&T.t[3], &T.t[4], &T.t[5] );

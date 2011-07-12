@@ -661,21 +661,20 @@ if( noa.size() >= 3 ) {
 // images, since we already read at least one.
 double xmin = BIG, ymin = BIG;
 double xmax = -BIG, ymax = -BIG;
-size_t nl;
-char *lineptr = NULL;
-vector<double> x1, y1, x2, y2;
-vector<int>    z1, z2;
+vector<double>	x1, y1, x2, y2;
+vector<int>		z1, z2;
+CLineScan		*ls = new CLineScan;
 for(;;){
-    if( getline(&lineptr, &nl, fp) == -1 )
-	break;
-    if( strncmp(lineptr,"DIR",3) == 0 ) {      // simply store directory string
-        char *anum = strtok(lineptr+3," ");  // and layer number in parallel
+    if( ls->Get( fp ) <= 0 )
+		break;
+    if( strncmp(ls->line,"DIR",3) == 0 ) {      // simply store directory string
+        char *anum = strtok(ls->line+3," ");  // and layer number in parallel
         char *dname = strtok(NULL," \n");     // vectors
         dnames.push_back(strdup(dname));
         lnums.push_back(atoi(anum));
         }
-    else if( strncmp(lineptr,"FOLDMAP",7) == 0 ) {
-	char *tname = strtok(lineptr+7," '\n");
+    else if( strncmp(ls->line,"FOLDMAP",7) == 0 ) {
+	char *tname = strtok(ls->line+7," '\n");
 	char *mname = strtok(NULL, " '\n");
         if( tname == NULL || mname == NULL ) {
 	    printf("Not expecting NULL in FOLDMAP parsing.\n");
@@ -741,11 +740,11 @@ for(;;){
             imap[string(tname)] = images.size() - 1;
 	    }
         }
-    else if( strncmp(lineptr,"TRANSFORM",9) == 0 ) {
+    else if( strncmp(ls->line,"TRANSFORM",9) == 0 ) {
         double a,b,c,d,e,f;
         char name[1024];
-        if( sscanf(lineptr+9, "%s %lf %lf %lf %lf %lf %lf", name, &a, &b, &c, &d, &e, &f) != 7 ) {
-            printf("Not expecting this in TRANSFORM: %s", lineptr);
+        if( sscanf(ls->line+9, "%s %lf %lf %lf %lf %lf %lf", name, &a, &b, &c, &d, &e, &f) != 7 ) {
+            printf("Not expecting this in TRANSFORM: %s", ls->line);
 	    break;
             }
         TForm tf( a, b, c, d, e, f );
@@ -769,10 +768,10 @@ for(;;){
              }
         images[k].tf[patch] = tf;
 	}
-    else if( strncmp(lineptr,"SPMAP",5) == 0 ) {
+    else if( strncmp(ls->line,"SPMAP",5) == 0 ) {
         char name[1024], where[1024];
-        if( sscanf(lineptr+5, "%s %s", name, where) != 2 ) {
-            printf("Not expecting this in SPMAP: %s", lineptr);
+        if( sscanf(ls->line+5, "%s %s", name, where) != 2 ) {
+            printf("Not expecting this in SPMAP: %s", ls->line);
 	    break;
             }
         char *fname = strtok(name," ':");
@@ -787,11 +786,11 @@ for(;;){
         printf("Image = %d\n", k);
         images[k].spname = strdup(where);
         }
-    else if( strncmp(lineptr,"MPOINTS",7) == 0 ) {
+    else if( strncmp(ls->line,"MPOINTS",7) == 0 ) {
         double a,b,c,d;
         int za, zc;
-        if( sscanf(lineptr+7, "%d %lf %lf %d %lf %lf", &za,  &a, &b, &zc, &c, &d) != 6 ) {
-            printf("Not expecting this: %s", lineptr);
+        if( sscanf(ls->line+7, "%d %lf %lf %d %lf %lf", &za,  &a, &b, &zc, &c, &d) != 6 ) {
+            printf("Not expecting this: %s", ls->line);
 	    break;
             }
         if( lspec1 < 0 || (lspec1-1 <= za && za <= lspec2+1) || (lspec1-1 <= zc && zc <= lspec2) ) {
@@ -799,20 +798,23 @@ for(;;){
             z2.push_back(zc); x2.push_back(c); y2.push_back(d);
 	    }
 	}
-    else if( strncmp(lineptr,"BBOX",4) == 0 ) {
-        if( sscanf(lineptr+4, "%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
-	     printf("Bad BBOX statement %s\n", lineptr);
+    else if( strncmp(ls->line,"BBOX",4) == 0 ) {
+        if( sscanf(ls->line+4, "%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
+	     printf("Bad BBOX statement %s\n", ls->line);
 	     return 42;
              }
 	}
-    else if( strncmp(lineptr,"IMAGESIZE",9) == 0 ) {
+    else if( strncmp(ls->line,"IMAGESIZE",9) == 0 ) {
 	// ignore for now - so we do not read to compute BBs
 	}
     else {
-	printf("Unknown line '%s'", lineptr);
+	printf("Unknown line '%s'", ls->line);
 	return 42;
         }
-    }
+}
+
+delete ls;
+
 if( images.size() == 0 ) {
     printf("No images in input\n");
     return 42;

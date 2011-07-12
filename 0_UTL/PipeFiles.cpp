@@ -3,6 +3,7 @@
 #include	"PipeFiles.h"
 
 #include	"Disk.h"
+#include	"File.h"
 
 
 

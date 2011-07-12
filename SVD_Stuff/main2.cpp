@@ -1,9 +1,9 @@
 
+#include	"File.h"
 
-#include	<stdio.h>
 #include	<math.h>
 #include	<string.h>
-#include	<stdlib.h>
+
 #include	<vector>
 using namespace std;
 
@@ -153,27 +153,29 @@ int main(int argc, char **argv)
 	printf("Usage: svdfit <file of equations> -print\n");
 	exit(-1);
 	}
-    f = fopen(argv[1],"r");
-    if( f == NULL ) {
-	printf("Can't open file '%s'\n", argv[1]);
-	exit(-1);
-	}
+
     // scan through the file.  Count number of '=' to get equations,
     // biggest number after 'X' to get variables.
     // lines beginning with '#' are comments
-    char *line = NULL;
-    size_t nc;  // size of buffer
+
+	CLineScan	*ls = new CLineScan;
+
+	f = FileOpenOrDie( argv[1], "r" );
+
     for(;;) {
-        if (getline(&line, &nc, f) < 0) break;
-        if (*line == '#') continue;  // skip comments
-        for( char *c = line; *c != '\0'; c++ ) {
+        if( ls->Get( f ) <= 0 )
+			break;
+        if (*ls->line == '#') continue;  // skip comments
+        for( char *c = ls->line; *c != '\0'; c++ ) {
             if( *c == '=' )
 	        m++;
 	    if( *c == 'X' )
 		n = max(n, atoi(c+1));
 	    }
 	}
-    fclose(f);
+
+    fclose( f );
+
     printf("there are %d equations in %d unknowns\n", m, n);
     realm = m;
     if (m < n)  /* make up some fake rows */
@@ -187,11 +189,13 @@ int main(int argc, char **argv)
     w = NRvector(1,n);
     x = NRvector(1,n);	/* get final solution here */
     b = NRvector(1,m);	/* constant vector of equation */
-    f = fopen(argv[1],"r");
+    f = fopen( argv[1],"r" );
+
     for(i=1;i<=realm; i++) {  /* read equation i */
-        getline(&line, &nc, f);
-        printf("line='%s' a[92]=%d\n", line, a[92]);
-        if( *line == '#' ) {
+        if( ls->Get( f ) <= 0 )
+			break;
+        printf("line='%s' a[92]=%d\n", ls->line, a[92]);
+        if( *ls->line == '#' ) {
 	    i--;
 	    continue;
             }
@@ -199,11 +203,14 @@ int main(int argc, char **argv)
 	eqn_names[i] = NULL;
 	for(int j=1; j<=n; j++)  /* zero the row */
 	    a[i][j] = 0.0;
-        char *terminate = " \n\t\0";
-	for(char *t = strtok(line, terminate); t != NULL; t = strtok(NULL, terminate)) {  /* read each term */
-            if( t[0] == '=' ) {
-		b[i] = atof(strtok(NULL, terminate));  // then b[i] is the next token
-		break;                               // and we are done with this line
+    char *terminate = " \n\t\0";
+	for( char *t = strtok(ls->line, terminate);
+		t != NULL;
+		t = strtok(NULL, terminate) ) {  /* read each term */
+
+        if( t[0] == '=' ) {
+			b[i] = atof(strtok(NULL, terminate));  // then b[i] is the next token
+			break;                               // and we are done with this line
 		}
             else if( t[0] == 'X' ) {
 		int indx = atoi(t+1);
@@ -215,7 +222,9 @@ int main(int argc, char **argv)
 		term = atof(t);
 	    }
 	}
-    fclose(f);
+
+    fclose( f );
+    delete ls;
 
     /* augment # of rows, if necessary */
     if( realm < m )

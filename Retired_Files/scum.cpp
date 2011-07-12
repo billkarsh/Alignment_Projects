@@ -2,8 +2,6 @@
 
 #include	"File.h"
 
-#include	<stdio.h>
-
 
 
 

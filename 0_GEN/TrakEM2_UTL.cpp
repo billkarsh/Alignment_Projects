@@ -1,8 +1,8 @@
 
 
 #include	"TrakEM2_UTL.h"
+#include	"File.h"
 
-#include	<stdio.h>
 #include	<string.h>
 
 
@@ -113,24 +113,27 @@ int SetOID( TiXmlNode* par, int nextoid )
 //
 void CopyDTD( const char *dtdsrc, const char *bodysrc )
 {
-	char	line[2048];
-	FILE	*fi, *fo;
-	int		len;
+	CLineScan	LS;
+	FILE		*fi, *fo;
+	int			len;
 
 // Open output file
-	len = sprintf( line, "%s", dtdsrc );
-	strcpy( line + len - 4, "_v2.xml" );
+	LS.bufsize	= 2048;
+	LS.line		= (char*)malloc( LS.bufsize );
 
-	if( fo = fopen( line, "w" ) ) {
+	len = sprintf( LS.line, "%s", dtdsrc );
+	strcpy( LS.line + len - 4, "_v2.xml" );
+
+	if( fo = fopen( LS.line, "w" ) ) {
 
 		// Get DTD from input file
 		if( fi = fopen( dtdsrc, "r" ) ) {
 
-			while( fgets( line, sizeof(line), fi ) ) {
+			while( LS.Get( fi ) > 0 ) {
 
-				fprintf( fo, line );
+				fprintf( fo, LS.line );
 
-				if( !strncmp( line, "] >", 3 ) ) {
+				if( !strncmp( LS.line, "] >", 3 ) ) {
 					fprintf( fo, "\n" );
 					break;
 				}
@@ -142,10 +145,10 @@ void CopyDTD( const char *dtdsrc, const char *bodysrc )
 		// Get all but first header line from bodysrc
 		if( fi = fopen( bodysrc, "r" ) ) {
 
-			fgets( line, sizeof(line), fi );
+			LS.Get( fi );
 
-			while( fgets( line, sizeof(line), fi ) )
-				fprintf( fo, line );
+			while( LS.Get( fi ) > 0 )
+				fprintf( fo, LS.line );
 
 			fclose( fi );
 		}

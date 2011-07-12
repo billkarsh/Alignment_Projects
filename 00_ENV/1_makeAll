@@ -1,6 +1,6 @@
 
 
-DIRS = 1_Make_ldir 1_Script 1_Tiny 1_DMesh 1_Thumbs 1_Align 1_LSQ 1_Mosaic
+DIRS = 1_Clean_ThmPairs 1_RemoveRefTiles 1_Make_ldir 1_Script 1_Tiny 1_DMesh 1_Thumbs 1_Align 1_LSQ 1_Mosaic_current
 
 all:
 	cd ..; \
