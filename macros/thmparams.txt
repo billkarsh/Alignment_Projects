@@ -1,6 +1,6 @@
 Parameters for the (Thumbs) thumbnail matching pipeline stage.
 
-PXBRO=2          <default 2>      "Max Leg poly order for bkg removal"
+PXBRO=1          <default 2>      "Max Leg poly order for bkg removal"
 PXDOG=N          <default N>      "Y=Apply DoG filter"
 PXDOG_R1=3       <default 3>      "DoG inner radius"
 PXDOG_R2=6       <default 6>      "DoG outer radius"
@@ -9,6 +9,7 @@ SCALE=1          <default 1.0>    "Image-B / image-A scale factor"
 XSCALE=1         <default 1.0>    "Image-B / image-A x-axis scale factor"
 YSCALE=1         <default 1.0>    "Image-B / image-A y-axis scale factor"
 SKEW=0           <default 0.0>    "Transform elem[3] user-applied distortion"
+SLOPPY_SL=N      <default N>      "Y=Input transforms are rough"
 OLAP1D=100       <default 100>    "Min 1D pix full-size overlap"
 OLAP2D_SL=25000  <default 25000>  "Min 2D pix full-size overlap same layer"
 OLAP2D_XL=200000 <default 200000> "Min 2D pix full-size overlap cross layer"

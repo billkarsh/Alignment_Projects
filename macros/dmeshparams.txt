@@ -1,10 +1,11 @@
 Parameters for the (dmesh) detailed mesh pipeline stage.
 
-PXBRO=2     <default 2>        "Max Leg poly order for bkg removal"
+PXBRO=1     <default 2>        "Max Leg poly order for bkg removal"
 PXDOG=N     <default N>        "Y=Apply DoG filter"
 PXDOG_R1=3  <default 3>        "DoG inner radius"
 PXDOG_R2=6  <default 6>        "DoG outer radius"
 FLD=Y       <default Y>        "Y=Use fold mask files, N=Set all masks to ones"
+DSL=Y       <default Y(EM)>    "Y=Enable same layer mesh optimizer"
 DIT=0.05    <default 0.10>     "Detailed optimizer min starting correlation"
 DAF=0.9     <default 0.9>      "Affine-only DFT multiplier"
 DFT=0.07    <default 0.305>    "Detailed optimizer min final correlation"
