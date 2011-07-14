@@ -63,14 +63,26 @@ exit:
 	if( !GetPrm(addr, pat, "ReadThmParams", f, flog) )			\
 		goto exit
 
-bool ReadThmParams( ThmParams &T, FILE *flog )
+// Read parameter file governing thumbnail matching.
+//
+// The layer index specifies an override file for a given layer.
+// For example, if layer=5, the search order (in temp directory)
+// is first '../thmparams_5.txt' then '../thmparams.txt' with
+// no index.
+//
+bool ReadThmParams( ThmParams &T, int layer, FILE *flog )
 {
 	char	name[256];
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "../thmparams.txt" );
+	sprintf( name, "../thmparams_%d.txt", layer );
 	f = fopen( name, "r" );
+
+	if( !f ) {
+		sprintf( name, "../thmparams.txt" );
+		f = fopen( name, "r" );
+	}
 
 	if( f ) {
 
@@ -131,14 +143,26 @@ exit:
 	if( !GetPrm(addr, pat, "ReadMeshParams", f, flog) )			\
 		goto exit
 
-bool ReadMeshParams( MeshParams &M, FILE *flog )
+// Read parameter file governing mesh deformation.
+//
+// The layer index specifies an override file for a given layer.
+// For example, if layer=5, the search order (in temp directory)
+// is first '../dmeshparams_5.txt' then '../dmeshparams.txt' with
+// no index.
+//
+bool ReadMeshParams( MeshParams &M, int layer, FILE *flog )
 {
 	char	name[256];
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "../dmeshparams.txt" );
+	sprintf( name, "../dmeshparams_%d.txt", layer );
 	f = fopen( name, "r" );
+
+	if( !f ) {
+		sprintf( name, "../dmeshparams.txt" );
+		f = fopen( name, "r" );
+	}
 
 	if( f ) {
 

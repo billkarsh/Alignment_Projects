@@ -140,10 +140,10 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Get parameters
 
-	if( !ReadThmParams( thm, stdout ) )
+	if( !ReadThmParams( thm, A.layer, stdout ) )
 		return false;
 
-	if( !ReadMeshParams( msh, stdout ) )
+	if( !ReadMeshParams( msh, A.layer, stdout ) )
 		return false;
 
 // Fetch Til2Img entries

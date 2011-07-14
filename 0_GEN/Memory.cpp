@@ -30,7 +30,7 @@ void VMStats( FILE *flog )
 	fprintf( flog, "System time: %5d seconds.\n", usage.ru_stime );
 
 	CLineScan	LS;
-	
+
 	LS.bufsize	= 1024;
 	LS.line		= (char*)malloc( LS.bufsize );
 

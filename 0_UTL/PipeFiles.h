@@ -89,8 +89,8 @@ typedef struct {
 
 void OpenPairLog( int alr, int atl, int blr, int btl );
 
-bool ReadThmParams( ThmParams &T, FILE *flog );
-bool ReadMeshParams( MeshParams &M, FILE *flog );
+bool ReadThmParams( ThmParams &T, int layer, FILE *flog );
+bool ReadMeshParams( MeshParams &M, int layer, FILE *flog );
 
 bool ReadTil2Img(
 	Til2Img	&t2i,

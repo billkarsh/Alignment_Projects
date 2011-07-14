@@ -100,7 +100,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 // Get parameters
 
-	if( !ReadThmParams( thm, stdout ) )
+	if( !ReadThmParams( thm, A.layer, stdout ) )
 		return false;
 
 // Fetch Til2Img entries
