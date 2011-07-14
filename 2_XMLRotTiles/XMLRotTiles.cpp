@@ -9,15 +9,15 @@
 // Z  Layer-ang  id-tile-ang  delta-ang  *-if-bigger-than-2deg
 //
 // (1)
-// XMLRotTiles file.xml -mode=1 -z=i -degcw=10
-// Rotate tiles in spec layer by spec clockwise angle.
+// XMLRotTiles file.xml -mode=1 -x=4096 -y=4096 -z=i -degcw=10
+// Rotate tiles in spec layer by spec clockwise angle. Each tile
+// is dim (x,y).
 //
 // (2)
-// XMLRotTiles file.xml -mode=2 -p_N_ -id1=i -id2=j -zmin=z1 -zmax=z2 -tdeg=0
+// XMLRotTiles file.xml -mode=2 -p_N_ -id1=i -id2=j -x=4096 -y=4096 \
+//	-zmin=z1 -zmax=z2 -tdeg=0
 // Using same calcs as mode (0), actually rotate the layer if delta
-// exceeds spec thresh tdeg.
-//
-// Uses fixed image dims (x,y) = (1376,1040).
+// exceeds spec thresh tdeg. Each tile is dim (x,y).
 //
 
 #include	"GenDefs.h"
@@ -50,7 +50,7 @@ private:
 public:
 	double		degcw, tdeg;
 	char		*infile;
-	int			mode, id1, id2, z, zmin, zmax;
+	int			mode, id1, id2, x, y, z, zmin, zmax;
 
 public:
 	CArgs_xml()
@@ -59,6 +59,8 @@ public:
 		tdeg	= 0.0;
 		infile	= NULL;
 		mode	= 0;
+		x		= 1376;
+		y		= 1040;
 		zmin	= 0;
 		zmax	= 32768;
 	};
@@ -126,6 +128,10 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &id2, "-id2=%d", argv[i] ) )
 			;
+		else if( GetArg( &x, "-x=%d", argv[i] ) )
+			;
+		else if( GetArg( &y, "-y=%d", argv[i] ) )
+			;
 		else if( GetArg( &z, "-z=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
@@ -174,7 +180,7 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 
 	TForm	TR;
 
-	CreateCWRot( TR, degcw, Point( 1376/2, 1040/2 ) );
+	CreateCWRot( TR, degcw, Point( gArgs.x/2, gArgs.y/2 ) );
 
 	for(
 		TiXmlElement *p = layer->FirstChildElement( "t2_patch" );

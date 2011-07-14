@@ -166,6 +166,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
+	fprintf( flog, "\n" );
+
 	re_id.Compile( flog );
 
 	fflush( flog );
