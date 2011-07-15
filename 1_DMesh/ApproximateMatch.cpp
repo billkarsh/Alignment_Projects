@@ -72,6 +72,9 @@ static int		gErr		= errOK;
 static long		min_2D_olap;
 static double	ang0		= 0.0;
 static double	halfAng;
+static double	scale		= 1.0;
+static double	xscale		= 1.0;
+static double	yscale		= 1.0;
 static double	qthresh;
 static double	rthresh;
 
@@ -195,6 +198,9 @@ static void SetLayerType()
 
 		min_2D_olap	= GBL.thm.OLAP2D_XL;
 		halfAng		= GBL.thm.HFANG_XL;
+		scale		= GBL.thm.SCALE;
+		xscale		= GBL.thm.XSCALE;
+		yscale		= GBL.thm.YSCALE;
 		qthresh		= GBL.thm.QTRSH_XL;
 		rthresh		= GBL.thm.RTRSH_XL;
 	}
@@ -472,10 +478,10 @@ static void RotatePoints(
 	const Point		&aC,
 	double			theta )
 {
-	double	c	= cos( theta ) * GBL.thm.SCALE,
-			s	= sin( theta ) * GBL.thm.SCALE;
-	TForm	ao( GBL.thm.XSCALE * c, -GBL.thm.YSCALE * s, 0.0,
-				GBL.thm.XSCALE * s,  GBL.thm.YSCALE * c, 0.0 );
+	double	c	= cos( theta ) * scale,
+			s	= sin( theta ) * scale;
+	TForm	ao( xscale * c, -yscale * s, 0.0,
+				xscale * s,  yscale * c, 0.0 );
 
 	MultiplyTrans( T, ao, T0 );
 

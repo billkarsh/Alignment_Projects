@@ -231,9 +231,12 @@ static bool CheckAreas(
 
 		double	A0 = tri[k].Area( orig );
 
-		if( GBL.thm.SCALE	!= 1.0 ||
-			GBL.thm.XSCALE	!= 1.0 ||
-			GBL.thm.YSCALE	!= 1.0 ) {
+		if( GBL.A.layer != GBL.B.layer &&
+			(
+				GBL.thm.SCALE	!= 1.0 ||
+				GBL.thm.XSCALE	!= 1.0 ||
+				GBL.thm.YSCALE	!= 1.0
+			) ) {
 
 			double	f = GBL.thm.SCALE
 						* GBL.thm.SCALE
