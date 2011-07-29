@@ -1127,6 +1127,81 @@ void DistributePixel(
 }
 
 /* --------------------------------------------------------------- */
+/* BiCubicInterp ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Cubic interpolation:
+// data[0] .. data[1] .. x .. data[2] .. data[3],
+// where x is a fractional value.
+//
+template<class T>
+static double _CubicInterp( const T *data, double x )
+{
+	double	a = data[0];
+	double	b = data[1];
+	double	c = data[2];
+	double	d = data[3];
+	double	x2 = x*x;
+	double	x3 = x2*x;
+
+	return	x3 * (-0.5*a + 1.5*b - 1.5*c + 0.5*d) +
+			x2 * (a - 2.5*b + 2.0*c - 0.5*d) +
+			 x * (-0.5*a + 0.5*c) +
+			 b;
+}
+
+
+double BiCubicInterp( const double* image, int w, Point p )
+{
+	int		x	= int(p.x);
+	int		y	= int(p.y);
+	double	dx	= p.x - x;
+	int		n	= (x-1) + w*(y-1);
+	double	yi[4];
+
+	yi[0] = _CubicInterp( image + n, dx );	// interpolate in X
+	n += w;									// move up a line
+	yi[1] = _CubicInterp( image + n, dx );	// interpolate in X
+	n += w;									// etc.
+	yi[2] = _CubicInterp( image + n, dx );
+	n += w;
+	yi[3] = _CubicInterp( image + n, dx );
+
+	return _CubicInterp( yi, p.y - y );		// Now interpolate in y
+}
+
+
+double BiCubicInterp( const uint8* image, int w, Point p )
+{
+	int		x	= int(p.x);
+	int		y	= int(p.y);
+	double	dx	= p.x - x;
+	int		n	= (x-1) + w*(y-1);
+	double	yi[4];
+
+	yi[0] = _CubicInterp( image + n, dx );	// interpolate in X
+	n += w;									// move up a line
+	yi[1] = _CubicInterp( image + n, dx );	// interpolate in X
+	n += w;									// etc.
+	yi[2] = _CubicInterp( image + n, dx );
+	n += w;
+	yi[3] = _CubicInterp( image + n, dx );
+
+	return _CubicInterp( yi, p.y - y );		// Now interpolate in y
+}
+
+
+// Testing function
+//
+static void TestInterp()
+{
+	double	d[4] = {2,4,2,3};
+
+	for( double x=-1; x<=2.01; x += 0.5 )
+		printf( "%f -> %f\n", x, _CubicInterp( d, x ) );
+}
+
+/* --------------------------------------------------------------- */
 /* ImageGradients ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 

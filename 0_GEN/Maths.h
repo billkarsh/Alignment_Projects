@@ -206,6 +206,9 @@ inline void DistributePixel(
 	image[i + 1 + w]	+=     (alpha)*(    beta)*val;
 }
 
+double BiCubicInterp( const double* image, int w, Point p );
+double BiCubicInterp( const uint8* image, int w, Point p );
+
 void ImageGradients(
 	double				&slopex,
 	double				&slopey,

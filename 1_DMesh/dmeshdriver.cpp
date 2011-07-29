@@ -235,8 +235,7 @@ int main( int argc, char* argv[] )
 
 		ABOverlay( px, rmap, Ntrans, tfs, ifs );
 
-		if( GBL.arg.Heatmap )
-			RunCorrView( px, rmap, tfs, stdout );
+		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap, stdout );
 	}
 
 /* ------- */

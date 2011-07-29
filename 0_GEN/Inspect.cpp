@@ -430,16 +430,18 @@ static void CorrView(
 /* RunCorrView --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// (1) Build copy of the B-image and save that as 'registered.tif'.
-//		If 'registered.tif' had already existed, the current B-image
+// (1) Build copy of the B-image and save that as 'registered.png'.
+//		If 'registered.png' had already existed, the current B-image
 //		is added into that and then saved.
 //
-// (2) The current A-image and new B-image are sent to CorrView.
+// (2) If heatmap is true, the current A-image and new B-image
+//		are sent to CorrView.
 //
 void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
 	const TForm*	tfs,
+	bool			heatmap,
 	FILE*			flog )
 {
 	FILE*	f;
@@ -452,23 +454,23 @@ void RunCorrView(
 
 // Read existing file...
 
-	if( f = fopen( "registered.tif", "r" ) ) {
+	if( f = fopen( "registered.png", "r" ) ) {
 
 		uint32	w2, h2;
 
 		fclose( f );
 
 		printf(
-		"RunTripleChk: Reading existing 'registered.tif'.\n" );
+		"RunTripleChk: Reading existing 'registered.png'.\n" );
 
-		bpix = Raster8FromTif( "registered.tif", w2, h2, flog );
+		bpix = Raster8FromPng( "registered.png", w2, h2, flog );
 	}
 	else {
 
 		// ... or create new black raster
 
 		printf(
-		"RunTripleChk: No existing 'registered.tif'"
+		"RunTripleChk: No existing 'registered.png'"
 		" - creating one.\n" );
 
 		bpix = (uint8*)RasterAlloc( npix * sizeof(uint8) );
@@ -477,7 +479,11 @@ void RunCorrView(
 	}
 
 // For each black pixel in bpix, if there is a mapping there
-// from A to B, fill pixel with B-data.
+// from A to B, fill pixel with B-data. Note that we defer
+// writing into bpix until we can normalize the new data.
+
+	vector<double>	new_val;
+	vector<int>		new_idx;
 
 	for( k = 0; k < npix; ++k ) {
 
@@ -492,29 +498,57 @@ void RunCorrView(
 				Point	p( ix, iy );
 				tfs[mv].Transform( p );
 
+#if 1	// using bicubic
+				if( p.x >= 1.0 && p.x < w-2 &&
+					p.y >= 1.0 && p.y < h-2 ) {
+
+					new_val.push_back(
+					BiCubicInterp( &(*px.bvf_vfy)[0], w, p ) );
+
+					new_idx.push_back( ix + w*iy );
+				}
+#else	// bilinear
 				if( p.x >= 0.0 && p.x < w-1 &&
 					p.y >= 0.0 && p.y < h-1 ) {
 
-					int	pix = 127 + int(40 *
-					InterpolatePixel( p.x, p.y, *px.bvf_vfy, w ));
+					new_val.push_back(
+					InterpolatePixel( p.x, p.y, *px.bvf_vfy, w ) );
 
-					if( pix < 0 )
-						pix = 0;
-					else if( pix > 255 )
-						pix = 255;
-
-					bpix[ix + w*iy] = pix;
+					new_idx.push_back( ix + w*iy );
 				}
+#endif
 			}
 		}
 	}
 
-	Raster8ToTif8( "registered.tif", bpix, w, h );
+// Normalize and store new values
+
+	int	np = new_val.size();
+
+	if( np ) {
+
+		Normalize( new_val );
+
+		for( int k = 0; k < np; ++k ) {
+
+			double	pix	= 127 + 40.0 * new_val[k];
+
+			if( pix < 0 )
+				pix = 0;
+			else if( pix > 255 )
+				pix = 255;
+
+			bpix[new_idx[k]] = int(pix + 0.5);
+		}
+	}
+
+	Raster8ToPng8( "registered.png", bpix, w, h );
 
 // Triple check, by picking regions at random and
 // making sure they match.
 
-	CorrView( &(*px.avf_vfy)[0], bpix, w, h, rmap );
+	if( heatmap )
+		CorrView( &(*px.avf_vfy)[0], bpix, w, h, rmap );
 
 	RasterFree( bpix );
 }
