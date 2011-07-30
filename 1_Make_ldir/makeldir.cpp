@@ -4,14 +4,20 @@
 // DIR z string
 //
 // Where the string is a file_path up to and including the pattern
-// command line argument. Note that the pattern is applied to the
-// filename part of the full path string.
+// command line argument. The pattern is applied to the whole path
+// and can be any regular expression. For example:
+//
+//	leginon		-p_[0-9]+sq_
+//	nmrc		-p/temp/[0-9]+/
+//	apig		-p/[A-H][1-9]_
 //
 
 #include	"Cmdline.h"
 #include	"File.h"
 
 #include	"tinyxml.h"
+
+#include	<regex.h>
 
 #include	<set>
 using namespace std;
@@ -31,6 +37,9 @@ using namespace std;
 
 class CArgs_ldir {
 
+private:
+	regex_t	pat_compiled;
+
 public:
 	char	*infile,
 			*pat;
@@ -46,6 +55,11 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
+
+	void FindPat(
+		const char*	&start,
+		const char*	&end,
+		const char*	s );
 };
 
 /* --------------------------------------------------------------- */
@@ -84,7 +98,10 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 3 ) {
 		printf( "Usage: makeldir <xml-file> -ppat [options].\n" );
-		printf( "Suggested patterns: <optical> -p_  <EM> -psq_\n" );
+		printf( "Suggested patterns:"
+		"  <leginon> -p_[0-9]+sq_"
+		"  <nmrc> -p/temp/[0-9]+/"
+		"  <apig> -p/[A-H][1-9]_\n" );
 		exit( 42 );
 	}
 
@@ -107,8 +124,33 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
+	regcomp( &pat_compiled, pat, REG_EXTENDED );
+
 	fprintf( flog, "\n\n" );
 	fflush( flog );
+}
+
+/* --------------------------------------------------------------- */
+/* FindPat ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CArgs_ldir::FindPat(
+	const char*	&start,
+	const char*	&end,
+	const char*	s )
+{
+	regmatch_t	matches[4];
+
+	if( REG_NOMATCH ==
+		regexec( &pat_compiled, s, 4, matches, 0 ) ) {
+
+		fprintf( flog,
+		"No pattern match '%s' in '%s'.\n", pat, s );
+		exit( 42 );
+	}
+
+	start	= s + matches[0].rm_so;
+	end		= s + matches[0].rm_eo;
 }
 
 /* --------------------------------------------------------------- */
@@ -190,10 +232,12 @@ static void ParseTrakEM2()
 
 			char		buf[2048];
 			const char*	name = p->Attribute( "file_path" );
-			const char*	slsh = strrchr( name, '/' );
-			const char*	term = strstr( slsh, gArgs.pat );
+			const char* start;
+			const char* end;
 
-			sprintf( buf, "%.*s%s", term - name, name, gArgs.pat );
+			gArgs.FindPat( start, end, name );
+
+			sprintf( buf, "%.*s", end - name, name );
 			S.insert( string( buf ) );
 		}
 
