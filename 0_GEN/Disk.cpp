@@ -111,4 +111,72 @@ void DskCreateDir( const char *path, FILE* flog )
 	}
 }
 
+/* --------------------------------------------------------------- */
+/* DskAbsPath ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Simple brute force conversion to absolute path spec.
+//
+// Any input path starting with slash is already absolute,
+// otherwise we will append the input to the current working
+// directory. The following input shorthands are accepted:
+//
+// - A single instance of leading ./ is trimmed off.
+// - One or more ../ specify parent directories.
+//
+// bufsize must be large enough to handle expected result,
+// 2048 is a safe guess.
+//
+// Returns true if no errors, false if illegal input.
+//
+bool DskAbsPath( char *out, int bufsize, const char *in, FILE* flog )
+{
+// absolute already if starts with slash
+
+	if( in[0] == '/' ) {
+		strcpy( out, in );
+		return true;
+	}
+
+// otherwise need current working dir
+
+	getcwd( out, bufsize );
+
+	const char	*in0 = in;
+	char		*end = out + strlen( out );
+
+next_parent:
+	if( in[0] == '.' ) {
+
+		// skip leading './'
+		if( in[1] == '/' ) {
+			in += 2;
+			goto append;
+		}
+		else if( in[1] == '.' ) {
+
+			if( in[2] == '/' ) {
+				in += 3;
+				end = strrchr( out, '/' );
+				*end = 0;
+				goto next_parent;
+			}
+			else
+				goto illegal;
+		}
+		else {
+illegal:
+			fprintf( flog, "Illegal path '%s'.\n", in0 );
+			return false;
+		}
+	}
+	else {
+append:
+		*end++ = '/';
+		strcpy( end, in );
+	}
+
+	return true;
+}
+
 
