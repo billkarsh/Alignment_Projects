@@ -18,6 +18,11 @@ class CGBL_Thumbs {
 
 public:
 	typedef struct {
+		double	SCALE,
+				XSCALE,
+				YSCALE,
+				SKEW,
+				CTR;
 		bool	Transpose,		// transpose all images
 				NoFolds,		// ignore fold masks
 				SingleFold;		// assign id=1 to all non-fold rgns

@@ -18,6 +18,11 @@ class CGBL_dmesh {
 
 public:
 	typedef struct {
+		double	SCALE,
+				XSCALE,
+				YSCALE,
+				SKEW,
+				CTR;
 		bool	Transpose,		// transpose all images
 				WithinSection,	// overlap within a section
 				Verbose,		// run inspect diagnostics

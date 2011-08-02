@@ -162,7 +162,7 @@ bool PixPair::Load(
 	int			r2,
 	FILE*		flog )
 {
-	printf( "\n---- Images ----\n" );
+	printf( "\n---- Image loading ----\n" );
 
 	clock_t		t0 = StartTiming();
 

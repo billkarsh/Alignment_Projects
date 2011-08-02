@@ -70,6 +70,7 @@ static double	halfAng;
 static double	scale		= 1.0;
 static double	xscale		= 1.0;
 static double	yscale		= 1.0;
+static double	skew		= 1.0;
 static double	qthresh;
 static double	rthresh;
 
@@ -125,6 +126,15 @@ static int SetStartingAngle( FILE* flog )
 	vector<ThmPair>	tpr;
 	int				ntpr, nprior = 0;
 
+// Handle user override
+
+	if( GBL.arg.CTR != 999.0 ) {
+
+		ang0	= GBL.arg.CTR;
+		nprior	= 1;
+		goto adjust_olap;
+	}
+
 // Try to get prior angles
 
 	if( ReadAllThmPair( tpr, GBL.A.layer, GBL.B.layer, flog )
@@ -162,6 +172,7 @@ static int SetStartingAngle( FILE* flog )
 
 // Adjust OLAP2D_XL
 
+adjust_olap:
 	if( GBL.A.layer != GBL.B.layer ) {
 
 		double	a = ang0 * PI/180.0,
@@ -196,6 +207,7 @@ static void SetLayerType()
 		scale		= GBL.thm.SCALE;
 		xscale		= GBL.thm.XSCALE;
 		yscale		= GBL.thm.YSCALE;
+		skew		= GBL.thm.SKEW;
 		qthresh		= GBL.thm.QTRSH_XL;
 		rthresh		= GBL.thm.RTRSH_XL;
 	}
@@ -483,12 +495,12 @@ static void QFromAngle(
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	TForm			skew( 1.0, 0.0, 0.0, GBL.thm.SKEW, 1.0, 0.0 );
+	TForm			Tskew( 1.0, 0.0, 0.0, skew, 1.0, 0.0 );
 	vector<Point>	ps = thm.ap;
 
 	C.A = a;
 
-	RotatePoints( ps, C.T, skew, thm.aC, a * PI/180.0 );
+	RotatePoints( ps, C.T, Tskew, thm.aC, a * PI/180.0 );
 
 	C.R = CorrPatchesMaxQ(
 		flog, false, C.Q, C.X, C.Y,
