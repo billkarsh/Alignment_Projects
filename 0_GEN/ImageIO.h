@@ -93,13 +93,19 @@ void VectorDblToTif8(
 /* Png ----------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+uint8* Raster8FromPng(
+	const char*	name,
+	uint32		&w,
+	uint32		&h,
+	FILE*		flog = stdout );
+
 uint16* Raster16FromPng(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,
 	FILE*		flog = stdout );
 
-uint8* Raster8FromPng(
+uint32* Raster32FromPng(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,

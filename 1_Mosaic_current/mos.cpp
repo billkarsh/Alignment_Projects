@@ -366,8 +366,168 @@ if( s.which.size() > 1 ) {
 }
 
 /* --------------------------------------------------------------- */
+/* DrawText ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Super simple routine for drawing text. Uses simple 5x7 font.
+// Font by Imran Nazar under BSD Public License.
+//
+static uint8 font5x7[][7]={
+/*   */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+/* ! */ {0x04,0x04,0x04,0x04,0x00,0x00,0x04},
+/* " */ {0x0A,0x0A,0x0A,0x00,0x00,0x00,0x00},
+/* # */ {0x0A,0x0A,0x1F,0x0A,0x1F,0x0A,0x0A},
+/* $ */ {0x04,0x0F,0x14,0x0E,0x05,0x1E,0x04},
+/* % */ {0x18,0x19,0x02,0x04,0x08,0x13,0x03},
+/* & */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+/* ' */ {0x0C,0x04,0x08,0x00,0x00,0x00,0x00},
+/* ( */ {0x02,0x04,0x08,0x08,0x08,0x04,0x02},
+/* ) */ {0x08,0x04,0x02,0x02,0x02,0x04,0x08},
+/* * */ {0x00,0x04,0x15,0x0E,0x15,0x04,0x00},
+/* + */ {0x00,0x04,0x04,0x1F,0x04,0x04,0x00},
+/* , */ {0x00,0x00,0x00,0x00,0x0C,0x04,0x08},
+/* - */ {0x00,0x00,0x00,0x1F,0x00,0x00,0x00},
+/* . */ {0x00,0x00,0x00,0x00,0x00,0x0C,0x0C},
+/* / */ {0x00,0x01,0x02,0x04,0x08,0x10,0x00},
+/* 0 */ {0x0E,0x11,0x13,0x15,0x19,0x11,0x0E},
+/* 1 */ {0x04,0x0C,0x04,0x04,0x04,0x04,0x0E},
+/* 2 */ {0x0E,0x11,0x01,0x02,0x04,0x08,0x1F},
+/* 3 */ {0x1F,0x02,0x04,0x02,0x01,0x11,0x0E},
+/* 4 */ {0x02,0x06,0x0A,0x12,0x1F,0x02,0x02},
+/* 5 */ {0x1F,0x10,0x1E,0x01,0x01,0x11,0x0E},
+/* 6 */ {0x06,0x08,0x10,0x1E,0x11,0x11,0x0E},
+/* 7 */ {0x1F,0x01,0x02,0x04,0x08,0x08,0x08},
+/* 8 */ {0x0E,0x11,0x11,0x0E,0x11,0x11,0x0E},
+/* 9 */ {0x0E,0x11,0x11,0x0F,0x01,0x02,0x0C},
+/* : */ {0x00,0x0C,0x0C,0x00,0x0C,0x0C,0x00},
+/* ; */ {0x00,0x0C,0x0C,0x00,0x0C,0x04,0x08},
+/* < */ {0x02,0x04,0x08,0x10,0x08,0x04,0x02},
+/* = */ {0x00,0x00,0x1F,0x00,0x1F,0x00,0x00},
+/* > */ {0x08,0x04,0x02,0x01,0x02,0x04,0x08},
+/* ? */ {0x0E,0x11,0x01,0x02,0x04,0x00,0x04},
+/* @ */ {0x0E,0x11,0x01,0x0D,0x15,0x15,0x0E},
+/* A */ {0x0E,0x11,0x11,0x11,0x1F,0x11,0x11},
+/* B */ {0x1E,0x11,0x11,0x1E,0x11,0x11,0x1E},
+/* C */ {0x0E,0x11,0x10,0x10,0x10,0x11,0x0E},
+/* D */ {0x1C,0x12,0x11,0x11,0x11,0x12,0x1C},
+/* E */ {0x1F,0x10,0x10,0x1E,0x10,0x10,0x1F},
+/* F */ {0x1F,0x10,0x10,0x1E,0x10,0x10,0x10},
+/* G */ {0x0E,0x11,0x10,0x17,0x11,0x11,0x0F},
+/* H */ {0x11,0x11,0x11,0x1F,0x11,0x11,0x11},
+/* I */ {0x0E,0x04,0x04,0x04,0x04,0x04,0x0E},
+/* J */ {0x07,0x02,0x02,0x02,0x02,0x12,0x0C},
+/* K */ {0x11,0x12,0x14,0x18,0x14,0x12,0x11},
+/* L */ {0x10,0x10,0x10,0x10,0x10,0x10,0x1F},
+/* M */ {0x11,0x1B,0x15,0x15,0x11,0x11,0x11},
+/* N */ {0x11,0x11,0x19,0x15,0x13,0x11,0x11},
+/* O */ {0x0E,0x11,0x11,0x11,0x11,0x11,0x0E},
+/* P */ {0x1E,0x11,0x11,0x1E,0x10,0x10,0x10},
+/* Q */ {0x0E,0x11,0x11,0x11,0x15,0x12,0x0D},
+/* R */ {0x1E,0x11,0x11,0x1E,0x14,0x12,0x11},
+/* S */ {0x0F,0x10,0x10,0x0E,0x01,0x01,0x1E},
+/* T */ {0x1F,0x04,0x04,0x04,0x04,0x04,0x04},
+/* U */ {0x11,0x11,0x11,0x11,0x11,0x11,0x0E},
+/* V */ {0x11,0x11,0x11,0x11,0x11,0x0A,0x04},
+/* W */ {0x11,0x11,0x11,0x15,0x15,0x15,0x0A},
+/* X */ {0x11,0x11,0x0A,0x04,0x0A,0x11,0x11},
+/* Y */ {0x11,0x11,0x11,0x0A,0x04,0x04,0x04},
+/* Z */ {0x1F,0x01,0x02,0x04,0x08,0x10,0x1F},
+/* [ */ {0x0E,0x08,0x08,0x08,0x08,0x08,0x0E},
+/* \ */ {0x00,0x10,0x08,0x04,0x02,0x01,0x00},
+/* ] */ {0x0E,0x02,0x02,0x02,0x02,0x02,0x0E},
+/* ^ */ {0x04,0x0A,0x11,0x00,0x00,0x00,0x00},
+/* _ */ {0x00,0x00,0x00,0x00,0x00,0x00,0x1F},
+/* ` */ {0x08,0x04,0x02,0x00,0x00,0x00,0x00},
+/* a */ {0x00,0x00,0x0E,0x01,0x0F,0x11,0x0F},
+/* b */ {0x10,0x10,0x10,0x16,0x19,0x11,0x1E},
+/* c */ {0x00,0x00,0x0E,0x10,0x10,0x11,0x0E},
+/* d */ {0x01,0x01,0x01,0x0D,0x13,0x11,0x0F},
+/* e */ {0x00,0x00,0x0E,0x11,0x1F,0x10,0x0E},
+/* f */ {0x06,0x09,0x08,0x1C,0x08,0x08,0x08},
+/* g */ {0x00,0x0F,0x11,0x11,0x0F,0x01,0x0E},
+/* h */ {0x10,0x10,0x16,0x19,0x11,0x11,0x11},
+/* i */ {0x00,0x04,0x00,0x04,0x04,0x04,0x04},
+/* j */ {0x02,0x00,0x06,0x02,0x02,0x12,0x0C},
+/* k */ {0x10,0x10,0x12,0x14,0x18,0x14,0x12},
+/* l */ {0x04,0x04,0x04,0x04,0x04,0x04,0x0F},
+/* m */ {0x00,0x00,0x1A,0x15,0x15,0x11,0x11},
+/* n */ {0x00,0x00,0x16,0x19,0x11,0x11,0x11},
+/* o */ {0x00,0x00,0x0E,0x11,0x11,0x11,0x0E},
+/* p */ {0x00,0x00,0x1E,0x11,0x1E,0x10,0x10},
+/* q */ {0x00,0x00,0x0D,0x13,0x0F,0x01,0x01},
+/* r */ {0x00,0x00,0x16,0x19,0x10,0x10,0x10},
+/* s */ {0x00,0x00,0x0E,0x10,0x0E,0x01,0x1E},
+/* t */ {0x08,0x08,0x1C,0x08,0x08,0x09,0x06},
+/* u */ {0x00,0x00,0x11,0x11,0x11,0x13,0x0D},
+/* v */ {0x00,0x00,0x11,0x11,0x11,0x0A,0x04},
+/* w */ {0x00,0x00,0x11,0x11,0x15,0x15,0x0A},
+/* x */ {0x00,0x00,0x11,0x0A,0x04,0x0A,0x11},
+/* y */ {0x00,0x00,0x11,0x11,0x0F,0x01,0x0E},
+/* z */ {0x00,0x00,0x1F,0x02,0x04,0x08,0x1F},
+/* { */ {0x02,0x04,0x04,0x08,0x04,0x04,0x02},
+/* | */ {0x04,0x04,0x04,0x04,0x04,0x04,0x04},
+/* } */ {0x08,0x04,0x04,0x02,0x04,0x04,0x08},
+/* ~ */ {0x00,0x00,0x04,0x15,0x02,0x00,0x00}};
+
+
+static void DrawText(
+	uint8		*raster,
+	int			w,
+	int			h,
+	const char	*str,
+	int			x,
+	int			y )
+{
+	for( const char *p = str; *p; p++ ) {	// go through the string
+
+		int	ch = *p;
+
+		if( ch < 32 || ch > 126 )
+			continue;
+
+		// draw as N times original size
+		//printf("draw character '%c' at %d, %d\n", ch, x, y);
+
+		ch -= 32;
+
+		int	N = 3;
+
+		for( int dy = 0; dy < 7; ++dy ) {
+
+			for( int dx = 0; dx < 5; ++dx ) {
+
+				bool	bit = (font5x7[ch][dy] & (1 << (4-dx)));
+
+				if( !bit )
+					continue;
+
+				int		bx = x + dx*N;
+				int		by = y + dy*N;
+
+				// draw an N x N box at (bx, by)
+
+				for( int j = 0; j < N; ++j ) {
+
+					for( int k = 0; k < N; ++k ) {
+
+						int	m = bx+j + w*(by+k);
+
+						if( m < w*h )
+							raster[m] = 0xFF;
+					}
+				}
+			}
+		}
+
+		x += 6*N;
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* PseudoAngle --------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+#if 0
 
 // An angle like atan2(y,x), but runs from -4 to +4,
 // and is continuous, but not uniform.
@@ -389,6 +549,8 @@ if( xish )
 return -2 - x/y;
 }
 
+#endif
+
 /* --------------------------------------------------------------- */
 /* FillInHolesInFoldmap ------------------------------------------ */
 /* --------------------------------------------------------------- */
@@ -397,7 +559,11 @@ return -2 - x/y;
 // fill it in. We will change each 0 to 255 as we examine it
 // so we only see it once. After we see each hole, we will
 // either fill it in, or add it to the list of 0s to be
-// restored at the end.
+// restored at the end. Basic idea is to expand out through
+// each 0 area, and see what we hit. If we hit only one thing
+// then it's a hole. If one thing and the boundary, also fill
+// it in. Two different things, then it's a gap between two
+// patches; leave it a hole.
 //
 static void FillInHolesInFoldmap( uint8 *map, uint32 w, uint32 h )
 {
@@ -410,7 +576,7 @@ for(int i=start; i < np; i++) {
 	start = i;  // so next time resume here
 	stack<int> st;
 	st.push(i);
-	set<int> boundary;  // all the values we find on the boundary
+	vector<int> boundary( 257, 0 );	// histogram of what we hit.
         vector<int> pixels; // 0 valued pixels in this area
 	while( !st.empty() ) {
 	    int j = st.top(); st.pop();
@@ -419,20 +585,27 @@ for(int i=start; i < np; i++) {
                 pixels.push_back(j);
 	        int y = j / w;
 	        int x = j - w * y;
-	        if( x-1 >= 0 ) st.push(j-1); else boundary.insert(-1);
-            if( x+1 <  w ) st.push(j+1); else boundary.insert(-1);
-            if( y-1 >= 0 ) st.push(j-w); else boundary.insert(-1);
-            if( y+1 <  h ) st.push(j+w); else boundary.insert(-1);
+	        if( x-1 >= 0 ) st.push(j-1); else boundary[256]++;
+            if( x+1 <  w ) st.push(j+1); else boundary[256]++;
+            if( y-1 >= 0 ) st.push(j-w); else boundary[256]++;
+            if( y+1 <  h ) st.push(j+w); else boundary[256]++;
 		}
             else {// map value is not 0, add what we ran into to the set of boundary values
-		if( map[j] != 255 ) boundary.insert( map[j] );
+		if( map[j] != 255 ) boundary[map[j]]++;
 		}
 	    }
-        if( boundary.size() == 1 && *(boundary.begin()) != -1 ) { // then we have a hole
-	    int pval = *(boundary.begin());
-	    for(int k=0; k<pixels.size(); k++)
-		map[pixels[k]] = pval;
-            nholes++;
+        // how many different things did we hit?  And what was one of them?
+        int howmany = 0, what = 0;
+        for( int k = 0; k < 256; ++k ) {
+	    if( boundary[k] != 0 ) {
+			howmany++;
+            what = k;
+		}
+	    }
+        if( howmany == 1 ) {	// then we have a hole, or a gap starting at a boundary
+	    for( int k = 0; k < pixels.size(); ++k )
+			map[pixels[k]] = what;
+        nholes++;
 	    }
 	else { // not a pure hole.  record pixel values to set back later
             for(int k=0; k<pixels.size(); k++)
@@ -893,6 +1066,7 @@ dir_cache.insert(string(name));
 /* CopyRaster ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// For images...
 // Copy and condense the raster at src into the location in dest
 // (dest, w, h) = describes dest
 // (dx, dy)     = where to write
@@ -936,10 +1110,59 @@ for(int x = 0; x<w; x++)
 }
 
 /* --------------------------------------------------------------- */
+/* CopyRasterSP -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// For SuperPixels...
+// Copy and condense the raster at src into the location in dest
+// (dest, w, h) = describes dest
+// (dx, dy)     = where to write
+// (src, sw, sh)= describes the source
+// Only problem is that sw, or sh, or both could be odd,
+// so each pixel an get a contribution from 1, 2, or 4 pixels.
+// Do NOT want interpolation; instead take first one.
+//
+static void CopyRasterSP(
+	uint32	*dest,
+	int		w,
+	int		h,
+	int		dx,
+	int		dy,
+	uint32	*src,
+	int		sw,
+	int		sh )
+{
+// Do this a brute force way.  Go through all the src pixels, mapping each to dest,
+// and counting how many map to each.  Then average.
+// Note added later:  This is now too general, as Phil says the tile size always
+// rounds down, so don't worry about the half pixels.  Could now make make more efficient.
+// Bizzare convoluted logic since copied from image, which needed to average.
+if( src == NULL )
+    return;
+vector<int> N(w*h,0);
+vector<int> d(w*h,0);
+int swt = sw & (~1);  // create copies that are rounded down to nearest even
+int sht = sh & (~1);  // stands for "source height truncated"
+for(int y=0; y<sht; y++) {
+    for(int x=0; x<swt; x++) {
+	int xx = dx + x/2;
+        int yy = dy + y/2;
+        d[xx + w*yy] = src[x + sw*y];  // just replace; no average
+        N[xx + w*yy]++;
+	}
+    }
+// now, for every pixel that was written at least once, set it
+for(int x = 0; x<w; x++)
+    for(int y=0; y<h; y++)
+	if( N[x + w*y] != 0 )
+	    dest[x + w*y] = d[x +w*y];
+}
+
+/* --------------------------------------------------------------- */
 /* WriteSummaryTile ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Condenses 4 tiles into 1.
+// Condenses 4 tiles into 1, for images.
 //
 static int WriteSummaryTile(
 	string		rav_name,
@@ -1009,10 +1232,83 @@ return 1;
 }
 
 /* --------------------------------------------------------------- */
+/* WriteSummaryTileSP -------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Condenses 4 tiles into 1, for SuperPixels.
+//
+static int WriteSummaryTileSP(
+	string		rav_name,
+	int			section,
+	int			level,
+	int			row,
+	int			col,
+	set<string>	&dir_cache )
+{
+// open the 4 relevant tiles - (row,col), (row+1,col), (row,col+1), and (row+1,col+1)
+uint32 w1, h1, w2, h2, w3, h3, w4, h4;
+char fname[1024];
+int dir = section/1000;
+char ds[32];                     // string for the final directory
+strcpy(ds,"");                   // for layers 0-999, it's blank (no directory)
+if( dir != 0 )                    // but otherwise, one per thousand layers
+    sprintf(ds, "%d/", dir*1000);// for example, layer 1761 would be in directory "1000/"
+
+//Tiles are named after compass directions on the screen (sw= southwest, for example)
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row, col, ds, section);
+uint32* sw = Raster32FromPng(fname, w1, h1);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row+1, col, ds, section);
+uint32* nw = Raster32FromPng(fname, w2, h2);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row, col+1, ds, section);
+uint32* se = Raster32FromPng(fname, w3, h3);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row+1, col+1, ds, section);
+uint32* ne = Raster32FromPng(fname, w4, h4);
+if( sw == NULL )  // if even the base tile does not exist, don't write anything.
+    return 0;
+// if we are at the origin, and one tile holds everything, we don't need a tile either
+if( nw == NULL && se == NULL && row == 0 & col == 0 )
+    return 0;
+
+// otherwise, create the tile...
+int new_w = w1 + (se != NULL ? w3 : 0);
+int new_h = h1 + (nw != NULL ? h2 : 0);
+// now we need to divide these by 2, rounding down according to spec
+int w = new_w/2;
+int h = new_h/2;
+uint32* raster = (uint32 *)malloc(w*h*sizeof(uint32));
+// copy each of the rasters into its spot.
+int half = 1024/2;
+CopyRasterSP(raster, w, h, 0,    (new_h-h1)/2, sw,   w1, h1);
+CopyRasterSP(raster, w, h, 0,    0, nw , w2, h2);
+CopyRasterSP(raster, w, h, half, (new_h-h1)/2, se , w3, h3);
+CopyRasterSP(raster, w, h, half, 0, ne, w4, h4);
+// Make sure the level, the row, and the column exist
+sprintf(fname, "%s/tiles/1024/%d", rav_name.c_str(), level);
+MakeDirExist(fname, dir_cache);
+sprintf(fname, "%s/tiles/1024/%d/%d", rav_name.c_str(), level, row/2);
+MakeDirExist(fname, dir_cache);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d", rav_name.c_str(), level, row/2, col/2);
+MakeDirExist(fname, dir_cache);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s", rav_name.c_str(), level, row/2, col/2);
+MakeDirExist(fname, dir_cache);
+if( dir == 0 ) // first layers are written in the root directory
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%03d.png", rav_name.c_str(), level, row/2, col/2, section);
+else { // need another layer of directories
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%d", rav_name.c_str(), level, row/2, col/2, dir*1000);
+    MakeDirExist(fname, dir_cache);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%d/%03d.png", rav_name.c_str(), level, row/2, col/2, dir*1000, section);
+    }
+printf("SP:writing tile '%s', %d by %d\n", fname, w, h);
+Raster32ToPngRGBA( fname, raster, w, h );
+free(raster);
+return 1;
+}
+
+/* --------------------------------------------------------------- */
 /* CreateLevelNTiles --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-//Create smaller tiles.
+//Create smaller tiles, for images.
 //
 static void CreateLevelNTiles(
 	string		rav_name,
@@ -1035,6 +1331,36 @@ for(int level=1; level < 20 && at_this_level > 0; level++) {  // enough for tril
         at_this_level += wrote;
 	}
     printf("At level %d, wrote %d tiles\n", level, at_this_level);
+    }
+}
+
+/* --------------------------------------------------------------- */
+/* CreateLevelNTilesSP ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+//Create smaller tiles, for SuperPixels.
+//
+void CreateLevelNTilesSP(
+	string		rav_name,
+	int			section,
+	set<string>	&dir_cache )
+{
+int at_this_level = 1;  // so we loop at least once
+for(int level=1; level < 20 && at_this_level > 0; level++) {  // enough for trillions of tiles
+    at_this_level = 0;
+    int wrote = 1;
+    // now do this level
+    for(int row=0; wrote > 0; row += 2) {
+        wrote = 0;
+        int stat = 1;
+        for(int col = 0; stat == 1; col += 2) {
+            printf("SP:Trying to write tile for level %d, row %d, col %d\n", level, row, col);
+            stat = WriteSummaryTileSP(rav_name, section, level, row, col, dir_cache);
+            wrote += stat;
+            }
+        at_this_level += wrote;
+	}
+    printf("SP:At level %d, wrote %d tiles\n", level, at_this_level);
     }
 }
 
@@ -1084,9 +1410,8 @@ static void UpdateMetaData(
 	fprintf( fd, "height=%d\n", h );
 	fprintf( fd, "zmin=%d\n", zmin );
 	fprintf( fd, "zmax=%d\n", zmax );
-	fprintf( fd, "channels=\"g\"\n" );
-
-	//fprintf( fd, "superpixel-format=RGBA\n" );
+	fprintf( fd, "superpixel-format=RGBA\n" );
+	fprintf( fd, "channels=\"g;s\"\n" );
 
 	fclose( fd );
 }
@@ -1155,6 +1480,69 @@ return 0;
 }
 
 /* --------------------------------------------------------------- */
+/* WriteSPTiles -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Writes the lowest level SP tiles.
+//
+static int WriteSPTiles(
+	const string	rav_name,
+	int				section,
+	uint32			*image,
+	int				w,
+	int				h )
+{
+set<string> dir_cache;  // names of directories already created
+string base_name = rav_name;
+base_name += "/tiles";
+MakeDirExist(base_name.c_str(), dir_cache);    // create the directory 'tiles'
+char fname[1024];
+sprintf(fname, "%s/metadata.txt", base_name.c_str());
+//UpdateMetaData(fname, section, w, h);   image tiles already did this
+base_name += "/1024";
+MakeDirExist(base_name.c_str(), dir_cache);    // we will always make tiles 1024 on a side
+base_name += "/0";
+MakeDirExist(base_name.c_str(), dir_cache);    // and always level 0 (raw data)
+uint32* raster = (uint32 *)malloc(1024*1024*sizeof(uint32));  // make a raster big enough for even the biggest tile
+for(int row = 0; row*1024 < h; row++) {
+    int ymax = h-1-1024*row;  // top scan line
+    int ymin = max(ymax - 1024+1, 0);             // bottom scan line
+    sprintf(fname, "%s/%d", base_name.c_str(), row);
+    MakeDirExist(fname, dir_cache);
+    for(int col = 0; col*1024 < w; col++) {
+	int xmin = col*1024;             // bottom scan line
+	int xmax = min(xmin+1023, w-1);  // top scan line
+        sprintf(fname, "%s/%d/%d", base_name.c_str(), row, col);      // make the dir for the column
+	MakeDirExist(fname, dir_cache);
+        sprintf(fname, "%s/%d/%d/s", base_name.c_str(), row, col);    // and the sp map underneath
+	MakeDirExist(fname, dir_cache);
+        // now, copy the portion of the image from xmin..xmax to ymin..ymax;
+        int new_w = xmax - xmin + 1;
+        int n = 0;
+	for(int y=ymin; y<=ymax; y++) {
+            uint32 m = uint32(xmin) + uint32(y)*uint32(w); // location of first byte on scan line y of 'image'
+	    for(int x=0; x < new_w; x++)
+		raster[n++] = image[m++];
+	    }
+        int dir = section/1000;
+        if (dir == 0) // first layers are written in the root directory
+	    sprintf(fname,"%s/%d/%d/s/%03d.png", base_name.c_str(), row, col, section);
+        else { // need another layer of directories
+	    sprintf(fname,"%s/%d/%d/s/%d", base_name.c_str(), row, col, dir*1000);
+	    MakeDirExist(fname, dir_cache);
+	    sprintf(fname,"%s/%d/%d/s/%d/%03d.png", base_name.c_str(), row, col, dir*1000, section);
+	    }
+        Raster32ToPngRGBA( fname, raster, new_w, ymax-ymin+1 );
+	}
+    }
+free(raster);
+
+// Now create the higher level tiles.
+CreateLevelNTilesSP(rav_name, section, dir_cache);
+return 0;
+}
+
+/* --------------------------------------------------------------- */
 /* Annotation Inversion ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1178,6 +1566,7 @@ class Partner {
 public:
 	double	confidence;
 	Point	pt;
+	int		body_id;
 	int		z;
 };
 
@@ -1310,6 +1699,7 @@ for(unsigned int i=0; i<data.size(); i++) {
 	    for(int j=0; j<part.size(); j++) {
 		Partner prt;
 		prt.confidence = part[j]["confidence"].asDouble();
+		prt.body_id    = part[j]["body ID"   ].asInt();
 		Json::Value lo = part[j]["location"];
 		prt.pt.x = lo[0u].asDouble();
 		prt.pt.y = lo[1u].asDouble();
@@ -1402,14 +1792,13 @@ static bool LookForAndTransform(
 	char				*root,
 	int					section,
 	int					image_no,
-	vector<Triple>		&Triples,
-	vector<int>			&relevant_images,
 	vector<image>		&images,
-	vector<uint16>		&imap,
-	int					nx,
-	int					ny,
+	bool				Warp,
+	vector<uint8>		&tmap,
 	vector<Bookmark>	&result )
 {
+uint32 w = images[image_no].w;
+uint32 h = images[image_no].h;
 char lname[2048];
 sprintf(lname, "%s/%s", root, name);
 FILE *fp = fopen( lname, "r" );
@@ -1429,36 +1818,29 @@ if( strstr(name, "annotations-bookmarks") != NULL ) {
     // one, then look up the reverse transformation from global space, and find
     // the one that maps here.
     for(int j=0; j<bookmarks.size(); j++) {
-        // OK, find the consistent transform that maps into final image
-        int k;
-	for(k=1; k<Triples.size(); k++) {
-	    int from = Triples[k].image;          // index into the relevant pictures array
-	    int image = relevant_images[from-1];  // actual image number
-	    if( image == image_no ) {
-		int patch = Triples[k].patch;
-		int sector = Triples[k].sector;
-		TForm t = images[image].sectors[patch][sector];  // transform from global to image
-		printf("Testing: %d %d ", k, from-1);
-		PrintTransform(stdout, t);
-                Point p2 = bookmarks[j].pt;
-                images[image].sectors[patch][sector].Transform( p2 );
-                PrintTransAndInv(stdout, images[image].sectors[patch][sector]);
-                printf(" Point in output image is %f %f\n", p2.x, p2.y);
-                int ix = ROUND(p2.x);
-                int iy = ROUND(p2.y);
-                if( ix >= 0 && ix < nx && iy >= 0 && iy < ny ) {
-                    printf("OK, it's at least in the image\n");
-                    int indx = imap[ix + nx*iy];  // the index into the triples array
-                    bool consistent = (k == indx);
-                    printf("%d %d %s\n", k, indx, consistent ? "-Got one-" : "");
-		    if( consistent ) {
-                        bookmarks[j].pt = p2;
-			result.push_back(bookmarks[j]);
-			break;
-			}
-		    }
-		}
-	    }
+	Point p = bookmarks[j].pt;
+        int ix = int(p.x);
+        int iy = int(p.y);
+        // make sure it's legal
+        if( ix < 0 ||  ix >= w || iy < 0 || iy >= h ) {
+             printf("Synapse outside diagram?? %d %d %d %d\n", ix, w, iy, h);
+             continue;
+             }
+	int patch = images[image_no].foldmap[ix + iy*w];
+        // There can be small patches which were not used, so need to check for legality here
+        //             // No longer needed since we compress patches and foldmaps on input
+        if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
+            continue;
+        TForm	t;
+	if( !Warp )  // just one transform per image
+	    t = images[image_no].tf[patch];  // change to global coordinates
+        else { //we are warping
+	    int sector = tmap[ix+iy*w];
+            t = images[image_no].sectors[patch][sector];
+            }
+        t.Transform( p );
+        bookmarks[j].pt = p;
+	result.push_back(bookmarks[j]);
 	}
     }
 return true;
@@ -2398,6 +2780,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 			before[uint32(ix) + nx*uint32(iy)] = 255;
 		    }
 		}
+        // draw the Tile ID in the center of the tile.
+        Point	p = Point( w/2, h/2 );
+		images[i].tf[1].Transform( p );
+        char *fn = strrchr(images[i].rname, '/');  // look backwards for the slash
+        fn = (fn == NULL ? images[i].rname : fn);  // if none, use whole string
+        printf( "Draw image %s at %f %f\n", fn, p.x, p.y );
+        if( p.x > 0 && p.x < nx-1 && p.y > 0 && p.y < ny-1 )
+			DrawText(&before[0], nx, ny, fn, int(p.x), int(p.y));
 	    }
 	//also to aid in debugging, draw circles at correspondence points
 	for(int i=0; i<x1.size(); i++) {
@@ -3073,10 +3463,52 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         RemapSuperPixelsOneImage(&(spmap[0]), nx, ny, SPmax, FinalMapping);
     printf("SPmax now %d\n", SPmax);
     sprintf(fname,"%s/%s/sp.%05d.png", region_dir.c_str(), sp_dir.c_str(), out_layer);
-    for(uint32 i=0; i<nx*ny; i++)  // set the transparecy
+    for(uint32 i=0; i<nx*ny; i++)  // set the transparency
 	spmap[i] = spmap[i] | 0xFF000000;
     if( make_flat )
         Raster32ToPngRGBA( fname, &(spmap[0]), nx, ny );
+
+
+
+    for(uint32 i=0; i<nx*ny; i++)  // unset the transparency for tiles
+	spmap[i] = spmap[i] & 0xFFFFFF;
+    if( make_tiles ) {
+        WriteSPTiles( rav_dir, out_layer, &(spmap[0]), nx, ny );
+	}
+    // Compute the bounds for this layer.  First find the biggest number
+    uint32 biggest = 0;
+    for(int i=0; i<nx*ny; i++)
+	biggest = max(biggest, spmap[i]);
+    // Now make the bounds and counts
+    {
+    vector<int> volume(biggest+1,0);
+    vector<int> xmin(biggest+1,nx);
+    vector<int> ymin(biggest+1,ny);
+    vector<int> xmax(biggest+1,-1);
+    vector<int> ymax(biggest+1,-1);
+    for(int y=0; y<ny; y++) {
+	for(int x=0; x<nx; x++) {
+	    uint32 n = uint32(x) + uint32(y)*uint32(nx);
+            int p = spmap[n];  // pixel value
+            volume[p]++;
+            xmin[p] = min(xmin[p], x);
+            ymin[p] = min(ymin[p], y);
+            xmax[p] = max(xmax[p], x);
+            ymax[p] = max(ymax[p], y);
+	    }
+	}
+
+    sprintf( fname, "bounds.%05d", out_layer );
+    FILE *fb = FileOpenOrDie( fname, "w" );
+
+    for(int i=0; i<=biggest; i++) {
+        if( volume[i] > 0 )
+	    fprintf(fb,"%d %7d %8d %d %d %d %d\n", out_layer, i, xmin[i], ny-1-ymax[i], xmax[i]-xmin[i]+1, ymax[i]-ymin[i]+1, volume[i]);
+	}
+    fclose(fb);
+    }
+
+
     bool experiment = false;
     if( experiment ) {
         vector<uint32> copy(nx*ny,0);
@@ -3155,7 +3587,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
         *(++p) = '\0';  // truncate at trailing '/', leaving directory name
 	LookForAndTransform("annotations-body.json",      root, out_layer, i, images, Warp, tmap, tbars); // nop for now
-	LookForAndTransform("annotations-bookmarks.json", root, out_layer, i, Triples, relevant_images, images, imap, nx, ny, bookmarks);
+	LookForAndTransform("annotations-bookmarks.json", root, out_layer, i, images, Warp, tmap, bookmarks);
 	LookForAndTransform("annotations-synapse.json",   root, out_layer, i, images, Warp, tmap, tbars);
 	LookForAndTransform("session-metadata.json",      root, out_layer, i, images, Warp, tmap, tbars); // nop for now.
 	}
@@ -3170,8 +3602,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	 tbars[i].status.c_str(), tbars[i].confidence, tbars[i].body_id, tbars[i].pt.x, ny-tbars[i].pt.y, tbars[i].z);
 	for(int j=0; j<tbars[i].partners.size(); j++) {
 	    bool last = (j == tbars[i].partners.size()-1);
-	    fprintf(fw, " {\"confidence\": %f, \"location\": [%f, %f, %d]}%c\n",
-	     tbars[i].partners[j].confidence, tbars[i].partners[j].pt.x, ny-tbars[i].partners[j].pt.y, tbars[i].partners[j].z,
+	    fprintf(fw, " {\"confidence\": %f, \"body ID\": %d, \"location\": [%f, %f, %d]}%c\n",
+	     tbars[i].partners[j].confidence, tbars[i].partners[j].body_id, tbars[i].partners[j].pt.x, ny-tbars[i].partners[j].pt.y, tbars[i].partners[j].z,
 	     last ? ' ': ',' );  // comma separated if not last
 	    }
 	bool last = (i == tbars.size()-1);

@@ -724,6 +724,146 @@ void VectorDblToTif8(
 }
 
 /* --------------------------------------------------------------- */
+/* Raster8FromPng ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+uint8* Raster8FromPng(
+	const char*	name,
+	uint32		&w,
+	uint32		&h,
+	FILE*		flog )
+{
+	FILE*		f			= NULL;
+	png_structp	png_ptr		= NULL;
+	png_infop	info_ptr	= NULL;
+	uint8*		raster		= NULL;
+	png_byte	header[8];
+	png_uint_32	wi, hi;
+	int			bit_depth, color_type, x, y, n, ok = false;
+
+// open
+	if( !(f = fopen( name, "rb" )) ) {
+		fprintf( flog, "PNG(8): Cannot open [%s] for read.\n", name );
+		goto exit;
+	}
+
+// verify
+	fread( header, sizeof(header), 1, f );
+
+	if( png_sig_cmp( header, 0, 8 ) ) {
+		fprintf( flog, "PNG(8): Bad header [%s].\n", name );
+		goto exit;
+	}
+
+// inits
+	png_ptr = png_create_read_struct(
+				PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
+
+	if( !png_ptr ) {
+		fprintf( flog,
+		"PNG(8): Failed read_struct alloc [%s].\n", name );
+		goto exit;
+	}
+
+	info_ptr = png_create_info_struct( png_ptr );
+
+	if( !info_ptr ) {
+		fprintf( flog,
+		"PNG(8): Failed info_struct alloc [%s].\n", name );
+		goto exit;
+	}
+
+	png_init_io( png_ptr, f );
+	png_set_sig_bytes( png_ptr, 8 );
+
+// read
+	png_read_png( png_ptr, info_ptr, PNG_TRANSFORM_PACKING, NULL );
+
+// format
+	png_get_IHDR( png_ptr, info_ptr,
+		&wi, &hi, &bit_depth, &color_type, NULL, NULL, NULL );
+
+	w = wi;
+	h = hi;
+
+// get rows
+	raster = (uint8*)malloc( w * h * sizeof(uint8) );
+
+	if( !raster ) {
+		fprintf( flog, "PNG(8): Failed raster alloc [%s].\n", name );
+		goto exit;
+	}
+
+	if( color_type == PNG_COLOR_TYPE_GRAY ) {
+
+		if( bit_depth == 16 ) {
+
+			png_uint_16**	row_ptrs = (png_uint_16**)
+							png_get_rows( png_ptr, info_ptr );
+
+			n = 0;
+
+			for( y = 0; y < h; ++y ) {
+
+				for( x = 0; x < w; ++x )
+					raster[n++] = row_ptrs[y][x];
+			}
+		}
+		else {	// 1, 2, 4, 8
+
+			png_byte**	row_ptrs = (png_byte**)
+						png_get_rows( png_ptr, info_ptr );
+
+			n = 0;
+
+			for( y = 0; y < h; ++y ) {
+
+				for( x = 0; x < w; ++x )
+					raster[n++] = row_ptrs[y][x];
+			}
+		}
+	}
+	else {
+
+		// Note:
+		// png_uint_32 is typedef'd as unsigned long
+		// which is 64 bits on the cluster
+
+		uint32**	row_ptrs = (uint32**)
+					png_get_rows( png_ptr, info_ptr );
+
+		n = 0;
+
+		for( y = 0; y < h; ++y ) {
+
+			for( x = 0; x < w; ++x )
+				raster[n++] = row_ptrs[y][x];
+		}
+	}
+
+// report success
+	ok = true;
+
+// done
+exit:
+	if( png_ptr )
+		png_destroy_read_struct( &png_ptr, &info_ptr, NULL );
+
+	if( f )
+		fclose( f );
+
+	if( !ok ) {
+
+		if( raster ) {
+			free( raster );
+			raster = NULL;
+		}
+	}
+
+	return raster;
+}
+
+/* --------------------------------------------------------------- */
 /* Raster16FromPng ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -864,10 +1004,10 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
-/* Raster8FromPng ------------------------------------------------ */
+/* Raster32FromPng ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-uint8* Raster8FromPng(
+uint32* Raster32FromPng(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,
@@ -876,14 +1016,14 @@ uint8* Raster8FromPng(
 	FILE*		f			= NULL;
 	png_structp	png_ptr		= NULL;
 	png_infop	info_ptr	= NULL;
-	uint8*		raster		= NULL;
+	uint32*		raster		= NULL;
 	png_byte	header[8];
 	png_uint_32	wi, hi;
 	int			bit_depth, color_type, x, y, n, ok = false;
 
 // open
 	if( !(f = fopen( name, "rb" )) ) {
-		fprintf( flog, "PNG(8): Cannot open [%s] for read.\n", name );
+		fprintf( flog, "PNG(32): Cannot open [%s] for read.\n", name );
 		goto exit;
 	}
 
@@ -891,7 +1031,7 @@ uint8* Raster8FromPng(
 	fread( header, sizeof(header), 1, f );
 
 	if( png_sig_cmp( header, 0, 8 ) ) {
-		fprintf( flog, "PNG(8): Bad header [%s].\n", name );
+		fprintf( flog, "PNG(32): Bad header [%s].\n", name );
 		goto exit;
 	}
 
@@ -901,7 +1041,7 @@ uint8* Raster8FromPng(
 
 	if( !png_ptr ) {
 		fprintf( flog,
-		"PNG(8): Failed read_struct alloc [%s].\n", name );
+		"PNG(32): Failed read_struct alloc [%s].\n", name );
 		goto exit;
 	}
 
@@ -909,7 +1049,7 @@ uint8* Raster8FromPng(
 
 	if( !info_ptr ) {
 		fprintf( flog,
-		"PNG(8): Failed info_struct alloc [%s].\n", name );
+		"PNG(32): Failed info_struct alloc [%s].\n", name );
 		goto exit;
 	}
 
@@ -927,10 +1067,10 @@ uint8* Raster8FromPng(
 	h = hi;
 
 // get rows
-	raster = (uint8*)malloc( w * h * sizeof(uint8) );
+	raster = (uint32*)malloc( w * h * sizeof(uint32) );
 
 	if( !raster ) {
-		fprintf( flog, "PNG(8): Failed raster alloc [%s].\n", name );
+		fprintf( flog, "PNG(32): Failed raster alloc [%s].\n", name );
 		goto exit;
 	}
 
