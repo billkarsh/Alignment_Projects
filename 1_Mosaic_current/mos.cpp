@@ -2229,13 +2229,25 @@ CLineScan		*ls = new CLineScan;
 		}
 		else if( !strncmp( ls->line, "TRANSFORM", 9 ) ) {
 
-			char	name[1024];
+			char	name[2048];
 			double	a, b, c, d, e, f;
+			int		nread;
 
-			if( 7 != sscanf(
-				ls->line + 9, "%s %lf %lf %lf %lf %lf %lf",
-				name, &a, &b, &c, &d, &e, &f ) ) {
+			// newer format has '' delimited name
+			// older just space separated
 
+			if( ls->line[10] == '\'' ) {
+				nread = sscanf(
+				ls->line + 10, "'%[^']' %lf %lf %lf %lf %lf %lf",
+				name, &a, &b, &c, &d, &e, &f );
+			}
+			else {
+				nread = sscanf(
+				ls->line + 10, "%s %lf %lf %lf %lf %lf %lf",
+				name, &a, &b, &c, &d, &e, &f );
+			}
+
+			if( 7 != nread ) {
 				printf( "Bad TRANSFORM statement '%s'.", ls->line );
 				exit( 42 );
 			}
@@ -2369,7 +2381,7 @@ CLineScan		*ls = new CLineScan;
 			double	a, b, c, d;
 			int		za, zc;
 
-			if( 6 != sscanf(ls->line + 7,
+			if( 6 != sscanf( ls->line + 7,
 				"%d %lf %lf %d %lf %lf",
 				&za, &a, &b, &zc, &c, &d ) ) {
 

@@ -2347,7 +2347,7 @@ static void WriteTransforms(
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5] );
 
-		fprintf( FOUT, "TRANSFORM %s::%d %f %f %f %f %f %f\n",
+		fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
 		I.name.c_str(), I.rgn,
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5] );

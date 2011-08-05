@@ -262,7 +262,7 @@ bool ReadTil2Img(
 				continue;
 
 			sscanf( LS.line, "%d\t%lf\t%lf\t%lf"
-			"\t%lf\t%lf\t%lf\t%s",
+			"\t%lf\t%lf\t%lf\t%[^\t\n]",
 			&t2i.tile,
 			&t2i.T.t[0], &t2i.T.t[1], &t2i.T.t[2],
 			&t2i.T.t[3], &t2i.T.t[4], &t2i.T.t[5],

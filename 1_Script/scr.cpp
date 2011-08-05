@@ -161,7 +161,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
 			;
 		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
+			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
 		}
 	}
@@ -188,7 +188,7 @@ int CArgs_scr::DecodeID( const char *name )
 	}
 
 	if( !re_id.Decode( id, ++s ) ) {
-		printf( "No tile-id found in '%s'.\n", s );
+		printf( "No tile-id found in [%s].\n", s );
 		exit( 42 );
 	}
 
@@ -923,6 +923,29 @@ static double ABOlap( const Picture &a, const Picture &b )
 }
 
 /* --------------------------------------------------------------- */
+/* ConvertSpaces ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Make files have targets, dependencies and rules. Make can not
+// scan dependency strings that contain embedded spaces. However,
+// it works if " " is substituted by "\ ".
+//
+// Note too, that make does not like dependency strings to be
+// enclosed in any quotes, so that will not solve this issue.
+//
+static void ConvertSpaces( char *out, const char *in )
+{
+	while( *out++ = *in++ ) {
+
+		if( in[-1] == ' ' ) {
+
+			out[-1]	= '\\';
+			*out++	= ' ';
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* WriteThumbMakeFile -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1085,8 +1108,11 @@ static void Make_MakeFM(
 	for( int i = is0; i < isN; ++i ) {
 
 		const Picture&	P = vp[i];
+		char dep[2048];
 
-		fprintf( f, "%d/fm.tif: %s\n", P.id, P.fname.c_str() );
+		ConvertSpaces( dep, P.fname.c_str() );
+
+		fprintf( f, "%d/fm.tif: %s\n", P.id, dep );
 
 		fprintf( f, "\ttiny %d '%s' %d/fm.tif ${EXTRA}\n",
 		P.z, P.fname.c_str(), P.id );
@@ -1196,6 +1222,10 @@ static void WriteMakeFile(
 
 			const Picture&	A = vp[P[i].a];
 			const Picture&	B = vp[P[i].b];
+			char depA[2048], depB[2048];
+
+			ConvertSpaces( depA, A.fname.c_str() );
+			ConvertSpaces( depB, B.fname.c_str() );
 
 			fprintf( f,
 			"%d/%d.%d.map.tif:"
@@ -1203,7 +1233,7 @@ static void WriteMakeFile(
 			" ../%d/%d/fm.tif"
 			" ../%d/%d/fm.tif\n",
 			A.id, B.z, B.id,
-			A.fname.c_str(), B.fname.c_str(),
+			depA, depB,
 			A.z, A.id,
 			B.z, B.id );
 
