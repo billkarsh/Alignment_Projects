@@ -75,7 +75,7 @@ static double	halfAng;
 static double	scale		= 1.0;
 static double	xscale		= 1.0;
 static double	yscale		= 1.0;
-static double	skew		= 1.0;
+static double	skew		= 0.0;
 static double	qthresh;
 static double	rthresh;
 
