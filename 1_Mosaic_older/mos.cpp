@@ -934,7 +934,6 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    RasterFree(images[i].raster);
 	if( images[i].foldmap != NULL )
 	    RasterFree(images[i].foldmap);
-        images[i].raster = images[i].foldmap = NULL;
 	if( images[i].spmap != NULL && images[i].spmap != BlankSPMap )
 	     free(images[i].spmap);
 	}

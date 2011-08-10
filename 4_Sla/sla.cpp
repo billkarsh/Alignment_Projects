@@ -851,7 +851,6 @@ for(i=0; i<vp.size(); i++) {
         for(int j=0; j<i; j++) {
             if( vp[j].raster != NULL )
 	        RasterFree(vp[j].raster);
-			vp[j].raster = NULL;
 	        vp[j].fft_of_frame.clear();
 	    }
         }

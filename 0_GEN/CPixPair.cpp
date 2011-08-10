@@ -202,11 +202,9 @@ bool PixPair::Load(
 
 	LegPolyFlatten( _avf, aras, wf, hf, order );
 	RasterFree( aras );
-	aras = NULL;
 
 	LegPolyFlatten( _bvf, bras, wf, hf, order );
 	RasterFree( bras );
-	bras = NULL;
 
 	avs_vfy	= avs_aln = avf_vfy	= avf_aln = &_avf;
 	bvs_vfy	= bvs_aln = bvf_vfy	= bvf_aln = &_bvf;

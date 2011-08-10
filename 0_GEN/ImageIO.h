@@ -14,7 +14,9 @@
 /* --------------------------------------------------------------- */
 
 void* RasterAlloc( unsigned long bytes );
-void  RasterFree( void* raster );
+
+#define	RasterFree( a )	_RasterFree( (void**)&(a) )
+void _RasterFree( void** praster );
 
 uint8* Raster8FromAny(
 	const char*	name,

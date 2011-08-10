@@ -2465,7 +2465,7 @@ if( xmin > BIG/2 ) {
     }
 printf("Bounds of global image are x=[%f %f] y=[%f %f]\n", xmin, xmax, ymin, ymax);
 
-// Modify all transformations so the min is (0,0).  , then apply x0,y0.
+// Modify all transformations so the min is (0,0) then apply x0,y0.
 // Always change by an integer amount, to make later layer-to-layer alignment easier
 int xfl = int(floor(xmin));
 int yfl = int(floor(ymin));
@@ -2538,8 +2538,8 @@ for(int i=0; i<images.size(); i++) {
     }
 printf("Image space delta is %f\n", delta_image_space);
 
-// Since some (many) tiles will not have super-pixel maps, create a single blank map they all
-// can point to.
+// Since some (many) tiles will not have super-pixel maps,
+// create a single blank map they all can point to.
 // Likewise for boundary maps.
 uint16 *BlankSPMap = (uint16*)malloc(w*h*sizeof(uint16));
 memset( BlankSPMap, 0, w * h * sizeof(uint16) );
@@ -2564,16 +2564,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    RasterFree( images[i].raster );
 	if( images[i].foldmap != NULL )
 	    RasterFree( images[i].foldmap );
-        images[i].raster  = NULL;
-	images[i].foldmap = NULL;
 	if( images[i].spmap != NULL && images[i].spmap != BlankSPMap ) {
 	     free(images[i].spmap);
-             images[i].spmap = NULL;   // don't keep a pointer to a free'd item.
-	     }
+         images[i].spmap = NULL;   // don't keep a pointer to a free'd item.
+	}
 	if( images[i].bmap != NULL && images[i].bmap != BlankBMap ) {
 	    free(images[i].bmap);      // and previous boundary maps
-            images[i].bmap = NULL;
-            }
+        images[i].bmap = NULL;
+    }
 	}
     // Find the relevant images, and read their data.
     vector<int> relevant_images;

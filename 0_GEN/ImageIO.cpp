@@ -38,9 +38,12 @@ void* RasterAlloc( unsigned long bytes )
 /* RasterFree ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void RasterFree( void* raster )
+void _RasterFree( void** praster )
 {
-	_TIFFfree( raster );
+	if( *praster ) {
+		_TIFFfree( *praster );
+		*praster = NULL;
+	}
 }
 
 /* --------------------------------------------------------------- */
