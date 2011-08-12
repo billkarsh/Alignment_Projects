@@ -2,7 +2,6 @@
 // Make a mosaic
 
 
-#include	"Cmdline.h"
 #include	"PipeFiles.h"
 #include	"LinEqu.h"
 #include	"Disk.h"
@@ -86,216 +85,19 @@ public:
 };
 
 /* --------------------------------------------------------------- */
-/* CArgs_mos ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-class CArgs_mos {
-
-public:
-	double	DontMoveStrength;
-	char	*infile,
-			*fold_dir,
-			*region_dir,
-			*gray_dir,
-			*sp_dir,
-			*inv_dir,
-			*rav_dir,
-			*bmap_dir;
-	int		scale,
-			x0, y0, xsize, ysize,
-			lspec1, lspec2;
-	bool	Debug,
-			Warp,
-			FoldMasks,
-			Annotate,
-			make_tiles,
-			make_flat,
-			make_map,
-			matlab_order,
-			RenumberSuperPixels;
-
-public:
-	CArgs_mos()
-	{
-		DontMoveStrength	= 0.01;
-		infile				= NULL;
-		fold_dir			= ".";		// prepended fm loc
-		region_dir			= ".";		// where results go
-		gray_dir			= ".";		// where gray img go
-		sp_dir				= ".";		// where super-pixel maps go
-		inv_dir				= ".";		// where inv-map data go
-		rav_dir				= ".";		// where raveler tiles go
-		bmap_dir			= ".";		// where bndry maps go
-		scale				= 1;		// scale down by this
-		x0					= 0;		// user's output origin
-		y0					= 0;
-		xsize				= -1;		// user's output size
-		ysize				= -1;
-		lspec1				= -1;		// user's layer range
-		lspec2				= -1;
-		Debug				= false;
-		Warp				= false;	// seam healing
-		FoldMasks			= true;
-		Annotate			= false;
-		make_tiles			= false;	// for raveler
-		make_flat			= true;		// 'before' montages
-		make_map			= true;		// how img generated
-		matlab_order		= false;	// matlab or closeness order
-		RenumberSuperPixels	= true;
-	};
-
-	void SetCmdLine( int argc, char* argv[] );
-};
-
-/* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// dp					debug print
-// nwarn_edge_interp	interpolation skipped: max on region edge
-// nwarn_bad_corr		could not find good correlation
-// nwarn_good_on_edge	worst case: good corr, but on edge
-//
-static CArgs_mos	gArgs;
-static FILE			*of;
-static bool			dp = false;
-static int			nwarn_edge_interp = 0;
-static int			nwarn_bad_corr = 0;
-static int			nwarn_good_on_edge = 0;
+static FILE *of;
+static bool dp = false;				// debug print
+static int nwarn_edge_interp = 0;	// interpolation cannot be done since max is on edge of region
+static int nwarn_bad_corr = 0;		// could not find a good correlation
+static int nwarn_good_on_edge = 0;	// worst case - good correlation, but on edge
 
 
 
 
 
-
-/* --------------------------------------------------------------- */
-/* SetCmdLine ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void CArgs_mos::SetCmdLine( int argc, char* argv[] )
-{
-// log start time
-
-	time_t	t0 = time( NULL );
-	char	atime[32];
-
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
-
-	printf( "Start: %s ", atime );
-
-// parse command line args
-
-	if( argc < 2 ) {
-		printf( "Usage: mos <simple-file>"
-		" [xmin,ymin,dx,dy] [minlayer,maxlayer] [options].\n" );
-		exit( 42 );
-	}
-
-	vector<char*>	noa;
-
-	for( int i = 1; i < argc; ++i ) {
-
-		// echo to log
-		printf( "%s ", argv[i] );
-
-		if( argv[i][0] != '-' ) {
-
-			if( !infile )
-				infile = argv[i];
-			else
-				noa.push_back( argv[i] );
-		}
-		else if( GetArg( &DontMoveStrength, "-dms=%lf", argv[i] ) )
-			;
-		else if( GetArgStr( fold_dir, "-fold_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( region_dir, "-region_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( gray_dir, "-gray_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( gray_dir, "-grey_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( sp_dir, "-sp_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( inv_dir, "-inv_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( rav_dir, "-rav_dir=", argv[i] ) )
-			;
-		else if( GetArgStr( bmap_dir, "-bmap_dir=", argv[i] ) )
-			;
-		else if( GetArg( &scale, "-s=%d", argv[i] ) )
-			;
-		else if( IsArg( "-d", argv[i] ) )
-			Debug = true;
-		else if( IsArg( "-warp", argv[i] ) )
-			Warp = true;
-		else if( IsArg( "-nf", argv[i] ) )
-			FoldMasks = false;
-		else if( IsArg( "-a", argv[i] ) )
-			Annotate = true;
-		else if( IsArg( "-tiles", argv[i] ) )
-			make_tiles = true;
-		else if( IsArg( "-noflat", argv[i] ) )
-			make_flat = false;
-		else if( IsArg( "-nomap", argv[i] ) )
-			make_map = false;
-		else if( IsArg( "-matlab", argv[i] ) )
-			matlab_order = true;
-		else if( IsArg( "-drn", argv[i] ) )
-			RenumberSuperPixels = false;
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
-
-	printf( "\n" );
-
-	if( Warp )
-		printf( "Don't move strength = %g.\n", DontMoveStrength );
-
-// user region
-
-	if( noa.size() ) {
-
-		if( 4 != sscanf( noa[0], "%d,%d,%d,%d",
-					&x0, &y0, &xsize, &ysize ) ) {
-
-			printf( "Expected [xmin,ymin,dx,dy], got [%s]\n", noa[0] );
-			exit( 42 );
-		}
-
-		printf( "[0,0,dx,dy] = [%d, %d, %d, %d].\n",
-		x0, y0, xsize, ysize );
-	}
-
-// layer range
-
-	if( noa.size() > 1 ) {
-
-		if( 2 != sscanf( noa[1], "%d,%d", &lspec1, &lspec2 ) ) {
-
-			printf( "Expected [minlyr,maxlyr], got [%s]\n", noa[1] );
-			exit( 42 );
-		}
-
-		printf( "Layer range = [%d, %d].\n", lspec1, lspec2 );
-	}
-
-// directories
-
-	printf( "Fold mask   directory = '%s'\n",   fold_dir );
-	printf( "Region      directory = '%s'\n", region_dir );
-	printf( "Gray scale  directory = '%s'\n",   gray_dir );
-	printf( "Super-pixel directory = '%s'\n",     sp_dir );
-	printf( "Inverse-map directory = '%s'\n",    inv_dir );
-	printf( "Raveler     directory = '%s'\n",    rav_dir );
-	printf( "Boundary    directory = '%s'\n",    bmap_dir );
-
-	printf( "\n" );
-	fflush( stdout );
-}
 
 /* --------------------------------------------------------------- */
 /* FileNameToLayerNumber ----------------------------------------- */
@@ -443,7 +245,11 @@ static void OffsetCoords(
 	vector<double>	&x1,
 	vector<double>	&x2,
 	vector<double>	&y1,
-	vector<double>	&y2 )
+	vector<double>	&y2,
+	int				x0,
+	int				y0,
+	int				xsize,
+	int				ysize )
 {
 	int xfl = int(floor( xmin ));
 	int yfl = int(floor( ymin ));
@@ -458,15 +264,15 @@ static void OffsetCoords(
 	printf( "Bounds of global image: x=[%f %f] y=[%f %f].\n",
 	xmin, xmax, ymin, ymax );
 
-	if( gArgs.xsize != -1 ) {
-		xmax = gArgs.xsize;
-		ymax = gArgs.ysize;
+	if( xsize != -1 ) {
+		xmax = xsize;
+		ymax = ysize;
 	}
 
 // transforms
 
-	xfl = -(xfl + gArgs.x0);
-	yfl = -(yfl + gArgs.y0);
+	xfl = -(xfl + x0);
+	yfl = -(yfl + y0);
 
 	int	ni = images.size();
 
@@ -1704,7 +1510,7 @@ for(int x = 0; x<w; x++)
 // Condenses 4 tiles into 1, for images.
 //
 static int WriteSummaryTile(
-	const char*	rav_name,
+	string		rav_name,
 	int			section,
 	int			level,
 	int			row,
@@ -1721,13 +1527,13 @@ if( dir != 0 )                    // but otherwise, one per thousand layers
     sprintf(ds, "%d/", dir*1000);// for example, layer 1761 would be in directory "1000/"
 
 //Tiles are named after compass directions on the screen (sw= southwest, for example)
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name, level-1, row, col, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row, col, ds, section);
 uint8* sw = Raster8FromPng(fname, w1, h1);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name, level-1, row+1, col, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row+1, col, ds, section);
 uint8* nw = Raster8FromPng(fname, w2, h2);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name, level-1, row, col+1, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row, col+1, ds, section);
 uint8* se = Raster8FromPng(fname, w3, h3);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name, level-1, row+1, col+1, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%s%03d.png", rav_name.c_str(), level-1, row+1, col+1, ds, section);
 uint8* ne = Raster8FromPng(fname, w4, h4);
 if( sw == NULL )  // if even the base tile does not exist, don't write anything.
     return 0;
@@ -1749,20 +1555,20 @@ CopyRaster(raster, w, h, 0,    0, nw , w2, h2);
 CopyRaster(raster, w, h, half, (new_h-h1)/2, se , w3, h3);
 CopyRaster(raster, w, h, half, 0, ne, w4, h4);
 // Make sure the level, the row, and the colum exist
-sprintf(fname, "%s/tiles/1024/%d", rav_name, level);
+sprintf(fname, "%s/tiles/1024/%d", rav_name.c_str(), level);
 MakeDirExist(fname, dir_cache);
-sprintf(fname, "%s/tiles/1024/%d/%d", rav_name, level, row/2);
+sprintf(fname, "%s/tiles/1024/%d/%d", rav_name.c_str(), level, row/2);
 MakeDirExist(fname, dir_cache);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d", rav_name, level, row/2, col/2);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d", rav_name.c_str(), level, row/2, col/2);
 MakeDirExist(fname, dir_cache);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/g", rav_name, level, row/2, col/2);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/g", rav_name.c_str(), level, row/2, col/2);
 MakeDirExist(fname, dir_cache);
 if( dir == 0 ) // first layers are written in the root directory
-    sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%03d.png", rav_name, level, row/2, col/2, section);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%03d.png", rav_name.c_str(), level, row/2, col/2, section);
 else { // need another layer of directories
-    sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%d", rav_name, level, row/2, col/2, dir*1000);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%d", rav_name.c_str(), level, row/2, col/2, dir*1000);
     MakeDirExist(fname, dir_cache);
-    sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%d/%03d.png", rav_name, level, row/2, col/2, dir*1000, section);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/g/%d/%03d.png", rav_name.c_str(), level, row/2, col/2, dir*1000, section);
     }
 printf("writing tile '%s', %d by %d\n", fname, w, h);
 Raster8ToPng8( fname, raster, w, h );
@@ -1777,7 +1583,7 @@ return 1;
 // Condenses 4 tiles into 1, for SuperPixels.
 //
 static int WriteSummaryTileSP(
-	const char*	rav_name,
+	string		rav_name,
 	int			section,
 	int			level,
 	int			row,
@@ -1794,13 +1600,13 @@ if( dir != 0 )                    // but otherwise, one per thousand layers
     sprintf(ds, "%d/", dir*1000);// for example, layer 1761 would be in directory "1000/"
 
 //Tiles are named after compass directions on the screen (sw= southwest, for example)
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name, level-1, row, col, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row, col, ds, section);
 uint32* sw = Raster32FromPng(fname, w1, h1);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name, level-1, row+1, col, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row+1, col, ds, section);
 uint32* nw = Raster32FromPng(fname, w2, h2);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name, level-1, row, col+1, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row, col+1, ds, section);
 uint32* se = Raster32FromPng(fname, w3, h3);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name, level-1, row+1, col+1, ds, section);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%s%03d.png", rav_name.c_str(), level-1, row+1, col+1, ds, section);
 uint32* ne = Raster32FromPng(fname, w4, h4);
 if( sw == NULL )  // if even the base tile does not exist, don't write anything.
     return 0;
@@ -1822,20 +1628,20 @@ CopyRasterSP(raster, w, h, 0,    0, nw , w2, h2);
 CopyRasterSP(raster, w, h, half, (new_h-h1)/2, se , w3, h3);
 CopyRasterSP(raster, w, h, half, 0, ne, w4, h4);
 // Make sure the level, the row, and the column exist
-sprintf(fname, "%s/tiles/1024/%d", rav_name, level);
+sprintf(fname, "%s/tiles/1024/%d", rav_name.c_str(), level);
 MakeDirExist(fname, dir_cache);
-sprintf(fname, "%s/tiles/1024/%d/%d", rav_name, level, row/2);
+sprintf(fname, "%s/tiles/1024/%d/%d", rav_name.c_str(), level, row/2);
 MakeDirExist(fname, dir_cache);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d", rav_name, level, row/2, col/2);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d", rav_name.c_str(), level, row/2, col/2);
 MakeDirExist(fname, dir_cache);
-sprintf(fname, "%s/tiles/1024/%d/%d/%d/s", rav_name, level, row/2, col/2);
+sprintf(fname, "%s/tiles/1024/%d/%d/%d/s", rav_name.c_str(), level, row/2, col/2);
 MakeDirExist(fname, dir_cache);
 if( dir == 0 ) // first layers are written in the root directory
-    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%03d.png", rav_name, level, row/2, col/2, section);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%03d.png", rav_name.c_str(), level, row/2, col/2, section);
 else { // need another layer of directories
-    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%d", rav_name, level, row/2, col/2, dir*1000);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%d", rav_name.c_str(), level, row/2, col/2, dir*1000);
     MakeDirExist(fname, dir_cache);
-    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%d/%03d.png", rav_name, level, row/2, col/2, dir*1000, section);
+    sprintf(fname, "%s/tiles/1024/%d/%d/%d/s/%d/%03d.png", rav_name.c_str(), level, row/2, col/2, dir*1000, section);
     }
 printf("SP:writing tile '%s', %d by %d\n", fname, w, h);
 Raster32ToPngRGBA( fname, raster, w, h );
@@ -1850,7 +1656,7 @@ return 1;
 //Create smaller tiles, for images.
 //
 static void CreateLevelNTiles(
-	const char*	rav_name,
+	string		rav_name,
 	int			section,
 	set<string>	&dir_cache )
 {
@@ -1880,7 +1686,7 @@ for(int level=1; level < 20 && at_this_level > 0; level++) {  // enough for tril
 //Create smaller tiles, for SuperPixels.
 //
 void CreateLevelNTilesSP(
-	const char*	rav_name,
+	string		rav_name,
 	int			section,
 	set<string>	&dir_cache )
 {
@@ -1962,7 +1768,7 @@ static void UpdateMetaData(
 // Writes the lowest level image tiles.
 //
 static int WriteImageTiles(
-	const char*		rav_name,
+	const string	rav_name,
 	int				section,
 	const uint8		*image,
 	int				w,
@@ -2025,7 +1831,7 @@ return 0;
 // Writes the lowest level SP tiles.
 //
 static int WriteSPTiles(
-	const char*		rav_name,
+	const string	rav_name,
 	int				section,
 	uint32			*image,
 	int				w,
@@ -2398,13 +2204,80 @@ return true;
 
 int main( int argc, char **argv )
 {
-/* ------------------ */
-/* Parse command line */
-/* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+bool Debug = false;
+bool Warp = false;      // generate warped images, that better align at seams?
+bool FoldMasks = true;  // by default, use fold masks
+double DontMoveStrength = 0.01;  // default value
+bool Annotate = false;
+bool make_tiles = false;
+bool make_flat  = true;       // create a flat output image
+bool make_map = true;         // create a map saying how image was generated?
+bool matlab_order = false;    // render tiles in matlab order, not by closeness
+bool RenumberSuperPixels = true; // by default, renumber these
+string fold_dir   = ".";      // pre-pend this to fold mask locations
+string region_dir = ".";      // where results go
+string gray_dir   = ".";      // where gray scale images go
+string sp_dir     = ".";      // where super-pixel maps go
+string inv_dir    = ".";      // where information needed to invert transformations
+                              // (map back to tiles) goes.
+string bmap_dir   = ".";      // boundary maps go here
+string rav_dir    = ".";      // Where to write the raveler tiles.
+int scale = 1;                // scale everything down by a factor of 'scale'
 
-
+vector<char *>noa;  // non-option arguments
+for(int i=1; i<argc; i++) {
+    // process arguments here
+    if( argv[i][0] != '-' )
+	noa.push_back(argv[i]);
+    else if( strcmp(argv[i],"-d") == 0 )
+	Debug = true;
+    else if( strncmp(argv[i],"-warp", 5) == 0 )
+	Warp = true;
+    else if( strcmp(argv[i],"-tiles") == 0 )
+	make_tiles = true;
+    else if( strcmp(argv[i],"-noflat") == 0 )
+	make_flat = false;
+    else if( strcmp(argv[i],"-nomap") == 0 )
+	make_map = false;
+    else if( strcmp(argv[i], "-nf") == 0 )
+	FoldMasks = false;
+    else if( strcmp(argv[i], "-a") == 0 )
+	Annotate = true;
+    else if( strcmp(argv[i], "-matlab") == 0 )
+	matlab_order = true;
+    else if( strcmp(argv[i], "-drn") == 0 )
+	RenumberSuperPixels = false;
+    else if( strncmp(argv[i], "-dms=",5) == 0 ) {
+	DontMoveStrength = atof(argv[i]+5);
+	}
+    else if( strncmp(argv[i], "-fold_dir=",10) == 0 )
+        fold_dir = string(argv[i]+10);
+    else if( strncmp(argv[i], "-region_dir=",12) == 0 )
+        region_dir = string(argv[i]+12);
+    else if( strncmp(argv[i], "-gray_dir=",10) == 0 )
+        gray_dir = string(argv[i]+10);
+    else if( strncmp(argv[i], "-grey_dir=",10) == 0 )   // both spellings of grey, just in case
+        gray_dir = string(argv[i]+10);
+    else if( strncmp(argv[i], "-sp_dir=",8) == 0 )
+        sp_dir = string(argv[i]+8);
+    else if( strncmp(argv[i], "-inv_dir=",9) == 0 )
+        inv_dir = string(argv[i]+9);
+    else if( strncmp(argv[i], "-rav_dir=",9) == 0 )
+        rav_dir = string(argv[i]+9);
+    else if( strncmp(argv[i], "-bmap_dir=",10) == 0 )
+        inv_dir = string(argv[i]+10);
+    else if( strncmp(argv[i], "-s=",3) == 0 )
+        scale = atoi(argv[i]+3);
+    else
+	printf("Ignored option '%s'\n", argv[i]);
+    }
+if( Warp )
+    printf("Don't Move Strength = %f\n", DontMoveStrength);
+if( noa.size() < 1 ) {
+    printf("Usage: mos <simple file> [region xmin,ymin,dx,dy] [minlayer,maxlayer] [options]\n");
+    exit( 42 );
+    }
 
 vector<char*>	dnames;   // directory names
 vector<int>		lnums;    // parallel vector of layer numbers
@@ -2414,6 +2287,28 @@ vector<image> images;
 map<string,int> imap;  // map of image names
 uint32 w=0,h=0;        // size of each sub-image
 
+int x0=0,y0=0;           // where to start output image
+int xsize=-1,ysize=-1;;  // size of output image, if specified
+if( noa.size() >= 2 ) {
+    if( sscanf(noa[1],"%d,%d,%d,%d", &x0, &y0, &xsize, &ysize) != 4 ) {
+	printf("Expected x0,y0,xsize,ysize, got '%s'\n", noa[1]);
+	exit( 42 );
+	}
+    }
+int lspec1=-1, lspec2;   //layers specified by the user
+if( noa.size() >= 3 ) {
+    if( sscanf(noa[2],"%d,%d", &lspec1, &lspec2) != 2 ) {
+	printf("Expected min,max layers, got '%s'\n", noa[2]);
+	exit( 42 );
+	}
+    }
+printf( "layer range = [%d, %d].\n", lspec1, lspec2 );
+printf( "Fold mask   directory = '%s'\n",   fold_dir.c_str() );
+printf( "Region      directory = '%s'\n", region_dir.c_str() );
+printf( "Gray scale  directory = '%s'\n",   gray_dir.c_str() );
+printf( "Super-pixel directory = '%s'\n",     sp_dir.c_str() );
+printf( "Inverse-map directory = '%s'\n",    inv_dir.c_str() );
+printf( "Raveler     directory = '%s'\n",    rav_dir.c_str() );
 
 // read the file.  Here we assume all images are the same size, so if w and/or h are non-zero, we don't really need to read the
 // images, since we already read at least one.
@@ -2422,7 +2317,7 @@ double	xmin =  BIG, ymin =  BIG;
 double	xmax = -BIG, ymax = -BIG;
 vector<double>	x1, y1, x2, y2;
 vector<int>		z1, z2;
-FILE			*fp = FileOpenOrDie( gArgs.infile, "r" );
+FILE			*fp = FileOpenOrDie( noa[0], "r" );
 CLineScan		*ls = new CLineScan;
 
 	for(;;) {
@@ -2459,8 +2354,8 @@ CLineScan		*ls = new CLineScan;
 			if( !w ) {
 				uint8	*r = Raster8FromAny( tname, w, h, stdout );
 				RasterFree( r );
-				w /= gArgs.scale;
-				h /= gArgs.scale;
+				w /= scale;
+				h /= scale;
 			}
 
 			image ii;
@@ -2479,8 +2374,8 @@ CLineScan		*ls = new CLineScan;
 
 			ZIDFromFMPath( ii.layer, id_dum, mname );
 
-			if( gArgs.lspec1 < 0 ||
-				(gArgs.lspec1 <= ii.layer && ii.layer <= gArgs.lspec2) ) {
+			if( lspec1 < 0 ||
+				(lspec1 <= ii.layer && ii.layer <= lspec2) ) {
 
 				// Point at drawing (d-suffixed) foldmap if exists
 
@@ -2532,7 +2427,7 @@ CLineScan		*ls = new CLineScan;
 				exit( 42 );
 			}
 
-			TForm	tf( a, b, c/gArgs.scale, d, e, f/gArgs.scale );
+			TForm	tf( a, b, c/scale, d, e, f/scale );
 			char	*fname = strtok( name, " ':" );
 
 			//printf("File '%s'\n", fname);
@@ -2595,8 +2490,8 @@ CLineScan		*ls = new CLineScan;
 				else
 					layer = FileNameToLayerNumber( dnames, lnums, fname );
 
-				if( gArgs.lspec1 < 0 ||
-					(gArgs.lspec1 <= layer && layer <= gArgs.lspec2) ) {
+				if( lspec1 < 0 ||
+					(lspec1 <= layer && layer <= lspec2) ) {
 
 					printf(
 					"File in SPMAP has no image - ignored.\n" );
@@ -2641,8 +2536,8 @@ CLineScan		*ls = new CLineScan;
 				else
 					layer = FileNameToLayerNumber( dnames, lnums, fname );
 
-				if( gArgs.lspec1 < 0 ||
-					(gArgs.lspec1 <= layer && layer <= gArgs.lspec2) ) {
+				if( lspec1 < 0 ||
+					(lspec1 <= layer && layer <= lspec2) ) {
 
 					printf(
 					"File in BOUNDARYMAP has no image - ignored.\n" );
@@ -2669,17 +2564,17 @@ CLineScan		*ls = new CLineScan;
 				exit( 42 );
 			}
 
-			if( gArgs.lspec1 < 0 ||
-				(gArgs.lspec1-1 <= za && za <= gArgs.lspec2+1) ||
-				(gArgs.lspec1-1 <= zc && zc <= gArgs.lspec2+1) ) {
+			if( lspec1 < 0 ||
+				(lspec1-1 <= za && za <= lspec2+1) ||
+				(lspec1-1 <= zc && zc <= lspec2+1) ) {
 
 				z1.push_back( za );
-				x1.push_back( a/gArgs.scale );
-				y1.push_back( b/gArgs.scale );
+				x1.push_back( a/scale );
+				y1.push_back( b/scale );
 
 				z2.push_back( zc );
-				x2.push_back( c/gArgs.scale );
-				y2.push_back( d/gArgs.scale );
+				x2.push_back( c/scale );
+				y2.push_back( d/scale );
 			}
 		}
 		else if( !strncmp( ls->line, "BBOX", 4 ) ) {
@@ -2691,10 +2586,10 @@ CLineScan		*ls = new CLineScan;
 				exit( 42 );
 			}
 
-			xmin /= gArgs.scale;
-			ymin /= gArgs.scale;
-			xmax /= gArgs.scale;
-			ymax /= gArgs.scale;
+			xmin /= scale;
+			ymin /= scale;
+			xmax /= scale;
+			ymax /= scale;
 		}
 		else if( !strncmp( ls->line, "IMAGESIZE", 9 ) ) {
 
@@ -2703,8 +2598,8 @@ CLineScan		*ls = new CLineScan;
 				exit( 42 );
 			}
 
-			w /= gArgs.scale;
-			h /= gArgs.scale;
+			w /= scale;
+			h /= scale;
 		}
 		else {
 			printf( "Unknown line '%s'.", ls->line );
@@ -2727,7 +2622,9 @@ CLineScan		*ls = new CLineScan;
 
 	GlobalBounds( xmin, xmax, ymin, ymax, images, w, h );
 
-	OffsetCoords( xmin, xmax, ymin, ymax, images, x1, y1, x2, y2 );
+	OffsetCoords( xmin, xmax, ymin, ymax, images,
+		x1, y1, x2, y2, x0, y0, xsize, ysize );
+
 
 
 
@@ -2745,10 +2642,10 @@ CLineScan		*ls = new CLineScan;
 
 
 // Now we will need to create one map, and one image, per layer.
-if( gArgs.lspec1 >= 0 ) {  // layer numbers were specified
-    lowest = max( lowest,  gArgs.lspec1 );
-    highest= min( highest, gArgs.lspec2 );
-    printf( "Layers reset to %d - %d\n", lowest, highest );
+if( lspec1 >= 0 ) {  // layer numbers were specified
+    lowest = max(lowest, lspec1);
+    highest= min(highest, lspec2);
+    printf("Layers reset to %d - %d\n", lowest, highest);
     }
 
 // Now find the biggest d we can use such that a grid of points d x d in the image space will hit every
@@ -2835,20 +2732,20 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	uint32 ww, hh;  // if 'scale' option is used, this is the original size
 	if( images[i].raster == NULL ) {
 	    images[i].raster  = LoadNormImg( images[i].rname, ww, hh );
-            ImageResize( images[i].raster, ww, hh, gArgs.scale );
+            ImageResize(images[i].raster, ww, hh, scale);
             }
 	if( images[i].foldmap == NULL ) {
-	    if( gArgs.FoldMasks ) {
+	    if( FoldMasks ) {
                 // if the fold mask name is not rooted, pre-pend the fold directory name
                 string file_name;
                 if( images[i].fname[0] == '/' )
-		    file_name = string( images[i].fname );
+		    file_name = string(images[i].fname);
 	        else
-                    file_name = string( gArgs.fold_dir ) + "/" +string(images[i].fname);  //pre-pend the fold directory name
+                    file_name = fold_dir + "/" +string(images[i].fname);  //pre-pend the fold directory name
 		images[i].foldmap = Raster8FromAny( file_name.c_str(), ww, hh, stdout );
-                ImageResize( images[i].foldmap, ww, hh, gArgs.scale );
-		FillInHolesInFoldmap( images[i].foldmap, w, h );
-		FoldmapRenumber( images[i] );
+                ImageResize(images[i].foldmap, ww, hh, scale);
+		FillInHolesInFoldmap(images[i].foldmap, w, h);
+		FoldmapRenumber(images[i]);
 		}
 	    else {  // no foldmasks wanted; just create a field of 1s.
 		images[i].foldmap = (uint8*)malloc(w*h*sizeof(uint8));
@@ -2871,10 +2768,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	            test = BlankSPMap;
 		    }
 	        else {
-                    ImageResize16bits( test, ww, hh, gArgs.scale );
-                    if( gArgs.RenumberSuperPixels ) {
+                    ImageResize16bits(test, ww, hh, scale);
+                    if( RenumberSuperPixels ) {
                         images[i].spbase = MaxSPUsed;
-		        RemapSuperPixelsOneImage( test, w, h, MaxSPUsed, images[i].SPmapping );
+		        RemapSuperPixelsOneImage(test, w, h, MaxSPUsed, images[i].SPmapping);
 			}
                     printf("MaxSPUsed is now %d\n", MaxSPUsed);
 		    }
@@ -2900,7 +2797,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	            test = BlankBMap;
 		    }
                 else {
-		    ImageResize( test, ww, hh, gArgs.scale );
+		    ImageResize(test, ww, hh, scale);
 		    AnyBMap = true;  // at least one bmap was found for this layer
 		    }
 		}
@@ -2928,13 +2825,13 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     vector<uint8>PatchFrom(nx*ny,0);
 
     // Now the choice of fill-in methods
-    if( gArgs.matlab_order ) {
-	FillInMatlabOrder( imap, PatchFrom, nx, ny,
-	 w, h, delta_image_space, images, relevant_images );
+    if( matlab_order ) {
+	FillInMatlabOrder(imap, PatchFrom, nx, ny,
+	 w, h, delta_image_space, images, relevant_images);
         }
     else {
-	FillInFromCenterOut( imap, PatchFrom, nx, ny,
-	 w, h, delta_image_space, images, relevant_images );
+	FillInFromCenterOut(imap, PatchFrom, nx, ny,
+	 w, h, delta_image_space, images, relevant_images);
 	}
 
     // Now compress the map/patch array.  We assume less than 65536 combinations are used, so we can express
@@ -2968,7 +2865,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // write the map; only used for debugging for now
     char fname[256];
-    if( gArgs.Debug ) {
+    if( Debug ) {
         printf("Try writing 16 bit map\n");
         Raster16ToPng16( "test.png", &imap[0], nx, ny );
         sprintf(fname,"map.%d.png", out_layer);
@@ -3021,7 +2918,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
     printf("Done creating before image; draw lines next\n");
-    if( gArgs.Annotate ) {
+    if( Annotate ) {
 	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
@@ -3067,18 +2964,18 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         }
     //sprintf( fname,"before.%05d.tif", out_layer );
     //Raster8ToTif8( fname, &before[0], nx, ny );
-    if( gArgs.make_flat ) {
+    if( make_flat ) {
 	if( nx*ny > 0x7FFFFFFFu ) {  // is it *really* big?
-	    printf( "write half\n" );
-	    sprintf( fname, "before.%05d.a.png", out_layer );
+	    printf("write half\n");
+	    sprintf(fname,"before.%05d.a.png", out_layer);
 	    Raster8ToPng8( fname, &before[0], nx, ny/2 );
-	    printf( "write the other half\n" );
-	    sprintf( fname, "before.%05d.b.png", out_layer );
+	    printf("write the other half\n");
+	    sprintf(fname,"before.%05d.b.png", out_layer);
 	    Raster8ToPng8( fname, &before[nx*ny/2], nx, ny/2 );
-	    printf( "both written\n" );
+	    printf("both written\n");
 	    }
 	else {   // this is the usual case
-	    sprintf( fname, "before.%05d.png", out_layer );
+	    sprintf(fname,"before.%05d.png", out_layer);
 	    Raster8ToPng8( fname, &before[0], nx, ny );
 	    }
 	}
@@ -3088,15 +2985,15 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
 
     // if only simple output is needed, we are done with this layer.  Write map and mapping file
-    if( !gArgs.Warp ) {
+    if( !Warp ) {
         // write the map file, if requested.
-        if( gArgs.make_map ) {
-            sprintf( fname, "%s/%s/map.%05d.png", gArgs.region_dir, gArgs.inv_dir, out_layer );
-            printf( "write Pixel mapping file %s\n", fname );
+        if( make_map ) {
+            sprintf(fname,"%s/%s/map.%05d.png", region_dir.c_str(), inv_dir.c_str(), out_layer);
+            printf("write Pixel mapping file %s\n", fname);
             Raster16ToPng16( fname, &imap[0], nx, ny );
 	    // ------------------------------------------------ write the mapping text file  --------------------
 	    // This is the text file that contains the transformations that describe how each pixel got there.
-	    sprintf( fname, "%s/%s/mapping.%05d.txt", gArgs.region_dir, gArgs.inv_dir, out_layer );
+	    sprintf(fname,"%s/%s/mapping.%05d.txt", region_dir.c_str(), inv_dir.c_str(), out_layer);
 	    FILE *ftxt = FileOpenOrDie( fname, "w" );
 	    //write the image names, and their indexes
 	    for(int k=0; k<relevant_images.size(); k++) {      // for each picture
@@ -3232,7 +3129,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         }
 
     // Now write the triangles out for debugging
-    if( gArgs.Debug )
+    if( Debug )
         WriteTriangles("tris", tris, gvtx);
 
     // Then, look for places where adjacent pixels come from different pictures.
@@ -3267,7 +3164,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
         if( Ntrans > 100 ) {
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
-            if( !gArgs.Debug ) {
+            if( !Debug ) {
 		printf("Writing map as 'test.png'\n");
 		Raster16ToPng16( "test.png", &imap[0], nx, ny );
 		}
@@ -3302,7 +3199,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
         if( Ntrans > 100 ) {
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
-            if( !gArgs.Debug ) {
+            if( !Debug ) {
 		printf("Writing map as 'test.png'\n");
 		Raster16ToPng16( "test.png", &imap[0], nx, ny );
 		}
@@ -3324,7 +3221,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         // free to move.  The best strength is not clear; stronger will make the results
         // closer to the global alignment; weaker will allow better connections between the
         // tiles.
-        double coeff = gArgs.DontMoveStrength * ((i % (N+1)) == N ? 100 : 1);
+        double coeff = DontMoveStrength * ((i % (N+1)) == N ? 100 : 1);
         int vx[1] = {j};  // variable index
 	AddConstraint(norm_mat, RHS, 1, vx, &coeff, gvtx[i].x*coeff);   // 1.0 * var = global spot
         vx[0] = j+1;
@@ -3365,14 +3262,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Solve the system
     vector<double> X(2*nvs);
     fflush(stdout);
-    WriteSolveRead( X, norm_mat, RHS, !gArgs.Debug );
+    WriteSolveRead( X, norm_mat, RHS, !Debug );
     PrintMagnitude( X );
     fflush(stdout);
 
     vector<Point> NewG(nvs);
     for(int i=0; i<nvs; i++)
 	NewG[i] = Point(X[2*i], X[2*i+1]);
-    if( gArgs.Debug )
+    if( Debug )
         WriteTriangles("tris2", tris, NewG);
 
     // how far did the points move?
@@ -3567,9 +3464,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         imap[i] = it->second;
 	}
     // write the new map file, if requested
-    if( gArgs.make_map ) {
-        sprintf( fname, "%s/%s/map.%05d.png", gArgs.region_dir, gArgs.inv_dir, out_layer );
-        printf( "write Pixel mapping file %s\n", fname );
+    if( make_map ) {
+        sprintf(fname,"%s/%s/map.%05d.png", region_dir.c_str(), inv_dir.c_str(), out_layer);
+        printf("write Pixel mapping file %s\n", fname);
         Raster16ToPng16( fname, &imap[0], nx, ny );
         }
     else
@@ -3627,12 +3524,12 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                      //px, x, y, ix, iy, img, images[img].spbase, images[img].spmap[ix + w*iy] );
                     //exit( 42 );
 		    //}
-                if( gArgs.Debug && px == 0 )
+                if( Debug && px == 0 )
 		    before[bi] = 255;
 		}
 	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
-    if( gArgs.Annotate ) {
+    if( Annotate ) {
 	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
@@ -3665,11 +3562,11 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         }
     //sprintf( fname, "after.%05d.tif", out_layer );
     //Raster8ToTif8( fname, &before[0], nx, ny );
-    sprintf( fname, "%s/%s/after.%05d.png", gArgs.region_dir, gArgs.gray_dir, out_layer );
-    if( gArgs.make_flat )
+    sprintf(fname,"%s/%s/after.%05d.png", region_dir.c_str(), gray_dir.c_str(), out_layer);
+    if( make_flat )
         Raster8ToPng8( fname, &before[0], nx, ny );
-    if( gArgs.make_tiles )
-        WriteImageTiles( gArgs.rav_dir, out_layer, &before[0], nx, ny );
+    if( make_tiles )
+        WriteImageTiles(rav_dir, out_layer, &before[0], nx, ny);
 
     // If any boundarymap files were found, write the boundary map
     // Again, use the array 'before'
@@ -3704,14 +3601,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
 	}
     if( AnyBMap ) {
-        sprintf( fname, "%s/%s/bmap.%05d.png", gArgs.region_dir, gArgs.bmap_dir, out_layer );
-	if( gArgs.make_flat )
+        sprintf(fname,"%s/%s/bmap.%05d.png", region_dir.c_str(), bmap_dir.c_str(), out_layer);
+	if( make_flat )
             Raster8ToPng8( fname, &before[0], nx, ny );
 	}
 
     // ------------------------------------------------ write the mapping text file  --------------------
     // This is the text file that contains the transformations that describe how each pixel got there.
-    sprintf( fname, "%s/%s/mapping.%05d.txt", gArgs.region_dir, gArgs.inv_dir, out_layer );
+    sprintf(fname,"%s/%s/mapping.%05d.txt", region_dir.c_str(), inv_dir.c_str(), out_layer);
     FILE *ftxt = FileOpenOrDie( fname, "w" );
     //write the image names, and their indexes
     for(int k=0; k<relevant_images.size(); k++) {      // for each picture
@@ -3734,21 +3631,21 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // efficiency in Raveler.
     int SPmax = 0;
     vector<int> FinalMapping;
-    if( gArgs.RenumberSuperPixels )
+    if( RenumberSuperPixels )
         RemapSuperPixelsOneImage( &spmap[0], nx, ny, SPmax, FinalMapping );
-    printf( "SPmax now %d\n", SPmax );
-    sprintf( fname, "%s/%s/sp.%05d.png", gArgs.region_dir, gArgs.sp_dir, out_layer );
+    printf("SPmax now %d\n", SPmax);
+    sprintf(fname,"%s/%s/sp.%05d.png", region_dir.c_str(), sp_dir.c_str(), out_layer);
     for(uint32 i=0; i<nx*ny; i++)  // set the transparency
 	spmap[i] = spmap[i] | 0xFF000000;
-    if( gArgs.make_flat )
+    if( make_flat )
         Raster32ToPngRGBA( fname, &spmap[0], nx, ny );
 
 
 
     for(uint32 i=0; i<nx*ny; i++)  // unset the transparency for tiles
 	spmap[i] = spmap[i] & 0xFFFFFF;
-    if( gArgs.make_tiles ) {
-        WriteSPTiles( gArgs.rav_dir, out_layer, &spmap[0], nx, ny );
+    if( make_tiles ) {
+        WriteSPTiles( rav_dir, out_layer, &spmap[0], nx, ny );
 	}
     // Compute the bounds for this layer.  First find the biggest number
     uint32 biggest = 0;
@@ -3811,7 +3708,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     //              image 2 might have IDS 1-7500.  These are mapped to 8001-15500 in the output
     //              image 3 might have IDs 1-9100   These are mapped to 15501-24601 in the output
     //              etc.
-    sprintf( fname, "%s/map-sp.%05d.txt", gArgs.region_dir, out_layer );
+    sprintf(fname,"%s/map-sp.%05d.txt", region_dir.c_str(), out_layer);
     FILE *fmap = FileOpenOrDie( fname, "w" );
     // For every image that has a non-blank sp map;
     for(int j=0; j<relevant_images.size(); j++) {
@@ -3861,10 +3758,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 }
 	    }
         *(++p) = '\0';  // truncate at trailing '/', leaving directory name
-	LookForAndTransform("annotations-body.json",      root, out_layer, i, images, gArgs.Warp, tmap, tbars); // nop for now
-	LookForAndTransform("annotations-bookmarks.json", root, out_layer, i, images, gArgs.Warp, tmap, bookmarks);
-	LookForAndTransform("annotations-synapse.json",   root, out_layer, i, images, gArgs.Warp, tmap, tbars);
-	LookForAndTransform("session-metadata.json",      root, out_layer, i, images, gArgs.Warp, tmap, tbars); // nop for now.
+	LookForAndTransform("annotations-body.json",      root, out_layer, i, images, Warp, tmap, tbars); // nop for now
+	LookForAndTransform("annotations-bookmarks.json", root, out_layer, i, images, Warp, tmap, bookmarks);
+	LookForAndTransform("annotations-synapse.json",   root, out_layer, i, images, Warp, tmap, tbars);
+	LookForAndTransform("session-metadata.json",      root, out_layer, i, images, Warp, tmap, tbars); // nop for now.
 	}
     // Now, write the resulting synapses out.
     char tbar_name[1024];
