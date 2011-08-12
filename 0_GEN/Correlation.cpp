@@ -2280,6 +2280,12 @@ static bool SortQ_q_dec( const SortQ &A, const SortQ &B )
 {
 	return A.q > B.q;
 }
+
+
+static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
+{
+	return A.r > B.r;
+}
 #endif
 
 
@@ -2509,9 +2515,19 @@ double CorrPatchesMaxQ(
 
 //-----------------------------
 #if	_debugcorr == 1
-	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
 	int	nSQ = SQ.size();
-	printf( "top %d:\n", nSQ );
+	if( nSQ > 20 )
+		nSQ = 20;
+
+	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
+	printf( "top %d by Q:\n", nSQ );
+	for( int i = 0; i < nSQ; ++i ) {
+		printf( "Q %.3f R %.3f << %d, %d >>\n",
+		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
+	}
+
+	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
+	printf( "top %d by R:\n", nSQ );
 	for( int i = 0; i < nSQ; ++i ) {
 		printf( "Q %.3f R %.3f << %d, %d >>\n",
 		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
