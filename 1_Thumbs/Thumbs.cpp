@@ -211,7 +211,7 @@ static void WholeImageSubI(
 		S.p[i].y	= P.y - B.B;
 	}
 
-	S.O	= p[0];
+	S.O	= Point( B.L, B.B );
 	S.w = B.R - B.L + 1;
 	S.h = B.T - B.B + 1;
 }
@@ -288,7 +288,7 @@ static void SubimageSubI(
 
 	BBoxFromPoints( B, S.p );
 
-	S.O	= S.p[0];
+	S.O	= Point( B.L, B.B );
 	S.w = B.R - B.L + 1;
 	S.h = B.T - B.B + 1;
 
@@ -470,7 +470,7 @@ static void RotatePoints(
 		pts[i].x -= aC.x;
 		pts[i].y -= aC.y;
 
-		T.Transform( pts[i] );
+		T.Apply_R_Part( pts[i] );
 
 		pts[i].x += aC.x;
 		pts[i].y += aC.y;
@@ -874,7 +874,7 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 		C.A = best.A;
 		MultiplyTrans( C.T, tcur, tweaks[i] );
 
-		C.T.Transform( ps );
+		C.T.Apply_R_Part( ps );
 
 		C.R = CorrPatchesMaxQ(
 			flog, false, C.Q, C.X, C.Y,
@@ -916,7 +916,7 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 
 	vector<Point>	ps = thm.ap;
 
-	best.T.Transform( ps );
+	best.T.Apply_R_Part( ps );
 
 	best.R = CorrPatchesMaxQ(
 		flog, false, best.Q, best.X, best.Y,
@@ -942,6 +942,31 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		best = b0;
 
 	StopTiming( stdout, "FinishAtFullRes", t0 );
+}
+
+/* --------------------------------------------------------------- */
+/* OffsetXY ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Let T(A) -> B be resolved into parts: R(A) + V -> B.
+// Thus far we have found R,V for points (a') relative to
+// the intersection origins, which we have labeled aO, bO
+// in their respective coord systems. So we have found:
+//
+//		R( a' = a - aO ) + V -> b' = b - bO.
+//
+// We can rearrange this to:
+//
+//		R( a ) + ( V + bO - R(aO) ) -> b,
+//
+// which shows directly how to translate V to the image corner.
+//
+static void OffsetXY( CorRec &best, OlapRec &olp )
+{
+	best.T.Apply_R_Part( olp.a.O );
+
+	best.X += olp.b.O.x - olp.a.O.x;
+	best.Y += olp.b.O.y - olp.a.O.y;
 }
 
 /* --------------------------------------------------------------- */
@@ -1197,29 +1222,13 @@ bool Thumbs(
 /* Translate from intersection to full coords */
 /* ------------------------------------------ */
 
-// Let T(A) -> B be resolved into parts: R(A) + V -> B.
-// Thus far we have found R,V for points (a') relative to
-// the intersection origins, which we have labeled aO, bO
-// in their respective coord systems. So we have found:
-//
-//		R( a' = a - aO ) + V -> b' = b - bO.
-//
-// We can rearrange this to:
-//
-//		R( a ) + ( V + bO - R(aO) ) -> b,
-//
-// which shows directly how to translate V to the image corner.
+	OffsetXY( best, olp );
 
-	best.T.Transform( olp.a.O );
-
-	best.X += olp.b.O.x - olp.a.O.x;
-	best.Y += olp.b.O.y - olp.a.O.y;
+	best.T.SetXY( best.X, best.Y );
 
 /* ------------- */
 /* Report to log */
 /* ------------- */
-
-	best.T.SetXY( best.X, best.Y );
 
 	//RecordSumSqDif( px, best.T );
 

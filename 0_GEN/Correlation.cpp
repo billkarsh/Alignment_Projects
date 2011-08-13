@@ -883,8 +883,8 @@ int CCrossCorr::SizeIndex()
 /* CorrPatches --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return normalized cross-correlation and displacement (dx, dy),
-// which must be added to ip1[0] to match ip2[0].
+// Return normalized cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // Search confined to disc: (origin, radius) = {Ox, Oy, radius}.
 //
@@ -1138,10 +1138,8 @@ skip:
 	dy = bigy;
 	ParabPeakFFT( dx, dy, 1, &rslt[0], Nx, Ny );
 
-// Translate from (i2 - i1) to (ip2[0] - ip1[0])
-
-	dx += (ip1[0].x - B1.L) - (ip2[0].x - B2.L);
-	dy += (ip1[0].y - B1.B) - (ip2[0].y - B2.B);
+	dx += B2.L - B1.L;
+	dy += B2.B - B1.B;
 
 	return biggest;
 }
@@ -2011,8 +2009,8 @@ static void ParabPeak(
 /* CorrPatchesRQ ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return normalized cross-correlation and displacement (dx, dy),
-// which must be added to ip1[0] to match ip2[0].
+// Return normalized cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // X-interval of offsets (lags) searched is [nnegx, nposx).
 // Y-interval of offsets (lags) searched is [nnegy, nposy).
@@ -2255,10 +2253,8 @@ double CorrPatchesRQ(
 	dy = qy;
 	ParabPeak( dx, dy, 1, &R[0], wR );
 
-// Translate from (i2 - i1) to (ip2[0] - ip1[0])
-
-	dx += (ip1[0].x - B1.L) - (ip2[0].x - B2.L) - cx;
-	dy += (ip1[0].y - B1.B) - (ip2[0].y - B2.B) - cy;
+	dx += B2.L - B1.L - cx;
+	dy += B2.B - B1.B - cy;
 
 	return bigR;
 }
@@ -2289,8 +2285,8 @@ static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
 #endif
 
 
-// Return normalized cross-correlation and displacement (dx, dy),
-// which must be added to ip1[0] to match ip2[0].
+// Return normalized cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // X-interval of offsets (lags) searched is [nnegx, nposx).
 // Y-interval of offsets (lags) searched is [nnegy, nposy).
@@ -2573,10 +2569,8 @@ double CorrPatchesMaxQ(
 	dy = qy;
 	ParabPeak( dx, dy, 1, &R[0], wR );
 
-// Translate from (i2 - i1) to (ip2[0] - ip1[0])
-
-	dx += (ip1[0].x - B1.L) - (ip2[0].x - B2.L) - cx;
-	dy += (ip1[0].y - B1.B) - (ip2[0].y - B2.B) - cy;
+	dx += B2.L - B1.L - cx;
+	dy += B2.B - B1.B - cy;
 
 	return bigR;
 }
@@ -2585,8 +2579,8 @@ double CorrPatchesMaxQ(
 /* CorrPatchesMaxR ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return normalized cross-correlation and displacement (dx, dy),
-// which must be added to ip1[0] to match ip2[0].
+// Return normalized cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // X-interval of offsets (lags) searched is [nnegx, nposx).
 // Y-interval of offsets (lags) searched is [nnegy, nposy).
@@ -2810,10 +2804,8 @@ double CorrPatchesMaxR(
 	dy = ry;
 	ParabPeak( dx, dy, 1, &R[0], wR );
 
-// Translate from (i2 - i1) to (ip2[0] - ip1[0])
-
-	dx += (ip1[0].x - B1.L) - (ip2[0].x - B2.L) - cx;
-	dy += (ip1[0].y - B1.B) - (ip2[0].y - B2.B) - cy;
+	dx += B2.L - B1.L - cx;
+	dy += B2.B - B1.B - cy;
 
 	return bigR;
 }

@@ -498,10 +498,6 @@ for(int i=0; i<images.size(); i++) {
 						0, 0, kCorrRadius,
 						lr, NULL, lc, NULL, ftc );
 
-		// undo correlator's automatic coord adjust
-		dx += pts2[0].x - pts1[0].x;
-		dy += pts2[0].y - pts1[0].y;
-
         printf(" tx=%f, ---> dx, dy= %f, %f, corr %f\n\n", pt.x, dx, dy, co);
         if( co < 0.7 ) {
              printf("WARNING - poor image correlation %f - ignored\n", co);
