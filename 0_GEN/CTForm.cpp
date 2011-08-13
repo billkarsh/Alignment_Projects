@@ -87,6 +87,31 @@ void TForm::Transform( vector<Point> &v ) const
 }
 
 /* --------------------------------------------------------------- */
+/* Apply_R_Part -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// If transform T(p) is represented as R(p) + V,
+// then here we apply R(p) without V.
+//
+void TForm::Apply_R_Part( Point &p ) const
+{
+	double	x = p.x*t[0] + p.y*t[1];
+	double	y = p.x*t[3] + p.y*t[4];
+
+	p.x = x;
+	p.y = y;
+}
+
+
+void TForm::Apply_R_Part( vector<Point> &v ) const
+{
+	int		N = v.size();
+
+	for( int i = 0; i < N; ++i )
+		Apply_R_Part( v[i] );
+}
+
+/* --------------------------------------------------------------- */
 /* RotateAround -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

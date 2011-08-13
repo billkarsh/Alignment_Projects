@@ -65,6 +65,9 @@ public:
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;
 
+	void Apply_R_Part( Point &p ) const;
+	void Apply_R_Part( vector<Point> &v ) const;
+
 	void RotateAround( Point s, Point tar, double rad );
 
 	void ScanTrackEM2( const char *s );
