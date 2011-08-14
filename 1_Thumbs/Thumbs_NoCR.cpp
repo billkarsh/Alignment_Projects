@@ -1120,7 +1120,14 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 /* Debug the angle sweep */
 /* --------------------- */
 
+// -----------------------------------------------------------
 //	DebugAngs( -15, 175, 10, thm );
+// -----------------------------------------------------------
+
+#ifdef	CORR_DEBUG
+	QFromAngle( best, ang0, thm, flog );
+	return false;
+#endif
 
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */

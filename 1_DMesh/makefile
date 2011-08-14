@@ -12,6 +12,14 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # defines
 # =======
 
+# -DCREATEMESH_WRITE_DEBUG_IMAGES:
+#	Output 'Bogus3.tif' if can't find boundary left edge
+#	Output 'Bogus4.tif' if isolated pixel on boundary
+#
+# -DCORR_DEBUG:
+#	Output 'thmA.tif', 'thmB.tif', 'corr.tif' to visualize
+#	thumbnail registration
+
 SYMBOLS_MYPROJ := -DCREATEMESH_WRITE_DEBUG_IMAGES
 
 # =======

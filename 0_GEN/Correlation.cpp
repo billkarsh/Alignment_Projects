@@ -15,7 +15,12 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#ifdef	CORR_DEBUG
+static int _dbg_simgidx = 0;
+#define	_debugcorr	1
+#else
 #define	_debugcorr	0
+#endif
 
 
 
@@ -2341,6 +2346,10 @@ double CorrPatchesMaxQ(
 	w2 = B2.R - B2.L + 1;
 	h2 = B2.T - B2.B + 1;
 
+#ifdef	CORR_DEBUG
+	verbose = true;
+#endif
+
 	if( verbose ) {
 
 		fprintf( flog,
@@ -2423,8 +2432,11 @@ double CorrPatchesMaxQ(
 
 //-----------------------------
 #if	_debugcorr == 1
-	CorrThmToTif8( "thmA.tif", i1, Nx, w1, h1 );
-	CorrThmToTif8( "thmB.tif", i2, Nx, w2, h2 );
+	char	simg[32];
+	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i2, Nx, w2, h2 );
 	vector<uint8> tif( nR );
 	double mx = 0;
 	for( int i = 0; i < nR; ++i ) if( R[i] > mx ) mx = R[i];
@@ -2435,7 +2447,8 @@ double CorrPatchesMaxQ(
 		else
 			tif[i] = 0;
 	}
-	Raster8ToTif8( "corr.tif", &tif[0], wR, hR );
+	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
+	Raster8ToTif8( simg, &tif[0], wR, hR );
 	printf( "Center = (%d %d)\n", cx, cy );
 #endif
 //-----------------------------

@@ -1223,8 +1223,10 @@ bool ApproximateMatch(
 //	DebugAngs( 0, 2, .1, thm );
 // -----------------------------------------------------------
 
-	//QFromAngle( best, ang0, thm, flog );
-	//return false;
+#ifdef	CORR_DEBUG
+	QFromAngle( best, ang0, thm, flog );
+	return false;
+#endif
 
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */

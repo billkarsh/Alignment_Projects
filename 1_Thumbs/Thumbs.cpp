@@ -1174,7 +1174,14 @@ bool Thumbs(
 /* Debug the angle sweep */
 /* --------------------- */
 
+// -----------------------------------------------------------
 //	DebugAngs( 10, 10, .01, thm );
+// -----------------------------------------------------------
+
+#ifdef	CORR_DEBUG
+	QFromAngle( best, ang0, thm, flog );
+	return false;
+#endif
 
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */
