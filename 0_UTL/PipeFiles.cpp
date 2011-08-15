@@ -42,9 +42,16 @@ static bool GetPrm(
 
 	while( LS.Get( fin ) > 0 ) {
 
-		if( 1 == sscanf( LS.line, fmt, v ) ) {
+		if( isspace( LS.line[0] ) || LS.line[0] == '#' )
+			continue;
+		else if( 1 == sscanf( LS.line, fmt, v ) ) {
 			fprintf( flog, LS.line );
 			ok = true;
+			goto exit;
+		}
+		else {
+			fprintf( flog, "%s: Expected [%s], found [%.23s...].\n",
+			caller, fmt, LS.line );
 			goto exit;
 		}
 	}
@@ -60,7 +67,7 @@ exit:
 /* --------------------------------------------------------------- */
 
 #define	GETPRM_THM( addr, pat )									\
-	if( !GetPrm(addr, pat, "ReadThmParams", f, flog) )			\
+	if( !GetPrm( addr, pat, "ReadThmParams", f, flog ) )		\
 		goto exit
 
 // Read parameter file governing thumbnail matching.
@@ -105,8 +112,10 @@ bool ReadThmParams( ThmParams &T, int layer, FILE *flog )
 		GETPRM_THM( &T.OLAP1D, "OLAP1D=%d" );
 		GETPRM_THM( &T.OLAP2D_SL, "OLAP2D_SL=%d" );
 		GETPRM_THM( &T.OLAP2D_XL, "OLAP2D_XL=%d" );
-		GETPRM_THM( &T.HFANG_SL, "HFANG_SL=%lf" );
-		GETPRM_THM( &T.HFANG_XL, "HFANG_XL=%lf" );
+		GETPRM_THM( &T.HFANGDN_SL, "HFANGDN_SL=%lf" );
+		GETPRM_THM( &T.HFANGDN_XL, "HFANGDN_XL=%lf" );
+		GETPRM_THM( &T.HFANGPR_SL, "HFANGPR_SL=%lf" );
+		GETPRM_THM( &T.HFANGPR_XL, "HFANGPR_XL=%lf" );
 		GETPRM_THM( &T.QTRSH_SL, "QTRSH_SL=%lf" );
 		GETPRM_THM( &T.QTRSH_XL, "QTRSH_XL=%lf" );
 		GETPRM_THM( &T.RTRSH_SL, "RTRSH_SL=%lf" );
@@ -140,7 +149,7 @@ exit:
 /* --------------------------------------------------------------- */
 
 #define	GETPRM_MSH( addr, pat )									\
-	if( !GetPrm(addr, pat, "ReadMeshParams", f, flog) )			\
+	if( !GetPrm( addr, pat, "ReadMeshParams", f, flog ) )		\
 		goto exit
 
 // Read parameter file governing mesh deformation.

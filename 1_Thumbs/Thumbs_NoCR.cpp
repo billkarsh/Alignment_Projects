@@ -66,7 +66,8 @@ typedef struct {
 static int		gErr		= errOK;
 static long		min_2D_olap;
 static double	ang0		= 0.0;
-static double	halfAng;
+static double	halfAngDN;
+static double	halfAngPR;
 static double	scale		= 1.0;
 static double	xscale		= 1.0;
 static double	yscale		= 1.0;
@@ -162,14 +163,16 @@ static void SetLayerType()
 	if( GBL.A.layer == GBL.B.layer ) {
 
 		min_2D_olap	= GBL.thm.OLAP2D_SL;
-		halfAng		= GBL.thm.HFANG_SL;
+		halfAngDN	= GBL.thm.HFANGDN_SL;
+		halfAngPR	= GBL.thm.HFANGPR_SL;
 		qthresh		= GBL.thm.QTRSH_SL;
 		rthresh		= GBL.thm.RTRSH_SL;
 	}
 	else {
 
 		min_2D_olap	= GBL.thm.OLAP2D_XL;
-		halfAng		= GBL.thm.HFANG_XL;
+		halfAngDN	= GBL.thm.HFANGDN_XL;
+		halfAngPR	= GBL.thm.HFANGPR_XL;
 		scale		= GBL.thm.SCALE;
 		xscale		= GBL.thm.XSCALE;
 		yscale		= GBL.thm.YSCALE;
@@ -737,7 +740,7 @@ static bool UsePriorAngles(
 	fprintf( flog, "Thumbs: Using prior angles n=%d, med=%f\n",
 	nprior, ang0 );
 
-	AngleScan( best, ang0, 1.0, 0.1, thm, flog );
+	AngleScan( best, ang0, halfAngPR, 0.1, thm, flog );
 
 	if( best.Q < 0.001 ) {
 		gErr = errLowQ;
@@ -766,7 +769,7 @@ static bool UsePriorAngles(
 
 static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	AngleScan( best, ang0, halfAng, 0.5, thm, flog );
+	AngleScan( best, ang0, halfAngDN, 0.5, thm, flog );
 
 	if( best.Q < qthresh ) {
 		gErr = errLowQ;

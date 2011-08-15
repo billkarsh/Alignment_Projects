@@ -1,4 +1,4 @@
-Parameters for the (dmesh) detailed mesh pipeline stage.
+# Parameters for the (dmesh) detailed mesh pipeline stage.
 
 PXBRO=1     <default 2>        "Max Leg poly order for bkg removal"
 PXDOG=N     <default N>        "Y=Apply DoG filter"
@@ -29,4 +29,4 @@ DXY=200     <default 100.0>    "How far can a transform be from one of the user 
 WMT=Y       <default Y>        "Y=Write map.tif files"
 WTT=Y       <default Y>        "Y=Write tf.txt files"
 
-*These lines are echoed to reports, so use spaces to neaten!
+# *These lines are echoed to reports, so use spaces to neaten!
