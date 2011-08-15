@@ -45,7 +45,7 @@ static bool RoughMatch(
 		return true;
 
 	if( GBL.A.layer == GBL.B.layer ||
-		GBL.arg.NoFolds || !GBL.thm.FLD ) {
+		GBL.arg.NoFolds || !GBL.msh.FLD ) {
 
 		return ApproximateMatch_NoCR( guesses, px, flog );
 	}
@@ -362,8 +362,7 @@ void PipelineDeformableMap(
 
 	vector<ConnRegion>	Acr, Bcr;
 
-	if( GBL.A.layer == GBL.B.layer ||
-		GBL.arg.NoFolds || !GBL.thm.FLD ) {
+	if( GBL.arg.NoFolds || !GBL.msh.FLD ) {
 
 		fprintf( flog, "Forcing single connected region.\n" );
 
