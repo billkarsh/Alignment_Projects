@@ -604,16 +604,15 @@ int ClosedSegIsects(
 
 	if( BxA ) {	// nondegenerate case
 
-		int		x31		= p1.x - p3.x,
-				y31		= p1.y - p3.y;
-		double	invBxA	= 1.0 / BxA;
+		int	x31	= p1.x - p3.x,
+			y31	= p1.y - p3.y;
 
-		double	s = (x31*y12 - x12*y31) * invBxA;
+		double	s = (x31*y12 - x12*y31) / BxA;
 
 		if( s < 0.0 || s > 1.0 )
 			return 0;
 
-		double	t = (x31*y34 - x34*y31) * invBxA;
+		double	t = (x31*y34 - x34*y31) / BxA;
 
 		if( t < 0.0 || t > 1.0 )
 			return 0;
@@ -805,16 +804,15 @@ bool OpenSegsCross(
 
 	if( BxA ) {	// nondegenerate case
 
-		int		x31		= p1.x - p3.x,
-				y31		= p1.y - p3.y;
-		double	invBxA	= 1.0 / BxA;
+		int	x31	= p1.x - p3.x,
+			y31	= p1.y - p3.y;
 
-		double	s = (x31*y12 - x12*y31) * invBxA;
+		double	s = (x31*y12 - x12*y31) / BxA;
 
 		if( s <= 0.0 || s >= 1.0 )
 			return false;
 
-		double	t = (x31*y34 - x34*y31) * invBxA;
+		double	t = (x31*y34 - x34*y31) / BxA;
 
 		return t > 0.0 && t < 1.0;
 	}

@@ -918,6 +918,9 @@ static int UniqueVerts(
 		uv.push_back( UVert( edges[i].v[0], 0, i ) );
 
 // Next add unique edge.v1
+//
+// The v1's are unique from other v1's, but are they
+// different from listed v0's?
 
 	for( int i = 0; i < n; ++i ) {
 
@@ -991,8 +994,8 @@ static void BestVertex(
 		int		L = LeftSide( va, vb, vc );
 
 		fprintf( flog,
-		"#1 (%4d %4d); dist=%9.2f; left=%d; area=%11.2f.\n",
-		vc.x, vc.y, D, 	L, A );
+		"#%3d (%4d %4d); dist=%12.2f; left=%d; area=%11.2f.\n",
+		i, vc.x, vc.y, D, L, A );
 
 		// require vc on interior side of va->vb
 		if( !L )
