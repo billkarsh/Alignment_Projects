@@ -2740,6 +2740,7 @@ static void NoCorrs(
 // - Store errs in Epnt[]
 // - Sum energies = err^2 in Ergn[]
 // - Record worst error data for whole layers and layer-pairs
+// - Enter error in 'PostFitErrs.txt'
 //
 // Report some summary results in log.
 //
@@ -2747,12 +2748,17 @@ void EVL::Tabulate(
 	const vector<zsort>		&z,
 	const vector<double>	&X )
 {
+	FILE			*f		= FileOpenOrDie( "PostFitErrs.txt", "w" );
 	int				nr		= vRgn.size(),
 					nc		= vAllC.size();
 	vector<Error>	Ergn( nr );	// total error, by region
 	double			sum		= 0.0,
 					biggest	= 0.0;
 	int				ne		= 0;
+
+// 'PostFitErrs.txt' headers
+
+	fprintf( f, "LyrA\tTilA\tRgnA\tLyrB\tTilB\tRgnB\tSqrErr\n" );
 
 // Init region energies
 
@@ -2770,65 +2776,82 @@ void EVL::Tabulate(
 
 	for( int i = 0; i < nc; ++i ) {
 
+		double		err;
 		Constraint	&C = vAllC[i];
 
-		if( !C.used || !C.inlier )
-			continue;
+		if( !C.used )
+			err = -2;
+		else if( !C.inlier )
+			err = -1;
+		else {
 
-		/* ----------------------------- */
-		/* Global space points and error */
-		/* ----------------------------- */
+			/* ----------------------------- */
+			/* Global space points and error */
+			/* ----------------------------- */
 
-		TForm	T1( &X[vRgn[C.r1].itr * 6] ),
-				T2( &X[vRgn[C.r2].itr * 6] );
-		Point	&g1 = C.p1,
-				&g2 = C.p2;
+			TForm	T1( &X[vRgn[C.r1].itr * 6] ),
+					T2( &X[vRgn[C.r2].itr * 6] );
+			Point	&g1 = C.p1,
+					&g2 = C.p2;
 
-		T1.Transform( g1 );
-		T2.Transform( g2 );
+			T1.Transform( g1 );
+			T2.Transform( g2 );
 
-		double	err = g2.DistSqr( g1 );
+			err = g2.DistSqr( g1 );
 
-		/* --------- */
-		/* Reporting */
-		/* --------- */
+			/* --------- */
+			/* Reporting */
+			/* --------- */
 
-		sum += err;
-		biggest = max( biggest, err );
+			sum += err;
+			biggest = max( biggest, err );
 
-		fprintf( FOUT, "MPOINTS %d %f %f %d %f %f\n",
-		vRgn[C.r1].z, g1.x, g1.y,
-		vRgn[C.r2].z, g2.x, g2.y );
+			fprintf( FOUT, "MPOINTS %d %f %f %d %f %f\n",
+			vRgn[C.r1].z, g1.x, g1.y,
+			vRgn[C.r2].z, g2.x, g2.y );
 
-		/* ------ */
-		/* Epnt[] */
-		/* ------ */
+			/* ------ */
+			/* Epnt[] */
+			/* ------ */
 
-		Epnt.push_back( Error( err, ne++ ) );
+			Epnt.push_back( Error( err, ne++ ) );
 
-		/* ------ */
-		/* Ergn[] */
-		/* ------ */
+			/* ------ */
+			/* Ergn[] */
+			/* ------ */
 
-		Ergn[C.r1].amt += err;
-		Ergn[C.r2].amt += err;
+			Ergn[C.r1].amt += err;
+			Ergn[C.r2].amt += err;
 
-		/* ----------- */
-		/* Whole layer */
-		/* ----------- */
+			/* ----------- */
+			/* Whole layer */
+			/* ----------- */
 
-		SecErr	*S;
-		int		z1 = vRgn[C.r1].z,
-				z2 = vRgn[C.r2].z;
+			SecErr	*S;
+			int		z1 = vRgn[C.r1].z,
+					z2 = vRgn[C.r2].z;
 
-		if( z1 == z2 )
-			S = &Ein[z1];
-		else
-			S = &Ebt[min( z1, z2 )];
+			if( z1 == z2 )
+				S = &Ein[z1];
+			else
+				S = &Ebt[min( z1, z2 )];
 
-		if( err > S->err )
-			*S = SecErr( g1, g2, err, i );
+			if( err > S->err )
+				*S = SecErr( g1, g2, err, i );
+		}
+
+		/* ---- */
+		/* File */
+		/* ---- */
+
+		fprintf( f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\n",
+		vRgn[C.r1].z, vRgn[C.r1].id, vRgn[C.r1].rgn,
+		vRgn[C.r2].z, vRgn[C.r2].id, vRgn[C.r2].rgn, err );
 	}
+
+// Close file
+
+	fclose( f );
 
 // Print overall error
 
