@@ -2014,6 +2014,28 @@ static void ParabPeak(
 /* CorrPatchesRQ ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#if	_debugcorr == 1
+// Descending sort of these data
+class SortQ{
+public:
+	double	q,  r;
+	int		qx, qy;
+};
+
+
+static bool SortQ_q_dec( const SortQ &A, const SortQ &B )
+{
+	return A.q > B.q;
+}
+
+
+static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
+{
+	return A.r > B.r;
+}
+#endif
+
+
 // Return normalized cross-correlation and additive displacement
 // (dx, dy) that places set ip1 into bounding box of ip2.
 //
@@ -2069,6 +2091,10 @@ double CorrPatchesRQ(
 
 	w2 = B2.R - B2.L + 1;
 	h2 = B2.T - B2.B + 1;
+
+#ifdef	CORR_DEBUG
+	verbose = true;
+#endif
 
 	if( verbose ) {
 
@@ -2152,8 +2178,11 @@ double CorrPatchesRQ(
 
 //-----------------------------
 #if	_debugcorr == 1
-	CorrThmToTif8( "thmA.tif", i1, Nx, w1, h1 );
-	CorrThmToTif8( "thmB.tif", i2, Nx, w2, h2 );
+	char	simg[32];
+	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i2, Nx, w2, h2 );
 	vector<uint8> tif( nR );
 	double mx = 0;
 	for( int i = 0; i < nR; ++i ) if( R[i] > mx ) mx = R[i];
@@ -2164,7 +2193,8 @@ double CorrPatchesRQ(
 		else
 			tif[i] = 0;
 	}
-	Raster8ToTif8( "corr.tif", &tif[0], wR, hR );
+	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
+	Raster8ToTif8( simg, &tif[0], wR, hR );
 	printf( "Center = (%d %d)\n", cx, cy );
 #endif
 //-----------------------------
@@ -2179,6 +2209,12 @@ double CorrPatchesRQ(
 			qy	= -1;
 
 	Q = -1E30;
+
+//-----------------------------
+#if	_debugcorr == 1
+	vector<SortQ> SQ;
+#endif
+//-----------------------------
 
 	for( int y = 1; y < hR - 1; ++y ) {
 
@@ -2212,6 +2248,18 @@ double CorrPatchesRQ(
 
 			q -= t;
 
+//-----------------------------
+#if	_debugcorr == 1
+// look at top scoring points
+			SortQ	sq;
+			sq.q	= q;
+			sq.r	= R[x + wR*y];
+			sq.qx	= x;
+			sq.qy	= y;
+			SQ.push_back( sq );
+#endif
+//-----------------------------
+
 			if( q > Q ) {
 				Q	= q;
 				qx	= x;
@@ -2219,6 +2267,28 @@ double CorrPatchesRQ(
 			}
 		}
 	}
+
+//-----------------------------
+#if	_debugcorr == 1
+	int	nSQ = SQ.size();
+	if( nSQ > 20 )
+		nSQ = 20;
+
+	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
+	printf( "top %d by Q:\n", nSQ );
+	for( int i = 0; i < nSQ; ++i ) {
+		printf( "Q %.3f R %.3f << %d, %d >>\n",
+		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
+	}
+
+	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
+	printf( "top %d by R:\n", nSQ );
+	for( int i = 0; i < nSQ; ++i ) {
+		printf( "Q %.3f R %.3f << %d, %d >>\n",
+		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
+	}
+#endif
+//-----------------------------
 
 // Now for the conventional biggest
 
@@ -2267,28 +2337,6 @@ double CorrPatchesRQ(
 /* --------------------------------------------------------------- */
 /* CorrPatchesMaxQ ----------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-#if	_debugcorr == 1
-// Descending sort of these data
-class SortQ{
-public:
-	double	q,  r;
-	int		qx, qy;
-};
-
-
-static bool SortQ_q_dec( const SortQ &A, const SortQ &B )
-{
-	return A.q > B.q;
-}
-
-
-static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
-{
-	return A.r > B.r;
-}
-#endif
-
 
 // Return normalized cross-correlation and additive displacement
 // (dx, dy) that places set ip1 into bounding box of ip2.
