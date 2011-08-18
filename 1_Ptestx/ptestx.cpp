@@ -232,8 +232,15 @@ void TileDir( const char *sz, int itile )
 // copy fm here?
 	if( gArgs.fm[itile][0] ) {
 
-		sprintf( buf, "cp '%s' '%s/%d/fm.tif'",
-			gArgs.fm[itile], sz, gArgs.tile[itile] );
+		char	*ext;	// tif or png
+
+		if( strstr( gArgs.fm[itile], ".tif" ) )
+			ext = "tif";
+		else
+			ext = "png";
+
+		sprintf( buf, "cp '%s' '%s/%d/fm.%s'",
+			gArgs.fm[itile], sz, gArgs.tile[itile], ext );
 
 		system( buf );
 	}

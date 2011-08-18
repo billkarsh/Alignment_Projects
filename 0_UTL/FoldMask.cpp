@@ -2,6 +2,7 @@
 
 #include	"FoldMask.h"
 
+#include	"Disk.h"
 #include	"ImageIO.h"
 
 
@@ -57,9 +58,17 @@ uint8* GetFoldMask(
 		char	sfile[256];
 		uint32	_w, _h;
 
-		sprintf( sfile, "../%d/%d/fm.tif", lyr, tile );
+		// try name as tif
+		_w = sprintf( sfile, "../%d/%d/fm.tif", lyr, tile );
 
-		mask = Raster8FromTif( sfile, _w, _h, stdout, transpose );
+		if( !DskExists( sfile ) ) {
+			// assume png
+			sfile[_w-3] = 'p';
+			sfile[_w-2] = 'n';
+			sfile[_w-1] = 'g';
+		}
+
+		mask = Raster8FromAny( sfile, _w, _h, stdout, transpose );
 
 		if( _w != wf || _h != hf ) {
 
