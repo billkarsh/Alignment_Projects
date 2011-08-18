@@ -1855,7 +1855,7 @@ public:
 		EvalType		LegalCnt,
 		void*			arglc );
 
-	double GetNorm();
+	double CalcR( double rslt );
 };
 
 
@@ -1918,9 +1918,9 @@ int CXCQ::CheckDensity(
 }
 
 
-double CXCQ::GetNorm()
+double CXCQ::CalcR( double rslt )
 {
-	return (double)Nxy * i1c;
+	return rslt / ((double)Nxy * i1c);
 }
 
 /* --------------------------------------------------------------- */
@@ -2472,7 +2472,7 @@ double CorrPatchesMaxQ(
 
 			int	ix = (x >= 0 ? x : Nx + x);
 
-			R[cx+x + wR*(cy+y)] = rslt[ix+iy] / ccalc.GetNorm();
+			R[cx+x + wR*(cy+y)] = ccalc.CalcR( rslt[ix+iy] );
 		}
 	}
 
@@ -2739,7 +2739,8 @@ double CorrPatchesMaxR(
 
 // Prepare correlation calculator
 
-	CXCQ	ccalc;	// uses 1/n * SUM(a*b)
+//	CXCQ	ccalc;	// uses 1/n * SUM(a*b)
+	CRQ		ccalc;	// uses Pearson's r
 
 	ccalc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
 
@@ -2769,7 +2770,7 @@ double CorrPatchesMaxR(
 
 			int	ix = (x >= 0 ? x : Nx + x);
 
-			R[cx+x + wR*(cy+y)] = rslt[ix+iy] / ccalc.GetNorm();
+			R[cx+x + wR*(cy+y)] = ccalc.CalcR( rslt[ix+iy] );
 		}
 	}
 
@@ -2777,8 +2778,11 @@ double CorrPatchesMaxR(
 
 //-----------------------------
 #if	_debugcorr == 1
-	CorrThmToTif8( "thmA.tif", i1, Nx, w1, h1 );
-	CorrThmToTif8( "thmB.tif", i2, Nx, w2, h2 );
+	char	simg[32];
+	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i2, Nx, w2, h2 );
 	vector<uint8> tif( nR );
 	double mx = 0;
 	for( int i = 0; i < nR; ++i ) if( R[i] > mx ) mx = R[i];
@@ -2789,7 +2793,8 @@ double CorrPatchesMaxR(
 		else
 			tif[i] = 0;
 	}
-	Raster8ToTif8( "corr.tif", &tif[0], wR, hR );
+	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
+	Raster8ToTif8( simg, &tif[0], wR, hR );
 	printf( "Center = (%d %d)\n", cx, cy );
 #endif
 //-----------------------------
