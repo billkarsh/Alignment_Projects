@@ -310,61 +310,28 @@ static double LkFFT(
 // so call this function separately for each.
 //
 // Inputs:
-//	- nsrcdat:	size of source data
-//	- ntrgdat:	size of target data
-//	- nneglag:	number of strictly negative lags sought
-//	- nposlag:	number of positive lags sought (include zero)
-//
-// Meaningful values for nneglag are: [1,...,nsrcdat-1].
-// Meaningful values for nposlag are: [1,...,ntrgdat].
+//	- n1:	size of source 'a' data
+//	- n2:	size of target 'b' data
 //
 // Returns:
-//	Storage allocation size that should be used for each of
-//	{source data, target data, correlation result}. The value
+//	Storage allocation size that should be used for each array:
+//	{'a' data, 'b' data, correlation results}. Return value
 //	accounts for needed zero padding and is a power of two.
 //
-// Choosing storage size
-// ---------------------
-// The first important constraint is that the two input data
-// arrays and the single result array have the same length, so
-// we seek a single value (N) that satisfies all requirements.
+// Result data ordering
+// --------------------
+// Array sizes are N = n1 + n2 - 1.
 //
-// Obviously N must be large enough to hold either input data:
-//
-//	(1) N >= max( nsrcdat, ntrgdat ).
-//
-// Next consider how results (R) are packed into N elements:
 //	R[0]		= lag 0
 //	R[1]		= lag +1
 //	...
-//	R[N/2-1]	= lag +(N/2-1)	=> N/2 lags are >= zero.
+//	R[n2-1]		= lag +(n2-1)	=> (n2) lags are >= zero.
 //
 //
 //	R[N-1]		= lag -1
 //	R[N-2]		= lag -2
 //	...
-//	R[N/2]		= lag -(N/2)	=> N/2 lags are < zero.
-//
-// We have no choice about the fact that one half is positive and
-// the other negative, so if we want a given number of positive or
-// negative values, we have to increase N so they fit in their
-// designated half. Which means:
-//
-//	(2) N/2 >= max( nneglag, nposlag ).
-//
-// Therefore, we have:
-//
-//	(3) N = max( nsrcdat, ntrgdat, nneglag*2, nposlag*2 ).
-//
-// Finally, we increase the size to the nearest power of two
-// for best performance (more below).
-//
-// Addressing result array
-// -----------------------
-// The valid ranges of the result array---
-//
-//	Negative lags:	R[N-nneglag] ... R[N-1], inclusive
-//	Positive lags:	R[0] ... R[nposlag-1], inclusive.
+//	R[N-(n1-1)]	= lag -(n1-1)	=> (n1-1) lags are < zero.
 //
 // Why a power of two?
 // -------------------
@@ -377,17 +344,9 @@ static double LkFFT(
 //	even dims:			1.75
 //	odd dims:			2.20+
 //
-int FFTSize( int nsrcdat, int ntrgdat, int nneglag, int nposlag )
+int FFTSize( int n1, int n2 )
 {
-// minimum padded size
-
-	int	n = 2 * max( nneglag, nposlag );
-
-	n = max( n, max( nsrcdat, ntrgdat ) );
-
-// nearest power of two
-
-	return CeilPow2( n );
+	return CeilPow2( n1 + n2 - 1 );
 }
 
 /* --------------------------------------------------------------- */
@@ -941,13 +900,9 @@ double CorrPatches(
 
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	nnegx	= w1 - 1,
-		nnegy	= h1 - 1,
-		nposx	= w2,
-		nposy	= h2,
-		Nx		= FFTSize( w1, w2, nnegx, nposx ),
-		Ny		= FFTSize( h1, h2, nnegy, nposy ),
-		M		= Ny*(Nx/2+1);
+	int	Nx	= FFTSize( w1, w2 ),
+		Ny	= FFTSize( h1, h2 ),
+		M	= Ny*(Nx/2+1);
 
 	if( verbose )
 		fprintf( flog, "NormCorr: Nx = %d, Ny = %d.\n", Nx, Ny );
@@ -992,9 +947,13 @@ double CorrPatches(
 // Now for the conventional biggest
 
 	double	biggest	= -1.0E30;
-	int		bigx	= -1;
-	int		bigy	= -1;
-	int		rsqr	= radius * radius;
+	int		bigx	= -1,
+			bigy	= -1,
+			nnegx	= w1 - 1,
+			nnegy	= h1 - 1,
+			nposx	= w2,
+			nposy	= h2,
+			rsqr	= radius * radius;
 
 	for( int iy = 0; iy < Ny; ++iy ) {
 
@@ -2046,12 +2005,9 @@ static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
 // X-widths of the images are w1, w2; to search the largest
 // sensible magnitudes for negative and positive offsets, set
 // [w1-1, w2)...A negative magnitude >= w1 just pushes patch1
-// all the way off patch2. For the positive case, the largest
-// sensible value is similarly w2-1. Hovever, these parameters
-// are used to allocate storage to hold that many offsets and
-// zero is counted among the positives, so you must add one to
-// get w2. Tighter search ranges are allowed. The minumum is
-// [nnegx, nposx) = [1, 1).
+// all the way off patch2. Similarly, values >= w2 push patch1
+// all the way off on the positive side. Tighter search ranges
+// are allowed. The minumum is [nnegx, nposx) = [1, 1).
 //
 // 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
 // the correct size it is used. Otherwise recomputed here.
@@ -2109,8 +2065,8 @@ double CorrPatchesRQ(
 
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	Nx	= FFTSize( w1, w2, nnegx, nposx ),
-		Ny	= FFTSize( h1, h2, nnegy, nposy ),
+	int	Nx	= FFTSize( w1, w2 ),
+		Ny	= FFTSize( h1, h2 ),
 		M	= Ny*(Nx/2+1);
 
 	if( verbose )
@@ -2147,6 +2103,18 @@ double CorrPatchesRQ(
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
 // of any sign.
+
+	if( nnegx >= w1 )
+		nnegx = w1 - 1;
+
+	if( nposx > w2 )
+		nposx = w2;
+
+	if( nnegy >= h1 )
+		nnegy = h1 - 1;
+
+	if( nposy > h2 )
+		nposy = h2;
 
 	int	cx	= nnegx,
 		cy	= nnegy,
@@ -2348,12 +2316,9 @@ double CorrPatchesRQ(
 // X-widths of the images are w1, w2; to search the largest
 // sensible magnitudes for negative and positive offsets, set
 // [w1-1, w2)...A negative magnitude >= w1 just pushes patch1
-// all the way off patch2. For the positive case, the largest
-// sensible value is similarly w2-1. Hovever, these parameters
-// are used to allocate storage to hold that many offsets and
-// zero is counted among the positives, so you must add one to
-// get w2. Tighter search ranges are allowed. The minumum is
-// [nnegx, nposx) = [1, 1).
+// all the way off patch2. Similarly, values >= w2 push patch1
+// all the way off on the positive side. Tighter search ranges
+// are allowed. The minumum is [nnegx, nposx) = [1, 1).
 //
 // 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
 // the correct size it is used. Otherwise recomputed here.
@@ -2411,8 +2376,8 @@ double CorrPatchesMaxQ(
 
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	Nx	= FFTSize( w1, w2, nnegx, nposx ),
-		Ny	= FFTSize( h1, h2, nnegy, nposy ),
+	int	Nx	= FFTSize( w1, w2 ),
+		Ny	= FFTSize( h1, h2 ),
 		M	= Ny*(Nx/2+1);
 
 	if( verbose )
@@ -2449,6 +2414,18 @@ double CorrPatchesMaxQ(
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
 // of any sign.
+
+	if( nnegx >= w1 )
+		nnegx = w1 - 1;
+
+	if( nposx > w2 )
+		nposx = w2;
+
+	if( nnegy >= h1 )
+		nnegy = h1 - 1;
+
+	if( nposy > h2 )
+		nposy = h2;
 
 	int	cx	= nnegx,
 		cy	= nnegy,
@@ -2650,12 +2627,9 @@ double CorrPatchesMaxQ(
 // X-widths of the images are w1, w2; to search the largest
 // sensible magnitudes for negative and positive offsets, set
 // [w1-1, w2)...A negative magnitude >= w1 just pushes patch1
-// all the way off patch2. For the positive case, the largest
-// sensible value is similarly w2-1. Hovever, these parameters
-// are used to allocate storage to hold that many offsets and
-// zero is counted among the positives, so you must add one to
-// get w2. Tighter search ranges are allowed. The minumum is
-// [nnegx, nposx) = [1, 1).
+// all the way off patch2. Similarly, values >= w2 push patch1
+// all the way off on the positive side. Tighter search ranges
+// are allowed. The minumum is [nnegx, nposx) = [1, 1).
 //
 // 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
 // the correct size it is used. Otherwise recomputed here.
@@ -2695,6 +2669,10 @@ double CorrPatchesMaxR(
 	w2 = B2.R - B2.L + 1;
 	h2 = B2.T - B2.B + 1;
 
+#ifdef	CORR_DEBUG
+	verbose = true;
+#endif
+
 	if( verbose ) {
 
 		fprintf( flog,
@@ -2708,8 +2686,8 @@ double CorrPatchesMaxR(
 
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	Nx	= FFTSize( w1, w2, nnegx, nposx ),
-		Ny	= FFTSize( h1, h2, nnegy, nposy ),
+	int	Nx	= FFTSize( w1, w2 ),
+		Ny	= FFTSize( h1, h2 ),
 		M	= Ny*(Nx/2+1);
 
 	if( verbose )
@@ -2747,6 +2725,18 @@ double CorrPatchesMaxR(
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
 // of any sign.
+
+	if( nnegx >= w1 )
+		nnegx = w1 - 1;
+
+	if( nposx > w2 )
+		nposx = w2;
+
+	if( nnegy >= h1 )
+		nnegy = h1 - 1;
+
+	if( nposy > h2 )
+		nposy = h2;
 
 	int	cx	= nnegx,
 		cy	= nnegy,
@@ -2808,6 +2798,12 @@ double CorrPatchesMaxR(
 	int		rx		= -1;
 	int		ry		= -1;
 
+//-----------------------------
+#if	_debugcorr == 1
+	vector<SortQ> SQ;
+#endif
+//-----------------------------
+
 	for( int y = 1; y < hR - 1; ++y ) {
 
 		for( int x = 1; x < wR - 1; ++x ) {
@@ -2830,11 +2826,38 @@ double CorrPatchesMaxR(
 			if( !(t = R[ir+wR]) || t >= r )
 				continue;
 
+//-----------------------------
+#if	_debugcorr == 1
+// look at top scoring points
+			SortQ	sq;
+			sq.q	= 1;
+			sq.r	= r;
+			sq.qx	= x;
+			sq.qy	= y;
+			SQ.push_back( sq );
+#endif
+//-----------------------------
+
 			bigR	= r;
 			rx		= x;
 			ry		= y;
 		}
 	}
+
+//-----------------------------
+#if	_debugcorr == 1
+	int	nSQ = SQ.size();
+	if( nSQ > 20 )
+		nSQ = 20;
+
+	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
+	printf( "top %d by R:\n", nSQ );
+	for( int i = 0; i < nSQ; ++i ) {
+		printf( "Q %.3f R %.3f << %d, %d >>\n",
+		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
+	}
+#endif
+//-----------------------------
 
 // Reports
 

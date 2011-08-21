@@ -16,7 +16,7 @@ using namespace std;
 /* FFT support --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int FFTSize( int nsrcdat, int ntrgdat, int nneglag, int nposlag );
+int FFTSize( int n1, int n2 );
 
 int FFTSizeSQR( int w1, int h1, int w2, int h2 );
 

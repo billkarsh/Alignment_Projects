@@ -343,7 +343,7 @@ double CorrPatches(
 // Find N, the size we need for FFTs.
 // We will always use square FFTs.
 
-	int		N = FFTSize( w1, h1, w2, h2 );
+	int		N = FFTSizeSQR( w1, h1, w2, h2 );
 	fprintf( of, "NormCorr: N = %d.\n", N );
 
 // Number of complex values in FFT of 2D real
