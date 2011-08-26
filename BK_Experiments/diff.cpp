@@ -334,7 +334,7 @@ static void RFromAngle(
 		ps, thm.av, thm.bpts, thm.bv,
 		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, thm.ftc );
+		EnoughPoints, (void*)thm.reqArea, 0.0, thm.ftc );
 }
 
 

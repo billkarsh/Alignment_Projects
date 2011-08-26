@@ -567,10 +567,10 @@ private:
 public:
 	void Initialize(
 		FILE					*flog,
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -595,10 +595,10 @@ public:
 
 void CLinCorr::Initialize(
 		FILE					*flog,
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -735,10 +735,10 @@ private:
 public:
 	void Initialize(
 		FILE					*flog,
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -763,10 +763,10 @@ public:
 
 void CCrossCorr::Initialize(
 		FILE					*flog,
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -1014,13 +1014,15 @@ skip:
 
 	if( biggest < -2.0 ) {
 
-		fprintf( flog, "NormCorr: No legal subregions at all...\n");
+		if( verbose ) {
 
-		// for sake of grep searches
+			fprintf( flog,
+			"NormCorr: No legal subregions at all...\n");
 
-		fprintf( flog,
-		"NormCorr: Maximum correlation of %f at [%d,%d].\n",
-		0.0, 0, 0 );
+			fprintf( flog,
+			"NormCorr: Maximum correlation of %f at [%d,%d].\n",
+			0.0, 0, 0 );
+		}
 
 		return 0.0;
 	}
@@ -1672,17 +1674,17 @@ private:
 	vector<int>		i1nz,  i2nz;
 	int				w1,  h1,
 					w2,  h2,
+					Nx,  Ny,
 					Nxy;
 	IBox			OL1, OL2;
-	int				olw, olh,
-					i1c, i2c;
+	int				olw, olh;
 
 public:
 	void Initialize(
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -1699,14 +1701,16 @@ public:
 		void*			arglc );
 
 	double CalcR( double rslt );
+
+	double XCor( const vector<double> &rslt, int x, int y );
 };
 
 
 void CRQ::Initialize(
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -1716,6 +1720,8 @@ void CRQ::Initialize(
 	this->h1	= h1;
 	this->w2	= w2;
 	this->h2	= h2;
+	this->Nx	= Nx;
+	this->Ny	= Ny;
 	Nxy			= Nx * Ny;
 
 	IntegrateImage( i1sum, i1sum2, i1nz, w1, h1, I1, Nx );
@@ -1749,7 +1755,7 @@ int CRQ::CheckDensity(
 	EvalType		LegalCnt,
 	void*			arglc )
 {
-	int		ok = true;
+	int		i1c, i2c, ok = true;
 
 	i1c = IntegralTable( i1nz, w1, OL1 );
 	i2c = IntegralTable( i2nz, w2, OL2 );
@@ -1779,6 +1785,18 @@ double CRQ::CalcR( double rslt )
 	return r;
 }
 
+
+double CRQ::XCor( const vector<double> &rslt, int x, int y )
+{
+	int	ix = (x >= 0 ? x : Nx + x);
+	int	iy = (y >= 0 ? y : Ny + y);
+
+	BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, x, y );
+	int i2c = IntegralTable( i2nz, w2, OL2 );
+
+	return rslt[ix+Nx*iy] / ((double)Nxy * i2c);
+}
+
 /* --------------------------------------------------------------- */
 /* CXCQ ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -1795,10 +1813,10 @@ private:
 
 public:
 	void Initialize(
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -1819,10 +1837,10 @@ public:
 
 
 void CXCQ::Initialize(
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						Nx,
@@ -2258,23 +2276,19 @@ double CorrPatchesRQ(
 #endif
 //-----------------------------
 
-// Now for the conventional biggest
-
-	double	bigR	= R[qx + wR*qy];
-	int		bigx	= qx - cx;
-	int		bigy	= qy - cy;
-
-// Reports
+// Any solution?
 
 	if( qx == -1 ) {
 
-		fprintf( flog, "RQ: No legal subregions at all...\n");
+		if( verbose ) {
 
-		// for sake of grep searches
+			fprintf( flog,
+			"RQ: No legal subregions at all...\n");
 
-		fprintf( flog,
-		"RQ: Max corr %f, max Q %f at [%d,%d].\n",
-		0.0, 0.0, 0, 0 );
+			fprintf( flog,
+			"RQ: Max corr %f, max Q %f at [dx,dy]=[%d,%d].\n",
+			0.0, 0.0, 0, 0 );
+		}
 
 		Q	= 0.0;
 		dx	= 0.0;
@@ -2283,11 +2297,16 @@ double CorrPatchesRQ(
 		return 0.0;
 	}
 
+// Reports
+
+	double	bigR = R[qx + wR*qy];
+
 	if( verbose ) {
 
 		fprintf( flog,
-		"RQ: Max corr %f, max Q %f at [%d,%d] (%d,%d).\n",
-		bigR, Q, bigx, bigy, qx, qy );
+		"RQ: Max corr %f, max Q %f at"
+		" [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
+		bigR, Q, qx - cx, qy - cy, qx, qy );
 	}
 
 // Interpolate peak
@@ -2482,7 +2501,7 @@ double CorrPatchesMaxQ(
 // - peak not adjacent to border.
 // - peak not adjacent to any zero (4-way).
 // - peak has maximal Q = [4*pk - SUM(4 neighbors)].
-// The latter metric is average slope-like.
+// Q is really a 3x3 LoG filter.
 
 	int		qx	= -1,
 			qy	= -1;
@@ -2569,23 +2588,19 @@ double CorrPatchesMaxQ(
 #endif
 //-----------------------------
 
-// Now for the conventional biggest
-
-	double	bigR	= R[qx + wR*qy];
-	int		bigx	= qx - cx;
-	int		bigy	= qy - cy;
-
-// Reports
+// Any solution?
 
 	if( qx == -1 ) {
 
-		fprintf( flog, "MaxQ: No legal subregions at all...\n");
+		if( verbose ) {
 
-		// for sake of grep searches
+			fprintf( flog,
+			"MaxQ: No legal subregions at all...\n");
 
-		fprintf( flog,
-		"MaxQ: Max corr %f, max Q %f at [%d,%d].\n",
-		0.0, 0.0, 0, 0 );
+			fprintf( flog,
+			"MaxQ: Max corr %f, max Q %f at [dx,dy]=[%d,%d].\n",
+			0.0, 0.0, 0, 0 );
+		}
 
 		Q	= 0.0;
 		dx	= 0.0;
@@ -2594,11 +2609,16 @@ double CorrPatchesMaxQ(
 		return 0.0;
 	}
 
+// Reports
+
+	double	bigR = R[qx + wR*qy];
+
 	if( verbose ) {
 
 		fprintf( flog,
-		"MaxQ: Max corr %f, max Q %f at [%d,%d] (%d,%d).\n",
-		bigR, Q, bigx, bigy, qx, qy );
+		"MaxQ: Max corr %f, max Q %f at"
+		" [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
+		bigR, Q, qx - cx, qy - cy, qx, qy );
 	}
 
 // Interpolate peak
@@ -2631,6 +2651,11 @@ double CorrPatchesMaxQ(
 // all the way off on the positive side. Tighter search ranges
 // are allowed. The minumum is [nnegx, nposx) = [1, 1).
 //
+// If non-zero, qtol specifies how much better the best candidate
+// R peak is than the next best. For example, if qtol = 0.20, then
+// the Q-value of the best solution must be 20% better than the
+// second best.
+//
 // 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
 // the correct size it is used. Otherwise recomputed here.
 //
@@ -2653,6 +2678,7 @@ double CorrPatchesMaxR(
 	void*					arglr,
 	EvalType				LegalCnt,
 	void*					arglc,
+	double					qtol,
 	vector<CD>				&fft2 )
 {
 // Bounding boxes of point lists
@@ -2791,10 +2817,14 @@ double CorrPatchesMaxR(
 
 // Scan R image for the best peak such that:
 // - peak not adjacent to border.
-// - peak not adjacent to any zero (4-way).
-// - peak indeed higher than neighbors (4-way).
+// - peak not adjacent to any zero (8-way).
+// - peak indeed higher than neighbors (8-way).
+// - peak has maximal Q = (4 x pk-height + radius).
 
+	double	bigQ	= 0.0;
 	double	bigR	= 0.0;
+	double	qual	= 0;
+	double	D		= (hR*hR + wR*wR)/4;
 	int		rx		= -1;
 	int		ry		= -1;
 
@@ -2808,10 +2838,15 @@ double CorrPatchesMaxR(
 
 		for( int x = 1; x < wR - 1; ++x ) {
 
-			double	r, t;
+			double	r, q, t;
 			int		ir = x + wR*y;
 
-			if( (r = R[ir]) < bigR )
+			r = R[ir];
+			q = x - cx;
+			t = y - cy;
+			q = 4 * r + (D - q*q - t*t) / D;
+
+			if( q < bigQ )
 				continue;
 
 			if( !(t = R[ir-1]) || t >= r )
@@ -2820,17 +2855,29 @@ double CorrPatchesMaxR(
 			if( !(t = R[ir+1]) || t >= r )
 				continue;
 
+			if( !(t = R[ir-wR-1]) || t >= r )
+				continue;
+
 			if( !(t = R[ir-wR]) || t >= r )
 				continue;
 
+			if( !(t = R[ir-wR+1]) || t >= r )
+				continue;
+
+			if( !(t = R[ir+wR-1]) || t >= r )
+				continue;
+
 			if( !(t = R[ir+wR]) || t >= r )
+				continue;
+
+			if( !(t = R[ir+wR+1]) || t >= r )
 				continue;
 
 //-----------------------------
 #if	_debugcorr == 1
 // look at top scoring points
 			SortQ	sq;
-			sq.q	= 1;
+			sq.q	= q;
 			sq.r	= r;
 			sq.qx	= x;
 			sq.qy	= y;
@@ -2838,6 +2885,8 @@ double CorrPatchesMaxR(
 #endif
 //-----------------------------
 
+			qual	= (q > 0 ? (q - bigQ)/q : 0);
+			bigQ	= q;
 			bigR	= r;
 			rx		= x;
 			ry		= y;
@@ -2850,6 +2899,13 @@ double CorrPatchesMaxR(
 	if( nSQ > 20 )
 		nSQ = 20;
 
+	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
+	printf( "top %d by Q:\n", nSQ );
+	for( int i = 0; i < nSQ; ++i ) {
+		printf( "Q %.3f R %.3f << %d, %d >>\n",
+		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
+	}
+
 	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
 	printf( "top %d by R:\n", nSQ );
 	for( int i = 0; i < nSQ; ++i ) {
@@ -2859,17 +2915,18 @@ double CorrPatchesMaxR(
 #endif
 //-----------------------------
 
-// Reports
+// Any solution?
 
-	if( rx == -1 ) {
+	if( rx == -1 || qual < qtol ) {
 
-		fprintf( flog, "MaxR: No legal subregions at all...\n");
+		if( verbose ) {
 
-		// for sake of grep searches
+			fprintf( flog, "MaxR: No believable solutions...\n");
 
-		fprintf( flog,
-		"MaxR: Max corr %f at [%d,%d].\n",
-		0.0, 0, 0 );
+			fprintf( flog,
+			"MaxR: Max corr %f at [dx,dy]=[%d,%d].\n",
+			0.0, 0, 0 );
+		}
 
 		dx	= 0.0;
 		dy	= 0.0;
@@ -2877,14 +2934,25 @@ double CorrPatchesMaxR(
 		return 0.0;
 	}
 
-	int	bigx = rx - cx;
-	int	bigy = ry - cy;
+// Fill 4-way R neighborhood with cross corr values
+
+#if 1
+	R[(rx)   + wR*(ry-1)] = ccalc.XCor( rslt, rx-cx,   ry-cy-1 );
+	R[(rx-1) + wR*(ry)]   = ccalc.XCor( rslt, rx-cx-1, ry-cy );
+	R[(rx)   + wR*(ry)]   = ccalc.XCor( rslt, rx-cx,   ry-cy );
+	R[(rx+1) + wR*(ry)]   = ccalc.XCor( rslt, rx-cx+1, ry-cy );
+	R[(rx)   + wR*(ry+1)] = ccalc.XCor( rslt, rx-cx,   ry-cy+1 );
+
+	bigR = R[rx+ wR*ry];
+#endif
+
+// Reports
 
 	if( verbose ) {
 
 		fprintf( flog,
-		"MaxR: Max corr %f at [%d,%d] (%d,%d).\n",
-		bigR, bigx, bigy, rx, ry );
+		"MaxR: Max corr %f at [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
+		bigR, rx - cx, ry - cy, rx, ry );
 	}
 
 // Interpolate peak

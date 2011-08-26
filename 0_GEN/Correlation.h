@@ -196,6 +196,7 @@ double CorrPatchesMaxR(
 	void*					arglr,
 	EvalType				LegalCnt,
 	void*					arglc,
+	double					qtol,
 	vector<CD>				&fft2 );
 
 

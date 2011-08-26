@@ -12,6 +12,10 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # defines
 # =======
 
+# -DCORR_DEBUG:
+#	Output 'thmA.tif', 'thmB.tif', 'corr.tif' to visualize
+#	thumbnail registration
+
 SYMBOLS_MYPROJ :=
 
 # =======

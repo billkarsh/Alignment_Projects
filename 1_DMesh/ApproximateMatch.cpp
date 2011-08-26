@@ -25,6 +25,10 @@ enum thmerrs {
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#define	USE_Q		0
+#define	QTOL_SWEEP	0.20
+#define	QTOL_ZERO	0.00
+
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -500,18 +504,20 @@ static void RotatePoints(
 
 	MultiplyTrans( T, ao, T0 );
 
-	int np = pts.size();
+	T.Apply_R_Part( pts );
 
-	for( int i = 0; i < np; ++i ) {
+	//int np = pts.size();
 
-		pts[i].x -= aC.x;
-		pts[i].y -= aC.y;
+	//for( int i = 0; i < np; ++i ) {
 
-		T.Apply_R_Part( pts[i] );
+	//	pts[i].x -= aC.x;
+	//	pts[i].y -= aC.y;
 
-		pts[i].x += aC.x;
-		pts[i].y += aC.y;
-	}
+	//	T.Apply_R_Part( pts[i] );
+
+	//	pts[i].x += aC.x;
+	//	pts[i].y += aC.y;
+	//}
 }
 
 /* --------------------------------------------------------------- */
@@ -539,6 +545,7 @@ static bool EnoughPoints( int count1, int count2, void *a )
 static void QFromAngle(
 	CorRec	&C,
 	double	a,
+	double	qtol,
 	ThmRec	&thm,
 	FILE*	flog )
 {
@@ -549,12 +556,22 @@ static void QFromAngle(
 
 	RotatePoints( ps, C.T, Tskew, thm.aC, a * PI/180.0 );
 
+#if USE_Q == 1
 	C.R = CorrPatchesMaxQ(
 		flog, false, C.Q, C.X, C.Y,
 		ps, thm.av, thm.bp, thm.bv,
 		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea, thm.ftc );
+#else
+	C.Q = C.R = CorrPatchesMaxR(
+		flog, false, C.X, C.Y,
+		ps, thm.av, thm.bp, thm.bv,
+		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
+		BigEnough, (void*)thm.reqArea,
+		EnoughPoints, (void*)thm.reqArea,
+		qtol, thm.ftc );
+#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -565,6 +582,7 @@ static void DebugAngs(
 	double	center,
 	double	hlfwid,
 	double	step,
+	double	qtol,
 	ThmRec &thm )
 {
 	char	file[256];
@@ -579,7 +597,7 @@ static void DebugAngs(
 
 		CorRec	C;
 
-		QFromAngle( C, a, thm, stdout );
+		QFromAngle( C, a, qtol, thm, stdout );
 
 		fprintf( f, "%.3f\t%.4f\t%.4f\t%.3f\t%.3f\n",
 			a, C.R, C.Q, C.X, C.Y );
@@ -591,6 +609,17 @@ static void DebugAngs(
 /* --------------------------------------------------------------- */
 /* AngleScan ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+static void RecordAngle(
+	FILE			*f,
+	const char		*label,
+	const CorRec	&C )
+{
+	fprintf( f,
+	"%s: Q=%6.3f, R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
+	label, C.Q, C.R, C.A, C.X, C.Y );
+}
+
 
 static void AngleScan(
 	CorRec	&best,
@@ -606,52 +635,23 @@ static void AngleScan(
 
 	clock_t	t0 = StartTiming();
 
-	QFromAngle( best, center, thm, flog );
+	QFromAngle( best, center, QTOL_SWEEP, thm, flog );
+	RecordAngle( flog, "Center", best );
 
 	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
 
 		CorRec	C;
 
-		QFromAngle( C, a, thm, flog );
+		QFromAngle( C, a, QTOL_SWEEP, thm, flog );
+		RecordAngle( flog, "  Scan", C );
 
 		if( C.Q > best.Q )
 			best = C;
 	}
 
-	fprintf( flog,
-	"AngleScan: Best: Q=%.3f, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
-	best.Q, best.R, best.A, best.X, best.Y );
+	RecordAngle( flog, "  Best", best );
 
 	StopTiming( stdout, "AngleScan", t0 );
-}
-
-/* --------------------------------------------------------------- */
-/* TightenXYRange ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static void TightenXYRange( ThmRec &thm, const CorRec &best )
-{
-	int	x0 = int(best.X),
-		y0 = int(best.Y),
-		r  = (thm.scl == 1 ? 32 : 8);
-
-	if( x0 < 0 ) {
-		thm.nnegx = r - x0;
-		thm.nposx = 8;
-	}
-	else {
-		thm.nnegx = 8;
-		thm.nposx = r + x0;
-	}
-
-	if( y0 < 0 ) {
-		thm.nnegy = r - y0;
-		thm.nposy = 8;
-	}
-	else {
-		thm.nnegy = 8;
-		thm.nposy = r + y0;
-	}
 }
 
 /* --------------------------------------------------------------- */
@@ -696,15 +696,15 @@ static void PeakHunt(
 		++k;
 
 		// left
-		QFromAngle( C, L, thm, flog );
+		QFromAngle( C, L, QTOL_ZERO, thm, flog );
 		y0 = C.Q;
 
 		// right
-		QFromAngle( C, R, thm, flog );
+		QFromAngle( C, R, QTOL_ZERO, thm, flog );
 		y2 = C.Q;
 
 		// middle
-		QFromAngle( C, x1 = (L+R)/2.0, thm, flog );
+		QFromAngle( C, x1 = (L+R)/2.0, QTOL_ZERO, thm, flog );
 
 		// estimate peak position
 		C.A = NewXFromParabola( x1, (R-L)/2.0, y0, C.Q, y2 );
@@ -714,7 +714,7 @@ static void PeakHunt(
 			break;
 
 		// compete estimate against best so far
-		QFromAngle( C, C.A, thm, flog );
+		QFromAngle( C, C.A, QTOL_ZERO, thm, flog );
 
 		if( C.Q > best.Q )
 			best = C;
@@ -756,13 +756,13 @@ static void PeakHunt(
 
 	clock_t	t0 = StartTiming();
 
-	QFromAngle( C, L, thm, flog );
+	QFromAngle( C, L, QTOL_ZERO, thm, flog );
 	lq = C.Q;
 
-	QFromAngle( C, R, thm, flog );
+	QFromAngle( C, R, QTOL_ZERO, thm, flog );
 	rq = C.Q;
 
-	QFromAngle( best, M = (L+R)/2.0, thm, flog );
+	QFromAngle( best, M = (L+R)/2.0, QTOL_ZERO, thm, flog );
 
 	while( R - L > 0.0001 ) {
 
@@ -771,7 +771,7 @@ static void PeakHunt(
 		++k;
 
 		// move left up
-		QFromAngle( C, a = (L+M)/2.0, thm, flog );
+		QFromAngle( C, a = (L+M)/2.0, QTOL_ZERO, thm, flog );
 
 		if( C.Q >= best.Q ) {
 			rq		= best.Q;
@@ -785,7 +785,7 @@ static void PeakHunt(
 		}
 
 		// move right back
-		QFromAngle( C, a = (M+R)/2.0, thm, flog );
+		QFromAngle( C, a = (M+R)/2.0, QTOL_ZERO, thm, flog );
 
 		if( C.Q >= best.Q ) {
 			lq		= best.Q;
@@ -829,8 +829,6 @@ static bool UsePriorAngles(
 		return false;
 	}
 
-	TightenXYRange( thm, best );
-
 	PeakHunt( best, 0.15, thm, flog );
 
 	if( best.R < rthresh ) {
@@ -859,8 +857,6 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 	}
 
 	AngleScan( best, best.A, 1.0, 0.1, thm, flog );
-
-	TightenXYRange( thm, best );
 
 	PeakHunt( best, 0.15, thm, flog );
 
@@ -913,12 +909,22 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 
 		C.T.Apply_R_Part( ps );
 
+#if USE_Q == 1
 		C.R = CorrPatchesMaxQ(
 			flog, false, C.Q, C.X, C.Y,
 			ps, thm.av, thm.bp, thm.bv,
 			thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 			BigEnough, (void*)thm.reqArea,
 			EnoughPoints, (void*)thm.reqArea, thm.ftc );
+#else
+		C.Q = C.R = CorrPatchesMaxR(
+			flog, false, C.X, C.Y,
+			ps, thm.av, thm.bp, thm.bv,
+			thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
+			BigEnough, (void*)thm.reqArea,
+			EnoughPoints, (void*)thm.reqArea,
+			0.0, thm.ftc );
+#endif
 
 		fprintf( flog, "Tweak %d Q=%.3f, R=%.3f.\n", i, C.Q, C.R );
 
@@ -955,12 +961,22 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 
 	best.T.Apply_R_Part( ps );
 
+#if USE_Q == 1
 	best.R = CorrPatchesMaxQ(
 		flog, false, best.Q, best.X, best.Y,
 		ps, thm.av, thm.bp, thm.bv,
 		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea, thm.ftc );
+#else
+	best.Q = best.R = CorrPatchesMaxR(
+		flog, false, best.X, best.Y,
+		ps, thm.av, thm.bp, thm.bv,
+		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
+		BigEnough, (void*)thm.reqArea,
+		EnoughPoints, (void*)thm.reqArea,
+		0.0, thm.ftc );
+#endif
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);
@@ -1223,11 +1239,13 @@ bool ApproximateMatch(
 /* --------------------- */
 
 // -----------------------------------------------------------
-//	DebugAngs( 0, 2, .1, thm );
+//	DebugAngs( ang0, halfAngPR, .1, QTOL_SWEEP, thm );
+//	DebugAngs( ang0, 1, .01, 0, thm );
+//	exit( 42 );
 // -----------------------------------------------------------
 
 #ifdef	CORR_DEBUG
-	QFromAngle( best, ang0, thm, flog );
+	QFromAngle( best, ang0, QTOL_ZERO, thm, flog );
 	return false;
 #endif
 
@@ -1270,7 +1288,6 @@ bool ApproximateMatch(
 // hurt, so we do it always.
 
 	MakeThumbs( thm, olp, 1, flog );
-	TightenXYRange( thm, best );
 	FinishAtFullRes( best, thm, flog );
 
 /* ------------------------------------------ */
