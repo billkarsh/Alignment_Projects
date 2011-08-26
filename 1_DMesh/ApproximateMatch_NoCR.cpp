@@ -810,15 +810,12 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 /* TryTweaks ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// The best transform is multiplied with each of eight near-unity
-// tweak transforms to see if we get a better result.
+// The best transform is repeatedly multiplied with each of eight
+// near-unity tweak transforms to see if we get a better result.
 //
 static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	vector<TForm>	tweaks(8);
-	TForm			tcur;
-
-	tcur = best.T;
+	vector<TForm>	tweaks( 8 );
 
 	tweaks[0] = TForm( 0.995,  0.0,   0.0,  0.0,   0.995, 0.0 ); // slightly smaller
 	tweaks[1] = TForm( 1.005,  0.0,   0.0,  0.0,   1.005, 0.0 ); // slightly bigger
@@ -830,48 +827,53 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 	tweaks[7] = TForm( 1.000, -0.005, 0.0,  0.005, 1.000, 0.0 ); // other way
 
 	fprintf( flog,
-	"Approx: Tweaks start, best Q=%.3f, R=%.3f.\n",
-	best.Q, best.R );
+	"Tweaks start, best Q=%.3f, R=%.3f.\n", best.Q, best.R );
 
-	for( int i = 0; i < 8; ++i ) {
+	clock_t	t0 = StartTiming();
 
-		CorRec			C;
-		vector<Point>	ps = thm.ap;
+	for( int changed = true; changed; ) {
 
-		C.A = best.A;
-		MultiplyTrans( C.T, tcur, tweaks[i] );
+		changed = false;
 
-		C.T.Apply_R_Part( ps );
+		for( int i = 0; i < 8; ++i ) {
+
+			CorRec			C;
+			vector<Point>	ps = thm.ap;
+
+			C.A = best.A;
+			MultiplyTrans( C.T, best.T, tweaks[i] );
+
+			C.T.Apply_R_Part( ps );
 
 #if USE_Q == 1
-		C.R = CorrPatchesMaxQ(
-			flog, false, C.Q, C.X, C.Y,
-			ps, thm.av, thm.bp, thm.bv,
-			thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-			BigEnough, (void*)thm.reqArea,
-			EnoughPoints, (void*)thm.reqArea, thm.ftc );
+			C.R = CorrPatchesMaxQ(
+				flog, false, C.Q, C.X, C.Y,
+				ps, thm.av, thm.bp, thm.bv,
+				thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
+				BigEnough, (void*)thm.reqArea,
+				EnoughPoints, (void*)thm.reqArea, thm.ftc );
 #else
-		C.Q = C.R = CorrPatchesMaxR(
-			flog, false, C.X, C.Y,
-			ps, thm.av, thm.bp, thm.bv,
-			thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-			BigEnough, (void*)thm.reqArea,
-			EnoughPoints, (void*)thm.reqArea,
-			0.0, thm.ftc );
+			C.Q = C.R = CorrPatchesMaxR(
+				flog, false, C.X, C.Y,
+				ps, thm.av, thm.bp, thm.bv,
+				thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
+				BigEnough, (void*)thm.reqArea,
+				EnoughPoints, (void*)thm.reqArea,
+				0.0, thm.ftc );
 #endif
 
-		fprintf( flog, "Tweak %d Q=%.3f, R=%.3f.\n", i, C.Q, C.R );
-
-		if( C.R > best.R ) {
-
 			fprintf( flog,
-			"Approx: Using tweak[%d] Q=%.3f, R=%.3f;"
-			" was Q=%.3f, R=%.3f.\n",
-			i, C.Q, C.R, best.Q, best.R );
+			"Tweak %d Q=%.3f, R=%.3f.\n", i, C.Q, C.R );
 
-			best = C;
+			if( C.R > best.R ) {
+
+				changed	= true;
+				best	= C;
+			}
 		}
 	}
+
+	StopTiming( stdout, "TryTweaks", t0 );
 }
 
 /* --------------------------------------------------------------- */
