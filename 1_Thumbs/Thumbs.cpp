@@ -42,7 +42,6 @@ typedef struct {
 
 typedef struct {
 	SubI			a, b;
-	Point			aC;				// a-centroid
 	int				nnegx, nnegy,	// ful-res search range
 					nposx, nposy;
 } OlapRec;
@@ -51,7 +50,6 @@ typedef struct {
 	vector<double>	av, bv;
 	vector<Point>	ap, bp;
 	vector<CD>		ftc;			// fourier transform cache
-	Point			aC;				// a-rotation center
 	long			reqArea;
 	int				scl;
 	int				nnegx, nnegy,	// scaled search range
@@ -248,7 +246,6 @@ static bool WholeImage(
 	WholeImageSubI( olp.a, *px.avs_aln, acr.pts, px.ws );
 	WholeImageSubI( olp.b, *px.bvs_aln, bcr.pts, px.ws );
 
-	olp.aC		= FindCOG( olp.a.p );
 	olp.nnegx	= olp.a.w - GBL.thm.OLAP1D;
 	olp.nposx	= olp.b.w - GBL.thm.OLAP1D;
 	olp.nnegy	= olp.a.h - GBL.thm.OLAP1D;
@@ -378,8 +375,6 @@ static bool SelectSubimage(
 
 // Finish
 
-	olp.aC = FindCOG( olp.a.p );
-
 	if( GBL.thm.SLOPPY_SL ) {
 		olp.nnegx = olp.nposx = ow;
 		olp.nnegy = olp.nposy = oh;
@@ -407,7 +402,6 @@ static bool MakeThumbs(
 	thm.ap		= olp.a.p;
 	thm.bp		= olp.b.p;
 	thm.ftc.clear();
-	thm.aC		= olp.aC;
 	thm.reqArea	= min_2D_olap;
 	thm.scl		= decfactor;
 	thm.nnegx	= olp.nnegx;
@@ -420,8 +414,6 @@ static bool MakeThumbs(
 		DecimateVector( thm.ap, thm.av, olp.a.w, olp.a.h, decfactor );
 		DecimateVector( thm.bp, thm.bv, olp.b.w, olp.b.h, decfactor );
 
-		thm.aC.x	/= decfactor;
-		thm.aC.y	/= decfactor;
 		thm.reqArea	/= decfactor * decfactor;
 		thm.nnegx	/= decfactor;
 		thm.nnegy	/= decfactor;
@@ -460,7 +452,6 @@ static void RotatePoints(
 	vector<Point>	&pts,
 	TForm			&T,
 	const TForm		&T0,
-	const Point		&aC,
 	double			theta )
 {
 	double	c	= cos( theta ) * scale,
@@ -469,21 +460,7 @@ static void RotatePoints(
 				xscale * s,  yscale * c, 0.0 );
 
 	MultiplyTrans( T, ao, T0 );
-
 	T.Apply_R_Part( pts );
-
-	//int np = pts.size();
-
-	//for( int i = 0; i < np; ++i ) {
-
-	//	pts[i].x -= aC.x;
-	//	pts[i].y -= aC.y;
-
-	//	T.Apply_R_Part( pts[i] );
-
-	//	pts[i].x += aC.x;
-	//	pts[i].y += aC.y;
-	//}
 }
 
 /* --------------------------------------------------------------- */
@@ -520,7 +497,7 @@ static void QFromAngle(
 
 	C.A = a;
 
-	RotatePoints( ps, C.T, Tskew, thm.aC, a * PI/180.0 );
+	RotatePoints( ps, C.T, Tskew, a * PI/180.0 );
 
 #if USE_Q == 1
 	C.R = CorrPatchesMaxQ(
