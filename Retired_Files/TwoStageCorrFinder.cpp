@@ -166,10 +166,10 @@ private:
 
 public:
 	void Initialize(
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						N );
@@ -192,10 +192,10 @@ public:
 
 
 void CLinCorr::Initialize(
-		const vector<double>	I1,
+		const vector<double>	&I1,
 		int						w1,
 		int						h1,
-		const vector<double>	I2,
+		const vector<double>	&I2,
 		int						w2,
 		int						h2,
 		int						N )

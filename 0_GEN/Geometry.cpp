@@ -154,7 +154,7 @@ void BoxesFromShifts(
 	int		x,
 	int		y )
 {
-// after shifting, bbox for image1 will be
+// after shifting, bbox for image2 will be
 // [x, x+w-1] in x, and [y, y+h-1] in y
 
 	B2.L = max( 0, x );			// greater of left edges

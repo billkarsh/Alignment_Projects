@@ -654,7 +654,7 @@ double OtsuThresh(
 /* PrintVectorAsMat ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void PrintVectorAsMat( FILE* f, const vector<double> v, int w )
+void PrintVectorAsMat( FILE* f, const vector<double> &v, int w )
 {
 	int		n = v.size();
 

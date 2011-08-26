@@ -118,7 +118,7 @@ double OtsuThresh(
 /* Matrices ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void PrintVectorAsMat( FILE* f, const vector<double> v, int w );
+void PrintVectorAsMat( FILE* f, const vector<double> &v, int w );
 
 void Print3x3Matrix( FILE* f, const double a[3][3] );
 
