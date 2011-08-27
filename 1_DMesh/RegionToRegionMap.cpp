@@ -319,7 +319,7 @@ void RegionToRegionMap(
 				bp.y >= 0 && bp.y < h-1 &&
 				IsIn[int(bp.x) + w*int(bp.y)] ) {
 
-				double va = av_vfy[k];
+				double va = av_vfy[int(ap.x) + w*int(ap.y)];
 				double vb = InterpolatePixel( bp.x, bp.y, bv_vfy, w );
 
 				mat.pts.push_back( ap );
@@ -461,7 +461,7 @@ quality_control:
 			bp.y >= 0 && bp.y < h-1 &&
 			IsIn[int(bp.x) + w*int(bp.y)] ) {
 
-			double va = av_vfy[k];
+			double va = av_vfy[int(ap.x) + w*int(ap.y)];
 			double vb = InterpolatePixel( bp.x, bp.y, bv_vfy, w );
 
 			matches[t].pts.push_back( ap );
