@@ -302,6 +302,7 @@ static void TransformsAndCenters(
 	const vector<triangle>	&tri,
 	const vector<Point>		&orig,
 	const vector<Point>		&cpts,
+	const TForm				&Tguess,
 	FILE*					flog )
 {
 	fprintf( flog, "\n---- Transforms ----\n" );
@@ -351,12 +352,15 @@ static void TransformsAndCenters(
 
 		// Sanity check the "angular" change
 
-		if( fabs( t.t[0] - 1.0 ) > 0.1 ||
-			fabs( t.t[4] - 1.0 ) > 0.1 ) {
+		if(	(fabs( t.t[0] - 1.0 ) > 0.1 &&
+			 fabs( t.t[0] - Tguess.t[0] ) > 0.1)
+			||
+			(fabs( t.t[4] - 1.0 ) > 0.1 &&
+			 fabs( t.t[4] - Tguess.t[4] ) > 0.1) ) {
 
 			fprintf( flog,
-			"Very suspicious transform: vertices %d %d %d.\n",
-			T.v[0], T.v[1], T.v[2] );
+			"Large deviation in t[0], t[4]: vertices %d %d %d.\n",
+			i0, i1, i2 );
 
 			fprintf( flog,
 			"orig (%f %f) (%f %f) (%f %f).\n",
@@ -407,6 +411,19 @@ double ImproveMesh(
 {
 	fprintf( flog, "\n---- ImproveMesh - %s ----\n", describe );
 
+/* --------------- */
+/* Init transforms */
+/* --------------- */
+
+// As a convenience, we allow the caller to set 'tr_guess'
+// to some element of transforms[], but we need to zero
+// transforms[] here. Therefore, we save copy 'Tguess.'
+
+	TForm	Tguess = tr_guess;
+
+	transforms.clear();
+	centers.clear();
+
 /* --------------------------------- */
 /* Make point-to-multiplier matrices */
 /* --------------------------------- */
@@ -452,13 +469,6 @@ double ImproveMesh(
 /* ------------- */
 
 	fprintf( flog, "\n---- ImproveControlPts ----\n" );
-
-// For safety, the transforms (centers) are not cleared until
-// after we're done using tr_guess, because tr_guess may have
-// been an element of transforms from a previous step.
-
-	transforms.clear();
-	centers.clear();
 
 // On entry, corr temporarily holds the desired final
 // threshold. On exit, corr is the mesh correlation.
@@ -517,7 +527,7 @@ double ImproveMesh(
 /* ------------------------------------------ */
 
 	TransformsAndCenters( transforms, centers,
-		tri, orig, cpts, flog );
+		tri, orig, cpts, Tguess, flog );
 
 	return corr;
 }
