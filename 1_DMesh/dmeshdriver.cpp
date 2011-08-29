@@ -115,7 +115,7 @@ static void CalcTransforms(
 		Raster16ToTif8( sfile, rmap, wf, hf );
 	}
 
-	printf( "main: Got %d mapping regions.\n", Ntrans );
+	printf( "\nmain: Got %d mapping regions.\n", Ntrans );
 
 /* ------------------------------- */
 /* Convert tform arrays to objects */
@@ -151,8 +151,9 @@ static void CalcTransforms(
 
 		printf( "main: Transform %3d:", i );
 		tfs[i].PrintTransform();
-		printf( "\n" );
 	}
+
+	printf( "\n" );
 
 	if( f )
 		fclose( f );
@@ -235,7 +236,7 @@ int main( int argc, char* argv[] )
 
 		ABOverlay( px, rmap, Ntrans, tfs, ifs );
 
-		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap, stdout );
+		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap );
 	}
 
 /* ------- */

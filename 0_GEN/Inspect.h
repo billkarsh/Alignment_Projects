@@ -22,7 +22,6 @@ void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
 	const TForm*	tfs,
-	bool			heatmap,
-	FILE*			flog );
+	bool			heatmap );
 
 

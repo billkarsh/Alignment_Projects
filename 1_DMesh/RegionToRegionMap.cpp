@@ -92,6 +92,8 @@ static void ReportCenters(
 		"Mapping region %d xy= %f %f to region %d xy= %f %f.\n",
 		a_id, ca.x, ca.y, b_id, cb.x, cb.y );
 	}
+
+	fprintf( f, "\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -483,7 +485,7 @@ quality_control:
 
 	dfm = Metric( allp.pts, allp.a, allp.b, "DEF", flog );
 
-	fprintf( flog, "All points, deformable, gives %f.\n", dfm );
+	fprintf( flog, "All points, deformable, dfm %f.\n\n", dfm );
 
 // Sum over triangles: cross-corr, Fourier metric, yellow...
 
@@ -509,7 +511,7 @@ quality_control:
 		y = PercentYellow( matches[k].a, matches[k].b, flog );
 
 		fprintf( flog,
-		"Triangle %d: %d points, corr %f, fm %f, yellow %.2f.\n",
+		"Triangle %d: %d points, corr %f, fm %f, yellow %.2f.\n\n",
 		k, N, sum/N, fm, y );
 
 		weighted_sum	+= fm * N;
@@ -599,7 +601,7 @@ quality_control:
 
 // Paint ids with points that map a -> b
 
-	fprintf( flog, "Final remapping of %d points.\n", napts );
+	fprintf( flog, "\nFinal remapping of %d points.\n", napts );
 
 	for( int k = 0; k < napts; ++k ) {
 

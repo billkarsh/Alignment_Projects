@@ -441,12 +441,13 @@ void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
 	const TForm*	tfs,
-	bool			heatmap,
-	FILE*			flog )
+	bool			heatmap )
 {
 	FILE*	f;
 	uint8*	bpix;
 	int		k, w, h, npix;
+
+	printf( "\n" );
 
 	w		= px.wf;
 	h		= px.hf;
@@ -463,7 +464,7 @@ void RunCorrView(
 		printf(
 		"RunTripleChk: Reading existing 'registered.png'.\n" );
 
-		bpix = Raster8FromPng( "registered.png", w2, h2, flog );
+		bpix = Raster8FromPng( "registered.png", w2, h2 );
 	}
 	else {
 
@@ -551,6 +552,8 @@ void RunCorrView(
 		CorrView( &(*px.avf_vfy)[0], bpix, w, h, rmap );
 
 	RasterFree( bpix );
+
+	printf( "\n" );
 }
 
 

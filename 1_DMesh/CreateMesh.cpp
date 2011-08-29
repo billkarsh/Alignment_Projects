@@ -325,17 +325,17 @@ static void FindCorners(
 // print corner count
 
 	fprintf( flog,
-	"\nGot %d corners from %d boundary points.---\n", ncorn, nbps );
+	"Got %d corners from %d boundary points.---\n", ncorn, nbps );
 
 // table of corners
 
-	fprintf( flog, "Vtx\t Point\t    Vx\t    Vy\n" );
+	fprintf( flog, " Vtx\t Point\t    Vx\t    Vy\n" );
 
 	for( int i = 0; i < ncorn; ++i ) {
 
 		const vertex&	C = corners[i];
 
-		fprintf( flog, "%3d\t%6d\t%6d\t%6d\n", i, C.orig, C.x, C.y );
+		fprintf( flog, "%4d\t%6d\t%6d\t%6d\n", i, C.orig, C.x, C.y );
 	}
 
 	fprintf( flog, "\n" );
@@ -393,13 +393,13 @@ static void SplitLongSides(
 
 // table of corners
 
-	fprintf( flog, "Vtx\t    Vx\t    Vy\n" );
+	fprintf( flog, " Vtx\t    Vx\t    Vy\n" );
 
 	for( int i = 0; i < ncorn; ++i ) {
 
 		const vertex&	C = corners[i];
 
-		fprintf( flog, "%3d\t%6d\t%6d\n", i, C.x, C.y );
+		fprintf( flog, "%4d\t%6d\t%6d\n", i, C.x, C.y );
 	}
 
 	fprintf( flog, "\n" );
@@ -493,7 +493,7 @@ static void CutCorners(
 				q.pop();
 
 				fprintf( flog,
-				"Node 0 to %3d; xy=(%4d %4d); cost=%f.\n",
+				"Node 0 to %4d; xy=(%4d %4d); cost=%f.\n",
 				T.to, graph[T.to].x, graph[T.to].y, T.cost );
 
 				/* --------- */
