@@ -499,7 +499,7 @@ double ImproveMesh(
 	if( corr < threshold ) {
 
 		fprintf( flog,
-		"ImproveMesh: corr=%f, below final thresh=%f.\n",
+		"FAIL: ImproveMesh: corr=%f, below final thresh=%f.\n",
 		corr, threshold );
 
 		return corr;
