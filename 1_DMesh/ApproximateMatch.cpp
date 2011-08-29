@@ -906,13 +906,16 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 #endif
 
 			fprintf( flog,
-			"Tweak %d Q=%.3f, R=%.3f.\n", i, C.Q, C.R );
+			"Tweak %d Q=%.3f, R=%.3f", i, C.Q, C.R );
 
 			if( C.R > best.R ) {
 
+				fprintf( flog, "  *\n" );
 				changed	= true;
 				best	= C;
 			}
+			else
+				fprintf( flog, "\n" );
 		}
 	}
 

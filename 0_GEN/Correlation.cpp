@@ -1571,7 +1571,7 @@ double ImproveControlPts(
 	if( corr < iniThresh ) {
 
 		fprintf( flog,
-		"STAT: ImproveCpt: Correlation %f less than %f at start.\n",
+		"FAIL: ImproveCpt: Correlation %f less than %f at start.\n",
 		corr, iniThresh );
 
 		PrintControlPoints( flog, ac );

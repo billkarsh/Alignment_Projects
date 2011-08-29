@@ -120,12 +120,12 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 		if( ang_max - ang_min > GBL.msh.LDA || extreme ) {
 
 			fprintf( flog,
-			"STAT: Pipe: Triangles too different:"
+			"FAIL: Pipe: Triangles too different:"
 			" angles %f %f %f; limit %f.\n",
 			ang_min, ang_max, ang_max-ang_min, GBL.msh.LDA );
 
 			fprintf( flog,
-			"STAT: Pipe: Triangles too different:"
+			"FAIL: Pipe: Triangles too different:"
 			" elements %f %f %f %f %f %f; limits %f %f.\n",
 			pspan[0], pspan[1], pspan[2],
 			pspan[3], pspan[4], pspan[5],
@@ -168,7 +168,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 		if( !allok ) {
 
 			fprintf( flog,
-			"STAT: Pipe: Transform not on allowed list.\n" );
+			"FAIL: Pipe: Transform not on allowed list.\n" );
 
 			nT = 0;
 		}

@@ -229,7 +229,7 @@ void RegionToRegionMap(
 	if( ap_msh.size() < GBL.msh.MMA ) {
 
 		fprintf( flog,
-		"STAT: Region too small - %d pixels, limit %d.\n",
+		"FAIL: Region too small - %d pixels, limit %d.\n",
 		ap_msh.size(), GBL.msh.MMA );
 
 		return;
@@ -357,7 +357,7 @@ void RegionToRegionMap(
 			if( fm > 2.0*GBL.msh.EMT ) {
 
 				fprintf( flog,
-				"STAT: Kicking out - Initial EMM too big (%f),"
+				"FAIL: Kicking out - Initial EMM too big (%f),"
 				" limit %f.\n", fm, 2.0*GBL.msh.EMT );
 
 				return;
@@ -368,7 +368,7 @@ void RegionToRegionMap(
 			if( fm < GBL.msh.IFM ) {
 
 				fprintf( flog,
-				"STAT: Kicking out - Initial FM too low (%f),"
+				"FAIL: Kicking out - Initial FM too low (%f),"
 				" limit %f.\n", fm, GBL.msh.IFM );
 
 				for( int wvlen = 5; wvlen <= 40; wvlen += 5 ) {
@@ -404,7 +404,7 @@ void RegionToRegionMap(
 	if( MeshCreate( tri, ctl, ap_msh, B, flog ) ) {
 
 		fprintf( flog,
-		"STAT: Deformable triangular mesh failed - Small overlap?"
+		"FAIL: Deformable triangular mesh failed - Small overlap?"
 		" %d pixels, limit %d.\n",
 		ap_msh.size(), GBL.msh.MMA );
 
@@ -416,7 +416,7 @@ void RegionToRegionMap(
 	if( !ntri ) {
 
 		fprintf( flog,
-		"STAT: Deformable triangular mesh failed - No triangles."
+		"FAIL: Deformable triangular mesh failed - No triangles."
 		" %d pixels, limit %d.\n",
 		ap_msh.size(), GBL.msh.MMA );
 
@@ -580,7 +580,7 @@ quality_control:
 	if( reason.length() ) {
 
 		fprintf( flog,
-		"STAT: Overall rejected: %s.\n", reason.c_str() );
+		"FAIL: Overall rejected: %s.\n", reason.c_str() );
 
 		return;
 	}
