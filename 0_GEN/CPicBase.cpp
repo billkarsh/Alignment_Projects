@@ -116,7 +116,7 @@ void PicBase::DownsampleIfNeeded( FILE* flog )
 
 		fprintf( flog,
 		"DownsampleIfNeeded: Image does not divide evenly!\n" );
-		exit(45);
+		exit( 45 );
 	}
 
 	int		npq = scale * scale;

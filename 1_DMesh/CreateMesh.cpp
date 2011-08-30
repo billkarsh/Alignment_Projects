@@ -1354,7 +1354,7 @@ int MeshCreate(
 			"Internal error! Area %f < 0, or not expected %f.\n",
 			area, Aexpect );
 
-			exit( -1 );
+			return 5;
 		}
 
 		/* -------------------- */

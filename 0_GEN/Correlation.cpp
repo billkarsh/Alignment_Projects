@@ -1273,7 +1273,7 @@ double CorrPatchToImage(
 
 		printf( "FindCor: Very odd - norm-rslt x y %f %d %d.\n",
 			biggest, bigx, bigy );
-		exit(44);
+		exit( 44 );
 	}
 
 // Reports
