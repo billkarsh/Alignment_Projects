@@ -7,9 +7,9 @@
 // Create output file 'lsqerrhst.txt' recording histogram of
 // errors for:
 //
-//	Aall	Asam	Adwn	Ball	Bsam	Bdwn
+//	Err	Aall	Asam	Adwn	Ball	Bsam	Bdwn
 //
-// All histograms are binwidth=1, 200 bins + overflow.
+// All histograms are binwidth=1/div, nbins = div*lim + 1overflow.
 //
 
 #include	"Cmdline.h"
@@ -22,8 +22,6 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	NMAX	200
-
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -31,9 +29,7 @@
 class CHst {
 
 public:
-	int	all[NMAX+2],
-		sam[NMAX+2],
-		dwn[NMAX+2];
+	int	*all, *sam, *dwn;
 
 public:
 	void GetFile( const char *name );
@@ -47,12 +43,15 @@ class CArgs_lsqerr {
 
 public:
 	char	*inA, *inB;
+	int		lim, div;
 
 public:
 	CArgs_lsqerr()
 	{
 		inA	= NULL;
 		inB	= NULL;
+		lim	= 200;
+		div	= 1;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -97,6 +96,10 @@ void CArgs_lsqerr::SetCmdLine( int argc, char* argv[] )
 			else
 				inB = argv[i];
 		}
+		else if( GetArg( &lim, "-lim=%d", argv[i] ) )
+			;
+		else if( GetArg( &div, "-div=%d", argv[i] ) )
+			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -105,7 +108,7 @@ void CArgs_lsqerr::SetCmdLine( int argc, char* argv[] )
 
 // headers
 
-	fprintf( flog, "Aall\tAsam\tAdwn" );
+	fprintf( flog, "Err\tAall\tAsam\tAdwn" );
 
 	if( inB )
 		fprintf( flog, "\tBall\tBsam\tBdwn\n" );
@@ -121,10 +124,16 @@ void CHst::GetFile( const char *name )
 {
 	FILE		*f = FileOpenOrDie( name, "r" );
 	CLineScan	LS;
+	int			emax	= gArgs.lim * gArgs.div;
+	int			bytes	= (emax + 1)*sizeof(int);
 
-	memset( all, 0, sizeof(all) );
-	memset( sam, 0, sizeof(sam) );
-	memset( dwn, 0, sizeof(dwn) );
+	all = (int*)malloc( bytes );
+	sam = (int*)malloc( bytes );
+	dwn = (int*)malloc( bytes );
+
+	memset( all, 0, bytes );
+	memset( sam, 0, bytes );
+	memset( dwn, 0, bytes );
 
 	if( LS.Get( f ) <= 0 )
 		goto close;
@@ -141,9 +150,9 @@ void CHst::GetFile( const char *name )
 		"%d\t%d\t%d\t%d\t%d\t%d\t%lf",
 		&za, &ta, &ra, &zb, &tb, &rb, &err );
 
-		err = sqrt( err );
+		err = gArgs.div * sqrt( err );
 
-		int	ibin = (err < NMAX ? int( err ) : NMAX);
+		int	ibin = (err < emax ? int( err ) : emax);
 
 		++all[ibin];
 
@@ -163,18 +172,22 @@ close:
 
 static void Record()
 {
-	for( int i = 0; i <= NMAX; ++i ) {
+	int	n = gArgs.lim * gArgs.div + 1;
+
+	for( int i = 0; i < n; ++i ) {
 
 		if( gArgs.inB ) {
 
 			fprintf( flog,
-			"%d\t%d\t%d\t%d\t%d\t%d\n",
+			"%.2f\t%d\t%d\t%d\t%d\t%d\t%d\n",
+			double(i + 1)/gArgs.div,
 			A.all[i], A.sam[i], A.dwn[i],
 			B.all[i], B.sam[i], B.dwn[i] );
 		}
 		else {
 			fprintf( flog,
-			"%d\t%d\t%d\n",
+			"%.2f\t%d\t%d\t%d\n",
+			double(i + 1)/gArgs.div,
 			A.all[i], A.sam[i], A.dwn[i] );
 		}
 	}
