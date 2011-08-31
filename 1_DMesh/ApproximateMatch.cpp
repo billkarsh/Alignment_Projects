@@ -806,7 +806,7 @@ static bool UsePriorAngles(
 		return false;
 	}
 
-	PeakHunt( best, 0.15, thm, flog );
+	PeakHunt( best, 0.3, thm, flog );
 
 	if( best.R < rthresh ) {
 
@@ -835,7 +835,7 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 
 	AngleScan( best, best.A, 1.0, 0.1, thm, flog );
 
-	PeakHunt( best, 0.15, thm, flog );
+	PeakHunt( best, 0.3, thm, flog );
 
 	if( best.R < rthresh ) {
 
