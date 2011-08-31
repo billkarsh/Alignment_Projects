@@ -2917,8 +2917,9 @@ double CorrPatchesMaxR(
 
 // Any solution?
 
-	if( rx == -1 || qual < qtol ) {
+	if( rx == -1 || qual < qtol || bigR > 1.01 ) {
 
+unreal:
 		if( verbose ) {
 
 			fprintf( flog, "MaxR: No believable solutions...\n");
@@ -2944,6 +2945,9 @@ double CorrPatchesMaxR(
 	R[(rx)   + wR*(ry+1)] = ccalc.XCor( rslt, rx-cx,   ry-cy+1 );
 
 	bigR = R[rx+ wR*ry];
+
+	if( bigR > 1.01 )
+		goto unreal;
 #endif
 
 // Reports
