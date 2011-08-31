@@ -247,7 +247,7 @@ public:
 public:
 	CArgs_lsq()
 	{
-		same_strength		= 10.0;
+		same_strength		= 1.0;
 		square_strength		= 0.1;
 		scale_strength		= 1.0;
 		thresh				= 700.0;
