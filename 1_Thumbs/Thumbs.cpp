@@ -435,7 +435,8 @@ static bool MakeThumbs(
 		thm.nnegy <= 0 || thm.nposy <= 0 ) {
 
 		fprintf( flog,
-		"Thumbs: Search range below [+1,+1) x:[%d %d) y:[%d %d).\n",
+		"FAIL: Thumbs: Search range below [+1,+1)"
+		" x:[%d %d) y:[%d %d).\n",
 		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy );
 
 		return false;
@@ -762,12 +763,17 @@ static bool UsePriorAngles(
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	fprintf( flog, "Thumbs: Using prior angles n=%d, med=%f\n",
+	fprintf( flog, "Approx: Using prior angles n=%d, med=%f\n",
 	nprior, ang0 );
 
 	AngleScan( best, ang0, halfAngPR, 0.1, thm, flog );
 
 	if( best.Q < 0.001 ) {
+
+		fprintf( flog,
+		"FAIL: Approx: Prior angles Q=%g below thresh=0.001.\n",
+		best.Q );
+
 		gErr = errLowQ;
 		return false;
 	}
@@ -777,7 +783,8 @@ static bool UsePriorAngles(
 	if( best.R < rthresh ) {
 
 		fprintf( flog,
-		"Thumbs: R=%g below thresh=%g.\n", best.R, rthresh );
+		"FAIL: Approx: Prior angles R=%g below thresh=%g.\n",
+		best.R, rthresh );
 
 		gErr = errLowRPrior;
 		return false;
@@ -795,6 +802,11 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 	AngleScan( best, ang0, halfAngDN, 0.5, thm, flog );
 
 	if( best.Q < qthresh ) {
+
+		fprintf( flog,
+		"FAIL: Approx: Denovo Q=%g below thresh=%g.\n",
+		best.Q, qthresh );
+
 		gErr = errLowQ;
 		return false;
 	}
@@ -806,7 +818,8 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 	if( best.R < rthresh ) {
 
 		fprintf( flog,
-		"Thumbs: R=%g below thresh=%g.\n", best.R, rthresh );
+		"FAIL: Approx: Denovo R=%g below thresh=%g.\n",
+		best.R, rthresh );
 
 		gErr = errLowRDenov;
 		return false;
@@ -900,7 +913,7 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 	int		ok;
 
 	fprintf( flog,
-	"Thumbs: LowRes  Q=%.3f, R=%.3f, X=%.3f, Y=%.3f.\n",
+	"Approx: LowRes  Q=%.3f, R=%.3f, X=%.3f, Y=%.3f.\n",
 	best.Q, best.R, best.X, best.Y );
 
 	clock_t	t0 = StartTiming();
@@ -930,7 +943,7 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 	  && (fabs( best.Y - b0.Y ) <= 20);
 
 	fprintf( flog,
-	"Thumbs: FullRes Q=%.3f, R=%.3f, X=%.3f, Y=%.3f, use=%c.\n",
+	"Approx: FullRes Q=%.3f, R=%.3f, X=%.3f, Y=%.3f, use=%c.\n",
 	best.Q, best.R, best.X, best.Y, (ok ? 'Y' : 'N') );
 
 // Always report the thumb-Q instead of the fullres value because
@@ -1137,7 +1150,7 @@ bool Thumbs(
 	const ConnRegion	&bcr,
 	FILE*				flog )
 {
-	fprintf( flog, "\n---- Thumbs ----\n" );
+	fprintf( flog, "\n---- Thumbnail matching ----\n" );
 
 	CorRec	best;
 
@@ -1243,10 +1256,10 @@ bool Thumbs(
 
 	best.T.MulXY( px.scl );
 
-	fprintf( flog, "Thumbs: Returning A=%f, R=%f, X=%f, Y=%f.\n",
+	fprintf( flog, "Approx: Returning A=%f, R=%f, X=%f, Y=%f.\n",
 	best.A, best.R, best.T.t[2], best.T.t[5] );
 
-	fprintf( flog, "Thumbs: Best transform " );
+	fprintf( flog, "Approx: Best transform " );
 	best.T.PrintTransform( flog );
 
 /* --------------------- */
@@ -1261,21 +1274,28 @@ bool Thumbs(
 		TForm	T, Tinv, I;
 
 		AToBTrans( T, GBL.A.t2i.T, GBL.B.t2i.T );
-		fprintf( flog, "Thumbs: Orig transform " );
+		fprintf( flog, "Approx: Orig transform " );
 		T.PrintTransform( flog );
 
 		InvertTrans( Tinv, T );
 		MultiplyTrans( I, Tinv, best.T );
-		fprintf( flog, "Thumbs: Idnt transform " );
+		fprintf( flog, "Approx: Idnt transform " );
 		I.PrintTransform( flog );
 
 		double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 
-		fprintf( flog, "Thumbs: err = %f, max = %d.\n",
+		fprintf( flog, "Approx: err = %g, max = %d.\n",
 			err, GBL.thm.DINPUT );
 
-		if( err > GBL.thm.DINPUT )
+		if( err > GBL.thm.DINPUT ) {
+
+			fprintf( flog,
+			"FAIL: Approx: Too different from Tinput"
+			" err=%g, max=%d.\n",
+			err, GBL.thm.DINPUT );
+
 			return false;
+		}
 	}
 
 /* --------------- */

@@ -469,7 +469,8 @@ static bool MakeThumbs(
 		thm.nnegy <= 0 || thm.nposy <= 0 ) {
 
 		fprintf( flog,
-		"Thumbs: Search range below [+1,+1) x:[%d %d) y:[%d %d).\n",
+		"FAIL: Thumbs: Search range below [+1,+1)"
+		" x:[%d %d) y:[%d %d).\n",
 		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy );
 
 		return false;
@@ -802,6 +803,11 @@ static bool UsePriorAngles(
 	AngleScan( best, ang0, halfAngPR, 0.1, thm, flog );
 
 	if( best.Q < 0.001 ) {
+
+		fprintf( flog,
+		"FAIL: Approx: Prior angles Q=%g below thresh=0.001.\n",
+		best.Q );
+
 		gErr = errLowQ;
 		return false;
 	}
@@ -811,7 +817,8 @@ static bool UsePriorAngles(
 	if( best.R < rthresh ) {
 
 		fprintf( flog,
-		"Approx: R=%g below thresh=%g.\n", best.R, rthresh );
+		"FAIL: Approx: Prior angles R=%g below thresh=%g.\n",
+		best.R, rthresh );
 
 		gErr = errLowRPrior;
 		return false;
@@ -829,6 +836,11 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 	AngleScan( best, ang0, halfAngDN, 0.5, thm, flog );
 
 	if( best.Q < qthresh ) {
+
+		fprintf( flog,
+		"FAIL: Approx: Denovo Q=%g below thresh=%g.\n",
+		best.Q, qthresh );
+
 		gErr = errLowQ;
 		return false;
 	}
@@ -840,7 +852,8 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 	if( best.R < rthresh ) {
 
 		fprintf( flog,
-		"Approx: R=%g below thresh=%g.\n", best.R, rthresh );
+		"FAIL: Approx: Denovo R=%g below thresh=%g.\n",
+		best.R, rthresh );
 
 		gErr = errLowRDenov;
 		return false;
@@ -1316,11 +1329,18 @@ bool ApproximateMatch(
 
 		double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 
-		fprintf( flog, "Approx: err = %f, max = %d.\n",
+		fprintf( flog, "Approx: err = %g, max = %d.\n",
 			err, GBL.thm.DINPUT );
 
-		if( err > GBL.thm.DINPUT )
+		if( err > GBL.thm.DINPUT ) {
+
+			fprintf( flog,
+			"FAIL: Approx: Too different from Tinput"
+			" err=%g, max=%d.\n",
+			err, GBL.thm.DINPUT );
+
 			return false;
+		}
 	}
 
 /* --------------- */
