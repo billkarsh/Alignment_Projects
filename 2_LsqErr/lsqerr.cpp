@@ -150,6 +150,12 @@ void CHst::GetFile( const char *name )
 		"%d\t%d\t%d\t%d\t%d\t%d\t%lf",
 		&za, &ta, &ra, &zb, &tb, &rb, &err );
 
+		if( err < 0 ) {
+			// -2 = not used
+			// -1 = not inlier
+			continue;
+		}
+
 		err = gArgs.div * sqrt( err );
 
 		int	ibin = (err < emax ? int( err ) : emax);
