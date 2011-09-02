@@ -229,7 +229,7 @@ void RegionToRegionMap(
 	if( ap_msh.size() < GBL.msh.MMA ) {
 
 		fprintf( flog,
-		"FAIL: Region too small - %d pixels, limit %d.\n",
+		"FAIL: Region too small - %d pixels, MMA %d.\n",
 		ap_msh.size(), GBL.msh.MMA );
 
 		return;
@@ -358,7 +358,7 @@ void RegionToRegionMap(
 
 				fprintf( flog,
 				"FAIL: Kicking out - Initial EMM too big (%f),"
-				" limit %f.\n", fm, 2.0*GBL.msh.EMT );
+				" 2*EMT %f.\n", fm, 2.0*GBL.msh.EMT );
 
 				return;
 			}
@@ -369,7 +369,7 @@ void RegionToRegionMap(
 
 				fprintf( flog,
 				"FAIL: Kicking out - Initial FM too low (%f),"
-				" limit %f.\n", fm, GBL.msh.IFM );
+				" IFM %f.\n", fm, GBL.msh.IFM );
 
 				for( int wvlen = 5; wvlen <= 40; wvlen += 5 ) {
 
@@ -405,7 +405,7 @@ void RegionToRegionMap(
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - Small overlap?"
-		" %d pixels, limit %d.\n",
+		" %d pixels, MMA %d.\n",
 		ap_msh.size(), GBL.msh.MMA );
 
 		return;
@@ -417,7 +417,7 @@ void RegionToRegionMap(
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - No triangles."
-		" %d pixels, limit %d.\n",
+		" %d pixels, MMA %d.\n",
 		ap_msh.size(), GBL.msh.MMA );
 
 		return;
