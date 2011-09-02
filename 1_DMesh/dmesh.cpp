@@ -121,12 +121,12 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 			fprintf( flog,
 			"FAIL: Pipe: Triangles too different:"
-			" angles %f %f %f; limit %f.\n",
+			" angles %f %f %f; LDA %f.\n",
 			ang_min, ang_max, ang_max-ang_min, GBL.msh.LDA );
 
 			fprintf( flog,
 			"FAIL: Pipe: Triangles too different:"
-			" elements %f %f %f %f %f %f; limits %f %f.\n",
+			" elements %f %f %f %f %f %f; LDR %f LDC %f.\n",
 			pspan[0], pspan[1], pspan[2],
 			pspan[3], pspan[4], pspan[5],
 			GBL.msh.LDR, GBL.msh.LDC );
