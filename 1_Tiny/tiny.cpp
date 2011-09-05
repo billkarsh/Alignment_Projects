@@ -33,7 +33,7 @@ public:
 public:
 	CArgs_tiny()
 	{
-		energyT	= 10.0;
+		energyT			= 10.0;
 		fmTOverride		= 0.0;
 		infile			= NULL;
 		outfile			= NULL;
