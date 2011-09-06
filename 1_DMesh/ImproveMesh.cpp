@@ -283,7 +283,7 @@ static bool CheckAreas(
 
 		fprintf( flog,
 		"FAIL: Area change too big"
-		" (max, sum) = (%8.2f%% %8.2f%%), limits (%f %f).\n",
+		" (max, sum) = (%8.2f%% %8.2f%%), (TMC TSC)=(%f %f).\n",
 		max_pct, sum_pct, GBL.msh.TMC, sum_lim );
 
 		return false;
