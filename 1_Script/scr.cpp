@@ -546,15 +546,15 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteImageSizeFile -------------------------------------------- */
+/* WriteImageparamsFile ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteImageSizeFile()
+static void WriteImageparamsFile()
 {
 	char	name[1024];
 	FILE	*f;
 
-	sprintf( name, "%s/imagesize.txt", gArgs.outdir );
+	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
 
 	f = FileOpenOrDie( name, "w", flog );
 
@@ -1544,7 +1544,7 @@ int main( int argc, char* argv[] )
 
 	CreateTopDir();
 
-	WriteImageSizeFile();
+	WriteImageparamsFile();
 
 	ForEachLayer( vp );
 

@@ -3,7 +3,7 @@
 // file and creates an 'image database' with this structure:
 //
 //	folder 'idbname'		// top folder
-//		imagesize.txt		// has IMAGESIZE tag
+//		imageparams.txt		// IDBPATH, IMAGESIZE tags
 //		folder '0'			// folder per layer, here, '0'
 //			TileToImage.txt	// TForm, image path from id
 //			folder 'nmrc'	// mrc_to_png folder if needed
@@ -402,18 +402,19 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteImageSizeFile -------------------------------------------- */
+/* WriteImageparamsFile ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteImageSizeFile()
+static void WriteImageparamsFile()
 {
 	char	name[2048];
 	FILE	*f;
 
-	sprintf( name, "%s/imagesize.txt", gArgs.outdir );
+	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
 
 	f = FileOpenOrDie( name, "w", flog );
 
+	fprintf( f, "IDBPATH %s\n", gtopdir );
 	fprintf( f, "IMAGESIZE %d %d\n", gW, gH );
 
 	fclose( f );
@@ -870,7 +871,7 @@ int main( int argc, char* argv[] )
 
 	CreateTopDir();
 
-	WriteImageSizeFile();
+	WriteImageparamsFile();
 
 	if( !gArgs.NoFolds || ismrc ) {
 		WriteSubfmFile();

@@ -2,7 +2,7 @@
 
 rm -f pts.all
 
-cp imagesize.txt pts.all
+cp imageparams.txt pts.all
 
 foreach i (`seq $1 $2`)
 	cat $i/fm.same >> pts.all
