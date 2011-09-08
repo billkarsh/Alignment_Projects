@@ -181,6 +181,7 @@ public:
 			x0, y0, xsize, ysize,
 			lspec1, lspec2;
 	bool	Debug,
+			OldStyle,
 			Warp,
 			FoldMasks,
 			Annotate,
@@ -210,6 +211,7 @@ public:
 		lspec1				= -1;		// user's layer range
 		lspec2				= -1;
 		Debug				= false;
+		OldStyle			= false;
 		Warp				= false;	// seam healing
 		FoldMasks			= true;
 		Annotate			= false;
@@ -305,6 +307,8 @@ void CArgs_mos::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( IsArg( "-d", argv[i] ) )
 			Debug = true;
+		else if( IsArg( "-oldstyle", argv[i] ) )
+			OldStyle = true;
 		else if( IsArg( "-warp", argv[i] ) )
 			Warp = true;
 		else if( IsArg( "-nf", argv[i] ) )
@@ -3107,8 +3111,14 @@ int main( int argc, char **argv )
 	double			xmax = -BIG, ymax = -BIG;
 	uint32			w = 0, h = 0;
 
-	ReadInputNewer( images, x1, x2, y1, y2, z1, z2,
-		xmin, xmax, ymin, ymax, w, h );
+	if( gArgs.OldStyle ) {
+		ReadInputOlder( images, x1, x2, y1, y2, z1, z2,
+			xmin, xmax, ymin, ymax, w, h );
+	}
+	else {
+		ReadInputNewer( images, x1, x2, y1, y2, z1, z2,
+			xmin, xmax, ymin, ymax, w, h );
+	}
 
 //VMStats( stdout );
 //exit( 11 );
