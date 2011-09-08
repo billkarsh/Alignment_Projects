@@ -23,8 +23,10 @@ public:
 	double	energyT;
 	double	fmTOverride;
 	char	*infile,
-			*outfile;
-	int		Z;
+			*nmrc,
+			*fm,
+			*fmd;
+	int		Z, ID;
 	bool	nomasks,
 			oneregion,
 			transpose,
@@ -36,8 +38,11 @@ public:
 		energyT			= 10.0;
 		fmTOverride		= 0.0;
 		infile			= NULL;
-		outfile			= NULL;
+		nmrc			= NULL;
+		fm				= NULL;
+		fmd				= NULL;
 		Z				= -1;
+		ID				= -1;
 		nomasks			= false;
 		oneregion		= false;
 		transpose		= false;
@@ -78,11 +83,17 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 
 			if( Z == -1 )
 				Z = atoi( argv[i] );
-			else if( !infile )
-				infile = argv[i];
+			else if( ID == -1 )
+				ID = atoi( argv[i] );
 			else
-				outfile = argv[i];
+				infile = argv[i];
 		}
+		else if( GetArgStr( nmrc, "-nmrc=", argv[i] ) )
+			;
+		else if( GetArgStr( fm, "-fm=", argv[i] ) )
+			;
+		else if( GetArgStr( fmd, "-fmd=", argv[i] ) )
+			;
 		else if( GetArg( &energyT, "-energy=%lf", argv[i] ) )
 			printf( "Energy Threshold now %f.\n", energyT );
 		else if( GetArg( &fmTOverride, "-fmto=%lf", argv[i] ) ) {
@@ -111,6 +122,13 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
+	if( nomasks ) {
+		fm	= NULL;
+		fmd	= NULL;
+	}
+	else if( !fm && !fmd )
+		nomasks = true;
+
 // For backwards compatibility, also accept the env. variable
 
 	const char	*pe = getenv( "FoldMaskThreshold" );
@@ -129,19 +147,15 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteFOLDMAPEntry --------------------------------------------- */
+/* WriteFOLDMAP2Entry -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteFOLDMAPEntry(
-	const char	*simg,
-	const char	*sfm,
-	int			Z,
-	int			ncr )
+static void WriteFOLDMAP2Entry( int ncr )
 {
 	CMutex	M;
 	char	name[256];
 
-	sprintf( name, "fm_%d", Z );
+	sprintf( name, "fm_%d", gArgs.Z );
 
 	if( M.Get( name ) ) {
 
@@ -149,19 +163,8 @@ static void WriteFOLDMAPEntry(
 
 		if( f ) {
 
-			const char	*src = simg;
-			Til2Img		t2i;
-
-			if( strstr( simg, ".mrc" ) ) {
-
-				if( !ReadTil2Img( t2i, Z, atoi( sfm ), stdout ) )
-					exit( 42 );
-
-				src = t2i.path;
-			}
-
 			fprintf( f,
-			"FOLDMAP '%s' ../%d/%s %d\n", src, Z, sfm, ncr );
+			"FOLDMAP2 %d %d %d\n", gArgs.Z, gArgs.ID, ncr );
 			fflush( f );
 			fclose( f );
 		}
@@ -769,35 +772,21 @@ int main( int argc, char **argv )
 
 	p.LoadOriginal( gArgs.infile, stdout, gArgs.transpose );
 
-/* --------------- */
-/* Save src as png */
-/* --------------- */
+/* ---------------- */
+/* Save src as nmrc */
+/* ---------------- */
 
-	if( strstr( gArgs.infile, ".mrc" ) ) {
-
-		char	path[64];
-		int		id = atoi( gArgs.outfile );
-
-		sprintf( path, "%d/nmrc_%d_%d.png", id, gArgs.Z, id );
-		Raster8ToPng8( path, p.original, p.w, p.h );
-
-		// if .mrc files AND if -nf option, then skip making
-		// actual foldmask files. However, we still write
-		// FOLDMAP entries for later use by the mos program,
-		// which should also be run with its own -nf option.
-
-		if( gArgs.nomasks ) {
-
-			WriteFOLDMAPEntry( gArgs.infile, gArgs.outfile,
-				gArgs.Z, 1 );
-
-			return 0;
-		}
-	}
+	if( strstr( gArgs.infile, ".mrc" ) && gArgs.nmrc )
+		Raster8ToPng8( gArgs.nmrc, p.original, p.w, p.h );
 
 /* ------------ */
 /* Create masks */
 /* ------------ */
+
+	if( gArgs.nomasks ) {
+		WriteFOLDMAP2Entry( 1 );
+		return 0;
+	}
 
 // Create two different fold masks - one optimized for alignment,
 // with all low contrast regions removed, and one optimized for
@@ -823,36 +812,21 @@ int main( int argc, char **argv )
 		ncr = ImageToFoldMap( FoldMaskAlign, p,
 				true, gArgs.fmTOverride );
 
-		FoldMaskDraw = MakeDrawingMask( p, FoldMaskAlign, np );
+		if( gArgs.fmd )
+			FoldMaskDraw = MakeDrawingMask( p, FoldMaskAlign, np );
 	}
 
 /* ------------------------------- */
 /* Write masks and FOLDMAP entries */
 /* ------------------------------- */
 
-	Raster8ToTif8( gArgs.outfile, FoldMaskAlign, p.w, p.h );
-	WriteFOLDMAPEntry( gArgs.infile, gArgs.outfile, gArgs.Z, ncr );
+	if( gArgs.fm )
+		Raster8ToPng8( gArgs.fm, FoldMaskAlign, p.w, p.h );
 
-	char	*suf = strstr( gArgs.outfile, ".tif" );
+	if( gArgs.fmd )
+		Raster8ToPng8( gArgs.fmd, FoldMaskDraw, p.w, p.h );
 
-	if( suf == NULL )
-		suf = strstr( gArgs.outfile, ".png" );
-
-	if( suf != NULL ) {
-
-		*suf = 0;	// gArgs.outfile now just the root part
-
-		char	fname[256];
-
-		sprintf( fname, "%s.png", gArgs.outfile );
-		Raster8ToPng8( fname, FoldMaskAlign, p.w, p.h );
-
-		sprintf( fname, "%sd.tif", gArgs.outfile );
-		Raster8ToTif8( fname, FoldMaskDraw, p.w, p.h );
-
-		sprintf( fname, "%sd.png", gArgs.outfile );
-		Raster8ToPng8( fname, FoldMaskDraw, p.w, p.h );
-	}
+	WriteFOLDMAP2Entry( ncr );
 
 	return 0;
 }

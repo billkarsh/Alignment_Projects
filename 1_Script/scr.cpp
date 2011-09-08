@@ -100,6 +100,7 @@ static FILE*		flog	= NULL;
 static uint32		gW		= 0,	// universal pic dims
 					gH		= 0;
 static int			gZMax	= 0;
+static int			ismrc	= false;
 
 
 
@@ -589,7 +590,7 @@ static void CreateLayerDir( char *lyrdir, int L )
 // pertains to this tile, or this tile acting as a source onto
 // other tiles.
 //
-// For example, folder 8/10 contains the foldmask fm.tif for tile
+// For example, folder 8/10 contains the foldmask fm.png for tile
 // 10 in layer 8. If this folder contains file 7.11.tf.txt it
 // lists the transforms mapping tile 8/10 onto tile 7/11.
 //
@@ -661,7 +662,7 @@ static void Make_TileToImage(
 // Write sorted entries
 // Use given name, unless mrc images.
 
-	if( !strstr( vp[0].fname.c_str(), ".mrc" ) ) {
+	if( !ismrc ) {
 
 		for( int i = 0; i < isN; ++i ) {
 
@@ -1099,7 +1100,7 @@ static void Make_MakeFM(
 	fprintf( f, "all: " );
 
 	for( int i = is0; i < isN; ++i )
-		fprintf( f, "%d/fm.tif ", vp[i].id );
+		fprintf( f, "%d/fm.png ", vp[i].id );
 
 	fprintf( f, "\n\n" );
 
@@ -1112,10 +1113,48 @@ static void Make_MakeFM(
 
 		ConvertSpaces( dep, P.fname.c_str() );
 
-		fprintf( f, "%d/fm.tif: %s\n", P.id, dep );
+		fprintf( f, "%d/fm.png: %s\n", P.id, dep );
 
-		fprintf( f, "\ttiny %d '%s' %d/fm.tif ${EXTRA}\n",
-		P.z, P.fname.c_str(), P.id );
+		if( gArgs.NoFolds ) {
+			if( ismrc ) {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-nmrc=%d/nmrc_%d_%d.png'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str(),
+				P.id, P.z, P.id );
+			}
+			else {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str() );
+			}
+		}
+		else {
+			if( ismrc ) {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-nmrc=%d/nmrc_%d_%d.png'"
+				" '-fm=%d/fm.png'"
+				" '-fmd=%d/fmd.png'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str(),
+				P.id, P.z, P.id,
+				P.id,
+				P.id );
+			}
+			else {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-fm=%d/fm.png'"
+				" '-fmd=%d/fmd.png'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str(),
+				P.id,
+				P.id );
+			}
+		}
 	}
 
 	fclose( f );
@@ -1125,7 +1164,7 @@ static void Make_MakeFM(
 /* Make_fmsame --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Write fm.same file with FOLDMAP entry for each tile.
+// Write fm.same file with FOLDMAP2 entry for each tile.
 //
 // This is used only for '-nf' option because these entries
 // all get connected-region count = 1.
@@ -1145,15 +1184,13 @@ static void Make_fmsame(
 
 	f = FileOpenOrDie( name, "w", flog );
 
-// FOLDMAP entries
+// FOLDMAP2 entries
 
 	for( int i = is0; i < isN; ++i ) {
 
 		const Picture&	P = vp[i];
 
-		fprintf( f,
-		"FOLDMAP '%s' ../%d/%d/fm.tif 1\n",
-		P.fname.c_str(), P.z, P.id );
+		fprintf( f, "FOLDMAP2 %d %d 1\n", P.z, P.id );
 	}
 
 	fclose( f );
@@ -1230,8 +1267,8 @@ static void WriteMakeFile(
 			fprintf( f,
 			"%d/%d.%d.map.tif:"
 			" %s %s"
-			" ../%d/%d/fm.tif"
-			" ../%d/%d/fm.tif\n",
+			" ../%d/%d/fm.png"
+			" ../%d/%d/fm.png\n",
 			A.id, B.z, B.id,
 			depA, depB,
 			A.z, A.id,
@@ -1376,57 +1413,6 @@ write:
 }
 
 /* --------------------------------------------------------------- */
-/* Make_MakePts -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// This writes a script telling program align to scan tiny and
-// ptest output: {foldmasks, n/m.tf.txt, n/m.map.tif} and create
-// text lists {pts.same, pts.down, ...} of FOLDMAP entries and
-// POINT entries, which are triangle centroid->centroid mappings.
-//
-// However, align and this script are retired. Rather, tiny makes
-// file fm.same (with FOLDMAPs) in each layer. Program ptest makes
-// outputs {pts.same, pts.up, pts.down} according to the jobs
-// submitted to it.
-//
-// Shell script 'combine' is still used to select among these
-// and combine them into pts.all for the lsq program.
-//
-static void Make_MakePts( const char *lyrdir, int L )
-{
-	char	name[1024];
-	FILE	*f;
-
-	fprintf( flog, "--Make_MakePts: layer %d\n", L );
-
-	sprintf( name, "%s/make.pts", lyrdir );
-
-	f = FileOpenOrDie( name, "w", flog );
-
-// master target depends on all others
-
-	//fprintf( f, "all: pts.same pts.same.nf pts.up pts.down\n\n" );
-	//fprintf( f, "all: pts.same pts.up pts.down\n\n" );
-	fprintf( f, "all: pts.same pts.down\n\n" );
-
-// subtargets and rules
-
-    fprintf( f, "pts.same:\n" );
-    fprintf( f, "\talign -fpts.same make.same\n\n");
-
-    //fprintf( f, "pts.same.nf:\n" );
-    //fprintf( f, "\talign -fpts.same.nf make.same -nf\n\n");
-
-    //fprintf( f, "pts.up:\n" );
-    //fprintf( f, "\talign -fpts.up make.up\n\n");
-
-    fprintf( f, "pts.down:\n" );
-    fprintf( f, "\talign -fpts.down make.down\n");
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
 /* ForEachLayer -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1457,16 +1443,19 @@ static void ForEachLayer( const vector<Picture> &vp )
 		//Make_ThumbsSame( lyrdir, vp, is0, isN );
 		//Make_ThumbsDown( lyrdir, vp, is0, isN, id0, idN );
 
-		if( gArgs.NoFolds )
-			Make_fmsame( lyrdir, vp, is0, isN );
+		if( gArgs.NoFolds ) {
+
+			if( ismrc )
+				Make_MakeFM( lyrdir, vp, is0, isN );
+			else
+				Make_fmsame( lyrdir, vp, is0, isN );
+		}
 		else
 			Make_MakeFM( lyrdir, vp, is0, isN );
 
 		Make_MakeSame( lyrdir, vp, is0, isN );
 		Make_MakeDown( lyrdir, vp, is0, isN, id0, idN );
 		//Make_MakeUp( lyrdir, vp, is0, isN, iu0, iuN );
-
-		//Make_MakePts( lyrdir, vp[is0].z );
 
 		id0 = is0;
 		idN = isN;
@@ -1503,6 +1492,8 @@ int main( int argc, char* argv[] )
 
 	if( !vp.size() )
 		goto exit;
+
+	ismrc = strstr( vp[0].fname.c_str(), ".mrc" ) != NULL;
 
 /* ------------------------------------------------- */
 /* Within each layer, sort tiles by dist from center */

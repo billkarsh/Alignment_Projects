@@ -8,7 +8,7 @@
 //			TileToImage.txt	// TForm, image path from id
 //			folder 'nmrc'	// mrc_to_png folder if needed
 //	<if -nf option set...>
-//			fm.same			// FOLDMAP entries {z,id,nrgn=1}
+//			fm.same			// FOLDMAP2 entries {z,id,nrgn=1}
 //	<if -nf option not set...>
 //			make.fm			// make file for 'tiny'
 //			TileToFM.txt	// fm path from id
@@ -107,6 +107,7 @@ static cArgs_idb	gArgs;
 static FILE*		flog	= NULL;
 static uint32		gW		= 0,	// universal pic dims
 					gH		= 0;
+static int			ismrc	= false;
 
 
 
@@ -419,6 +420,64 @@ static void WriteImageSizeFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteSubfmFile ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void WriteSubfmFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/subfm", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+
+	fprintf( f, "foreach i (`seq $1 $2`)\n" );
+	fprintf( f, "cd $i\n" );
+
+	fprintf( f,
+	"qsub -N lou-f-$i"
+	" -cwd -V -b y -pe batch 8"
+	" make -f make.fm -j 8"
+	" EXTRA='\"\"'\n" );
+
+	fprintf( f, "cd ..\n" );
+	fprintf( f, "end\n\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/subfm", gArgs.outdir );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteReportFile ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteReportFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/report_fm", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "ls -l */lou-f*.e* > FmErrs.txt\n\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/report_fm", gArgs.outdir );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* GetLayerLimits ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -493,7 +552,7 @@ static void Make_TileToImage(
 // Write sorted entries
 // Use given name, unless mrc images.
 
-	if( !strstr( vp[0].fname.c_str(), ".mrc" ) ) {
+	if( !ismrc ) {
 
 		// write the entries
 
@@ -588,7 +647,7 @@ static void Make_TileToFM(
 /* Make_fmsame --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Write fm.same file with FOLDMAP entry for each tile.
+// Write fm.same file with FOLDMAP2 entry for each tile.
 //
 // This is used only for '-nf' option because these entries
 // all get connected-region count = 1.
@@ -606,13 +665,19 @@ static void Make_fmsame(
 
 	f = FileOpenOrDie( name, "w", flog );
 
-// FOLDMAP entries
+// Create fmpath
+
+	char	fmpath[2048];
+
+	sprintf( fmpath, "%s/%d/fm", gtopdir, vp[is0].z );
+
+// FOLDMAP2 entries
 
 	for( int i = is0; i < isN; ++i ) {
 
 		const Picture&	P = vp[i];
 
-		fprintf( f, "FOLDMAP %d %d 1\n", P.z, P.id );
+		fprintf( f, "FOLDMAP2 %d %d 1\n", P.z, P.id );
 	}
 
 	fclose( f );
@@ -681,8 +746,46 @@ static void Make_MakeFM(
 
 		fprintf( f, "fm/fm_%d_%d.png: %s\n", P.z, P.id, dep );
 
-		fprintf( f, "\ttinydb %d %d '%s' ${EXTRA}\n",
-		P.z, P.id, P.fname.c_str() );
+		if( gArgs.NoFolds ) {
+			if( ismrc ) {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-nmrc=nmrc/nmrc_%d_%d.png'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str(),
+				P.z, P.id );
+			}
+			else {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str() );
+			}
+		}
+		else {
+			if( ismrc ) {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-nmrc=nmrc/nmrc_%d_%d.png'"
+				" '-fm=fm/fm_%d_%d.png'"
+				" '-fmd=fmd/fmd_%d_%d.png'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str(),
+				P.z, P.id,
+				P.z, P.id,
+				P.z, P.id );
+			}
+			else {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-fm=fm/fm_%d_%d.png'"
+				" '-fmd=fmd/fmd_%d_%d.png'"
+				" ${EXTRA}\n",
+				P.z, P.id, P.fname.c_str(),
+				P.z, P.id,
+				P.z, P.id );
+			}
+		}
 	}
 
 	fclose( f );
@@ -708,8 +811,13 @@ static void ForEachLayer( const vector<Picture> &vp )
 
 		Make_TileToImage( lyrdir, vp, is0, isN );
 
-		if( gArgs.NoFolds )
-			Make_fmsame( lyrdir, vp, is0, isN );
+		if( gArgs.NoFolds ) {
+
+			if( ismrc )
+				Make_MakeFM( lyrdir, vp, is0, isN );
+			else
+				Make_fmsame( lyrdir, vp, is0, isN );
+		}
 		else {
 			Make_TileToFM( lyrdir, "TileToFM",  "fm",  vp, is0, isN );
 			Make_TileToFM( lyrdir, "TileToFMD", "fmd", vp, is0, isN );
@@ -748,6 +856,8 @@ int main( int argc, char* argv[] )
 	if( !vp.size() )
 		goto exit;
 
+	ismrc = strstr( vp[0].fname.c_str(), ".mrc" ) != NULL;
+
 /* ------------------------- */
 /* Sort tiles by layer, tile */
 /* ------------------------- */
@@ -761,6 +871,11 @@ int main( int argc, char* argv[] )
 	CreateTopDir();
 
 	WriteImageSizeFile();
+
+	if( !gArgs.NoFolds || ismrc ) {
+		WriteSubfmFile();
+		WriteReportFile();
+	}
 
 	ForEachLayer( vp );
 
