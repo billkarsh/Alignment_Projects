@@ -234,22 +234,27 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
-/* ReadTil2Img --------------------------------------------------- */
+/* IDBTil2Img ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Scan given TileToImage file for this tile's data.
+// Scan given IDBPATH/TileToImage file for this tile's data.
 //
-bool ReadTil2Img(
-	Til2Img	&t2i,
-	int		layer,
-	int		tile,
-	FILE	*flog )
+bool IDBTil2Img(
+	Til2Img		&t2i,
+	const char	*idb,
+	int			layer,
+	int			tile,
+	FILE		*flog )
 {
-	char	name[256];
+	char	name[2048];
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "../%d/TileToImage.txt", layer );
+	if( idb )
+		sprintf( name, "%s/%d/TileToImage.txt", idb, layer );
+	else
+		sprintf( name, "../%d/TileToImage.txt", layer );
+
 	f = fopen( name, "r" );
 
 	if( f ) {
@@ -257,7 +262,7 @@ bool ReadTil2Img(
 		CLineScan	LS;
 
 		if( LS.Get( f ) <= 0 ) {
-			fprintf( flog, "ReadTil2Img: Empty file [%s].\n", name );
+			fprintf( flog, "IDBTil2Img: Empty file [%s].\n", name );
 			goto exit;
 		}
 
@@ -281,11 +286,127 @@ bool ReadTil2Img(
 			goto exit;
 		}
 
-		fprintf( flog, "ReadTil2Img: No entry for [%d %d].\n",
+		fprintf( flog, "IDBTil2Img: No entry for [%d %d].\n",
 		layer, tile );
 	}
 	else
-		fprintf( flog, "ReadTil2Img: Can't open [%s].\n", name );
+		fprintf( flog, "IDBTil2Img: Can't open [%s].\n", name );
+
+exit:
+	if( f )
+		fclose( f );
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* IDBTil2FM ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Scan given IDBPATH/TileToFM file for this tile's data.
+//
+bool IDBTil2FM(
+	Til2FM		&t2f,
+	const char	*idb,
+	int			layer,
+	int			tile,
+	FILE		*flog )
+{
+	char	name[2048];
+	FILE	*f;
+	int		ok = false;
+
+	if( idb )
+		sprintf( name, "%s/%d/TileToFM.txt", idb, layer );
+	else
+		sprintf( name, "../%d/TileToFM.txt", layer );
+
+	f = fopen( name, "r" );
+
+	if( f ) {
+
+		CLineScan	LS;
+
+		if( LS.Get( f ) <= 0 ) {
+			fprintf( flog, "IDBTil2FM: Empty file [%s].\n", name );
+			goto exit;
+		}
+
+		while( LS.Get( f ) > 0 ) {
+
+			t2f.tile = -1;
+
+			sscanf( LS.line, "%d", &t2f.tile );
+
+			if( t2f.tile != tile )
+				continue;
+
+			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, t2f.path );
+			ok = true;
+			goto exit;
+		}
+
+		fprintf( flog, "IDBTil2FM: No entry for [%d %d].\n",
+		layer, tile );
+	}
+	else
+		fprintf( flog, "IDBTil2FM: Can't open [%s].\n", name );
+
+exit:
+	if( f )
+		fclose( f );
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* IDBTil2FMD ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Scan given IDBPATH/TileToFMd file for this tile's data.
+//
+// Unlike IDBTil2FM, this function does not print error messages
+// upon failure; it just returns false. In that case, the caller
+// should attempt to get the standard fm.
+//
+bool IDBTil2FMD(
+	Til2FM		&t2f,
+	const char	*idb,
+	int			layer,
+	int			tile )
+{
+	char	name[2048];
+	FILE	*f;
+	int		ok = false;
+
+	if( idb )
+		sprintf( name, "%s/%d/TileToFMD.txt", idb, layer );
+	else
+		sprintf( name, "../%d/TileToFMD.txt", layer );
+
+	f = fopen( name, "r" );
+
+	if( f ) {
+
+		CLineScan	LS;
+
+		if( LS.Get( f ) <= 0 )
+			goto exit;
+
+		while( LS.Get( f ) > 0 ) {
+
+			t2f.tile = -1;
+
+			sscanf( LS.line, "%d", &t2f.tile );
+
+			if( t2f.tile != tile )
+				continue;
+
+			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, t2f.path );
+			ok = true;
+			goto exit;
+		}
+	}
 
 exit:
 	if( f )
@@ -309,6 +430,18 @@ void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i )
 	t2i.T.t[0], t2i.T.t[1], t2i.T.t[2],
 	t2i.T.t[3], t2i.T.t[4], t2i.T.t[5],
 	t2i.path );
+}
+
+/* --------------------------------------------------------------- */
+/* PrintTil2FM --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Print Til2FM entry; cAB = {'A', 'B'}.
+//
+void PrintTil2FM( FILE *flog, int cAB, const Til2FM &t2f )
+{
+	fprintf( flog, "Til2FM entry: %c path=[%s].\n",
+	cAB, t2f.path );
 }
 
 /* --------------------------------------------------------------- */

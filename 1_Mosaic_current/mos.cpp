@@ -18,6 +18,7 @@
 #include	<sys/resource.h>
 #include	<sys/stat.h>
 
+#include	<map>
 #include	<set>
 using namespace std;
 
@@ -27,6 +28,42 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 #define	kCorrRadius	200
+
+/* --------------------------------------------------------------- */
+/* Forward refs -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class image;
+
+static void ReadInputOlder(
+	vector<image>	&images,
+	vector<double>	&x1,
+	vector<double>	&x2,
+	vector<double>	&y1,
+	vector<double>	&y2,
+	vector<int>		&z1,
+	vector<int>		&z2,
+	double			&xmin,
+	double			&xmax,
+	double			&ymin,
+	double			&ymax,
+	uint32			&w,
+	uint32			&h );
+
+static void ReadInputNewer(
+	vector<image>	&images,
+	vector<double>	&x1,
+	vector<double>	&x2,
+	vector<double>	&y1,
+	vector<double>	&y2,
+	vector<int>		&z1,
+	vector<int>		&z2,
+	double			&xmin,
+	double			&xmax,
+	double			&ymin,
+	double			&ymax,
+	uint32			&w,
+	uint32			&h );
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -43,17 +80,51 @@ public:
 
 
 class image {
+
+	friend void ReadInputOlder(
+		vector<image>	&images,
+		vector<double>	&x1,
+		vector<double>	&x2,
+		vector<double>	&y1,
+		vector<double>	&y2,
+		vector<int>		&z1,
+		vector<int>		&z2,
+		double			&xmin,
+		double			&xmax,
+		double			&ymin,
+		double			&ymax,
+		uint32			&w,
+		uint32			&h );
+
+	friend void ReadInputNewer(
+		vector<image>	&images,
+		vector<double>	&x1,
+		vector<double>	&x2,
+		vector<double>	&y1,
+		vector<double>	&y2,
+		vector<int>		&z1,
+		vector<int>		&z2,
+		double			&xmin,
+		double			&xmax,
+		double			&ymin,
+		double			&ymax,
+		uint32			&w,
+		uint32			&h );
+
+private:
+	char	*rname;		// raster filename
+	char	*fname;		// foldmap filename
+
 public:
 	uint8*					raster;		// gray scale image
 	uint8*					foldmap;	// fold map
 	uint8*					bmap;		// boundary map
 	uint32					w, h;
 	int						layer;		// layer number
+	int						tile;		// tile index
 	int						FirstGlobalPoint;
 	int						FirstTriangle;
 	int						spbase;		// should be added to all sp ids in this image, for uniqueness
-	char					*rname;		// raster filename
-	char					*fname;		// foldmap filename
 	char					*spname;	// super-pixel filename
 	char					*bname;		// boundary-map filename
 	uint16					*spmap;
@@ -63,7 +134,12 @@ public:
 	vector<vector<TForm> >	sectors;	// forward transform for each sector of each patch
 	vector<vector<TForm> >	sinvs;		// sector inverses
 	vector<uint8>			FoldmapRenumber;
+
+public:
+	const char* GetRName();
+	const char* GetFName();
 };
+
 
 // Class describing a triple of numbers that in turn describe
 // where the point is that maps to a given point in global space.
@@ -158,6 +234,7 @@ public:
 //
 static CArgs_mos	gArgs;
 static FILE			*of;
+static char			idbpath[2048] = {0};
 static bool			dp = false;
 static int			nwarn_edge_interp = 0;
 static int			nwarn_bad_corr = 0;
@@ -298,6 +375,47 @@ void CArgs_mos::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* GetRName ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+const char* image::GetRName()
+{
+	if( !rname ) {
+
+		Til2Img	I;
+
+		if( !IDBTil2Img( I, idbpath, layer, tile, stdout ) )
+			exit( 42 );
+
+		rname = strdup( I.path );
+	}
+
+	return rname;
+}
+
+/* --------------------------------------------------------------- */
+/* GetFName ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+const char* image::GetFName()
+{
+	if( !fname ) {
+
+		Til2FM	I;
+
+		if( !IDBTil2FMD( I, idbpath, layer, tile ) &&
+			!IDBTil2FM( I, idbpath, layer, tile, stdout ) ) {
+
+			exit( 42 );
+		}
+
+		fname = strdup( I.path );
+	}
+
+	return fname;
+}
+
+/* --------------------------------------------------------------- */
 /* FileNameToLayerNumber ----------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -335,6 +453,584 @@ if( k >= dnames.size() ) {
     exit( 42 );
     }
 return lnums[k];
+}
+
+/* --------------------------------------------------------------- */
+/* ReadInputOlder ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Read simple file (output from lsq) whose tag formats and
+// ordering are given here by example:
+//
+// DIR 0 /groups/tomo/EX2/TIF1/A1_
+// IMAGESIZE 1376 1040
+// FOLDMAP '/groups/tomo/EX2/TIF1/A1_4_2.tif' ../0/4/fm.tif 1
+// BBOX 0.273737 0.750210 2855.407509 6533.489589
+// TRANSFORM '/groups/tomo/EX2/TIF1/A1_0_2.tif::1' \
+//	0.995873 0.031339 1310.166353 -0.032305 0.996346 45.169905
+// MPOINTS 0 1581.204923 3755.906136 0 1573.213831 3755.796253
+// SPMAP /groups/tomo/EX2/TIF1/A1_0_2.tif::1 /path/spmapname
+// BOUNDARYMAP /groups/tomo/EX2/TIF1/A1_0_2.tif::1 /path/bmapname
+//
+// The images are deduced from FOLDMAP.
+// x1, x2, y1, y2, z1, z2 coords are collected from MPOINTS.
+// xmin...ymax come from BBOX.
+// w, h come from IMAGESIZE or a sample image if missing.
+//
+// This scheme uses path strings to label data items, so decoder
+// functions like FileNameToLayerNumber, ZIDFromFMPath are also
+// needed.
+//
+static void ReadInputOlder(
+	vector<image>	&images,
+	vector<double>	&x1,
+	vector<double>	&x2,
+	vector<double>	&y1,
+	vector<double>	&y2,
+	vector<int>		&z1,
+	vector<int>		&z2,
+	double			&xmin,
+	double			&xmax,
+	double			&ymin,
+	double			&ymax,
+	uint32			&w,
+	uint32			&h )
+{
+	vector<char*>	dnames;	// directory names
+	vector<int>		lnums;	// parallel vector of layer numbers
+	map<string,int>	imap;	// map of image names
+	FILE			*fp = FileOpenOrDie( gArgs.infile, "r" );
+	CLineScan		LS;
+
+	for(;;) {
+
+		if( LS.Get( fp ) <= 0 )
+			break;
+
+		if( !strncmp( LS.line, "MPOINTS", 7 ) ) {
+
+			double	a, b, c, d;
+			int		za, zc;
+
+			if( 6 != sscanf( LS.line + 8,
+				"%d %lf %lf %d %lf %lf",
+				&za, &a, &b, &zc, &c, &d ) ) {
+
+				printf( "Bad MPOINTS statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			if( gArgs.lspec1 < 0 ||
+				(gArgs.lspec1-1 <= za && za <= gArgs.lspec2+1) ||
+				(gArgs.lspec1-1 <= zc && zc <= gArgs.lspec2+1) ) {
+
+				z1.push_back( za );
+				x1.push_back( a/gArgs.scale );
+				y1.push_back( b/gArgs.scale );
+
+				z2.push_back( zc );
+				x2.push_back( c/gArgs.scale );
+				y2.push_back( d/gArgs.scale );
+			}
+		}
+		else if( !strncmp( LS.line, "TRANSFORM", 9 ) ) {
+
+			char	name[2048];
+			double	a, b, c, d, e, f;
+			int		nprm;
+
+			// newer format has '' delimited name
+			// older just space separated
+
+			if( LS.line[10] == '\'' ) {
+				nprm = sscanf(
+				LS.line + 10, "'%[^']' %lf %lf %lf %lf %lf %lf",
+				name, &a, &b, &c, &d, &e, &f );
+			}
+			else {
+				nprm = sscanf(
+				LS.line + 10, "%s %lf %lf %lf %lf %lf %lf",
+				name, &a, &b, &c, &d, &e, &f );
+			}
+
+			if( 7 != nprm ) {
+				printf( "Bad TRANSFORM statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			TForm	tf( a, b, c/gArgs.scale, d, e, f/gArgs.scale );
+			char	*fname = strtok( name, " ':" );
+
+			//printf("File '%s'\n", fname);
+
+			map<string,int>::iterator imit = imap.find(string(fname));
+
+			if( imit == imap.end() ) {
+
+				// This is normal with single layer image generation.
+
+				//printf( "File in TRANSFORM has no FOLDMAP - ignored.\n" );
+				continue;
+			}
+
+			int	k = imit->second;
+
+			// get the rest of the string, now of the form ::123
+			int	patch = atoi( strtok( NULL, " :'\n" ) );
+
+			printf( "ImageIdx::patch = %d::%d\n", k, patch );
+
+			// Make new slot?
+			if( images[k].tf.size() <= patch ) {
+
+				// initialize to an illegal transform
+				images[k].tf.resize( patch+1, TForm(0,0,0,0,0,0) );
+				images[k].inv.resize( patch+1 );
+			}
+
+			images[k].tf[patch] = tf;
+		}
+		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
+
+			char	*tname = strtok( LS.line + 8, " '\n" );
+			char	*mname = strtok( NULL, " '\n" );
+
+			if( !tname || !mname ) {
+				printf( "Bad FOLDMAP statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			map<string,int>::iterator it = imap.find(string(tname));
+
+			if( it != imap.end() )
+				continue;  // already seen this one
+
+			// Get image dimensions
+			if( !w ) {
+				uint8	*r = Raster8FromAny( tname, w, h, stdout );
+				RasterFree( r );
+				w /= gArgs.scale;
+				h /= gArgs.scale;
+			}
+
+			image ii;
+
+			ii.raster	= NULL;
+			ii.foldmap	= NULL;
+			ii.bmap		= NULL;
+			ii.w		= w;
+			ii.h		= h;
+			ii.spbase	= 0;
+			ii.rname	= strdup( tname );
+			ii.fname	= strdup( mname );
+			ii.spname	= NULL;
+			ii.bname	= NULL;
+			ii.spmap	= NULL;
+
+			ZIDFromFMPath( ii.layer, ii.tile, mname );
+
+			if( gArgs.lspec1 < 0 ||
+				(gArgs.lspec1 <= ii.layer && ii.layer <= gArgs.lspec2) ) {
+
+				// Point at drawing (d-suffixed) foldmap if exists
+
+				char	*suf = strstr( mname, ".tif" );
+
+				if( suf ) {
+
+					char	buf[1024];
+
+					sprintf( buf, "%.*sd.tif", suf - mname, mname );
+
+					if( DskExists( buf ) ) {
+						printf( "Using drawing file '%s'.\n", buf );
+						free( ii.fname );
+						ii.fname = strdup( buf );
+					}
+				}
+
+				// Finally, add to collection
+				imap[string(tname)] = images.size();
+				images.push_back( ii );
+			}
+		}
+		else if( !strncmp( LS.line, "SPMAP", 5 ) ) {
+
+			char	name[1024], where[1024];
+			int		z, nprm;
+
+			nprm = sscanf( LS.line + 6, "%s %s %d", name, where, &z );
+
+			if( nprm < 2 ) {
+				printf( "Bad SPMAP statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			char	*fname = strtok( name, " ':" );
+
+			//printf("File '%s'\n", fname);
+
+			map<string,int>::iterator imit = imap.find(string(fname));
+
+			if( imit == imap.end() ) {
+
+				// This is normal with single layer image generation.
+				// If it's a layer we care about, print a message.
+				// Otherwise silently ignore.
+
+				int	layer;
+
+				if( nprm > 2 )
+					layer = z;
+				else
+					layer = FileNameToLayerNumber( dnames, lnums, fname );
+
+				if( gArgs.lspec1 < 0 ||
+					(gArgs.lspec1 <= layer && layer <= gArgs.lspec2) ) {
+
+					printf(
+					"File in SPMAP has no image - ignored.\n" );
+				}
+
+				continue;
+			}
+
+			int	k = imit->second;
+
+			printf( "ImageIdx = %d\n", k );
+			images[k].spname = strdup( where );
+		}
+		else if( !strncmp( LS.line, "BOUNDARYMAP", 11 ) ) {
+
+			char	name[1024], where[1024];
+			int		z, nprm;
+
+			nprm = sscanf( LS.line + 12, "%s %s %d", name, where, &z );
+
+			if( nprm < 2 ) {
+				printf( "Bad BOUNDARYMAP statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			char	*fname = strtok( name, " ':" );
+
+			//printf("File '%s'\n", fname);
+
+			map<string,int>::iterator imit = imap.find(string(fname));
+
+			if( imit == imap.end() ) {
+
+				// This is normal with single layer image generation.
+				// If it's a layer we care about, print a message.
+				// Otherwise silently ignore.
+
+				int	layer;
+
+				if( nprm > 2 )
+					layer = z;
+				else
+					layer = FileNameToLayerNumber( dnames, lnums, fname );
+
+				if( gArgs.lspec1 < 0 ||
+					(gArgs.lspec1 <= layer && layer <= gArgs.lspec2) ) {
+
+					printf(
+					"File in BOUNDARYMAP has no image - ignored.\n" );
+				}
+
+				continue;
+			}
+
+			int	k = imit->second;
+
+			printf( "ImageIdx = %d\n", k );
+			images[k].bname = strdup( where );
+		}
+		else if( !strncmp( LS.line, "DIR", 3 ) ) {
+
+			// parallel vectors
+			char *z = strtok( LS.line + 4, " " );
+			char *n = strtok( NULL, " \n" );
+
+			lnums.push_back( atoi( z ) );
+			dnames.push_back( strdup( n ) );
+		}
+		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
+
+			if( 2 != sscanf( LS.line + 10, "%d %d", &w, &h ) ) {
+
+				printf( "Bad IMAGESIZE line '%s'.\n", LS.line );
+				exit( 42 );
+			}
+
+			w /= gArgs.scale;
+			h /= gArgs.scale;
+		}
+		else if( !strncmp( LS.line, "BBOX", 4 ) ) {
+
+			if( 4 != sscanf( LS.line + 5,
+				"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax ) ) {
+
+				printf( "Bad BBOX statement '%s'.\n", LS.line );
+				exit( 42 );
+			}
+
+			xmin /= gArgs.scale;
+			ymin /= gArgs.scale;
+			xmax /= gArgs.scale;
+			ymax /= gArgs.scale;
+		}
+		else {
+			printf( "Unknown line '%s'.", LS.line );
+			exit( 42 );
+		}
+	}
+
+	fclose( fp );
+}
+
+/* --------------------------------------------------------------- */
+/* ReadInputNewer ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// class for indexing image list, ie., map<ZID,int>
+
+class ZID {
+
+public:
+	int	z, id;
+
+public:
+	ZID( int zz, int iid )
+		{z = zz; id = iid;};
+
+	bool operator < (const ZID &rhs) const
+		{return z < rhs.z || (z == rhs.z && id < rhs.id);};
+
+	bool operator == (const ZID &rhs) const
+		{return z == rhs.z && id == rhs.id;};
+};
+
+
+// Read simple file (output from lsq) whose tag formats and
+// ordering are given here by example:
+//
+// IDBPATH /groups/tomo/EX2/imagedb
+// IMAGESIZE 1376 1040
+// BBOX 0.273737 0.750210 2855.407509 6533.489589
+// TRANSFORM2 0.17:1 \
+//	0.995873 0.031339 1310.166353 -0.032305 0.996346 45.169905
+// MPOINTS 0 1581.204923 3755.906136 0 1573.213831 3755.796253
+// SPMAP2 0.17 /path/spmapname
+// BOUNDARYMAP2 0.17 /path/bmapname
+//
+// The images are deduced from TRANSFORM.
+// x1, x2, y1, y2, z1, z2 coords are collected from MPOINTS.
+// xmin...ymax come from BBOX.
+// w, h come from IMAGESIZE.
+//
+// This scheme uses {z.id:rgn} to label data items. Decoder
+// functions are not needed, but we do require the IDBPATH
+// to look up paths when needed.
+//
+static void ReadInputNewer(
+	vector<image>	&images,
+	vector<double>	&x1,
+	vector<double>	&x2,
+	vector<double>	&y1,
+	vector<double>	&y2,
+	vector<int>		&z1,
+	vector<int>		&z2,
+	double			&xmin,
+	double			&xmax,
+	double			&ymin,
+	double			&ymax,
+	uint32			&w,
+	uint32			&h )
+{
+	map<ZID,int>	imap;	// map of image names
+	FILE			*fp = FileOpenOrDie( gArgs.infile, "r" );
+	CLineScan		LS;
+
+	for(;;) {
+
+		if( LS.Get( fp ) <= 0 )
+			break;
+
+		if( !strncmp( LS.line, "MPOINTS", 7 ) ) {
+
+			double	a, b, c, d;
+			int		za, zc;
+
+			if( 6 != sscanf( LS.line + 8,
+				"%d %lf %lf %d %lf %lf",
+				&za, &a, &b, &zc, &c, &d ) ) {
+
+				printf( "Bad MPOINTS statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			if( gArgs.lspec1 < 0 ||
+				(gArgs.lspec1-1 <= za && za <= gArgs.lspec2+1) ||
+				(gArgs.lspec1-1 <= zc && zc <= gArgs.lspec2+1) ) {
+
+				z1.push_back( za );
+				x1.push_back( a/gArgs.scale );
+				y1.push_back( b/gArgs.scale );
+
+				z2.push_back( zc );
+				x2.push_back( c/gArgs.scale );
+				y2.push_back( d/gArgs.scale );
+			}
+		}
+		else if( !strncmp( LS.line, "TRANSFORM2", 10 ) ) {
+
+			double	a, b, c, d, e, f;
+			int		z, id, rgn;
+
+			if( 9 != sscanf( LS.line + 11,
+				"%d.%d:%d %lf %lf %lf %lf %lf %lf",
+				&z, &id, &rgn, &a, &b, &c, &d, &e, &f ) ) {
+
+				printf( "Bad TRANSFORM2 statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			if( gArgs.lspec1 >= 0 &&
+				(z < gArgs.lspec1 || gArgs.lspec2 < z) ) {
+
+				continue;
+			}
+
+			TForm	tf( a, b, c/gArgs.scale, d, e, f/gArgs.scale );
+			ZID		zid( z, id );
+			int		k;
+
+			// get the image entry
+
+			map<ZID,int>::iterator	it = imap.find( zid );
+
+			if( it == imap.end() ) {
+
+				image	ii;
+
+				ii.rname	= NULL;
+				ii.fname	= NULL;
+				ii.raster	= NULL;
+				ii.foldmap	= NULL;
+				ii.bmap		= NULL;
+				ii.w		= w;
+				ii.h		= h;
+				ii.layer	= z;
+				ii.tile		= id;
+				ii.spbase	= 0;
+				ii.spname	= NULL;
+				ii.bname	= NULL;
+				ii.spmap	= NULL;
+
+				imap[zid] = k = images.size();
+				images.push_back( ii );
+			}
+			else
+				k = it->second;
+
+			// adjust TForm storage
+
+			if( images[k].tf.size() <= rgn ) {
+
+				// initialize to an illegal transform
+				images[k].tf.resize( rgn+1, TForm(0,0,0,0,0,0) );
+				images[k].inv.resize( rgn+1 );
+			}
+
+			images[k].tf[rgn] = tf;
+		}
+		else if( !strncmp( LS.line, "SPMAP2", 5 ) ) {
+
+			char	where[1024];
+			int		z, id;
+
+			if( 3 != sscanf( LS.line + 6,
+				"%d.%d %s", &z, &id, where ) ) {
+
+				printf( "Bad SPMAP2 statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			if( gArgs.lspec1 >= 0 &&
+				(z < gArgs.lspec1 || gArgs.lspec2 < z) ) {
+
+				continue;
+			}
+
+			map<ZID,int>::iterator	it = imap.find( ZID( z, id ) );
+
+			if( it != imap.end() )
+				images[it->second].spname = strdup( where );
+		}
+		else if( !strncmp( LS.line, "BOUNDARYMAP2", 12 ) ) {
+
+			char	where[1024];
+			int		z, id;
+
+			if( 3 != sscanf( LS.line + 6,
+				"%d.%d %s", &z, &id, where ) ) {
+
+				printf( "Bad BOUNDARYMAP2 statement '%s'.", LS.line );
+				exit( 42 );
+			}
+
+			if( gArgs.lspec1 >= 0 &&
+				(z < gArgs.lspec1 || gArgs.lspec2 < z) ) {
+
+				continue;
+			}
+
+			map<ZID,int>::iterator	it = imap.find( ZID( z, id ) );
+
+			if( it != imap.end() )
+				images[it->second].bname = strdup( where );
+		}
+		else if( !strncmp( LS.line, "IDBPATH", 7 ) ) {
+
+			if( !sscanf( LS.line + 8, "%s", idbpath ) ) {
+
+				printf( "Bad IDBPATH line '%s'.\n", LS.line );
+				exit( 42 );
+			}
+		}
+		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
+
+			if( 2 != sscanf( LS.line + 10, "%d %d", &w, &h ) ) {
+
+				printf( "Bad IMAGESIZE line '%s'.\n", LS.line );
+				exit( 42 );
+			}
+
+			w /= gArgs.scale;
+			h /= gArgs.scale;
+		}
+		else if( !strncmp( LS.line, "BBOX", 4 ) ) {
+
+			if( 4 != sscanf( LS.line + 5,
+				"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax ) ) {
+
+				printf( "Bad BBOX statement '%s'.\n", LS.line );
+				exit( 42 );
+			}
+
+			xmin /= gArgs.scale;
+			ymin /= gArgs.scale;
+			xmax /= gArgs.scale;
+			ymax /= gArgs.scale;
+		}
+		else {
+			printf( "Unknown line '%s'.", LS.line );
+			exit( 42 );
+		}
+	}
+
+	fclose( fp );
 }
 
 /* --------------------------------------------------------------- */
@@ -1468,8 +2164,8 @@ for(double r=0.0; r <= max(center.x,center.y)+0.0001; r += delta_image_space) {
 //
 class NameSorter{
 public:
-	char	*name;
-	int		num;
+	const char	*name;
+	int			num;
 
 public:
 	bool operator < ( const NameSorter &rhs ) const
@@ -1507,7 +2203,7 @@ vector<NameSorter> temp(relevant_images.size());
 for(int k=0; k<relevant_images.size(); k++) {      // for each picture
     int i = relevant_images[k];
     temp[k].num  = k;                              // where this name is in the relevant picture vector
-    temp[k].name = images[i].rname;
+    temp[k].name = images[i].GetRName();
     }
 sort(temp.begin(), temp.end(), NameSortFn);    // sort in decreasing order
 
@@ -2400,326 +3096,49 @@ int main( int argc, char **argv )
 
 	gArgs.SetCmdLine( argc, argv );
 
-
-
-vector<char*>	dnames;   // directory names
-vector<int>		lnums;    // parallel vector of layer numbers
-int highest = 0; // highest and lowest layer numbers encountered
-int lowest  = 1000000000;
-vector<image> images;
-map<string,int> imap;  // map of image names
-uint32 w=0,h=0;        // size of each sub-image
-
-
-// read the file.  Here we assume all images are the same size, so if w and/or h are non-zero, we don't really need to read the
-// images, since we already read at least one.
-
-double	xmin =  BIG, ymin =  BIG;
-double	xmax = -BIG, ymax = -BIG;
-vector<double>	x1, y1, x2, y2;
-vector<int>		z1, z2;
-FILE			*fp = FileOpenOrDie( gArgs.infile, "r" );
-CLineScan		*ls = new CLineScan;
-
-	for(;;) {
-
-		if( ls->Get( fp ) <= 0 )
-			break;
-
-		if( !strncmp( ls->line, "DIR", 3 ) ) {
-
-			// parallel vectors
-			char *z = strtok( ls->line + 4, " " );
-			char *n = strtok( NULL, " \n" );
-
-			lnums.push_back( atoi( z ) );
-			dnames.push_back( strdup( n ) );
-		}
-		else if( !strncmp( ls->line, "FOLDMAP", 7 ) ) {
-
-			char	*tname = strtok( ls->line + 7, " '\n" );
-			char	*mname = strtok( NULL, " '\n" );
-			int		id_dum;
-
-			if( !tname || !mname ) {
-				printf( "Bad FOLDMAP statement '%s'.", ls->line );
-				exit( 42 );
-			}
-
-			map<string,int>::iterator it = imap.find(string(tname));
-
-			if( it != imap.end() )
-				continue;  // already seen this one
-
-			// Get image dimensions
-			if( !w ) {
-				uint8	*r = Raster8FromAny( tname, w, h, stdout );
-				RasterFree( r );
-				w /= gArgs.scale;
-				h /= gArgs.scale;
-			}
-
-			image ii;
-
-			ii.raster	= NULL;
-			ii.foldmap	= NULL;
-			ii.bmap		= NULL;
-			ii.w		= w;
-			ii.h		= h;
-			ii.spbase	= 0;
-			ii.rname	= strdup( tname );
-			ii.fname	= strdup( mname );
-			ii.spname	= NULL;
-			ii.bname	= NULL;
-			ii.spmap	= NULL;
-
-			ZIDFromFMPath( ii.layer, id_dum, mname );
-
-			if( gArgs.lspec1 < 0 ||
-				(gArgs.lspec1 <= ii.layer && ii.layer <= gArgs.lspec2) ) {
-
-				// Point at drawing (d-suffixed) foldmap if exists
-
-				char	*suf = strstr( mname, ".tif" );
-
-				if( suf ) {
-
-					char	buf[1024];
-
-					sprintf( buf, "%.*sd.tif", suf - mname, mname );
-
-					if( DskExists( buf ) ) {
-						printf( "Using drawing file '%s'.\n", buf );
-						free( ii.fname );
-						ii.fname = strdup( buf );
-					}
-				}
-
-				// Finally, add to collection
-				imap[string(tname)] = images.size();
-				images.push_back( ii );
-
-				lowest  = min( lowest, ii.layer );
-				highest = max( highest, ii.layer );
-			}
-		}
-		else if( !strncmp( ls->line, "TRANSFORM", 9 ) ) {
-
-			char	name[2048];
-			double	a, b, c, d, e, f;
-			int		nread;
-
-			// newer format has '' delimited name
-			// older just space separated
-
-			if( ls->line[10] == '\'' ) {
-				nread = sscanf(
-				ls->line + 10, "'%[^']' %lf %lf %lf %lf %lf %lf",
-				name, &a, &b, &c, &d, &e, &f );
-			}
-			else {
-				nread = sscanf(
-				ls->line + 10, "%s %lf %lf %lf %lf %lf %lf",
-				name, &a, &b, &c, &d, &e, &f );
-			}
-
-			if( 7 != nread ) {
-				printf( "Bad TRANSFORM statement '%s'.", ls->line );
-				exit( 42 );
-			}
-
-			TForm	tf( a, b, c/gArgs.scale, d, e, f/gArgs.scale );
-			char	*fname = strtok( name, " ':" );
-
-			//printf("File '%s'\n", fname);
-
-			map<string,int>::iterator imit = imap.find(string(fname));
-
-			if( imit == imap.end() ) {
-
-				// This is normal with single layer image generation.
-
-				//printf( "File in TRANSFORM has no FOLDMAP - ignored.\n" );
-				continue;
-			}
-
-			int	k = imit->second;
-
-			// get the rest of the string, now of the form ::123
-			int	patch = atoi( strtok( NULL, " :'\n" ) );
-
-			printf( "ImageIdx::patch = %d::%d\n", k, patch );
-
-			// Make new slot?
-			if( images[k].tf.size() <= patch ) {
-
-				// initialize to an illegal transform
-				images[k].tf.resize( patch+1, TForm(0,0,0,0,0,0) );
-				images[k].inv.resize( patch+1 );
-			}
-
-			images[k].tf[patch] = tf;
-		}
-		else if( !strncmp( ls->line, "SPMAP", 5 ) ) {
-
-			char	name[1024], where[1024];
-			int		z, nprm;
-
-			nprm = sscanf( ls->line + 5, "%s %s %d", name, where, &z );
-
-			if( nprm < 2 ) {
-				printf( "Bad SPMAP statement '%s'.", ls->line );
-				exit( 42 );
-			}
-
-			char	*fname = strtok( name, " ':" );
-
-			//printf("File '%s'\n", fname);
-
-			map<string,int>::iterator imit = imap.find(string(fname));
-
-			if( imit == imap.end() ) {
-
-				// This is normal with single layer image generation.
-				// If it's a layer we care about, print a message.
-				// Otherwise silently ignore.
-
-				int	layer;
-
-				if( nprm > 2 )
-					layer = z;
-				else
-					layer = FileNameToLayerNumber( dnames, lnums, fname );
-
-				if( gArgs.lspec1 < 0 ||
-					(gArgs.lspec1 <= layer && layer <= gArgs.lspec2) ) {
-
-					printf(
-					"File in SPMAP has no image - ignored.\n" );
-				}
-
-				continue;
-			}
-
-			int	k = imit->second;
-
-			printf( "ImageIdx = %d\n", k );
-			images[k].spname = strdup( where );
-		}
-		else if( !strncmp( ls->line, "BOUNDARYMAP", 11 ) ) {
-
-			char	name[1024], where[1024];
-			int		z, nprm;
-
-			nprm = sscanf( ls->line + 11, "%s %s %d", name, where, &z );
-
-			if( nprm < 2 ) {
-				printf( "Bad BOUNDARYMAP statement '%s'.", ls->line );
-				exit( 42 );
-			}
-
-			char	*fname = strtok( name, " ':" );
-
-			//printf("File '%s'\n", fname);
-
-			map<string,int>::iterator imit = imap.find(string(fname));
-
-			if( imit == imap.end() ) {
-
-				// This is normal with single layer image generation.
-				// If it's a layer we care about, print a message.
-				// Otherwise silently ignore.
-
-				int	layer;
-
-				if( nprm > 2 )
-					layer = z;
-				else
-					layer = FileNameToLayerNumber( dnames, lnums, fname );
-
-				if( gArgs.lspec1 < 0 ||
-					(gArgs.lspec1 <= layer && layer <= gArgs.lspec2) ) {
-
-					printf(
-					"File in BOUNDARYMAP has no image - ignored.\n" );
-				}
-
-				continue;
-			}
-
-			int	k = imit->second;
-
-			printf( "ImageIdx = %d\n", k );
-			images[k].bname = strdup( where );
-		}
-		else if( !strncmp( ls->line, "MPOINTS", 7 ) ) {
-
-			double	a, b, c, d;
-			int		za, zc;
-
-			if( 6 != sscanf( ls->line + 7,
-				"%d %lf %lf %d %lf %lf",
-				&za, &a, &b, &zc, &c, &d ) ) {
-
-				printf( "Bad MPOINTS statement '%s'.", ls->line );
-				exit( 42 );
-			}
-
-			if( gArgs.lspec1 < 0 ||
-				(gArgs.lspec1-1 <= za && za <= gArgs.lspec2+1) ||
-				(gArgs.lspec1-1 <= zc && zc <= gArgs.lspec2+1) ) {
-
-				z1.push_back( za );
-				x1.push_back( a/gArgs.scale );
-				y1.push_back( b/gArgs.scale );
-
-				z2.push_back( zc );
-				x2.push_back( c/gArgs.scale );
-				y2.push_back( d/gArgs.scale );
-			}
-		}
-		else if( !strncmp( ls->line, "BBOX", 4 ) ) {
-
-			if( 4 != sscanf( ls->line + 4,
-				"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax ) ) {
-
-				printf( "Bad BBOX statement '%s'.\n", ls->line );
-				exit( 42 );
-			}
-
-			xmin /= gArgs.scale;
-			ymin /= gArgs.scale;
-			xmax /= gArgs.scale;
-			ymax /= gArgs.scale;
-		}
-		else if( !strncmp( ls->line, "IMAGESIZE", 9 ) ) {
-
-			if( 2 != sscanf( ls->line + 10, "%d %d", &w, &h ) ) {
-				printf( "Bad IMAGESIZE line '%s'.\n", ls->line );
-				exit( 42 );
-			}
-
-			w /= gArgs.scale;
-			h /= gArgs.scale;
-		}
-		else {
-			printf( "Unknown line '%s'.", ls->line );
-			exit( 42 );
-		}
-	}
-
-	delete ls;
-	fclose( fp );
+/* --------------- */
+/* Read input file */
+/* --------------- */
+
+	vector<image>	images;
+	vector<double>	x1, x2, y1, y2;
+	vector<int>		z1, z2;
+	double			xmin =  BIG, ymin =  BIG;
+	double			xmax = -BIG, ymax = -BIG;
+	uint32			w = 0, h = 0;
+
+	ReadInputNewer( images, x1, x2, y1, y2, z1, z2,
+		xmin, xmax, ymin, ymax, w, h );
 
 //VMStats( stdout );
 //exit( 11 );
 
-	if( !images.size() ) {
+/* ---------------------------- */
+/* Layer span [lowest, highest] */
+/* ---------------------------- */
+
+	int lowest, highest, ni = images.size();
+
+	if( !ni ) {
 		printf( "No images in input.\n" );
 		exit( 42 );
 	}
 
+	lowest = highest = images[0].layer;
 
+	for( int i = 1; i < ni; ++i ) {
+
+		int	z = images[i].layer;
+
+		if( z < lowest )
+			lowest = z;
+		else if( z > highest )
+			highest = z;
+	}
+
+/* ---------------------- */
+/* Coordinate adjustments */
+/* ---------------------- */
 
 	GlobalBounds( xmin, xmax, ymin, ymax, images, w, h );
 
@@ -2830,17 +3249,17 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         relevant_images.push_back(i);
 	uint32 ww, hh;  // if 'scale' option is used, this is the original size
 	if( images[i].raster == NULL ) {
-	    images[i].raster  = LoadNormImg( images[i].rname, ww, hh );
+	    images[i].raster  = LoadNormImg( images[i].GetRName(), ww, hh );
             ImageResize( images[i].raster, ww, hh, gArgs.scale );
             }
 	if( images[i].foldmap == NULL ) {
 	    if( gArgs.FoldMasks ) {
                 // if the fold mask name is not rooted, pre-pend the fold directory name
                 string file_name;
-                if( images[i].fname[0] == '/' )
-		    file_name = string( images[i].fname );
+                if( images[i].GetFName()[0] == '/' )
+		    file_name = string( images[i].GetFName() );
 	        else
-                    file_name = string( gArgs.fold_dir ) + "/" +string(images[i].fname);  //pre-pend the fold directory name
+                    file_name = string( gArgs.fold_dir ) + "/" +string(images[i].GetFName());  //pre-pend the fold directory name
 		images[i].foldmap = Raster8FromAny( file_name.c_str(), ww, hh, stdout );
                 ImageResize( images[i].foldmap, ww, hh, gArgs.scale );
 		FillInHolesInFoldmap( images[i].foldmap, w, h );
@@ -2856,7 +3275,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	if( images[i].spmap == NULL ) {
             uint16 *test = NULL;
             if( images[i].spname == NULL ) {
-		printf("No SPmap defined for image '%s'\n", images[i].rname);
+		printf("No SPmap defined for image '%s'\n", images[i].GetRName());
 		test = BlankSPMap;
 		}
 	    else {
@@ -2881,7 +3300,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	if( images[i].bmap == NULL ) {
             uint8 *test = NULL;
             if( images[i].bname == NULL ) {
-		printf("No boundary map defined for image '%s'\n", images[i].rname);
+		printf("No boundary map defined for image '%s'\n", images[i].GetRName());
 		test = BlankBMap;
 		}
 	    else { // name is defined; see if file exists
@@ -3047,8 +3466,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         // draw the Tile ID in the center of the tile.
         Point	p = Point( w/2, h/2 );
 		images[i].tf[1].Transform( p );
-        char *fn = strrchr(images[i].rname, '/');  // look backwards for the slash
-        fn = (fn == NULL ? images[i].rname : fn);  // if none, use whole string
+        const char *fn = strrchr(images[i].GetRName(), '/');  // look backwards for the slash
+        fn = (fn == NULL ? images[i].GetRName() : fn);  // if none, use whole string
         printf( "Draw image %s at %f %f\n", fn, p.x, p.y );
         if( p.x > 0 && p.x < nx-1 && p.y > 0 && p.y < ny-1 )
 			DrawText(&before[0], nx, ny, fn, int(p.x), int(p.y));
@@ -3097,7 +3516,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    //write the image names, and their indexes
 	    for(int k=0; k<relevant_images.size(); k++) {      // for each picture
 		int i = relevant_images[k];
-		fprintf(ftxt,"IMAGE %d '%s'\n", k, images[i].rname);
+		fprintf(ftxt,"IMAGE %d '%s'\n", k, images[i].GetRName());
 		}
 	    for(int k=1; k<Triples.size(); k++) {
 		int from = Triples[k].image;          // index into the relevant pictures array
@@ -3492,7 +3911,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		ix = ROUND(p.x);
 		iy = ROUND(p.y);
                 if( ix == 8557 && iy == 431 ) {
-                    printf("Point %f %f in image %s\n", pts[j].x, pts[j].y, images[i].rname);
+                    printf("Point %f %f in image %s\n", pts[j].x, pts[j].y, images[i].GetRName());
 		    printf("Maps to pixel %d %d, image %d patch %d sector %d\n", ix, iy, i, patch, sector);
                     printf("Transform is"); PrintTransform(stdout, images[i].sectors[patch][sector]);
                     printf(" Inverse  is"); PrintTransform(stdout, images[i].  sinvs[patch][sector]);
@@ -3712,7 +4131,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     //write the image names, and their indexes
     for(int k=0; k<relevant_images.size(); k++) {      // for each picture
         int i = relevant_images[k];
-	fprintf(ftxt,"IMAGE %d '%s'\n", k, images[i].rname);
+	fprintf(ftxt,"IMAGE %d '%s'\n", k, images[i].GetRName());
         }
     for(int k=1; k<Triples.size(); k++) {
         int from = Triples[k].image;          // index into the relevant pictures array
@@ -3849,7 +4268,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
              }
         if( p == NULL ) {
 	    printf("Oops - no '/' in super-pixel path '%s'.  Try fold mask.\n", images[i].spname == NULL ?"none":images[i].spname);
-            root = strdup(images[i].fname);
+            root = strdup(images[i].GetFName());
             p = strrchr(root, '/');
             if( p == NULL ) {
 	        printf("Oops - no '/' in fold mask path either '%s'.\n", root);

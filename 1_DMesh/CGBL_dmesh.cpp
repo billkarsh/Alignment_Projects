@@ -197,8 +197,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Input images ----\n" );
 
-	if( !ReadTil2Img( A.t2i, A.layer, A.tile, stdout ) ||
-		!ReadTil2Img( B.t2i, B.layer, B.tile, stdout ) ) {
+	if( !IDBTil2Img( A.t2i, NULL, A.layer, A.tile, stdout ) ||
+		!IDBTil2Img( B.t2i, NULL, B.layer, B.tile, stdout ) ) {
 
 		return false;
 	}

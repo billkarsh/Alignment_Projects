@@ -77,6 +77,12 @@ typedef struct {
 } Til2Img;
 
 typedef struct {
+// entry: TileToFM(D).txt
+	int		tile;
+	char	path[2048];
+} Til2FM;
+
+typedef struct {
 // entry: ThmPair.txt
 	TForm	T;
 	double	A, Q, R;
@@ -94,13 +100,28 @@ void OpenPairLog( int alr, int atl, int blr, int btl );
 bool ReadThmParams( ThmParams &T, int layer, FILE *flog );
 bool ReadMeshParams( MeshParams &M, int layer, FILE *flog );
 
-bool ReadTil2Img(
-	Til2Img	&t2i,
-	int		layer,
-	int		tile,
-	FILE	*flog );
+bool IDBTil2Img(
+	Til2Img		&t2i,
+	const char	*idb,
+	int			layer,
+	int			tile,
+	FILE		*flog );
+
+bool IDBTil2FM(
+	Til2FM		&t2f,
+	const char	*idb,
+	int			layer,
+	int			tile,
+	FILE		*flog );
+
+bool IDBTil2FMD(
+	Til2FM		&t2f,
+	const char	*idb,
+	int			layer,
+	int			tile );
 
 void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i );
+void PrintTil2FM( FILE *flog, int cAB, const Til2FM &t2f );
 
 bool ReadThmPair(
 	ThmPair	&tpr,
