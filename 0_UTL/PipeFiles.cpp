@@ -250,7 +250,7 @@ bool IDBTil2Img(
 	FILE	*f;
 	int		ok = false;
 
-	if( idb )
+	if( idb && idb[0] )
 		sprintf( name, "%s/%d/TileToImage.txt", idb, layer );
 	else
 		sprintf( name, "../%d/TileToImage.txt", layer );
@@ -316,7 +316,7 @@ bool IDBTil2FM(
 	FILE	*f;
 	int		ok = false;
 
-	if( idb )
+	if( idb && idb[0] )
 		sprintf( name, "%s/%d/TileToFM.txt", idb, layer );
 	else
 		sprintf( name, "../%d/TileToFM.txt", layer );
@@ -379,7 +379,7 @@ bool IDBTil2FMD(
 	FILE	*f;
 	int		ok = false;
 
-	if( idb )
+	if( idb && idb[0] )
 		sprintf( name, "%s/%d/TileToFMD.txt", idb, layer );
 	else
 		sprintf( name, "../%d/TileToFMD.txt", layer );

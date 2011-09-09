@@ -129,17 +129,21 @@ public:
 
 class RGN {
 
-public:
-	string	name;	// image filename
-	int		z,		// layer
-			id,		// index in layer
-			rgn,	// connRgn index
-			itr;	// global-space transform index
+private:
+	int	iname;	// index in rgnvname vector
 
 public:
-	RGN( int zz, int iid );
-	RGN( const char *c, const DIR *dir );
+	int	z,		// layer
+		id,		// index in layer
+		rgn,	// connRgn index
+		itr;	// global-space transform index
+
+public:
+	RGN( const char *key );
+	RGN( const char *path, const DIR *dir );
 	RGN( const char *path, const char *key );
+
+	const char* GetName() const;
 };
 
 /* --------------------------------------------------------------- */
@@ -227,7 +231,7 @@ public:
 	// COLOR_256	= 3
 	// COLOR_RGB	= 4
 	//
-	vector<RGN>	include_only;		// if given, include only these
+	vector<ZID>	include_only;		// if given, include only these
 	double		same_strength,
 				square_strength,
 				scale_strength,
@@ -410,10 +414,13 @@ public:
 
 static CArgs_lsq			gArgs;
 static FILE					*FOUT;		// outfile: 'simple'
+static char					idbpath[2048] = {0};
+static vector<string>		rgnvname;	// tile names
+static map<ZID,int>			rgnmname;	// tile names
 static vector<RGN>			vRgn;		// the regions
-static map<CRPair, int>		r12Idx;		// idx from region-pair
+static map<CRPair,int>		r12Idx;		// idx from region-pair
 static vector<Constraint>	vAllC;		// all POINT entries
-static map<ZID, int>		nConRgn;	// # corr-rgn this image
+static map<ZID,int>			nConRgn;	// # corr-rgn this image
 static int					gW = 4056,	// default image dims
 							gH = 4056,
 							gNTr = 0;	// Set by Set_itr_set_used
@@ -467,7 +474,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			for( int i = 0; i < ni; i += 2 ) {
 
 				include_only.push_back(
-					RGN( vi[i], vi[i+1] ) );
+					ZID( vi[i], vi[i+1] ) );
 
 				printf( "Include only %4d %4d.\n", vi[i], vi[i+1] );
 			}
@@ -611,35 +618,83 @@ int DIR::ZFromName( const char *name ) const
 /* RGN::RGN ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-RGN::RGN( int zz, int iid )
+RGN::RGN( const char *key )
 {
-	name	= "";
-	z		= zz;
-	id		= iid;
-	rgn		= 1;
+	sscanf( key, "%d.%d:%d", &z, &id, &rgn );
+	iname	= -1;
 	itr		= -1;
 }
 
 
-RGN::RGN( const char *c, const DIR *dir )
+RGN::RGN( const char *path, const DIR *dir )
 {
-	char	*s = strrchr( c, ':' );
+	char	*s = strrchr( path, ':' );
 
 	s[-1]	= 0;
-	name	= c;
-	z		= dir->ZFromName( c );
-	id		= gArgs.TileIDFromName( c );
+	z		= dir->ZFromName( path );
+	id		= gArgs.TileIDFromName( path );
 	rgn		= atoi( s + 1 );
 	itr		= -1;
+
+	ZID						zid( z, id );
+	map<ZID,int>::iterator	it = rgnmname.find( zid );
+
+	if( it == rgnmname.end() ) {
+
+		rgnmname[zid] = iname = rgnvname.size();
+		rgnvname.push_back( path );
+	}
+	else
+		iname = it->second;
 }
 
 
 RGN::RGN( const char *path, const char *key )
 {
-	name	= path;
+	sscanf( key, "%d.%d:%d", &z, &id, &rgn );
 	itr		= -1;
 
-	sscanf( key, "%d.%d:%d", &z, &id, &rgn );
+	ZID						zid( z, id );
+	map<ZID,int>::iterator	it = rgnmname.find( zid );
+
+	if( it == rgnmname.end() ) {
+
+		rgnmname[zid] = iname = rgnvname.size();
+		rgnvname.push_back( path );
+	}
+	else
+		iname = it->second;
+}
+
+/* --------------------------------------------------------------- */
+/* RGN::GetName -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+const char* RGN::GetName() const
+{
+	if( iname < 0 ) {
+
+		ZID						zid( z, id );
+		map<ZID,int>::iterator	it = rgnmname.find( zid );
+		int						k;
+
+		if( it == rgnmname.end() ) {
+
+			Til2Img	I;
+
+			if( !IDBTil2Img( I, idbpath, z, id, stdout ) )
+				exit( 42 );
+
+			rgnmname[zid] = k = rgnvname.size();
+			rgnvname.push_back( I.path );
+		}
+		else
+			k = it->second;
+
+		*const_cast<int*>(&iname) = k;
+	}
+
+	return rgnvname[iname].c_str();
 }
 
 /* --------------------------------------------------------------- */
@@ -738,7 +793,7 @@ void RGD::AddPOINTPair(
 	const Point	&p2 )
 {
 	CRPair						r12( r1, r2 );
-	map<CRPair, int>::iterator	mi = r12Idx.find( r12 );
+	map<CRPair,int>::iterator	mi = r12Idx.find( r12 );
 	int							loc;
 
 	if( mi == r12Idx.end() ) {
@@ -777,7 +832,7 @@ void RGD::TestPairAlignments()
 	printf(
 	"---- Lyr.til:rgn pairs with rigid align err > 70 pix ----\n" );
 
-	map<CRPair, int>::iterator	pi;	// iterator over pairs
+	map<CRPair,int>::iterator	pi;	// iterator over pairs
 
 	for( pi = r12Idx.begin(); pi != r12Idx.end(); ++pi ) {
 
@@ -1136,12 +1191,12 @@ void CNX::SelectIncludedImages()
 // If already stored, that index is returned. Else, new
 // entries are created with index (nr); nr is incremented.
 //
-static int FindOrAdd( map<ZIDR, int> &m, int &nr, const RGN &R )
+static int FindOrAdd( map<ZIDR,int> &m, int &nr, const RGN &R )
 {
 // Already mapped?
 
-	ZIDR						key( R );
-	map<ZIDR, int>::iterator	it = m.find( key );
+	ZIDR					key( R );
+	map<ZIDR,int>::iterator	it = m.find( key );
 
 	if( it != m.end() )
 		return it->second;
@@ -1168,7 +1223,7 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 	FILE		*f = FileOpenOrDie( gArgs.pts_file, "r" );
 	CLineScan	LS;
 
-	map<ZIDR, int>	getRGN;
+	map<ZIDR,int>	getRGN;
 	int				nr = 0, nlines = 0;
 
 	for(;;) {
@@ -1180,7 +1235,62 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 		++nlines;
 
-		if( !strncmp( LS.line, "POINT", 5 ) ) {
+		if( !strncmp( LS.line, "CPOINT2", 7 ) ) {
+
+			char	key1[32], key2[32];
+			Point	p1, p2;
+
+			if( 6 != sscanf( LS.line + 8,
+						"%s %lf %lf %s %lf %lf",
+						key1, &p1.x, &p1.y,
+						key2, &p2.x, &p2.y ) ) {
+
+				printf(
+				"WARNING: 'CPOINT2' format error; line %d.\n",
+				nlines );
+
+				continue;
+			}
+
+			RGN	R1( key1 );
+			RGN	R2( key2 );
+			int r1 = FindOrAdd( getRGN, nr, R1 );
+			int r2 = FindOrAdd( getRGN, nr, R2 );
+
+			cnx->AddCorrespondence( r1, r2 );
+			rgd->AddPOINTPair( r1, p1, r2, p2 );
+
+			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
+		}
+		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
+
+			int	z, id, nrgn = -1;
+
+			sscanf( LS.line + 8, "'%*[^']' %s %d", name1, &nrgn );
+			ZIDFromFMPath( z, id, name1 );
+			nConRgn[ZID( z, id )] = nrgn;
+
+			fprintf( FOUT, LS.line );
+		}
+		else if( !strncmp( LS.line, "IDBPATH", 7 ) ) {
+
+			if( !sscanf( LS.line + 8, "%s", idbpath ) ) {
+
+				printf( "Bad IDBPATH line '%s'.\n", LS.line );
+				exit( 42 );
+			}
+		}
+		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
+
+			if( 2 != sscanf( LS.line + 10, "%d %d", &gW, &gH ) ) {
+				printf( "Bad IMAGESIZE line '%s'.\n", LS.line );
+				exit( 42 );
+			}
+
+			fprintf( FOUT, LS.line );
+			printf( LS.line );
+		}
+		else if( !strncmp( LS.line, "POINT", 5 ) ) {
 
 			Point	p1, p2;
 
@@ -1232,26 +1342,6 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 			rgd->AddPOINTPair( r1, p1, r2, p2 );
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
-		}
-		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
-
-			if( 2 != sscanf( LS.line + 10, "%d %d", &gW, &gH ) ) {
-				printf( "Bad IMAGESIZE line '%s'.\n", LS.line );
-				exit( 42 );
-			}
-
-			fprintf( FOUT, LS.line );
-			printf( LS.line );
-		}
-		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
-
-			int	z, id, nrgn = -1;
-
-			sscanf( LS.line + 8, "'%*[^']' %s %d", name1, &nrgn );
-			ZIDFromFMPath( z, id, name1 );
-			nConRgn[ZID( z, id )] = nrgn;
-
-			fprintf( FOUT, LS.line );
 		}
 		else {
 
@@ -1397,7 +1487,7 @@ static void SetUniteLayer(
 /* Load TForms for requested layer */
 /* ------------------------------- */
 
-	map<MZIDR, TForm>	M;
+	map<MZIDR,TForm>	M;
 
 	FILE		*f = FileOpenOrDie( gArgs.tfm_file, "r" );
 	CLineScan	LS;
@@ -1441,7 +1531,7 @@ static void SetUniteLayer(
 		if( vRgn[i].z != gArgs.unite_layer || vRgn[i].itr < 0 )
 			continue;
 
-		map<MZIDR, TForm>::iterator		it;
+		map<MZIDR,TForm>::iterator	it;
 
 		it = M.find( MZIDR( vRgn[i] ) );
 
@@ -2348,7 +2438,7 @@ static void WriteTransforms(
 		X[j+3], X[j+4], X[j+5] );
 
 		fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
-		I.name.c_str(), I.rgn,
+		I.GetName(), I.rgn,
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5] );
 
@@ -2434,7 +2524,7 @@ static void WriteTrakEM(
 		// trim trailing quotes and '::'
 		// s = filename only
 		char	buf[2048];
-		strcpy( buf, I.name.c_str() );
+		strcpy( buf, I.GetName() );
 		char	*p = strtok( buf, " ':\n" );
 		char	*s = strrchr( p, '/' );
 		s = (s ? s+1 : p);
@@ -2496,7 +2586,7 @@ static void WriteJython(
 
 		// trim trailing quotes and '::'
 		char	buf[2048];
-		strcpy( buf, I.name.c_str() );
+		strcpy( buf, I.GetName() );
 		char	*p = strtok( buf, " ':\n" );
 
 		// fix origin : undo trimming
@@ -2672,7 +2762,7 @@ static void NoCorrs(
 			" - %s\n"
 			" - %s\n",
 			A.z, A.id, A.rgn, B.z, B.id, B.rgn, olap*100.0,
-			A.name.c_str(), B.name.c_str() );
+			A.GetName(), B.GetName() );
 
 			/* ---------------- */
 			/* Report in NoCorr */
@@ -2905,7 +2995,7 @@ void EVL::Tabulate(
 		const RGN	&I = vRgn[E.idx];
 
 		printf( "%12.1f\t%4d\t%4d\t%4d\t%s\n",
-		E.amt, I.z, I.id, I.rgn, I.name.c_str() );
+		E.amt, I.z, I.id, I.rgn, I.GetName() );
 	}
 
 	printf( "\n" );
@@ -3033,7 +3123,7 @@ void EVL::Print_be_and_se_files( const vector<zsort> &z )
 			z2, vRgn[C.r2].id, vRgn[C.r2].rgn );
 
 			printf( "%s\n%s\n",
-			vRgn[C.r1].name.c_str(), vRgn[C.r2].name.c_str() );
+			vRgn[C.r1].GetName(), vRgn[C.r2].GetName() );
 		}
 
 		// and plot
