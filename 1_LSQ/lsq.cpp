@@ -478,6 +478,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 
 				printf( "Include only %4d %4d.\n", vi[i], vi[i+1] );
 			}
+
+			printf( "<-only> option not implemented; IGNORED.\n" );
 		}
 		else if( GetArg( &same_strength, "-same=%lf", argv[i] ) )
 			printf( "Setting same-layer strength to %f.\n", same_strength );

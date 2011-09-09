@@ -107,17 +107,11 @@ bool GetArgList( vector<int> &v, const char *pat, char *argv )
 
 	if( !strncmp( argv, pat, len ) ) {
 
-		char	*s  = argv + len;
+		char	*s = strtok( argv + len, ":;, " );
 
-		for(;;) {
-
-			int	i, k;
-
-			if( 1 != sscanf( s, "%d%n", &i, &k ) )
-				break;
-
-			v.push_back( i );
-			s += k + 1;
+		while( s ) {
+			v.push_back( atoi( s ) );
+			s = strtok( NULL, ":;, " );
 		}
 
 		ok = true;
