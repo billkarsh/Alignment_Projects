@@ -1190,7 +1190,7 @@ static void Make_fmsame(
 
 		const Picture&	P = vp[i];
 
-		fprintf( f, "FOLDMAP2 %d %d 1\n", P.z, P.id );
+		fprintf( f, "FOLDMAP2 %d.%d 1\n", P.z, P.id );
 	}
 
 	fclose( f );

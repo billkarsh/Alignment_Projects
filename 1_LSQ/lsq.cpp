@@ -1264,6 +1264,13 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}
+		else if( !strncmp( LS.line, "FOLDMAP2", 8 ) ) {
+
+			int	z, id, nrgn;
+
+			sscanf( LS.line + 9, "%d.%d %d", &z, &id, &nrgn );
+			nConRgn[ZID( z, id )] = nrgn;
+		}
 		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
 
 			int	z, id, nrgn = -1;
@@ -1281,6 +1288,9 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 				printf( "Bad IDBPATH line '%s'.\n", LS.line );
 				exit( 42 );
 			}
+
+			fprintf( FOUT, LS.line );
+			printf( LS.line );
 		}
 		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
 

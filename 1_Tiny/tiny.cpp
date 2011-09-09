@@ -164,7 +164,7 @@ static void WriteFOLDMAP2Entry( int ncr )
 		if( f ) {
 
 			fprintf( f,
-			"FOLDMAP2 %d %d %d\n", gArgs.Z, gArgs.ID, ncr );
+			"FOLDMAP2 %d.%d %d\n", gArgs.Z, gArgs.ID, ncr );
 			fflush( f );
 			fclose( f );
 		}
