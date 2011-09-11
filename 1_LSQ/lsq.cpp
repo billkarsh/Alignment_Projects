@@ -245,7 +245,8 @@ public:
 				ref_layer,
 				max_pass,
 				xml_type;
-	bool		make_layer_square,
+	bool		strings,
+				make_layer_square,
 				use_all;			// align even if #pts < 3/tile
 
 public:
@@ -264,6 +265,7 @@ public:
 		ref_layer			= -1;
 		max_pass			= 1;
 		xml_type			= 0;
+		strings				= false;
 		make_layer_square	= false;
 		use_all				= false;
 	};
@@ -509,6 +511,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting maximum passes to %d.\n", max_pass );
 		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
 			printf( "Setting xml image type to %d.\n", xml_type );
+		else if( IsArg( "-strings", argv[i] ) )
+			strings = true;
 		else if( IsArg( "-mls", argv[i] ) ) {
 			make_layer_square = true;
 			printf( "Making reference layer square.\n" );
@@ -527,7 +531,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-	re_id.Compile( stdout );
+	if( strings )
+		re_id.Compile( stdout );
 }
 
 /* --------------------------------------------------------------- */
@@ -568,10 +573,10 @@ void DIR::ReadDIRFile()
 {
 	printf( "---- Read DIR ----\n" );
 
-// Assume there is only layer z=0 if no file
-
-	if( !gArgs.dir_file )
+	if( !gArgs.dir_file ) {
+		printf( "No DIR file - assuming layer zero only.\n" );
 		return;
+	}
 
 // Read file
 
@@ -1215,17 +1220,126 @@ static int FindOrAdd( map<ZIDR,int> &m, int &nr, const RGN &R )
 }
 
 /* --------------------------------------------------------------- */
-/* ReadPtsFile --------------------------------------------------- */
+/* ReadPts_StrTags ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
+static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 {
 	printf( "---- Read pts ----\n" );
 
 	FILE		*f = FileOpenOrDie( gArgs.pts_file, "r" );
 	CLineScan	LS;
 
-	map<ZIDR,int>	getRGN;
+	map<ZIDR,int>	mapRGN;
+	int				nr = 0, nlines = 0;
+
+	for(;;) {
+
+		char	name1[2048], name2[2048];
+
+		if( LS.Get( f ) <= 0 )
+			break;
+
+		++nlines;
+
+		if( !strncmp( LS.line, "CPOINT", 6 ) ) {
+
+			char	key1[32], key2[32];
+			Point	p1, p2;
+
+			if( 8 != sscanf( LS.line + 7,
+						"'%[^']' %s %lf %lf '%[^']' %s %lf %lf",
+						name1, key1, &p1.x, &p1.y,
+						name2, key2, &p2.x, &p2.y ) ) {
+
+				printf(
+				"WARNING: 'CPOINT' format error; line %d.\n",
+				nlines );
+
+				continue;
+			}
+
+			RGN	R1( name1, key1 );
+			RGN	R2( name2, key2 );
+			int r1 = FindOrAdd( mapRGN, nr, R1 );
+			int r2 = FindOrAdd( mapRGN, nr, R2 );
+
+			cnx->AddCorrespondence( r1, r2 );
+			rgd->AddPOINTPair( r1, p1, r2, p2 );
+
+			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
+		}
+		else if( !strncmp( LS.line, "POINT", 5 ) ) {
+
+			Point	p1, p2;
+
+			if( 6 != sscanf( LS.line + 6,
+						"%s %lf %lf %s %lf %lf",
+						name1, &p1.x, &p1.y,
+						name2, &p2.x, &p2.y ) ) {
+
+				printf(
+				"WARNING: 'POINT' format error; line %d.\n",
+				nlines );
+
+				continue;
+			}
+
+			RGN	R1( name1, dir );
+			RGN	R2( name2, dir );
+			int r1 = FindOrAdd( mapRGN, nr, R1 );
+			int r2 = FindOrAdd( mapRGN, nr, R2 );
+
+			cnx->AddCorrespondence( r1, r2 );
+			rgd->AddPOINTPair( r1, p1, r2, p2 );
+
+			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
+		}
+		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
+
+			int	z, id, nrgn = -1;
+
+			sscanf( LS.line + 8, "'%*[^']' %s %d", name1, &nrgn );
+			ZIDFromFMPath( z, id, name1 );
+			nConRgn[ZID( z, id )] = nrgn;
+
+			fprintf( FOUT, LS.line );
+		}
+		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
+
+			if( 2 != sscanf( LS.line + 10, "%d %d", &gW, &gH ) ) {
+				printf( "Bad IMAGESIZE line '%s'.\n", LS.line );
+				exit( 42 );
+			}
+
+			fprintf( FOUT, LS.line );
+			printf( LS.line );
+		}
+		else {
+
+			printf(
+			"WARNING: Unknown entry type; line %d.\n",
+			nlines );
+		}
+	}
+
+	fclose( f );
+
+	printf( "\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* ReadPts_NumTags ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
+{
+	printf( "---- Read pts ----\n" );
+
+	FILE		*f = FileOpenOrDie( gArgs.pts_file, "r" );
+	CLineScan	LS;
+
+	map<ZIDR,int>	mapRGN;
 	int				nr = 0, nlines = 0;
 
 	for(;;) {
@@ -1256,8 +1370,8 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			RGN	R1( key1 );
 			RGN	R2( key2 );
-			int r1 = FindOrAdd( getRGN, nr, R1 );
-			int r2 = FindOrAdd( getRGN, nr, R2 );
+			int r1 = FindOrAdd( mapRGN, nr, R1 );
+			int r2 = FindOrAdd( mapRGN, nr, R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
 			rgd->AddPOINTPair( r1, p1, r2, p2 );
@@ -1270,16 +1384,6 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			sscanf( LS.line + 9, "%d.%d %d", &z, &id, &nrgn );
 			nConRgn[ZID( z, id )] = nrgn;
-		}
-		else if( !strncmp( LS.line, "FOLDMAP", 7 ) ) {
-
-			int	z, id, nrgn = -1;
-
-			sscanf( LS.line + 8, "'%*[^']' %s %d", name1, &nrgn );
-			ZIDFromFMPath( z, id, name1 );
-			nConRgn[ZID( z, id )] = nrgn;
-
-			fprintf( FOUT, LS.line );
 		}
 		else if( !strncmp( LS.line, "IDBPATH", 7 ) ) {
 
@@ -1301,59 +1405,6 @@ static void ReadPtsFile( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			fprintf( FOUT, LS.line );
 			printf( LS.line );
-		}
-		else if( !strncmp( LS.line, "POINT", 5 ) ) {
-
-			Point	p1, p2;
-
-			if( 6 != sscanf( LS.line + 6,
-						"%s %lf %lf %s %lf %lf",
-						name1, &p1.x, &p1.y,
-						name2, &p2.x, &p2.y ) ) {
-
-				printf(
-				"WARNING: 'POINT' format error; line %d.\n",
-				nlines );
-
-				continue;
-			}
-
-			RGN	R1( name1, dir );
-			RGN	R2( name2, dir );
-			int r1 = FindOrAdd( getRGN, nr, R1 );
-			int r2 = FindOrAdd( getRGN, nr, R2 );
-
-			cnx->AddCorrespondence( r1, r2 );
-			rgd->AddPOINTPair( r1, p1, r2, p2 );
-
-			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
-		}
-		else if( !strncmp( LS.line, "CPOINT", 6 ) ) {
-
-			char	key1[32], key2[32];
-			Point	p1, p2;
-
-			if( 8 != sscanf( LS.line + 7,
-						"'%[^']' %s %lf %lf '%[^']' %s %lf %lf",
-						name1, key1, &p1.x, &p1.y,
-						name2, key2, &p2.x, &p2.y ) ) {
-
-				printf(
-				"WARNING: 'CPOINT' format error; line %d.\n",
-				nlines );
-
-				continue;
-			}
-
-			RGN	R1( name1, key1 );
-			RGN	R2( name2, key2 );
-			int r1 = FindOrAdd( getRGN, nr, R1 );
-			int r2 = FindOrAdd( getRGN, nr, R2 );
-
-			cnx->AddCorrespondence( r1, r2 );
-			rgd->AddPOINTPair( r1, p1, r2, p2 );
-
-			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}
 		else {
 
@@ -2449,10 +2500,19 @@ static void WriteTransforms(
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5] );
 
-		fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
-		I.GetName(), I.rgn,
-		X[j  ], X[j+1], X[j+2],
-		X[j+3], X[j+4], X[j+5] );
+		if( !gArgs.strings ) {
+
+			fprintf( FOUT, "TRANSFORM2 %d.%d:%d %f %f %f %f %f %f\n",
+			I.z, I.id, I.rgn,
+			X[j  ], X[j+1], X[j+2],
+			X[j+3], X[j+4], X[j+5] );
+		}
+		else {
+			fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
+			I.GetName(), I.rgn,
+			X[j  ], X[j+1], X[j+2],
+			X[j+3], X[j+4], X[j+5] );
+		}
 
 		double	mag = sqrt( X[j]*X[j+4] - X[j+1]*X[j+3] );
 
@@ -3248,12 +3308,18 @@ int main( int argc, char **argv )
 
 	CNX	*cnx = new CNX;	// collect connection data
 	RGD	*rgd = new RGD;	// collect rigid alignment data
-	DIR	*dir = new DIR;	// map name strings to z layers
 
-	dir->ReadDIRFile();
-	ReadPtsFile( cnx, rgd, dir );
+	if( gArgs.strings ) {
 
-	delete dir;
+		DIR	*dir = new DIR;	// map name strings to z layers
+
+		dir->ReadDIRFile();
+		ReadPts_StrTags( cnx, rgd, dir );
+
+		delete dir;
+	}
+	else
+		ReadPts_NumTags( cnx, rgd );
 
 /* ------------------------- */
 /* Try aligning region pairs */

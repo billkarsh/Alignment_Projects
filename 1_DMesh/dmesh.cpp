@@ -201,7 +201,7 @@ static void UpscaleCoords( ffmap &maps, int scale )
 /* WritePOINTEntries --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// CPOINT entries are reported at full size.
+// CPOINT2 entries are reported at full size.
 //
 static void WritePOINTEntries(
 	const ffmap		&maps,
@@ -253,7 +253,7 @@ static void WritePOINTEntries(
 					if( ma <= 0 ) {
 
 						fprintf( flog,
-						"CPOINT: A-centroid has bad mask value:"
+						"CPOINT2: A-centroid has bad mask value:"
 						" mask=%d @ (%d, %d).\n", ma, ix, iy );
 
 						continue;
@@ -262,7 +262,7 @@ static void WritePOINTEntries(
 				else {
 
 					fprintf( flog,
-					"CPOINT: A-centroid out of A-image bounds"
+					"CPOINT2: A-centroid out of A-image bounds"
 					" (%d, %d).\n", ix, iy );
 
 					continue;
@@ -282,7 +282,7 @@ static void WritePOINTEntries(
 					if( mb <= 0 ) {
 
 						fprintf( flog,
-						"CPOINT: B-centroid has bad mask value:"
+						"CPOINT2: B-centroid has bad mask value:"
 						" mask=%d @ (%d, %d).\n", mb, ix, iy );
 
 						continue;
@@ -291,7 +291,7 @@ static void WritePOINTEntries(
 				else {
 
 					fprintf( flog,
-					"CPOINT: B-centroid out of B-image bounds"
+					"CPOINT2: B-centroid out of B-image bounds"
 					" (%d, %d).\n", ix, iy );
 
 					continue;
@@ -300,12 +300,10 @@ static void WritePOINTEntries(
 				// Write entry
 
 				fprintf( f,
-				"CPOINT"
-				" '%s' %d.%d:%d %f %f"
-				" '%s' %d.%d:%d %f %f\n",
-				GBL.A.t2i.path,
+				"CPOINT2"
+				" %d.%d:%d %f %f"
+				" %d.%d:%d %f %f\n",
 				GBL.A.layer, GBL.A.tile, ma, pa.x, pa.y,
-				GBL.B.t2i.path,
 				GBL.B.layer, GBL.B.tile, mb, pb.x, pb.y );
 			}
 

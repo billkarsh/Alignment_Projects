@@ -35,7 +35,7 @@ using namespace std;
 
 class image;
 
-static void ReadInputOlder(
+static void ReadInput_StrTags(
 	vector<image>	&images,
 	vector<double>	&x1,
 	vector<double>	&x2,
@@ -50,7 +50,7 @@ static void ReadInputOlder(
 	uint32			&w,
 	uint32			&h );
 
-static void ReadInputNewer(
+static void ReadInput_NumTags(
 	vector<image>	&images,
 	vector<double>	&x1,
 	vector<double>	&x2,
@@ -81,7 +81,7 @@ public:
 
 class image {
 
-	friend void ReadInputOlder(
+	friend void ReadInput_StrTags(
 		vector<image>	&images,
 		vector<double>	&x1,
 		vector<double>	&x2,
@@ -96,7 +96,7 @@ class image {
 		uint32			&w,
 		uint32			&h );
 
-	friend void ReadInputNewer(
+	friend void ReadInput_NumTags(
 		vector<image>	&images,
 		vector<double>	&x1,
 		vector<double>	&x2,
@@ -180,16 +180,16 @@ public:
 	int		scale,
 			x0, y0, xsize, ysize,
 			lspec1, lspec2;
-	bool	Debug,
-			OldStyle,
-			Warp,
-			FoldMasks,
-			Annotate,
+	bool	debug,
+			strings,
+			warp,
+			foldmasks,
+			annotate,
 			make_tiles,
 			make_flat,
 			make_map,
 			matlab_order,
-			RenumberSuperPixels;
+			renumberSuperPixels;
 
 public:
 	CArgs_mos()
@@ -210,16 +210,16 @@ public:
 		ysize				= -1;
 		lspec1				= -1;		// user's layer range
 		lspec2				= -1;
-		Debug				= false;
-		OldStyle			= false;
-		Warp				= false;	// seam healing
-		FoldMasks			= true;
-		Annotate			= false;
+		debug				= false;
+		strings				= false;
+		warp				= false;	// seam healing
+		foldmasks			= true;
+		annotate			= false;
 		make_tiles			= false;	// for raveler
 		make_flat			= true;		// 'before' montages
 		make_map			= true;		// how img generated
 		matlab_order		= false;	// matlab or closeness order
-		RenumberSuperPixels	= true;
+		renumberSuperPixels	= true;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -306,15 +306,15 @@ void CArgs_mos::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &scale, "-s=%d", argv[i] ) )
 			;
 		else if( IsArg( "-d", argv[i] ) )
-			Debug = true;
-		else if( IsArg( "-oldstyle", argv[i] ) )
-			OldStyle = true;
+			debug = true;
+		else if( IsArg( "-strings", argv[i] ) )
+			strings = true;
 		else if( IsArg( "-warp", argv[i] ) )
-			Warp = true;
+			warp = true;
 		else if( IsArg( "-nf", argv[i] ) )
-			FoldMasks = false;
+			foldmasks = false;
 		else if( IsArg( "-a", argv[i] ) )
-			Annotate = true;
+			annotate = true;
 		else if( IsArg( "-tiles", argv[i] ) )
 			make_tiles = true;
 		else if( IsArg( "-noflat", argv[i] ) )
@@ -324,7 +324,7 @@ void CArgs_mos::SetCmdLine( int argc, char* argv[] )
 		else if( IsArg( "-matlab", argv[i] ) )
 			matlab_order = true;
 		else if( IsArg( "-drn", argv[i] ) )
-			RenumberSuperPixels = false;
+			renumberSuperPixels = false;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -333,7 +333,7 @@ void CArgs_mos::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n" );
 
-	if( Warp )
+	if( warp )
 		printf( "Don't move strength = %g.\n", DontMoveStrength );
 
 // user region
@@ -460,7 +460,7 @@ return lnums[k];
 }
 
 /* --------------------------------------------------------------- */
-/* ReadInputOlder ------------------------------------------------ */
+/* ReadInput_StrTags --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Read simple file (output from lsq) whose tag formats and
@@ -485,7 +485,7 @@ return lnums[k];
 // functions like FileNameToLayerNumber, ZIDFromFMPath are also
 // needed.
 //
-static void ReadInputOlder(
+static void ReadInput_StrTags(
 	vector<image>	&images,
 	vector<double>	&x1,
 	vector<double>	&x2,
@@ -794,7 +794,7 @@ static void ReadInputOlder(
 }
 
 /* --------------------------------------------------------------- */
-/* ReadInputNewer ------------------------------------------------ */
+/* ReadInput_NumTags --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // class for indexing image list, ie., map<ZID,int>
@@ -837,7 +837,7 @@ public:
 // functions are not needed, but we do require the IDBPATH
 // to look up paths when needed.
 //
-static void ReadInputNewer(
+static void ReadInput_NumTags(
 	vector<image>	&images,
 	vector<double>	&x1,
 	vector<double>	&x2,
@@ -2965,7 +2965,7 @@ static bool LookForAndTransform(
 	int				section,
 	int				image_no,
 	vector<image>	&images,
-	bool			Warp,
+	bool			warp,
 	vector<uint8>	&tmap,
 	vector<TBar>	&result )
 {
@@ -3000,7 +3000,7 @@ if( strstr(name, "annotations-synapse") != NULL ) {
         if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0 )
             continue;
         TForm t;
-        if( !Warp )  // just one transform per image
+        if( !warp )  // just one transform per image
             t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
             int sector = tmap[ix + w*iy];
@@ -3030,7 +3030,7 @@ static bool LookForAndTransform(
 	int					section,
 	int					image_no,
 	vector<image>		&images,
-	bool				Warp,
+	bool				warp,
 	vector<uint8>		&tmap,
 	vector<Bookmark>	&result )
 {
@@ -3069,7 +3069,7 @@ if( strstr(name, "annotations-bookmarks") != NULL ) {
         if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
             continue;
         TForm	t;
-	if( !Warp )  // just one transform per image
+	if( !warp )  // just one transform per image
 	    t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
 	    int sector = tmap[ix+iy*w];
@@ -3111,12 +3111,12 @@ int main( int argc, char **argv )
 	double			xmax = -BIG, ymax = -BIG;
 	uint32			w = 0, h = 0;
 
-	if( gArgs.OldStyle ) {
-		ReadInputOlder( images, x1, x2, y1, y2, z1, z2,
+	if( gArgs.strings ) {
+		ReadInput_StrTags( images, x1, x2, y1, y2, z1, z2,
 			xmin, xmax, ymin, ymax, w, h );
 	}
 	else {
-		ReadInputNewer( images, x1, x2, y1, y2, z1, z2,
+		ReadInput_NumTags( images, x1, x2, y1, y2, z1, z2,
 			xmin, xmax, ymin, ymax, w, h );
 	}
 
@@ -3263,7 +3263,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
             ImageResize( images[i].raster, ww, hh, gArgs.scale );
             }
 	if( images[i].foldmap == NULL ) {
-	    if( gArgs.FoldMasks ) {
+	    if( gArgs.foldmasks ) {
                 // if the fold mask name is not rooted, pre-pend the fold directory name
                 string file_name;
                 if( images[i].GetFName()[0] == '/' )
@@ -3297,7 +3297,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    }
 	        else {
                     ImageResize16bits( test, ww, hh, gArgs.scale );
-                    if( gArgs.RenumberSuperPixels ) {
+                    if( gArgs.renumberSuperPixels ) {
                         images[i].spbase = MaxSPUsed;
 		        RemapSuperPixelsOneImage( test, w, h, MaxSPUsed, images[i].SPmapping );
 			}
@@ -3393,7 +3393,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
     // write the map; only used for debugging for now
     char fname[256];
-    if( gArgs.Debug ) {
+    if( gArgs.debug ) {
         printf("Try writing 16 bit map\n");
         Raster16ToPng16( "test.png", &imap[0], nx, ny );
         sprintf(fname,"map.%d.png", out_layer);
@@ -3446,7 +3446,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
     printf("Done creating before image; draw lines next\n");
-    if( gArgs.Annotate ) {
+    if( gArgs.annotate ) {
 	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
@@ -3513,7 +3513,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 
 
     // if only simple output is needed, we are done with this layer.  Write map and mapping file
-    if( !gArgs.Warp ) {
+    if( !gArgs.warp ) {
         // write the map file, if requested.
         if( gArgs.make_map ) {
             sprintf( fname, "%s/%s/map.%05d.png", gArgs.region_dir, gArgs.inv_dir, out_layer );
@@ -3657,7 +3657,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         }
 
     // Now write the triangles out for debugging
-    if( gArgs.Debug )
+    if( gArgs.debug )
         WriteTriangles("tris", tris, gvtx);
 
     // Then, look for places where adjacent pixels come from different pictures.
@@ -3692,7 +3692,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
         if( Ntrans > 100 ) {
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
-            if( !gArgs.Debug ) {
+            if( !gArgs.debug ) {
 		printf("Writing map as 'test.png'\n");
 		Raster16ToPng16( "test.png", &imap[0], nx, ny );
 		}
@@ -3727,7 +3727,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
         if( Ntrans > 100 ) {
 	    printf("Too many transitions (%d) in map!\n", Ntrans);
-            if( !gArgs.Debug ) {
+            if( !gArgs.debug ) {
 		printf("Writing map as 'test.png'\n");
 		Raster16ToPng16( "test.png", &imap[0], nx, ny );
 		}
@@ -3790,14 +3790,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Solve the system
     vector<double> X(2*nvs);
     fflush(stdout);
-    WriteSolveRead( X, norm_mat, RHS, !gArgs.Debug );
+    WriteSolveRead( X, norm_mat, RHS, !gArgs.debug );
     PrintMagnitude( X );
     fflush(stdout);
 
     vector<Point> NewG(nvs);
     for(int i=0; i<nvs; i++)
 	NewG[i] = Point(X[2*i], X[2*i+1]);
-    if( gArgs.Debug )
+    if( gArgs.debug )
         WriteTriangles("tris2", tris, NewG);
 
     // how far did the points move?
@@ -4052,12 +4052,12 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                      //px, x, y, ix, iy, img, images[img].spbase, images[img].spmap[ix + w*iy] );
                     //exit( 42 );
 		    //}
-                if( gArgs.Debug && px == 0 )
+                if( gArgs.debug && px == 0 )
 		    before[bi] = 255;
 		}
 	    } // to aid debugging, draw lines at the image boundaries in the before image.
          }
-    if( gArgs.Annotate ) {
+    if( gArgs.annotate ) {
 	vector<Point> edges;
 	for(int x=0; x<w; x++) {
 	    edges.push_back(Point(x, 0.0));
@@ -4159,7 +4159,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // efficiency in Raveler.
     int SPmax = 0;
     vector<int> FinalMapping;
-    if( gArgs.RenumberSuperPixels )
+    if( gArgs.renumberSuperPixels )
         RemapSuperPixelsOneImage( &spmap[0], nx, ny, SPmax, FinalMapping );
     printf( "SPmax now %d\n", SPmax );
     sprintf( fname, "%s/%s/sp.%05d.png", gArgs.region_dir, gArgs.sp_dir, out_layer );
@@ -4286,10 +4286,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 }
 	    }
         *(++p) = '\0';  // truncate at trailing '/', leaving directory name
-	LookForAndTransform("annotations-body.json",      root, out_layer, i, images, gArgs.Warp, tmap, tbars); // nop for now
-	LookForAndTransform("annotations-bookmarks.json", root, out_layer, i, images, gArgs.Warp, tmap, bookmarks);
-	LookForAndTransform("annotations-synapse.json",   root, out_layer, i, images, gArgs.Warp, tmap, tbars);
-	LookForAndTransform("session-metadata.json",      root, out_layer, i, images, gArgs.Warp, tmap, tbars); // nop for now.
+	LookForAndTransform("annotations-body.json",      root, out_layer, i, images, gArgs.warp, tmap, tbars); // nop for now
+	LookForAndTransform("annotations-bookmarks.json", root, out_layer, i, images, gArgs.warp, tmap, bookmarks);
+	LookForAndTransform("annotations-synapse.json",   root, out_layer, i, images, gArgs.warp, tmap, tbars);
+	LookForAndTransform("session-metadata.json",      root, out_layer, i, images, gArgs.warp, tmap, tbars); // nop for now.
 	}
     // Now, write the resulting synapses out.
     char tbar_name[1024];
