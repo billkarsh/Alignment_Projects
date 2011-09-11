@@ -17,6 +17,18 @@
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+class CStatus {
+
+public:
+	int	argn,
+		brgn,
+		thmok,
+		ntri;
+
+public:
+	CStatus( int a, int b )	{argn=a; brgn=b; thmok=0; ntri=0;};
+};
+
 /* --------------------------------------------------------------- */
 /* Globals ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -380,8 +392,9 @@ void PipelineDeformableMap(
 /* Find mappings for each region-region pair */
 /* ----------------------------------------- */
 
-	ffmap	maps;  // transforms and centers
-	FILE	*ftri	= NULL;
+	vector<CStatus>	vstat;
+	ffmap			maps;  // transforms and centers
+	FILE			*ftri	= NULL;
 
 	//ftri = fopen( "Triangles.txt", "w" );
 
@@ -392,22 +405,23 @@ void PipelineDeformableMap(
 			fprintf( flog, "\n---- Begin A-%d to B-%d ----\n",
 			Acr[i].id, Bcr[j].id );
 
-			// start with transform arguments
+			// start list with user's transform arguments
 
+			CStatus			stat( Acr[i].id, Bcr[j].id );
 			vector<TForm>	guesses = GBL.Tusr;
 
 			if( RoughMatch( guesses, px, Acr[i], Bcr[j], flog ) ) {
 
-				// num = how many approximate transforms
-				// result in good matches
+				stat.thmok = true;
 
-				int		num = 0;
+				// Try to get detailed mesh solution from each
+				// guess {user + all returned from RoughMatch}.
+				// The first to be successful (diff count > 0)
+				// causes break.
 
 				for( int k = 0; k < guesses.size(); ++k ) {
 
-					fprintf( flog, "\nSTAT: Pipe: try guess %d.\n", k );
-
-					int		before = maps.transforms.size();
+					int	count = maps.transforms.size();
 
 					// Downscale coordinates
 					guesses[k].MulXY( 1.0 / px.scl );
@@ -416,24 +430,46 @@ void PipelineDeformableMap(
 						px, Acr[i], Bcr[j],
 						guesses[k], flog, ftri );
 
-					num += (maps.transforms.size() != before);
+					count = maps.transforms.size() - count;
 
-					// BLOOT - this makes next warning useless
-					if( maps.transforms.size() != before )
+					stat.ntri = count;
+
+					if( count )
 						break;
 				}
-
-				if( num > 1 ) {
-					fprintf( flog,
-					"Pipe: Warning! %d approximate"
-					" transforms matched!\n", num );
-				}
 			}
+
+			vstat.push_back( stat );
 		}
 	}
 
 	//if( ftri )
 	//	fclose( ftri );
+
+/* ------------------------------------- */
+/* Report thumb and triangle raw results */
+/* ------------------------------------- */
+
+	fprintf( flog,
+	"\n---- Summary Region-region results ----\n" );
+
+	fprintf( flog,
+	"Pipe: Before sanity checks {Az t r Bz t r thmok ntri}\n" );
+
+	int	nstat = vstat.size();
+
+	for( int i = 0; i < nstat; ++i ) {
+
+		const CStatus& S = vstat[i];
+
+		fprintf( flog,
+		"FOUND: %5d %4d %3d  %5d %4d %3d %3d %3d\n",
+		GBL.A.layer, GBL.A.tile, S.argn,
+		GBL.B.layer, GBL.B.tile, S.brgn,
+		S.thmok, S.ntri );
+	}
+
+	fprintf( flog, "\n" );
 
 /* -------------------- */
 /* Sanity check results */
@@ -443,7 +479,7 @@ void PipelineDeformableMap(
 		Ntrans = CheckTransforms( maps.transforms, flog );
 
 	fprintf( flog,
-	"Pipe: Returning %d transforms.\n", Ntrans );
+	"Pipe: After sanity checks, returning %d transforms.\n", Ntrans );
 
 /* ------ */
 /* Report */
