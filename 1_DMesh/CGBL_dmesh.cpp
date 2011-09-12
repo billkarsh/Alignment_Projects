@@ -43,6 +43,10 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.YSCALE			= 999.0;
 	arg.SKEW			= 999.0;
 	arg.CTR				= 999.0;
+	arg.ima				= NULL;
+	arg.imb				= NULL;
+	arg.fma				= NULL;
+	arg.fmb				= NULL;
 	arg.Transpose		= false;
 	arg.WithinSection	= false;
 	arg.Verbose			= false;
@@ -66,6 +70,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 // Parse args
 
 	vector<char*>	noa;	// non-option arguments
+	vector<double>	vdbl;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -81,6 +86,14 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &arg.CTR, "-CTR=%lf", argv[i] ) )
 			;
+		else if( GetArgStr( arg.ima, "-ima=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.imb, "-imb=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.fma, "-fma=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.fmb, "-fmb=", argv[i] ) )
+			;
 		else if( IsArg( "-tr", argv[i] ) )
 			arg.Transpose = true;
 		else if( IsArg( "-ws", argv[i] ) )
@@ -93,36 +106,25 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			arg.Verbose = true;
 		else if( IsArg( "-heatmap", argv[i] ) )
 			arg.Heatmap = true;
-		else if( !strncmp( argv[i], "-TRA=", 5 ) ) {
+		else if( GetArgList( vdbl, "-TRA=", argv[i] ) ) {
 
-			TForm	a;
-
-			if( 6 != sscanf(
-				argv[i] + 5, "%lf,%lf,%lf,%lf,%lf,%lf",
-				&a.t[0], &a.t[1], &a.t[2],
-				&a.t[3], &a.t[4], &a.t[5] ) ) {
-
+			if( 6 == vdbl.size() )
+				Tusr.push_back( TForm( &vdbl[0] ) );
+			else {
 				printf(
 				"main: WARNING: Bad format in -TRA [%s].\n",
 				argv[i] );
 			}
-			else
-				Tusr.push_back( a );
 		}
-		else if( !strncmp( argv[i], "-EXY=", 5 ) ) {
+		else if( GetArgList( vdbl, "-EXY=", argv[i] ) ) {
 
-			Point	a;
-
-			if( 2 != sscanf(
-				argv[i] + 5, "%lf,%lf",
-				&a.x, &a.y ) ) {
-
+			if( 2 == vdbl.size() )
+				XYusr.push_back( Point( vdbl[0], vdbl[1] ) );
+			else {
 				printf(
 				"main: WARNING: Bad format in -EXY [%s].\n",
 				argv[i] );
 			}
-			else
-				XYusr.push_back( a );
 		}
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
@@ -155,10 +157,10 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadThmParams( thm, A.layer, stdout ) )
+	if( !ReadThmParams( thm, A.layer ) )
 		return false;
 
-	if( !ReadMeshParams( msh, A.layer, stdout ) )
+	if( !ReadMeshParams( msh, A.layer ) )
 		return false;
 
 // Commandline overrides
@@ -197,8 +199,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Input images ----\n" );
 
-	if( !IDBTil2Img( A.t2i, NULL, A.layer, A.tile, stdout ) ||
-		!IDBTil2Img( B.t2i, NULL, B.layer, B.tile, stdout ) ) {
+	if( !IDBTil2Img( A.t2i, NULL, A.layer, A.tile ) ||
+		!IDBTil2Img( B.t2i, NULL, B.layer, B.tile ) ) {
 
 		return false;
 	}
@@ -210,8 +212,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Extract file name as useful label
 
-	A.file = ExtractFilename( A.t2i.path );
-	B.file = ExtractFilename( B.t2i.path );
+	A.file = ExtractFilename( A.t2i.path.c_str() );
+	B.file = ExtractFilename( B.t2i.path.c_str() );
 
 	return true;
 }

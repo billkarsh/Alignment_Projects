@@ -43,6 +43,10 @@ CGBL_Thumbs::CGBL_Thumbs()
 	arg.YSCALE			= 999.0;
 	arg.SKEW			= 999.0;
 	arg.CTR				= 999.0;
+	arg.ima				= NULL;
+	arg.imb				= NULL;
+	arg.fma				= NULL;
+	arg.fmb				= NULL;
 	arg.Transpose		= false;
 	arg.NoFolds			= false;
 	arg.SingleFold		= false;
@@ -77,6 +81,14 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &arg.SKEW, "-SKEW=%lf", argv[i] ) )
 			;
 		else if( GetArg( &arg.CTR, "-CTR=%lf", argv[i] ) )
+			;
+		else if( GetArgStr( arg.ima, "-ima=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.imb, "-imb=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.fma, "-fma=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.fmb, "-fmb=", argv[i] ) )
 			;
 		else if( IsArg( "-tr", argv[i] ) )
 			arg.Transpose = true;
@@ -115,7 +127,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadThmParams( thm, A.layer, stdout ) )
+	if( !ReadThmParams( thm, A.layer ) )
 		return false;
 
 // Commandline overrides
@@ -154,8 +166,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Input images ----\n" );
 
-	if( !IDBTil2Img( A.t2i, NULL, A.layer, A.tile, stdout ) ||
-		!IDBTil2Img( B.t2i, NULL, B.layer, B.tile, stdout ) ) {
+	if( !IDBTil2Img( A.t2i, NULL, A.layer, A.tile ) ||
+		!IDBTil2Img( B.t2i, NULL, B.layer, B.tile ) ) {
 
 		return false;
 	}
@@ -167,8 +179,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 // Extract file name as useful label
 
-	A.file = ExtractFilename( A.t2i.path );
-	B.file = ExtractFilename( B.t2i.path );
+	A.file = ExtractFilename( A.t2i.path.c_str() );
+	B.file = ExtractFilename( B.t2i.path.c_str() );
 
 	return true;
 }

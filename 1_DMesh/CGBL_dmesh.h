@@ -23,6 +23,10 @@ public:
 				YSCALE,
 				SKEW,
 				CTR;
+		char	*ima,			// override idb paths
+				*imb,
+				*fma,
+				*fmb;
 		bool	Transpose,		// transpose all images
 				WithinSection,	// overlap within a section
 				Verbose,		// run inspect diagnostics

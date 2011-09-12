@@ -388,10 +388,10 @@ const char* image::GetRName()
 
 		Til2Img	I;
 
-		if( !IDBTil2Img( I, idbpath, layer, tile, stdout ) )
+		if( !IDBTil2Img( I, idbpath, layer, tile ) )
 			exit( 42 );
 
-		rname = strdup( I.path );
+		rname = strdup( I.path.c_str() );
 	}
 
 	return rname;
@@ -408,12 +408,12 @@ const char* image::GetFName()
 		Til2FM	I;
 
 		if( !IDBTil2FMD( I, idbpath, layer, tile ) &&
-			!IDBTil2FM( I, idbpath, layer, tile, stdout ) ) {
+			!IDBTil2FM( I, idbpath, layer, tile ) ) {
 
 			exit( 42 );
 		}
 
-		fname = strdup( I.path );
+		fname = strdup( I.path.c_str() );
 	}
 
 	return fname;

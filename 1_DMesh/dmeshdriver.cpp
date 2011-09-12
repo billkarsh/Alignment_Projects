@@ -187,7 +187,9 @@ int main( int argc, char* argv[] )
 	TForm*	ifs		= NULL;
 	int		Ntrans	= 0;
 
-	if( !px.Load( GBL.A.t2i.path, GBL.B.t2i.path,
+	if( !px.Load(
+			GBL.A.t2i.path.c_str(),
+			GBL.B.t2i.path.c_str(),
 			GBL.msh.pxp.PXBRO, GBL.msh.pxp.PXDOG,
 			GBL.msh.pxp.PXDOG_R1, GBL.msh.pxp.PXDOG_R2,
 			stdout ) ) {

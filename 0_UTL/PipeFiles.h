@@ -5,6 +5,9 @@
 
 #include	"CTForm.h"
 
+#include	<string>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -73,13 +76,13 @@ typedef struct {
 // entry: TileToImage.txt
 	TForm	T;
 	int		tile;
-	char	path[2048];
+	string	path;
 } Til2Img;
 
 typedef struct {
 // entry: TileToFM(D).txt
 	int		tile;
-	char	path[2048];
+	string	path;
 } Til2FM;
 
 typedef struct {
@@ -97,22 +100,22 @@ typedef struct {
 
 void OpenPairLog( int alr, int atl, int blr, int btl );
 
-bool ReadThmParams( ThmParams &T, int layer, FILE *flog );
-bool ReadMeshParams( MeshParams &M, int layer, FILE *flog );
+bool ReadThmParams( ThmParams &T, int layer, FILE *flog = stdout );
+bool ReadMeshParams( MeshParams &M, int layer, FILE *flog = stdout );
 
 bool IDBTil2Img(
 	Til2Img		&t2i,
 	const char	*idb,
 	int			layer,
 	int			tile,
-	FILE		*flog );
+	FILE		*flog = stdout );
 
 bool IDBTil2FM(
 	Til2FM		&t2f,
 	const char	*idb,
 	int			layer,
 	int			tile,
-	FILE		*flog );
+	FILE		*flog = stdout );
 
 bool IDBTil2FMD(
 	Til2FM		&t2f,
@@ -131,13 +134,13 @@ bool ReadThmPair(
 	int		blr,
 	int		btl,
 	int		bcr,
-	FILE	*flog );
+	FILE	*flog = stdout );
 
 bool ReadAllThmPair(
 	vector<ThmPair>	&tpr,
 	int				alr,
 	int				blr,
-	FILE			*flog );
+	FILE			*flog = stdout );
 
 void WriteThmPair(
 	const ThmPair	&tpr,

@@ -23,6 +23,10 @@ public:
 				YSCALE,
 				SKEW,
 				CTR;
+		char	*ima,			// override idb paths
+				*imb,
+				*fma,
+				*fmb;
 		bool	Transpose,		// transpose all images
 				NoFolds,		// ignore fold masks
 				SingleFold;		// assign id=1 to all non-fold rgns

@@ -268,6 +268,8 @@ bool IDBTil2Img(
 
 		while( LS.Get( f ) > 0 ) {
 
+			char	buf[2048];
+
 			t2i.tile = -1;
 
 			sscanf( LS.line, "%d", &t2i.tile );
@@ -280,9 +282,10 @@ bool IDBTil2Img(
 			&t2i.tile,
 			&t2i.T.t[0], &t2i.T.t[1], &t2i.T.t[2],
 			&t2i.T.t[3], &t2i.T.t[4], &t2i.T.t[5],
-			t2i.path );
+			buf );
 
-			ok = true;
+			t2i.path	= buf;
+			ok			= true;
 			goto exit;
 		}
 
@@ -334,6 +337,8 @@ bool IDBTil2FM(
 
 		while( LS.Get( f ) > 0 ) {
 
+			char	buf[2048];
+
 			t2f.tile = -1;
 
 			sscanf( LS.line, "%d", &t2f.tile );
@@ -341,8 +346,9 @@ bool IDBTil2FM(
 			if( t2f.tile != tile )
 				continue;
 
-			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, t2f.path );
-			ok = true;
+			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, buf );
+			t2f.path	= buf;
+			ok			= true;
 			goto exit;
 		}
 
@@ -395,6 +401,8 @@ bool IDBTil2FMD(
 
 		while( LS.Get( f ) > 0 ) {
 
+			char	buf[2048];
+
 			t2f.tile = -1;
 
 			sscanf( LS.line, "%d", &t2f.tile );
@@ -402,8 +410,9 @@ bool IDBTil2FMD(
 			if( t2f.tile != tile )
 				continue;
 
-			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, t2f.path );
-			ok = true;
+			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, buf );
+			t2f.path	= buf;
+			ok			= true;
 			goto exit;
 		}
 	}
@@ -429,7 +438,7 @@ void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i )
 	cAB,
 	t2i.T.t[0], t2i.T.t[1], t2i.T.t[2],
 	t2i.T.t[3], t2i.T.t[4], t2i.T.t[5],
-	t2i.path );
+	t2i.path.c_str() );
 }
 
 /* --------------------------------------------------------------- */
@@ -441,7 +450,7 @@ void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i )
 void PrintTil2FM( FILE *flog, int cAB, const Til2FM &t2f )
 {
 	fprintf( flog, "Til2FM entry: %c path=[%s].\n",
-	cAB, t2f.path );
+	cAB, t2f.path.c_str() );
 }
 
 /* --------------------------------------------------------------- */
