@@ -837,7 +837,7 @@ for( child; child; child=child->NextSiblingElement() ) {
     }
 
 // OK, look for a name containing argv[2], then open that...
-char fname[1024];
+char fname[2048];
 strcpy(fname, "No match for file name");
 int i;
 for(i=0; i<vp.size(); i++){
@@ -1099,7 +1099,7 @@ for(int j=0; j<vp.size(); j++) {
     }
 
 // If the user specified a second file, use that.  Otherwise use best match
-char fname2[1024];
+char fname2[2048];
 if( argc >= 4 )
     strcpy(fname2, argv[3]);
 else {

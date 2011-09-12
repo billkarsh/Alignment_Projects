@@ -408,7 +408,7 @@ l2.erase(l2.begin()+k, l2.end());
 printf("After layer pruning: %d bottom, %d top.\n", l1.size(), l2.size());
 
 // start make files make.up for the lower layer, and make.down for the upper.
-char fname[1024];
+char fname[2048];
 sprintf( fname, "%d/make.up", z1 );
 FILE	*fp_up = FileOpenOrDie( fname, "w" );
 

@@ -1709,7 +1709,7 @@ static int WriteSummaryTile(
 {
 // open the 4 relevant tiles - (row,col), (row+1,col), (row,col+1), and (row+1,col+1)
 uint32 w1, h1, w2, h2, w3, h3, w4, h4;
-char fname[1024];
+char fname[2048];
 int dir = section/1000;
 char ds[32];                     // string for the final directory
 strcpy(ds,"");                   // for layers 0-999, it's blank (no directory)
@@ -1782,7 +1782,7 @@ static int WriteSummaryTileSP(
 {
 // open the 4 relevant tiles - (row,col), (row+1,col), (row,col+1), and (row+1,col+1)
 uint32 w1, h1, w2, h2, w3, h3, w4, h4;
-char fname[1024];
+char fname[2048];
 int dir = section/1000;
 char ds[32];                     // string for the final directory
 strcpy(ds,"");                   // for layers 0-999, it's blank (no directory)
@@ -1968,7 +1968,7 @@ set<string> dir_cache;  // names of directories already created
 string base_name = rav_name;
 base_name += "/tiles";
 MakeDirExist(base_name.c_str(), dir_cache);    // create the directory 'tiles'
-char fname[1024];
+char fname[2048];
 sprintf(fname, "%s/metadata.txt", base_name.c_str());
 UpdateMetaData(fname, section, w, h);
 base_name += "/1024";
@@ -2031,7 +2031,7 @@ set<string> dir_cache;  // names of directories already created
 string base_name = rav_name;
 base_name += "/tiles";
 MakeDirExist(base_name.c_str(), dir_cache);    // create the directory 'tiles'
-char fname[1024];
+char fname[2048];
 sprintf(fname, "%s/metadata.txt", base_name.c_str());
 //UpdateMetaData(fname, section, w, h);   image tiles already did this
 base_name += "/1024";
@@ -2484,7 +2484,7 @@ CLineScan		*ls = new CLineScan;
 
 				if( suf ) {
 
-					char	buf[1024];
+					char	buf[2048];
 
 					sprintf( buf, "%.*sd.tif", suf - mname, mname );
 
@@ -2562,7 +2562,7 @@ CLineScan		*ls = new CLineScan;
 		}
 		else if( !strncmp( ls->line, "SPMAP", 5 ) ) {
 
-			char	name[1024], where[1024];
+			char	name[2048], where[2048];
 			int		z, nprm;
 
 			nprm = sscanf( ls->line + 5, "%s %s %d", name, where, &z );
@@ -2608,7 +2608,7 @@ CLineScan		*ls = new CLineScan;
 		}
 		else if( !strncmp( ls->line, "BOUNDARYMAP", 11 ) ) {
 
-			char	name[1024], where[1024];
+			char	name[2048], where[2048];
 			int		z, nprm;
 
 			nprm = sscanf( ls->line + 11, "%s %s %d", name, where, &z );
@@ -3863,7 +3863,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	LookForAndTransform("session-metadata.json",      root, out_layer, i, images, gArgs.Warp, tmap, tbars); // nop for now.
 	}
     // Now, write the resulting synapses out.
-    char tbar_name[1024];
+    char tbar_name[2048];
     sprintf(tbar_name, "annot-syn-%d.json", out_layer);
     printf("Writing to '%s'\n", tbar_name);
     FILE *fw = FileOpenOrDie( tbar_name, "w" );
@@ -3885,7 +3885,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     fprintf(fw, "], \"metadata\": {\"description\": \"synapse annotations\", \"file version\": %d}}\n", version);
     fclose(fw);
     // Now, write the resulting bookmarks out.
-    char book_name[1024];
+    char book_name[2048];
     sprintf(book_name, "annot-book-%d.json", out_layer);
     printf("Writing to '%s'\n", book_name);
     fw = FileOpenOrDie( book_name, "w" );

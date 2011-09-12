@@ -17,7 +17,7 @@
 //
 static void Make_MakePts( const char *lyrdir, int L )
 {
-	char	name[1024];
+	char	name[2048];
 	FILE	*f;
 
 	fprintf( flog, "--Make_MakePts: layer %d\n", L );

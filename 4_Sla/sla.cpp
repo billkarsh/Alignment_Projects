@@ -827,7 +827,7 @@ for( child; child; child=child->NextSiblingElement() ) {
     }
 
 // OK, look for a name containing argv[2], then open that...
-char fname[1024];
+char fname[2048];
 strcpy(fname, "No match for file name");
 int i;
 for(i=0; i<vp.size(); i++){

@@ -30,7 +30,7 @@ void CRegexID::Set( const char* _pat )
 //
 void CRegexID::Compile( FILE* flog )
 {
-	char	pat_expanded[1024]	= "";	// expanded pattern
+	char	pat_expanded[2048]	= "";	// expanded pattern
 	char	tmp[8]				= "a";
 	char	*pf					= pat_format;
 

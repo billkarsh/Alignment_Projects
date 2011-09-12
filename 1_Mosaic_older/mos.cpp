@@ -716,7 +716,7 @@ for(;;){
             // see if it's a layer we care about.
             if( lspec1 == -1 || (lspec1 <= ii.layer && ii.layer <= lspec2) ) {
                 *suf = '\0';
-                char temp[1024];
+                char temp[2048];
                 sprintf(temp, "%sd.tif", mname);
 	        *suf = '.';  // put name back, in case we don't find it.
                 FILE *fd = fopen(temp, "r");
@@ -738,7 +738,7 @@ for(;;){
         }
     else if( strncmp(ls->line,"TRANSFORM",9) == 0 ) {
         double a,b,c,d,e,f;
-        char name[1024];
+        char name[2048];
         if( sscanf(ls->line+9, "%s %lf %lf %lf %lf %lf %lf", name, &a, &b, &c, &d, &e, &f) != 7 ) {
             printf("Not expecting this in TRANSFORM: %s", ls->line);
 	    break;
@@ -765,7 +765,7 @@ for(;;){
         images[k].tf[patch] = tf;
 	}
     else if( strncmp(ls->line,"SPMAP",5) == 0 ) {
-        char name[1024], where[1024];
+        char name[2048], where[2048];
         if( sscanf(ls->line+5, "%s %s", name, where) != 2 ) {
             printf("Not expecting this in SPMAP: %s", ls->line);
 	    break;

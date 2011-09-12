@@ -65,7 +65,7 @@ FILE *fp = FileOpenOrDie( noa[2], "r" );
 			break;
 		if(strncmp(LS.line,"IMAGE",5) == 0) {
 			int id;
-			char fname[1024];
+			char fname[2048];
 			sscanf(LS.line+5, "%d %s", &id, fname);
 			printf("id %3d name %s\n", id, fname);
 			if( id != images.size() ) {

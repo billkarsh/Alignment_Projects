@@ -19,7 +19,7 @@ void FixName(char *name)
 if (name[0] == '/') return;  // do nothing if rooted.
 char *copy = strdup(name);
 copy[8] = '\0';
-char temp[1024];
+char temp[2048];
 sprintf(temp,"/groups/em/leginon/Data/%s/rawdata/%s", copy, name);
 strcpy(name, temp);
 free(copy);
@@ -60,7 +60,7 @@ for(int narg=0; narg<noa.size(); narg++) {
     set<int> layers;
     uint32 w=0,h=0;
     for(int n=0; ;n++) {
-	char fname[1024];
+	char fname[2048];
 	double x,y;
 	int z;
 	if( fscanf(fp,"%s %lf %lf %d", fname, &x, &y, &z) != 4 )
@@ -91,7 +91,7 @@ for(int narg=0; narg<noa.size(); narg++) {
 	double xmin =  1.0E30, ymin =  1.0E30;
 	double xmax = -1.0E30, ymax = -1.0E30;
 	for(int n=0; ;n++) {
-	    char fname[1024];
+	    char fname[2048];
 	    double x,y;
 	    int z;
 	    if( fscanf(fp,"%s %lf %lf %d", fname, &x, &y, &z) != 4 )
@@ -118,7 +118,7 @@ for(int narg=0; narg<noa.size(); narg++) {
 	vector<int> counts(rw*rh, 0);  // number of times each pixel is written to
 	rewind(fp);
 	for(int n=0; ;n++) {
-	    char fname[1024];
+	    char fname[2048];
 	    double x,y;
 	    int z;
 	    if( fscanf(fp,"%s %lf %lf %d", fname, &x, &y, &z) != 4 )
@@ -170,7 +170,7 @@ for(int narg=0; narg<noa.size(); narg++) {
 	    out[i] = pix;
 	    }
 
-	char oname[1024];
+	char oname[2048];
 	sprintf(oname,"%s.%d.png", root, *it);
         FILE *ft = fopen(oname,"w");
         if( ft != NULL )

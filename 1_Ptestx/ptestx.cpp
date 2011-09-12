@@ -39,10 +39,10 @@ class CArgs_ptx {
 public:
 	vector<char*>	passon;
 	char			im[2][2048],
+					fm[2][2048],
 					tmp[2048],
 					thm[2048],
-					msh[2048],
-					fm[2][2048];
+					msh[2048];
 	int				z[2], tile[2],
 					clrtmp;
 
@@ -51,11 +51,11 @@ public:
 	{
 		im[0][0]	= 0;
 		im[1][0]	= 0;
+		fm[0][0]	= 0;
+		fm[1][0]	= 0;
 		tmp[0]		= 0;
 		thm[0]		= 0;
 		msh[0]		= 0;
-		fm[0][0]	= 0;
-		fm[1][0]	= 0;
 		clrtmp		= false;
 	};
 

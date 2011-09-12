@@ -163,7 +163,7 @@ bool GetArgList( vector<double> &v, const char *pat, char *argv )
 
 const char* ExtractFilename( const char *path )
 {
-	char		buf[1024];
+	char		buf[2048];
 	const char	*slash, *dot;
 
 	if( !(slash = strrchr( path, '/' )) )

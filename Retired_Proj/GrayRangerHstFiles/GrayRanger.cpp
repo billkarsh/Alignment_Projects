@@ -265,7 +265,7 @@ static void ScaleThisLayer(
 
 	for( int i = i0; i < iN; ++i ) {
 
-		char	name[1024];
+		char	name[2048];
 		FILE	*f;
 
 		sprintf( name, "HST/HST_%d_%d_%d.bin",

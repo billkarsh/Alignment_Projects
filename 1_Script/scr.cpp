@@ -211,7 +211,7 @@ static void ParseSimple( vector<Picture> &vp )
 	for( ;; ) {
 
 		Picture	p;
-		char	name[1024];
+		char	name[2048];
 		int		x, y, z;
 
 		/* ---------- */
@@ -530,7 +530,7 @@ static void SortTilesRadially( vector<Picture> &vp )
 
 static void CreateTopDir()
 {
-	char	name[1024];
+	char	name[2048];
 
 // gtopdir gets the full path to the top directory
 	getcwd( gtopdir, sizeof(gtopdir) );
@@ -551,7 +551,7 @@ static void CreateTopDir()
 
 static void WriteImageparamsFile()
 {
-	char	name[1024];
+	char	name[2048];
 	FILE	*f;
 
 	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
@@ -604,7 +604,7 @@ static void CreateTileSubdirs(
 
 	for( int i = is0; i < isN; ++i ) {
 
-		char	subdir[1024];
+		char	subdir[2048];
 
 		sprintf( subdir, "%s/%d", lyrdir, vp[i].id );
 		DskCreateDir( subdir, flog );
@@ -648,7 +648,7 @@ static void Make_TileToImage(
 
 // Open file
 
-	char	name[1024];
+	char	name[2048];
 	FILE	*f;
 
 	sprintf( name, "%s/TileToImage.txt", lyrdir );
@@ -702,7 +702,7 @@ static void Make_TileToImage(
 
 static void OneTprFile( const char *lyrdir, int a, int b )
 {
-    char	name[1024];
+    char	name[2048];
     FILE	*f;
 
 // approximate transform file
@@ -960,7 +960,7 @@ static void WriteThumbMakeFile(
 	const vector<Picture>	&vp,
 	const vector<Pair>		&P )
 {
-    char	name[1024];
+    char	name[2048];
 	FILE	*f;
 	int		np = P.size();
 
@@ -1086,7 +1086,7 @@ static void Make_MakeFM(
 	int						is0,
 	int						isN )
 {
-	char	name[1024];
+	char	name[2048];
 	FILE	*f;
 
 	fprintf( flog, "--Make_MakeFM: layer %d\n", vp[is0].z );
@@ -1175,7 +1175,7 @@ static void Make_fmsame(
 	int						is0,
 	int						isN )
 {
-	char	name[1024];
+	char	name[2048];
 	FILE	*f;
 
 	fprintf( flog, "--Make_fmsame: layer %d\n", vp[is0].z );
@@ -1210,7 +1210,7 @@ static void WriteMakeFile(
 	const vector<Picture>	&vp,
 	const vector<Pair>		&P )
 {
-    char	name[1024];
+    char	name[2048];
 	FILE	*f;
 	int		np = P.size();
 
@@ -1429,7 +1429,7 @@ static void ForEachLayer( const vector<Picture> &vp )
 
 	while( isN != -1 ) {
 
-		char	lyrdir[1024];
+		char	lyrdir[2048];
 
 		CreateLayerDir( lyrdir, vp[is0].z );
 
@@ -1518,7 +1518,7 @@ int main( int argc, char* argv[] )
 			exit( 42 );
 		}
 
-		char	lyrdir[1024];
+		char	lyrdir[2048];
 		int		is0, isN, iu0, iuN;
 
 		// makeUp for layer 0 onto 1

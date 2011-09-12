@@ -211,7 +211,7 @@ void WriteSolveRead(
 
 // Name files
 
-	char	tname[1024], rname[1024], buf[1024];
+	char	tname[2048], rname[2048], buf[2048];
 
 	if( uniqueNames ) {
 
