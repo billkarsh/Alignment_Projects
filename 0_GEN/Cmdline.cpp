@@ -87,7 +87,7 @@ bool GetArgStr( char* &s, const char *pat, char *argv )
 /* GetArgList ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Read argument list from command line.
+// Read integer argument list from command line.
 //
 // Example usage: ... -List=2,5,7 ...
 //
@@ -109,8 +109,45 @@ bool GetArgList( vector<int> &v, const char *pat, char *argv )
 
 		char	*s = strtok( argv + len, ":;, " );
 
+		v.clear();
+
 		while( s ) {
 			v.push_back( atoi( s ) );
+			s = strtok( NULL, ":;, " );
+		}
+
+		ok = true;
+	}
+
+	return ok;
+}
+
+// Read double argument list from command line.
+//
+// Example usage: ... -List=2.7,5,1.8e7 ...
+//
+//	vector<double>	D;
+//
+//	for( int i = 1; i < argc; ++i ) {
+//		if( argv[i][0] != '-' )
+//			noa.push_back( argv[i] );
+//		else if( GetArgList( D, "-List=", argv[i] ) )
+//			;
+//	}
+//
+bool GetArgList( vector<double> &v, const char *pat, char *argv )
+{
+	int		len = strlen( pat );
+	bool	ok = false;
+
+	if( !strncmp( argv, pat, len ) ) {
+
+		char	*s = strtok( argv + len, ":;, " );
+
+		v.clear();
+
+		while( s ) {
+			v.push_back( atof( s ) );
 			s = strtok( NULL, ":;, " );
 		}
 
