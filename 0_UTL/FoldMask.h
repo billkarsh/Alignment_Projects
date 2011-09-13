@@ -8,6 +8,9 @@
 
 #include	<stdio.h>
 
+#include	<string>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* class ConnRegion ---------------------------------------------- */
@@ -32,13 +35,15 @@ public:
 /* --------------------------------------------------------------- */
 
 uint8* GetFoldMask(
-	int		lyr,
-	int		tile,
-	int		wf,
-	int		hf,
-	bool	nofile,
-	bool	transpose,
-	bool	force1rgn );
+	const string	&idb,
+	int				lyr,
+	int				tile,
+	const char		*forcepath,
+	int				wf,
+	int				hf,
+	bool			nofile,
+	bool			transpose,
+	bool			force1rgn );
 
 void SetWithinSectionBorders( uint8* foldMask, int wf, int hf );
 

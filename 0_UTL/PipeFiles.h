@@ -103,25 +103,28 @@ void OpenPairLog( int alr, int atl, int blr, int btl );
 bool ReadThmParams( ThmParams &T, int layer, FILE *flog = stdout );
 bool ReadMeshParams( MeshParams &M, int layer, FILE *flog = stdout );
 
+void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
+
 bool IDBTil2Img(
-	Til2Img		&t2i,
-	const char	*idb,
-	int			layer,
-	int			tile,
-	FILE		*flog = stdout );
+	Til2Img			&t2i,
+	const string	&idb,
+	int				layer,
+	int				tile,
+	const char		*forcepath = NULL,
+	FILE			*flog = stdout );
 
 bool IDBTil2FM(
-	Til2FM		&t2f,
-	const char	*idb,
-	int			layer,
-	int			tile,
-	FILE		*flog = stdout );
+	Til2FM			&t2f,
+	const string	&idb,
+	int				layer,
+	int				tile,
+	FILE			*flog = stdout );
 
 bool IDBTil2FMD(
-	Til2FM		&t2f,
-	const char	*idb,
-	int			layer,
-	int			tile );
+	Til2FM			&t2f,
+	const string	&idb,
+	int				layer,
+	int				tile );
 
 void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i );
 void PrintTil2FM( FILE *flog, int cAB, const Til2FM &t2f );

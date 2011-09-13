@@ -81,12 +81,14 @@ int main( int argc, char* argv[] )
 
 		fold_mask_a =
 			GetFoldMask(
-				GBL.A.layer, GBL.A.tile, px.wf, px.hf,
+				GBL.idb, GBL.A.layer, GBL.A.tile,
+				GBL.arg.fma, px.wf, px.hf,
 				false, GBL.arg.Transpose, GBL.arg.SingleFold );
 
 		fold_mask_b =
 			GetFoldMask(
-				GBL.B.layer, GBL.B.tile, px.wf, px.hf,
+				GBL.idb, GBL.B.layer, GBL.B.tile,
+				GBL.arg.fmb, px.wf, px.hf,
 				false, GBL.arg.Transpose, GBL.arg.SingleFold );
 
 		/* ----------------------- */

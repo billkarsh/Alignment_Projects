@@ -52,6 +52,7 @@ public:
 	vector<Point>	XYusr;	// command line expected XY
 	ThmParams		thm;
 	MeshParams		msh;
+	string			idb;
 	PicSpecs		A, B;
 
 // =================

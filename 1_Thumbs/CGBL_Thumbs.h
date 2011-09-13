@@ -46,6 +46,7 @@ public:
 public:
 	DriverArgs	arg;
 	ThmParams	thm;
+	string		idb;
 	PicSpecs	A, B;
 
 // =================

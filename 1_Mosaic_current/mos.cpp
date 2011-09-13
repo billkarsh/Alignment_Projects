@@ -236,7 +236,7 @@ public:
 //
 static CArgs_mos	gArgs;
 static FILE			*of;
-static char			idbpath[2048] = {0};
+static string		idb;
 static bool			dp = false;
 static int			nwarn_edge_interp = 0;
 static int			nwarn_bad_corr = 0;
@@ -388,7 +388,7 @@ const char* image::GetRName()
 
 		Til2Img	I;
 
-		if( !IDBTil2Img( I, idbpath, layer, tile ) )
+		if( !IDBTil2Img( I, idb, layer, tile ) )
 			exit( 42 );
 
 		rname = strdup( I.path.c_str() );
@@ -407,8 +407,8 @@ const char* image::GetFName()
 
 		Til2FM	I;
 
-		if( !IDBTil2FMD( I, idbpath, layer, tile ) &&
-			!IDBTil2FM( I, idbpath, layer, tile ) ) {
+		if( !IDBTil2FMD( I, idb, layer, tile ) &&
+			!IDBTil2FM( I, idb, layer, tile ) ) {
 
 			exit( 42 );
 		}
@@ -858,6 +858,8 @@ static void ReadInput_NumTags(
 
 	for(;;) {
 
+		char	strbuf[2048];
+
 		if( LS.Get( fp ) <= 0 )
 			break;
 
@@ -951,11 +953,11 @@ static void ReadInput_NumTags(
 		}
 		else if( !strncmp( LS.line, "SPMAP2", 5 ) ) {
 
-			char	where[2048];
+			char	strbuf[2048];
 			int		z, id;
 
 			if( 3 != sscanf( LS.line + 6,
-				"%d.%d %s", &z, &id, where ) ) {
+				"%d.%d %s", &z, &id, strbuf ) ) {
 
 				printf( "Bad SPMAP2 statement '%s'.", LS.line );
 				exit( 42 );
@@ -970,15 +972,15 @@ static void ReadInput_NumTags(
 			map<ZID,int>::iterator	it = imap.find( ZID( z, id ) );
 
 			if( it != imap.end() )
-				images[it->second].spname = strdup( where );
+				images[it->second].spname = strdup( strbuf );
 		}
 		else if( !strncmp( LS.line, "BOUNDARYMAP2", 12 ) ) {
 
-			char	where[2048];
+			char	strbuf[2048];
 			int		z, id;
 
 			if( 3 != sscanf( LS.line + 6,
-				"%d.%d %s", &z, &id, where ) ) {
+				"%d.%d %s", &z, &id, strbuf ) ) {
 
 				printf( "Bad BOUNDARYMAP2 statement '%s'.", LS.line );
 				exit( 42 );
@@ -993,15 +995,17 @@ static void ReadInput_NumTags(
 			map<ZID,int>::iterator	it = imap.find( ZID( z, id ) );
 
 			if( it != imap.end() )
-				images[it->second].bname = strdup( where );
+				images[it->second].bname = strdup( strbuf );
 		}
 		else if( !strncmp( LS.line, "IDBPATH", 7 ) ) {
 
-			if( !sscanf( LS.line + 8, "%s", idbpath ) ) {
+			if( !sscanf( LS.line + 8, "%s", strbuf ) ) {
 
 				printf( "Bad IDBPATH line '%s'.\n", LS.line );
 				exit( 42 );
 			}
+
+			idb = strbuf;
 		}
 		else if( !strncmp( LS.line, "IMAGESIZE", 9 ) ) {
 

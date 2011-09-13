@@ -234,30 +234,75 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
+/* IDBReadImgParams ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void IDBReadImgParams( string &idbpath, FILE *flog )
+{
+	idbpath.clear();
+
+	FILE	*f = fopen( "../imgparams.txt", "r" );
+
+	if( f ) {
+
+		CLineScan	LS;
+
+		while( LS.Get( f ) > 0 ) {
+
+			char	buf[2048];
+
+			if( 1 == sscanf( LS.line, "IDBPATH=%[^\n]", buf ) ) {
+
+				idbpath = buf;
+				goto close;
+			}
+		}
+
+		fprintf( flog,
+		"IDB: WARNING: imgparams.txt missing IDBPATH tag.\n" );
+
+close:
+		fclose( f );
+	}
+	else
+		fprintf( flog, "IDB: WARNING: Can't open imgparams.txt.\n" );
+}
+
+/* --------------------------------------------------------------- */
 /* IDBTil2Img ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Scan given IDBPATH/TileToImage file for this tile's data.
 //
 bool IDBTil2Img(
-	Til2Img		&t2i,
-	const char	*idb,
-	int			layer,
-	int			tile,
-	FILE		*flog )
+	Til2Img			&t2i,
+	const string	&idb,
+	int				layer,
+	int				tile,
+	const char		*forcepath,
+	FILE			*flog )
 {
+// override provided
+
+	if( forcepath ) {
+		t2i.tile	= tile;
+		t2i.T		= TForm( 1,0,0,0,1,0 );
+		t2i.path	= forcepath;
+		return true;
+	}
+
+// standard way using idb
+
 	char	name[2048];
 	FILE	*f;
 	int		ok = false;
 
-	if( idb && idb[0] )
-		sprintf( name, "%s/%d/TileToImage.txt", idb, layer );
-	else
+	if( idb.empty() )
 		sprintf( name, "../%d/TileToImage.txt", layer );
+	else
+		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
 
-	f = fopen( name, "r" );
-
-	if( f ) {
+	if( f = fopen( name, "r" ) ) {
 
 		CLineScan	LS;
 
@@ -309,24 +354,43 @@ exit:
 // Scan given IDBPATH/TileToFM file for this tile's data.
 //
 bool IDBTil2FM(
-	Til2FM		&t2f,
-	const char	*idb,
-	int			layer,
-	int			tile,
-	FILE		*flog )
+	Til2FM			&t2f,
+	const string	&idb,
+	int				layer,
+	int				tile,
+	FILE			*flog )
 {
 	char	name[2048];
+
+// old-style layer/tile dir hierarchy
+
+	if( idb.empty() ) {
+
+		int	len;
+
+		// try name as tif
+		len = sprintf( name, "../%d/%d/fm.tif", layer, tile );
+
+		if( !DskExists( name ) ) {
+			// assume png
+			name[len-3] = 'p';
+			name[len-2] = 'n';
+			name[len-1] = 'g';
+		}
+
+		t2f.tile	= tile;
+		t2f.path	= name;
+		return true;
+	}
+
+// new way using idb
+
 	FILE	*f;
 	int		ok = false;
 
-	if( idb && idb[0] )
-		sprintf( name, "%s/%d/TileToFM.txt", idb, layer );
-	else
-		sprintf( name, "../%d/TileToFM.txt", layer );
+	sprintf( name, "%s/%d/TileToFM.txt", idb.c_str(), layer );
 
-	f = fopen( name, "r" );
-
-	if( f ) {
+	if( f = fopen( name, "r" ) ) {
 
 		CLineScan	LS;
 
@@ -376,23 +440,42 @@ exit:
 // should attempt to get the standard fm.
 //
 bool IDBTil2FMD(
-	Til2FM		&t2f,
-	const char	*idb,
-	int			layer,
-	int			tile )
+	Til2FM			&t2f,
+	const string	&idb,
+	int				layer,
+	int				tile )
 {
 	char	name[2048];
+
+// old-style layer/tile dir hierarchy
+
+	if( idb.empty() ) {
+
+		int	len;
+
+		// try name as tif
+		len = sprintf( name, "../%d/%d/fmd.tif", layer, tile );
+
+		if( !DskExists( name ) ) {
+			// assume png
+			name[len-3] = 'p';
+			name[len-2] = 'n';
+			name[len-1] = 'g';
+		}
+
+		t2f.tile	= tile;
+		t2f.path	= name;
+		return true;
+	}
+
+// new way using idb
+
 	FILE	*f;
 	int		ok = false;
 
-	if( idb && idb[0] )
-		sprintf( name, "%s/%d/TileToFMD.txt", idb, layer );
-	else
-		sprintf( name, "../%d/TileToFMD.txt", layer );
+	sprintf( name, "%s/%d/TileToFMD.txt", idb.c_str(), layer );
 
-	f = fopen( name, "r" );
-
-	if( f ) {
+	if( f = fopen( name, "r" ) ) {
 
 		CLineScan	LS;
 

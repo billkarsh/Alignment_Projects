@@ -416,7 +416,7 @@ public:
 
 static CArgs_lsq			gArgs;
 static FILE					*FOUT;		// outfile: 'simple'
-static char					idbpath[2048] = {0};
+static string				idb;
 static vector<string>		rgnvname;	// tile names
 static map<ZID,int>			rgnmname;	// tile names
 static vector<RGN>			vRgn;		// the regions
@@ -689,7 +689,7 @@ const char* RGN::GetName() const
 
 			Til2Img	I;
 
-			if( !IDBTil2Img( I, idbpath, z, id ) )
+			if( !IDBTil2Img( I, idb, z, id ) )
 				exit( 42 );
 
 			rgnmname[zid] = k = rgnvname.size();
@@ -1387,12 +1387,15 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 		}
 		else if( !strncmp( LS.line, "IDBPATH", 7 ) ) {
 
-			if( !sscanf( LS.line + 8, "%s", idbpath ) ) {
+			char	buf[2048];
+
+			if( !sscanf( LS.line + 8, "%s", buf ) ) {
 
 				printf( "Bad IDBPATH line '%s'.\n", LS.line );
 				exit( 42 );
 			}
 
+			idb = buf;
 			fprintf( FOUT, LS.line );
 			printf( LS.line );
 		}

@@ -81,12 +81,14 @@ static void CalcTransforms(
 	// Note that the foldmasks are always at full resolution.
 
 	fold_mask_a = GetFoldMask(
-					GBL.A.layer, GBL.A.tile,
-					wf, hf, nofile, tspose, force1 );
+					GBL.idb, GBL.A.layer, GBL.A.tile,
+					GBL.arg.fma, wf, hf,
+					nofile, tspose, force1 );
 
 	fold_mask_b = GetFoldMask(
-					GBL.B.layer, GBL.B.tile,
-					wf, hf, nofile, tspose, force1 );
+					GBL.idb, GBL.B.layer, GBL.B.tile,
+					GBL.arg.fmb, wf, hf,
+					nofile, tspose, force1 );
 
 /* ------------- */
 /* Call Pipeline */

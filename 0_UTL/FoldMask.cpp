@@ -1,6 +1,7 @@
 
 
 #include	"FoldMask.h"
+#include	"PipeFiles.h"
 
 #include	"Disk.h"
 #include	"ImageIO.h"
@@ -36,13 +37,15 @@ static void PrintFoldmapHisto( const uint8* fm, int w, int h )
 // Load or create a foldmask (always full size).
 //
 uint8* GetFoldMask(
-	int		lyr,
-	int		tile,
-	int		wf,
-	int		hf,
-	bool	nofile,
-	bool	transpose,
-	bool	force1rgn )
+	const string	&idb,
+	int				lyr,
+	int				tile,
+	const char		*forcepath,
+	int				wf,
+	int				hf,
+	bool			nofile,
+	bool			transpose,
+	bool			force1rgn )
 {
 	uint8*	mask;
 
@@ -55,20 +58,16 @@ uint8* GetFoldMask(
 	}
 	else {
 
-		char	sfile[256];
-		uint32	_w, _h;
+		Til2FM	t2f;
 
-		// try name as tif
-		_w = sprintf( sfile, "../%d/%d/fm.tif", lyr, tile );
-
-		if( !DskExists( sfile ) ) {
-			// assume png
-			sfile[_w-3] = 'p';
-			sfile[_w-2] = 'n';
-			sfile[_w-1] = 'g';
+		if( !forcepath ) {
+			IDBTil2FM( t2f, idb, lyr, tile );
+			forcepath = t2f.path.c_str();
 		}
 
-		mask = Raster8FromAny( sfile, _w, _h, stdout, transpose );
+		uint32	_w, _h;
+
+		mask = Raster8FromAny( forcepath, _w, _h, stdout, transpose );
 
 		if( _w != wf || _h != hf ) {
 

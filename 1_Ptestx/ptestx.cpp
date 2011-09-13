@@ -3,18 +3,26 @@
 // folder/file structure that ptest expects, and then calls ptest.
 //
 // E.g.
-// > ptestx za/ia@zb/ib imga imgb -d=temp
+// > ptestx za/ia@zb/ib -d=temp
 //	-thm=thmparams.txt -msh=dmeshparams.txt
+//	[-idb=xxx]
+//	[-ima=xxx -imb=xxx]
 //	[-fma=xxx -fmb=xxx]
 //
 // Required params:
 //	za/ia@zb/ib:	z/tileid numerical labels (A onto B)
-//	imga, imgb:		paths to the images
 //	d:				output directory to create
 //	thm, msh:		paths to parameter files
 //
 // Options:
+//	idb:			path to IDB
+//	ima, imb:		paths to the images
 //	fma, fmb:		paths to foldmasks
+//
+// Image specs:
+// If any of {ima, imb, fma, fmb} are specified, they override
+// any idb-derived specs. However, idb is required if any image
+// is to be fetched from a given IDB.
 //
 
 #include	"Cmdline.h"
@@ -41,6 +49,7 @@ public:
 	char			im[2][2048],
 					fm[2][2048],
 					tmp[2048],
+					idb[2048],
 					thm[2048],
 					msh[2048];
 	int				z[2], tile[2],
@@ -54,12 +63,15 @@ public:
 		fm[0][0]	= 0;
 		fm[1][0]	= 0;
 		tmp[0]		= 0;
+		idb[0]		= 0;
 		thm[0]		= 0;
 		msh[0]		= 0;
 		clrtmp		= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
+	void TopLevel();
+	void Call_ptest();
 };
 
 /* --------------------------------------------------------------- */
@@ -96,19 +108,19 @@ void CArgs_ptx::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 7 ) {
+	if( argc < 6 ) {
 usage:
-		printf( "Usage: ptestx <za/ia@zb/ib> imga imgb"
-		" -d=temp -thm=thmparams.txt -msh=dmeshparams.txt"
+		printf( "Usage: ptestx <za/ia@zb/ib> -d=temp"
+		" -thm=thmparams.txt -msh=dmeshparams.txt"
+		" [-idb=xxx] [-ima=xxx -imb=xxx -fma=zzz -fmb=xxx]"
 		" [options].\n" );
 		exit( 42 );
 	}
 
-	vector<char*>	noa;	// non-option arguments
-	char*			_arg;
-	int				ok = true;
+	char	*key, *_arg;
+	int		ok = true;
 
-	passon.push_back( argv[1] );	// labels
+	passon.push_back( argv[1] );	// key
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -116,13 +128,19 @@ usage:
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			noa.push_back( argv[i] );
+			key = argv[i];
 		else if( GetArgStr( _arg, "-d=", argv[i] ) )
 			ok = DskAbsPath( tmp, sizeof(tmp), _arg, flog );
+		else if( GetArgStr( _arg, "-idb=", argv[i] ) )
+			ok = DskAbsPath( idb, sizeof(idb), _arg, flog );
 		else if( GetArgStr( _arg, "-thm=", argv[i] ) )
 			ok = DskAbsPath( thm, sizeof(thm), _arg, flog );
 		else if( GetArgStr( _arg, "-msh=", argv[i] ) )
 			ok = DskAbsPath( msh, sizeof(msh), _arg, flog );
+		else if( GetArgStr( _arg, "-ima=", argv[i] ) )
+			ok = DskAbsPath( im[0], sizeof(im[0]), _arg, flog );
+		else if( GetArgStr( _arg, "-imb=", argv[i] ) )
+			ok = DskAbsPath( im[1], sizeof(im[1]), _arg, flog );
 		else if( GetArgStr( _arg, "-fma=", argv[i] ) )
 			ok = DskAbsPath( fm[0], sizeof(fm[0]), _arg, flog );
 		else if( GetArgStr( _arg, "-fmb=", argv[i] ) )
@@ -140,24 +158,15 @@ usage:
 
 	fprintf( flog, "\n\n" );
 
-	if( noa.size() < 3 || !tmp[0] || !thm[0] || !msh[0] )
+	if( !key || !tmp[0] || !thm[0] || !msh[0] )
 		goto usage;
 
-// Decode labels in noa[0]
+// Decode labels in key
 
-	if( 4 != sscanf( noa[0], "%d/%d@%d/%d",
+	if( 4 != sscanf( key, "%d/%d@%d/%d",
 		&z[0], &tile[0], &z[1], &tile[1] ) ) {
 
-		fprintf( flog, "Bad label string '%s'.\n", noa[0] );
-		exit( 42 );
-	}
-
-// Image paths
-	if( !DskAbsPath( im[0], sizeof(im[0]), noa[1], flog ) ||
-		!DskAbsPath( im[1], sizeof(im[1]), noa[2], flog ) ) {
-
-		fprintf( flog,
-		"Bad image path '%s' @ '%s'.\n", noa[1], noa[2] );
+		fprintf( flog, "Bad label string '%s'.\n", key );
 		exit( 42 );
 	}
 
@@ -168,35 +177,30 @@ usage:
 /* TopLevel ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void TopLevel()
+void CArgs_ptx::TopLevel()
 {
 	char	buf[2048];
 
 // preclear
-	if( gArgs.clrtmp ) {
-		sprintf( buf, "rm -rf %s", gArgs.tmp );
+	if( clrtmp ) {
+		sprintf( buf, "rm -rf %s", tmp );
 		system( buf );
 	}
 
 // create top directory
-	DskCreateDir( gArgs.tmp, flog );
+	DskCreateDir( tmp, flog );
 
 // copy param files
-	sprintf( buf, "cp %s %s", gArgs.thm, gArgs.tmp );
+	if( idb[0] ) {
+		sprintf( buf, "cp %s/imgparams.txt %s", idb, tmp );
+		system( buf );
+	}
+
+	sprintf( buf, "cp %s %s", thm, tmp );
 	system( buf );
 
-	sprintf( buf, "cp %s %s", gArgs.msh, gArgs.tmp );
+	sprintf( buf, "cp %s %s", msh, tmp );
 	system( buf );
-}
-
-/* --------------------------------------------------------------- */
-/* T2IEntry ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-void T2IEntry( FILE* f, int itile )
-{
-	fprintf( f, "%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
-	gArgs.tile[itile], 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, gArgs.im[itile] );
 }
 
 /* --------------------------------------------------------------- */
@@ -228,22 +232,6 @@ void TileDir( const char *sz, int itile )
 // create tile dir
 	sprintf( buf, "%s/%d", sz, gArgs.tile[itile] );
 	DskCreateDir( buf, flog );
-
-// copy fm here?
-	if( gArgs.fm[itile][0] ) {
-
-		char	*ext;	// tif or png
-
-		if( strstr( gArgs.fm[itile], ".tif" ) )
-			ext = "tif";
-		else
-			ext = "png";
-
-		sprintf( buf, "cp '%s' '%s/%d/fm.%s'",
-			gArgs.fm[itile], sz, gArgs.tile[itile], ext );
-
-		system( buf );
-	}
 }
 
 /* --------------------------------------------------------------- */
@@ -270,24 +258,6 @@ void EachLayer()
 		sprintf( sz, "%s/%d", gArgs.tmp, gArgs.z[iz] );
 		DskCreateDir( sz, flog );
 
-		/* ----------- */
-		/* TileToImage */
-		/* ----------- */
-
-		sprintf( buf, "%s/TileToImage.txt", sz );
-		FILE*	f = FileOpenOrDie( buf, "w", flog );
-
-		// header
-		fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
-
-		// entry(s)
-		T2IEntry( f, iz );
-
-		if( gArgs.z[1] == gArgs.z[0] )
-			T2IEntry( f, 1 );
-
-		fclose( f );
-
 		/* ------- */
 		/* ThmPair */
 		/* ------- */
@@ -312,21 +282,34 @@ void EachLayer()
 /* Call_ptest ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void Call_ptest()
+void CArgs_ptx::Call_ptest()
 {
 	char	buf[2048];
 	int		len, narg;
 
 // set working dir to layer A
-	sprintf( buf, "%s/%d", gArgs.tmp, gArgs.z[0] );
+	sprintf( buf, "%s/%d", tmp, z[0] );
 	chdir( buf );
 
-// build command line with passon args
+// build command line with any passon args
 	len  = sprintf( buf, "ptest" );
-	narg = gArgs.passon.size();
+	narg = passon.size();
 
 	for( int i = 0; i < narg; ++i )
-		len += sprintf( buf + len, " %s", gArgs.passon[i] );
+		len += sprintf( buf + len, " %s", passon[i] );
+
+// add optional image args
+	if( im[0][0] )
+		len += sprintf( buf + len, " -ima=%s", im[0] );
+
+	if( im[1][0] )
+		len += sprintf( buf + len, " -imb=%s", im[1] );
+
+	if( fm[0][0] )
+		len += sprintf( buf + len, " -fma=%s", fm[0] );
+
+	if( fm[1][0] )
+		len += sprintf( buf + len, " -fmb=%s", fm[1] );
 
 // call ptest
 	fprintf( flog, "%s\n.", buf );
@@ -349,7 +332,7 @@ int main( int argc, char* argv[] )
 /* Top level */
 /* --------- */
 
-	TopLevel();
+	gArgs.TopLevel();
 
 /* ---------- */
 /* Each layer */
@@ -361,7 +344,7 @@ int main( int argc, char* argv[] )
 /* Call through to ptest */
 /* --------------------- */
 
-	Call_ptest();
+	gArgs.Call_ptest();
 
 /* ---- */
 /* Done */

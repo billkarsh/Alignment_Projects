@@ -66,12 +66,12 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 {
 // Parse args
 
-	vector<char*>	noa;	// non-option arguments
+	char	*key;
 
 	for( int i = 1; i < argc; ++i ) {
 
 		if( argv[i][0] != '-' )
-			noa.push_back( argv[i] );
+			key = argv[i];
 		else if( GetArg( &arg.SCALE, "-SCALE=%lf", argv[i] ) )
 			;
 		else if( GetArg( &arg.XSCALE, "-XSCALE=%lf", argv[i] ) )
@@ -102,11 +102,10 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-// Decode labels in noa[0]
+// Decode labels in key
 
-	if( !noa.size() ||
-		(4 != sscanf( noa[0],
-				"%d/%d@%d/%d",
+	if( !key ||
+		(4 != sscanf( key, "%d/%d@%d/%d",
 				&A.layer, &A.tile,
 				&B.layer, &B.tile )) ) {
 
@@ -166,8 +165,10 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Input images ----\n" );
 
-	if( !IDBTil2Img( A.t2i, NULL, A.layer, A.tile ) ||
-		!IDBTil2Img( B.t2i, NULL, B.layer, B.tile ) ) {
+	IDBReadImgParams( idb );
+
+	if( !IDBTil2Img( A.t2i, idb, A.layer, A.tile, arg.ima ) ||
+		!IDBTil2Img( B.t2i, idb, B.layer, B.tile, arg.imb ) ) {
 
 		return false;
 	}
