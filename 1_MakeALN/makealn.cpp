@@ -1,15 +1,23 @@
+//
+// MakeALN reads an IDB 'image database' and creates an alignment
+// workspace with this structure:
+//
+//	folder 'alnname'			// top folder
+//		imageparams.txt			// IDBPATH, IMAGESIZE tags
+//		folder '0'				// folder per layer, here, '0'
+//			ThmPair_0_@_j.txt	// table of thumbnail results
+//			make.down			// make file for cross layers
+//			make.same			// make file for same layer
+//			folder '0'			// output folder per tile, here '0'
+//
 
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"Disk.h"
 #include	"File.h"
-#include	"ImageIO.h"
+#include	"PipeFiles.h"
 #include	"Maths.h"
 #include	"Geometry.h"
-#include	"CTForm.h"
-
-#include	"tinyxml.h"
 
 
 /* --------------------------------------------------------------- */
@@ -28,7 +36,6 @@
 class Picture {
 
 public:
-	string	fname;	// file name
 	double	r;		// inlayer radius from center
 	int		z;		// Z layer
 	int		id;		// inlayer id
@@ -55,52 +62,37 @@ public:
 
 class CArgs_scr {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images.
-	CRegexID	re_id;
-
 public:
-	char	*infile,
-			*outdir;
+	string	idbpath;
+	char	*outdir;
 	int		zmin,
 			zmax;
-	bool	Connect,		// just connect two layers
-			Simple,
+	bool	Connect,	// just connect two layers
 			NoFolds,
 			NoDirs;
 
 public:
 	CArgs_scr()
 	{
-		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
 		zmin		= 0;
 		zmax		= 32768;
 		Connect		= false;
-		Simple		= false;
 		NoFolds		= false;
 		NoDirs		= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int DecodeID( const char *name );
 };
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static const vector<Picture>	*_vpsort;
-
-static char			gtopdir[2048];
 static CArgs_scr	gArgs;
 static FILE*		flog	= NULL;
 static uint32		gW		= 0,	// universal pic dims
 					gH		= 0;
-static int			gZMax	= 0;
-static int			ismrc	= false;
 
 
 
@@ -115,7 +107,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "scr.log", "w" );
+	flog = FileOpenOrDie( "makealn.log", "w" );
 
 // log start time
 
@@ -125,16 +117,14 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 	strcpy( atime, ctime( &t0 ) );
 	atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Make scripts: %s ", atime );
+	fprintf( flog, "Make alignment workspace: %s ", atime );
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "/N" );
-
-	if( argc < 2 ) {
-		printf( "Usage: scr <source-file> [options].\n" );
+	if( argc < 5 ) {
+		printf(
+		"Usage: makealn <idbpath> -dtemp -zmin=i -zmax=j"
+		" [options].\n" );
 		exit( 42 );
 	}
 
@@ -144,23 +134,19 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			infile = argv[i];
+			idbpath = argv[i];
+		else if( GetArgStr( outdir, "-d", argv[i] ) )
+			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
 		else if( IsArg( "-connect", argv[i] ) )
 			Connect = true;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
-			re_id.Set( pat );
-		else if( IsArg( "-simple", argv[i] ) )
-			Simple = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
-			NoFolds = NoDirs = true;
-		else if( GetArgStr( outdir, "-d", argv[i] ) )
-			;
+			NoDirs = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -168,225 +154,63 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 	}
 
 	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
 	fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
-/* DecodeID ------------------------------------------------------ */
+/* ParseIDB ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-int CArgs_scr::DecodeID( const char *name )
+static void ParseIDB( vector<Picture> &vp )
 {
-	const char	*s = strrchr( name, '/' );
-	int			id;
+	for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
 
-	if( !s ) {
-		fprintf( flog, "No '/' in [%s].\n", name );
-		exit( 42 );
-	}
+		vector<Til2Img>	t2i;
 
-	if( !re_id.Decode( id, ++s ) ) {
-		printf( "No tile-id found in [%s].\n", s );
-		exit( 42 );
-	}
+		if( IDBAllTil2Img( t2i, gArgs.idbpath, z, flog ) ) {
 
-	return id;
-}
+			int	nt = t2i.size();
 
-/* --------------------------------------------------------------- */
-/* ParseSimple --------------------------------------------------- */
-/* --------------------------------------------------------------- */
+			for( int i = 0; i < nt; ++i ) {
 
-static void ParseSimple( vector<Picture> &vp )
-{
-	FILE	*fp = FileOpenOrDie( gArgs.infile, "r", flog );
+				const Til2Img&	E = t2i[i];
+				Picture			p;
 
-/* ---------- */
-/* Scan lines */
-/* ---------- */
+				p.r		= 0.0;
+				p.z		= z;
+				p.id	= E.tile;
+				p.tr	= E.T;
+				InvertTrans( p.inv, p.tr );
 
-	for( ;; ) {
-
-		Picture	p;
-		char	name[2048];
-		int		x, y, z;
-
-		/* ---------- */
-		/* Get a line */
-		/* ---------- */
-
-		if( fscanf( fp, "%s %d %d %d", name, &x, &y, &z ) != 4 )
-			break;
-
-		if( z > gArgs.zmax )
-			break;
-
-		if( z < gArgs.zmin )
-			continue;
-
-		if( z > gZMax )
-			gZMax = z;
-
-		/* ---------------------- */
-		/* Read actual dimensions */
-		/* ---------------------- */
-
-		if( !gW ) {
-
-			uint8 *ras = Raster8FromAny( name, gW, gH, flog );
-
-			if( !ras || !gW ) {
-				fprintf( flog, "Error loading [%s].\n", name );
-				exit( 42 );
+				vp.push_back( p );
 			}
-
-			RasterFree( ras );
-		}
-
-		/* ----------------- */
-		/* Set picture entry */
-		/* ----------------- */
-
-		p.fname	= name;
-		p.z		= z;
-		p.id	= gArgs.DecodeID( name );
-		p.tr.SetXY( x, y );
-		InvertTrans( p.inv, p.tr );
-
-		vp.push_back( p );
-	}
-
-/* ----- */
-/* Close */
-/* ----- */
-
-	fclose( fp );
-}
-
-/* --------------------------------------------------------------- */
-/* ParseTrakEM2 -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ParseTrakEM2( vector<Picture> &vp )
-{
-/* ------------- */
-/* Load document */
-/* ------------- */
-
-	TiXmlDocument	doc( gArgs.infile );
-	bool			loadOK = doc.LoadFile();
-
-	if( !loadOK ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	layer = hDoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
-
-	//fprintf( flog, "Child element value %s.\n", layer->Value() );
-
-/* -------------- */
-/* For each layer */
-/* -------------- */
-
-	for( ; layer; layer = layer->NextSiblingElement() ) {
-
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
-
-		//fprintf( flog, "Got a <t2_layer>.\n" );
-
-		const char	*sz = layer->Attribute( "z" );
-		int			z	= int(atof(sz) + 0.5);
-
-		//fprintf( flog, "z = %s.\n", sz );
-
-		if( z > gArgs.zmax )
-			break;
-
-		if( z < gArgs.zmin )
-			continue;
-
-		if( z > gZMax )
-			gZMax = z;
-
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-
-		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			//fprintf( flog, "Got a <t2_patch>.\n" );
-
-			Picture		p;
-			const char	*name = ptch->Attribute( "file_path" );
-
-			/* ---- */
-			/* Dims */
-			/* ---- */
-
-			if( !gW ) {
-
-				uint8 *ras = Raster8FromAny( name, gW, gH, flog );
-
-				if( !ras || !gW ) {
-					fprintf( flog, "Error loading [%s].\n", name );
-					exit( 42 );
-				}
-
-				RasterFree( ras );
-			}
-
-			/* ----------------- */
-			/* Set picture entry */
-			/* ----------------- */
-
-			p.fname	= name;
-			p.z		= z;
-			p.id	= gArgs.DecodeID( name );
-
-			p.tr.ScanTrackEM2( ptch->Attribute( "transform" ) );
-			InvertTrans( p.inv, p.tr );
-
-			vp.push_back( p );
 		}
 	}
 }
 
 /* --------------------------------------------------------------- */
-/* Sort_z_inc ---------------------------------------------------- */
+/* GetImageSize -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static bool Sort_z_inc( const Picture &A, const Picture &B )
+static void GetImageSize()
 {
-	return A.z < B.z;
+	char	buf[2048];
+
+	sprintf( buf, "%s/imageparams.txt", gArgs.idbpath.c_str() );
+	FILE		*f = FileOpenOrDie( buf, "r" );
+	CLineScan	LS;
+
+	while( LS.Get( f ) > 0 ) {
+
+		if( 2 == sscanf( LS.line, "IMAGESIZE %d %d", &gW, &gH ) )
+			goto exit;
+	}
+
+	fprintf( flog, "IMAGESIZE tag not found.\n" );
+	exit( 42 );
+
+exit:
+	fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -498,10 +322,6 @@ static bool Sort_r_inc( const Picture &A, const Picture &B )
 //
 static void SortTilesRadially( vector<Picture> &vp )
 {
-// First, just sort into layers
-
-	sort( vp.begin(), vp.end(), Sort_z_inc );
-
 // For each layer...
 
 	int		is0, isN;
@@ -532,33 +352,207 @@ static void CreateTopDir()
 {
 	char	name[2048];
 
-// gtopdir gets the full path to the top directory
-	DskAbsPath( gtopdir, sizeof(gtopdir), gArgs.outdir, flog );
-
 // create the top dir
 	DskCreateDir( gArgs.outdir, flog );
+
+// copy imageparams here
+	sprintf( name, "cp %s/imageparams.txt %s",
+		gArgs.idbpath.c_str(), gArgs.outdir );
+	system( name );
 
 // create stack subdir
 	sprintf( name, "%s/stack", gArgs.outdir );
 	DskCreateDir( name, flog );
+
+// create mosaic subdir
+	sprintf( name, "%s/mosaic", gArgs.outdir );
+	DskCreateDir( name, flog );
 }
 
 /* --------------------------------------------------------------- */
-/* WriteImageparamsFile ------------------------------------------ */
+/* WriteRunlsqFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteImageparamsFile()
+static void WriteRunlsqFile()
 {
-	char	name[2048];
+	char	buf[2048];
 	FILE	*f;
 
-	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
+	sprintf( buf, "%s/stack/runlsq", gArgs.outdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "IMAGESIZE %d %d\n", gW, gH );
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
 	fclose( f );
+
+	sprintf( buf,
+	"chmod ug=rwx,o=rx %s/stack/runlsq", gArgs.outdir );
+
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteSubmosFile ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteSubmosFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/mosaic/submos", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+
+	fprintf( f, "foreach i (`seq $1 $2`)\n" );
+	fprintf( f, "\tqsub -N mos-$i -cwd -V -b y -pe batch 8 \"mos ../stack/simple 0,0,-1,-1 $i,$i -warp > mos_$i.txt\"\n" );
+	fprintf( f, "end\n" );
+
+	fclose( f );
+
+	sprintf( buf,
+	"chmod ug=rwx,o=rx %s/mosaic/submos", gArgs.outdir );
+
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteSub8File ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteSub8File()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/sub8", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+
+	fprintf( f, "if ($#argv == 1) then\n" );
+	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tset last = $2\n" );
+	fprintf( f, "endif\n\n" );
+
+	fprintf( f, "foreach i (`seq $1 $last`)\n" );
+	fprintf( f, "\techo $i\n" );
+	fprintf( f, "\tcd $i\n" );
+	fprintf( f, "\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\tcd ..\n" );
+	fprintf( f, "end\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/sub8", gArgs.outdir );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteReportFile ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteReportFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/report", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "ls -l */lou-s*.e* > SamErrs.txt\n" );
+	fprintf( f, "ls -l */lou-d*.e* > DwnErrs.txt\n\n" );
+
+	fprintf( f, "ls -l */pts.same > SamPts.txt\n" );
+	fprintf( f, "ls -l */pts.down > DwnPts.txt\n\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/report", gArgs.outdir );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteCombineFile ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteCombineFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/combine", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "rm -f pts.all\n\n" );
+
+	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
+	fprintf( f, "set idb = `sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' <imageparams.txt`\n\n" );
+
+	fprintf( f, "cp imageparams.txt pts.all\n\n" );
+
+	fprintf( f, "foreach i (`seq $1 $2`)\n" );
+	fprintf( f, "\tcat $idb/$i/fm.same >> pts.all\n" );
+	fprintf( f, "end\n\n" );
+
+	fprintf( f, "foreach i (`seq $1 $2`)\n" );
+	fprintf( f, "\techo $i\n" );
+	fprintf( f, "\tif ( $i == $1 ) then\n" );
+	fprintf( f, "\t\tcat $i/pts.{same} >> pts.all\n" );
+	fprintf( f, "\telse\n" );
+	fprintf( f, "\t\tcat $i/pts.{down,same} >> pts.all\n" );
+	fprintf( f, "\tendif\n" );
+	fprintf( f, "end\n\n" );
+
+	fprintf( f, "mv pts.all stack\n\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/combine", gArgs.outdir );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteFinishFile ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteFinishFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/finish", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "./combine %d %d\n", gArgs.zmin, gArgs.zmax );
+	fprintf( f, "cd stack\n" );
+	fprintf( f, "./runlsq\n\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/finish", gArgs.outdir );
+	system( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -607,91 +601,6 @@ static void CreateTileSubdirs(
 		sprintf( subdir, "%s/%d", lyrdir, vp[i].id );
 		DskCreateDir( subdir, flog );
 	}
-}
-
-/* --------------------------------------------------------------- */
-/* Sort_tile_inc ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static bool Sort_tile_inc( int a, int b )
-{
-	return (*_vpsort)[a].id < (*_vpsort)[b].id;
-}
-
-/* --------------------------------------------------------------- */
-/* Make_TileToImage ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Write TileToImage.txt for this layer.
-// Each row gives {tile, global-Tr, image path}.
-//
-static void Make_TileToImage(
-	const char				*lyrdir,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
-{
-// Locally sort entries in this file by tile-id
-
-	isN -= is0;
-
-	vector<int>	order( isN );
-
-	for( int i = 0; i < isN; ++i )
-		order[i] = is0 + i;
-
-	_vpsort = &vp;
-
-	sort( order.begin(), order.end(), Sort_tile_inc );
-
-// Open file
-
-	char	name[2048];
-	FILE	*f;
-
-	sprintf( name, "%s/TileToImage.txt", lyrdir );
-
-	f = FileOpenOrDie( name, "w", flog );
-
-// Header
-
-	fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
-
-// Write sorted entries
-// Use given name, unless mrc images.
-
-	if( !ismrc ) {
-
-		for( int i = 0; i < isN; ++i ) {
-
-			const Picture&	P = vp[order[i]];
-			const double*	T = P.tr.t;
-
-			fprintf( f,
-				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
-				P.id, T[0], T[1], T[2], T[3], T[4], T[5],
-				P.fname.c_str() );
-		}
-	}
-	else {
-
-		char	basepath[2048];
-
-		sprintf( basepath, "%s/%d/", gtopdir, vp[order[0]].z );
-
-		for( int i = 0; i < isN; ++i ) {
-
-			const Picture&	P = vp[order[i]];
-			const double*	T = P.tr.t;
-
-			fprintf( f,
-				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s%d/nmrc_%d_%d.png\n",
-				P.id, T[0], T[1], T[2], T[3], T[4], T[5],
-				basepath, P.id, P.z, P.id );
-		}
-	}
-
-	fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -922,29 +831,6 @@ static double ABOlap( const Picture &a, const Picture &b )
 }
 
 /* --------------------------------------------------------------- */
-/* ConvertSpaces ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Make files have targets, dependencies and rules. Make can not
-// scan dependency strings that contain embedded spaces. However,
-// it works if " " is substituted by "\ ".
-//
-// Note too, that make does not like dependency strings to be
-// enclosed in any quotes, so that will not solve this issue.
-//
-static void ConvertSpaces( char *out, const char *in )
-{
-	while( *out++ = *in++ ) {
-
-		if( in[-1] == ' ' ) {
-
-			out[-1]	= '\\';
-			*out++	= ' ';
-		}
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* WriteThumbMakeFile -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1072,129 +958,6 @@ write:
 }
 
 /* --------------------------------------------------------------- */
-/* Make_MakeFM --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Write script to tell program tiny to calculate a foldmask for
-// each tile.
-//
-static void Make_MakeFM(
-	const char				*lyrdir,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
-{
-	char	name[2048];
-	FILE	*f;
-
-	fprintf( flog, "--Make_MakeFM: layer %d\n", vp[is0].z );
-
-	sprintf( name, "%s/make.fm", lyrdir );
-
-	f = FileOpenOrDie( name, "w", flog );
-
-// master target depends on all others
-
-	fprintf( f, "all: " );
-
-	for( int i = is0; i < isN; ++i )
-		fprintf( f, "%d/fm.png ", vp[i].id );
-
-	fprintf( f, "\n\n" );
-
-// subtargets and rules
-
-	for( int i = is0; i < isN; ++i ) {
-
-		const Picture&	P = vp[i];
-		char dep[2048];
-
-		ConvertSpaces( dep, P.fname.c_str() );
-
-		fprintf( f, "%d/fm.png: %s\n", P.id, dep );
-
-		if( gArgs.NoFolds ) {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=%d/nmrc_%d_%d.png'"
-				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str(),
-				P.id, P.z, P.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str() );
-			}
-		}
-		else {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=%d/nmrc_%d_%d.png'"
-				" '-fm=%d/fm.png'"
-				" '-fmd=%d/fmd.png'"
-				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str(),
-				P.id, P.z, P.id,
-				P.id,
-				P.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-fm=%d/fm.png'"
-				" '-fmd=%d/fmd.png'"
-				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str(),
-				P.id,
-				P.id );
-			}
-		}
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
-/* Make_fmsame --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Write fm.same file with FOLDMAP2 entry for each tile.
-//
-// This is used only for '-nf' option because these entries
-// all get connected-region count = 1.
-//
-static void Make_fmsame(
-	const char				*lyrdir,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
-{
-	char	name[2048];
-	FILE	*f;
-
-	fprintf( flog, "--Make_fmsame: layer %d\n", vp[is0].z );
-
-	sprintf( name, "%s/fm.same", lyrdir );
-
-	f = FileOpenOrDie( name, "w", flog );
-
-// FOLDMAP2 entries
-
-	for( int i = is0; i < isN; ++i ) {
-
-		const Picture&	P = vp[i];
-
-		fprintf( f, "FOLDMAP2 %d.%d 1\n", P.z, P.id );
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteMakeFile ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1235,47 +998,20 @@ static void WriteMakeFile(
 // Write each 'target: dependencies' line
 //		and each 'rule' line
 
-	if( gArgs.NoFolds ) {
+	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
 
-		for( int i = 0; i < np; ++i ) {
+	for( int i = 0; i < np; ++i ) {
 
-			const Picture&	A = vp[P[i].a];
-			const Picture&	B = vp[P[i].b];
+		const Picture&	A = vp[P[i].a];
+		const Picture&	B = vp[P[i].b];
 
-			fprintf( f,
-			"%d/%d.%d.map.tif:\n",
-			A.id, B.z, B.id );
+		fprintf( f,
+		"%d/%d.%d.map.tif:\n",
+		A.id, B.z, B.id );
 
-			fprintf( f,
-			"\tptest %d/%d@%d/%d -nf ${EXTRA}\n\n",
-			A.z, A.id, B.z, B.id );
-		}
-	}
-	else {
-
-		for( int i = 0; i < np; ++i ) {
-
-			const Picture&	A = vp[P[i].a];
-			const Picture&	B = vp[P[i].b];
-			char depA[2048], depB[2048];
-
-			ConvertSpaces( depA, A.fname.c_str() );
-			ConvertSpaces( depB, B.fname.c_str() );
-
-			fprintf( f,
-			"%d/%d.%d.map.tif:"
-			" %s %s"
-			" ../%d/%d/fm.png"
-			" ../%d/%d/fm.png\n",
-			A.id, B.z, B.id,
-			depA, depB,
-			A.z, A.id,
-			B.z, B.id );
-
-			fprintf( f,
-			"\tptest %d/%d@%d/%d ${EXTRA}\n\n",
-			A.z, A.id, B.z, B.id );
-		}
+		fprintf( f,
+		"\tptest %d/%d@%d/%d%s ${EXTRA}\n\n",
+		A.z, A.id, B.z, B.id, option_nf );
 	}
 
 	fclose( f );
@@ -1434,22 +1170,10 @@ static void ForEachLayer( const vector<Picture> &vp )
 		if( !gArgs.NoDirs )
 			CreateTileSubdirs( lyrdir, vp, is0, isN );
 
-		Make_TileToImage( lyrdir, vp, is0, isN );
-
 		Make_ThmPairFile( lyrdir, vp, is0, id0, iu0 );
 
 		//Make_ThumbsSame( lyrdir, vp, is0, isN );
 		//Make_ThumbsDown( lyrdir, vp, is0, isN, id0, idN );
-
-		if( gArgs.NoFolds ) {
-
-			if( ismrc )
-				Make_MakeFM( lyrdir, vp, is0, isN );
-			else
-				Make_fmsame( lyrdir, vp, is0, isN );
-		}
-		else
-			Make_MakeFM( lyrdir, vp, is0, isN );
 
 		Make_MakeSame( lyrdir, vp, is0, isN );
 		Make_MakeDown( lyrdir, vp, is0, isN, id0, idN );
@@ -1478,20 +1202,17 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 /* ---------------- */
-/* Read source file */
+/* Read source data */
 /* ---------------- */
 
-	if( gArgs.Simple )
-		ParseSimple( vp );
-	else
-		ParseTrakEM2( vp );
+	ParseIDB( vp );
 
 	fprintf( flog, "Got %d images.\n", vp.size() );
 
 	if( !vp.size() )
 		goto exit;
 
-	ismrc = strstr( vp[0].fname.c_str(), ".mrc" ) != NULL;
+	GetImageSize();
 
 /* ------------------------------------------------- */
 /* Within each layer, sort tiles by dist from center */
@@ -1542,7 +1263,13 @@ int main( int argc, char* argv[] )
 
 	CreateTopDir();
 
-	WriteImageparamsFile();
+	WriteRunlsqFile();
+	WriteSubmosFile();
+
+	WriteSub8File();
+	WriteReportFile();
+	WriteCombineFile();
+	WriteFinishFile();
 
 	ForEachLayer( vp );
 

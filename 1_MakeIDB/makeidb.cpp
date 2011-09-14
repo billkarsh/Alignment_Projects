@@ -393,9 +393,7 @@ static void CreateTopDir()
 	char	name[2048];
 
 // gtopdir gets the full path to the top directory
-	getcwd( gtopdir, sizeof(gtopdir) );
-	sprintf( name, "/%s", gArgs.outdir );
-	strcat( gtopdir, name );
+	DskAbsPath( gtopdir, sizeof(gtopdir), gArgs.outdir, flog );
 
 // create the top dir
 	DskCreateDir( gArgs.outdir, flog );
@@ -438,15 +436,9 @@ static void WriteSubfmFile()
 	fprintf( f, "setenv MRC_TRIM 12\n\n" );
 
 	fprintf( f, "foreach i (`seq $1 $2`)\n" );
-	fprintf( f, "cd $i\n" );
-
-	fprintf( f,
-	"qsub -N lou-f-$i"
-	" -cwd -V -b y -pe batch 8"
-	" make -f make.fm -j 8"
-	" EXTRA='\"\"'\n" );
-
-	fprintf( f, "cd ..\n" );
+	fprintf( f, "\tcd $i\n" );
+	fprintf( f, "\tqsub -N lou-f-$i -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\tcd ..\n" );
 	fprintf( f, "end\n\n" );
 
 	fclose( f );

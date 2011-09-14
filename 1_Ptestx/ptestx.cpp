@@ -192,7 +192,7 @@ void CArgs_ptx::TopLevel()
 
 // copy param files
 	if( idb[0] ) {
-		sprintf( buf, "cp %s/imgparams.txt %s", idb, tmp );
+		sprintf( buf, "cp %s/imageparams.txt %s", idb, tmp );
 		system( buf );
 	}
 

@@ -105,6 +105,12 @@ bool ReadMeshParams( MeshParams &M, int layer, FILE *flog = stdout );
 
 void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
 
+bool IDBAllTil2Img(
+	vector<Til2Img>	&t2i,
+	const string	&idb,
+	int				layer,
+	FILE			*flog = stdout );
+
 bool IDBTil2Img(
 	Til2Img			&t2i,
 	const string	&idb,

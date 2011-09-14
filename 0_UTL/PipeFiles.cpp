@@ -241,7 +241,7 @@ void IDBReadImgParams( string &idbpath, FILE *flog )
 {
 	idbpath.clear();
 
-	FILE	*f = fopen( "../imgparams.txt", "r" );
+	FILE	*f = fopen( "../imageparams.txt", "r" );
 
 	if( f ) {
 
@@ -251,7 +251,7 @@ void IDBReadImgParams( string &idbpath, FILE *flog )
 
 			char	buf[2048];
 
-			if( 1 == sscanf( LS.line, "IDBPATH=%[^\n]", buf ) ) {
+			if( 1 == sscanf( LS.line, "IDBPATH %[^\n]", buf ) ) {
 
 				idbpath = buf;
 				goto close;
@@ -259,13 +259,71 @@ void IDBReadImgParams( string &idbpath, FILE *flog )
 		}
 
 		fprintf( flog,
-		"IDB: WARNING: imgparams.txt missing IDBPATH tag.\n" );
+		"IDB: WARNING: imageparams.txt missing IDBPATH tag.\n" );
 
 close:
 		fclose( f );
 	}
+	else {
+		fprintf( flog,
+		"IDB: WARNING: Can't open imageparams.txt.\n" );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* IDBAllTil2Img ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool IDBAllTil2Img(
+	vector<Til2Img>	&t2i,
+	const string	&idb,
+	int				layer,
+	FILE			*flog )
+{
+	char	name[2048];
+	FILE	*f;
+	int		ok = false;
+
+	t2i.clear();
+
+	sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
+
+	if( f = fopen( name, "r" ) ) {
+
+		CLineScan	LS;
+
+		if( LS.Get( f ) <= 0 ) {
+			fprintf( flog, "IDBAllTil2Img: Empty file [%s].\n", name );
+			goto exit;
+		}
+
+		while( LS.Get( f ) > 0 ) {
+
+			Til2Img	E;
+			char	buf[2048];
+
+			sscanf( LS.line, "%d\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf\t%[^\t\n]",
+			&E.tile,
+			&E.T.t[0], &E.T.t[1], &E.T.t[2],
+			&E.T.t[3], &E.T.t[4], &E.T.t[5],
+			buf );
+
+			E.path = buf;
+
+			t2i.push_back( E );
+		}
+
+		ok = true;
+	}
 	else
-		fprintf( flog, "IDB: WARNING: Can't open imgparams.txt.\n" );
+		fprintf( flog, "IDBAllTil2Img: Can't open [%s].\n", name );
+
+exit:
+	if( f )
+		fclose( f );
+
+	return ok;
 }
 
 /* --------------------------------------------------------------- */
