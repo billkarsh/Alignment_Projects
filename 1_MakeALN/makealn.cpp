@@ -412,7 +412,13 @@ static void WriteSubmosFile()
 	fprintf( f, "setenv MRC_TRIM 12\n\n" );
 
 	fprintf( f, "foreach i (`seq $1 $2`)\n" );
-	fprintf( f, "\tqsub -N mos-$i -cwd -V -b y -pe batch 8 \"mos ../stack/simple 0,0,-1,-1 $i,$i -warp > mos_$i.txt\"\n" );
+
+	fprintf( f,
+	"\tqsub -N mos-$i -cwd -V -b y -pe batch 8"
+	" \"mos ../stack/simple 0,0,-1,-1 $i,$i -warp%s"
+	" > mos_$i.txt\"\n",
+	(gArgs.NoFolds ? " -nf" : "") );
+
 	fprintf( f, "end\n" );
 
 	fclose( f );
