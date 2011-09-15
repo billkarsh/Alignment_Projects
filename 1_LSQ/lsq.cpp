@@ -1316,9 +1316,14 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 		}
 		else {
 
+			char	*s = strchr( LS.line, ' ' );
+
+			if( s )
+				*s = 0;
+
 			printf(
-			"WARNING: Unknown entry type; line %d.\n",
-			nlines );
+			"WARNING: Unknown entry type; '%s' line %d.\n",
+			LS.line, nlines );
 		}
 	}
 
@@ -1410,9 +1415,14 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 		}
 		else {
 
+			char	*s = strchr( LS.line, ' ' );
+
+			if( s )
+				*s = 0;
+
 			printf(
-			"WARNING: Unknown entry type; line %d.\n",
-			nlines );
+			"WARNING: Unknown entry type; '%s' line %d.\n",
+			LS.line, nlines );
 		}
 	}
 
