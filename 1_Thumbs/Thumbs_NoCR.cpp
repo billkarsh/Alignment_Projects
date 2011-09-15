@@ -833,7 +833,7 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 				thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
-				0.0, thm.ftc );
+				QTOL_ZERO, thm.ftc );
 #endif
 
 			fprintf( flog,
@@ -888,7 +888,7 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, thm.ftc );
+		QTOL_ZERO, thm.ftc );
 #endif
 
 	ok = (fabs( best.X - b0.X ) <= 20)
