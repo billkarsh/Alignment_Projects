@@ -4281,6 +4281,12 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
              p = strrchr(root, '/');
              }
         if( p == NULL ) {
+
+	    if( !gArgs.strings ) {
+			printf( "Stopping: New style, no spmap name specified.\n" );
+			return 0;
+		}
+
 	    printf("Oops - no '/' in super-pixel path '%s'.  Try fold mask.\n", images[i].spname == NULL ?"none":images[i].spname);
             root = strdup(images[i].GetFName());
             p = strrchr(root, '/');
