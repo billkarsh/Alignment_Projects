@@ -994,36 +994,50 @@ static void BestVertex(
 		int		L = LeftSide( va, vb, vc );
 
 		fprintf( flog,
-		"#%3d (%4d %4d); dist=%12.2f; left=%d; area=%11.2f.\n",
+		"#%3d (%4d %4d); dist=%12.2f; left=%d; area=%11.2f; ",
 		i, vc.x, vc.y, D, L, A );
 
 		// require vc on interior side of va->vb
-		if( !L )
+		if( !L ) {
+			printf( "rjct: not L\n" );
 			continue;
+		}
 
 		// require small...
-		if( D >= Dbest )
+		if( D >= Dbest ) {
+			printf( "rjct: big D\n" );
 			continue;
+		}
 
 		// ...but not too small
-		if( A <= GBL.msh.MTA )
+		if( A <= GBL.msh.MTA ) {
+			printf( "rjct: sml A\n" );
 			continue;
+		}
 
 		// don't cross any remaining edges
-		if( AnyCrossing( edges, va, vc ) )
+		if( AnyCrossing( edges, va, vc ) ) {
+			printf( "rjct: crs va\n" );
 			continue;
+		}
 
 		// ditto
-		if( AnyCrossing( edges, vb, vc ) )
+		if( AnyCrossing( edges, vb, vc ) ) {
+			printf( "rjct: crs vb\n" );
 			continue;
+		}
 
 		// don't enclose other vertices
-		if( AnyInside( va, vb, vc, edges, vinside ) )
+		if( AnyInside( va, vb, vc, edges, vinside ) ) {
+			printf( "rjct: any inside\n" );
 			continue;
+		}
 
 		Dbest	= D;
 		type	= uv[i].type;
 		indx	= uv[i].indx;
+
+		printf( "keep: *\n" );
 	}
 }
 
