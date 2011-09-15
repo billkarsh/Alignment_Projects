@@ -1,0 +1,21 @@
+#!/bin/csh
+
+setenv MRC_TRIM 12
+
+#
+# > makeidb myxml -didb -p_Nex.mrc
+#
+# make image database 'idb' from 'myxml' file...
+# makes everything.
+#
+# Required -p pattern describes the context around
+# the tile ID 'N' part of image names.
+#
+# options:
+# -simple interpret input as Leginon file
+# -zmin=i -zmax=j restricts layer range
+# -nf no foldmasks
+#
+
+makeidb myxml -didb -p_Nex.mrc
+

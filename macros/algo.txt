@@ -1,0 +1,15 @@
+#!/bin/csh
+
+#
+# > makealn myidb -dtemp -zmin=0 -zmax=5
+#
+# make workspace 'temp' for 'myidb'...
+# makes everything except thmparams and dmeshparams files.
+#
+# options:
+# -nf no foldmasks
+# -nd no tile directories
+#
+
+makealn myidb -dtemp -zmin=0 -zmax=5
+
