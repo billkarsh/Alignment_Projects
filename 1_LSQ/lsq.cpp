@@ -532,6 +532,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 
 	if( strings )
 		re_id.Compile( stdout );
+	else
+		fprintf( flog, "\n" );
 }
 
 /* --------------------------------------------------------------- */
