@@ -71,9 +71,9 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 {
 // parse command line args
 
-	if( argc < 4 ) {
+	if( argc < 5 ) {
 		printf(
-		"Usage: tiny <z> <tif-file> <fold-mask-file> [option]\n" );
+		"Usage: tiny <z> <id> <tif-file> <fold-mask-file> [option]\n" );
 		exit( 42 );
 	}
 
