@@ -560,6 +560,48 @@ void Raster8ToTif8(
 }
 
 /* --------------------------------------------------------------- */
+/* Raster16ToTif16 ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void Raster16ToTif16(
+	const char*		name,
+	const uint16*	raster,
+	int				w,
+	int				h,
+	FILE*			flog )
+{
+	TIFF	*image;
+
+	if( !(image = TIFFOpen( name, "w" )) ) {
+		fprintf( flog,
+		"Tif(16) Could not open [%s] for writing.\n", name );
+		exit( 42 );
+	}
+
+// Set values for basic tags before adding data
+	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH,h );
+	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 16 );
+	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
+	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
+
+#if USE_TIF_DEFLATE
+	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE );
+#else
+	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_NONE );
+#endif
+
+	TIFFSetField( image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
+	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+
+// Write the information to the file
+	TIFFWriteEncodedStrip( image, 0, (uint8*)raster, w*h );
+
+// Close the file
+	TIFFClose( image );
+}
+
+/* --------------------------------------------------------------- */
 /* Raster32ToTifRGBA --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -779,7 +821,9 @@ uint8* Raster8FromPng(
 	png_set_sig_bytes( png_ptr, 8 );
 
 // read
-	png_read_png( png_ptr, info_ptr, PNG_TRANSFORM_PACKING, NULL );
+	png_read_png( png_ptr, info_ptr,
+		PNG_TRANSFORM_PACKING | PNG_TRANSFORM_SWAP_ENDIAN,
+		NULL );
 
 // format
 	png_get_IHDR( png_ptr, info_ptr,
@@ -919,7 +963,9 @@ uint16* Raster16FromPng(
 	png_set_sig_bytes( png_ptr, 8 );
 
 // read
-	png_read_png( png_ptr, info_ptr, PNG_TRANSFORM_PACKING, NULL );
+	png_read_png( png_ptr, info_ptr,
+		PNG_TRANSFORM_PACKING | PNG_TRANSFORM_SWAP_ENDIAN,
+		NULL );
 
 // format
 	png_get_IHDR( png_ptr, info_ptr,
@@ -1059,7 +1105,9 @@ uint32* Raster32FromPng(
 	png_set_sig_bytes( png_ptr, 8 );
 
 // read
-	png_read_png( png_ptr, info_ptr, PNG_TRANSFORM_PACKING, NULL );
+	png_read_png( png_ptr, info_ptr,
+		PNG_TRANSFORM_PACKING | PNG_TRANSFORM_SWAP_ENDIAN,
+		NULL );
 
 // format
 	png_get_IHDR( png_ptr, info_ptr,
@@ -1230,6 +1278,7 @@ void Raster16ToPng16(
 	for( int i = 0; i < h; ++i )
 		prow[i] = (png_byte*)(raster + w * i);
 
+	png_set_swap( png_ptr );
 	png_write_image( png_ptr, prow );
 	free( prow );
 

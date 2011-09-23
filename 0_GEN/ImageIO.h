@@ -56,6 +56,13 @@ void Raster8ToTif8(
 	int				h,
 	FILE*			flog = stdout );
 
+void Raster16ToTif16(
+	const char*		name,
+	const uint16*	raster,
+	int				w,
+	int				h,
+	FILE*			flog = stdout );
+
 void Raster32ToTifRGBA(
 	const char*		name,
 	const uint32*	raster,
