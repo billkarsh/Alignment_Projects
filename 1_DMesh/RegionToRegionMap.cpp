@@ -499,24 +499,27 @@ quality_control:
 		double	sum	= 0.0;
 		int		N	= matches[k].a.size();
 
-		Normalize( matches[k].a );
-		Normalize( matches[k].b );
+		if( N ) {
 
-		for( int i = 0; i < N; ++i )
-			sum += matches[k].a[i] * matches[k].b[i];
+			Normalize( matches[k].a );
+			Normalize( matches[k].b );
 
-		fm = Metric( matches[k].pts,
-				matches[k].a, matches[k].b, "TRI", flog );
+			for( int i = 0; i < N; ++i )
+				sum += matches[k].a[i] * matches[k].b[i];
 
-		y = PercentYellow( matches[k].a, matches[k].b, flog );
+			fm = Metric( matches[k].pts,
+					matches[k].a, matches[k].b, "TRI", flog );
 
-		fprintf( flog,
-		"Triangle %d: %d points, corr %f, fm %f, yellow %.2f.\n\n",
-		k, N, sum/N, fm, y );
+			y = PercentYellow( matches[k].a, matches[k].b, flog );
 
-		weighted_sum	+= fm * N;
-		weighted_yellow	+= y * N;
-		sum_pts			+= N;
+			fprintf( flog,
+			"Triangle %d: %d points, corr %f, fm %f, yellow %.2f.\n\n",
+			k, N, sum/N, fm, y );
+
+			weighted_sum	+= fm * N;
+			weighted_yellow	+= y * N;
+			sum_pts			+= N;
+		}
 	}
 
 // ...and get weighted average scores
@@ -538,7 +541,7 @@ quality_control:
 	if( GBL.msh.EMM ) {
 
 		fprintf( flog,
-		"STAT: Overall %d points, %.4f corr,"
+		"STAT: Overall %d points, corr %.4f,"
 		" EMM %.4f, weighed EMM %.4f,"
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
@@ -557,7 +560,7 @@ quality_control:
 	else {	// use older Fourier metric
 
 		fprintf( flog,
-		"STAT: Overall %d points, %.4f corr,"
+		"STAT: Overall %d points, corr %.4f,"
 		" dfm %.4f, weighed Fourier %.4f,"
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
