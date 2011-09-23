@@ -847,7 +847,7 @@ int CCrossCorr::SizeIndex()
 /* CorrPatches --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return normalized cross-correlation and additive displacement
+// Return cross-correlation and additive displacement
 // (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // Search confined to disc: (origin, radius) = {Ox, Oy, radius}.
@@ -939,7 +939,7 @@ double CorrPatches(
 
 // Prepare correlation calculator
 
-	CLinCorr	ccalc;	// uses lin corr coeff
+	CLinCorr	ccalc;	// uses Pearson's r
 //	CCrossCorr	ccalc;	// uses 1/n * SUM(a*b)
 
 	ccalc.Initialize( flog, i1, w1, h1, i2, w2, h2, Nx, Ny );
@@ -1017,7 +1017,7 @@ skip:
 		if( verbose ) {
 
 			fprintf( flog,
-			"NormCorr: No legal subregions at all...\n");
+			"NormCorr: No legal subregions at all...\n" );
 
 			fprintf( flog,
 			"NormCorr: Maximum correlation of %f at [%d,%d].\n",
@@ -1114,7 +1114,7 @@ skip:
 /* CorrPatchToImage ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return the normalized cross-correlation and (dx, dy), which
+// Return the standard cross-correlation and (dx, dy), which
 // must be added to points in patch1 to match image2.
 //
 // Search confined to disc: (origin, radius) = {Ox, Oy, radius}.
@@ -1701,8 +1701,6 @@ public:
 		void*			arglc );
 
 	double CalcR( double rslt );
-
-	double XCor( const vector<double> &rslt, int x, int y );
 };
 
 
@@ -1783,18 +1781,6 @@ double CRQ::CalcR( double rslt )
 	double	r	= (d < n * n * 1.0E-9 ? 0.0 : num / sqrt( d ));
 
 	return r;
-}
-
-
-double CRQ::XCor( const vector<double> &rslt, int x, int y )
-{
-	int	ix = (x >= 0 ? x : Nx + x);
-	int	iy = (y >= 0 ? y : Ny + y);
-
-	BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, x, y );
-	int i2c = IntegralTable( i2nz, w2, OL2 );
-
-	return rslt[ix+Nx*iy] / ((double)Nxy * i2c);
 }
 
 /* --------------------------------------------------------------- */
@@ -2013,7 +1999,7 @@ static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
 #endif
 
 
-// Return normalized cross-correlation and additive displacement
+// Return cross-correlation and additive displacement
 // (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // X-interval of offsets (lags) searched is [nnegx, nposx).
@@ -2283,7 +2269,7 @@ double CorrPatchesRQ(
 		if( verbose ) {
 
 			fprintf( flog,
-			"RQ: No legal subregions at all...\n");
+			"RQ: No legal subregions at all...\n" );
 
 			fprintf( flog,
 			"RQ: Max corr %f, max Q %f at [dx,dy]=[%d,%d].\n",
@@ -2325,7 +2311,7 @@ double CorrPatchesRQ(
 /* CorrPatchesMaxQ ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return normalized cross-correlation and additive displacement
+// Return cross-correlation and additive displacement
 // (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // X-interval of offsets (lags) searched is [nnegx, nposx).
@@ -2342,7 +2328,7 @@ double CorrPatchesRQ(
 // 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
 // the correct size it is used. Otherwise recomputed here.
 //
-// Find peak using Q...correlation values are normed cross corrs.
+// Find peak using Q...correlation values are standard cross corrs.
 //
 double CorrPatchesMaxQ(
 	FILE					*flog,
@@ -2595,7 +2581,7 @@ double CorrPatchesMaxQ(
 		if( verbose ) {
 
 			fprintf( flog,
-			"MaxQ: No legal subregions at all...\n");
+			"MaxQ: No legal subregions at all...\n" );
 
 			fprintf( flog,
 			"MaxQ: Max corr %f, max Q %f at [dx,dy]=[%d,%d].\n",
@@ -2637,7 +2623,7 @@ double CorrPatchesMaxQ(
 /* CorrPatchesMaxR ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return normalized cross-correlation and additive displacement
+// Return cross-correlation and additive displacement
 // (dx, dy) that places set ip1 into bounding box of ip2.
 //
 // X-interval of offsets (lags) searched is [nnegx, nposx).
@@ -2659,7 +2645,7 @@ double CorrPatchesMaxQ(
 // 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
 // the correct size it is used. Otherwise recomputed here.
 //
-// Find peak using R...correlation values are normed cross corrs.
+// Find peak using R...correlation values are Pearson's R.
 //
 double CorrPatchesMaxR(
 	FILE					*flog,
@@ -2743,8 +2729,7 @@ double CorrPatchesMaxR(
 
 // Prepare correlation calculator
 
-//	CXCQ	ccalc;	// uses 1/n * SUM(a*b)
-	CRQ		ccalc;	// uses Pearson's r
+	CRQ	ccalc;	// uses Pearson's r
 
 	ccalc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
 
@@ -2917,12 +2902,26 @@ double CorrPatchesMaxR(
 
 // Any solution?
 
-	if( rx == -1 || qual < qtol || bigR > 1.01 ) {
+	if( rx == -1 || qual < qtol || bigR > 1.20 ) {
 
-unreal:
 		if( verbose ) {
 
-			fprintf( flog, "MaxR: No believable solutions...\n");
+			if( rx == -1 ) {
+
+				fprintf( flog,
+				"MaxR: No peak candidates...\n" );
+			}
+			else if( qual < qtol ) {
+
+				fprintf( flog,
+				"MaxR: Low peak qual=%f < qtol=%f...\n",
+				qual, qtol );
+			}
+			else {
+
+				fprintf( flog,
+				"MaxR: High R=%f, max=1.20...\n", bigR );
+			}
 
 			fprintf( flog,
 			"MaxR: Max corr %f at [dx,dy]=[%d,%d].\n",
@@ -2934,21 +2933,6 @@ unreal:
 
 		return 0.0;
 	}
-
-// Fill 4-way R neighborhood with cross corr values
-
-#if 1
-	R[(rx)   + wR*(ry-1)] = ccalc.XCor( rslt, rx-cx,   ry-cy-1 );
-	R[(rx-1) + wR*(ry)]   = ccalc.XCor( rslt, rx-cx-1, ry-cy );
-	R[(rx)   + wR*(ry)]   = ccalc.XCor( rslt, rx-cx,   ry-cy );
-	R[(rx+1) + wR*(ry)]   = ccalc.XCor( rslt, rx-cx+1, ry-cy );
-	R[(rx)   + wR*(ry+1)] = ccalc.XCor( rslt, rx-cx,   ry-cy+1 );
-
-	bigR = R[rx+ wR*ry];
-
-	if( bigR > 1.01 )
-		goto unreal;
-#endif
 
 // Reports
 
