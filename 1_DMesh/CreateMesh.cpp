@@ -1486,4 +1486,209 @@ exit:
 	return 0;
 }
 
+/* --------------------------------------------------------------- */
+/* MeshCreateX --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Divide bounding box B into regular array of triangles.
+// Fill in vector of triangles and control points.
+//
+// Return 0 always (no error).
+//
+int MeshCreateX(
+	vector<triangle>	&tri,
+	vector<vertex>		&ctl,
+	const vector<Point>	&pts,
+	const IBox			&B,
+	FILE*				flog )
+{
+	clock_t	t0 = StartTiming();
+
+	tri.clear();
+	ctl.clear();
+
+/* --------------- */
+/* Regular spacing */
+/* --------------- */
+
+	double	Dx	= GBL.msh.MNL,
+			Dy	= GBL.msh.MNL;
+	int		Lx	= B.R - B.L,
+			Ly	= B.T - B.B,
+			Nx,
+			Ny;
+
+	if( !Dx || Dx >= Lx ) {
+		Nx = 1;
+		Dx = Lx;
+	}
+	else {
+		Nx = int(ceil( Lx / Dx ));
+		Dx = Lx / Nx;
+	}
+
+	if( !Dy || Dy >= Ly ) {
+		Ny = 1;
+		Dy = Ly;
+	}
+	else {
+		Ny = int(ceil( Ly / Dy ));
+		Dy = Ly / Ny;
+	}
+
+/* ----------------------------------------- */
+/* Reduce tri count while Atri > GBL.msh.MTA */
+/* ----------------------------------------- */
+
+	if( GBL.A.layer != GBL.B.layer ) {
+
+		while( Nx*Ny > 1 && (Lx*Ly) / (Nx*Ny * 2) < GBL.msh.MTA ) {
+
+			if( Nx >= Ny )
+				Dx = Lx / --Nx;
+			else
+				Dy = Ly / --Ny;
+		}
+	}
+
+/* ----------------------- */
+/* Report basic grid specs */
+/* ----------------------- */
+
+	fprintf( flog, "Lx Dx Nx: %5d %8.2f %3d\n", Lx, Dx, Nx );
+	fprintf( flog, "Ly Dy Ny: %5d %8.2f %3d\n", Ly, Dy, Ny );
+
+/* ---------- */
+/* Create ctl */
+/* ---------- */
+
+	for( int iy = 0; iy <= Ny; ++iy ) {
+
+		int	y = (iy < Ny ? B.B + int(iy*Dy) : B.T);
+
+		for( int ix = 0; ix <= Nx; ++ix ) {
+
+			int	x = (ix < Nx ? B.L + int(ix*Dx) : B.R);
+
+			ctl.push_back( vertex( x, y ) );
+		}
+	}
+
+/* ---------- */
+/* Create tri */
+/* ---------- */
+
+	int	w = Nx + 1;
+
+	for( int iy = 0; iy < Ny; ++iy ) {
+
+		for( int ix = 0; ix < Nx; ++ix ) {
+
+			triangle	t;
+
+			t.v[0] = ix + w * iy;
+			t.v[1] = t.v[0] + 1;
+			t.v[2] = t.v[0] + w;
+			tri.push_back( t );
+
+			t.v[0] = t.v[2];
+			t.v[2] = t.v[0] + 1;
+			tri.push_back( t );
+		}
+	}
+
+/* ---------------- */
+/* Remove empty tri */
+/* ---------------- */
+
+	const double	occ = 0.75;
+
+	int	ntri = tri.size(),
+		npnt = pts.size();
+
+// map pts into their triangles
+
+	vector<int>	in( ntri, 0 );
+
+	for( int i = 0; i < npnt; ++i ) {
+
+		vertex	v( int(pts[i].x), int(pts[i].y) );
+
+		for( int j = 0; j < ntri; ++j ) {
+
+			const triangle& T = tri[j];
+
+			if( InTriangle(
+				ctl[T.v[0]], ctl[T.v[1]], ctl[T.v[2]], v ) ) {
+
+				++in[j];
+				break;
+			}
+		}
+	}
+
+// remove tri with low occupancy
+
+	for( int i = ntri - 1; i >= 0; --i ) {
+
+		const triangle&	T = tri[i];
+
+		if( !in[i] ||
+			in[i] <= occ * AreaOfTriangle(
+			ctl[T.v[0]], ctl[T.v[1]], ctl[T.v[2]] ) ) {
+
+			tri.erase( tri.begin() + i );
+			--ntri;
+		}
+	}
+
+/* ----------------------- */
+/* Remove unreferenced ctl */
+/* ----------------------- */
+
+	if( ntri < in.size() ) {
+
+		fprintf( flog,
+		"\nOf %d triangles, %d were above %3d%% occupancy.\n",
+		in.size(), ntri, int(occ*100.0) );
+
+		for( int i = ctl.size() - 1; i >= 0; --i ) {
+
+			for( int j = 0; j < ntri; ++j ) {
+
+				const triangle&	T = tri[j];
+
+				if( T.v[0] == i || T.v[1] == i || T.v[2] == i )
+					goto next_i;
+			}
+
+			// not ref'd
+
+			ctl.erase( ctl.begin() + i );
+
+			for( int j = 0; j < ntri; ++j ) {
+
+				triangle&	T = tri[j];
+
+				if( T.v[0] > i ) --T.v[0];
+				if( T.v[1] > i ) --T.v[1];
+				if( T.v[2] > i ) --T.v[2];
+			}
+next_i:;
+		}
+	}
+
+/* ------------ */
+/* Final report */
+/* ------------ */
+
+	fprintf( flog,
+	"\nSTAT: From %d pts, got %d triangles, %d control points.\n",
+	pts.size(), tri.size(), ctl.size() );
+
+	StopTiming( flog, "MeshCreate", t0 );
+
+	return 0;
+}
+
 

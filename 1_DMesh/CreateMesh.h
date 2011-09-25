@@ -30,4 +30,11 @@ int MeshCreate(
 	const IBox			&B,
 	FILE*				flog );
 
+int MeshCreateX(
+	vector<triangle>	&tri,
+	vector<vertex>		&ctl,
+	const vector<Point>	&pts,
+	const IBox			&B,
+	FILE*				flog );
+
 
