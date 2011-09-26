@@ -211,10 +211,10 @@ int Propagate(
 			++cnt;
 
 			// push the four neighbors
-			if( x-1 >= 0 )	st.push(j-1);
-			if( x+1 <  w )	st.push(j+1);
-			if( y-1 >= 0 )	st.push(j-w);
-			if( y+1 <  h )	st.push(j+w);
+			if( x - 1 >= 0 )	st.push( j - 1 );
+			if( x + 1 <  w )	st.push( j + 1 );
+			if( y - 1 >= 0 )	st.push( j - w );
+			if( y + 1 <  h )	st.push( j + w );
 		}
 	}
 
@@ -266,10 +266,10 @@ int Propagate(
 			++cnt;
 
 			// push the four neighbors
-			if( x-1 >= 0 )	st.push(j-1);
-			if( x+1 <  w )	st.push(j+1);
-			if( y-1 >= 0 )	st.push(j-w);
-			if( y+1 <  h )	st.push(j+w);
+			if( x - 1 >= 0 )	st.push( j - 1 );
+			if( x + 1 <  w )	st.push( j + 1 );
+			if( y - 1 >= 0 )	st.push( j - w );
+			if( y + 1 <  h )	st.push( j + w );
 		}
 	}
 
