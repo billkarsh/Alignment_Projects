@@ -62,6 +62,27 @@ int Propagate(
 	double			thresh,
 	double			set_to );
 
+int MapBlob(
+	vector<uint8>			&map,
+	const vector<double>	&I,
+	int						w,
+	int						h,
+	int						first,
+	double					tmin,
+	double					tmax );
+
+int MapBlob(
+	vector<uint8>	&map,
+	const uint8		*I,
+	int				w,
+	int				h,
+	int				first,
+	int				tmin,
+	int				tmax );
+
+void DilateMap1Pix( vector<uint8> &map, int w, int h );
+void ErodeMap1Pix( vector<uint8> &map, int w, int h );
+
 /* --------------------------------------------------------------- */
 /* Polygons ------------------------------------------------------ */
 /* --------------------------------------------------------------- */

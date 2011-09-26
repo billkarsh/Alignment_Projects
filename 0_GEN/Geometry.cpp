@@ -277,6 +277,139 @@ int Propagate(
 }
 
 /* --------------------------------------------------------------- */
+/* MapBlob ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Given image <I> and empty <map>, create connected object
+// by placing a one into map at each pixel in I whose value
+// is in range [tmin, tmax]. Starts at seed point <first>.
+//
+// Return object pixel count (area).
+//
+int MapBlob(
+	vector<uint8>			&map,
+	const vector<double>	&I,
+	int						w,
+	int						h,
+	int						first,
+	double					tmin,
+	double					tmax )
+{
+	stack<int>	st;
+	int			cnt = 0;
+
+	st.push( first );
+
+	while( !st.empty() ) {
+
+		int		j = st.top();
+
+		st.pop();
+
+		if( !map[j] && tmin <= I[j] && I[j] <= tmax ) {
+
+			int		y = j / w;
+			int		x = j - w * y;
+
+			map[j] = 1;
+			++cnt;
+
+			// push the four neighbors
+			if( x - 1 >= 0 )	st.push( j - 1 );
+			if( x + 1 <  w )	st.push( j + 1 );
+			if( y - 1 >= 0 )	st.push( j - w );
+			if( y + 1 <  h )	st.push( j + w );
+		}
+	}
+
+	return cnt;
+}
+
+
+int MapBlob(
+	vector<uint8>	&map,
+	const uint8		*I,
+	int				w,
+	int				h,
+	int				first,
+	int				tmin,
+	int				tmax )
+{
+	stack<int>	st;
+	int			cnt = 0;
+
+	st.push( first );
+
+	while( !st.empty() ) {
+
+		int		j = st.top();
+
+		st.pop();
+
+		if( !map[j] && tmin <= I[j] && I[j] <= tmax ) {
+
+			int		y = j / w;
+			int		x = j - w * y;
+
+			map[j] = 1;
+			++cnt;
+
+			// push the four neighbors
+			if( x - 1 >= 0 )	st.push( j - 1 );
+			if( x + 1 <  w )	st.push( j + 1 );
+			if( y - 1 >= 0 )	st.push( j - w );
+			if( y + 1 <  h )	st.push( j + w );
+		}
+	}
+
+	return cnt;
+}
+
+/* --------------------------------------------------------------- */
+/* DilateMap1Pix ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Dilate bitmap <map> 1 pixel.
+//
+// Version is sloppy in that it does not act on 1-pixel border.
+//
+void DilateMap1Pix( vector<uint8> &map, int w, int h )
+{
+	vector<uint8>	org = map;
+	int				N	= w * h - w - 1;
+
+	for( int i = w + 1; i < N; ++i ) {
+
+		map[i] |= org[i - 1];
+		map[i] |= org[i + 1];
+		map[i] |= org[i - w];
+		map[i] |= org[i + w];
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* ErodeMap1Pix -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Erode bitmap <map> 1 pixel.
+//
+// Version is sloppy in that it does not act on 1-pixel border.
+//
+void ErodeMap1Pix( vector<uint8> &map, int w, int h )
+{
+	vector<uint8>	org = map;
+	int				N	= w * h - w - 1;
+
+	for( int i = w + 1; i < N; ++i ) {
+
+		map[i] &= org[i - 1];
+		map[i] &= org[i + 1];
+		map[i] &= org[i - w];
+		map[i] &= org[i + w];
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* PixelListFromPolygon ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
