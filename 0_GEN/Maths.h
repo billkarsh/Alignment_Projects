@@ -50,6 +50,7 @@ public:
 
 
 void Stats( const vector<double> &v, double &avg, double &std );
+void Stats( const uint8 *v, int N, double &avg, double &std );
 
 void StatsRasterNonZeros(
 	const uint8*	raster,

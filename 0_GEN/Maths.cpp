@@ -73,6 +73,18 @@ void Stats( const vector<double> &v, double &avg, double &std )
 	m.Stats( avg, std );
 }
 
+// Finds statistics on an array of N uint8
+//
+void Stats( const uint8 *v, int N, double &avg, double &std )
+{
+	MeanStd	m;
+
+	for( int i = 0; i < N; ++i )
+		m.Element( v[i] );
+
+	m.Stats( avg, std );
+}
+
 /* --------------------------------------------------------------- */
 /* StatsRasterNonZeros ------------------------------------------- */
 /* --------------------------------------------------------------- */
