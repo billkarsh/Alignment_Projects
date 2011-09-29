@@ -486,7 +486,7 @@ void Raster8ToTifFlt(
 
 // Set values for basic tags before adding data
 	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
-	TIFFSetField( image, TIFFTAG_IMAGELENGTH,h );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH, h );
 	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 32 );
 	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
 	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
@@ -538,7 +538,7 @@ void Raster8ToTif8(
 
 // Set values for basic tags before adding data
 	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
-	TIFFSetField( image, TIFFTAG_IMAGELENGTH,h );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH, h );
 	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 8 );
 	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
 	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
@@ -553,7 +553,8 @@ void Raster8ToTif8(
 	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 
 // Write the information to the file
-	TIFFWriteEncodedStrip( image, 0, (uint8*)raster, w*h );
+	TIFFWriteEncodedStrip( image, 0,
+		(void*)raster, w * h * sizeof(uint8) );
 
 // Close the file
 	TIFFClose( image );
@@ -580,7 +581,7 @@ void Raster16ToTif16(
 
 // Set values for basic tags before adding data
 	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
-	TIFFSetField( image, TIFFTAG_IMAGELENGTH,h );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH, h );
 	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 16 );
 	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
 	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
@@ -595,7 +596,8 @@ void Raster16ToTif16(
 	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 
 // Write the information to the file
-	TIFFWriteEncodedStrip( image, 0, (uint8*)raster, w*h );
+	TIFFWriteEncodedStrip( image, 0,
+		(void*)raster, w * h * sizeof(uint16) );
 
 // Close the file
 	TIFFClose( image );
@@ -613,7 +615,6 @@ void Raster32ToTifRGBA(
 	FILE*			flog )
 {
 	TIFF	*image;
-	int		spp = 4;
 
 	if( !(image = TIFFOpen( name, "w" )) ) {
 		fprintf( flog,
@@ -623,9 +624,9 @@ void Raster32ToTifRGBA(
 
 // Set values for basic tags before adding data
 	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
-	TIFFSetField( image, TIFFTAG_IMAGELENGTH,h );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH, h );
 	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 8 );
-	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, spp );
+	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 4 );
 	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
 	TIFFSetField( image, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
 
@@ -639,7 +640,8 @@ void Raster32ToTifRGBA(
 	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 
 // Write the information to the file
-	TIFFWriteEncodedStrip( image, 0, (uint32*)raster, w*h*spp );
+	TIFFWriteEncodedStrip( image, 0,
+		(void*)raster, w * h * sizeof(uint32) );
 
 // Close the file
 	TIFFClose( image );
