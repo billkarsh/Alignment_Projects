@@ -418,6 +418,103 @@ void IFT_2D(
 }
 
 /* --------------------------------------------------------------- */
+/* Convolve ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Convolve src with filter (kernel) (response function) K.
+// Optionally normalize values in K. If kfft is non-empty and
+// correct size it is assumed valid.
+//
+// dst can be same as src if desired.
+//
+void Convolve(
+	vector<double>			&dst,
+	const vector<double>	&src,
+	int						ws,
+	int						hs,
+	const double			*K,
+	int						wk,
+	int						hk,
+	bool					kIsSymmetric,
+	bool					preNormK,
+	vector<CD>				&kfft )
+{
+	int	Ns	= ws * hs,
+		Nk	= wk * hk,
+		Nx	= FFTSize( ws, wk / (1 + kIsSymmetric) ),
+		Ny	= FFTSize( hs, hk / (1 + kIsSymmetric) ),
+		Nxy	= Nx * Ny,
+		M	= Ny*(Nx/2+1);
+
+// Prepare K fft
+
+	if( kfft.size() != M ) {
+
+		// workspace image
+		vector<double>	KK( Nxy, 0.0 );
+		double			nrm = 1.0;
+
+		// normalization
+		if( preNormK ) {
+
+			nrm = 0.0;
+
+			for( int i = 0; i < Nk; ++i )
+				nrm += K[i];
+
+			if( !nrm )
+				nrm = 1.0;
+		}
+
+		// load workspace
+		int	w2 = wk / 2,
+			h2 = hk / 2;
+
+		for( int i = -h2; i <= h2; ++i ) {
+
+			int	y = (i >= 0 ? i : Ny + i);
+
+			for( int j = -w2; j <= w2; ++j ) {
+
+				int	x = (j >= 0 ? j : Nx + j);
+
+				KK[x + Nx*y] = K[j+w2 + wk*(i+h2)] / nrm;
+			}
+		}
+
+		// FFT
+		FFT_2D( kfft, KK, Nx, Ny );
+	}
+
+// Prepare src fft
+
+	vector<double>	SS( Nxy, 0.0 );
+	vector<CD>		sfft;
+
+	CopyRaster( &SS[0], Nx, &src[0], ws, ws, hs );
+
+	FFT_2D( sfft, SS, Nx, Ny );
+
+// Convolve
+
+	for( int i = 0; i < M; ++i )
+		sfft[i] *= kfft[i];
+
+	IFT_2D( SS, sfft, Nx, Ny );
+
+// Copy back
+
+	dst.resize( Ns );
+
+	CopyRaster( &dst[0], ws, &SS[0], Nx, ws, hs );
+
+// Normalize
+
+	for( int i = 0; i < Ns; ++i )
+		dst[i] /= Nxy;
+}
+
+/* --------------------------------------------------------------- */
 /* ParabPeakFFT -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
