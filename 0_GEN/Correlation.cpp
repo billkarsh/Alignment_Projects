@@ -1850,13 +1850,16 @@ int CRQ::CheckDensity(
 	EvalType		LegalCnt,
 	void*			arglc )
 {
-	int		i1c, i2c, ok = true;
+	int		ok = true;
 
-	i1c = IntegralTable( i1nz, w1, OL1 );
-	i2c = IntegralTable( i2nz, w2, OL2 );
+	if( LegalCnt ) {
 
-	if( LegalCnt && !LegalCnt( i1c, i2c, arglc ) )
-		ok = false;
+		int	i1c = IntegralTable( i1nz, w1, OL1 );
+		int	i2c = IntegralTable( i2nz, w2, OL2 );
+
+		if( !LegalCnt( i1c, i2c, arglc ) )
+			ok = false;
+	}
 
 	return ok;
 }
@@ -2247,24 +2250,27 @@ double CorrPatchesRQ(
 
 //-----------------------------
 #if	_debugcorr == 1
+{
 	char	simg[32];
 	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
 	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
 	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
 	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-	vector<uint8> tif( nR );
-	double mx = 0;
-	for( int i = 0; i < nR; ++i ) if( R[i] > mx ) mx = R[i];
-	for( int i = 0; i < nR; ++i ) {
 
-		if( R[i] > 0.0 )
-			tif[i] = int(250 * R[i] / mx);
-		else
-			tif[i] = 0;
-	}
+	vector<uint16>	tif( nR );
+	double			mx = 0;
+
+	for( int i = 0; i < nR; ++i )
+		if( R[i] > mx ) mx = R[i];
+
+	for( int i = 0; i < nR; ++i )
+		tif[i] = (R[i] > 0 ? int(1000 * R[i] / mx) : 0);
+
 	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
-	Raster8ToTif8( simg, &tif[0], wR, hR );
+	Raster16ToTif16( simg, &tif[0], wR, hR );
 	printf( "Center = (%d %d)\n", cx, cy );
+}
 #endif
 //-----------------------------
 
@@ -2559,24 +2565,27 @@ double CorrPatchesMaxQ(
 
 //-----------------------------
 #if	_debugcorr == 1
+{
 	char	simg[32];
 	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
 	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
 	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
 	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-	vector<uint8> tif( nR );
-	double mx = 0;
-	for( int i = 0; i < nR; ++i ) if( R[i] > mx ) mx = R[i];
-	for( int i = 0; i < nR; ++i ) {
 
-		if( R[i] > 0.0 )
-			tif[i] = int(250 * R[i] / mx);
-		else
-			tif[i] = 0;
-	}
+	vector<uint16>	tif( nR );
+	double			mx = 0;
+
+	for( int i = 0; i < nR; ++i )
+		if( R[i] > mx ) mx = R[i];
+
+	for( int i = 0; i < nR; ++i )
+		tif[i] = (R[i] > 0 ? int(1000 * R[i] / mx) : 0);
+
 	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
-	Raster8ToTif8( simg, &tif[0], wR, hR );
+	Raster16ToTif16( simg, &tif[0], wR, hR );
 	printf( "Center = (%d %d)\n", cx, cy );
+}
 #endif
 //-----------------------------
 
@@ -2876,24 +2885,27 @@ double CorrPatchesMaxR(
 
 //-----------------------------
 #if	_debugcorr == 1
+{
 	char	simg[32];
 	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
 	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
 	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
 	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-	vector<uint8> tif( nR );
-	double mx = 0;
-	for( int i = 0; i < nR; ++i ) if( R[i] > mx ) mx = R[i];
-	for( int i = 0; i < nR; ++i ) {
 
-		if( R[i] > 0.0 )
-			tif[i] = int(250 * R[i] / mx);
-		else
-			tif[i] = 0;
-	}
+	vector<uint16>	tif( nR );
+	double			mx = 0;
+
+	for( int i = 0; i < nR; ++i )
+		if( R[i] > mx ) mx = R[i];
+
+	for( int i = 0; i < nR; ++i )
+		tif[i] = (R[i] > 0 ? int(1000 * R[i] / mx) : 0);
+
 	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
-	Raster8ToTif8( simg, &tif[0], wR, hR );
+	Raster16ToTif16( simg, &tif[0], wR, hR );
 	printf( "Center = (%d %d)\n", cx, cy );
+}
 #endif
 //-----------------------------
 
