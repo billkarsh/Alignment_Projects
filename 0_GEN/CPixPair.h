@@ -18,13 +18,6 @@ using namespace std;
 class PixPair {
 
 private:
-	typedef struct {
-		vector<double>	I;		// NxN workspace
-		vector<CD>		flt;	// FFT of filter
-		int				N, M;	// FFT sizes
-	} DoGdata;
-
-private:
 	// There are the actual pixel values for A and B.
 	// There are always original full size (f) versions.
 	// Scaled copies (s) are created if needed.
@@ -46,13 +39,6 @@ public:
 					scl;
 
 private:
-	void DoGSetFilter( DoGdata &D, int r1, int r2, FILE* flog );
-
-	void DoGApply(
-		vector<double>			&dst,
-		const vector<double>	&src,
-		DoGdata					&D );
-
 	void Downsample(
 		vector<double>			&dst,
 		const vector<double>	&src );
