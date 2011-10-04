@@ -497,6 +497,7 @@ void Raster8ToTifFlt(
 	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_NONE );
 #endif
 
+	TIFFSetField( image, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP );
 	TIFFSetField( image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
 	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 
@@ -658,14 +659,67 @@ void Raster16ToTif8(
 	int				h,
 	FILE*			flog )
 {
-	int		N	= w * h;
-	uint8*	buf	= (uint8*)RasterAlloc( N * sizeof(uint8) );
+	int				N = w * h;
+	vector<uint8>	buf( N );
 
 	for( int i = 0; i < N; ++i )
 		buf[i] = raster[i];
 
-	Raster8ToTif8( name, buf, w, h, flog );
-	RasterFree( buf );
+	Raster8ToTif8( name, &buf[0], w, h, flog );
+}
+
+/* --------------------------------------------------------------- */
+/* RasterDblToTifFlt --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void RasterDblToTifFlt(
+	const char*		name,
+	const double*	raster,
+	int				w,
+	int				h,
+	FILE*			flog )
+{
+	TIFF	*image;
+	float	*f;
+
+	if( !(image = TIFFOpen( name, "w" )) ) {
+		fprintf( flog,
+		"TIF(f) Could not open [%s] for writing.\n", name );
+		exit( 42 );
+	}
+
+// Set values for basic tags before adding data
+	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH, h );
+	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 32 );
+	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
+	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
+
+#if USE_TIF_DEFLATE
+	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE );
+#else
+	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_NONE );
+#endif
+
+	TIFFSetField( image, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP );
+	TIFFSetField( image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
+	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+
+// Write the information to the file
+	f = (float*)malloc( w * sizeof(float) );
+
+	for( int row = 0; row < h; ++row ) {
+
+		for( int j = 0; j < w; ++j )
+			f[j] = raster[j + w * row];
+
+		TIFFWriteScanline( image, f, row, 0 );
+	}
+
+	free( f );
+
+// Close the file
+	TIFFClose( image );
 }
 
 /* --------------------------------------------------------------- */
@@ -680,7 +734,7 @@ void CorrThmToTif8(
 	int						th,
 	FILE*					flog )
 {
-	uint8*	buf = (uint8*)RasterAlloc( tw * th * sizeof(uint8) );
+	vector<uint8>	buf( tw * th );
 
 	for( int i = 0; i < th; ++i ) {
 
@@ -697,8 +751,7 @@ void CorrThmToTif8(
 		}
 	}
 
-	Raster8ToTif8( name, buf, tw, th, flog );
-	RasterFree( buf );
+	Raster8ToTif8( name, &buf[0], tw, th, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -712,8 +765,8 @@ void VectorDblToTif8(
 	int						h,
 	FILE*					flog )
 {
-	int		nPts = vals.size();
-	uint8*	buf = (uint8*)RasterAlloc( nPts * sizeof(uint8) );
+	int				nPts = vals.size();
+	vector<uint8>	buf( nPts );
 
 	for( int i = 0; i < nPts; ++i ) {
 
@@ -727,8 +780,7 @@ void VectorDblToTif8(
 		buf[i] = pix;
 	}
 
-	Raster8ToTif8( name, buf, w, h, flog );
-	RasterFree( buf );
+	Raster8ToTif8( name, &buf[0], w, h, flog );
 }
 
 
