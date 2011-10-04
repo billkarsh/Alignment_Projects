@@ -81,6 +81,15 @@ int IndexOfMaxVal( const double *v, int n );
 
 double MedianVal( vector<double> &V );
 
+void LineFit(
+	double			*icpt,
+	double			*slope,
+	double			*lincor,
+	const double	*x,
+	const double	*y,
+	int				i0,
+	int				ilim );
+
 void Histogram(
 	double			&uflo,
 	double			&oflo,

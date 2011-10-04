@@ -359,6 +359,64 @@ double MedianVal( vector<double> &V )
 }
 
 /* --------------------------------------------------------------- */
+/* LineFit ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Fit data pairs (x,y) to line on interval [i0,ilim).
+//
+void LineFit(
+	double			*icpt,
+	double			*slope,
+	double			*lincor,
+	const double	*x,
+	const double	*y,
+	int				i0,
+	int				ilim )
+{
+	double	r, varX, varY,
+			n		= 0.0,
+			sumX	= 0.0,
+			sumY	= 0.0,
+			sumXX	= 0.0,
+			sumYY	= 0.0,
+			sumXY	= 0.0;
+
+/* --------------------------- */
+/* Collect sums over [i0,ilim) */
+/* --------------------------- */
+
+	for( int i = i0; i < ilim; ++i ) {
+
+		double	X = x[i],
+				Y = y[i];
+
+		sumX	+= X;
+		sumY	+= Y;
+		sumXX	+= X * X;
+		sumYY	+= Y * Y;
+		sumXY	+= X * Y;
+		++n;
+	}
+
+/* --------------- */
+/* Compute results */
+/* --------------- */
+
+	r		= n * sumXY - sumX * sumY;
+	varX	= n * sumXX - sumX * sumX;
+	varY	= n * sumYY - sumY * sumY;
+
+	if( icpt )
+		*icpt = (sumXX * sumY - sumX * sumXY) / varX;
+
+	if( slope )
+		*slope = r / varX;
+
+	if( lincor )
+		*lincor = r / sqrt( varX * varY );
+}
+
+/* --------------------------------------------------------------- */
 /* Histogram ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
