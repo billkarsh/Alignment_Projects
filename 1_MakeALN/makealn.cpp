@@ -467,6 +467,43 @@ static void WriteSub8File()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteSub4File ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteSub4File()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/sub4", gArgs.outdir );
+
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+
+	fprintf( f, "if ($#argv == 1) then\n" );
+	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tset last = $2\n" );
+	fprintf( f, "endif\n\n" );
+
+	fprintf( f, "foreach i (`seq $1 $last`)\n" );
+	fprintf( f, "\techo $i\n" );
+	fprintf( f, "\tcd $i\n" );
+	fprintf( f, "\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 4 EXTRA='\"\"'\n" );
+	fprintf( f, "\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 4 EXTRA='\"\"'\n" );
+	fprintf( f, "\tcd ..\n" );
+	fprintf( f, "end\n" );
+
+	fclose( f );
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s/sub4", gArgs.outdir );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteReportFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1273,6 +1310,7 @@ int main( int argc, char* argv[] )
 	WriteSubmosFile();
 
 	WriteSub8File();
+	WriteSub4File();
 	WriteReportFile();
 	WriteCombineFile();
 	WriteFinishFile();
