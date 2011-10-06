@@ -88,7 +88,7 @@ typedef struct {
 typedef struct {
 // entry: ThmPair.txt
 	TForm	T;
-	double	A, Q, R;
+	double	A, R;
 	int		atl, btl,
 			acr, bcr,
 			err;
@@ -150,6 +150,8 @@ bool ReadAllThmPair(
 	int				alr,
 	int				blr,
 	FILE			*flog = stdout );
+
+void WriteThmPairHdr( FILE *f );
 
 void WriteThmPair(
 	const ThmPair	&tpr,

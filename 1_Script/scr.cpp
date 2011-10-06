@@ -1,5 +1,7 @@
 
 
+#include	"PipeFiles.h"
+
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"Disk.h"
@@ -703,15 +705,9 @@ static void OneTprFile( const char *lyrdir, int a, int b )
     char	name[2048];
     FILE	*f;
 
-// approximate transform file
-
 	sprintf( name, "%s/ThmPair_%d_@_%d.txt", lyrdir, a, b );
-
 	f = FileOpenOrDie( name, "w", flog );
-
-	fprintf( f, "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tQ\tR"
-	"\tT0\tT1\tX\tT3\tT4\tY\n" );
-
+	WriteThmPairHdr( f );
 	fclose( f );
 }
 

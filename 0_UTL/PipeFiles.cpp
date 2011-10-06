@@ -302,7 +302,8 @@ bool IDBAllTil2Img(
 			Til2Img	E;
 			char	buf[2048];
 
-			sscanf( LS.line, "%d\t%lf\t%lf\t%lf"
+			sscanf( LS.line,
+			"%d\t%lf\t%lf\t%lf"
 			"\t%lf\t%lf\t%lf\t%[^\t\n]",
 			&E.tile,
 			&E.T.t[0], &E.T.t[1], &E.T.t[2],
@@ -380,7 +381,8 @@ bool IDBTil2Img(
 			if( t2i.tile != tile )
 				continue;
 
-			sscanf( LS.line, "%d\t%lf\t%lf\t%lf"
+			sscanf( LS.line,
+			"%d\t%lf\t%lf\t%lf"
 			"\t%lf\t%lf\t%lf\t%[^\t\n]",
 			&t2i.tile,
 			&t2i.T.t[0], &t2i.T.t[1], &t2i.T.t[2],
@@ -633,11 +635,12 @@ bool ReadThmPair(
 
 			while( LS.Get( f ) > 0 ) {
 
-				sscanf( LS.line, "%d\t%d\t%d\t%d\t%d"
-				"\t%lf\t%lf\t%lf"
+				sscanf( LS.line,
+				"%d\t%d\t%d\t%d\t%d"
+				"\t%lf\t%lf"
 				"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				&tpr.atl, &tpr.btl, &tpr.acr, &tpr.bcr, &tpr.err,
-				&tpr.A, &tpr.Q, &tpr.R,
+				&tpr.A, &tpr.R,
 				&tpr.T.t[0], &tpr.T.t[1], &tpr.T.t[2],
 				&tpr.T.t[3], &tpr.T.t[4], &tpr.T.t[5] );
 
@@ -648,8 +651,8 @@ bool ReadThmPair(
 				}
 
 				fprintf( flog, "ReadThmPair: Got entry: "
-				"A=%f, Q=%f, R=%f, T=[%f %f %f %f %f %f].\n",
-				tpr.A, tpr.Q, tpr.R,
+				"A=%f, R=%f, T=[%f %f %f %f %f %f].\n",
+				tpr.A, tpr.R,
 				tpr.T.t[0], tpr.T.t[1], tpr.T.t[2],
 				tpr.T.t[3], tpr.T.t[4], tpr.T.t[5] );
 
@@ -716,11 +719,12 @@ bool ReadAllThmPair(
 
 				ThmPair		P;
 
-				sscanf( LS.line, "%d\t%d\t%d\t%d\t%d"
-				"\t%lf\t%lf\t%lf"
+				sscanf( LS.line,
+				"%d\t%d\t%d\t%d\t%d"
+				"\t%lf\t%lf"
 				"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				&P.atl, &P.btl, &P.acr, &P.bcr, &P.err,
-				&P.A, &P.Q, &P.R,
+				&P.A, &P.R,
 				&P.T.t[0], &P.T.t[1], &P.T.t[2],
 				&P.T.t[3], &P.T.t[4], &P.T.t[5] );
 
@@ -740,6 +744,17 @@ exit:
 	M.Release();
 
 	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* WriteThmPairHdr ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void WriteThmPairHdr( FILE *f )
+{
+	fprintf( f,
+	"Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR"
+	"\tT0\tT1\tX\tT3\tT4\tY\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -766,11 +781,12 @@ void WriteThmPair(
 		FILE *f = fopen( name, "a" );
 
 		if( f ) {
-			fprintf( f, "%d\t%d\t%d\t%d\t%d"
-				"\t%f\t%f\t%f"
+			fprintf( f,
+				"%d\t%d\t%d\t%d\t%d"
+				"\t%f\t%f"
 				"\t%f\t%f\t%f\t%f\t%f\t%f\n",
 				atl, btl, acr, bcr, tpr.err,
-				tpr.A, tpr.Q, tpr.R,
+				tpr.A, tpr.R,
 				tpr.T.t[0], tpr.T.t[1], tpr.T.t[2],
 				tpr.T.t[3], tpr.T.t[4], tpr.T.t[5] );
 			fflush( f );

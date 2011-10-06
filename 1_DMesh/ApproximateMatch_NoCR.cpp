@@ -1164,7 +1164,6 @@ static void RecordResult( const CorRec &best )
 
 	tpr.T	= best.T;
 	tpr.A	= best.A;
-	tpr.Q	= best.Q;
 	tpr.R	= best.R;
 	tpr.err	= gErr;
 

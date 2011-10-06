@@ -25,6 +25,8 @@
 // is to be fetched from a given IDB.
 //
 
+#include	"PipeFiles.h"
+
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"
@@ -204,20 +206,17 @@ void CArgs_ptx::TopLevel()
 }
 
 /* --------------------------------------------------------------- */
-/* ThmPair ------------------------------------------------------- */
+/* ThmPairFile --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void ThmPair( const char *sz, int za, int zb )
+static void ThmPairFile( const char *sz, int za, int zb )
 {
 	char	buf[2048];
 	FILE	*f;
 
 	sprintf( buf, "%s/ThmPair_%d_@_%d.txt", sz, za, zb );
 	f = FileOpenOrDie( buf, "w", flog );
-
-	fprintf( f, "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tQ\tR"
-	"\tT0\tT1\tX\tT3\tT4\tY\n" );
-
+	WriteThmPairHdr( f );
 	fclose( f );
 }
 
@@ -225,7 +224,7 @@ void ThmPair( const char *sz, int za, int zb )
 /* TileDir ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void TileDir( const char *sz, int itile )
+static void TileDir( const char *sz, int itile )
 {
 	char	buf[4096];
 
@@ -238,7 +237,7 @@ void TileDir( const char *sz, int itile )
 /* EachLayer ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void EachLayer()
+static void EachLayer()
 {
 	for( int iz = 0; iz < 2; ++iz ) {
 
@@ -258,14 +257,14 @@ void EachLayer()
 		sprintf( sz, "%s/%d", gArgs.tmp, gArgs.z[iz] );
 		DskCreateDir( sz, flog );
 
-		/* ------- */
-		/* ThmPair */
-		/* ------- */
+		/* ----------- */
+		/* ThmPairFile */
+		/* ----------- */
 
-		ThmPair( sz, gArgs.z[iz], gArgs.z[iz] );
+		ThmPairFile( sz, gArgs.z[iz], gArgs.z[iz] );
 
 		if( gArgs.z[1] != gArgs.z[0] )
-			ThmPair( sz, gArgs.z[iz], gArgs.z[!iz] );
+			ThmPairFile( sz, gArgs.z[iz], gArgs.z[!iz] );
 
 		/* ----------------------------- */
 		/* Create tile dir (1 or 2 dirs) */

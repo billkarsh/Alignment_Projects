@@ -1097,7 +1097,6 @@ static void RecordResult( const CorRec &best, int aid, int bid )
 
 	tpr.T	= best.T;
 	tpr.A	= best.A;
-	tpr.Q	= best.Q;
 	tpr.R	= best.R;
 	tpr.err	= gErr;
 

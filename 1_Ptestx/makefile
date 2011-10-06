@@ -21,6 +21,12 @@ SYMBOLS_MYPROJ :=
 SOURCES_MYPROJ := \
 	ptestx.cpp
 
+_SRC_UTL_ := \
+	PipeFiles.cpp
+
+SOURCES_UTL := \
+	$(PATH_UTL)/$(_SRC_UTL_)
+
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp
 
@@ -38,6 +44,8 @@ $(OUTPUT) \
 $(INCLUDES_STD) \
     \
 $(SOURCES_MYPROJ) \
+    \
+$(SOURCES_UTL) \
     \
 $(SOURCES_GEN) \
     \
