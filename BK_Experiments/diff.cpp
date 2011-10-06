@@ -47,7 +47,7 @@ typedef struct {
 typedef struct {
 	TForm	T;
 	double	X, Y,
-			Q, R, A;
+			R, A;
 } CorRec;
 
 
@@ -299,25 +299,6 @@ static bool EnoughPoints( int count1, int count2, void *a )
 }
 
 
-static void QFromAngle(
-	CorRec	&C,
-	double	a,
-	Thumbs	&thm )
-{
-	vector<Point>	ps = thm.apts;
-
-	C.A = a;
-	RotatePoints( ps, C.T, a );
-
-	C.R = CorrPatchesMaxQ(
-		stdout, true, C.Q, C.X, C.Y,
-		ps, thm.av, thm.bpts, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, thm.ftc );
-}
-
-
 static void RFromAngle(
 	CorRec	&C,
 	double	a,
@@ -326,7 +307,6 @@ static void RFromAngle(
 	vector<Point>	ps = thm.apts;
 
 	C.A = a;
-	C.Q = 0.0;
 	RotatePoints( ps, C.T, a );
 
 	C.R = CorrPatchesMaxR(
@@ -338,15 +318,15 @@ static void RFromAngle(
 }
 
 
-static void BasicQScan( Raw& R )
+static void BasicAScan( Raw& R )
 {
 	char	file[256];
 	Thumbs	thm;
 
-	sprintf( file, "angsQ_%s_@_%s.log", R.a.name, R.b.name );
+	sprintf( file, "angsR_%s_@_%s.log", R.a.name, R.b.name );
 	FILE	*f = fopen( file, "w" );
 
-	fprintf( f, "Deg\tR\tQ\tX\tY\tX\tY\n" );
+	fprintf( f, "Deg\tR\tX\tY\tX\tY\n" );
 
 	MakeThumbs( thm, R, 2, 25000, 0.0 );
 
@@ -354,56 +334,12 @@ static void BasicQScan( Raw& R )
 
 		CorRec	C;
 
-		QFromAngle( C, a, thm );
+		RFromAngle( C, a, thm );
 
 		Point	p( C.X * thm.scl, C.Y * thm.scl );
 
-		fprintf( f, "%.3f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
-			a, C.R, C.Q, C.X, C.Y, p.x, p.y );
-	}
-
-	fclose( f );
-}
-
-
-static void QvsSigma( Raw& R )
-{
-	char	file[256];
-	Thumbs	thm;
-	double	s0 =   0.0, sn =  2.0, sd = 0.5;
-	double	a0 = -45.0, an = 45.0, ad = 0.5;
-	vector<vector<double> >	q( int((sn - s0)/sd) + 1 );
-	int						is = 0;
-
-	for( double sig = s0; sig <= sn; sig += sd ) {
-
-		q[is].resize( int((an - a0)/ad) + 1 );
-
-		MakeThumbs( thm, R, 2, 200000, sig );
-
-		int		ia = 0;
-		for( double a = a0; a <= an; a += ad ) {
-
-			CorRec	C;
-
-			QFromAngle( C, a, thm );
-			q[is][ia++] = C.Q;
-		}
-
-		++is;
-	}
-
-	sprintf( file, "angsQ_%s_@_%s.log", R.a.name, R.b.name );
-	FILE	*f = fopen( file, "w" );
-
-	for( int ia = 0; ia < q[0].size(); ++ia ) {
-
-		fprintf( f, "%.3f\t", a0 + ia*ad );
-
-		for( int is = 0; is < q.size(); ++is )
-			fprintf( f, "%.4f\t", q[is][ia] );
-
-		fprintf( f, "\n" );
+		fprintf( f, "%.3f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
+			a, C.R, C.X, C.Y, p.x, p.y );
 	}
 
 	fclose( f );
@@ -414,14 +350,14 @@ static void RvsSigma( Raw& R )
 {
 	char	file[256];
 	Thumbs	thm;
-	double	s0 =   0.0, sn =  6.0, sd = 1.0;
-	double	a0 =  -0.5, an =  3.5, ad = 0.2;
-	vector<vector<double> >	q( int((sn - s0)/sd) + 1 );
+	double	s0 =   0.0, sn =  2.0, sd = 0.5;
+	double	a0 = -45.0, an = 45.0, ad = 0.5;
+	vector<vector<double> >	r( int((sn - s0)/sd) + 1 );
 	int						is = 0;
 
 	for( double sig = s0; sig <= sn; sig += sd ) {
 
-		q[is].resize( int((an - a0)/ad) + 1 );
+		r[is].resize( int((an - a0)/ad) + 1 );
 
 		MakeThumbs( thm, R, 1, 200000, sig );
 
@@ -431,7 +367,7 @@ static void RvsSigma( Raw& R )
 			CorRec	C;
 
 			RFromAngle( C, a, thm );
-			q[is][ia++] = C.R;
+			r[is][ia++] = C.R;
 		}
 
 		++is;
@@ -440,12 +376,12 @@ static void RvsSigma( Raw& R )
 	sprintf( file, "angsR_%s_@_%s.log", R.a.name, R.b.name );
 	FILE	*f = fopen( file, "w" );
 
-	for( int ia = 0; ia < q[0].size(); ++ia ) {
+	for( int ia = 0; ia < r[0].size(); ++ia ) {
 
 		fprintf( f, "%.3f\t", a0 + ia*ad );
 
-		for( int is = 0; is < q.size(); ++is )
-			fprintf( f, "%.4f\t", q[is][ia] );
+		for( int is = 0; is < r.size(); ++is )
+			fprintf( f, "%.4f\t", r[is][ia] );
 
 		fprintf( f, "\n" );
 	}
@@ -476,7 +412,7 @@ static void JustDoOnePair( Raw& R )
 
 	MakeThumbs( thm, R, 2, 25000, 0 );
 
-	QFromAngle( C, 0, thm );
+	RFromAngle( C, 0, thm );
 }
 
 
@@ -511,7 +447,7 @@ int main( int argc, char* argv[] )
 
 
 clock_t	t0 = StartTiming();
-//	BasicQScan( R );
+//	BasicAScan( R );
 TestLoad( argv[1], argv[2] );
 StopTiming( stdout, "exper", t0 );
 
@@ -519,7 +455,6 @@ StopTiming( stdout, "exper", t0 );
 //	TestTemplate( R );
 
 
-//	QvsSigma( R );
 //	RvsSigma( R );
 
 //	JustDoOnePair( R );

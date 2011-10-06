@@ -25,7 +25,6 @@ enum thmerrs {
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	USE_Q		0
 #define	QTOL_SWEEP	0.20
 #define	QTOL_ZERO	0.00
 
@@ -534,14 +533,6 @@ static void QFromAngle(
 
 	RotatePoints( ps, C.T, Tskew, a * PI/180.0 );
 
-#if USE_Q == 1
-	C.R = CorrPatchesMaxQ(
-		flog, false, C.Q, C.X, C.Y,
-		ps, thm.av, thm.bp, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, thm.ftc );
-#else
 	C.Q = C.R = CorrPatchesMaxR(
 		flog, false, C.X, C.Y,
 		ps, thm.av, thm.bp, thm.bv,
@@ -549,7 +540,6 @@ static void QFromAngle(
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
 		qtol, thm.ftc );
-#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -901,14 +891,6 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 
 			C.T.Apply_R_Part( ps );
 
-#if USE_Q == 1
-			C.R = CorrPatchesMaxQ(
-				flog, false, C.Q, C.X, C.Y,
-				ps, thm.av, thm.bp, thm.bv,
-				thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-				BigEnough, (void*)thm.reqArea,
-				EnoughPoints, (void*)thm.reqArea, thm.ftc );
-#else
 			C.Q = C.R = CorrPatchesMaxR(
 				flog, false, C.X, C.Y,
 				ps, thm.av, thm.bp, thm.bv,
@@ -916,7 +898,6 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
 				QTOL_ZERO, thm.ftc );
-#endif
 
 			fprintf( flog,
 			"Tweak %d Q=%.3f, R=%.3f", i, C.Q, C.R );
@@ -956,14 +937,6 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 
 	best.T.Apply_R_Part( ps );
 
-#if USE_Q == 1
-	best.R = CorrPatchesMaxQ(
-		flog, false, best.Q, best.X, best.Y,
-		ps, thm.av, thm.bp, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, thm.ftc );
-#else
 	best.Q = best.R = CorrPatchesMaxR(
 		flog, false, best.X, best.Y,
 		ps, thm.av, thm.bp, thm.bv,
@@ -971,7 +944,6 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
 		QTOL_ZERO, thm.ftc );
-#endif
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);

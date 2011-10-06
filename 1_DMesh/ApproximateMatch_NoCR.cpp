@@ -24,7 +24,6 @@ enum thmerrs {
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	USE_Q		0
 #define	QTOL_SWEEP	0.20
 #define	QTOL_ZERO	0.00
 
@@ -490,14 +489,6 @@ static void QFromAngle(
 
 	RotatePoints( ps, C.T, Tskew, a * PI/180.0 );
 
-#if USE_Q == 1
-	C.R = CorrPatchesMaxQ(
-		flog, false, C.Q, C.X, C.Y,
-		ps, thm.av, thm.bp, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, thm.ftc );
-#else
 	C.Q = C.R = CorrPatchesMaxR(
 		flog, false, C.X, C.Y,
 		ps, thm.av, thm.bp, thm.bv,
@@ -505,7 +496,6 @@ static void QFromAngle(
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
 		qtol, thm.ftc );
-#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -588,6 +578,117 @@ static void AngleScan(
 	StopTiming( stdout, "AngleScan", t0 );
 }
 
+#if 0
+// Experiment to select best angle based on smoothly
+// varying coords through that angle (using X vs A
+// line fits
+//
+static const vector<CorRec>	*_vQ;
+
+
+static bool Sort_vQ_dec( int a, int b )
+{
+	return (*_vQ)[a].Q > (*_vQ)[b].Q;
+}
+
+
+static void AngleScan(
+	CorRec	&best,
+	double	center,
+	double	hlfwid,
+	double	step,
+	ThmRec	&thm,
+	FILE*	flog )
+{
+	fprintf( flog,
+	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f.\n",
+	center, hlfwid, step );
+
+//QFromAngle( best, center, QTOL_SWEEP, thm, flog );
+//return;
+
+	clock_t	t0 = StartTiming();
+
+	best.X	= 0.0;
+	best.Y	= 0.0;
+	best.A	= 0.0;
+	best.Q	= 0.0;
+	best.R	= 0.0;
+
+// Sweep and collect
+
+	vector<CorRec>	vQ;
+
+	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
+
+		CorRec	C;
+
+		QFromAngle( C, a, QTOL_SWEEP, thm, flog );
+		RecordAngle( flog, "Scan", C );
+		vQ.push_back( C );
+	}
+
+// Make indices sorted by decreasing Q
+
+	int	nQ = vQ.size();
+
+	vector<int>	iq( nQ );
+
+	for( int i = 0; i < nQ; ++i )
+		iq[i] = i;
+
+	_vQ = &vQ;
+
+	sort( iq.begin(), iq.end(), Sort_vQ_dec );
+
+// Evaluate sweep
+// Search through decreasing Q.
+// Take first result for which there are also +- 3 data points,
+// and the X and Y coords vary smoothly over that range (r > 0.8).
+
+	for( int i = 0; i < nQ; ++i ) {
+
+		int	ic = iq[i];
+
+		if( ic < 3 )
+			continue;
+
+		if( nQ-1 - ic < 3 )
+			continue;
+
+		vector<double>	A( 7 ), X( 7 ), Y( 7 );
+		double			lincor;
+		int				n = 0;
+
+		for( int j = ic - 3; j <= ic + 3; ++j ) {
+
+			A[n] = vQ[j].A;
+			X[n] = vQ[j].X;
+			Y[n] = vQ[j].Y;
+			++n;
+		}
+
+		LineFit( NULL, NULL, &lincor, &A[0], &X[0], 0, n );
+
+		if( fabs( lincor ) < 0.8 )
+			continue;
+
+		LineFit( NULL, NULL, &lincor, &A[0], &Y[0], 0, n );
+
+		if( fabs( lincor ) < 0.8 )
+			continue;
+
+		best = vQ[ic];
+		break;
+	}
+
+// Report
+
+	RecordAngle( flog, "Best", best );
+
+	StopTiming( stdout, "AngleScan", t0 );
+}
+#endif
 /* --------------------------------------------------------------- */
 /* NewXFromParabola ---------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -857,14 +958,6 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 
 			C.T.Apply_R_Part( ps );
 
-#if USE_Q == 1
-			C.R = CorrPatchesMaxQ(
-				flog, false, C.Q, C.X, C.Y,
-				ps, thm.av, thm.bp, thm.bv,
-				thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-				BigEnough, (void*)thm.reqArea,
-				EnoughPoints, (void*)thm.reqArea, thm.ftc );
-#else
 			C.Q = C.R = CorrPatchesMaxR(
 				flog, false, C.X, C.Y,
 				ps, thm.av, thm.bp, thm.bv,
@@ -872,7 +965,6 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
 				QTOL_ZERO, thm.ftc );
-#endif
 
 			fprintf( flog,
 			"Tweak %d Q=%.3f, R=%.3f", i, C.Q, C.R );
@@ -912,14 +1004,6 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 
 	best.T.Apply_R_Part( ps );
 
-#if USE_Q == 1
-	best.R = CorrPatchesMaxQ(
-		flog, false, best.Q, best.X, best.Y,
-		ps, thm.av, thm.bp, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, thm.ftc );
-#else
 	best.Q = best.R = CorrPatchesMaxR(
 		flog, false, best.X, best.Y,
 		ps, thm.av, thm.bp, thm.bv,
@@ -927,7 +1011,6 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
 		QTOL_ZERO, thm.ftc );
-#endif
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);
