@@ -162,29 +162,60 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 	if( !ReadMeshParams( msh, A.layer ) )
 		return false;
 
+// Context dependent choices: (same,cross) layer
+
+	if( A.layer == B.layer ) {
+
+		ctx.scale		= 1.0;
+		ctx.xscale		= 1.0;
+		ctx.yscale		= 1.0;
+		ctx.skew		= 0.0;
+		ctx.nbmax		= thm.NBMXHT_SL;
+		ctx.halfAngDN	= thm.HFANGDN_SL;
+		ctx.halfAngPR	= thm.HFANGPR_SL;
+		ctx.rthresh		= thm.RTRSH_SL;
+		ctx.min_2D_olap	= thm.OLAP2D_SL;
+		ctx.pkwid		= thm.PKWID_SL;
+		ctx.pkgrd		= thm.PKGRD_SL;
+	}
+	else {
+
+		ctx.scale		= thm.SCALE;
+		ctx.xscale		= thm.XSCALE;
+		ctx.yscale		= thm.YSCALE;
+		ctx.skew		= thm.SKEW;
+		ctx.nbmax		= thm.NBMXHT_XL;
+		ctx.halfAngDN	= thm.HFANGDN_XL;
+		ctx.halfAngPR	= thm.HFANGPR_XL;
+		ctx.rthresh		= thm.RTRSH_XL;
+		ctx.min_2D_olap	= thm.OLAP2D_XL;
+		ctx.pkwid		= thm.PKWID_XL;
+		ctx.pkgrd		= thm.PKGRD_XL;
+	}
+
 // Commandline overrides
 
 	printf( "\n---- Command-line overrides ----\n" );
 
 	if( A.layer != B.layer ) {
 
-		if( arg.SCALE != 999.0 && arg.SCALE != thm.SCALE ) {
-			thm.SCALE = arg.SCALE;
+		if( arg.SCALE != 999.0 && arg.SCALE != ctx.scale ) {
+			ctx.scale = arg.SCALE;
 			printf( "SCALE=%g\n", arg.SCALE );
 		}
 
-		if( arg.XSCALE != 999.0 && arg.XSCALE != thm.XSCALE ) {
-			thm.XSCALE = arg.XSCALE;
+		if( arg.XSCALE != 999.0 && arg.XSCALE != ctx.xscale ) {
+			ctx.xscale = arg.XSCALE;
 			printf( "XSCALE=%g\n", arg.XSCALE );
 		}
 
-		if( arg.YSCALE != 999.0 && arg.YSCALE != thm.YSCALE ) {
-			thm.YSCALE = arg.YSCALE;
+		if( arg.YSCALE != 999.0 && arg.YSCALE != ctx.yscale ) {
+			ctx.yscale = arg.YSCALE;
 			printf( "YSCALE=%g\n", arg.YSCALE );
 		}
 
-		if( arg.SKEW != 999.0 && arg.SKEW != thm.SKEW ) {
-			thm.SKEW = arg.SKEW;
+		if( arg.SKEW != 999.0 && arg.SKEW != ctx.skew ) {
+			ctx.skew = arg.SKEW;
 			printf( "SKEW=%g\n", arg.SKEW );
 		}
 	}

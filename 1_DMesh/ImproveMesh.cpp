@@ -231,23 +231,21 @@ static bool CheckAreas(
 
 		double	A0 = tri[k].Area( orig );
 
-		if( GBL.A.layer != GBL.B.layer &&
-			(
-				GBL.thm.SCALE	!= 1.0 ||
-				GBL.thm.XSCALE	!= 1.0 ||
-				GBL.thm.YSCALE	!= 1.0
-			) ) {
+		if( GBL.A.layer != GBL.B.layer ) {
 
-			double	f = GBL.thm.SCALE
-						* GBL.thm.SCALE
-						* GBL.thm.XSCALE
-						* GBL.thm.YSCALE;
+			double	f = GBL.ctx.scale
+						* GBL.ctx.scale
+						* GBL.ctx.xscale
+						* GBL.ctx.yscale;
 
-			fprintf( flog,
-			"Modifying old area from %f to %f because scale"
-			" change was specified.\n", A0, A0 * f );
+			if( f < 0.99 || f > 1.01 ) {
 
-			A0 *= f;
+				fprintf( flog,
+				"Modifying old area from %f to %f because scale"
+				" change was specified.\n", A0, A0 * f );
+
+				A0 *= f;
+			}
 		}
 
 		sum_A0 += A0;

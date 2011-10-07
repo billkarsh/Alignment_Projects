@@ -33,6 +33,20 @@ public:
 	} DriverArgs;
 
 	typedef struct {
+		double	scale,
+				xscale,
+				yscale,
+				skew,
+				nbmax,
+				halfAngDN,
+				halfAngPR,
+				rthresh;
+		long	min_2D_olap;
+		int		pkwid,
+				pkgrd;
+	} CntxtDep;
+
+	typedef struct {
 		int			layer,
 					tile;
 		Til2Img		t2i;
@@ -46,6 +60,7 @@ public:
 public:
 	DriverArgs	arg;
 	ThmParams	thm;
+	CntxtDep	ctx;
 	string		idb;
 	PicSpecs	A, B;
 

@@ -102,11 +102,11 @@ int main( int argc, char* argv[] )
 
 		ConnRgnsFromFoldMask( Acr, fold_mask_a,
 			px.wf, px.hf, px.scl,
-			GBL.thm.OLAP2D_XL, stdout );
+			GBL.ctx.min_2D_olap, stdout );
 
 		ConnRgnsFromFoldMask( Bcr, fold_mask_b,
 			px.wf, px.hf, px.scl,
-			GBL.thm.OLAP2D_XL, stdout );
+			GBL.ctx.min_2D_olap, stdout );
 
 		StopTiming( stdout, "Conn regions", t1 );
 

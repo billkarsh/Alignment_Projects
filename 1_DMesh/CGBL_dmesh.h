@@ -36,6 +36,20 @@ public:
 	} DriverArgs;
 
 	typedef struct {
+		double	scale,
+				xscale,
+				yscale,
+				skew,
+				nbmax,
+				halfAngDN,
+				halfAngPR,
+				rthresh;
+		long	min_2D_olap;
+		int		pkwid,
+				pkgrd;
+	} CntxtDep;
+
+	typedef struct {
 		int			layer,
 					tile;
 		Til2Img		t2i;
@@ -52,6 +66,7 @@ public:
 	vector<Point>	XYusr;	// command line expected XY
 	ThmParams		thm;
 	MeshParams		msh;
+	CntxtDep		ctx;
 	string			idb;
 	PicSpecs		A, B;
 

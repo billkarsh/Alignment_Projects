@@ -61,19 +61,8 @@ typedef struct {
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static int		gErr		= errOK;
-static long		min_2D_olap;
-static int		pkwid;
-static int		pkgrd;
-static double	nbmax;
-static double	ang0		= 0.0;
-static double	halfAngDN;
-static double	halfAngPR;
-static double	scale		= 1.0;
-static double	xscale		= 1.0;
-static double	yscale		= 1.0;
-static double	skew		= 0.0;
-static double	rthresh;
+static int		gErr	= errOK;
+static double	ang0	= 0.0;
 
 
 
@@ -146,44 +135,11 @@ adjust_olap:
 				c = cos( a ),
 				s = sin( a );
 
-		GBL.thm.OLAP2D_XL = int(GBL.thm.OLAP2D_XL / fmax( c*c, s*s ));
+		GBL.ctx.min_2D_olap =
+			int(GBL.ctx.min_2D_olap / fmax( c*c, s*s ));
 	}
 
 	return nprior;
-}
-
-/* --------------------------------------------------------------- */
-/* SetLayerType -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Differentially set parameters according to job type.
-//
-static void SetLayerType()
-{
-	if( GBL.A.layer == GBL.B.layer ) {
-
-		min_2D_olap	= GBL.thm.OLAP2D_SL;
-		pkwid		= GBL.thm.PKWID_SL;
-		pkgrd		= GBL.thm.PKGRD_SL;
-		nbmax		= GBL.thm.NBMXHT_SL;
-		halfAngDN	= GBL.thm.HFANGDN_SL;
-		halfAngPR	= GBL.thm.HFANGPR_SL;
-		rthresh		= GBL.thm.RTRSH_SL;
-	}
-	else {
-
-		min_2D_olap	= GBL.thm.OLAP2D_XL;
-		pkwid		= GBL.thm.PKWID_XL;
-		pkgrd		= GBL.thm.PKGRD_XL;
-		nbmax		= GBL.thm.NBMXHT_XL;
-		halfAngDN	= GBL.thm.HFANGDN_XL;
-		halfAngPR	= GBL.thm.HFANGPR_XL;
-		scale		= GBL.thm.SCALE;
-		xscale		= GBL.thm.XSCALE;
-		yscale		= GBL.thm.YSCALE;
-		skew		= GBL.thm.SKEW;
-		rthresh		= GBL.thm.RTRSH_XL;
-	}
 }
 
 /* --------------------------------------------------------------- */
@@ -383,7 +339,7 @@ static void MakeThumbs(
 	thm.ap		= olp.a.p;
 	thm.bp		= olp.b.p;
 	thm.ftc.clear();
-	thm.reqArea	= min_2D_olap;
+	thm.reqArea	= GBL.ctx.min_2D_olap;
 	thm.scl		= decfactor;
 
 	if( decfactor > 1 ) {
@@ -412,10 +368,10 @@ static void RotatePoints(
 	const TForm		&T0,
 	double			theta )
 {
-	double	c	= cos( theta ) * scale,
-			s	= sin( theta ) * scale;
-	TForm	ao( xscale * c, -yscale * s, 0.0,
-				xscale * s,  yscale * c, 0.0 );
+	double	c	= cos( theta ) * GBL.ctx.scale,
+			s	= sin( theta ) * GBL.ctx.scale;
+	TForm	ao( GBL.ctx.xscale * c, -GBL.ctx.yscale * s, 0.0,
+				GBL.ctx.xscale * s,  GBL.ctx.yscale * c, 0.0 );
 
 	MultiplyTrans( T, ao, T0 );
 	T.Apply_R_Part( pts );
@@ -451,7 +407,7 @@ static void RFromAngle(
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	TForm			Tskew( 1.0, 0.0, 0.0, skew, 1.0, 0.0 );
+	TForm			Tskew( 1.0, 0.0, 0.0, GBL.ctx.skew, 1.0, 0.0 );
 	vector<Point>	ps = thm.ap;
 
 	C.A = a;
@@ -463,7 +419,8 @@ static void RFromAngle(
 		ps, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, pkwid, pkgrd, nbmax, thm.ftc );
+		0.0, GBL.ctx.pkwid, GBL.ctx.pkgrd,
+		GBL.ctx.nbmax, thm.ftc );
 }
 
 /* --------------------------------------------------------------- */
@@ -719,14 +676,14 @@ static bool UsePriorAngles(
 	fprintf( flog, "Approx: Using prior angles n=%d, med=%f\n",
 	nprior, ang0 );
 
-	if( AngleScan( best, ang0, halfAngPR, 0.1, thm, flog )
-		< rthresh ||
+	if( AngleScan( best, ang0, GBL.ctx.halfAngPR, 0.1, thm, flog )
+		< GBL.ctx.rthresh ||
 		PeakHunt( best, 0.3, thm, flog )
-		< rthresh ) {
+		< GBL.ctx.rthresh ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Prior angles R=%g below thresh=%g.\n",
-		best.R, rthresh );
+		best.R, GBL.ctx.rthresh );
 
 		gErr = errLowRPrior;
 		return false;
@@ -741,16 +698,16 @@ static bool UsePriorAngles(
 
 static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	if( AngleScan( best, ang0, halfAngDN, 0.5, thm, flog )
-		< rthresh ||
+	if( AngleScan( best, ang0, GBL.ctx.halfAngDN, 0.5, thm, flog )
+		< GBL.ctx.rthresh ||
 		AngleScan( best, best.A, 1.0, 0.1, thm, flog )
-		< rthresh ||
+		< GBL.ctx.rthresh ||
 		PeakHunt( best, 0.3, thm, flog )
-		< rthresh ) {
+		< GBL.ctx.rthresh ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Denovo R=%g below thresh=%g.\n",
-		best.R, rthresh );
+		best.R, GBL.ctx.rthresh );
 
 		gErr = errLowRDenov;
 		return false;
@@ -802,7 +759,8 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 				ps, thm.av, thm.bp, thm.bv,
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
-				0.0, pkwid, pkgrd, nbmax, thm.ftc );
+				0.0, GBL.ctx.pkwid, GBL.ctx.pkgrd,
+				GBL.ctx.nbmax, thm.ftc );
 
 			fprintf( flog, "Tweak %d R=%.3f", i, C.R );
 
@@ -846,7 +804,8 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		ps, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, pkwid, pkgrd, nbmax, thm.ftc );
+		0.0, GBL.ctx.pkwid, GBL.ctx.pkgrd,
+		GBL.ctx.nbmax, thm.ftc );
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);
@@ -1073,12 +1032,6 @@ bool Thumbs(
 
 	int	nPriorAngles = SetStartingAngle( flog );
 
-/* ----------------------------------------------------- */
-/* Set parameters according to same- or cross-layer type */
-/* ----------------------------------------------------- */
-
-	SetLayerType();
-
 /* ----------------------- */
 /* Create image thumbnails */
 /* ----------------------- */
@@ -1094,7 +1047,7 @@ bool Thumbs(
 /* --------------------- */
 
 // -----------------------------------------------------------
-//	DebugAngs( ang0, halfAngPR, .1, thm );
+//	DebugAngs( ang0, GBL.ctx.halfAngPR, .1, thm );
 //	DebugAngs( ang0, 1, .01, thm );
 //	exit( 42 );
 // -----------------------------------------------------------

@@ -191,7 +191,7 @@ void InSectionOverlap(
 						InSectionLegal, NULL,
 						NULL, NULL, ftc );
 
-	if( c < GBL.thm.RTRSH_XL ) {	// empirical
+	if( c < GBL.ctx.rthresh ) {	// empirical
 
 		fprintf( flog,
 		"Olap: Can't find a good starting point"
