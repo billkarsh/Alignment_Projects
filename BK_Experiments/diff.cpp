@@ -39,8 +39,6 @@ typedef struct {
 	vector<CD>		ftc;	// fourier transform cache
 	long			reqArea;
 	int				scl;
-	int				nnegx, nnegy,
-					nposx, nposy;
 } Thumbs;
 
 
@@ -252,10 +250,6 @@ static void MakeThumbs(
 	thm.ftc.clear();
 	thm.reqArea	= reqArea / (linbin*linbin);
 	thm.scl		= linbin;
-	thm.nnegx	= R.a.w / linbin - 1;
-	thm.nnegy	= R.a.h / linbin - 1;
-	thm.nposx	= R.b.w / linbin;
-	thm.nposy	= R.b.h / linbin;
 	thm.apts	= R.a.P;
 	thm.bpts	= R.b.P;
 
@@ -289,7 +283,7 @@ static void RotatePoints(
 
 static bool BigEnough( int sx, int sy, void *a )
 {
-	return sx*sy > long(a);
+	return (long)sx*sy > long(a);
 }
 
 
@@ -309,12 +303,12 @@ static void RFromAngle(
 	C.A = a;
 	RotatePoints( ps, C.T, a );
 
-	C.R = CorrPatchesMaxR(
+	C.R = CorrImages(
 		stdout, true, C.X, C.Y,
 		ps, thm.av, thm.bpts, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea, 0.0, thm.ftc );
+		EnoughPoints, (void*)thm.reqArea,
+		0.0, 5, 3, 0.9, thm.ftc );
 }
 
 

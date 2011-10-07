@@ -3,7 +3,7 @@
 #include	"Maths.h"
 #include	"Correlation.h"
 #include	"Geometry.h"
-#include	"ImageIO.h"	// @@@ temp testing
+#include	"ImageIO.h"
 
 #include	<fftw3.h>
 
@@ -1760,10 +1760,10 @@ double ImproveControlPts(
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 /* --------------------------------------------------------------- */
-/* CRQ ----------------------------------------------------------- */
+/* RCalc --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CRQ {
+class RCalc {
 
 private:
 	vector<double>	i1sum, i1sum2,
@@ -1787,21 +1787,19 @@ public:
 		int						Nx,
 		int						Ny );
 
-	int CheckSize(
-		EvalType		LegalRgn,
-		void*			arglr,
-		int				dx,
-		int				dy );
-
-	int CheckDensity(
-		EvalType		LegalCnt,
-		void*			arglc );
+	bool Valid(
+		EvalType	LegalRgn,
+		void*		arglr,
+		EvalType	LegalCnt,
+		void*		arglc,
+		int			dx,
+		int			dy );
 
 	double CalcR( double rslt );
 };
 
 
-void CRQ::Initialize(
+void RCalc::Initialize(
 		const vector<double>	&I1,
 		int						w1,
 		int						h1,
@@ -1824,11 +1822,13 @@ void CRQ::Initialize(
 }
 
 
-int CRQ::CheckSize(
-	EvalType		LegalRgn,
-	void*			arglr,
-	int				dx,
-	int				dy )
+bool RCalc::Valid(
+		EvalType	LegalRgn,
+		void*		arglr,
+		EvalType	LegalCnt,
+		void*		arglc,
+		int			dx,
+		int			dy )
 {
 	int		ok = true;
 
@@ -1842,15 +1842,7 @@ int CRQ::CheckSize(
 	if( LegalRgn && !LegalRgn( olw, olh, arglr ) )
 		ok = false;
 
-	return ok;
-}
-
-
-int CRQ::CheckDensity(
-	EvalType		LegalCnt,
-	void*			arglc )
-{
-	int		ok = true;
+// Large enough density of non-zero values?
 
 	if( LegalCnt ) {
 
@@ -1865,7 +1857,7 @@ int CRQ::CheckDensity(
 }
 
 
-double CRQ::CalcR( double rslt )
+double RCalc::CalcR( double rslt )
 {
 	double	n = olw * olh;
 
@@ -1884,136 +1876,473 @@ double CRQ::CalcR( double rslt )
 }
 
 /* --------------------------------------------------------------- */
-/* CXCQ ---------------------------------------------------------- */
+/* CCorImg ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CXCQ {
+class CCorImg {
 
 private:
-	vector<int>		i1nz,  i2nz;
-	int				w1,  h1,
-					w2,  h2,
-					Nxy;
-	IBox			OL1, OL2;
-	int				i1c, i2c;
+	FILE	*flog;
+	int		verbose;
+	IBox	B1, B2;
+	int		w1, h1, w2, h2,
+			nnegx, nposx,
+			nnegy, nposy,
+			cx, cy, wR, hR, nR;
 
 public:
-	void Initialize(
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny );
+	void SetDims(
+		FILE					*iflog,
+		int						iverbose,
+		const vector<Point>		&ip1,
+		const vector<Point>		&ip2 );
 
-	int CheckSize(
-		EvalType		LegalRgn,
-		void*			arglr,
-		int				dx,
-		int				dy );
+	void MakeRandA(
+		vector<double>			&R,
+		vector<uint8>			&A,
+		const vector<Point>		&ip1,
+		const vector<double>	&iv1,
+		const vector<Point>		&ip2,
+		const vector<double>	&iv2,
+		EvalType				LegalRgn,
+		void*					arglr,
+		EvalType				LegalCnt,
+		void*					arglc,
+		vector<CD>				&fft2 );
 
-	int CheckDensity(
-		EvalType		LegalCnt,
-		void*			arglc );
+	void MakeF(
+		vector<double>			&F,
+		vector<uint8>			&A,
+		const vector<double>	&R );
 
-	double CalcR( double rslt );
+	void OrderF(
+		vector<int>				&forder,
+		vector<double>			&F,
+		vector<uint8>			&A,
+		const vector<double>	&R,
+		double					mincor );
+
+	bool FPeak(
+		int						&rx,
+		int						&ry,
+		vector<int>				&forder,
+		vector<double>			&F,
+		int						pkwid,
+		int						pkgrd,
+		double					nbmaxht );
+
+	double ReturnR(
+		double					&dx,
+		double					&dy,
+		int						rx,
+		int						ry,
+		const vector<double>	&R );
 };
 
+/* --------------------------------------------------------------- */
+/* CCorImg::SetDims ---------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-void CXCQ::Initialize(
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny )
+void CCorImg::SetDims(
+	FILE					*iflog,
+	int						iverbose,
+	const vector<Point>		&ip1,
+	const vector<Point>		&ip2 )
 {
-	this->w1	= w1;
-	this->h1	= h1;
-	this->w2	= w2;
-	this->h2	= h2;
-	Nxy			= Nx * Ny;
+	flog	= iflog;
+	verbose	= iverbose;
 
-	IntegrateImage( i1nz, w1, h1, I1, Nx );
-	IntegrateImage( i2nz, w2, h2, I2, Nx );
-}
+	BBoxFromPoints( B1, ip1 );
+	BBoxFromPoints( B2, ip2 );
 
+	w1 = B1.R - B1.L + 1;
+	h1 = B1.T - B1.B + 1;
 
-int CXCQ::CheckSize(
-	EvalType		LegalRgn,
-	void*			arglr,
-	int				dx,
-	int				dy )
-{
-	int		olw, olh, ok = true;
+	w2 = B2.R - B2.L + 1;
+	h2 = B2.T - B2.B + 1;
 
-	BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
+	nnegx = w1 - 1;
+	nposx = w2;
+	nnegy = h1 - 1;
+	nposy = h2;
 
-// Large enough overlap?
+	cx = nnegx,
+	cy = nnegy,
+	wR = nnegx + nposx,
+	hR = nnegy + nposy,
+	nR = wR * hR;
 
-	olw = OL1.R - OL1.L + 1;
-	olh = OL1.T - OL1.B + 1;
+	if( verbose ) {
 
-	if( LegalRgn && !LegalRgn( olw, olh, arglr ) )
-		ok = false;
+		fprintf( flog,
+		"Corr: region size is [%d %d] in x, [%d %d] in y.\n",
+		B1.L, B1.R, B1.B, B1.T );
 
-	return ok;
-}
-
-
-int CXCQ::CheckDensity(
-	EvalType		LegalCnt,
-	void*			arglc )
-{
-	int		ok = true;
-
-	i1c = IntegralTable( i1nz, w1, OL1 );
-	i2c = IntegralTable( i2nz, w2, OL2 );
-
-	if( LegalCnt && !LegalCnt( i1c, i2c, arglc ) )
-		ok = false;
-
-	return ok;
-}
-
-
-double CXCQ::CalcR( double rslt )
-{
-	return rslt / ((double)Nxy * i1c);
+		fprintf( flog,
+		"Corr: target size is [%d %d] in x, [%d %d] in y.\n",
+		B2.L, B2.R, B2.B, B2.T );
+	}
 }
 
 /* --------------------------------------------------------------- */
-/* OffsetResults ------------------------------------------------- */
+/* CCorImg::MakeRandA -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void OffsetResults( vector<double> &R )
+void CCorImg::MakeRandA(
+	vector<double>			&R,
+	vector<uint8>			&A,
+	const vector<Point>		&ip1,
+	const vector<double>	&iv1,
+	const vector<Point>		&ip2,
+	const vector<double>	&iv2,
+	EvalType				LegalRgn,
+	void*					arglr,
+	EvalType				LegalCnt,
+	void*					arglc,
+	vector<CD>				&fft2 )
 {
-	double	ave	= 0.0;
-	int		na	= 0,
-			nr	= R.size();
+// Get array sizes (Nx,Ny) and FFT size M
 
-	for( int i = 0; i < nr; ++i ) {
+	int	Nx, Ny, M;
 
-		if( R[i] ) {
-			ave += R[i];
-			++na;
+	Nx = FFTSize( w1, w2 ),
+	Ny = FFTSize( h1, h2 ),
+	M  = Ny*(Nx/2+1);
+
+	if( verbose )
+		fprintf( flog, "Corr: Nx = %d, Ny = %d.\n", Nx, Ny );
+
+// Create images from point lists
+
+	vector<double>	i1, i2;
+
+	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
+	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
+
+//-----------------------------
+#if	_debugcorr == 1
+{
+	char	simg[32];
+
+	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
+	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+	CorrThmToTif8( simg, i2, Nx, w2, h2 );
+}
+#endif
+//-----------------------------
+
+// FFTs and lags
+
+	vector<double>	rslt;
+	vector<CD>		fft1;
+
+	if( fft2.size() != M )
+		FFT_2D( fft2, i2, Nx, Ny );
+
+	FFT_2D( fft1, i1, Nx, Ny );
+
+	for( int i = 0; i < M; ++i )
+		fft1[i] = fft2[i] * conj( fft1[i] );
+
+	IFT_2D( rslt, fft1, Nx, Ny );
+
+// Prepare correlation calculator
+
+	RCalc	calc;
+
+	calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
+
+// Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
+// is at the image center and (cx,cy)+(dx,dy) indexes all pixels
+// of any sign.
+
+	R.resize( nR );
+	A.resize( nR );
+
+	double	vmin = 1e7, vmax = -1e7;
+
+	for( int y = -nnegy; y < nposy; ++y ) {
+
+		int	iy = Nx * (y >= 0 ? y : Ny + y);
+
+		for( int x = -nnegx; x < nposx; ++x ) {
+
+			int	ix = (x >= 0 ? x : Nx + x);
+			int	ir = cx+x + wR*(cy+y);
+
+			A[ir] = calc.Valid( LegalRgn, arglr,
+						LegalCnt, arglc, x, y );
+
+			R[ir] = calc.CalcR( rslt[ix+iy] );
+
+			if( R[ir] < vmin )
+				vmin = R[ir];
+
+			if( R[ir] > vmax )
+				vmax = R[ir];
 		}
 	}
 
-	if( na ) {
+	if( verbose ) {
+		fprintf( flog,
+		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
+	}
+}
 
-		ave /= na;
+/* --------------------------------------------------------------- */
+/* CCorImg::MakeF ------------------------------------------------ */
+/* --------------------------------------------------------------- */
 
-		for( int i = 0; i < nr; ++i ) {
+// Some interesting filters...
 
-			if( R[i] )
-				R[i] -= ave;
+// 0, -1,  0,
+//-1,  5, -1,
+// 0, -1,  0};
+
+//-1, -1, -1,
+//-1,  9, -1,
+//-1, -1, -1};
+
+//-1, -1, -1,
+//-1, 10, -1,
+//-1, -1, -1};
+
+//-1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1,
+//-1, -1, 24, -1, -1,
+//-1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1};
+
+//-1, -1, -1, -1, -1,
+//-1, -4, -4, -4, -1,
+//-1, -4, 48, -4, -1,
+//-1, -4, -4, -4, -1,
+//-1, -1, -1, -1, -1};
+
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, 81, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1,
+//-1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+void CCorImg::MakeF(
+	vector<double>			&F,
+	vector<uint8>			&A,
+	const vector<double>	&R )
+{
+	vector<CD>	kfft;
+	double		K[] = {
+				-1, -1, -1,
+				-1,  9, -1,
+				-1, -1, -1};
+	double		vmax;
+	int			ksize	= (int)sqrt( sizeof(K) / sizeof(double) );
+	int			grd		= ksize / 2;
+
+	Convolve( F, R, wR, hR, K, ksize, ksize, true, true, kfft );
+
+// Zero invalid border of width = grd (guard band)
+
+	if( grd < 2 )
+		grd = 2;
+
+	// top & bottom
+	{
+		int	nz = grd * wR;
+
+		memset( &A[0], 0, nz * sizeof(uint8) );
+		memset( &A[nR - nz], 0, nz * sizeof(uint8) );
+
+		memset( &F[0], 0, nz * sizeof(double) );
+		memset( &F[nR - nz], 0, nz * sizeof(double) );
+	}
+
+	// left & right
+	for( int y = grd; y < hR - grd; ++y ) {
+
+		for( int x = 0; x < grd; ++x ) {
+
+			int	i = x + wR*y;
+
+			A[i] = 0;
+			F[i] = 0.0;
+
+			i = wR - 1 - x + wR*y;
+
+			A[i] = 0;
+			F[i] = 0.0;
 		}
 	}
+
+// Normalize the filtered image, keep positive only
+
+	vmax = 1e-7;
+
+	for( int i = 0; i < nR; ++i ) {
+
+		if( F[i] > vmax )
+			vmax = F[i];
+	}
+
+	for( int i = 0; i < nR; ++i ) {
+
+		if( F[i] > 0.0 )
+			F[i] /= vmax;
+		else
+			F[i] = 0.0;
+	}
+
+	if( verbose ) {
+		fprintf( flog,
+		"Corr: F image range [%11.6f %11.6f] before renorm.\n",
+		0.0, vmax );
+	}
+
+//-----------------------------
+#if	_debugcorr == 1
+{
+	char	simg[32];
+
+	sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
+	Raster8ToTif8( simg, &A[0], wR, hR );
+
+	sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
+	RasterDblToTifFlt( simg, &R[0], wR, hR );
+
+	sprintf( simg, "corr_F_%d.tif", _dbg_simgidx++ );
+	RasterDblToTifFlt( simg, &F[0], wR, hR );
+
+	fprintf( flog, "Center = (%d %d)\n", cx, cy );
+}
+#endif
+//-----------------------------
+}
+
+/* --------------------------------------------------------------- */
+/* CCorImg::OrderF ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static const double*	_F;
+
+static bool Sort_F_dec( int a, int b )
+{
+	return _F[a] > _F[b];
+}
+
+void CCorImg::OrderF(
+	vector<int>				&forder,
+	vector<double>			&F,
+	vector<uint8>			&A,
+	const vector<double>	&R,
+	double					mincor )
+{
+// List F pixels in A
+
+	forder.reserve( nR );
+
+	if( mincor > 0.0 ) {
+
+		for( int i = 0; i < nR; ++i ) {
+			if( A[i] && R[i] > mincor )
+				forder.push_back( i );
+		}
+	}
+	else {
+
+		for( int i = 0; i < nR; ++i ) {
+			if( A[i] )
+				forder.push_back( i );
+		}
+	}
+
+// Sort by decreasing F
+
+	_F = &F[0];
+	sort( forder.begin(), forder.end(), Sort_F_dec );
+
+//-----------------------------
+#if	_debugcorr == 1
+	int	ndbg = forder.size();
+	if( ndbg > 40 )
+		ndbg = 40;
+
+	printf( "top %d by F:\n", ndbg );
+
+	for( int i = 0; i < ndbg; ++i ) {
+		int	k	= forder[i];
+		int	y0	= k / wR;
+		int	x0	= k - wR * y0;
+		printf( "F %.3f R %.3f (x,y)=(%d,%d)\n",
+			F[k], R[k], x0, y0 );
+	}
+#endif
+//-----------------------------
+}
+
+/* --------------------------------------------------------------- */
+/* CCorImg::FPeak ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Select highest F that is well isolated--
+//
+// Examine nxn neighborhood about F. Require F higher
+// than anything within, but outside inner neighborhood.
+//
+// Return true if success.
+//
+bool CCorImg::FPeak(
+	int						&rx,
+	int						&ry,
+	vector<int>				&forder,
+	vector<double>			&F,
+	int						pkwid,
+	int						pkgrd,
+	double					nbmaxht )
+{
+	int E	= pkwid/2;		// excluded inner hood = 2E+1
+	int H	= E + pkgrd;	// outer hood width = 2H+1
+	int	nO	= forder.size();
+
+	for( int i = 0; i < nO; ++i ) {
+
+		int		k	= forder[i];
+		double	tol	= nbmaxht * F[k];
+
+		ry	= k / wR;
+		rx	= k - wR * ry;
+
+		if( ry < H || ry >= hR - H || rx < H || rx >= wR - H )
+			continue;
+
+		for( int y = ry - H; y <= ry + H; ++y ) {
+
+			for( int x = rx - H; x <= rx + H; ++x ) {
+
+				// allow ExE peak region
+				if( y >= ry - E && y <= ry + E &&
+					x >= rx - E && x <= rx + E ) {
+
+					continue;
+				}
+
+				if( F[x + wR*y] > tol )
+					goto next_i;
+			}
+		}
+
+		// tested all - good.
+		return true;
+
+next_i:;
+	}
+
+	return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -2054,8 +2383,8 @@ static void ParabPeak(
 			z0,
 			z2;
 
-	if( (z0 = I[ix-d + N*iy]) &&
-		(z2 = I[ix+d + N*iy]) ) {
+	if( (z0 = I[ix-d + N*iy]) > 0.0 &&
+		(z2 = I[ix+d + N*iy]) > 0.0 ) {
 
 		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
@@ -2063,8 +2392,8 @@ static void ParabPeak(
 			xpk += z0;
 	}
 
-	if( (z0 = I[ix + N*(iy-d)]) &&
-		(z2 = I[ix + N*(iy+d)]) ) {
+	if( (z0 = I[ix + N*(iy-d)]) > 0.0 &&
+		(z2 = I[ix + N*(iy+d)]) > 0.0 ) {
 
 		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
@@ -2074,985 +2403,23 @@ static void ParabPeak(
 }
 
 /* --------------------------------------------------------------- */
-/* CorrPatchesRQ ------------------------------------------------- */
+/* CCorImg::ReturnR ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#if	_debugcorr == 1
-// Descending sort of these data
-class SortQ{
-public:
-	double	q,  r;
-	int		qx, qy;
-};
-
-
-static bool SortQ_q_dec( const SortQ &A, const SortQ &B )
-{
-	return A.q > B.q;
-}
-
-
-static bool SortQ_r_dec( const SortQ &A, const SortQ &B )
-{
-	return A.r > B.r;
-}
-#endif
-
-
-// Return cross-correlation and additive displacement
-// (dx, dy) that places set ip1 into bounding box of ip2.
-//
-// X-interval of offsets (lags) searched is [nnegx, nposx).
-// Y-interval of offsets (lags) searched is [nnegy, nposy).
-//
-// For example, following the FFTSize() discussion, if the
-// X-widths of the images are w1, w2; to search the largest
-// sensible magnitudes for negative and positive offsets, set
-// [w1-1, w2)...A negative magnitude >= w1 just pushes patch1
-// all the way off patch2. Similarly, values >= w2 push patch1
-// all the way off on the positive side. Tighter search ranges
-// are allowed. The minumum is [nnegx, nposx) = [1, 1).
-//
-// 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
-// the correct size it is used. Otherwise recomputed here.
-//
-// Find peak using Q...correlation values are Pearson's R.
-//
-double CorrPatchesRQ(
-	FILE					*flog,
-	int						verbose,
-	double					&Q,
+double CCorImg::ReturnR(
 	double					&dx,
 	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	int						nnegx,
-	int						nposx,
-	int						nnegy,
-	int						nposy,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	vector<CD>				&fft2 )
+	int						rx,
+	int						ry,
+	const vector<double>	&R )
 {
-// Bounding boxes of point lists
-
-	IBox	B1, B2;
-	int		w1, h1, w2, h2;
-
-	BBoxFromPoints( B1, ip1 );
-	BBoxFromPoints( B2, ip2 );
-
-	w1 = B1.R - B1.L + 1;
-	h1 = B1.T - B1.B + 1;
-
-	w2 = B2.R - B2.L + 1;
-	h2 = B2.T - B2.B + 1;
-
-#ifdef	CORR_DEBUG
-	verbose = true;
-#endif
+	double	bigR = R[rx + wR*ry];
 
 	if( verbose ) {
-
 		fprintf( flog,
-		"RQ: region size is [%d %d] in x, [%d %d] in y.\n",
-		B1.L, B1.R, B1.B, B1.T );
-
-		fprintf( flog,
-		"RQ: target size is [%d %d] in x, [%d %d] in y.\n",
-		B2.L, B2.R, B2.B, B2.T );
-	}
-
-// Get array sizes (Nx,Ny) and FFT size M
-
-	int	Nx	= FFTSize( w1, w2 ),
-		Ny	= FFTSize( h1, h2 ),
-		M	= Ny*(Nx/2+1);
-
-	if( verbose )
-		fprintf( flog, "RQ: Nx = %d, Ny = %d.\n", Nx, Ny );
-
-// Create images from point lists.
-
-	vector<double>	i1, i2;
-
-	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
-	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
-
-// FFTs and lags
-
-	vector<double>	rslt;
-	vector<CD>		fft1;
-
-	if( fft2.size() != M )
-		FFT_2D( fft2, i2, Nx, Ny );
-
-	FFT_2D( fft1, i1, Nx, Ny );
-
-	for( int i = 0; i < M; ++i )
-		fft1[i] = fft2[i] * conj( fft1[i] );
-
-	IFT_2D( rslt, fft1, Nx, Ny );
-
-// Prepare correlation calculator
-
-	CRQ	ccalc;	// uses Pearson's r
-
-	ccalc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
-
-// Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
-// is at the image center and (cx,cy)+(dx,dy) indexes all pixels
-// of any sign.
-
-	if( nnegx >= w1 )
-		nnegx = w1 - 1;
-
-	if( nposx > w2 )
-		nposx = w2;
-
-	if( nnegy >= h1 )
-		nnegy = h1 - 1;
-
-	if( nposy > h2 )
-		nposy = h2;
-
-	int	cx	= nnegx,
-		cy	= nnegy,
-		wR	= nnegx + nposx,
-		hR	= nnegy + nposy,
-		nR	= wR * hR;
-
-	vector<double>	R( nR, 0.0 );
-
-	for( int y = -nnegy; y < nposy; ++y ) {
-
-		int	iy = Nx * (y >= 0 ? y : Ny + y);
-
-		for( int x = -nnegx; x < nposx; ++x ) {
-
-			if( !ccalc.CheckSize( LegalRgn, arglr, x, y ) )
-				continue;
-
-			if( !ccalc.CheckDensity( LegalCnt, arglc ) )
-				continue;
-
-			int	ix = (x >= 0 ? x : Nx + x);
-
-			R[cx+x + wR*(cy+y)] = ccalc.CalcR( rslt[ix+iy] );
-		}
-	}
-
-	OffsetResults( R );
-
-//-----------------------------
-#if	_debugcorr == 1
-{
-	char	simg[32];
-	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i1, Nx, w1, h1 );
-
-	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-
-	vector<uint16>	tif( nR );
-	double			mx = 0;
-
-	for( int i = 0; i < nR; ++i )
-		if( R[i] > mx ) mx = R[i];
-
-	for( int i = 0; i < nR; ++i )
-		tif[i] = (R[i] > 0 ? int(1000 * R[i] / mx) : 0);
-
-	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
-	Raster16ToTif16( simg, &tif[0], wR, hR );
-	printf( "Center = (%d %d)\n", cx, cy );
-}
-#endif
-//-----------------------------
-
-// Scan R image for the best peak such that:
-// - peak not adjacent to border.
-// - peak not adjacent to any zero (4-way).
-// - peak has maximal Q = [4*pk - SUM(4 neighbors)].
-// The latter metric is average slope-like.
-
-	int		qx	= -1,
-			qy	= -1;
-
-	Q = -1E30;
-
-//-----------------------------
-#if	_debugcorr == 1
-	vector<SortQ> SQ;
-#endif
-//-----------------------------
-
-	for( int y = 1; y < hR - 1; ++y ) {
-
-		for( int x = 1; x < wR - 1; ++x ) {
-
-			double	q, t;
-			int		iq = x + wR*y;
-
-			if( (q = R[iq]) <= 0.0 )
-				continue;
-
-			q *= 4;
-
-			if( !(t = R[iq-1]) )
-				continue;
-
-			q -= t;
-
-			if( !(t = R[iq+1]) )
-				continue;
-
-			q -= t;
-
-			if( !(t = R[iq-wR]) )
-				continue;
-
-			q -= t;
-
-			if( !(t = R[iq+wR]) )
-				continue;
-
-			q -= t;
-
-//-----------------------------
-#if	_debugcorr == 1
-// look at top scoring points
-			SortQ	sq;
-			sq.q	= q;
-			sq.r	= R[x + wR*y];
-			sq.qx	= x;
-			sq.qy	= y;
-			SQ.push_back( sq );
-#endif
-//-----------------------------
-
-			if( q > Q ) {
-				Q	= q;
-				qx	= x;
-				qy	= y;
-			}
-		}
-	}
-
-//-----------------------------
-#if	_debugcorr == 1
-	int	nSQ = SQ.size();
-	if( nSQ > 20 )
-		nSQ = 20;
-
-	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
-	printf( "top %d by Q:\n", nSQ );
-	for( int i = 0; i < nSQ; ++i ) {
-		printf( "Q %.3f R %.3f << %d, %d >>\n",
-		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
-	}
-
-	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
-	printf( "top %d by R:\n", nSQ );
-	for( int i = 0; i < nSQ; ++i ) {
-		printf( "Q %.3f R %.3f << %d, %d >>\n",
-		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
-	}
-#endif
-//-----------------------------
-
-// Any solution?
-
-	if( qx == -1 ) {
-
-		if( verbose ) {
-
-			fprintf( flog,
-			"RQ: No legal subregions at all...\n" );
-
-			fprintf( flog,
-			"RQ: Max corr %f, max Q %f at [dx,dy]=[%d,%d].\n",
-			0.0, 0.0, 0, 0 );
-		}
-
-		Q	= 0.0;
-		dx	= 0.0;
-		dy	= 0.0;
-
-		return 0.0;
-	}
-
-// Reports
-
-	double	bigR = R[qx + wR*qy];
-
-	if( verbose ) {
-
-		fprintf( flog,
-		"RQ: Max corr %f, max Q %f at"
-		" [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
-		bigR, Q, qx - cx, qy - cy, qx, qy );
-	}
-
-// Interpolate peak
-
-	dx = qx;
-	dy = qy;
-	ParabPeak( dx, dy, 1, &R[0], wR );
-
-	dx += B2.L - B1.L - cx;
-	dy += B2.B - B1.B - cy;
-
-	return bigR;
-}
-
-/* --------------------------------------------------------------- */
-/* CorrPatchesMaxQ ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Return cross-correlation and additive displacement
-// (dx, dy) that places set ip1 into bounding box of ip2.
-//
-// X-interval of offsets (lags) searched is [nnegx, nposx).
-// Y-interval of offsets (lags) searched is [nnegy, nposy).
-//
-// For example, following the FFTSize() discussion, if the
-// X-widths of the images are w1, w2; to search the largest
-// sensible magnitudes for negative and positive offsets, set
-// [w1-1, w2)...A negative magnitude >= w1 just pushes patch1
-// all the way off patch2. Similarly, values >= w2 push patch1
-// all the way off on the positive side. Tighter search ranges
-// are allowed. The minumum is [nnegx, nposx) = [1, 1).
-//
-// 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
-// the correct size it is used. Otherwise recomputed here.
-//
-// Find peak using Q...correlation values are standard cross corrs.
-//
-double CorrPatchesMaxQ(
-	FILE					*flog,
-	int						verbose,
-	double					&Q,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	int						nnegx,
-	int						nposx,
-	int						nnegy,
-	int						nposy,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	vector<CD>				&fft2 )
-{
-// Bounding boxes of point lists
-
-	IBox	B1, B2;
-	int		w1, h1, w2, h2;
-
-	BBoxFromPoints( B1, ip1 );
-	BBoxFromPoints( B2, ip2 );
-
-	w1 = B1.R - B1.L + 1;
-	h1 = B1.T - B1.B + 1;
-
-	w2 = B2.R - B2.L + 1;
-	h2 = B2.T - B2.B + 1;
-
-#ifdef	CORR_DEBUG
-	verbose = true;
-#endif
-
-	if( verbose ) {
-
-		fprintf( flog,
-		"MaxQ: region size is [%d %d] in x, [%d %d] in y.\n",
-		B1.L, B1.R, B1.B, B1.T );
-
-		fprintf( flog,
-		"MaxQ: target size is [%d %d] in x, [%d %d] in y.\n",
-		B2.L, B2.R, B2.B, B2.T );
-	}
-
-// Get array sizes (Nx,Ny) and FFT size M
-
-	int	Nx	= FFTSize( w1, w2 ),
-		Ny	= FFTSize( h1, h2 ),
-		M	= Ny*(Nx/2+1);
-
-	if( verbose )
-		fprintf( flog, "MaxQ: Nx = %d, Ny = %d.\n", Nx, Ny );
-
-// Create images from point lists.
-
-	vector<double>	i1, i2;
-
-	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
-	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
-
-// FFTs and lags
-
-	vector<double>	rslt;
-	vector<CD>		fft1;
-
-	if( fft2.size() != M )
-		FFT_2D( fft2, i2, Nx, Ny );
-
-	FFT_2D( fft1, i1, Nx, Ny );
-
-	for( int i = 0; i < M; ++i )
-		fft1[i] = fft2[i] * conj( fft1[i] );
-
-	IFT_2D( rslt, fft1, Nx, Ny );
-
-// Prepare correlation calculator
-
-	CXCQ	ccalc;	// uses 1/n * SUM(a*b)
-
-	ccalc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
-
-// Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
-// is at the image center and (cx,cy)+(dx,dy) indexes all pixels
-// of any sign.
-
-	if( nnegx >= w1 )
-		nnegx = w1 - 1;
-
-	if( nposx > w2 )
-		nposx = w2;
-
-	if( nnegy >= h1 )
-		nnegy = h1 - 1;
-
-	if( nposy > h2 )
-		nposy = h2;
-
-	int	cx	= nnegx,
-		cy	= nnegy,
-		wR	= nnegx + nposx,
-		hR	= nnegy + nposy,
-		nR	= wR * hR;
-
-	vector<double>	R( nR, 0.0 );
-
-	for( int y = -nnegy; y < nposy; ++y ) {
-
-		int	iy = Nx * (y >= 0 ? y : Ny + y);
-
-		for( int x = -nnegx; x < nposx; ++x ) {
-
-			if( !ccalc.CheckSize( LegalRgn, arglr, x, y ) )
-				continue;
-
-			if( !ccalc.CheckDensity( LegalCnt, arglc ) )
-				continue;
-
-			int	ix = (x >= 0 ? x : Nx + x);
-
-			R[cx+x + wR*(cy+y)] = ccalc.CalcR( rslt[ix+iy] );
-		}
-	}
-
-	OffsetResults( R );
-
-//-----------------------------
-#if	_debugcorr == 1
-{
-	char	simg[32];
-	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i1, Nx, w1, h1 );
-
-	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-
-	vector<uint16>	tif( nR );
-	double			mx = 0;
-
-	for( int i = 0; i < nR; ++i )
-		if( R[i] > mx ) mx = R[i];
-
-	for( int i = 0; i < nR; ++i )
-		tif[i] = (R[i] > 0 ? int(1000 * R[i] / mx) : 0);
-
-	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
-	Raster16ToTif16( simg, &tif[0], wR, hR );
-	printf( "Center = (%d %d)\n", cx, cy );
-}
-#endif
-//-----------------------------
-
-// Scan R image for the best peak such that:
-// - peak not adjacent to border.
-// - peak not adjacent to any zero (4-way).
-// - peak has maximal Q = [4*pk - SUM(4 neighbors)].
-// Q is really a 3x3 LoG filter.
-
-	int		qx	= -1,
-			qy	= -1;
-
-	Q = -1E30;
-
-//-----------------------------
-#if	_debugcorr == 1
-	vector<SortQ> SQ;
-#endif
-//-----------------------------
-
-	for( int y = 1; y < hR - 1; ++y ) {
-
-		for( int x = 1; x < wR - 1; ++x ) {
-
-			double	q, t;
-			int		iq = x + wR*y;
-
-			if( (q = R[iq]) <= 0.0 )
-				continue;
-
-			q *= 4;
-
-			if( !(t = R[iq-1]) )
-				continue;
-
-			q -= t;
-
-			if( !(t = R[iq+1]) )
-				continue;
-
-			q -= t;
-
-			if( !(t = R[iq-wR]) )
-				continue;
-
-			q -= t;
-
-			if( !(t = R[iq+wR]) )
-				continue;
-
-			q -= t;
-
-//-----------------------------
-#if	_debugcorr == 1
-// look at top scoring points
-			SortQ	sq;
-			sq.q	= q;
-			sq.r	= R[x + wR*y];
-			sq.qx	= x;
-			sq.qy	= y;
-			SQ.push_back( sq );
-#endif
-//-----------------------------
-
-			if( q > Q ) {
-				Q	= q;
-				qx	= x;
-				qy	= y;
-			}
-		}
-	}
-
-//-----------------------------
-#if	_debugcorr == 1
-	int	nSQ = SQ.size();
-	if( nSQ > 20 )
-		nSQ = 20;
-
-	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
-	printf( "top %d by Q:\n", nSQ );
-	for( int i = 0; i < nSQ; ++i ) {
-		printf( "Q %.3f R %.3f << %d, %d >>\n",
-		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
-	}
-
-	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
-	printf( "top %d by R:\n", nSQ );
-	for( int i = 0; i < nSQ; ++i ) {
-		printf( "Q %.3f R %.3f << %d, %d >>\n",
-		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
-	}
-#endif
-//-----------------------------
-
-// Any solution?
-
-	if( qx == -1 ) {
-
-		if( verbose ) {
-
-			fprintf( flog,
-			"MaxQ: No legal subregions at all...\n" );
-
-			fprintf( flog,
-			"MaxQ: Max corr %f, max Q %f at [dx,dy]=[%d,%d].\n",
-			0.0, 0.0, 0, 0 );
-		}
-
-		Q	= 0.0;
-		dx	= 0.0;
-		dy	= 0.0;
-
-		return 0.0;
-	}
-
-// Reports
-
-	double	bigR = R[qx + wR*qy];
-
-	if( verbose ) {
-
-		fprintf( flog,
-		"MaxQ: Max corr %f, max Q %f at"
-		" [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
-		bigR, Q, qx - cx, qy - cy, qx, qy );
-	}
-
-// Interpolate peak
-
-	dx = qx;
-	dy = qy;
-	ParabPeak( dx, dy, 1, &R[0], wR );
-
-	dx += B2.L - B1.L - cx;
-	dy += B2.B - B1.B - cy;
-
-	return bigR;
-}
-
-/* --------------------------------------------------------------- */
-/* CorrPatchesMaxR ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Return cross-correlation and additive displacement
-// (dx, dy) that places set ip1 into bounding box of ip2.
-//
-// X-interval of offsets (lags) searched is [nnegx, nposx).
-// Y-interval of offsets (lags) searched is [nnegy, nposy).
-//
-// For example, following the FFTSize() discussion, if the
-// X-widths of the images are w1, w2; to search the largest
-// sensible magnitudes for negative and positive offsets, set
-// [w1-1, w2)...A negative magnitude >= w1 just pushes patch1
-// all the way off patch2. Similarly, values >= w2 push patch1
-// all the way off on the positive side. Tighter search ranges
-// are allowed. The minumum is [nnegx, nposx) = [1, 1).
-//
-// If non-zero, qtol specifies how much better the best candidate
-// R peak is than the next best. For example, if qtol = 0.20, then
-// the Q-value of the best solution must be 20% better than the
-// second best.
-//
-// 'fft2' is a cache of the patch2 FFT. On entry, if fft2 has
-// the correct size it is used. Otherwise recomputed here.
-//
-// Find peak using R...correlation values are Pearson's R.
-//
-double CorrPatchesMaxR(
-	FILE					*flog,
-	int						verbose,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	int						nnegx,
-	int						nposx,
-	int						nnegy,
-	int						nposy,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	double					qtol,
-	vector<CD>				&fft2 )
-{
-// Bounding boxes of point lists
-
-	IBox	B1, B2;
-	int		w1, h1, w2, h2;
-
-	BBoxFromPoints( B1, ip1 );
-	BBoxFromPoints( B2, ip2 );
-
-	w1 = B1.R - B1.L + 1;
-	h1 = B1.T - B1.B + 1;
-
-	w2 = B2.R - B2.L + 1;
-	h2 = B2.T - B2.B + 1;
-
-#ifdef	CORR_DEBUG
-	verbose = true;
-#endif
-
-	if( verbose ) {
-
-		fprintf( flog,
-		"MaxR: region size is [%d %d] in x, [%d %d] in y.\n",
-		B1.L, B1.R, B1.B, B1.T );
-
-		fprintf( flog,
-		"MaxR: target size is [%d %d] in x, [%d %d] in y.\n",
-		B2.L, B2.R, B2.B, B2.T );
-	}
-
-// Get array sizes (Nx,Ny) and FFT size M
-
-	int	Nx	= FFTSize( w1, w2 ),
-		Ny	= FFTSize( h1, h2 ),
-		M	= Ny*(Nx/2+1);
-
-	if( verbose )
-		fprintf( flog, "MaxR: Nx = %d, Ny = %d.\n", Nx, Ny );
-
-// Create images from point lists.
-
-	vector<double>	i1, i2;
-
-	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
-	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
-
-// FFTs and lags
-
-	vector<double>	rslt;
-	vector<CD>		fft1;
-
-	if( fft2.size() != M )
-		FFT_2D( fft2, i2, Nx, Ny );
-
-	FFT_2D( fft1, i1, Nx, Ny );
-
-	for( int i = 0; i < M; ++i )
-		fft1[i] = fft2[i] * conj( fft1[i] );
-
-	IFT_2D( rslt, fft1, Nx, Ny );
-
-// Prepare correlation calculator
-
-	CRQ	ccalc;	// uses Pearson's r
-
-	ccalc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
-
-// Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
-// is at the image center and (cx,cy)+(dx,dy) indexes all pixels
-// of any sign.
-
-	if( nnegx >= w1 )
-		nnegx = w1 - 1;
-
-	if( nposx > w2 )
-		nposx = w2;
-
-	if( nnegy >= h1 )
-		nnegy = h1 - 1;
-
-	if( nposy > h2 )
-		nposy = h2;
-
-	int	cx	= nnegx,
-		cy	= nnegy,
-		wR	= nnegx + nposx,
-		hR	= nnegy + nposy,
-		nR	= wR * hR;
-
-	vector<double>	R( nR, 0.0 );
-
-	for( int y = -nnegy; y < nposy; ++y ) {
-
-		int	iy = Nx * (y >= 0 ? y : Ny + y);
-
-		for( int x = -nnegx; x < nposx; ++x ) {
-
-			if( !ccalc.CheckSize( LegalRgn, arglr, x, y ) )
-				continue;
-
-			if( !ccalc.CheckDensity( LegalCnt, arglc ) )
-				continue;
-
-			int	ix = (x >= 0 ? x : Nx + x);
-
-			R[cx+x + wR*(cy+y)] = ccalc.CalcR( rslt[ix+iy] );
-		}
-	}
-
-	OffsetResults( R );
-
-//-----------------------------
-#if	_debugcorr == 1
-{
-	char	simg[32];
-	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i1, Nx, w1, h1 );
-
-	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-
-	vector<uint16>	tif( nR );
-	double			mx = 0;
-
-	for( int i = 0; i < nR; ++i )
-		if( R[i] > mx ) mx = R[i];
-
-	for( int i = 0; i < nR; ++i )
-		tif[i] = (R[i] > 0 ? int(1000 * R[i] / mx) : 0);
-
-	sprintf( simg, "corr_%d.tif", _dbg_simgidx++ );
-	Raster16ToTif16( simg, &tif[0], wR, hR );
-	printf( "Center = (%d %d)\n", cx, cy );
-}
-#endif
-//-----------------------------
-
-// Scan R image for the best peak such that:
-// - peak not adjacent to border.
-// - peak not adjacent to any zero (8-way).
-// - peak indeed higher than neighbors (8-way).
-// - peak has maximal Q = (4 x pk-height + radius).
-
-	double	bigQ	= 0.0;
-	double	bigR	= 0.0;
-	double	qual	= 0;
-	double	D		= (hR*hR + wR*wR)/4;
-	int		rx		= -1;
-	int		ry		= -1;
-
-//-----------------------------
-#if	_debugcorr == 1
-	vector<SortQ> SQ;
-#endif
-//-----------------------------
-
-	for( int y = 1; y < hR - 1; ++y ) {
-
-		for( int x = 1; x < wR - 1; ++x ) {
-
-			double	r, q, t;
-			int		ir = x + wR*y;
-
-			r = R[ir];
-			q = x - cx;
-			t = y - cy;
-			q = 4 * r + (D - q*q - t*t) / D;
-
-			if( q < bigQ )
-				continue;
-
-			if( !(t = R[ir-1]) || t >= r )
-				continue;
-
-			if( !(t = R[ir+1]) || t >= r )
-				continue;
-
-			if( !(t = R[ir-wR-1]) || t >= r )
-				continue;
-
-			if( !(t = R[ir-wR]) || t >= r )
-				continue;
-
-			if( !(t = R[ir-wR+1]) || t >= r )
-				continue;
-
-			if( !(t = R[ir+wR-1]) || t >= r )
-				continue;
-
-			if( !(t = R[ir+wR]) || t >= r )
-				continue;
-
-			if( !(t = R[ir+wR+1]) || t >= r )
-				continue;
-
-//-----------------------------
-#if	_debugcorr == 1
-// look at top scoring points
-			SortQ	sq;
-			sq.q	= q;
-			sq.r	= r;
-			sq.qx	= x;
-			sq.qy	= y;
-			SQ.push_back( sq );
-#endif
-//-----------------------------
-
-			qual	= (q > 0 ? (q - bigQ)/q : 0);
-			bigQ	= q;
-			bigR	= r;
-			rx		= x;
-			ry		= y;
-		}
-	}
-
-//-----------------------------
-#if	_debugcorr == 1
-	int	nSQ = SQ.size();
-	if( nSQ > 20 )
-		nSQ = 20;
-
-	sort( SQ.begin(), SQ.end(), SortQ_q_dec );
-	printf( "top %d by Q:\n", nSQ );
-	for( int i = 0; i < nSQ; ++i ) {
-		printf( "Q %.3f R %.3f << %d, %d >>\n",
-		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
-	}
-
-	sort( SQ.begin(), SQ.end(), SortQ_r_dec );
-	printf( "top %d by R:\n", nSQ );
-	for( int i = 0; i < nSQ; ++i ) {
-		printf( "Q %.3f R %.3f << %d, %d >>\n",
-		SQ[i].q, SQ[i].r, SQ[i].qx, SQ[i].qy );
-	}
-#endif
-//-----------------------------
-
-// Any solution?
-
-	if( rx == -1 || qual < qtol || bigR > 1.20 ) {
-
-		if( verbose ) {
-
-			if( rx == -1 ) {
-
-				fprintf( flog,
-				"MaxR: No peak candidates...\n" );
-			}
-			else if( qual < qtol ) {
-
-				fprintf( flog,
-				"MaxR: Low peak qual=%f < qtol=%f...\n",
-				qual, qtol );
-			}
-			else {
-
-				fprintf( flog,
-				"MaxR: High R=%f, max=1.20...\n", bigR );
-			}
-
-			fprintf( flog,
-			"MaxR: Max corr %f at [dx,dy]=[%d,%d].\n",
-			0.0, 0, 0 );
-		}
-
-		dx	= 0.0;
-		dy	= 0.0;
-
-		return 0.0;
-	}
-
-// Reports
-
-	if( verbose ) {
-
-		fprintf( flog,
-		"MaxR: Max corr %f at [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
+		"Corr: Max corr %f at [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
 		bigR, rx - cx, ry - cy, rx, ry );
 	}
-
-// Interpolate peak
 
 	dx = rx;
 	dy = ry;
@@ -3062,6 +2429,82 @@ double CorrPatchesMaxR(
 	dy += B2.B - B1.B - cy;
 
 	return bigR;
+}
+
+/* --------------------------------------------------------------- */
+/* CorrImages ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
+//
+// mincor: If non-zero, used to prescreen F values during the
+// peak-hunting phase.
+//
+// pkwid: Expected F-peak width. No criteria applied in region
+// of this size surrounding a candidate peak pixel.
+//
+// pkgrd: Guard band surrounding pkwid zone within which we
+// check for any large neighbors.
+//
+// nbmaxht: A candidate F-peak is rejected if its guard band
+// contains another pixel with F > nbmaxht*peak.
+//
+// fft2: Cache of image2 FFT. On entry, if fft2 has the
+// correct size it is used. Otherwise recomputed here.
+//
+double CorrImages(
+	FILE					*flog,
+	int						verbose,
+	double					&dx,
+	double					&dy,
+	const vector<Point>		&ip1,
+	const vector<double>	&iv1,
+	const vector<Point>		&ip2,
+	const vector<double>	&iv2,
+	EvalType				LegalRgn,
+	void*					arglr,
+	EvalType				LegalCnt,
+	void*					arglc,
+	double					mincor,
+	int						pkwid,
+	int						pkgrd,
+	double					nbmaxht,
+	vector<CD>				&fft2 )
+{
+	CCorImg			cc;
+	vector<double>	R;
+	vector<uint8>	A;
+	vector<double>	F;
+	vector<int>		forder;
+	int				rx;
+	int				ry;
+
+#ifdef	CORR_DEBUG
+	verbose = true;
+#endif
+
+	cc.SetDims( flog, verbose, ip1, ip2 );
+
+	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
+		LegalRgn, arglr, LegalCnt, arglc, fft2 );
+
+	cc.MakeF( F, A, R );
+
+	cc.OrderF( forder, F, A, R, mincor );
+
+	if( !cc.FPeak( rx, ry, forder, F, pkwid, pkgrd, nbmaxht ) ) {
+
+		if( verbose )
+			fprintf( flog, "Corr: No peak candidates...\n" );
+
+		dx	= 0.0;
+		dy	= 0.0;
+
+		return 0.0;
+	}
+
+	return cc.ReturnR( dx, dy, rx, ry, R );
 }
 
 

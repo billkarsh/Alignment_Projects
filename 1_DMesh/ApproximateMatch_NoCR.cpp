@@ -15,17 +15,13 @@
 
 enum thmerrs {
 	errOK			= 0,
-	errLowQ			= 1,
-	errLowRDenov	= 2,
-	errLowRPrior	= 3
+	errLowRDenov	= 1,
+	errLowRPrior	= 2
 };
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-#define	QTOL_SWEEP	0.20
-#define	QTOL_ZERO	0.00
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -35,9 +31,7 @@ typedef struct {
 	vector<double>	av, bv;
 	vector<Point>	ap, bp;
 	Point			aO, bO;			// subimage ref. points
-	int				ow, oh,			// common sub-img dims
-					nnegx, nnegy,	// ful-res search range
-					nposx, nposy;
+	int				ow, oh;			// common sub-img dims
 } OlapRec;
 
 typedef struct {
@@ -46,14 +40,12 @@ typedef struct {
 	vector<CD>		ftc;			// fourier transform cache
 	long			reqArea;
 	int				scl;
-	int				nnegx, nnegy,	// scaled search range
-					nposx, nposy;
 } ThmRec;
 
 typedef struct {
 	TForm			T;
 	double			X, Y,
-					A, Q, R;
+					A, R;
 } CorRec;
 
 /* --------------------------------------------------------------- */
@@ -66,6 +58,9 @@ typedef struct {
 
 static int		gErr		= errOK;
 static long		min_2D_olap;
+static int		pkwid;
+static int		pkgrd;
+static double	nbmax;
 static double	ang0		= 0.0;
 static double	halfAngDN;
 static double	halfAngPR;
@@ -73,7 +68,6 @@ static double	scale		= 1.0;
 static double	xscale		= 1.0;
 static double	yscale		= 1.0;
 static double	skew		= 0.0;
-static double	qthresh;
 static double	rthresh;
 
 
@@ -198,21 +192,25 @@ static void SetLayerType()
 	if( GBL.A.layer == GBL.B.layer ) {
 
 		min_2D_olap	= GBL.thm.OLAP2D_SL;
+		pkwid		= GBL.thm.PKWID_SL;
+		pkgrd		= GBL.thm.PKGRD_SL;
+		nbmax		= GBL.thm.NBMXHT_SL;
 		halfAngDN	= GBL.thm.HFANGDN_SL;
 		halfAngPR	= GBL.thm.HFANGPR_SL;
-		qthresh		= GBL.thm.QTRSH_SL;
 		rthresh		= GBL.thm.RTRSH_SL;
 	}
 	else {
 
 		min_2D_olap	= GBL.thm.OLAP2D_XL;
+		pkwid		= GBL.thm.PKWID_XL;
+		pkgrd		= GBL.thm.PKGRD_XL;
+		nbmax		= GBL.thm.NBMXHT_XL;
 		halfAngDN	= GBL.thm.HFANGDN_XL;
 		halfAngPR	= GBL.thm.HFANGPR_XL;
 		scale		= GBL.thm.SCALE;
 		xscale		= GBL.thm.XSCALE;
 		yscale		= GBL.thm.YSCALE;
 		skew		= GBL.thm.SKEW;
-		qthresh		= GBL.thm.QTRSH_XL;
 		rthresh		= GBL.thm.RTRSH_XL;
 	}
 }
@@ -251,12 +249,10 @@ static bool WholeImage(
 
 // Dimensions
 
-	olp.aO		= Point( 0, 0 );
-	olp.bO		= olp.aO;
-	olp.ow		= w;
-	olp.oh		= h;
-	olp.nnegx	= olp.nposx = w - GBL.thm.OLAP1D;
-	olp.nnegy	= olp.nposy = h - GBL.thm.OLAP1D;
+	olp.aO	= Point( 0, 0 );
+	olp.bO	= olp.aO;
+	olp.ow	= w;
+	olp.oh	= h;
 
 	return true;
 }
@@ -349,21 +345,6 @@ static bool SelectSubimage(
 	olp.aO	= Point( ax, ay );
 	olp.bO	= Point( bx, by );
 
-// Recommend search range at full scale
-
-	if( GBL.thm.SLOPPY_SL ) {
-		olp.nnegx = olp.nposx = olp.ow;
-		olp.nnegy = olp.nposy = olp.oh;
-	}
-	else {
-		olp.nnegx = olp.nposx = olp.ow / 2;
-		olp.nnegy = olp.nposy = olp.oh / 2;
-	}
-
-// Special override for Davi: highly variable overlap
-	//olp.nnegx = olp.nposx = px.ws * .6 / 8;
-	//olp.nnegx = olp.nposx = px.hs * .6 / 8;
-
 // Set points
 
 	MakeZeroBasedPoints( olp.ap, olp.ow, olp.oh );
@@ -406,10 +387,6 @@ static void MakeThumbs(
 	thm.ftc.clear();
 	thm.reqArea	= min_2D_olap;
 	thm.scl		= decfactor;
-	thm.nnegx	= olp.nnegx;
-	thm.nnegy	= olp.nnegy;
-	thm.nposx	= olp.nposx;
-	thm.nposy	= olp.nposy;
 
 	if( decfactor > 1 ) {
 
@@ -417,10 +394,6 @@ static void MakeThumbs(
 		DecimateVector( thm.bp, thm.bv, olp.ow, olp.oh, decfactor );
 
 		thm.reqArea	/= decfactor * decfactor;
-		thm.nnegx	/= decfactor;
-		thm.nnegy	/= decfactor;
-		thm.nposx	/= decfactor;
-		thm.nposy	/= decfactor;
 
 		fprintf( flog,
 		"Thumbs: After decimation %d pts, reqArea %d, thmscl %d.\n",
@@ -429,9 +402,6 @@ static void MakeThumbs(
 
 	Normalize( thm.av );
 	Normalize( thm.bv );
-
-	thm.nnegx	-= 1;
-	thm.nnegy	-= 1;
 }
 
 /* --------------------------------------------------------------- */
@@ -459,7 +429,9 @@ static void RotatePoints(
 
 static bool BigEnough( int sx, int sy, void *a )
 {
-	return (long)sx * sy > (long)a;
+	return	sx >= GBL.thm.OLAP1D &&
+			sy >= GBL.thm.OLAP1D &&
+			(long)sx * sy > (long)a;
 }
 
 /* --------------------------------------------------------------- */
@@ -472,13 +444,12 @@ static bool EnoughPoints( int count1, int count2, void *a )
 }
 
 /* --------------------------------------------------------------- */
-/* QFromAngle ---------------------------------------------------- */
+/* RFromAngle ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void QFromAngle(
+static void RFromAngle(
 	CorRec	&C,
 	double	a,
-	double	qtol,
 	ThmRec	&thm,
 	FILE*	flog )
 {
@@ -489,13 +460,12 @@ static void QFromAngle(
 
 	RotatePoints( ps, C.T, Tskew, a * PI/180.0 );
 
-	C.Q = C.R = CorrPatchesMaxR(
+	C.R = CorrImages(
 		flog, false, C.X, C.Y,
 		ps, thm.av, thm.bp, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		qtol, thm.ftc );
+		0.0, pkwid, pkgrd, nbmax, thm.ftc );
 }
 
 /* --------------------------------------------------------------- */
@@ -506,8 +476,7 @@ static void DebugAngs(
 	double	center,
 	double	hlfwid,
 	double	step,
-	double	qtol,
-	ThmRec &thm )
+	ThmRec	&thm )
 {
 	char	file[256];
 
@@ -515,16 +484,16 @@ static void DebugAngs(
 		GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile );
 	FILE	*f = fopen( file, "w" );
 
-	fprintf( f, "Deg\tR\tQ\tX\tY\n" );
+	fprintf( f, "Deg\tR\tX\tY\n" );
 
 	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
 
 		CorRec	C;
 
-		QFromAngle( C, a, qtol, thm, stdout );
+		RFromAngle( C, a, thm, stdout );
 
-		fprintf( f, "%.3f\t%.4f\t%.4f\t%.3f\t%.3f\n",
-			a, C.R, C.Q, C.X, C.Y );
+		fprintf( f, "%.3f\t%.4f\t%.3f\t%.3f\n",
+			a, C.R, C.X, C.Y );
 	}
 
 	fclose( f );
@@ -540,12 +509,12 @@ static void RecordAngle(
 	const CorRec	&C )
 {
 	fprintf( f,
-	"%s: Q=%6.3f, R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
-	label, C.Q, C.R, C.A, C.X, C.Y );
+	"%s: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
+	label, C.R, C.A, C.X, C.Y );
 }
 
 
-static void AngleScan(
+static double AngleScan(
 	CorRec	&best,
 	double	center,
 	double	hlfwid,
@@ -559,23 +528,25 @@ static void AngleScan(
 
 	clock_t	t0 = StartTiming();
 
-	QFromAngle( best, center, QTOL_SWEEP, thm, flog );
+	RFromAngle( best, center, thm, flog );
 	RecordAngle( flog, "Center", best );
 
 	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
 
 		CorRec	C;
 
-		QFromAngle( C, a, QTOL_SWEEP, thm, flog );
+		RFromAngle( C, a, thm, flog );
 		RecordAngle( flog, "  Scan", C );
 
-		if( C.Q > best.Q )
+		if( C.R > best.R )
 			best = C;
 	}
 
 	RecordAngle( flog, "  Best", best );
 
 	StopTiming( stdout, "AngleScan", t0 );
+
+	return best.R;
 }
 
 #if 0
@@ -583,16 +554,16 @@ static void AngleScan(
 // varying coords through that angle (using X vs A
 // line fits
 //
-static const vector<CorRec>	*_vQ;
+static const vector<CorRec>	*_vC;
 
 
-static bool Sort_vQ_dec( int a, int b )
+static bool Sort_vC_dec( int a, int b )
 {
-	return (*_vQ)[a].Q > (*_vQ)[b].Q;
+	return (*_vC)[a].R > (*_vC)[b].R;
 }
 
 
-static void AngleScan(
+static double AngleScan(
 	CorRec	&best,
 	double	center,
 	double	hlfwid,
@@ -604,7 +575,7 @@ static void AngleScan(
 	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f.\n",
 	center, hlfwid, step );
 
-//QFromAngle( best, center, QTOL_SWEEP, thm, flog );
+//RFromAngle( best, center, thm, flog );
 //return;
 
 	clock_t	t0 = StartTiming();
@@ -612,48 +583,47 @@ static void AngleScan(
 	best.X	= 0.0;
 	best.Y	= 0.0;
 	best.A	= 0.0;
-	best.Q	= 0.0;
 	best.R	= 0.0;
 
 // Sweep and collect
 
-	vector<CorRec>	vQ;
+	vector<CorRec>	vC;
 
 	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
 
 		CorRec	C;
 
-		QFromAngle( C, a, QTOL_SWEEP, thm, flog );
+		RFromAngle( C, a, thm, flog );
 		RecordAngle( flog, "Scan", C );
-		vQ.push_back( C );
+		vC.push_back( C );
 	}
 
-// Make indices sorted by decreasing Q
+// Make indices sorted by decreasing R
 
-	int	nQ = vQ.size();
+	int	nC = vC.size();
 
-	vector<int>	iq( nQ );
+	vector<int>	order( nC );
 
-	for( int i = 0; i < nQ; ++i )
-		iq[i] = i;
+	for( int i = 0; i < nC; ++i )
+		order[i] = i;
 
-	_vQ = &vQ;
+	_vC = &vC;
 
-	sort( iq.begin(), iq.end(), Sort_vQ_dec );
+	sort( order.begin(), order.end(), Sort_vC_dec );
 
 // Evaluate sweep
-// Search through decreasing Q.
+// Search through decreasing R.
 // Take first result for which there are also +- 3 data points,
 // and the X and Y coords vary smoothly over that range (r > 0.8).
 
-	for( int i = 0; i < nQ; ++i ) {
+	for( int i = 0; i < nC; ++i ) {
 
-		int	ic = iq[i];
+		int	ic = order[i];
 
 		if( ic < 3 )
 			continue;
 
-		if( nQ-1 - ic < 3 )
+		if( nC-1 - ic < 3 )
 			continue;
 
 		vector<double>	A( 7 ), X( 7 ), Y( 7 );
@@ -662,9 +632,9 @@ static void AngleScan(
 
 		for( int j = ic - 3; j <= ic + 3; ++j ) {
 
-			A[n] = vQ[j].A;
-			X[n] = vQ[j].X;
-			Y[n] = vQ[j].Y;
+			A[n] = vC[j].A;
+			X[n] = vC[j].X;
+			Y[n] = vC[j].Y;
 			++n;
 		}
 
@@ -678,7 +648,7 @@ static void AngleScan(
 		if( fabs( lincor ) < 0.8 )
 			continue;
 
-		best = vQ[ic];
+		best = vC[ic];
 		break;
 	}
 
@@ -687,6 +657,8 @@ static void AngleScan(
 	RecordAngle( flog, "Best", best );
 
 	StopTiming( stdout, "AngleScan", t0 );
+
+	return best.R;
 }
 #endif
 /* --------------------------------------------------------------- */
@@ -710,7 +682,7 @@ static double NewXFromParabola(
 #if 0
 // Repeated parabola fits for peak on a narrowing angle range.
 //
-static void PeakHunt(
+static double PeakHunt(
 	CorRec	&best,
 	double	hlfwid,
 	ThmRec	&thm,
@@ -731,52 +703,54 @@ static void PeakHunt(
 		++k;
 
 		// left
-		QFromAngle( C, L, QTOL_ZERO, thm, flog );
-		y0 = C.Q;
+		RFromAngle( C, L, thm, flog );
+		y0 = C.R;
 
 		// right
-		QFromAngle( C, R, QTOL_ZERO, thm, flog );
-		y2 = C.Q;
+		RFromAngle( C, R, thm, flog );
+		y2 = C.R;
 
 		// middle
-		QFromAngle( C, x1 = (L+R)/2.0, QTOL_ZERO, thm, flog );
+		RFromAngle( C, x1 = (L+R)/2.0, thm, flog );
 
 		// estimate peak position
-		C.A = NewXFromParabola( x1, (R-L)/2.0, y0, C.Q, y2 );
+		C.A = NewXFromParabola( x1, (R-L)/2.0, y0, C.R, y2 );
 
 		// sanity check
 		if( C.A <= L || C.A >= R )
 			break;
 
 		// compete estimate against best so far
-		QFromAngle( C, C.A, QTOL_ZERO, thm, flog );
+		RFromAngle( C, C.A, thm, flog );
 
-		if( C.Q > best.Q )
+		if( C.R > best.R )
 			best = C;
 
 		//fprintf( flog,
 		//"*** [%f,%f] [%f,%f] [%f,%f] <newx=%f>.\n",
-		//L,y0, best.A,best.Q, R,y2, x1 );
+		//L,y0, best.A,best.R, R,y2, x1 );
 
 		x1	= fmin( best.A - L, R - best.A ) / 4.0;
 		L	= best.A - x1;
 		R	= best.A + x1;
 	}
 
-	if( B0.R > best.R && fabs( B0.Q - best.Q ) < 0.005 )
+	if( B0.R > best.R )
 		best = B0;
 
 	fprintf( flog,
-	"PeakHunt: Best: K=%d, Q=%.3f, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
-	k, best.Q, best.R, best.A, best.X, best.Y );
+	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
+	k, best.R, best.A, best.X, best.Y );
 
 	StopTiming( stdout, "PeakHunt", t0 );
+
+	return best.R;
 }
 #endif
 
 // Bracket search for peak.
 //
-static void PeakHunt(
+static double PeakHunt(
 	CorRec	&best,
 	double	hlfwid,
 	ThmRec	&thm,
@@ -786,18 +760,18 @@ static void PeakHunt(
 			B0	= best;
 	double	L	= best.A - hlfwid,
 			R	= best.A + hlfwid,
-			M, lq, rq;
+			M, lr, rr;
 	int		k	= 1;
 
 	clock_t	t0 = StartTiming();
 
-	QFromAngle( C, L, QTOL_ZERO, thm, flog );
-	lq = C.Q;
+	RFromAngle( C, L, thm, flog );
+	lr = C.R;
 
-	QFromAngle( C, R, QTOL_ZERO, thm, flog );
-	rq = C.Q;
+	RFromAngle( C, R, thm, flog );
+	rr = C.R;
 
-	QFromAngle( best, M = (L+R)/2.0, QTOL_ZERO, thm, flog );
+	RFromAngle( best, M = (L+R)/2.0, thm, flog );
 
 	while( R - L > 0.0001 ) {
 
@@ -806,42 +780,44 @@ static void PeakHunt(
 		++k;
 
 		// move left up
-		QFromAngle( C, a = (L+M)/2.0, QTOL_ZERO, thm, flog );
+		RFromAngle( C, a = (L+M)/2.0, thm, flog );
 
-		if( C.Q >= best.Q ) {
-			rq		= best.Q;
+		if( C.R >= best.R ) {
+			rr		= best.R;
 			R		= M;
 			best	= C;
 			M		= a;
 		}
 		else {
-			lq		= C.Q;
+			lr		= C.R;
 			L		= a;
 		}
 
 		// move right back
-		QFromAngle( C, a = (M+R)/2.0, QTOL_ZERO, thm, flog );
+		RFromAngle( C, a = (M+R)/2.0, thm, flog );
 
-		if( C.Q >= best.Q ) {
-			lq		= best.Q;
+		if( C.R >= best.R ) {
+			rr		= best.R;
 			L		= M;
 			best	= C;
 			M		= a;
 		}
 		else {
-			rq		= C.Q;
+			rr		= C.R;
 			R		= a;
 		}
 	}
 
-	if( B0.Q > best.Q )
+	if( B0.R > best.R )
 		best = B0;
 
 	fprintf( flog,
-	"PeakHunt: Best: K=%d, Q=%.3f, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
-	k, best.Q, best.R, best.A, best.X, best.Y );
+	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
+	k, best.R, best.A, best.X, best.Y );
 
 	StopTiming( stdout, "PeakHunt", t0 );
+
+	return best.R;
 }
 
 /* --------------------------------------------------------------- */
@@ -857,21 +833,10 @@ static bool UsePriorAngles(
 	fprintf( flog, "Approx: Using prior angles n=%d, med=%f\n",
 	nprior, ang0 );
 
-	AngleScan( best, ang0, halfAngPR, 0.1, thm, flog );
-
-	if( best.Q < 0.001 ) {
-
-		fprintf( flog,
-		"FAIL: Approx: Prior angles Q=%g below thresh=0.001.\n",
-		best.Q );
-
-		gErr = errLowQ;
-		return false;
-	}
-
-	PeakHunt( best, 0.3, thm, flog );
-
-	if( best.R < rthresh ) {
+	if( AngleScan( best, ang0, halfAngPR, 0.1, thm, flog )
+		< rthresh ||
+		PeakHunt( best, 0.3, thm, flog )
+		< rthresh ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Prior angles R=%g below thresh=%g.\n",
@@ -890,23 +855,12 @@ static bool UsePriorAngles(
 
 static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	AngleScan( best, ang0, halfAngDN, 0.5, thm, flog );
-
-	if( best.Q < qthresh ) {
-
-		fprintf( flog,
-		"FAIL: Approx: Denovo Q=%g below thresh=%g.\n",
-		best.Q, qthresh );
-
-		gErr = errLowQ;
-		return false;
-	}
-
-	AngleScan( best, best.A, 1.0, 0.1, thm, flog );
-
-	PeakHunt( best, 0.3, thm, flog );
-
-	if( best.R < rthresh ) {
+	if( AngleScan( best, ang0, halfAngDN, 0.5, thm, flog )
+		< rthresh ||
+		AngleScan( best, best.A, 1.0, 0.1, thm, flog )
+		< rthresh ||
+		PeakHunt( best, 0.3, thm, flog )
+		< rthresh ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Denovo R=%g below thresh=%g.\n",
@@ -939,8 +893,7 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 	tweaks[6] = TForm( 1.000,  0.005, 0.0, -0.005, 1.001, 0.0 ); // Small rotate
 	tweaks[7] = TForm( 1.000, -0.005, 0.0,  0.005, 1.000, 0.0 ); // other way
 
-	fprintf( flog,
-	"Tweaks start, best Q=%.3f, R=%.3f.\n", best.Q, best.R );
+	fprintf( flog, "Tweaks start, best R=%.3f.\n", best.R );
 
 	clock_t	t0 = StartTiming();
 
@@ -958,16 +911,14 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 
 			C.T.Apply_R_Part( ps );
 
-			C.Q = C.R = CorrPatchesMaxR(
+			C.R = CorrImages(
 				flog, false, C.X, C.Y,
 				ps, thm.av, thm.bp, thm.bv,
-				thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
-				QTOL_ZERO, thm.ftc );
+				0.0, pkwid, pkgrd, nbmax, thm.ftc );
 
-			fprintf( flog,
-			"Tweak %d Q=%.3f, R=%.3f", i, C.Q, C.R );
+			fprintf( flog, "Tweak %d R=%.3f", i, C.R );
 
 			if( C.R > best.R ) {
 
@@ -995,8 +946,8 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 	int		ok;
 
 	fprintf( flog,
-	"Approx: LowRes  Q=%.3f, R=%.3f, X=%.3f, Y=%.3f.\n",
-	best.Q, best.R, best.X, best.Y );
+	"Approx: LowRes  R=%.3f, X=%.3f, Y=%.3f.\n",
+	best.R, best.X, best.Y );
 
 	clock_t	t0 = StartTiming();
 
@@ -1004,27 +955,26 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 
 	best.T.Apply_R_Part( ps );
 
-	best.Q = best.R = CorrPatchesMaxR(
+	best.R = CorrImages(
 		flog, false, best.X, best.Y,
 		ps, thm.av, thm.bp, thm.bv,
-		thm.nnegx, thm.nposx, thm.nnegy, thm.nposy,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		QTOL_ZERO, thm.ftc );
+		0.0, pkwid, pkgrd, nbmax, thm.ftc );
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);
 
 	fprintf( flog,
-	"Approx: FullRes Q=%.3f, R=%.3f, X=%.3f, Y=%.3f, use=%c.\n",
-	best.Q, best.R, best.X, best.Y, (ok ? 'Y' : 'N') );
+	"Approx: FullRes R=%.3f, X=%.3f, Y=%.3f, use=%c.\n",
+	best.R, best.X, best.Y, (ok ? 'Y' : 'N') );
 
-// Always report the thumb-Q instead of the fullres value because
+// Always report the thumb-R instead of the fullres value because
 // fullres values are scaled differently. We prefer all values in
 // the file to be comparable.
 
 	if( ok )
-		best.Q = b0.Q;
+		best.R = b0.R;
 	else
 		best = b0;
 
@@ -1200,12 +1150,12 @@ static bool Failure( CorRec &best )
 // out accordingly.
 //
 // We work on thumbnails, typically reduced by x8 on a side. The
-// basic scheme is to calculate the correlation {Q,R} for angles
-// in range +/-halfAng about estimated center angle. Best Q is
+// basic scheme is to calculate the correlation for angles in
+// range +/-halfAng about estimated center angle. Best value is
 // pretty distinct (simple maximum). That's best (rough) angle.
 //
 // Next the rough angle is refined by a narrowing bracket search
-// for improved Q until bracket width is 0.001 degree.
+// for improved R until bracket width is 0.001 degree.
 //
 // The angles within a layer should really be the same. To improve
 // angle consistency and to skip the wide angle sweep, we also read
@@ -1230,7 +1180,6 @@ bool ApproximateMatch_NoCR(
 	best.X	= -999.0;
 	best.Y	= -999.0;
 	best.A	= -999.0;
-	best.Q	= -999.0;
 	best.R	= -999.0;
 
 /* --------------------------------------------- */
@@ -1268,13 +1217,13 @@ bool ApproximateMatch_NoCR(
 /* --------------------- */
 
 // -----------------------------------------------------------
-//	DebugAngs( ang0, 45, .1, QTOL_SWEEP, thm );
-//	DebugAngs( ang0, 1, .01, 0, thm );
+//	DebugAngs( ang0, 45, .1, thm );
+//	DebugAngs( ang0, 1, .01, thm );
 //	exit( 42 );
 // -----------------------------------------------------------
 
 #ifdef	CORR_DEBUG
-	QFromAngle( best, ang0, QTOL_ZERO, thm, flog );
+	RFromAngle( best, ang0, thm, flog );
 	return false;
 #endif
 

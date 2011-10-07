@@ -155,47 +155,7 @@ double ImproveControlPts(
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-double CorrPatchesRQ(
-	FILE					*flog,
-	int						verbose,
-	double					&Q,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	int						nnegx,
-	int						nposx,
-	int						nnegy,
-	int						nposy,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	vector<CD>				&fft2 );
-
-double CorrPatchesMaxQ(
-	FILE					*flog,
-	int						verbose,
-	double					&Q,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	int						nnegx,
-	int						nposx,
-	int						nnegy,
-	int						nposy,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	vector<CD>				&fft2 );
-
-double CorrPatchesMaxR(
+double CorrImages(
 	FILE					*flog,
 	int						verbose,
 	double					&dx,
@@ -204,15 +164,14 @@ double CorrPatchesMaxR(
 	const vector<double>	&iv1,
 	const vector<Point>		&ip2,
 	const vector<double>	&iv2,
-	int						nnegx,
-	int						nposx,
-	int						nnegy,
-	int						nposy,
 	EvalType				LegalRgn,
 	void*					arglr,
 	EvalType				LegalCnt,
 	void*					arglc,
-	double					qtol,
+	double					mincor,
+	int						pkwid,
+	int						pkgrd,
+	double					nbmaxht,
 	vector<CD>				&fft2 );
 
 
