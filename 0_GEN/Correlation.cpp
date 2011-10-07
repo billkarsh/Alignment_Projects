@@ -2342,6 +2342,9 @@ bool CCorImg::FPeak(
 next_i:;
 	}
 
+	if( verbose )
+		fprintf( flog, "Corr: No peak candidates...\n" );
+
 	return false;
 }
 
@@ -2494,9 +2497,6 @@ double CorrImages(
 	cc.OrderF( forder, F, A, R, mincor );
 
 	if( !cc.FPeak( rx, ry, forder, F, pkwid, pkgrd, nbmaxht ) ) {
-
-		if( verbose )
-			fprintf( flog, "Corr: No peak candidates...\n" );
 
 		dx	= 0.0;
 		dy	= 0.0;
