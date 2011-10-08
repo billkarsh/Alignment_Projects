@@ -14,67 +14,61 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 typedef struct {
-	int			PXBRO,
-				PXDOG,
-				PXDOG_R1,
-				PXDOG_R2;
-} PxPairPrm;
-
-typedef struct {
-	PxPairPrm	pxp;
-	double		SCALE,
-				XSCALE,
-				YSCALE,
-				SKEW,
-				NBMXHT_SL,
-				NBMXHT_XL,
-				HFANGDN_SL,
-				HFANGDN_XL,
-				HFANGPR_SL,
-				HFANGPR_XL,
-				RTRSH_SL,
-				RTRSH_XL;
-	int			FLD,
-				SLOPPY_SL,
-				OLAP1D,
-				OLAP2D_SL,
-				OLAP2D_XL,
-				PKWID_SL,
-				PKWID_XL,
-				PKGRD_SL,
-				PKGRD_XL,
-				TWEAKS,
-				INPALN,
-				DINPUT;
-} ThmParams;
-
-typedef struct {
-	PxPairPrm	pxp;
-	double		DIT,
-				DAF,
-				DFT,
-				TMC,
-				TSC,
-				IFM,
-				FFM,
-				FYL,
-				CPD,
-				EMT,
-				LDA,
-				LDR,
-				LDC,
-				DXY;
-	int			FLD,
-				DSL,
-				MNL,
-				MTA,
-				MMA,
-				ONE,
-				EMM,
-				WDI,
-				WMT,
-				WTT;
-} MeshParams;
+	double	SCALE,
+			XSCALE,
+			YSCALE,
+			SKEW,
+			NBMXHT_SL,
+			NBMXHT_XL,
+			HFANGDN_SL,
+			HFANGDN_XL,
+			HFANGPR_SL,
+			HFANGPR_XL,
+			RTRSH_SL,
+			RTRSH_XL,
+			DIT_SL,
+			DIT_XL,
+			DFA_SL,
+			DFA_XL,
+			DFT_SL,
+			DFT_XL,
+			TMC,
+			TSC,
+			IFM,
+			FFM,
+			FYL,
+			CPD,
+			EMT,
+			LDA,
+			LDR,
+			LDC,
+			DXY;
+	int		PXBRO,
+			PXDOG,
+			PXDOG_R1,
+			PXDOG_R2,
+			FLD,
+			SLOPPY_SL,
+			OLAP1D,
+			OLAP2D_SL,
+			OLAP2D_XL,
+			PKWID_SL,
+			PKWID_XL,
+			PKGRD_SL,
+			PKGRD_XL,
+			TWEAKS,
+			INPALN,
+			DINPUT,
+			DSL,
+			MNL,
+			MTA,
+			MMA,
+			ONE,
+			EMM,
+			WDI,
+			WMT,
+			WTT;
+} MatchParams;
 
 typedef struct {
 // entry: TileToImage.txt
@@ -104,8 +98,7 @@ typedef struct {
 
 void OpenPairLog( int alr, int atl, int blr, int btl );
 
-bool ReadThmParams( ThmParams &T, int layer, FILE *flog = stdout );
-bool ReadMeshParams( MeshParams &M, int layer, FILE *flog = stdout );
+bool ReadMatchParams( MatchParams &M, int layer, FILE *flog = stdout );
 
 void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
 

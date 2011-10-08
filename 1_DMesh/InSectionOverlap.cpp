@@ -191,7 +191,7 @@ void InSectionOverlap(
 						InSectionLegal, NULL,
 						NULL, NULL, ftc );
 
-	if( c < GBL.ctx.rthresh ) {	// empirical
+	if( c < GBL.ctx.RTRSH ) {	// empirical
 
 		fprintf( flog,
 		"Olap: Can't find a good starting point"
@@ -300,7 +300,7 @@ void InSectionOverlap(
 
 	c = ImproveControlPts(
 			cpts, lambdas, spv, image2, 4096, 4096, flog,
-			"in-section", GBL.msh.DIT, threshold );
+			"in-section", GBL.ctx.DIT, threshold );
 
 	if( c < threshold ) {
 

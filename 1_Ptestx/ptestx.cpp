@@ -3,8 +3,7 @@
 // folder/file structure that ptest expects, and then calls ptest.
 //
 // E.g.
-// > ptestx za/ia@zb/ib -d=temp
-//	-thm=thmparams.txt -msh=dmeshparams.txt
+// > ptestx za/ia@zb/ib -d=temp -prm=matchparams.txt
 //	[-idb=xxx]
 //	[-ima=xxx -imb=xxx]
 //	[-fma=xxx -fmb=xxx]
@@ -12,7 +11,7 @@
 // Required params:
 //	za/ia@zb/ib:	z/tileid numerical labels (A onto B)
 //	d:				output directory to create
-//	thm, msh:		paths to parameter files
+//	prm:			path to parameter file
 //
 // Options:
 //	idb:			path to IDB
@@ -52,8 +51,7 @@ public:
 					fm[2][2048],
 					tmp[2048],
 					idb[2048],
-					thm[2048],
-					msh[2048];
+					prm[2048];
 	int				z[2], tile[2],
 					clrtmp;
 
@@ -66,8 +64,7 @@ public:
 		fm[1][0]	= 0;
 		tmp[0]		= 0;
 		idb[0]		= 0;
-		thm[0]		= 0;
-		msh[0]		= 0;
+		prm[0]		= 0;
 		clrtmp		= false;
 	};
 
@@ -110,11 +107,11 @@ void CArgs_ptx::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 6 ) {
+	if( argc < 5 ) {
 usage:
 		printf( "Usage: ptestx <za/ia@zb/ib> -d=temp"
-		" -thm=thmparams.txt -msh=dmeshparams.txt"
-		" [-idb=xxx] [-ima=xxx -imb=xxx -fma=zzz -fmb=xxx]"
+		" -prm=matchparams.txt [-idb=xxx]"
+		" [-ima=xxx -imb=xxx -fma=zzz -fmb=xxx]"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -135,10 +132,8 @@ usage:
 			ok = DskAbsPath( tmp, sizeof(tmp), _arg, flog );
 		else if( GetArgStr( _arg, "-idb=", argv[i] ) )
 			ok = DskAbsPath( idb, sizeof(idb), _arg, flog );
-		else if( GetArgStr( _arg, "-thm=", argv[i] ) )
-			ok = DskAbsPath( thm, sizeof(thm), _arg, flog );
-		else if( GetArgStr( _arg, "-msh=", argv[i] ) )
-			ok = DskAbsPath( msh, sizeof(msh), _arg, flog );
+		else if( GetArgStr( _arg, "-prm=", argv[i] ) )
+			ok = DskAbsPath( prm, sizeof(prm), _arg, flog );
 		else if( GetArgStr( _arg, "-ima=", argv[i] ) )
 			ok = DskAbsPath( im[0], sizeof(im[0]), _arg, flog );
 		else if( GetArgStr( _arg, "-imb=", argv[i] ) )
@@ -160,7 +155,7 @@ usage:
 
 	fprintf( flog, "\n\n" );
 
-	if( !key || !tmp[0] || !thm[0] || !msh[0] )
+	if( !key || !tmp[0] || !prm[0] )
 		goto usage;
 
 // Decode labels in key
@@ -198,10 +193,7 @@ void CArgs_ptx::TopLevel()
 		system( buf );
 	}
 
-	sprintf( buf, "cp %s %s", thm, tmp );
-	system( buf );
-
-	sprintf( buf, "cp %s %s", msh, tmp );
+	sprintf( buf, "cp %s %s", prm, tmp );
 	system( buf );
 }
 

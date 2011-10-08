@@ -55,13 +55,13 @@ static double Metric(
 	const char				*msg,
 	FILE*					flog )
 {
-	if( GBL.msh.EMM ) {
+	if( GBL.mch.EMM ) {
 		return	EarthMoversMetric( pts, av, bv,
-					GBL.msh.WDI, msg, flog );
+					GBL.mch.WDI, msg, flog );
 	}
 	else {
 		return	FourierMatch( pts, av, bv, 25,
-					GBL.msh.WDI, msg, flog );
+					GBL.mch.WDI, msg, flog );
 	}
 }
 
@@ -226,11 +226,11 @@ void RegionToRegionMap(
 	fprintf( flog, "Roughly %d pixels map to B.\n",
 	ap_msh.size() );
 
-	if( ap_msh.size() < GBL.msh.MMA ) {
+	if( ap_msh.size() < GBL.mch.MMA ) {
 
 		fprintf( flog,
 		"FAIL: Region too small - %d pixels, MMA %d.\n",
-		ap_msh.size(), GBL.msh.MMA );
+		ap_msh.size(), GBL.mch.MMA );
 
 		return;
 	}
@@ -281,7 +281,7 @@ void RegionToRegionMap(
 			ap_msh, av_msh,
 			bv_msh, w, h,
 			tr_guess,
-			GBL.msh.DFT * GBL.msh.DAF,
+			GBL.ctx.DFA,
 			flog, "affine" );
 
 	if( !transforms.size() )
@@ -352,24 +352,24 @@ void RegionToRegionMap(
 
 	// Assess result quality
 
-		if( GBL.msh.EMM ) {
+		if( GBL.mch.EMM ) {
 
-			if( fm > 2.0*GBL.msh.EMT ) {
+			if( fm > 2.0*GBL.mch.EMT ) {
 
 				fprintf( flog,
 				"FAIL: Kicking out - Initial EMM too big (%f),"
-				" 2*EMT %f.\n", fm, 2.0*GBL.msh.EMT );
+				" 2*EMT %f.\n", fm, 2.0*GBL.mch.EMT );
 
 				return;
 			}
 		}
 		else {	// use older Fourier Metric
 
-			if( fm < GBL.msh.IFM ) {
+			if( fm < GBL.mch.IFM ) {
 
 				fprintf( flog,
 				"FAIL: Kicking out - Initial FM too low (%f),"
-				" IFM %f.\n", fm, GBL.msh.IFM );
+				" IFM %f.\n", fm, GBL.mch.IFM );
 
 				for( int wvlen = 5; wvlen <= 40; wvlen += 5 ) {
 
@@ -377,7 +377,7 @@ void RegionToRegionMap(
 
 					ffm = FourierMatch(
 							mat.pts, mat.a, mat.b, wvlen,
-							wvlen==5 || GBL.msh.WDI,
+							wvlen==5 || GBL.mch.WDI,
 							"AF2", flog );
 
 					fprintf( flog,
@@ -389,7 +389,7 @@ void RegionToRegionMap(
 		}
 	}
 
-	if( GBL.msh.ONE ) {
+	if( GBL.mch.ONE ) {
 		fprintf( flog,
 		"Cmd-line directive to use one affine only.\n" );
 		goto quality_control;
@@ -406,7 +406,7 @@ void RegionToRegionMap(
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - Small overlap?"
 		" %d pixels, MMA %d.\n",
-		ap_msh.size(), GBL.msh.MMA );
+		ap_msh.size(), GBL.mch.MMA );
 
 		return;
 	}
@@ -418,7 +418,7 @@ void RegionToRegionMap(
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - No triangles."
 		" %d pixels, MMA %d.\n",
-		ap_msh.size(), GBL.msh.MMA );
+		ap_msh.size(), GBL.mch.MMA );
 
 		return;
 	}
@@ -433,7 +433,7 @@ void RegionToRegionMap(
 				ap_msh, av_msh,
 				bv_msh, w, h,
 				transforms[0],
-				GBL.msh.DFT,
+				GBL.ctx.DFT,
 				flog, "deformable mesh" );
 
 	if( !transforms.size() )
@@ -535,10 +535,10 @@ quality_control:
 
 	string	reason;
 
-	if( yell < GBL.msh.FYL )
+	if( yell < GBL.mch.FYL )
 		reason += "-Not enough yellow pixels- ";
 
-	if( GBL.msh.EMM ) {
+	if( GBL.mch.EMM ) {
 
 		fprintf( flog,
 		"STAT: Overall %d points, corr %.4f,"
@@ -546,13 +546,13 @@ quality_control:
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
 
-		if( score > GBL.msh.EMT )
+		if( score > GBL.mch.EMT )
 			reason += "-Weighted Earth Mover Metric too high- ";
 
-		if( dfm > GBL.msh.EMT*1.10 )
+		if( dfm > GBL.mch.EMT*1.10 )
 			reason += "-EMM too high(>10% over threshold)- ";
 
-		if( score > dfm*1.1 && score > GBL.msh.EMT/2.0 ) {
+		if( score > dfm*1.1 && score > GBL.mch.EMT/2.0 ) {
 			reason +=	"-not great EMM, and Weighted EMM"
 						" is higher by more than 10%- ";
 		}
@@ -565,16 +565,16 @@ quality_control:
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
 
-		if( dfm < GBL.msh.FFM )
+		if( dfm < GBL.mch.FFM )
 			reason += "-Final Fourier too low- ";
 
-		if( sum_pts < 400000 && score < GBL.msh.FFM )
+		if( sum_pts < 400000 && score < GBL.mch.FFM )
 			reason += "-Small region and weighted metric < dfm- ";
 
 		if( score < 0.75*dfm )
 			reason += "-Weighted less than 0.75 of dfm- ";
 
-		if( corr+dfm < GBL.msh.CPD )
+		if( corr+dfm < GBL.mch.CPD )
 			reason += "-Sum of corr+dfm too low- ";
 	}
 

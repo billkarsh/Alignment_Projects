@@ -74,7 +74,7 @@ static void CalcTransforms(
 	Ntrans	= 0;
 	rmap	= (uint16*)malloc( wf * hf * sizeof(uint16) );
 
-	nofile	= GBL.arg.NoFolds || !GBL.msh.FLD;
+	nofile	= GBL.arg.NoFolds || !GBL.mch.FLD;
 	tspose	= GBL.arg.Transpose;
 	force1	= GBL.arg.SingleFold;
 
@@ -109,7 +109,7 @@ static void CalcTransforms(
 /* Report results */
 /* -------------- */
 
-	if( GBL.msh.WMT ) {
+	if( GBL.mch.WMT ) {
 
 		sprintf( sfile, "../%d/%d/%d.%d.map.tif",
 		GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile );
@@ -126,7 +126,7 @@ static void CalcTransforms(
 	tfs = new TForm[Ntrans];
 	ifs = new TForm[Ntrans];
 
-	if( GBL.msh.WTT ) {
+	if( GBL.mch.WTT ) {
 
 		sprintf( sfile, "../%d/%d/%d.%d.tf.txt",
 		GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile );
@@ -192,8 +192,8 @@ int main( int argc, char* argv[] )
 	if( !px.Load(
 			GBL.A.t2i.path.c_str(),
 			GBL.B.t2i.path.c_str(),
-			GBL.msh.pxp.PXBRO, GBL.msh.pxp.PXDOG,
-			GBL.msh.pxp.PXDOG_R1, GBL.msh.pxp.PXDOG_R2,
+			GBL.mch.PXBRO, GBL.mch.PXDOG,
+			GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
 			stdout ) ) {
 
 		goto exit;

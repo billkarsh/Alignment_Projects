@@ -126,38 +126,38 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadThmParams( thm, A.layer ) )
+	if( !ReadMatchParams( mch, A.layer ) )
 		return false;
 
 // Context dependent choices: (same,cross) layer
 
 	if( A.layer == B.layer ) {
 
-		ctx.scale		= 1.0;
-		ctx.xscale		= 1.0;
-		ctx.yscale		= 1.0;
-		ctx.skew		= 0.0;
-		ctx.nbmax		= thm.NBMXHT_SL;
-		ctx.halfAngDN	= thm.HFANGDN_SL;
-		ctx.halfAngPR	= thm.HFANGPR_SL;
-		ctx.rthresh		= thm.RTRSH_SL;
-		ctx.min_2D_olap	= thm.OLAP2D_SL;
-		ctx.pkwid		= thm.PKWID_SL;
-		ctx.pkgrd		= thm.PKGRD_SL;
+		ctx.SCALE	= 1.0;
+		ctx.XSCALE	= 1.0;
+		ctx.YSCALE	= 1.0;
+		ctx.SKEW	= 0.0;
+		ctx.NBMXHT	= mch.NBMXHT_SL;
+		ctx.HFANGDN	= mch.HFANGDN_SL;
+		ctx.HFANGPR	= mch.HFANGPR_SL;
+		ctx.RTRSH	= mch.RTRSH_SL;
+		ctx.OLAP2D	= mch.OLAP2D_SL;
+		ctx.PKWID	= mch.PKWID_SL;
+		ctx.PKGRD	= mch.PKGRD_SL;
 	}
 	else {
 
-		ctx.scale		= thm.SCALE;
-		ctx.xscale		= thm.XSCALE;
-		ctx.yscale		= thm.YSCALE;
-		ctx.skew		= thm.SKEW;
-		ctx.nbmax		= thm.NBMXHT_XL;
-		ctx.halfAngDN	= thm.HFANGDN_XL;
-		ctx.halfAngPR	= thm.HFANGPR_XL;
-		ctx.rthresh		= thm.RTRSH_XL;
-		ctx.min_2D_olap	= thm.OLAP2D_XL;
-		ctx.pkwid		= thm.PKWID_XL;
-		ctx.pkgrd		= thm.PKGRD_XL;
+		ctx.SCALE	= mch.SCALE;
+		ctx.XSCALE	= mch.XSCALE;
+		ctx.YSCALE	= mch.YSCALE;
+		ctx.SKEW	= mch.SKEW;
+		ctx.NBMXHT	= mch.NBMXHT_XL;
+		ctx.HFANGDN	= mch.HFANGDN_XL;
+		ctx.HFANGPR	= mch.HFANGPR_XL;
+		ctx.RTRSH	= mch.RTRSH_XL;
+		ctx.OLAP2D	= mch.OLAP2D_XL;
+		ctx.PKWID	= mch.PKWID_XL;
+		ctx.PKGRD	= mch.PKGRD_XL;
 	}
 
 // Commandline overrides
@@ -166,23 +166,23 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	if( A.layer != B.layer ) {
 
-		if( arg.SCALE != 999.0 && arg.SCALE != ctx.scale ) {
-			ctx.scale = arg.SCALE;
+		if( arg.SCALE != 999.0 && arg.SCALE != ctx.SCALE ) {
+			ctx.SCALE = arg.SCALE;
 			printf( "SCALE=%g\n", arg.SCALE );
 		}
 
-		if( arg.XSCALE != 999.0 && arg.XSCALE != ctx.xscale ) {
-			ctx.xscale = arg.XSCALE;
+		if( arg.XSCALE != 999.0 && arg.XSCALE != ctx.XSCALE ) {
+			ctx.XSCALE = arg.XSCALE;
 			printf( "XSCALE=%g\n", arg.XSCALE );
 		}
 
-		if( arg.YSCALE != 999.0 && arg.YSCALE != ctx.yscale ) {
-			ctx.yscale = arg.YSCALE;
+		if( arg.YSCALE != 999.0 && arg.YSCALE != ctx.YSCALE ) {
+			ctx.YSCALE = arg.YSCALE;
 			printf( "YSCALE=%g\n", arg.YSCALE );
 		}
 
-		if( arg.SKEW != 999.0 && arg.SKEW != ctx.skew ) {
-			ctx.skew = arg.SKEW;
+		if( arg.SKEW != 999.0 && arg.SKEW != ctx.SKEW ) {
+			ctx.SKEW = arg.SKEW;
 			printf( "SKEW=%g\n", arg.SKEW );
 		}
 	}

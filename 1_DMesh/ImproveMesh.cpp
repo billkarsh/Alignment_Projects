@@ -233,10 +233,10 @@ static bool CheckAreas(
 
 		if( GBL.A.layer != GBL.B.layer ) {
 
-			double	f = GBL.ctx.scale
-						* GBL.ctx.scale
-						* GBL.ctx.xscale
-						* GBL.ctx.yscale;
+			double	f = GBL.ctx.SCALE
+						* GBL.ctx.SCALE
+						* GBL.ctx.XSCALE
+						* GBL.ctx.YSCALE;
 
 			if( f < 0.99 || f > 1.01 ) {
 
@@ -272,17 +272,17 @@ static bool CheckAreas(
 /* Assess area change */
 /* ------------------ */
 
-	double	sum_lim = GBL.msh.TSC;
+	double	sum_lim = GBL.mch.TSC;
 
 	if( sum_Anew > 500000 )
 		sum_lim *= 4.0/3.0;
 
-	if( max_pct > GBL.msh.TMC || fabs( sum_pct ) > sum_lim ) {
+	if( max_pct > GBL.mch.TMC || fabs( sum_pct ) > sum_lim ) {
 
 		fprintf( flog,
 		"FAIL: Area change too big"
 		" (max, sum) = (%8.2f%% %8.2f%%), (TMC TSC)=(%f %f).\n",
-		max_pct, sum_pct, GBL.msh.TMC, sum_lim );
+		max_pct, sum_pct, GBL.mch.TMC, sum_lim );
 
 		return false;
 	}
@@ -485,14 +485,14 @@ double ImproveMesh(
 
 	double	corr = threshold;
 
-	if( !GBL.msh.DSL && (GBL.A.layer == GBL.B.layer) )
+	if( !GBL.mch.DSL && (GBL.A.layer == GBL.B.layer) )
 		corr = -1;
 
 	corr = ImproveControlPts(
 				cpts, am, av,
 				bimg, w, h,
 				flog, describe,
-				GBL.msh.DIT, corr );
+				GBL.ctx.DIT, corr );
 
 	if( corr < threshold ) {
 

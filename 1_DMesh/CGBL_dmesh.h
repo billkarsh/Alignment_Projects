@@ -36,17 +36,20 @@ public:
 	} DriverArgs;
 
 	typedef struct {
-		double	scale,
-				xscale,
-				yscale,
-				skew,
-				nbmax,
-				halfAngDN,
-				halfAngPR,
-				rthresh;
-		long	min_2D_olap;
-		int		pkwid,
-				pkgrd;
+		double	SCALE,
+				XSCALE,
+				YSCALE,
+				SKEW,
+				NBMXHT,
+				HFANGDN,
+				HFANGPR,
+				RTRSH,
+				DIT,
+				DFA,
+				DFT;
+		long	OLAP2D;
+		int		PKWID,
+				PKGRD;
 	} CntxtDep;
 
 	typedef struct {
@@ -64,8 +67,7 @@ public:
 	DriverArgs		arg;
 	vector<TForm>	Tusr;	// command line guessed tform
 	vector<Point>	XYusr;	// command line expected XY
-	ThmParams		thm;
-	MeshParams		msh;
+	MatchParams		mch;
 	CntxtDep		ctx;
 	string			idb;
 	PicSpecs		A, B;

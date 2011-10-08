@@ -135,8 +135,8 @@ adjust_olap:
 				c = cos( a ),
 				s = sin( a );
 
-		GBL.ctx.min_2D_olap =
-			int(GBL.ctx.min_2D_olap / fmax( c*c, s*s ));
+		GBL.ctx.OLAP2D =
+			int(GBL.ctx.OLAP2D / fmax( c*c, s*s ));
 	}
 
 	return nprior;
@@ -286,7 +286,7 @@ static bool SelectSubimage(
 		dx = int(delta.x) / px.scl;
 		dy = int(delta.y) / px.scl;
 
-		if( GBL.thm.SLOPPY_SL ) {
+		if( GBL.mch.SLOPPY_SL ) {
 			dx /= 2;
 			dy /= 2;
 		}
@@ -307,7 +307,7 @@ static bool SelectSubimage(
 
 // Double-check that there was sufficient overlap
 
-	if( ow < GBL.thm.OLAP1D || oh < GBL.thm.OLAP1D ) {
+	if( ow < GBL.mch.OLAP1D || oh < GBL.mch.OLAP1D ) {
 		fprintf( flog, "Subimage: Overlap looks small.\n" );
 		return WholeImage( olp, px, acr, bcr, flog );
 	}
@@ -339,7 +339,7 @@ static void MakeThumbs(
 	thm.ap		= olp.a.p;
 	thm.bp		= olp.b.p;
 	thm.ftc.clear();
-	thm.reqArea	= GBL.ctx.min_2D_olap;
+	thm.reqArea	= GBL.ctx.OLAP2D;
 	thm.scl		= decfactor;
 
 	if( decfactor > 1 ) {
@@ -368,10 +368,10 @@ static void RotatePoints(
 	const TForm		&T0,
 	double			theta )
 {
-	double	c	= cos( theta ) * GBL.ctx.scale,
-			s	= sin( theta ) * GBL.ctx.scale;
-	TForm	ao( GBL.ctx.xscale * c, -GBL.ctx.yscale * s, 0.0,
-				GBL.ctx.xscale * s,  GBL.ctx.yscale * c, 0.0 );
+	double	c	= cos( theta ) * GBL.ctx.SCALE,
+			s	= sin( theta ) * GBL.ctx.SCALE;
+	TForm	ao( GBL.ctx.XSCALE * c, -GBL.ctx.YSCALE * s, 0.0,
+				GBL.ctx.XSCALE * s,  GBL.ctx.YSCALE * c, 0.0 );
 
 	MultiplyTrans( T, ao, T0 );
 	T.Apply_R_Part( pts );
@@ -383,8 +383,8 @@ static void RotatePoints(
 
 static bool BigEnough( int sx, int sy, void *a )
 {
-	return	sx >= GBL.thm.OLAP1D &&
-			sy >= GBL.thm.OLAP1D &&
+	return	sx >= GBL.mch.OLAP1D &&
+			sy >= GBL.mch.OLAP1D &&
 			(long)sx * sy > (long)a;
 }
 
@@ -407,7 +407,7 @@ static void RFromAngle(
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	TForm			Tskew( 1.0, 0.0, 0.0, GBL.ctx.skew, 1.0, 0.0 );
+	TForm			Tskew( 1.0, 0.0, 0.0, GBL.ctx.SKEW, 1.0, 0.0 );
 	vector<Point>	ps = thm.ap;
 
 	C.A = a;
@@ -419,8 +419,8 @@ static void RFromAngle(
 		ps, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, GBL.ctx.pkwid, GBL.ctx.pkgrd,
-		GBL.ctx.nbmax, thm.ftc );
+		0.0, GBL.ctx.PKWID, GBL.ctx.PKGRD,
+		GBL.ctx.NBMXHT, thm.ftc );
 }
 
 /* --------------------------------------------------------------- */
@@ -676,14 +676,14 @@ static bool UsePriorAngles(
 	fprintf( flog, "Approx: Using prior angles n=%d, med=%f\n",
 	nprior, ang0 );
 
-	if( AngleScan( best, ang0, GBL.ctx.halfAngPR, 0.1, thm, flog )
-		< GBL.ctx.rthresh ||
+	if( AngleScan( best, ang0, GBL.ctx.HFANGPR, 0.1, thm, flog )
+		< GBL.ctx.RTRSH ||
 		PeakHunt( best, 0.3, thm, flog )
-		< GBL.ctx.rthresh ) {
+		< GBL.ctx.RTRSH ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Prior angles R=%g below thresh=%g.\n",
-		best.R, GBL.ctx.rthresh );
+		best.R, GBL.ctx.RTRSH );
 
 		gErr = errLowRPrior;
 		return false;
@@ -698,16 +698,16 @@ static bool UsePriorAngles(
 
 static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	if( AngleScan( best, ang0, GBL.ctx.halfAngDN, 0.5, thm, flog )
-		< GBL.ctx.rthresh ||
+	if( AngleScan( best, ang0, GBL.ctx.HFANGDN, 0.5, thm, flog )
+		< GBL.ctx.RTRSH ||
 		AngleScan( best, best.A, 1.0, 0.1, thm, flog )
-		< GBL.ctx.rthresh ||
+		< GBL.ctx.RTRSH ||
 		PeakHunt( best, 0.3, thm, flog )
-		< GBL.ctx.rthresh ) {
+		< GBL.ctx.RTRSH ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Denovo R=%g below thresh=%g.\n",
-		best.R, GBL.ctx.rthresh );
+		best.R, GBL.ctx.RTRSH );
 
 		gErr = errLowRDenov;
 		return false;
@@ -759,8 +759,8 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 				ps, thm.av, thm.bp, thm.bv,
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
-				0.0, GBL.ctx.pkwid, GBL.ctx.pkgrd,
-				GBL.ctx.nbmax, thm.ftc );
+				0.0, GBL.ctx.PKWID, GBL.ctx.PKGRD,
+				GBL.ctx.NBMXHT, thm.ftc );
 
 			fprintf( flog, "Tweak %d R=%.3f", i, C.R );
 
@@ -804,8 +804,8 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		ps, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, GBL.ctx.pkwid, GBL.ctx.pkgrd,
-		GBL.ctx.nbmax, thm.ftc );
+		0.0, GBL.ctx.PKWID, GBL.ctx.PKGRD,
+		GBL.ctx.NBMXHT, thm.ftc );
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);
@@ -1047,7 +1047,7 @@ bool Thumbs(
 /* --------------------- */
 
 // -----------------------------------------------------------
-//	DebugAngs( ang0, GBL.ctx.halfAngPR, .1, thm );
+//	DebugAngs( ang0, GBL.ctx.HFANGPR, .1, thm );
 //	DebugAngs( ang0, 1, .01, thm );
 //	exit( 42 );
 // -----------------------------------------------------------
@@ -1076,7 +1076,7 @@ bool Thumbs(
 // These tweaks can be enabled for EM. They don't make sense for
 // optical, nor does RecordSumSqDif() show improvement in optical.
 
-	if( GBL.thm.TWEAKS )
+	if( GBL.mch.TWEAKS )
 		TryTweaks( best, thm, flog );
 
 /* --------------------------------- */
@@ -1127,7 +1127,7 @@ bool Thumbs(
 // Stay close to original transform, assuming some preliminary
 // alignment was done.
 
-	if( GBL.thm.INPALN ) {
+	if( GBL.mch.INPALN ) {
 
 		TForm	T, Tinv, I;
 
@@ -1143,14 +1143,14 @@ bool Thumbs(
 		double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 
 		fprintf( flog, "Approx: err = %g, max = %d.\n",
-			err, GBL.thm.DINPUT );
+			err, GBL.mch.DINPUT );
 
-		if( err > GBL.thm.DINPUT ) {
+		if( err > GBL.mch.DINPUT ) {
 
 			fprintf( flog,
 			"FAIL: Approx: Too different from Tinput"
 			" err=%g, max=%d.\n",
-			err, GBL.thm.DINPUT );
+			err, GBL.mch.DINPUT );
 
 			return false;
 		}

@@ -57,7 +57,7 @@ static bool RoughMatch(
 		return true;
 
 	if( GBL.A.layer == GBL.B.layer ||
-		GBL.arg.NoFolds || !GBL.msh.FLD ) {
+		GBL.arg.NoFolds || !GBL.mch.FLD ) {
 
 		return ApproximateMatch_NoCR( guesses, px, flog );
 	}
@@ -122,26 +122,26 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 			pspan[j] = pmax[j] - pmin[j];
 
 			if( j == 2 || j == 5 )	// translation
-				extreme |= pspan[j] > GBL.msh.LDC;
+				extreme |= pspan[j] > GBL.mch.LDC;
 			else					// rotation
-				extreme |= pspan[j] > GBL.msh.LDR;
+				extreme |= pspan[j] > GBL.mch.LDR;
 		}
 
 		// any extreme spans?
 
-		if( ang_max - ang_min > GBL.msh.LDA || extreme ) {
+		if( ang_max - ang_min > GBL.mch.LDA || extreme ) {
 
 			fprintf( flog,
 			"FAIL: Pipe: Triangles too different:"
 			" angles %f %f %f; LDA %f.\n",
-			ang_min, ang_max, ang_max-ang_min, GBL.msh.LDA );
+			ang_min, ang_max, ang_max-ang_min, GBL.mch.LDA );
 
 			fprintf( flog,
 			"FAIL: Pipe: Triangles too different:"
 			" elements %f %f %f %f %f %f; LDR %f LDC %f.\n",
 			pspan[0], pspan[1], pspan[2],
 			pspan[3], pspan[4], pspan[5],
-			GBL.msh.LDR, GBL.msh.LDC );
+			GBL.mch.LDR, GBL.mch.LDC );
 
 			nT = 0;
 		}
@@ -163,7 +163,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 				Point	p( vT[i].t[2], vT[i].t[5] );
 
-				iok |= p.Dist( GBL.XYusr[j] ) <= GBL.msh.DXY;
+				iok |= p.Dist( GBL.XYusr[j] ) <= GBL.mch.DXY;
 			}
 
 			if( !iok ) {
@@ -171,7 +171,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 				fprintf( flog,
 				"Pipe: Transform translation (%f %f)"
 				" not on allowed list, tolerance %f.\n",
-				vT[i].t[2], vT[i].t[5], GBL.msh.DXY );
+				vT[i].t[2], vT[i].t[5], GBL.mch.DXY );
 			}
 
 			allok &= iok;
@@ -372,7 +372,7 @@ void PipelineDeformableMap(
 
 	vector<ConnRegion>	Acr, Bcr;
 
-	if( GBL.arg.NoFolds || !GBL.msh.FLD ) {
+	if( GBL.arg.NoFolds || !GBL.mch.FLD ) {
 
 		fprintf( flog, "Forcing single connected region.\n" );
 
@@ -382,10 +382,10 @@ void PipelineDeformableMap(
 	else {
 
 		ConnRgnsFromFoldMask( Acr, fold_mask_a,
-			wf, hf, px.scl, uint32(0.9 * GBL.msh.MMA), flog );
+			wf, hf, px.scl, uint32(0.9 * GBL.mch.MMA), flog );
 
 		ConnRgnsFromFoldMask( Bcr, fold_mask_b,
-			wf, hf, px.scl, uint32(0.9 * GBL.msh.MMA), flog );
+			wf, hf, px.scl, uint32(0.9 * GBL.mch.MMA), flog );
 	}
 
 /* ----------------------------------------- */

@@ -63,172 +63,112 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
-/* ReadThmParams ------------------------------------------------- */
+/* ReadMatchParams ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	GETPRM_THM( addr, pat )									\
-	if( !GetPrm( addr, pat, "ReadThmParams", f, flog ) )		\
+#define	GETPRM_MCH( addr, pat )									\
+	if( !GetPrm( addr, pat, "ReadMatchParams", f, flog ) )		\
 		goto exit
 
-// Read parameter file governing thumbnail matching.
+// Read parameter file governing thumbnail and mesh matching.
 //
 // The layer index specifies an override file for a given layer.
 // For example, if layer=5, the search order (in temp directory)
-// is first '../thmparams_5.txt' then '../thmparams.txt' with
+// is first '../matchparams_5.txt' then '../matchparams.txt' with
 // no index.
 //
-bool ReadThmParams( ThmParams &T, int layer, FILE *flog )
+bool ReadMatchParams( MatchParams &M, int layer, FILE *flog )
 {
 	char	name[256];
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "../thmparams_%d.txt", layer );
+	sprintf( name, "../matchparams_%d.txt", layer );
 	f = fopen( name, "r" );
 
 	if( !f ) {
-		sprintf( name, "../thmparams.txt" );
+		sprintf( name, "../matchparams.txt" );
 		f = fopen( name, "r" );
 	}
 
 	if( f ) {
 
-		fprintf( flog, "\n---- Thumb parameters ----\n" );
+		fprintf( flog, "\n---- Match parameters ----\n" );
 
-		GETPRM_THM( &T.pxp.PXBRO, "PXBRO=%d" );
-		GETPRM_THM( &T.pxp.PXDOG, "PXDOG=%c" );
-		GETPRM_THM( &T.pxp.PXDOG_R1, "PXDOG_R1=%d" );
-		GETPRM_THM( &T.pxp.PXDOG_R2, "PXDOG_R2=%d" );
+		GETPRM_MCH( &M.PXBRO, "PXBRO=%d" );
+		GETPRM_MCH( &M.PXDOG, "PXDOG=%c" );
+		GETPRM_MCH( &M.PXDOG_R1, "PXDOG_R1=%d" );
+		GETPRM_MCH( &M.PXDOG_R2, "PXDOG_R2=%d" );
+		GETPRM_MCH( &M.FLD, "FLD=%c" );
+		GETPRM_MCH( &M.SCALE, "SCALE=%lf" );
+		GETPRM_MCH( &M.XSCALE, "XSCALE=%lf" );
+		GETPRM_MCH( &M.YSCALE, "YSCALE=%lf" );
+		GETPRM_MCH( &M.SKEW, "SKEW=%lf" );
+		GETPRM_MCH( &M.SLOPPY_SL, "SLOPPY_SL=%c" );
+		GETPRM_MCH( &M.OLAP1D, "OLAP1D=%d" );
+		GETPRM_MCH( &M.OLAP2D_SL, "OLAP2D_SL=%d" );
+		GETPRM_MCH( &M.OLAP2D_XL, "OLAP2D_XL=%d" );
+		GETPRM_MCH( &M.PKWID_SL, "PKWID_SL=%d" );
+		GETPRM_MCH( &M.PKWID_XL, "PKWID_XL=%d" );
+		GETPRM_MCH( &M.PKGRD_SL, "PKGRD_SL=%d" );
+		GETPRM_MCH( &M.PKGRD_XL, "PKGRD_XL=%d" );
+		GETPRM_MCH( &M.NBMXHT_SL, "NBMXHT_SL=%lf" );
+		GETPRM_MCH( &M.NBMXHT_XL, "NBMXHT_XL=%lf" );
+		GETPRM_MCH( &M.HFANGDN_SL, "HFANGDN_SL=%lf" );
+		GETPRM_MCH( &M.HFANGDN_XL, "HFANGDN_XL=%lf" );
+		GETPRM_MCH( &M.HFANGPR_SL, "HFANGPR_SL=%lf" );
+		GETPRM_MCH( &M.HFANGPR_XL, "HFANGPR_XL=%lf" );
+		GETPRM_MCH( &M.RTRSH_SL, "RTRSH_SL=%lf" );
+		GETPRM_MCH( &M.RTRSH_XL, "RTRSH_XL=%lf" );
+		GETPRM_MCH( &M.TWEAKS, "TWEAKS=%c" );
+		GETPRM_MCH( &M.INPALN, "INPALN=%c" );
+		GETPRM_MCH( &M.DINPUT, "DINPUT=%d" );
+		GETPRM_MCH( &M.DSL, "DSL=%c" );
+		GETPRM_MCH( &M.DIT_SL, "DIT_SL=%lf" );
+		GETPRM_MCH( &M.DIT_XL, "DIT_XL=%lf" );
+		GETPRM_MCH( &M.DFA_SL, "DFA_SL=%lf" );
+		GETPRM_MCH( &M.DFA_XL, "DFA_XL=%lf" );
+		GETPRM_MCH( &M.DFT_SL, "DFT_SL=%lf" );
+		GETPRM_MCH( &M.DFT_XL, "DFT_XL=%lf" );
+		GETPRM_MCH( &M.TMC, "TMC=%lf" );
+		GETPRM_MCH( &M.TSC, "TSC=%lf" );
+		GETPRM_MCH( &M.MNL, "MNL=%d" );
+		GETPRM_MCH( &M.MTA, "MTA=%d" );
+		GETPRM_MCH( &M.MMA, "MMA=%d" );
+		GETPRM_MCH( &M.ONE, "ONE=%c" );
+		GETPRM_MCH( &M.IFM, "IFM=%lf" );
+		GETPRM_MCH( &M.FFM, "FFM=%lf" );
+		GETPRM_MCH( &M.FYL, "FYL=%lf" );
+		GETPRM_MCH( &M.CPD, "CPD=%lf" );
+		GETPRM_MCH( &M.EMM, "EMM=%c" );
+		GETPRM_MCH( &M.EMT, "EMT=%lf" );
+		GETPRM_MCH( &M.WDI, "WDI=%c" );
+		GETPRM_MCH( &M.LDA, "LDA=%lf" );
+		GETPRM_MCH( &M.LDR, "LDR=%lf" );
+		GETPRM_MCH( &M.LDC, "LDC=%lf" );
+		GETPRM_MCH( &M.DXY, "DXY=%lf" );
+		GETPRM_MCH( &M.WMT, "WMT=%c" );
+		GETPRM_MCH( &M.WTT, "WTT=%c" );
 
 		// finish Y/N booleans
-		T.pxp.PXDOG = (T.pxp.PXDOG == 'Y');
-
-		GETPRM_THM( &T.FLD, "FLD=%c" );
-		GETPRM_THM( &T.SCALE, "SCALE=%lf" );
-		GETPRM_THM( &T.XSCALE, "XSCALE=%lf" );
-		GETPRM_THM( &T.YSCALE, "YSCALE=%lf" );
-		GETPRM_THM( &T.SKEW, "SKEW=%lf" );
-		GETPRM_THM( &T.SLOPPY_SL, "SLOPPY_SL=%c" );
-		GETPRM_THM( &T.OLAP1D, "OLAP1D=%d" );
-		GETPRM_THM( &T.OLAP2D_SL, "OLAP2D_SL=%d" );
-		GETPRM_THM( &T.OLAP2D_XL, "OLAP2D_XL=%d" );
-		GETPRM_THM( &T.PKWID_SL, "PKWID_SL=%d" );
-		GETPRM_THM( &T.PKWID_XL, "PKWID_XL=%d" );
-		GETPRM_THM( &T.PKGRD_SL, "PKGRD_SL=%d" );
-		GETPRM_THM( &T.PKGRD_XL, "PKGRD_XL=%d" );
-		GETPRM_THM( &T.NBMXHT_SL, "NBMXHT_SL=%lf" );
-		GETPRM_THM( &T.NBMXHT_XL, "NBMXHT_XL=%lf" );
-		GETPRM_THM( &T.HFANGDN_SL, "HFANGDN_SL=%lf" );
-		GETPRM_THM( &T.HFANGDN_XL, "HFANGDN_XL=%lf" );
-		GETPRM_THM( &T.HFANGPR_SL, "HFANGPR_SL=%lf" );
-		GETPRM_THM( &T.HFANGPR_XL, "HFANGPR_XL=%lf" );
-		GETPRM_THM( &T.RTRSH_SL, "RTRSH_SL=%lf" );
-		GETPRM_THM( &T.RTRSH_XL, "RTRSH_XL=%lf" );
-		GETPRM_THM( &T.TWEAKS, "TWEAKS=%c" );
-		GETPRM_THM( &T.INPALN, "INPALN=%c" );
-		GETPRM_THM( &T.DINPUT, "DINPUT=%d" );
-
-		// finish Y/N booleans
-		T.FLD		= (T.FLD == 'Y');
-		T.SLOPPY_SL	= (T.SLOPPY_SL == 'Y');
-		T.TWEAKS	= (T.TWEAKS == 'Y');
-		T.INPALN	= (T.INPALN == 'Y');
+		M.PXDOG		= (M.PXDOG == 'Y');
+		M.FLD		= (M.FLD == 'Y');
+		M.SLOPPY_SL	= (M.SLOPPY_SL == 'Y');
+		M.TWEAKS	= (M.TWEAKS == 'Y');
+		M.INPALN	= (M.INPALN == 'Y');
+		M.DSL		= (M.DSL == 'Y');
+		M.ONE		= (M.ONE == 'Y');
+		M.EMM		= (M.EMM == 'Y');
+		M.WDI		= (M.WDI == 'Y');
+		M.WMT		= (M.WMT == 'Y');
+		M.WTT		= (M.WTT == 'Y');
 
 		fprintf( flog, "\n" );
 
 		ok = true;
 	}
 	else
-		fprintf( flog, "ReadThmParams: Can't open [%s].\n", name );
-
-exit:
-	if( f )
-		fclose( f );
-
-	return ok;
-}
-
-/* --------------------------------------------------------------- */
-/* ReadMeshParams ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-#define	GETPRM_MSH( addr, pat )									\
-	if( !GetPrm( addr, pat, "ReadMeshParams", f, flog ) )		\
-		goto exit
-
-// Read parameter file governing mesh deformation.
-//
-// The layer index specifies an override file for a given layer.
-// For example, if layer=5, the search order (in temp directory)
-// is first '../dmeshparams_5.txt' then '../dmeshparams.txt' with
-// no index.
-//
-bool ReadMeshParams( MeshParams &M, int layer, FILE *flog )
-{
-	char	name[256];
-	FILE	*f;
-	int		ok = false;
-
-	sprintf( name, "../dmeshparams_%d.txt", layer );
-	f = fopen( name, "r" );
-
-	if( !f ) {
-		sprintf( name, "../dmeshparams.txt" );
-		f = fopen( name, "r" );
-	}
-
-	if( f ) {
-
-		fprintf( flog, "\n---- dmesh parameters ----\n" );
-
-		GETPRM_THM( &M.pxp.PXBRO, "PXBRO=%d" );
-		GETPRM_THM( &M.pxp.PXDOG, "PXDOG=%c" );
-		GETPRM_THM( &M.pxp.PXDOG_R1, "PXDOG_R1=%d" );
-		GETPRM_THM( &M.pxp.PXDOG_R2, "PXDOG_R2=%d" );
-
-		// finish Y/N booleans
-		M.pxp.PXDOG = (M.pxp.PXDOG == 'Y');
-
-		GETPRM_MSH( &M.FLD, "FLD=%c" );
-		GETPRM_MSH( &M.DSL, "DSL=%c" );
-		GETPRM_MSH( &M.DIT, "DIT=%lf" );
-		GETPRM_MSH( &M.DAF, "DAF=%lf" );
-		GETPRM_MSH( &M.DFT, "DFT=%lf" );
-		GETPRM_MSH( &M.TMC, "TMC=%lf" );
-		GETPRM_MSH( &M.TSC, "TSC=%lf" );
-		GETPRM_MSH( &M.MNL, "MNL=%d" );
-		GETPRM_MSH( &M.MTA, "MTA=%d" );
-		GETPRM_MSH( &M.MMA, "MMA=%d" );
-		GETPRM_MSH( &M.ONE, "ONE=%c" );
-		GETPRM_MSH( &M.IFM, "IFM=%lf" );
-		GETPRM_MSH( &M.FFM, "FFM=%lf" );
-		GETPRM_MSH( &M.FYL, "FYL=%lf" );
-		GETPRM_MSH( &M.CPD, "CPD=%lf" );
-		GETPRM_MSH( &M.EMM, "EMM=%c" );
-		GETPRM_MSH( &M.EMT, "EMT=%lf" );
-		GETPRM_MSH( &M.WDI, "WDI=%c" );
-		GETPRM_MSH( &M.LDA, "LDA=%lf" );
-		GETPRM_MSH( &M.LDR, "LDR=%lf" );
-		GETPRM_MSH( &M.LDC, "LDC=%lf" );
-		GETPRM_MSH( &M.DXY, "DXY=%lf" );
-		GETPRM_MSH( &M.WMT, "WMT=%c" );
-		GETPRM_MSH( &M.WTT, "WTT=%c" );
-
-		// finish Y/N booleans
-		M.FLD = (M.FLD == 'Y');
-		M.DSL = (M.DSL == 'Y');
-		M.ONE = (M.ONE == 'Y');
-		M.EMM = (M.EMM == 'Y');
-		M.WDI = (M.WDI == 'Y');
-		M.WMT = (M.WMT == 'Y');
-		M.WTT = (M.WTT == 'Y');
-
-		fprintf( flog, "\n" );
-
-		ok = true;
-	}
-	else
-		fprintf( flog, "ReadMeshParams: Can't open [%s].\n", name );
+		fprintf( flog, "ReadMatchParams: Can't open [%s].\n", name );
 
 exit:
 	if( f )

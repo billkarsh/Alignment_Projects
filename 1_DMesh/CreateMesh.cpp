@@ -129,7 +129,7 @@ static void SetEdgeLimits(
 // Prefer triangle edges in range [MNL, 2xMNL] and generally
 // prefer a max:min ratio of about 2:1.
 
-	lmin = GBL.msh.MNL,
+	lmin = GBL.mch.MNL,
 	lmax = 2 * lmin;
 
 // If region skinnier than typical triangle...
@@ -151,7 +151,7 @@ static void SetEdgeLimits(
 
 		fprintf( flog,
 		"Reducing minl from [%d %d] to [%f %f].\n",
-		GBL.msh.MNL, 2*GBL.msh.MNL, lmin, lmax );
+		GBL.mch.MNL, 2*GBL.mch.MNL, lmin, lmax );
 	}
 }
 
@@ -1010,7 +1010,7 @@ static void BestVertex(
 		}
 
 		// ...but not too small
-		if( A <= GBL.msh.MTA ) {
+		if( A <= GBL.mch.MTA ) {
 			printf( "rjct: sml A\n" );
 			continue;
 		}
@@ -1410,7 +1410,7 @@ int MeshCreate(
 
 			fprintf( flog, "\nNo legal triangle at all??"
 			" %d triangles so far, area limit %d.\n",
-			tri.size(), GBL.msh.MTA );
+			tri.size(), GBL.mch.MTA );
 
 			if( tri.size() > 0 ) {
 
@@ -1511,8 +1511,8 @@ int MeshCreateX(
 /* Regular spacing */
 /* --------------- */
 
-	double	Dx	= GBL.msh.MNL,
-			Dy	= GBL.msh.MNL;
+	double	Dx	= GBL.mch.MNL,
+			Dy	= GBL.mch.MNL;
 	int		Lx	= B.R - B.L,
 			Ly	= B.T - B.B,
 			Nx,
@@ -1537,12 +1537,12 @@ int MeshCreateX(
 	}
 
 /* ----------------------------------------- */
-/* Reduce tri count while Atri > GBL.msh.MTA */
+/* Reduce tri count while Atri > GBL.mch.MTA */
 /* ----------------------------------------- */
 
 	if( GBL.A.layer != GBL.B.layer ) {
 
-		while( Nx*Ny > 1 && (Lx*Ly) / (Nx*Ny * 2) < GBL.msh.MTA ) {
+		while( Nx*Ny > 1 && (Lx*Ly) / (Nx*Ny * 2) < GBL.mch.MTA ) {
 
 			if( Nx >= Ny )
 				Dx = Lx / --Nx;

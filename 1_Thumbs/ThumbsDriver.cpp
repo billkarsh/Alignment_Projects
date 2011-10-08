@@ -49,8 +49,8 @@ int main( int argc, char* argv[] )
 	if( !px.Load(
 			GBL.A.t2i.path.c_str(),
 			GBL.B.t2i.path.c_str(),
-			GBL.thm.pxp.PXBRO, GBL.thm.pxp.PXDOG,
-			GBL.thm.pxp.PXDOG_R1, GBL.thm.pxp.PXDOG_R2,
+			GBL.mch.PXBRO, GBL.mch.PXDOG,
+			GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
 			stdout ) ) {
 
 		goto exit;
@@ -61,7 +61,7 @@ int main( int argc, char* argv[] )
 /* ---------------------------------- */
 
 	if( GBL.A.layer == GBL.B.layer ||
-		GBL.arg.NoFolds || !GBL.thm.FLD ) {
+		GBL.arg.NoFolds || !GBL.mch.FLD ) {
 
 		Thumbs_NoCR( px, stdout );
 	}
@@ -102,11 +102,11 @@ int main( int argc, char* argv[] )
 
 		ConnRgnsFromFoldMask( Acr, fold_mask_a,
 			px.wf, px.hf, px.scl,
-			GBL.ctx.min_2D_olap, stdout );
+			GBL.ctx.OLAP2D, stdout );
 
 		ConnRgnsFromFoldMask( Bcr, fold_mask_b,
 			px.wf, px.hf, px.scl,
-			GBL.ctx.min_2D_olap, stdout );
+			GBL.ctx.OLAP2D, stdout );
 
 		StopTiming( stdout, "Conn regions", t1 );
 
