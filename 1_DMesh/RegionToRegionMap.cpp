@@ -401,7 +401,7 @@ void RegionToRegionMap(
 
 	fprintf( flog, "\n---- Building mesh - deformable ----\n" );
 
-	if( MeshCreate( tri, ctl, ap_msh, B, flog ) ) {
+	if( MeshCreateX( tri, ctl, ap_msh, B, flog ) ) {
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - Small overlap?"
@@ -552,10 +552,10 @@ quality_control:
 		if( dfm > GBL.mch.EMT*1.10 )
 			reason += "-EMM too high(>10% over threshold)- ";
 
-		if( score > dfm*1.1 && score > GBL.mch.EMT/2.0 ) {
-			reason +=	"-not great EMM, and Weighted EMM"
-						" is higher by more than 10%- ";
-		}
+		//if( score > dfm*1.1 && score > GBL.mch.EMT/2.0 ) {
+		//	reason +=	"-not great EMM, and Weighted EMM"
+		//				" is higher by more than 10%- ";
+		//}
 	}
 	else {	// use older Fourier metric
 
