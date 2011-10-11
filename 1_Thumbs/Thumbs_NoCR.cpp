@@ -387,8 +387,7 @@ static void RFromAngle(
 		ps, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, GBL.ctx.PKWID, GBL.ctx.PKGRD,
-		GBL.ctx.NBMXHT, thm.ftc );
+		0.0, GBL.ctx.NBMXHT, thm.ftc );
 }
 
 /* --------------------------------------------------------------- */
@@ -727,8 +726,7 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 				ps, thm.av, thm.bp, thm.bv,
 				BigEnough, (void*)thm.reqArea,
 				EnoughPoints, (void*)thm.reqArea,
-				0.0, GBL.ctx.PKWID, GBL.ctx.PKGRD,
-				GBL.ctx.NBMXHT, thm.ftc );
+				0.0, GBL.ctx.NBMXHT, thm.ftc );
 
 			fprintf( flog, "Tweak %d R=%.3f", i, C.R );
 
@@ -772,8 +770,7 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 		ps, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, GBL.ctx.PKWID, GBL.ctx.PKGRD,
-		GBL.ctx.NBMXHT, thm.ftc );
+		0.0, GBL.ctx.NBMXHT, thm.ftc );
 
 	ok = (fabs( best.X - b0.X ) <= 20)
 	  && (fabs( best.Y - b0.Y ) <= 20);

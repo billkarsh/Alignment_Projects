@@ -142,8 +142,6 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		ctx.HFANGPR	= mch.HFANGPR_SL;
 		ctx.RTRSH	= mch.RTRSH_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
-		ctx.PKWID	= mch.PKWID_SL;
-		ctx.PKGRD	= mch.PKGRD_SL;
 	}
 	else {
 
@@ -156,8 +154,6 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		ctx.HFANGPR	= mch.HFANGPR_XL;
 		ctx.RTRSH	= mch.RTRSH_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
-		ctx.PKWID	= mch.PKWID_XL;
-		ctx.PKGRD	= mch.PKGRD_XL;
 	}
 
 // Commandline overrides

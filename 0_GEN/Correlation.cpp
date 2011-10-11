@@ -1927,8 +1927,7 @@ public:
 		int						&ry,
 		vector<int>				&forder,
 		vector<double>			&F,
-		int						pkwid,
-		int						pkgrd,
+		const vector<double>	&R,
 		double					nbmaxht );
 
 	double ReturnR(
@@ -2289,10 +2288,7 @@ void CCorImg::OrderF(
 /* CCorImg::FPeak ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Select highest F that is well isolated--
-//
-// Examine nxn neighborhood about F. Require F higher
-// than anything within, but outside inner neighborhood.
+// Select highest F that is well isolated from neighbors.
 //
 // Return true if success.
 //
@@ -2301,38 +2297,149 @@ bool CCorImg::FPeak(
 	int						&ry,
 	vector<int>				&forder,
 	vector<double>			&F,
-	int						pkwid,
-	int						pkgrd,
+	const vector<double>	&R,
 	double					nbmaxht )
 {
-	int E	= pkwid/2;		// excluded inner hood = 2E+1
-	int H	= E + pkgrd;	// outer hood width = 2H+1
-	int	nO	= forder.size();
+/* ---------------------------------------------------- */
+/* For efficiency, mask innermost peak areas as visited */
+/* ---------------------------------------------------- */
+
+	vector<uint8>	mask( nR, 0 );
+
+/* --------------------------------------- */
+/* For each peak candidate (highest first) */
+/* --------------------------------------- */
+
+	int	nO = forder.size();
 
 	for( int i = 0; i < nO; ++i ) {
 
-		int		k	= forder[i];
-		double	tol	= nbmaxht * F[k];
+		int		ri	= 0,
+				n	= 0,
+				k	= forder[i],
+				ro, rm, bl, br, bb, bt;
+
+		if( mask[k] )
+			continue;
+
+		/* ----------------------- */
+		/* Candidate {rx, ry, fpk} */
+		/* ----------------------- */
+
+		double	fpk	= F[k],
+				tol = nbmaxht * fpk;
 
 		ry	= k / wR;
 		rx	= k - wR * ry;
 
-		if( ry < H || ry >= hR - H || rx < H || rx >= wR - H )
+		/* ------------------------------------------- */
+		/* Scan for inner radius ri (pk ht down by 2x) */
+		/* ------------------------------------------- */
+
+up:
+		for( int y = ry - 1; y >= 0; --y ) {
+			if( F[rx + wR*y] <= 0.5*fpk ) {
+				ri += ry - y;
+				++n;
+				goto down;
+			}
+		}
+
+down:
+		for( int y = ry + 1; y < hR; ++y ) {
+			if( F[rx + wR*y] <= 0.5*fpk ) {
+				ri += y - ry;
+				++n;
+				goto left;
+			}
+		}
+
+left:
+		for( int x = rx - 1; x >= 0; --x ) {
+			if( F[x + wR*ry] <= 0.5*fpk ) {
+				ri += rx - x;
+				++n;
+				goto right;
+			}
+		}
+
+right:
+		for( int x = rx + 1; x < wR; ++x ) {
+			if( F[x + wR*ry] <= 0.5*fpk ) {
+				ri += x - rx;
+				++n;
+				goto set_ri;
+			}
+		}
+
+set_ri:
+		if( n < 2 )
+			goto next_i;
+
+		ri /= n;
+
+		// noise
+		if( ri <= 1 && R[k] < 0.1 )
 			continue;
 
-		for( int y = ry - H; y <= ry + H; ++y ) {
+		/* ------------------------- */
+		/* mask out core peak region */
+		/* ------------------------- */
 
-			for( int x = rx - H; x <= rx + H; ++x ) {
+		if( (rm = ri/3) < 1 )
+			rm = 1;
 
-				// allow ExE peak region
-				if( y >= ry - E && y <= ry + E &&
-					x >= rx - E && x <= rx + E ) {
+		bb = max( ry - rm, 0 );
+		bt = min( ry + rm, hR - 1 );
+		bl = max( rx - rm, 0 );
+		br = min( rx + rm, wR - 1 );
+
+		for( int y = bb; y <= bt; ++y ) {
+			for( int x = bl; x <= br; ++x )
+				mask[x + wR*y] = 1;
+		}
+
+		/* -------------------------------- */
+		/* Set outer guard band ro = 3 x ri */
+		/* -------------------------------- */
+
+		ro = 3 * ri;
+
+		bb = max( ry - ro, 0 );
+		bt = min( ry + ro, hR - 1 );
+		bl = max( rx - ro, 0 );
+		br = min( rx + ro, wR - 1 );
+
+		/* ----------------------------------------- */
+		/* Any pixel > tol in region between ri, ro? */
+		/* ----------------------------------------- */
+
+		for( int y = bb; y <= bt; ++y ) {
+
+			for( int x = bl; x <= br; ++x ) {
+
+				// ignore inner region
+				if( y >= ry - ri && y <= ry + ri &&
+					x >= rx - ri && x <= rx + ri ) {
 
 					continue;
 				}
 
-				if( F[x + wR*y] > tol )
+				if( F[x + wR*y] > tol ) {
+
+					if( verbose ) {
+
+						fprintf( flog,
+						"Reject F=%.3f R=%.3f (%4d,%4d):"
+						" (ri,ro)=(%4d,%4d)"
+						" neib%%=%.3f @ (%4d,%4d)\n",
+						fpk, R[k], rx, ry,
+						ri, ro,
+						F[x + wR*y]/fpk, x, y );
+					}
+
 					goto next_i;
+				}
 			}
 		}
 
@@ -2470,8 +2577,6 @@ double CorrImages(
 	EvalType				LegalCnt,
 	void*					arglc,
 	double					mincor,
-	int						pkwid,
-	int						pkgrd,
 	double					nbmaxht,
 	vector<CD>				&fft2 )
 {
@@ -2496,7 +2601,7 @@ double CorrImages(
 
 	cc.OrderF( forder, F, A, R, mincor );
 
-	if( !cc.FPeak( rx, ry, forder, F, pkwid, pkgrd, nbmaxht ) ) {
+	if( !cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {
 
 		dx	= 0.0;
 		dy	= 0.0;

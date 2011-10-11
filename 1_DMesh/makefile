@@ -20,7 +20,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 #	Output 'thmA.tif', 'thmB.tif', 'corr.tif' to visualize
 #	thumbnail registration
 
-SYMBOLS_MYPROJ := -DCREATEMESH_WRITE_DEBUG_IMAGES -DCORR_DEBUG
+SYMBOLS_MYPROJ := -DCREATEMESH_WRITE_DEBUG_IMAGES
 
 # =======
 # sources
@@ -53,7 +53,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-ptestd:
+ptest:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \

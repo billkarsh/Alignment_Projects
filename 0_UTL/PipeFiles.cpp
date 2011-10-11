@@ -108,10 +108,6 @@ bool ReadMatchParams( MatchParams &M, int layer, FILE *flog )
 		GETPRM_MCH( &M.OLAP1D, "OLAP1D=%d" );
 		GETPRM_MCH( &M.OLAP2D_SL, "OLAP2D_SL=%d" );
 		GETPRM_MCH( &M.OLAP2D_XL, "OLAP2D_XL=%d" );
-		GETPRM_MCH( &M.PKWID_SL, "PKWID_SL=%d" );
-		GETPRM_MCH( &M.PKWID_XL, "PKWID_XL=%d" );
-		GETPRM_MCH( &M.PKGRD_SL, "PKGRD_SL=%d" );
-		GETPRM_MCH( &M.PKGRD_XL, "PKGRD_XL=%d" );
 		GETPRM_MCH( &M.NBMXHT_SL, "NBMXHT_SL=%lf" );
 		GETPRM_MCH( &M.NBMXHT_XL, "NBMXHT_XL=%lf" );
 		GETPRM_MCH( &M.HFANGDN_SL, "HFANGDN_SL=%lf" );

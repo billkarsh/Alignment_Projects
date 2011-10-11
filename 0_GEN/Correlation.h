@@ -169,8 +169,6 @@ double CorrImages(
 	EvalType				LegalCnt,
 	void*					arglc,
 	double					mincor,
-	int						pkwid,
-	int						pkgrd,
 	double					nbmaxht,
 	vector<CD>				&fft2 );
 

@@ -175,8 +175,6 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DFA		= mch.DFA_SL;
 		ctx.DFT		= mch.DFT_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
-		ctx.PKWID	= mch.PKWID_SL;
-		ctx.PKGRD	= mch.PKGRD_SL;
 	}
 	else {
 
@@ -192,8 +190,6 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DFA		= mch.DFA_XL;
 		ctx.DFT		= mch.DFT_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
-		ctx.PKWID	= mch.PKWID_XL;
-		ctx.PKGRD	= mch.PKGRD_XL;
 	}
 
 // Commandline overrides
