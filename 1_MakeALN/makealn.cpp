@@ -65,7 +65,8 @@ class CArgs_scr {
 
 public:
 	string	idbpath;
-	char	*outdir;
+	char	*outdir,
+			*exenam;
 	int		zmin,
 			zmax;
 	bool	Connect,	// just connect two layers
@@ -76,6 +77,7 @@ public:
 	CArgs_scr()
 	{
 		outdir		= "NoSuch";	// prevent overwriting real dir
+		exenam		= "ptest";
 		zmin		= 0;
 		zmax		= 32768;
 		Connect		= false;
@@ -137,6 +139,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		if( argv[i][0] != '-' )
 			idbpath = argv[i];
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
+			;
+		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -1048,8 +1052,8 @@ static void WriteMakeFile(
 		A.id, B.z, B.id );
 
 		fprintf( f,
-		"\tptest %d/%d@%d/%d%s ${EXTRA}\n\n",
-		A.z, A.id, B.z, B.id, option_nf );
+		"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
+		gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
 	}
 
 	fclose( f );
