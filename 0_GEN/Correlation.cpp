@@ -4,6 +4,7 @@
 #include	"Correlation.h"
 #include	"Geometry.h"
 #include	"ImageIO.h"
+#include	"Debug.h"
 
 #include	<fftw3.h>
 
@@ -15,12 +16,11 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#ifdef	CORR_DEBUG
+/* --------------------------------------------------------------- */
+/* Statics ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
 static int _dbg_simgidx = 0;
-#define	_debugcorr	1
-#else
-#define	_debugcorr	0
-#endif
 
 
 
@@ -2019,17 +2019,16 @@ void CCorImg::MakeRandA(
 	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
 
 //-----------------------------
-#if	_debugcorr == 1
-{
-	char	simg[32];
+	if( dbgCor ) {
 
-	sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i1, Nx, w1, h1 );
+		char	simg[32];
 
-	sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-	CorrThmToTif8( simg, i2, Nx, w2, h2 );
-}
-#endif
+		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
+		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+	}
 //-----------------------------
 
 // FFTs and lags
@@ -2204,22 +2203,21 @@ void CCorImg::MakeF(
 	}
 
 //-----------------------------
-#if	_debugcorr == 1
-{
-	char	simg[32];
+	if( dbgCor ) {
 
-	sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
-	Raster8ToTif8( simg, &A[0], wR, hR );
+		char	simg[32];
 
-	sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
-	RasterDblToTifFlt( simg, &R[0], wR, hR );
+		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
+		Raster8ToTif8( simg, &A[0], wR, hR );
 
-	sprintf( simg, "corr_F_%d.tif", _dbg_simgidx++ );
-	RasterDblToTifFlt( simg, &F[0], wR, hR );
+		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
+		RasterDblToTifFlt( simg, &R[0], wR, hR );
 
-	fprintf( flog, "Center = (%d %d)\n", cx, cy );
-}
-#endif
+		sprintf( simg, "corr_F_%d.tif", _dbg_simgidx++ );
+		RasterDblToTifFlt( simg, &F[0], wR, hR );
+
+		fprintf( flog, "Center = (%d %d)\n", cx, cy );
+	}
 //-----------------------------
 }
 
@@ -2266,21 +2264,22 @@ void CCorImg::OrderF(
 	sort( forder.begin(), forder.end(), Sort_F_dec );
 
 //-----------------------------
-#if	_debugcorr == 1
-	int	ndbg = forder.size();
-	if( ndbg > 40 )
-		ndbg = 40;
+	if( dbgCor ) {
 
-	printf( "top %d by F:\n", ndbg );
+		int	ndbg = forder.size();
+		if( ndbg > 40 )
+			ndbg = 40;
 
-	for( int i = 0; i < ndbg; ++i ) {
-		int	k	= forder[i];
-		int	y0	= k / wR;
-		int	x0	= k - wR * y0;
-		printf( "F %.3f R %.3f (x,y)=(%d,%d)\n",
-			F[k], R[k], x0, y0 );
+		printf( "top %d by F:\n", ndbg );
+
+		for( int i = 0; i < ndbg; ++i ) {
+			int	k	= forder[i];
+			int	y0	= k / wR;
+			int	x0	= k - wR * y0;
+			printf( "F %.3f R %.3f (x,y)=(%d,%d)\n",
+				F[k], R[k], x0, y0 );
+		}
 	}
-#endif
 //-----------------------------
 }
 
@@ -2292,6 +2291,7 @@ void CCorImg::OrderF(
 //
 // Return true if success.
 //
+#if 1
 bool CCorImg::FPeak(
 	int						&rx,
 	int						&ry,
@@ -2315,7 +2315,190 @@ bool CCorImg::FPeak(
 	for( int i = 0; i < nO; ++i ) {
 
 		int		ri	= 0,
-				n	= 0,
+				k	= forder[i],
+				ro, rm;
+
+		if( mask[k] )
+			continue;
+
+		/* ----------------------- */
+		/* Candidate {rx, ry, fpk} */
+		/* ----------------------- */
+
+		double	fpk	= F[k],
+				tol = nbmaxht * fpk;
+
+		ry	= k / wR;
+		rx	= k - wR * ry;
+
+		/* ------------------------------------------- */
+		/* Scan for inner radius ri (pk ht down by 2x) */
+		/* ------------------------------------------- */
+
+up:
+		for( int y = ry - 1; y >= 0; --y ) {
+			if( F[rx + wR*y] <= 0.5*fpk ) {
+				ri += ry - y;
+				goto down;
+			}
+		}
+
+		goto ri_close;
+
+down:
+		for( int y = ry + 1; y < hR; ++y ) {
+			if( F[rx + wR*y] <= 0.5*fpk ) {
+				ri += y - ry;
+				goto left;
+			}
+		}
+
+		goto ri_close;
+
+left:
+		for( int x = rx - 1; x >= 0; --x ) {
+			if( F[x + wR*ry] <= 0.5*fpk ) {
+				ri += rx - x;
+				goto right;
+			}
+		}
+
+		goto ri_close;
+
+right:
+		for( int x = rx + 1; x < wR; ++x ) {
+			if( F[x + wR*ry] <= 0.5*fpk ) {
+				ri += x - rx;
+				goto set_ri;
+			}
+		}
+
+ri_close:
+		if( verbose ) {
+			fprintf( flog,
+			"Ri_edge F=%.3f R=%.3f (%4d,%4d)\n",
+			fpk, R[k], rx, ry );
+		}
+
+		continue;
+
+set_ri:
+		ri /= 4;
+
+		// noise
+		if( ri <= 1 && R[k] < 0.1 ) {
+
+			if( verbose ) {
+				fprintf( flog,
+				"Micropk F=%.3f R=%.3f (%4d,%4d)\n",
+				fpk, R[k], rx, ry );
+			}
+
+			continue;
+		}
+
+		/* ----------------------- */
+		/* Set outer guard band ro */
+		/* ----------------------- */
+
+		ro = 3 * ri;
+
+		if( ry - ro < 0 || ry + ro >= hR ||
+			rx - ro < 0 || rx + ro >= wR ) {
+
+			if( verbose ) {
+				fprintf( flog,
+				"Ro_edge F=%.3f R=%.3f (%4d,%4d):"
+				" (ri,ro)=(%4d,%4d)\n",
+				fpk, R[k], rx, ry,
+				ri, ro );
+			}
+
+			continue;
+		}
+
+		/* ------------------------- */
+		/* Mask out core peak region */
+		/* ------------------------- */
+
+		if( (rm = ri/3) < 1 )
+			rm = 1;
+
+		for( int y = ry - rm; y <= ry + rm; ++y ) {
+			for( int x = rx - rm; x <= rx + rm; ++x )
+				mask[x + wR*y] = 1;
+		}
+
+		/* ----------------------------------------- */
+		/* Any pixel > tol in region between ri, ro? */
+		/* ----------------------------------------- */
+
+		for( int y = ry - ro; y <= ry + ro; ++y ) {
+
+			for( int x = rx - ro; x <= rx + ro; ++x ) {
+
+				// ignore inner region
+				if( y >= ry - ri && y <= ry + ri &&
+					x >= rx - ri && x <= rx + ri ) {
+
+					continue;
+				}
+
+				if( F[x + wR*y] > tol ) {
+
+					if( verbose ) {
+
+						fprintf( flog,
+						"Hi_neib F=%.3f R=%.3f (%4d,%4d):"
+						" (ri,ro)=(%4d,%4d)"
+						" neib%%=%.3f @ (%4d,%4d)\n",
+						fpk, R[k], rx, ry,
+						ri, ro,
+						F[x + wR*y]/fpk, x, y );
+					}
+
+					goto next_i;
+				}
+			}
+		}
+
+		// tested all - good.
+		return true;
+
+next_i:;
+	}
+
+	if( verbose )
+		fprintf( flog, "Corr: No peak candidates...\n" );
+
+	return false;
+}
+#endif
+
+#if 0
+bool CCorImg::FPeak(
+	int						&rx,
+	int						&ry,
+	vector<int>				&forder,
+	vector<double>			&F,
+	const vector<double>	&R,
+	double					nbmaxht )
+{
+/* ---------------------------------------------------- */
+/* For efficiency, mask innermost peak areas as visited */
+/* ---------------------------------------------------- */
+
+	vector<uint8>	mask( nR, 0 );
+
+/* --------------------------------------- */
+/* For each peak candidate (highest first) */
+/* --------------------------------------- */
+
+	int	nO = forder.size();
+
+	for( int i = 0; i < nO; ++i ) {
+
+		int		ri	= 0,
 				k	= forder[i],
 				ro, rm, bl, br, bb, bt;
 
@@ -2340,50 +2523,51 @@ up:
 		for( int y = ry - 1; y >= 0; --y ) {
 			if( F[rx + wR*y] <= 0.5*fpk ) {
 				ri += ry - y;
-				++n;
 				goto down;
 			}
 		}
+
+		continue;
 
 down:
 		for( int y = ry + 1; y < hR; ++y ) {
 			if( F[rx + wR*y] <= 0.5*fpk ) {
 				ri += y - ry;
-				++n;
 				goto left;
 			}
 		}
+
+		continue;
 
 left:
 		for( int x = rx - 1; x >= 0; --x ) {
 			if( F[x + wR*ry] <= 0.5*fpk ) {
 				ri += rx - x;
-				++n;
 				goto right;
 			}
 		}
+
+		continue;
 
 right:
 		for( int x = rx + 1; x < wR; ++x ) {
 			if( F[x + wR*ry] <= 0.5*fpk ) {
 				ri += x - rx;
-				++n;
 				goto set_ri;
 			}
 		}
 
-set_ri:
-		if( n < 2 )
-			goto next_i;
+		continue;
 
-		ri /= n;
+set_ri:
+		ri /= 4;
 
 		// noise
 		if( ri <= 1 && R[k] < 0.1 )
 			continue;
 
 		/* ------------------------- */
-		/* mask out core peak region */
+		/* Mask out core peak region */
 		/* ------------------------- */
 
 		if( (rm = ri/3) < 1 )
@@ -2399,9 +2583,9 @@ set_ri:
 				mask[x + wR*y] = 1;
 		}
 
-		/* -------------------------------- */
-		/* Set outer guard band ro = 3 x ri */
-		/* -------------------------------- */
+		/* ----------------------- */
+		/* Set outer guard band ro */
+		/* ----------------------- */
 
 		ro = 3 * ri;
 
@@ -2454,6 +2638,7 @@ next_i:;
 
 	return false;
 }
+#endif
 
 /* --------------------------------------------------------------- */
 /* ParabPeak ----------------------------------------------------- */
@@ -2588,9 +2773,8 @@ double CorrImages(
 	int				rx;
 	int				ry;
 
-#ifdef	CORR_DEBUG
-	verbose = true;
-#endif
+	if( dbgCor )
+		verbose = true;
 
 	cc.SetDims( flog, verbose, ip1, ip2 );
 

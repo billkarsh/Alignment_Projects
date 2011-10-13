@@ -3,6 +3,7 @@
 #include	"CGBL_Thumbs.h"
 
 #include	"Cmdline.h"
+#include	"Debug.h"
 
 
 /* --------------------------------------------------------------- */
@@ -96,6 +97,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 			arg.NoFolds = true;
 		else if( IsArg( "-sf", argv[i] ) )
 			arg.SingleFold = true;
+		else if( IsArg( "-dbgcor", argv[i] ) )
+			dbgCor = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			return false;

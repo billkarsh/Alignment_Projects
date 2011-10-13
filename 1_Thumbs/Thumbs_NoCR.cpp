@@ -7,6 +7,7 @@
 #include	"Maths.h"
 #include	"Correlation.h"
 #include	"Timer.h"
+#include	"Debug.h"
 
 
 /* --------------------------------------------------------------- */
@@ -1013,10 +1014,10 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 //	exit( 42 );
 // -----------------------------------------------------------
 
-#ifdef	CORR_DEBUG
-	RFromAngle( best, ang0, thm, flog );
-	return false;
-#endif
+	if( dbgCor ) {
+		RFromAngle( best, ang0, thm, flog );
+		return false;
+	}
 
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */

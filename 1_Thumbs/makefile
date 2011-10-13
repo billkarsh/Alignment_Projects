@@ -12,10 +12,6 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # defines
 # =======
 
-# -DCORR_DEBUG:
-#	Output 'thmA.tif', 'thmB.tif', 'corr.tif' to visualize
-#	thumbnail registration
-
 SYMBOLS_MYPROJ :=
 
 # =======
@@ -37,7 +33,7 @@ _SRC_GEN_ := \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp CTForm.cpp \
 	CPixPair.cpp \
-	Timer.cpp Memory.cpp
+	Timer.cpp Memory.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

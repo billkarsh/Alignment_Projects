@@ -3,6 +3,7 @@
 #include	"CGBL_dmesh.h"
 
 #include	"Cmdline.h"
+#include	"Debug.h"
 
 
 /* --------------------------------------------------------------- */
@@ -106,6 +107,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			arg.Verbose = true;
 		else if( IsArg( "-heatmap", argv[i] ) )
 			arg.Heatmap = true;
+		else if( IsArg( "-dbgcor", argv[i] ) )
+			dbgCor = true;
 		else if( GetArgList( vdbl, "-TRA=", argv[i] ) ) {
 
 			if( 6 == vdbl.size() )

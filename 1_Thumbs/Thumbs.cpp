@@ -8,6 +8,7 @@
 #include	"Correlation.h"
 #include	"Geometry.h"
 #include	"Timer.h"
+#include	"Debug.h"
 
 
 /* --------------------------------------------------------------- */
@@ -1049,10 +1050,10 @@ bool Thumbs(
 //	exit( 42 );
 // -----------------------------------------------------------
 
-#ifdef	CORR_DEBUG
-	RFromAngle( best, ang0, thm, flog );
-	return false;
-#endif
+	if( dbgCor ) {
+		RFromAngle( best, ang0, thm, flog );
+		return false;
+	}
 
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */

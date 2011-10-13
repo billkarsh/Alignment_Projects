@@ -15,10 +15,6 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # -DCREATEMESH_WRITE_DEBUG_IMAGES:
 #	Output 'Bogus3.tif' if can't find boundary left edge
 #	Output 'Bogus4.tif' if isolated pixel on boundary
-#
-# -DCORR_DEBUG:
-#	Output 'thmA.tif', 'thmB.tif', 'corr.tif' to visualize
-#	thumbnail registration
 
 SYMBOLS_MYPROJ := -DCREATEMESH_WRITE_DEBUG_IMAGES
 
@@ -44,7 +40,7 @@ _SRC_GEN_ := \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp CTForm.cpp \
 	CPixPair.cpp Metrics.cpp Inspect.cpp \
-	Timer.cpp Memory.cpp
+	Timer.cpp Memory.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
