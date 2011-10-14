@@ -17,14 +17,9 @@ using namespace std;
 /* class CorrPair ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-class CorrImages;	// forward reference
-
-
 class CorrPair {
 
-	friend class CorrImages;
-	friend CorrImages *ReadImageCorrelations(
-				const char *fname, FILE *flog );
+	friend class CCorrImages;
 
 private:
 	int				i1, i2;	// image 1 and image 2
@@ -40,36 +35,31 @@ public:
 };
 
 /* --------------------------------------------------------------- */
-/* class CorrImages ---------------------------------------------- */
+/* class CCorrImages --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CorrImages {
-
-	friend CorrImages *ReadImageCorrelations(
-				const char *fname, FILE *flog );
+class CCorrImages {
 
 private:
 	map<string,int>	names;
 	set<CorrPair>	corrs;
 
 public:
-	int WriteImageCorrelations( const char *fname );
-	int FindImageCorr(
+	static CCorrImages *Read( const char *fname, FILE *flog );
+
+	int Write( const char *fname );
+
+	int Find(
 		string			name1,
 		string			name2,
 		vector<Point>	&p1s,
 		vector<Point>	&p2s );
-	int AddImageCorr(
+
+	int Add(
 		string			name1,
 		string			name2,
 		vector<Point>	&p1s,
 		vector<Point>	&p2s );
 };
-
-/* --------------------------------------------------------------- */
-/* Functions ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-CorrImages *ReadImageCorrelations( const char *fname, FILE *flog );
 
 

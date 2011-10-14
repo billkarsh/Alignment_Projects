@@ -662,7 +662,7 @@ if( nbad > 1 ) {  // get rid of any eqns that were generated
 // New correlation code
 void NewAlign(vector<Picture> &vp, FILE *flog)
 {
-CorrImages* CI = ReadImageCorrelations("Corr.xml", flog);
+CCorrImages* CI = CCorrImages::Read( "Corr.xml", flog );
 
 // real to complex generates an array of size N *(n/2+1)
 int N = 4096;
@@ -691,8 +691,8 @@ for(int i=0; i<vp.size(); i++) {
 	 i, j, bb1.x, bb1.y, bb2.x, bb2.y);
 
         // first look and see if we have any cached correspondences:
-        vector<Point> cpi, cpj;
-        int nc = CI->FindImageCorr(vp[i].fname, vp[j].fname, cpi, cpj);
+        vector<Point>	cpi, cpj;
+        int nc = CI->Find( vp[i].fname, vp[j].fname, cpi, cpj );
         printf(" Got %d saved points\n", nc);
         //for(int k=0; k<cpi.size(); k++) {
 	    //Mangle(cpi[k], vp[i].w, vp[i].h);
@@ -703,7 +703,7 @@ for(int i=0; i<vp.size(); i++) {
             //FindCorrPoints(vp, i, j, cpi, cpj);
             // are there any correspondence points?  If so add to list
             //if( cpi.size() > 0 )
-	        //CI->AddImageCorr(vp[i].fname, vp[j].fname, cpi, cpj);
+	        //CI->Add( vp[i].fname, vp[j].fname, cpi, cpj );
             //}
         // generate equations from points, if any
         for(int k=0; k<cpi.size(); k++) {
@@ -734,8 +734,8 @@ for(int i=0; i<vp.size(); i++) {
         eqns.push_back(eq3);  rhs.push_back(ss);
         }
     }
-fclose(feq);
-//CI->WriteImageCorrelations("Corr.xml");
+fclose( feq );
+//CI->Write( "Corr.xml" );
 delete CI;
 //system("../svdfit eqns -print");
 //feq = FileOpenOrDie( "coeff", "r", flog );

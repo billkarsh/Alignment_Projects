@@ -36,13 +36,13 @@ SOURCES_XML := \
 _SRC_UTL_ := \
 	jh6.cpp ls_svd.cpp \
 	numerical_recipes.cpp mrc.cpp \
-	FoldMask.cpp
+	PipeFiles.cpp FoldMask.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	File.cpp ImageIO.cpp Maths.cpp Correlation.cpp \
+	Disk.cpp File.cpp ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp CTForm.cpp CPicBase.cpp \
 	CTemplate.cpp CCorrImages.cpp Debug.cpp
 

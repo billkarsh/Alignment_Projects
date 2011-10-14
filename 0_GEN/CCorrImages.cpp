@@ -17,12 +17,12 @@
 
 
 /* --------------------------------------------------------------- */
-/* ReadImageCorrelations ----------------------------------------- */
+/* CCorrImages::Read --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-CorrImages *ReadImageCorrelations( const char *fname, FILE *flog )
+CCorrImages* CCorrImages::Read( const char *fname, FILE *flog )
 {
-	CorrImages*		CI = new CorrImages;
+	CCorrImages*	CI = new CCorrImages;
 	TiXmlDocument	doc(fname);
 	bool			loadOK = doc.LoadFile();
 
@@ -113,10 +113,10 @@ CorrImages *ReadImageCorrelations( const char *fname, FILE *flog )
 }
 
 /* --------------------------------------------------------------- */
-/* CorrImages::WriteImageCorrelations ---------------------------- */
+/* CCorrImages::Write -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int CorrImages::WriteImageCorrelations(const char *fname)
+int CCorrImages::Write( const char *fname )
 {
 	FILE	*fp = fopen( fname, "w" );
 
@@ -159,10 +159,10 @@ int CorrImages::WriteImageCorrelations(const char *fname)
 }
 
 /* --------------------------------------------------------------- */
-/* CorrImages::FindImageCorr ------------------------------------- */
+/* CCorrImages::Find --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int CorrImages::FindImageCorr(
+int CCorrImages::Find(
 	string			name1,
 	string			name2,
 	vector<Point>	&p1s,
@@ -214,10 +214,10 @@ int CorrImages::FindImageCorr(
 }
 
 /* --------------------------------------------------------------- */
-/* CorrImages::AddImageCorr -------------------------------------- */
+/* CCorrImages::Add ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int CorrImages::AddImageCorr(
+int CCorrImages::Add(
 	string			name1,
 	string			name2,
 	vector<Point>	&p1s,
