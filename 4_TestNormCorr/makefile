@@ -27,9 +27,16 @@ SYMBOLS_MYPROJ :=
 SOURCES_MYPROJ := \
 	testnormcorr.cpp
 
+_SRC_UTL_ := \
+	numerical_recipes.cpp mrc.cpp
+
+SOURCES_UTL := \
+	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
+
 _SRC_GEN_ := \
-	Maths.cpp Correlation.cpp \
-	Geometry.cpp Timer.cpp
+	File.cpp \
+	ImageIO.cpp Maths.cpp Correlation.cpp \
+	Geometry.cpp Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -46,6 +53,8 @@ $(OUTPUT) \
 $(INCLUDES_STD) \
     \
 $(SOURCES_MYPROJ) \
+    \
+$(SOURCES_UTL) \
     \
 $(SOURCES_GEN) \
     \

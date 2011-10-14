@@ -35,7 +35,8 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	File.cpp ImageIO.cpp Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp CTForm.cpp CPicBase.cpp
+	CPoint.cpp Geometry.cpp CTForm.cpp CPicBase.cpp \
+	Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

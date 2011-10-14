@@ -32,7 +32,7 @@ _SRC_GEN_ := \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp CTForm.cpp \
 	CTemplate.cpp CPicBase.cpp \
-	Timer.cpp
+	Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
