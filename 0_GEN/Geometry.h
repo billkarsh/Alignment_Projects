@@ -62,7 +62,7 @@ int Propagate(
 	double			thresh,
 	double			set_to );
 
-int MapBlob(
+int MapBlobRng(
 	vector<uint8>			&map,
 	const vector<double>	&I,
 	int						w,
@@ -71,7 +71,7 @@ int MapBlob(
 	double					tmin,
 	double					tmax );
 
-int MapBlob(
+int MapBlobRng(
 	vector<uint8>	&map,
 	const uint8		*I,
 	int				w,
@@ -79,6 +79,15 @@ int MapBlob(
 	int				first,
 	int				tmin,
 	int				tmax );
+
+int MapBlobVar(
+	vector<uint8>	&map,
+	const uint8		*I,
+	int				w,
+	int				h,
+	int				first,
+	int				size,
+	int				tol );
 
 void DilateMap1Pix( vector<uint8> &map, int w, int h );
 void ErodeMap1Pix( vector<uint8> &map, int w, int h );

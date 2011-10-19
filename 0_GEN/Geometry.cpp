@@ -277,7 +277,7 @@ int Propagate(
 }
 
 /* --------------------------------------------------------------- */
-/* MapBlob ------------------------------------------------------- */
+/* MapBlobRng ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Given image <I> and empty <map>, create connected object
@@ -286,7 +286,7 @@ int Propagate(
 //
 // Return object pixel count (area).
 //
-int MapBlob(
+int MapBlobRng(
 	vector<uint8>			&map,
 	const vector<double>	&I,
 	int						w,
@@ -326,7 +326,7 @@ int MapBlob(
 }
 
 
-int MapBlob(
+int MapBlobRng(
 	vector<uint8>	&map,
 	const uint8		*I,
 	int				w,
@@ -359,6 +359,76 @@ int MapBlob(
 			if( x + 1 <  w )	st.push( j + 1 );
 			if( y - 1 >= 0 )	st.push( j - w );
 			if( y + 1 <  h )	st.push( j + w );
+		}
+	}
+
+	return cnt;
+}
+
+/* --------------------------------------------------------------- */
+/* MapBlobVar ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Given image <I> and empty <map>, create connected object
+// by placing a one into map at each pixel in I whose value
+// is within <tol> of the average of its <size> x <size>
+// neighbors. Starts at seed <first>.
+//
+// Return object pixel count (area).
+//
+int MapBlobVar(
+	vector<uint8>	&map,
+	const uint8		*I,
+	int				w,
+	int				h,
+	int				first,
+	int				size,
+	int				tol )
+{
+	stack<int>	st;
+	int			cnt = 0;
+
+	size /= 2;	// halfwidth
+
+	st.push( first );
+
+	while( !st.empty() ) {
+
+		int	j = st.top();
+
+		st.pop();
+
+		if( map[j] )
+			continue;
+
+		int	y0 = j / w,
+			x0 = j - w * y0,
+			A = -I[j],
+			n = -1,
+			L, R, B, T;
+
+		L = max( x0 - size, 0 );
+		R = min( x0 + size, w - 1 );
+		B = max( y0 - size, 0 );
+		T = min( y0 + size, h - 1 );
+
+		for( int y = B; y <= T; ++y ) {
+			for( int x = L; x <= R; ++x ) {
+				A += I[x+w*y];
+				++n;
+			}
+		}
+
+		if( iabs( I[j] - A/n ) <= tol ) {
+
+			map[j] = 1;
+			++cnt;
+
+			// push the four neighbors
+			if( x0 - 1 >= 0 )	st.push( j - 1 );
+			if( x0 + 1 <  w )	st.push( j + 1 );
+			if( y0 - 1 >= 0 )	st.push( j - w );
+			if( y0 + 1 <  h )	st.push( j + w );
 		}
 	}
 
