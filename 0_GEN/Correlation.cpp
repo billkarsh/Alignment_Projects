@@ -1917,18 +1917,24 @@ public:
 
 	void OrderF(
 		vector<int>				&forder,
-		vector<double>			&F,
-		vector<uint8>			&A,
+		const vector<double>	&F,
+		const vector<uint8>		&A,
 		const vector<double>	&R,
 		double					mincor );
 
 	bool FPeak(
 		int						&rx,
 		int						&ry,
-		vector<int>				&forder,
-		vector<double>			&F,
+		const vector<int>		&forder,
+		const vector<double>	&F,
 		const vector<double>	&R,
 		double					nbmaxht );
+
+	void MaxR(
+		int						&rx,
+		int						&ry,
+		const vector<int>		&forder,
+		const vector<double>	&R );
 
 	double ReturnR(
 		double					&dx,
@@ -2018,19 +2024,6 @@ void CCorImg::MakeRandA(
 	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
 	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
 
-//-----------------------------
-	if( dbgCor ) {
-
-		char	simg[32];
-
-		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1 );
-
-		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2 );
-	}
-//-----------------------------
-
 // FFTs and lags
 
 	vector<double>	rslt;
@@ -2086,6 +2079,25 @@ void CCorImg::MakeRandA(
 	if( verbose ) {
 		fprintf( flog,
 		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
+	}
+
+	if( dbgCor ) {
+
+		char	simg[32];
+
+		fprintf( flog, "Center = (%d %d)\n", cx, cy );
+
+		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
+		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+
+		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
+		Raster8ToTif8( simg, &A[0], wR, hR );
+
+		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
+		RasterDblToTifFlt( simg, &R[0], wR, hR );
 	}
 }
 
@@ -2202,23 +2214,13 @@ void CCorImg::MakeF(
 		0.0, vmax );
 	}
 
-//-----------------------------
 	if( dbgCor ) {
 
 		char	simg[32];
 
-		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
-		Raster8ToTif8( simg, &A[0], wR, hR );
-
-		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &R[0], wR, hR );
-
-		sprintf( simg, "corr_F_%d.tif", _dbg_simgidx++ );
+		sprintf( simg, "corr_F_%d.tif", _dbg_simgidx );
 		RasterDblToTifFlt( simg, &F[0], wR, hR );
-
-		fprintf( flog, "Center = (%d %d)\n", cx, cy );
 	}
-//-----------------------------
 }
 
 /* --------------------------------------------------------------- */
@@ -2234,8 +2236,8 @@ static bool Sort_F_dec( int a, int b )
 
 void CCorImg::OrderF(
 	vector<int>				&forder,
-	vector<double>			&F,
-	vector<uint8>			&A,
+	const vector<double>	&F,
+	const vector<uint8>		&A,
 	const vector<double>	&R,
 	double					mincor )
 {
@@ -2263,7 +2265,6 @@ void CCorImg::OrderF(
 	_F = &F[0];
 	sort( forder.begin(), forder.end(), Sort_F_dec );
 
-//-----------------------------
 	if( dbgCor ) {
 
 		int	ndbg = forder.size();
@@ -2280,7 +2281,6 @@ void CCorImg::OrderF(
 				F[k], R[k], x0, y0 );
 		}
 	}
-//-----------------------------
 }
 
 /* --------------------------------------------------------------- */
@@ -2295,8 +2295,8 @@ void CCorImg::OrderF(
 bool CCorImg::FPeak(
 	int						&rx,
 	int						&ry,
-	vector<int>				&forder,
-	vector<double>			&F,
+	const vector<int>		&forder,
+	const vector<double>	&F,
 	const vector<double>	&R,
 	double					nbmaxht )
 {
@@ -2479,8 +2479,8 @@ next_i:;
 bool CCorImg::FPeak(
 	int						&rx,
 	int						&ry,
-	vector<int>				&forder,
-	vector<double>			&F,
+	const vector<int>		&forder,
+	const vector<double>	&F,
 	const vector<double>	&R,
 	double					nbmaxht )
 {
@@ -2641,6 +2641,22 @@ next_i:;
 #endif
 
 /* --------------------------------------------------------------- */
+/* MaxR ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CCorImg::MaxR(
+	int						&rx,
+	int						&ry,
+	const vector<int>		&forder,
+	const vector<double>	&R )
+{
+	int	k = forder[0];
+
+	ry	= k / wR;
+	rx	= k - wR * ry;
+}
+
+/* --------------------------------------------------------------- */
 /* ParabPeak ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -2723,6 +2739,9 @@ double CCorImg::ReturnR(
 	dx += B2.L - B1.L - cx;
 	dy += B2.B - B1.B - cy;
 
+	if( dbgCor )
+		 ++_dbg_simgidx;
+
 	return bigR;
 }
 
@@ -2736,18 +2755,14 @@ double CCorImg::ReturnR(
 // mincor: If non-zero, used to prescreen F values during the
 // peak-hunting phase.
 //
-// pkwid: Expected F-peak width. No criteria applied in region
-// of this size surrounding a candidate peak pixel.
-//
-// pkgrd: Guard band surrounding pkwid zone within which we
-// check for any large neighbors.
-//
 // nbmaxht: A candidate F-peak is rejected if its guard band
 // contains another pixel with F > nbmaxht*peak.
 //
 // fft2: Cache of image2 FFT. On entry, if fft2 has the
 // correct size it is used. Otherwise recomputed here.
 //
+#if 1
+// Version using F and well isolated F peak.
 double CorrImages(
 	FILE					*flog,
 	int						verbose,
@@ -2795,5 +2810,49 @@ double CorrImages(
 
 	return cc.ReturnR( dx, dy, rx, ry, R );
 }
+#endif
+
+#if 0
+// Version using straight max R.
+double CorrImages(
+	FILE					*flog,
+	int						verbose,
+	double					&dx,
+	double					&dy,
+	const vector<Point>		&ip1,
+	const vector<double>	&iv1,
+	const vector<Point>		&ip2,
+	const vector<double>	&iv2,
+	EvalType				LegalRgn,
+	void*					arglr,
+	EvalType				LegalCnt,
+	void*					arglc,
+	double					mincor,
+	double					nbmaxht,
+	vector<CD>				&fft2 )
+{
+	CCorImg			cc;
+	vector<double>	R;
+	vector<uint8>	A;
+	vector<int>		order;
+	int				rx;
+	int				ry;
+
+	if( dbgCor )
+		verbose = true;
+
+	cc.SetDims( flog, verbose, ip1, ip2 );
+
+	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
+		LegalRgn, arglr, LegalCnt, arglc, fft2 );
+
+	// actually orders R, here
+	cc.OrderF( order, R, A, R, mincor );
+
+	cc.MaxR( rx, ry, order, R );
+
+	return cc.ReturnR( dx, dy, rx, ry, R );
+}
+#endif
 
 
