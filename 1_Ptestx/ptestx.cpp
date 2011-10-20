@@ -193,7 +193,7 @@ void CArgs_ptx::TopLevel()
 		system( buf );
 	}
 
-	sprintf( buf, "cp %s %s", prm, tmp );
+	sprintf( buf, "cp %s %s/matchparams.txt", prm, tmp );
 	system( buf );
 }
 
