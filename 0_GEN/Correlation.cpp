@@ -1891,7 +1891,7 @@ private:
 			cx, cy, wR, hR, nR;
 
 public:
-	void SetDims(
+	bool SetDims(
 		FILE					*iflog,
 		int						iverbose,
 		const vector<Point>		&ip1,
@@ -1948,7 +1948,7 @@ public:
 /* CCorImg::SetDims ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CCorImg::SetDims(
+bool CCorImg::SetDims(
 	FILE					*iflog,
 	int						iverbose,
 	const vector<Point>		&ip1,
@@ -1980,13 +1980,28 @@ void CCorImg::SetDims(
 	if( verbose ) {
 
 		fprintf( flog,
-		"Corr: region size is [%d %d] in x, [%d %d] in y.\n",
+		"Corr: Region size is [%d %d] in x, [%d %d] in y.\n",
 		B1.L, B1.R, B1.B, B1.T );
 
 		fprintf( flog,
-		"Corr: target size is [%d %d] in x, [%d %d] in y.\n",
+		"Corr: Target size is [%d %d] in x, [%d %d] in y.\n",
 		B2.L, B2.R, B2.B, B2.T );
 	}
+
+// Need enough room to apply typical kernel
+
+	const int mindelta = 11/2 + 1;
+
+	if( nnegx < mindelta || nposx < mindelta ||
+		nnegy < mindelta || nposy < mindelta ) {
+
+		if( verbose )
+			fprintf( flog, "Corr: Too small to evaluate.\n" );
+
+		return false;
+	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -2791,7 +2806,13 @@ double CorrImages(
 	if( dbgCor )
 		verbose = true;
 
-	cc.SetDims( flog, verbose, ip1, ip2 );
+	if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
+
+		dx	= 0.0;
+		dy	= 0.0;
+
+		return 0.0;
+	}
 
 	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
 		LegalRgn, arglr, LegalCnt, arglc, fft2 );
@@ -2841,7 +2862,13 @@ double CorrImages(
 	if( dbgCor )
 		verbose = true;
 
-	cc.SetDims( flog, verbose, ip1, ip2 );
+	if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
+
+		dx	= 0.0;
+		dy	= 0.0;
+
+		return 0.0;
+	}
 
 	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
 		LegalRgn, arglr, LegalCnt, arglc, fft2 );
