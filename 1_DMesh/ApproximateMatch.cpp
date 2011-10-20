@@ -333,7 +333,7 @@ static bool SelectSubimage(
 	IBox	Ba, Bb;
 	int		w = px.ws,
 			h = px.hs,
-			ow, oh;
+			ow, oh, min1d;
 
 	BoxesFromShifts( Ba, Bb, w, h, w, h, dx, dy );
 
@@ -342,7 +342,9 @@ static bool SelectSubimage(
 
 // Double-check that there was sufficient overlap
 
-	if( ow < GBL.mch.OLAP1D || oh < GBL.mch.OLAP1D ) {
+	min1d = max( GBL.mch.OLAP1D, 8 );
+
+	if( ow < min1d || oh < min1d ) {
 		fprintf( flog, "Subimage: Overlap looks small.\n" );
 		return WholeImage( olp, px, acr, bcr, flog );
 	}
