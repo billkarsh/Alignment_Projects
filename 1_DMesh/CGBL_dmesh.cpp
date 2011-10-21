@@ -177,6 +177,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DIT		= mch.DIT_SL;
 		ctx.DFA		= mch.DFA_SL;
 		ctx.DFT		= mch.DFT_SL;
+		ctx.OLAP1D	= mch.OLAP1D_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
 	}
 	else {
@@ -192,6 +193,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DIT		= mch.DIT_XL;
 		ctx.DFA		= mch.DFA_XL;
 		ctx.DFT		= mch.DFT_XL;
+		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
 	}
 

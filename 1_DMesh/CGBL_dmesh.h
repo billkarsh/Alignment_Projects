@@ -48,8 +48,7 @@ public:
 				DFA,
 				DFT;
 		long	OLAP2D;
-		int		PKWID,
-				PKGRD;
+		int		OLAP1D;
 	} CntxtDep;
 
 	typedef struct {

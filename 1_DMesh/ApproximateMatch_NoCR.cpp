@@ -286,7 +286,7 @@ static bool SelectSubimage(
 
 // Double-check that there was sufficient overlap
 
-	min1d = max( GBL.mch.OLAP1D, 8 );
+	min1d = max( GBL.ctx.OLAP1D, 8 );
 
 	if( olp.ow < min1d || olp.oh < min1d ) {
 		fprintf( flog, "Subimage: Overlap looks small.\n" );
@@ -388,8 +388,8 @@ static void RotatePoints(
 
 static bool BigEnough( int sx, int sy, void *a )
 {
-	return	sx >= GBL.mch.OLAP1D &&
-			sy >= GBL.mch.OLAP1D &&
+	return	sx >= GBL.ctx.OLAP1D &&
+			sy >= GBL.ctx.OLAP1D &&
 			(long)sx * sy > (long)a;
 }
 
