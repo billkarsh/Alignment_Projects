@@ -2091,6 +2091,9 @@ void CCorImg::MakeRandA(
 		}
 	}
 
+	if( dbgCor )
+		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
+
 	if( verbose ) {
 		fprintf( flog,
 		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
@@ -2099,8 +2102,6 @@ void CCorImg::MakeRandA(
 	if( dbgCor ) {
 
 		char	simg[32];
-
-		fprintf( flog, "Center = (%d %d)\n", cx, cy );
 
 		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
 		CorrThmToTif8( simg, i1, Nx, w1, h1 );
