@@ -250,17 +250,23 @@ static void Update()
 		if( Z.find( key.z ) == Z.end() )
 			continue;
 
+		TiXmlElement	*next = NULL;
+
 		for(
 			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
 			p;
-			p = p->NextSiblingElement() ) {
+			p = next ) {
+
+			next = p->NextSiblingElement();
 
 			key.id = gArgs.IDFromPatch( p );
 
 			map<MZID, TForm>::iterator	it = M.find( key );
 
-			if( it == M.end() )
+			if( it == M.end() ) {
+				layer->RemoveChild( p );
 				continue;
+			}
 
 			const double	*t = it->second.t;
 			char			buf[256];
