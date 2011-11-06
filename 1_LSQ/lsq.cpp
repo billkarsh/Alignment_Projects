@@ -10,6 +10,7 @@
 #include	"PipeFiles.h"
 #include	"LinEqu.h"
 #include	"TrakEM2_DTD.h"
+#include	"Maths.h"
 #include	"CPoint.h"
 #include	"CTForm.h"
 
@@ -234,6 +235,7 @@ public:
 	double		same_strength,
 				square_strength,
 				scale_strength,
+				tfm_tol,			// transform uniformity tol
 				thresh,				// outlier if worse than this
 				trim,				// trim this off XML images
 				degcw;				// rotate clockwise degrees
@@ -254,6 +256,7 @@ public:
 		same_strength		= 1.0;
 		square_strength		= 0.1;
 		scale_strength		= 1.0;
+		tfm_tol				= -1.0;
 		thresh				= 700.0;
 		trim				= 0.0;
 		degcw				= 0.0;
@@ -387,7 +390,7 @@ private:
 
 private:
 	void Tabulate(
-		const vector<zsort>		&z,
+		const vector<zsort>		&zs,
 		const vector<double>	&X );
 
 	void Line(
@@ -400,12 +403,12 @@ private:
 	void BoxOrCross( FILE *f, double x, double y, bool box );
 	void Arrow( FILE *f, const Point &g1, const Point &g2 );
 
-	void Print_be_and_se_files( const vector<zsort> &z );
-	void Print_errs_by_layer( const vector<zsort> &z );
+	void Print_be_and_se_files( const vector<zsort> &zs );
+	void Print_errs_by_layer( const vector<zsort> &zs );
 
 public:
 	void Evaluate(
-		const vector<zsort>		&z,
+		const vector<zsort>		&zs,
 		const vector<double>	&X );
 };
 
@@ -488,6 +491,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting square strength to %f.\n", square_strength );
 		else if( GetArg( &scale_strength, "-scale=%lf", argv[i] ) )
 			printf( "Setting scale strength to %f.\n", scale_strength );
+		else if( GetArg( &tfm_tol, "-tformtol=%lf", argv[i] ) )
+			printf( "Setting tform uniformity to %f.\n", tfm_tol );
 		else if( GetArg( &thresh, "-threshold=%lf", argv[i] ) )
 			printf( "Setting threshold to %f.\n", thresh );
 		else if( GetArg( &trim, "-trim=%lf", argv[i] ) )
@@ -2182,10 +2187,210 @@ static void SolveSystemRigid( vector<double> &X )
 }
 
 /* --------------------------------------------------------------- */
+/* OutlierTform classes ------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Some set of values that are derived from TForm
+
+class Tfmval {
+
+private:
+	double	t0, t1, t3, t4;
+
+public:
+	Tfmval()
+		{};
+	Tfmval( const double *X )
+		{t0=X[0];t1=X[1];t3=X[3];t4=X[4];};
+
+	bool IsOutlier(
+		const Tfmval	&ref,
+		double			tol,
+		int				z,
+		int				id,
+		FILE			*f );
+
+	static void PrintHdr( FILE *f )
+		{fprintf( f, "Lyr\tTil\tDT0\tDT1\tDT3\tDT4\n" );};
+};
+
+bool Tfmval::IsOutlier(
+	const Tfmval	&ref,
+	double			tol,
+	int				z,
+	int				id,
+	FILE			*f )
+{
+	double dt0 = fabs( t0 - ref.t0 );
+	double dt1 = fabs( t1 - ref.t1 );
+	double dt3 = fabs( t3 - ref.t3 );
+	double dt4 = fabs( t4 - ref.t4 );
+
+	if( dt0 > tol || dt1 > tol || dt3 > tol || dt4 > tol ) {
+
+		fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\n",
+		z, id, dt0, dt1, dt3, dt4 );
+
+		return true;
+	}
+
+	return false;
+}
+
+
+// Implement layer-wise calc for one or more values
+// derived from TForm elements
+
+class CLayerTfmvalCalc {
+
+private:
+	vector<double>	t0, t1, t3, t4;
+
+public:
+	void Add( const double *X );
+
+	int Size()
+		{return t0.size();};
+
+	Tfmval LayerVals();
+
+	void Reset()
+		{t0.clear();t1.clear();t3.clear();t4.clear();};
+};
+
+void CLayerTfmvalCalc::Add( const double *X )
+{
+	t0.push_back( X[0] );
+	t1.push_back( X[1] );
+	t3.push_back( X[3] );
+	t4.push_back( X[4] );
+}
+
+Tfmval CLayerTfmvalCalc::LayerVals()
+{
+	double	X[6] =
+		{MedianVal( t0 ), MedianVal( t1 ), 0,
+		 MedianVal( t3 ), MedianVal( t4 ), 0};
+
+	return Tfmval( X );
+}
+
+/* --------------------------------------------------------------- */
+/* MapFromZtoMedianTfmval ---------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void MapFromZtoMedianTfmval(
+	map<int,Tfmval>			&mzT,
+	const vector<double>	&X,
+	const vector<zsort>		&zs )
+{
+	CLayerTfmvalCalc	LC;
+	int					nr		= vRgn.size(),
+						zcur	= -1;
+
+// Loop over all RGN in z-order and compute median values
+
+	for( int i = 0; i < nr; ++i ) {
+
+		// If new layer then finish prev layer
+
+		if( zs[i].z != zcur ) {
+
+			if( LC.Size() ) {
+				mzT[zcur] = LC.LayerVals();
+				LC.Reset();
+			}
+
+			zcur = zs[i].z;
+		}
+
+		// get values for this tile
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		if( I.itr >= 0 )
+			LC.Add( &X[0] + I.itr * 6 );
+	}
+
+	if( LC.Size() )
+		mzT[zcur] = LC.LayerVals();
+}
+
+/* --------------------------------------------------------------- */
+/* MarkWildItrsInvalid ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void MarkWildItrsInvalid(
+	map<int,Tfmval>			&mzT,
+	const vector<double>	&X,
+	const vector<zsort>		&zs )
+{
+	FILE	*f	= FileOpenOrDie( "WildTFormTiles.txt", "w" );
+	int		nr	= vRgn.size();
+
+	Tfmval::PrintHdr( f );
+
+	for( int i = 0; i < nr; ++i ) {
+
+		RGN&	I = vRgn[zs[i].i];
+
+		if( I.itr < 0 )
+			continue;
+
+		Tfmval	T( &X[0] + I.itr * 6 );
+
+		if( T.IsOutlier( mzT.find( I.z )->second,
+				gArgs.tfm_tol, I.z, I.id, f ) ) {
+
+			I.itr = -1;
+		}
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* KillOulierTForms ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// After solving for transforms, calculate the median tform values
+// for each layer, and then set (used = false) for each constraint
+// referencing a tile whose tform is greater than tfm_tol from the
+// median.
+//
+static void KillOulierTForms(
+	const vector<double>	&X,
+	const vector<zsort>		&zs )
+{
+	map<int,Tfmval>	mzT;	// z-layer maps to median Tfmval
+
+	MapFromZtoMedianTfmval( mzT, X, zs );
+
+	MarkWildItrsInvalid( mzT, X, zs );
+
+// Disable referring constraints
+
+	int	nc = vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		Constraint	&C = vAllC[i];
+
+		if( C.used ) {
+
+			if( vRgn[C.r1].itr < 0 || vRgn[C.r2].itr < 0 )
+				C.used = false;
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* IterateInliers ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void IterateInliers( vector<double> &X )
+static void IterateInliers(
+	vector<double>		&X,
+	const vector<zsort>	&zs )
 {
 	printf( "---- Iterative solver ----\n" );
 
@@ -2236,6 +2441,13 @@ static void IterateInliers( vector<double> &X )
 
 		SolveSystem( X );
 //		SolveSystemRigid( X );
+
+		/* -------------------------- */
+		/* Apply transform uniformity */
+		/* -------------------------- */
+
+		if( pass == 1 && gArgs.tfm_tol > 0.0 )
+			KillOulierTForms( X, zs );
 
 		/* -------------------------- */
 		/* Count inliers and outliers */
@@ -2489,7 +2701,7 @@ static void Bounds(
 /* --------------------------------------------------------------- */
 
 static void WriteTransforms(
-	const vector<zsort>		&z,
+	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
 	printf( "---- Write transforms ----\n" );
@@ -2502,7 +2714,7 @@ static void WriteTransforms(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[z[i].i];
+		const RGN&	I = vRgn[zs[i].i];
 
 		if( I.itr < 0 )
 			continue;
@@ -2549,7 +2761,7 @@ static void WriteTransforms(
 static void WriteTrakEM(
 	double					xmax,
 	double					ymax,
-	const vector<zsort>		&z,
+	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
 	FILE	*f = FileOpenOrDie( "MultLayAff.xml", "w" );
@@ -2585,14 +2797,14 @@ static void WriteTrakEM(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[z[i].i];
+		const RGN&	I = vRgn[zs[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )
 			continue;
 
 		// changed layer
-		if( z[i].z != prev ) {
+		if( zs[i].z != prev ) {
 
 			if( prev != -1 )
 				fprintf( f, "\t\t</t2_layer>\n" );
@@ -2602,9 +2814,9 @@ static void WriteTrakEM(
 			"\t\t\toid=\"%d\"\n"
 			"\t\t\tz=\"%d\"\n"
 			"\t\t>\n",
-			oid++, z[i].z );
+			oid++, zs[i].z );
 
-			prev = z[i].z;
+			prev = zs[i].z;
 		}
 
 		// trim trailing quotes and '::'
@@ -2651,7 +2863,7 @@ static void WriteTrakEM(
 /* --------------------------------------------------------------- */
 
 static void WriteJython(
-	const vector<zsort>		&z,
+	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
 	FILE	*f = FileOpenOrDie( "JythonTransforms.txt", "w" );
@@ -2662,7 +2874,7 @@ static void WriteJython(
 
 	for( int i = 0, itrf = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[z[i].i];
+		const RGN&	I = vRgn[zs[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )
@@ -2766,7 +2978,7 @@ static double AontoBOverlap( TForm &a, TForm &b )
 // and ignore listings.
 //
 static void NoCorrs(
-	const vector<zsort>		&z,
+	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
 	printf( "---- Check NoCorrs ----\n" );
@@ -2782,8 +2994,8 @@ static void NoCorrs(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		int i1 = z[i].i,
-			z1 = z[i].z;
+		int i1 = zs[i].i,
+			z1 = zs[i].z;
 
 		fprintf( fscr, "#Start region %d, layer %d\n", i1, z1 );
 
@@ -2796,9 +3008,9 @@ static void NoCorrs(
 		/* ...Against each region j in same or next layer */
 		/* ---------------------------------------------- */
 
-		for( int j = i+1; j < nr && z[j].z <= z1+1; ++j ) {
+		for( int j = i+1; j < nr && zs[j].z <= z1+1; ++j ) {
 
-			int i2 = z[j].i;
+			int i2 = zs[j].i;
 
 			const RGN	&B = vRgn[i2];
 
@@ -2806,7 +3018,7 @@ static void NoCorrs(
 				continue;
 
 			// diff only by rgn?
-			if( z1 == z[j].z && A.id == B.id )
+			if( z1 == zs[j].z && A.id == B.id )
 				continue;
 
 			// mapped pairs not interesting here
@@ -2921,7 +3133,7 @@ static void NoCorrs(
 // Report some summary results in log.
 //
 void EVL::Tabulate(
-	const vector<zsort>		&z,
+	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
 	FILE			*f		= FileOpenOrDie( "PostFitErrs.txt", "w" );
@@ -2945,7 +3157,7 @@ void EVL::Tabulate(
 
 // Init whole layer data (size: max_layer_id + 1)
 
-	Ein.resize( z[z.size()-1].z + 1 );
+	Ein.resize( zs[zs.size()-1].z + 1 );
 	Ebt = Ein;
 
 // Tabulate errors per constraint and per region
@@ -3167,7 +3379,7 @@ void EVL::Arrow( FILE *f, const Point &g1, const Point &g2 )
 // gnuplot> plot 'pf.be' with lines
 // gnuplot> exit
 //
-void EVL::Print_be_and_se_files( const vector<zsort> &z )
+void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 {
 	const int NPRNT = 10;
 	const int NPLOT = 50;
@@ -3180,7 +3392,7 @@ void EVL::Print_be_and_se_files( const vector<zsort> &z )
 	double	bigpr	= (ne > NPRNT ? Epnt[ne - NPRNT].amt : 0.0),
 			bigpl	= (ne > NPLOT ? Epnt[ne - NPLOT].amt : 0.0);
 
-	printf( "Maximum layer number is %d.\n\n", z[z.size()-1].z );
+	printf( "Maximum layer number is %d.\n\n", zs[zs.size()-1].z );
 
 	printf( "Ten largest constraint errors---\n" );
 	printf( "     Error\tLayer\tTile\t Rgn\tLayer\tTile\t Rgn\n" );
@@ -3236,13 +3448,13 @@ void EVL::Print_be_and_se_files( const vector<zsort> &z )
 /* Print_errs_by_layer ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void EVL::Print_errs_by_layer( const vector<zsort> &z )
+void EVL::Print_errs_by_layer( const vector<zsort> &zs )
 {
 	FILE	*f = FileOpenOrDie( "errs_by_layer.txt", "w" );
 
-	int	zmax = z[z.size()-1].z;
+	int	zmax = zs[zs.size()-1].z;
 
-	for( int i = z[0].z; i <= zmax; i++ ) {
+	for( int i = zs[0].z; i <= zmax; i++ ) {
 
 		const SecErr	&Ei = Ein[i];
 		const SecErr	&Eb = Ebt[i];
@@ -3286,14 +3498,14 @@ void EVL::Print_errs_by_layer( const vector<zsort> &z )
 /* --------------------------------------------------------------- */
 
 void EVL::Evaluate(
-	const vector<zsort>		&z,
+	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
 	printf( "---- Evaluate errors ----\n" );
 
-	Tabulate( z, X );
-	Print_be_and_se_files( z );
-	Print_errs_by_layer( z );
+	Tabulate( zs, X );
+	Print_be_and_se_files( zs );
+	Print_errs_by_layer( zs );
 
 	printf( "\n" );
 }
@@ -3356,6 +3568,18 @@ int main( int argc, char **argv )
 
 	delete cnx;
 
+/* ----------------- */
+/* Sort regions by z */
+/* ----------------- */
+
+	int				nr = vRgn.size();
+	vector<zsort>	zs( nr );
+
+	for( int i = 0; i < nr; ++i )
+		zs[i] = zsort( vRgn[i], i );
+
+	sort( zs.begin(), zs.end() );
+
 /* ----- */
 /* Solve */
 /* ----- */
@@ -3365,7 +3589,7 @@ int main( int argc, char **argv )
 
 	vector<double>	X;
 
-	IterateInliers( X );
+	IterateInliers( X, zs );
 
 /* ------------------ */
 /* Calc global bounds */
@@ -3375,31 +3599,19 @@ int main( int argc, char **argv )
 
 	Bounds( xbnd, ybnd, X );
 
-/* ---------------------------------------------- */
-/* Sort regions by z -- for writing ordered files */
-/* ---------------------------------------------- */
-
-	int				nr = vRgn.size();
-	vector<zsort>	z( nr );
-
-	for( int i = 0; i < nr; ++i )
-		z[i] = zsort( vRgn[i], i );
-
-	sort( z.begin(), z.end() );
-
 /* ---------------- */
 /* Write transforms */
 /* ---------------- */
 
-	WriteTransforms( z, X );
-	WriteTrakEM( xbnd, ybnd, z, X );
-	WriteJython( z, X );
+	WriteTransforms( zs, X );
+	WriteTrakEM( xbnd, ybnd, zs, X );
+	WriteJython( zs, X );
 
 /* ---------------------------------- */
 /* Report any missing correspondences */
 /* ---------------------------------- */
 
-	NoCorrs( z, X );
+	NoCorrs( zs, X );
 
 /* ------------------------ */
 /* Assess and report errors */
@@ -3407,7 +3619,7 @@ int main( int argc, char **argv )
 
 	EVL	evl;
 
-	evl.Evaluate( z, X );
+	evl.Evaluate( zs, X );
 
 /* ---- */
 /* Done */
