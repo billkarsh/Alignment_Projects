@@ -119,7 +119,7 @@ static int SetStartingAngle( FILE* flog )
 
 		AToBTrans( atob, GBL.A.t2i.T, GBL.B.t2i.T );
 
-		ang0 = 180.0/PI * atan2( atob.t[3], atob.t[0] );
+		ang0 = 180.0/PI * RadiansFromAffine( atob );
 	}
 
 // Force tiny ang0 to zero

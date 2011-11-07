@@ -247,4 +247,70 @@ void CreateCWRot( TForm &T, double deg, const Point &pivot )
 	T.t[5] = pivot.y - (s*pivot.x + c*pivot.y);
 }
 
+/* --------------------------------------------------------------- */
+/* RadiansFromAffine --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// A general affine may include (ignoring reflection here),
+// rotation, skew and scale. Using polar decomposition we
+// attempt to extract the (roughly) pure rotation matrix R
+// from general affine A and return its associated angle
+// in radians.
+//
+// Method (adapted from "Graphics Gems IV", section III.4,
+// by Ken Shoemake).
+//
+// From TForm's matrix-part P = R( a ), iteratively compute
+// N = (P + Inv(Trp(P)) / 2, until max element-wise change
+// in (N - P) is tiny.
+//
+double RadiansFromAffine( const TForm &a )
+{
+	double	P[4] = {a.t[0],a.t[1],a.t[3],a.t[4]};
+
+	for( int iter = 0; iter < 100; ++iter ) {
+
+		double	N[4], d, t;
+
+		// N = P-transpose
+		N[0] = P[0]; N[1] = P[2]; N[2] = P[1]; N[3] = P[3];
+
+		// N = N-inverse;
+		d = N[0]*N[3] - N[1]*N[2];
+		t = N[0];
+		N[0] =  N[3] / d;
+		N[1] = -N[1] / d;
+		N[2] = -N[2] / d;
+		N[3] =  N[0] / d;
+
+		// N = (P + N)/2
+		N[0] = (P[0] + N[0]) / 2.0;
+		N[1] = (P[1] + N[1]) / 2.0;
+		N[2] = (P[2] + N[2]) / 2.0;
+		N[3] = (P[3] + N[3]) / 2.0;
+
+		// max( N - P )
+		d = fabs( N[0] - P[0] );
+		d = fmax( d, fabs( N[1] - P[1] ) );
+		d = fmax( d, fabs( N[2] - P[2] ) );
+		d = fmax( d, fabs( N[3] - P[3] ) );
+
+		// converged?
+		if( d < 1e-7 ) {
+
+			//printf( "i=%d, %f  %f  %f  %f\n",
+			//iter, N[0], N[1], N[2], N[3] );
+
+			return atan2( N[2], N[0] );
+		}
+
+		// P = N;
+		P[0] = N[0]; P[1] = N[1]; P[2] = N[2]; P[3] = N[3];
+	}
+
+// fall back on standard crude estimator
+
+	return atan2( a.t[3], a.t[0] );
+}
+
 

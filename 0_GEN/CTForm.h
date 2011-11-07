@@ -85,5 +85,6 @@ void InvertTrans( TForm &inv, const TForm &t );
 void MultiplyTrans( TForm &r, const TForm &a, const TForm &b );
 void AToBTrans( TForm &atob, const TForm &a, const TForm &b );
 void CreateCWRot( TForm &T, double deg, const Point &pivot );
+double RadiansFromAffine( const TForm &a );
 
 

@@ -738,7 +738,7 @@ if( ns > 0 ) {
     }
 for(int j=1; j<vp.size(); j++) {
     double scale = sqrt( pow(vp[j].tr.t[0], 2.0) + pow(vp[j].tr.t[1], 2.0) );
-    double angle = atan2(vp[j].tr.t[1], vp[j].tr.t[0]) * 180.0/PI;
+    double angle = RadiansFromAffine( vp[j].tr ) * 180.0/PI;
     printf("Was %6.4f %7.3f: ", scale, angle); vp[j].tr.PrintTransform();
     if( TrOnly ) {
         vp[j].tr.SetXY( x[(j-1)*2], x[(j-1)*2+1] );
@@ -747,7 +747,7 @@ for(int j=1; j<vp.size(); j++) {
         vp[j].tr.CopyIn( &x[(j-1)*6] );
 	}
     scale = sqrt( pow(vp[j].tr.t[0], 2.0) + pow(vp[j].tr.t[1], 2.0) );
-    angle = atan2(vp[j].tr.t[1], vp[j].tr.t[0]) * 180.0/PI;
+    angle = RadiansFromAffine( vp[j].tr ) * 180.0/PI;
     printf(" is %7.4f %6.3f: ", scale, angle); vp[j].tr.PrintTransform();
     InvertTrans(vp[j].Inverse, vp[j].tr);
     }

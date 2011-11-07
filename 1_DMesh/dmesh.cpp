@@ -90,7 +90,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 		for( int i = 0; i < nT; ++i ) {
 
-			double	ang = atan2( vT[i].t[3], vT[i].t[0] );
+			double	ang = RadiansFromAffine( vT[i] );
 
 			// handle atan() branch cuts
 

@@ -285,7 +285,7 @@ static void Report()
 		base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
 		base = 180/PI * atan( base );
 
-		tile = atan2( T1.t[3], T1.t[0] ) + atan2( T2.t[3], T2.t[0] );
+		tile = RadiansFromAffine( T1 ) + RadiansFromAffine( T2 );
 		tile = 180/PI * tile / 2;
 
 		cw = -(base + tile);
@@ -382,7 +382,7 @@ static void RotateAuto()
 		base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
 		base = 180/PI * atan( base );
 
-		tile = atan2( T1.t[3], T1.t[0] ) + atan2( T2.t[3], T2.t[0] );
+		tile = RadiansFromAffine( T1 ) + RadiansFromAffine( T2 );
 		tile = 180/PI * tile / 2;
 
 		cw = -(base + tile);
