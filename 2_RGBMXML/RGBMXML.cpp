@@ -112,19 +112,18 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 static void EditTitleAndPath( TiXmlElement* ptch )
 {
 	char	buf[2048];
-	int		len;
 
 // title first
 
-	len = sprintf( buf, "%s", ptch->Attribute( "title" ) );
-	sprintf( buf + len - 5, "%s.tif", gArgs.tag );
+	sprintf( buf, "%s", ptch->Attribute( "title" ) );
+	sprintf( strrchr( buf, '_' ) + 1, "%s.tif", gArgs.tag );
 	ptch->SetAttribute( "title", buf );
 
 // now path
 
 	sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-	sprintf( strrchr( buf, '/' ),
-		"_%s/%s", gArgs.tag, ptch->Attribute( "title" ) );
+	sprintf( strstr( buf, "Plate1_0" ) + 8, "/TIF_%s/%s",
+		gArgs.tag, ptch->Attribute( "title" ) );
 	ptch->SetAttribute( "file_path", buf );
 }
 

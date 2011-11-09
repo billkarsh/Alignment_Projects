@@ -313,9 +313,16 @@ static bool InROI( const Picture &p )
 
 static char *ChanName( char *buf, const Picture &p, int chn )
 {
-	int	len = sprintf( buf, "%s", p.fname.c_str() );
+	const char	*src = p.fname.c_str();
+	char		*plt, *s, *u;
 
-	buf[len - 5] = '0' + chn;
+	sprintf( buf, "%s", src );
+	plt	= strstr( buf, "Plate1_0" );
+	s	= strrchr( src, '/' );
+	u	= strrchr( src, '_' );
+
+	sprintf( plt + 8, "/TIF%.*s_%c.tif",
+		u - s, s, '0' + chn );
 
 	return buf;
 }
@@ -326,20 +333,16 @@ static char *ChanName( char *buf, const Picture &p, int chn )
 
 static char *RGBName( char *buf, const Picture &p )
 {
-	char	name[256];
-	char	*s;
-	int		len;
+	const char	*src = p.fname.c_str();
+	char		*plt, *s, *u;
 
-// name part
+	sprintf( buf, "%s", src );
+	plt	= strstr( buf, "Plate1_0" );
+	s	= strrchr( src, '/' );
+	u	= strrchr( src, '_' );
 
-	s = strrchr( p.fname.c_str(), '/' );
-	len = sprintf( name, "%s", s + 1 );
-	sprintf( name + len - 5, "%s.tif", gArgs.tag );
-
-// full path
-
-	sprintf( buf, "%.*s_%s/%s",
-		s - p.fname.c_str(), p.fname.c_str(), gArgs.tag, name );
+	sprintf( plt + 8, "/TIF_%s%.*s_%s.tif",
+		gArgs.tag, u - s, s, gArgs.tag );
 
 	return buf;
 }
@@ -440,16 +443,9 @@ static void Scale1Lyr1Clr(
 static void MakeFolder( const Picture &p )
 {
 	char	buf[2048];
-	char	*s;
 
-// folder path
-
-	s = strrchr( p.fname.c_str(), '/' );
-	sprintf( buf, "%.*s_%s",
-		s - p.fname.c_str(), p.fname.c_str(), gArgs.tag );
-
-// make dir
-
+	sprintf( buf, "%s", p.fname.c_str() );
+	sprintf( strstr( buf, "Plate1_0" ) + 8, "/TIF_%s", gArgs.tag );
 	DskCreateDir( buf, flog );
 }
 
