@@ -2320,13 +2320,16 @@ static void MapFromZtoMedianTfmval(
 /* MarkWildItrsInvalid ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void MarkWildItrsInvalid(
+// Return true if any regions marked invalid here.
+//
+static bool MarkWildItrsInvalid(
 	map<int,Tfmval>			&mzT,
 	const vector<double>	&X,
 	const vector<zsort>		&zs )
 {
 	FILE	*f	= FileOpenOrDie( "WildTFormTiles.txt", "w" );
 	int		nr	= vRgn.size();
+	bool	marked = false;
 
 	Tfmval::PrintHdr( f );
 
@@ -2342,11 +2345,29 @@ static void MarkWildItrsInvalid(
 		if( T.IsOutlier( mzT.find( I.z )->second,
 				gArgs.tfm_tol, I.z, I.id, f ) ) {
 
-			I.itr = -1;
+			I.itr	= -1;
+			marked	= true;
 		}
 	}
 
 	fclose( f );
+
+// Repack transform indices (itr)
+
+	if( marked ) {
+
+		gNTr = 0;
+
+		for( int i = 0; i < nr; ++i ) {
+
+			RGN&	I = vRgn[zs[i].i];
+
+			if( I.itr >= 0 )
+				I.itr = gNTr++;
+		}
+	}
+
+	return marked;
 }
 
 /* --------------------------------------------------------------- */
@@ -2358,7 +2379,9 @@ static void MarkWildItrsInvalid(
 // referencing a tile whose tform is greater than tfm_tol from the
 // median.
 //
-static void KillOulierTForms(
+// Return true if any changes made here.
+//
+static bool KillOulierTForms(
 	const vector<double>	&X,
 	const vector<zsort>		&zs )
 {
@@ -2366,22 +2389,27 @@ static void KillOulierTForms(
 
 	MapFromZtoMedianTfmval( mzT, X, zs );
 
-	MarkWildItrsInvalid( mzT, X, zs );
+	bool changed = MarkWildItrsInvalid( mzT, X, zs );
 
 // Disable referring constraints
 
-	int	nc = vAllC.size();
+	if( changed ) {
 
-	for( int i = 0; i < nc; ++i ) {
+		int	nc = vAllC.size();
 
-		Constraint	&C = vAllC[i];
+		for( int i = 0; i < nc; ++i ) {
 
-		if( C.used ) {
+			Constraint	&C = vAllC[i];
 
-			if( vRgn[C.r1].itr < 0 || vRgn[C.r2].itr < 0 )
-				C.used = false;
+			if( C.used ) {
+
+				if( vRgn[C.r1].itr < 0 || vRgn[C.r2].itr < 0 )
+					C.used = false;
+			}
 		}
 	}
+
+	return changed;
 }
 
 /* --------------------------------------------------------------- */
@@ -2446,8 +2474,14 @@ static void IterateInliers(
 		/* Apply transform uniformity */
 		/* -------------------------- */
 
-		if( pass == 1 && gArgs.tfm_tol > 0.0 )
-			KillOulierTForms( X, zs );
+		if( pass == 1 && gArgs.tfm_tol > 0.0 ) {
+
+			if( KillOulierTForms( X, zs ) ) {
+				printf( "\nPASS %d (Wild TFs Rmvd) >>>>>>>>\n", pass );
+				SolveSystem( X );
+//				SolveSystemRigid( X );
+			}
+		}
 
 		/* -------------------------- */
 		/* Count inliers and outliers */
