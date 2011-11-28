@@ -60,11 +60,7 @@ $(SOURCES_UTL) \
     \
 $(SOURCES_GEN) \
     \
-$(OBJFILES_TIF) \
-    \
-$(STATICLIBS_FFT) \
-    \
-$(OTHERLIBS_STD) \
+$(LINKS_STD) \
 #### end $(CC) $@
 
 

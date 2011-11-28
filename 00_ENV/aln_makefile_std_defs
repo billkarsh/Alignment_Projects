@@ -37,17 +37,20 @@ INCLUDES_STD := -I{$(PATH_TIF),$(PATH_FFT),$(PATH_XML),$(PATH_UTL),$(PATH_GEN)}
 # object files
 # ============
 
-OBJFILES_TIF :=  $(PATH_TIF)/{tif_getimage.o,tif_unix.o,tif_aux.o,tif_dir.o,tif_error.o,tif_open.o,tif_dirinfo.o,tif_dirread.o,tif_swab.o,tif_warning.o,tif_strip.o,tif_color.o,tif_read.o,tif_tile.o,tif_compress.o,tif_codec.o,tif_close.o,tif_dumpmode.o,tif_lzw.o,tif_packbits.o,tif_flush.o,tif_write.o,tif_jpeg.o,tif_fax3.o,tif_thunder.o,tif_zip.o,tif_fax3sm.o,tif_next.o,tif_pixarlog.o,tif_luv.o,tif_predict.o,tif_dirwrite.o,tif_ojpeg.o}
-
 # ===========================
 # archives (static libraries)
 # ===========================
 
+STATICLIBS_TIF := $(PATH_TIF)/.libs/libtiff.a
 STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
 
 # ==================
 # standard libraries
 # ==================
+
+# -l option searches usual hierarchy for static library, e.g.,
+# -lXXX searches for 'libXXX.a'. -L option adds dirs to the
+# search hierarchy for -l option.
 
 # jpeg:		jpeg image format
 # png:		png image format
@@ -57,6 +60,12 @@ STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
 # rt:		posix libraries (e.g. semaphore support)
 
 OTHERLIBS_STD := -l{jpeg,png,z,m,c,rt}
+
+# ==============================
+# Combine all standard libraries
+# ==============================
+
+LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_FFT) $(OTHERLIBS_STD)
 
 # ===========
 # g++ options
