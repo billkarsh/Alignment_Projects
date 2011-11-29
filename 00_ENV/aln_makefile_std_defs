@@ -19,19 +19,30 @@ space := $(empty) $(empty)
 # paths
 # =====
 
-PATH_TIF := /groups/scheffer/home/schefferl/tiff-3.9.2/libtiff
-PATH_FFT := /groups/scheffer/home/schefferl/fft/include
+PATH_TIF := /groups/apig/share/ClusterSupport/Libraries/TIFF
+PATH_TIF_INC := $(PATH_TIF)/include
+PATH_TIF_LIB := $(PATH_TIF)/lib
+PATH_PNG := /groups/apig/share/ClusterSupport/Libraries/PNG
+PATH_PNG_INC := $(PATH_PNG)/include
+PATH_PNG_LIB := $(PATH_PNG)/lib
+PATH_ZLB := /groups/apig/share/ClusterSupport/Libraries/ZLIB
+PATH_ZLB_INC := $(PATH_ZLB)/include
+PATH_ZLB_LIB := $(PATH_ZLB)/lib
+PATH_FFT := /groups/apig/share/ClusterSupport/Libraries/FFT
+PATH_FFT_INC := $(PATH_FFT)/include
+PATH_FFT_LIB := $(PATH_FFT)/lib
+
 PATH_XML := /groups/apig/tomo/Alignment_Projects/0_XML
 PATH_UTL := /groups/apig/tomo/Alignment_Projects/0_UTL
 PATH_GEN := /groups/apig/tomo/Alignment_Projects/0_GEN
+
 PATH_OUT := /groups/apig/tomo/lou_stuff/binaries
-PATH_FFT_LIB := /groups/scheffer/home/schefferl/em_reconstruction/code/lib/fftw-3.2/lib
 
 # =============
 # include paths
 # =============
 
-INCLUDES_STD := -I{$(PATH_TIF),$(PATH_FFT),$(PATH_XML),$(PATH_UTL),$(PATH_GEN)} 
+INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_XML),$(PATH_UTL),$(PATH_GEN)} 
 
 # ============
 # object files
@@ -41,7 +52,9 @@ INCLUDES_STD := -I{$(PATH_TIF),$(PATH_FFT),$(PATH_XML),$(PATH_UTL),$(PATH_GEN)}
 # archives (static libraries)
 # ===========================
 
-STATICLIBS_TIF := $(PATH_TIF)/.libs/libtiff.a
+STATICLIBS_TIF := $(PATH_TIF_LIB)/libtiff.a
+STATICLIBS_PNG := $(PATH_PNG_LIB)/libpng.a
+STATICLIBS_ZLB := $(PATH_ZLB_LIB)/libz.a
 STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
 
 # ==================
@@ -53,19 +66,17 @@ STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
 # search hierarchy for -l option.
 
 # jpeg:		jpeg image format
-# png:		png image format
-# z:		zlib compression
 # m:		math
 # c:		c runtime
 # rt:		posix libraries (e.g. semaphore support)
 
-OTHERLIBS_STD := -l{jpeg,png,z,m,c,rt}
+OTHERLIBS_STD := -l{jpeg,m,c,rt}
 
 # ==============================
 # Combine all standard libraries
 # ==============================
 
-LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_FFT) $(OTHERLIBS_STD)
+LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_PNG) $(STATICLIBS_ZLB) $(STATICLIBS_FFT) $(OTHERLIBS_STD)
 
 # ===========
 # g++ options
@@ -73,7 +84,7 @@ LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_FFT) $(OTHERLIBS_STD)
 
 CC := g++
 
-# O3:		optimizer level 3
+# O3:		optimizer level 3 (max)
 
 CFLAGS := -O3
 

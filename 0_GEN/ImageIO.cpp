@@ -5,9 +5,8 @@
 #include	"mrc.h"
 #include	"Maths.h"
 
+#include	"png.h"
 #include	"tiffio.h"
-
-#include	<png.h>
 
 
 #define	USE_TIF_DEFLATE		0

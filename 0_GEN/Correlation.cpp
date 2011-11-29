@@ -6,7 +6,7 @@
 #include	"ImageIO.h"
 #include	"Debug.h"
 
-#include	<fftw3.h>
+#include	"fftw3.h"
 
 #include	<math.h>
 #include	<string.h>
