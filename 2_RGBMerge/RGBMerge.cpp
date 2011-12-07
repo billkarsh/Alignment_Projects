@@ -6,7 +6,12 @@
 // -R=chn,pct
 // -G=chn,pct
 // -B=chn,pct
-// lrbt
+// -spanRGB=LLT
+// -lrbt
+//
+// -spanRGB option needs three character string. Each character is
+// either {L=whole layer, T=per tile} setting span of tiles used
+// to scale each channel.
 //
 
 
@@ -37,7 +42,8 @@ public:
 	IBox	roi;
 	double	pct[3];
 	char	*infile,
-			*tag;
+			*tag,
+			*span;
 	int		zmin, zmax,
 			RGB[3];
 
@@ -50,6 +56,7 @@ public:
 		pct[2]	= 99.5;
 		infile	= NULL;
 		tag		= NULL;
+		span	= "LLL";
 		zmin	= 0;
 		zmax	= 32768;
 		RGB[0]	= -1;
@@ -152,6 +159,8 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( ScanChan( 2, "-B=%d", argv[i] ) )
 			;
+		else if( GetArgStr( span, "-spanRGB=", argv[i] ) )
+			;
 		else if( GetArgList( vi, "-lrbt=", argv[i] ) && vi.size() == 4 )
 			memcpy( &roi, &vi[0], 4*sizeof(int) );
 		else {
@@ -246,6 +255,8 @@ static void WriteScript( vector<int> &zlist )
 					sRGB[i], gArgs.RGB[i], gArgs.pct[i] );
 		}
 	}
+
+	pos += sprintf( sopt + pos, "-spanRGB=%s ", gArgs.span );
 
 	if( gArgs.roi.L != gArgs.roi.R ) {
 

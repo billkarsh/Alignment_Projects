@@ -7,7 +7,12 @@
 // -R=chn,pct
 // -G=chn,pct
 // -B=chn,pct
-// lrbt
+// -spanRGB=LLT
+// -lrbt
+//
+// -spanRGB option needs three character string. Each character is
+// either {L=whole layer, T=per tile} setting span of tiles used
+// to scale each channel.
 //
 
 
@@ -58,7 +63,8 @@ public:
 	IBox	roi;
 	double	pct[3];
 	char	*infile,
-			*tag;
+			*tag,
+			*span;
 	int		z, RGB[3];
 
 public:
@@ -70,6 +76,7 @@ public:
 		pct[2]	= 99.5;
 		infile	= NULL;
 		tag		= NULL;
+		span	= "LLL";
 		z		= 0;
 		RGB[0]	= -1;
 		RGB[1]	= -1;
@@ -169,6 +176,11 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 		else if( ScanChan( 1, "-G=%d", argv[i] ) )
 			;
 		else if( ScanChan( 2, "-B=%d", argv[i] ) )
+			;
+		else if( GetArgStr( span, "-spanRGB=", argv[i] )
+			&& (span[0] == 'L' || span[0] == 'T')
+			&& (span[1] == 'L' || span[1] == 'T')
+			&& (span[2] == 'L' || span[2] == 'T') )
 			;
 		else if( GetArgList( vi, "-lrbt=", argv[i] ) && vi.size() == 4 )
 			memcpy( &roi, &vi[0], 4*sizeof(int) );
@@ -365,13 +377,14 @@ static bool GetRas16( uint16* &ras, const Picture &p, int chn )
 }
 
 /* --------------------------------------------------------------- */
-/* Scale1Lyr1Clr ------------------------------------------------- */
+/* Scale1Clr ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Scale1Lyr1Clr(
+static void Scale1Clr(
 	int						&mn,
 	int						&mx,
 	int						rgb,
+	int						ip,		// -1 = whole layer
 	const vector<Picture>	&vp )
 {
 	const int		nbins = 65536;	// also max val
@@ -381,22 +394,46 @@ static void Scale1Lyr1Clr(
 	int				np   = vp.size(),
 					T, imin;
 
-// histogram whole layer
+// collect histogram
 
-	for( int i = 0; i < np; ++i ) {
+	if( ip >= 0 ) {
+
+		// tile ip
 
 		uint16*	ras;
 
-		if( !InROI( vp[i] ) )
-			continue;
+		if( !GetRas16( ras, vp[ip], gArgs.RGB[rgb] ) ) {
 
-		if( !GetRas16( ras, vp[i], gArgs.RGB[rgb] ) )
-			continue;
+			mn	= 0;
+			mx	= 65536;
+			return;
+		}
 
 		Histogram( uflo, oflo, &bins[0], nbins,
 			0.0, nbins, ras, gW * gH, false );
 
 		RasterFree( ras );
+
+	}
+	else {
+
+		// whole layer
+
+		for( int i = 0; i < np; ++i ) {
+
+			uint16*	ras;
+
+			if( !InROI( vp[i] ) )
+				continue;
+
+			if( !GetRas16( ras, vp[i], gArgs.RGB[rgb] ) )
+				continue;
+
+			Histogram( uflo, oflo, &bins[0], nbins,
+				0.0, nbins, ras, gW * gH, false );
+
+			RasterFree( ras );
+		}
 	}
 
 // mn is between lowest val and 2 sdev below mode
@@ -493,14 +530,14 @@ static void ScaleLayer( const vector<Picture> &vp )
 
 // scan once to get scale for the layer/color
 
-	if( gArgs.RGB[0] >= 0 )
-		Scale1Lyr1Clr( rmn, rmx, 0, vp );
+	if( gArgs.RGB[0] >= 0 && gArgs.span[0] == 'L' )
+		Scale1Clr( rmn, rmx, 0, -1, vp );
 
-	if( gArgs.RGB[1] >= 0 )
-		Scale1Lyr1Clr( gmn, gmx, 1, vp );
+	if( gArgs.RGB[1] >= 0 && gArgs.span[1] == 'L' )
+		Scale1Clr( gmn, gmx, 1, -1, vp );
 
-	if( gArgs.RGB[2] >= 0 )
-		Scale1Lyr1Clr( bmn, bmx, 2, vp );
+	if( gArgs.RGB[2] >= 0 && gArgs.span[2] == 'L' )
+		Scale1Clr( bmn, bmx, 2, -1, vp );
 
 // write each RGB image for this layer
 
@@ -512,14 +549,29 @@ static void ScaleLayer( const vector<Picture> &vp )
 
 		MakeFolder( p );
 
-		if( gArgs.RGB[0] >= 0 )
+		if( gArgs.RGB[0] >= 0 ) {
+
+			if( gArgs.span[0] != 'L' )
+				Scale1Clr( rmn, rmx, 0, i, vp );
+
 			AddChn( RGB, rmn, rmx, 0, gArgs.RGB[0], p );
+		}
 
-		if( gArgs.RGB[1] >= 0 )
+		if( gArgs.RGB[1] >= 0 ) {
+
+			if( gArgs.span[1] != 'L' )
+				Scale1Clr( gmn, gmx, 1, i, vp );
+
 			AddChn( RGB, gmn, gmx, 8, gArgs.RGB[1], p );
+		}
 
-		if( gArgs.RGB[2] >= 0 )
+		if( gArgs.RGB[2] >= 0 ) {
+
+			if( gArgs.span[2] != 'L' )
+				Scale1Clr( bmn, bmx, 2, i, vp );
+
 			AddChn( RGB, bmn, bmx, 16, gArgs.RGB[2], p );
+		}
 
 		Raster32ToTifRGBA( RGBName( buf, p ), &RGB[0], gW, gH );
 	}
