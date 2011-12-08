@@ -28,7 +28,7 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp CRegexID.cpp File.cpp Disk.cpp \
+	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
 	Maths.cpp CPoint.cpp CTForm.cpp
 
 SOURCES_GEN :=  \

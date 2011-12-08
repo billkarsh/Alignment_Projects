@@ -22,7 +22,7 @@ SOURCES_MYPROJ := \
 	RemoveRefTiles.cpp
 
 _SRC_GEN_ := \
-	File.cpp Disk.cpp
+	Disk.cpp File.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
