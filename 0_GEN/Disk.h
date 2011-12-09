@@ -45,6 +45,8 @@ public:
 
 bool DskExists( const char *path );
 
+double DskBytes( const char *path );
+
 void DskCreateDir( const char *path, FILE* flog );
 
 bool DskAbsPath( char *out, int bufsize, const char *in, FILE* flog );
