@@ -27,7 +27,8 @@ class CArgs_heq {
 
 private:
 	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images.
+	// "/N" used for EM projects, "_N_" for APIG images,
+	// "_Nex.mrc" typical for Leginon files.
 	CRegexID	re_id;
 
 public:
