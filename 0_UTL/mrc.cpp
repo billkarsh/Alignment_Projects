@@ -32,7 +32,8 @@ int ReadRawMRCFile(
 	FILE*			flog,
 	bool			Transpose )
 {
-	fprintf( flog, "Opening MRC file '%s'.\n", name );
+	if( flog )
+		fprintf( flog, "Opening MRC file '%s'.\n", name );
 
 // read the first 1024 bytes - the header
 
@@ -45,16 +46,19 @@ int ReadRawMRCFile(
 	//for( int i = 0; i < 256; ++i )
 	//header[i] = (header[i] << 16) | ((header[i] >> 16) & 0xFFFF);
 
-	fprintf( flog, "Header: %d %d %d %d %d %d %d %d.\n",
-		header[0], header[1], header[2], header[3],
-		header[4], header[5], header[6], header[7] );
+	if( flog ) {
+		fprintf( flog, "Header: %d %d %d %d %d %d %d %d.\n",
+			header[0], header[1], header[2], header[3],
+			header[4], header[5], header[6], header[7] );
+	}
 
 	w		= header[0];
 	h		= header[1];
 	nras	= header[2];
 	np		= w * h;
 
-	fprintf( flog, "MRC file has %d images.\n", nras );
+	if( flog )
+		fprintf( flog, "MRC file has %d images.\n", nras );
 
 	vras.resize( nras );
 
@@ -68,6 +72,10 @@ int ReadRawMRCFile(
 			vras[i] = (uint16*)malloc( np * sizeof(uint16) );
 
 			if( !vras[i] ) {
+
+				if( !flog )
+					flog = stdout;
+
 				fprintf( flog, "Read MRC malloc failed.\n" );
 				exit( 42 );
 			}
@@ -75,6 +83,10 @@ int ReadRawMRCFile(
 			items = fread( vras[i], sizeof(uint16), np, fp );
 
 			if( items != np ) {
+
+				if( !flog )
+					flog = stdout;
+
 				fprintf( flog, "Read MRC data read failed.\n" );
 				exit( 42 );
 			}
@@ -87,6 +99,10 @@ int ReadRawMRCFile(
 			float*	rasf = (float*)malloc( np * sizeof(float) );
 
 			if( !rasf ) {
+
+				if( !flog )
+					flog = stdout;
+
 				fprintf( flog, "Read MRC malloc failed.\n" );
 				exit( 42 );
 			}
@@ -94,6 +110,10 @@ int ReadRawMRCFile(
 			items = fread( rasf, sizeof(float), np, fp );
 
 			if( items != np ) {
+
+				if( !flog )
+					flog = stdout;
+
 				fprintf( flog, "Read MRC data read failed.\n" );
 				exit( 42 );
 			}
@@ -105,6 +125,10 @@ int ReadRawMRCFile(
 			uint16*	ras16 = vras[i];
 
 			if( !ras16 ) {
+
+				if( !flog )
+					flog = stdout;
+
 				fprintf( flog, "Read MRC malloc failed.\n" );
 				exit( 42 );
 			}
@@ -116,6 +140,10 @@ int ReadRawMRCFile(
 		}
 	}
 	else {
+
+		if( !flog )
+			flog = stdout;
+
 		fprintf( flog,
 		"Reading MRC file; expected mode 6 or 2, got %d.\n",
 		header[3] );
