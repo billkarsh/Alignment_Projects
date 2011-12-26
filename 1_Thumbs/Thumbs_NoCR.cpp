@@ -439,6 +439,10 @@ static void RecordAngle(
 }
 
 
+#if 0
+
+// Original version selecting best angle based on maximal R.
+
 static double AngleScan(
 	CorRec	&best,
 	double	center,
@@ -473,6 +477,124 @@ static double AngleScan(
 
 	return best.R;
 }
+
+#else
+
+// New version selecting best angle based on maximal R, but only if
+// coordinates XY vary smoothly in a neighborhood about that angle.
+// Smoothness measured as linear corr. coeff. from fitting X vs A.
+
+static const vector<CorRec>	*_vC;
+
+
+static bool Sort_vC_dec( int a, int b )
+{
+	return (*_vC)[a].R > (*_vC)[b].R;
+}
+
+
+static double AngleScan(
+	CorRec	&best,
+	double	center,
+	double	hlfwid,
+	double	step,
+	ThmRec	&thm,
+	FILE*	flog )
+{
+	fprintf( flog,
+	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f.\n",
+	center, hlfwid, step );
+
+//RFromAngle( best, center, thm, flog );
+//return;
+
+	clock_t	t0 = StartTiming();
+
+	best.X	= 0.0;
+	best.Y	= 0.0;
+	best.A	= 0.0;
+	best.R	= 0.0;
+
+// Sweep and collect
+
+	vector<CorRec>	vC;
+
+	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
+
+		CorRec	C;
+
+		RFromAngle( C, a, thm, flog );
+		RecordAngle( flog, "Scan", C );
+		vC.push_back( C );
+	}
+
+// Make indices sorted by decreasing R
+
+	int	nC = vC.size();
+
+	vector<int>	order( nC );
+
+	for( int i = 0; i < nC; ++i )
+		order[i] = i;
+
+	_vC = &vC;
+
+	sort( order.begin(), order.end(), Sort_vC_dec );
+
+// Evaluate sweep
+// Search through decreasing R.
+// Take first result for which there are also +- m data points,
+// and the X and Y coords vary smoothly over that range (r > 0.8).
+
+	const int m = 3;
+	const int M = 2*m + 1;
+
+	for( int i = 0; i < nC; ++i ) {
+
+		int	ic = order[i];
+
+		if( ic < m )
+			continue;
+
+		if( nC-1 - ic < m )
+			continue;
+
+		vector<double>	A( M ), X( M ), Y( M );
+		double			lincor;
+		int				n = 0;
+
+		for( int j = ic - m; j <= ic + m; ++j ) {
+
+			A[n] = vC[j].A;
+			X[n] = vC[j].X;
+			Y[n] = vC[j].Y;
+			++n;
+		}
+
+		LineFit( NULL, NULL, &lincor, &A[0], &X[0], 0, n );
+
+		if( fabs( lincor ) < 0.8 )
+			continue;
+
+		LineFit( NULL, NULL, &lincor, &A[0], &Y[0], 0, n );
+
+		if( fabs( lincor ) < 0.8 )
+			continue;
+
+		best = vC[ic];
+		break;
+	}
+
+// Report
+
+	RecordAngle( flog, "Best", best );
+
+	StopTiming( stdout, "AngleScan", t0 );
+
+	return best.R;
+}
+
+#endif
 
 /* --------------------------------------------------------------- */
 /* NewXFromParabola ---------------------------------------------- */

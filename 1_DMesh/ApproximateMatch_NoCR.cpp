@@ -473,6 +473,10 @@ static void RecordAngle(
 }
 
 
+#if 0
+
+// Original version selecting best angle based on maximal R.
+
 static double AngleScan(
 	CorRec	&best,
 	double	center,
@@ -508,11 +512,12 @@ static double AngleScan(
 	return best.R;
 }
 
-#if 0
-// Experiment to select best angle based on smoothly
-// varying coords through that angle (using X vs A
-// line fits
-//
+#else
+
+// New version selecting best angle based on maximal R, but only if
+// coordinates XY vary smoothly in a neighborhood about that angle.
+// Smoothness measured as linear corr. coeff. from fitting X vs A.
+
 static const vector<CorRec>	*_vC;
 
 
@@ -572,24 +577,27 @@ static double AngleScan(
 
 // Evaluate sweep
 // Search through decreasing R.
-// Take first result for which there are also +- 3 data points,
+// Take first result for which there are also +- m data points,
 // and the X and Y coords vary smoothly over that range (r > 0.8).
+
+	const int m = 3;
+	const int M = 2*m + 1;
 
 	for( int i = 0; i < nC; ++i ) {
 
 		int	ic = order[i];
 
-		if( ic < 3 )
+		if( ic < m )
 			continue;
 
-		if( nC-1 - ic < 3 )
+		if( nC-1 - ic < m )
 			continue;
 
-		vector<double>	A( 7 ), X( 7 ), Y( 7 );
+		vector<double>	A( M ), X( M ), Y( M );
 		double			lincor;
 		int				n = 0;
 
-		for( int j = ic - 3; j <= ic + 3; ++j ) {
+		for( int j = ic - m; j <= ic + m; ++j ) {
 
 			A[n] = vC[j].A;
 			X[n] = vC[j].X;
@@ -619,7 +627,9 @@ static double AngleScan(
 
 	return best.R;
 }
+
 #endif
+
 /* --------------------------------------------------------------- */
 /* NewXFromParabola ---------------------------------------------- */
 /* --------------------------------------------------------------- */
