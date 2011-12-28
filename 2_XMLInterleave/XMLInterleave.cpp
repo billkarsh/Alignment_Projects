@@ -83,6 +83,10 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile.push_back( argv[i] );
+		else {
+			printf( "Did not understand option [%s].\n", argv[i] );
+			exit( 42 );
+		}
 	}
 
 	fprintf( flog, "\n\n" );

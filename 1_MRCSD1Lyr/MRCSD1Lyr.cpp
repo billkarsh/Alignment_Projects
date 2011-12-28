@@ -90,6 +90,10 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( pat, "-p", argv[i] ) )
 			re_id.Set( pat );
+		else {
+			printf( "Did not understand option [%s].\n", argv[i] );
+			exit( 42 );
+		}
 	}
 
 	re_id.Compile( stdout );

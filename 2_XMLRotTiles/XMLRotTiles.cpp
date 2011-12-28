@@ -143,6 +143,10 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &tdeg, "-tdeg=%lf", argv[i] ) )
 			;
+		else {
+			printf( "Did not understand option [%s].\n", argv[i] );
+			exit( 42 );
+		}
 	}
 
 	fprintf( flog, "\n" );

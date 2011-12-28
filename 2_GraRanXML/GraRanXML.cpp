@@ -97,6 +97,10 @@ void CArgs_gray::SetCmdLine( int argc, char* argv[] )
 			xmlfile = argv[i];
 		else if( GetArg( &chn, "-chn=%d", argv[i] ) )
 			;
+		else {
+			printf( "Did not understand option [%s].\n", argv[i] );
+			exit( 42 );
+		}
 	}
 
 	fprintf( flog, "\n\n" );
