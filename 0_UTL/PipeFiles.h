@@ -95,7 +95,11 @@ typedef struct {
 
 void OpenPairLog( int alr, int atl, int blr, int btl );
 
-bool ReadMatchParams( MatchParams &M, int layer, FILE *flog = stdout );
+bool ReadMatchParams(
+	MatchParams		&M,
+	int				alr,
+	int				blr,
+	FILE			*flog = stdout );
 
 void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
 

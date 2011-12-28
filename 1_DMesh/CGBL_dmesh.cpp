@@ -159,7 +159,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadMatchParams( mch, A.layer ) )
+	if( !ReadMatchParams( mch, A.layer, B.layer ) )
 		return false;
 
 // Context dependent choices: (same,cross) layer

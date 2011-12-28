@@ -72,18 +72,21 @@ exit:
 
 // Read parameter file governing thumbnail and mesh matching.
 //
-// The layer index specifies an override file for a given layer.
-// For example, if layer=5, the search order (in temp directory)
-// is first '../matchparams_5.txt' then '../matchparams.txt' with
-// no index.
+// The layer params specify an override file. E.g., if alr=5 and
+// blr=4 the search order (in alignment 'temp' directory) is first
+// '../matchparams_5_4.txt' then '../matchparams.txt' (no indices).
 //
-bool ReadMatchParams( MatchParams &M, int layer, FILE *flog )
+bool ReadMatchParams(
+	MatchParams		&M,
+	int				alr,
+	int				blr,
+	FILE			*flog )
 {
 	char	name[256];
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "../matchparams_%d.txt", layer );
+	sprintf( name, "../matchparams_%d_%d.txt", alr, blr );
 	f = fopen( name, "r" );
 
 	if( !f ) {
