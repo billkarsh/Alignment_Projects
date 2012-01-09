@@ -696,7 +696,7 @@ const char* RGN::GetName() const
 			Til2Img	I;
 
 			if( !IDBTil2Img( I, idb, z, id ) )
-				exit( 42 );
+				I.path = "__noimg.jpg";
 
 			rgnmname[zid] = k = rgnvname.size();
 			rgnvname.push_back( I.path );
