@@ -231,31 +231,32 @@ public:
 	// COLOR_256	= 3
 	// COLOR_RGB	= 4
 	//
-	vector<ZID>	include_only;		// if given, include only these
-	double		same_strength,
-				square_strength,
-				scale_strength,
-				tfm_tol,			// transform uniformity tol
-				thresh,				// outlier if worse than this
-				trim,				// trim this off XML images
-				degcw;				// rotate clockwise degrees
-	char		*pts_file,
-				*dir_file,
-				*tfm_file;
-	int			unite_layer,
-				ref_layer,
-				max_pass,
-				xml_type;
-	bool		strings,
-				make_layer_square,
-				use_all;			// align even if #pts < 3/tile
+	vector<ZID>		include_only;	// if given, include only these
+	vector<double>	lrbt;			// if not empty, forced bbox
+	double	same_strength,
+			square_strength,
+			scale_strength,
+			tfm_tol,			// transform uniformity tol
+			thresh,				// outlier if worse than this
+			trim,				// trim this off XML images
+			degcw;				// rotate clockwise degrees
+	char	*pts_file,
+			*dir_file,
+			*tfm_file;
+	int		unite_layer,
+			ref_layer,
+			max_pass,
+			xml_type;
+	bool	strings,
+			make_layer_square,
+			use_all;			// align even if #pts < 3/tile
 
 public:
 	CArgs_lsq()
 	{
 		same_strength		= 1.0;
 		square_strength		= 0.1;
-		scale_strength		= 1.0;
+		scale_strength		= 0.1;
 		tfm_tol				= -1.0;
 		thresh				= 700.0;
 		trim				= 0.0;
@@ -484,6 +485,13 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			}
 
 			printf( "<-only> option not implemented; IGNORED.\n" );
+		}
+		else if( GetArgList( lrbt, "-lrbt=", argv[i] ) ) {
+
+			if( 4 != lrbt.size() ) {
+				printf( "Bad format in -lrbt [%s].\n", argv[i] );
+				exit( 42 );
+			}
 		}
 		else if( GetArg( &same_strength, "-same=%lf", argv[i] ) )
 			printf( "Setting same-layer strength to %f.\n", same_strength );
@@ -2582,49 +2590,66 @@ static void Bounds(
 {
 	printf( "---- Global bounds ----\n" );
 
-// For plotting, we'd like to know the global XY-bounds.
 // Transform each included regions's rectangle to global
 // space, including any global rotation (degcw) and find
 // bounds over whole set.
 
-	const double	BIGD = 1.0e30;
+	double	xmin, xmax, ymin, ymax;
+	int		nr = vRgn.size();
 
-	TForm	T, R;
-	double	xmin = BIGD, xmax = -BIGD,
-			ymin = BIGD, ymax = -BIGD;
-	int		nr   = vRgn.size();
+	if( gArgs.lrbt.size() ) {
 
-	if( gArgs.degcw )
-		CreateCWRot( R, gArgs.degcw, Point(0,0) );
+		xmin = gArgs.lrbt[0];
+		xmax = gArgs.lrbt[1];
+		ymin = gArgs.lrbt[2];
+		ymax = gArgs.lrbt[3];
+	}
+	else {
 
-	for( int i = 0; i < nr; ++i ) {
+		const double	BIGD = 1.0e30;
 
-		int	itr = vRgn[i].itr;
+		TForm	T, R;
 
-		if( itr < 0 )
-			continue;
+		xmin =  BIGD;
+		xmax = -BIGD;
+		ymin =  BIGD;
+		ymax = -BIGD;
 
-		TForm			t( &X[itr * 6] );
-		vector<Point>	cnr( 4 );
+		if( gArgs.degcw )
+			CreateCWRot( R, gArgs.degcw, Point(0,0) );
 
-		MultiplyTrans( T, R, t );
-		T.CopyOut( &X[itr * 6] );
+		for( int i = 0; i < nr; ++i ) {
 
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point(  0.0, gH-1 );
+			int	itr = vRgn[i].itr;
 
-		T.Transform( cnr );
+			if( itr < 0 )
+				continue;
 
-		for( int k = 0; k < 4; ++k ) {
+			TForm			t( &X[itr * 6] );
+			vector<Point>	cnr( 4 );
 
-			xmin = fmin( xmin, cnr[k].x );
-			xmax = fmax( xmax, cnr[k].x );
-			ymin = fmin( ymin, cnr[k].y );
-			ymax = fmax( ymax, cnr[k].y );
+			MultiplyTrans( T, R, t );
+			T.CopyOut( &X[itr * 6] );
+
+			cnr[0] = Point(  0.0, 0.0 );
+			cnr[1] = Point( gW-1, 0.0 );
+			cnr[2] = Point( gW-1, gH-1 );
+			cnr[3] = Point(  0.0, gH-1 );
+
+			T.Transform( cnr );
+
+			for( int k = 0; k < 4; ++k ) {
+
+				xmin = fmin( xmin, cnr[k].x );
+				xmax = fmax( xmax, cnr[k].x );
+				ymin = fmin( ymin, cnr[k].y );
+				ymax = fmax( ymax, cnr[k].y );
+			}
 		}
 	}
+
+	printf( "Propagate bounds with option -lrbt=%f,%f,%f,%f\n\n",
+	xmin, xmax, ymin, ymax );
 
 // Translate all transforms to put global origin at ~(0,0).
 // An integer change makes layer-to-layer alignment easier.
