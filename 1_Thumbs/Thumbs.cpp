@@ -577,6 +577,10 @@ static double AngleScan(
 // Search through decreasing R.
 // Take first result for which there are also +- m data points,
 // and the X and Y coords vary smoothly over that range (r > 0.8).
+// Also note that coords are rounded to nearest pixel, and that
+// lincor values that are NAN or INF are generally ok: they arise
+// from a zero variance in the coords, meaning that the point is
+// stationary, and that's a good thing because it's not noise.
 
 	const int m = 3;
 	const int M = 2*m + 1;
@@ -598,19 +602,21 @@ static double AngleScan(
 		for( int j = ic - m; j <= ic + m; ++j ) {
 
 			A[n] = vC[j].A;
-			X[n] = vC[j].X;
-			Y[n] = vC[j].Y;
+			X[n] = ROUND( vC[j].X );
+			Y[n] = ROUND( vC[j].Y );
 			++n;
 		}
 
 		LineFit( NULL, NULL, &lincor, &A[0], &X[0], 0, n );
+		fprintf( flog, "LCOR: A=%8.3f, RX=%6.3f\n", A[m], lincor );
 
-		if( fabs( lincor ) < 0.8 )
+		if( isfinite( lincor ) && fabs( lincor ) < 0.8 )
 			continue;
 
 		LineFit( NULL, NULL, &lincor, &A[0], &Y[0], 0, n );
+		fprintf( flog, "LCOR: A=%8.3f, RY=%6.3f\n", A[m], lincor );
 
-		if( fabs( lincor ) < 0.8 )
+		if( isfinite( lincor ) && fabs( lincor ) < 0.8 )
 			continue;
 
 		best = vC[ic];
