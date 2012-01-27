@@ -3201,7 +3201,6 @@ void EVL::Tabulate(
 	vector<Error>	Ergn( nr );	// total error, by region
 	double			sum		= 0.0,
 					biggest	= 0.0;
-	int				ne		= 0;
 
 // 'PostFitErrs.txt' headers
 
@@ -3261,7 +3260,7 @@ void EVL::Tabulate(
 			/* Epnt[] */
 			/* ------ */
 
-			Epnt.push_back( Error( err, ne++ ) );
+			Epnt.push_back( Error( err, i ) );
 
 			/* ------ */
 			/* Ergn[] */
@@ -3302,8 +3301,10 @@ void EVL::Tabulate(
 
 // Print overall error
 
-	double		rms	= sqrt( sum / ne ),
-				big	= sqrt( biggest );
+	int			istart,
+				iend	= Epnt.size();
+	double		rms		= sqrt( sum / iend ),
+				big		= sqrt( biggest );
 	const char	*flag;
 
 	if( rms > 20.0 )
@@ -3318,21 +3319,15 @@ void EVL::Tabulate(
 
 // Print 10 biggest errors
 
-	int	istart, iend;
-
 	printf( "Ten largest constraint errors---\n" );
-	printf( "Index\tError\n" );
+	printf( "Error\n" );
 
 	sort( Epnt.begin(), Epnt.end() );
 
-	iend	= Epnt.size();
-	istart	= max( 0, iend - 10 );
+	istart = max( 0, iend - 10 );
 
-	for( int i = istart; i < iend; ++i ) {
-
-		printf( "%4d\t%f\n",
-		Epnt[i].idx, sqrt( Epnt[i].amt ) );
-	}
+	for( int i = istart; i < iend; ++i )
+		printf( "%f\n", sqrt( Epnt[i].amt ) );
 
 	printf( "\n" );
 
