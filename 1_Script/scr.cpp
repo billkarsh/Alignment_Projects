@@ -310,8 +310,6 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		exit( 42 );
 	}
 
-	//fprintf( flog, "Child element value %s.\n", layer->Value() );
-
 /* -------------- */
 /* For each layer */
 /* -------------- */
@@ -322,12 +320,7 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		/* Layer-level stuff */
 		/* ----------------- */
 
-		//fprintf( flog, "Got a <t2_layer>.\n" );
-
-		const char	*sz = layer->Attribute( "z" );
-		int			z	= int(atof(sz) + 0.5);
-
-		//fprintf( flog, "z = %s.\n", sz );
+		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
 			break;
@@ -345,8 +338,6 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
 		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			//fprintf( flog, "Got a <t2_patch>.\n" );
 
 			Picture		p;
 			const char	*name = ptch->Attribute( "file_path" );

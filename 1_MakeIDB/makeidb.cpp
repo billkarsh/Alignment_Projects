@@ -184,6 +184,15 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 int cArgs_idb::DecodeID( const char *name )
 {
+#if 0
+// (Temporary) hack for Davi with no id in filename
+
+	static int	stile=0;
+	return stile++;
+
+#else
+// Standard method to extract id from filename
+
 	const char	*s = strrchr( name, '/' );
 	int			id;
 
@@ -198,6 +207,8 @@ int cArgs_idb::DecodeID( const char *name )
 	}
 
 	return id;
+
+#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -222,7 +233,7 @@ static void ParseSimple( vector<Picture> &vp )
 		/* Get a line */
 		/* ---------- */
 
-		if( fscanf( fp, "%s %d %d %d", name, &x, &y, &z ) != 4 )
+		if( fscanf( fp, "%s%d%d%d", name, &x, &y, &z ) != 4 )
 			break;
 
 		if( z > gArgs.zmax )
@@ -307,8 +318,6 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		exit( 42 );
 	}
 
-	//fprintf( flog, "Child element value %s.\n", layer->Value() );
-
 /* -------------- */
 /* For each layer */
 /* -------------- */
@@ -319,12 +328,7 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		/* Layer-level stuff */
 		/* ----------------- */
 
-		//fprintf( flog, "Got a <t2_layer>.\n" );
-
-		const char	*sz = layer->Attribute( "z" );
-		int			z	= int(atof(sz) + 0.5);
-
-		//fprintf( flog, "z = %s.\n", sz );
+		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
 			break;
@@ -339,8 +343,6 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
 		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			//fprintf( flog, "Got a <t2_patch>.\n" );
 
 			Picture		p;
 			const char	*name = ptch->Attribute( "file_path" );

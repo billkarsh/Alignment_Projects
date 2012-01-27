@@ -62,44 +62,42 @@ CCorrImages* CCorrImages::Read( const char *fname, FILE *flog )
 
 		const char	*what = child->Value();
 
-		//printf( "CorrImage: Child element value %s.\n", what );
+		if( !strcmp( what, "map" ) ) {
 
-		if( strcmp(what,"map") == 0 ) {
-
-			const char	*id	= child->Attribute("id");
-			const char	*nm	= child->Attribute("name");
+			const char	*id	= child->Attribute( "id" );
+			const char	*nm	= child->Attribute( "name" );
 			map<string,int>::iterator	i1;
 
 			//printf( "CorrImage: id=%s, name=[%s].\n", id, nm );
 
-			i1 = CI->names.find(nm);	// add if not there
+			i1 = CI->names.find( nm );	// add if not there
 
 			if( i1 == CI->names.end() )
-				CI->names.insert( pair<string,int>( nm, atoi(id) ) );
+				CI->names.insert( pair<string,int>( nm, atoi( id ) ) );
 		}
-		else if( strcmp(what,"pair") == 0 ) {
+		else if( !strcmp( what, "pair" ) ) {
 
-			const char	*id	= child->Attribute("idpair");
+			const char	*id	= child->Attribute( "idpair" );
 			int			id1, id2;
 
-			sscanf(id,"%d %d", &id1, &id2);
+			sscanf( id,"%d %d", &id1, &id2 );
 
-			CorrPair	c(id1, id2);
+			CorrPair	c( id1, id2 );
 
 			//printf( "CorrImage: Inserting pair %d %d.\n", id1, id2 );
 
-			TiXmlElement*	pa = child->FirstChildElement("pts");
+			TiXmlElement*	pa = child->FirstChildElement( "pts" );
 
 			for( pa; pa; pa = pa->NextSiblingElement() ) {
 
-				const char *xy1 = pa->Attribute("xy1");
-				const char *xy2 = pa->Attribute("xy2");
+				const char *xy1 = pa->Attribute( "xy1" );
+				const char *xy2 = pa->Attribute( "xy2" );
 				Point		p1, p2;
 
 				//printf( "CorrImage: xypair : %s %s.\n", xy1, xy2 );
 
-				sscanf(xy1,"%lf %lf", &p1.x, &p1.y);
-				sscanf(xy2,"%lf %lf", &p2.x, &p2.y);
+				sscanf( xy1, "%lf %lf", &p1.x, &p1.y );
+				sscanf( xy2, "%lf %lf", &p2.x, &p2.y );
 
 				c.p1s.push_back( p1 );
 				c.p2s.push_back( p2 );
@@ -173,8 +171,8 @@ int CCorrImages::Find(
 	p1s.clear();
 	p2s.clear();
 
-	i1 = names.find(name1);
-	i2 = names.find(name2);
+	i1 = names.find( name1 );
+	i2 = names.find( name2 );
 
 	if( i1 == names.end() || i2 == names.end() )
 		return 0;
@@ -187,7 +185,7 @@ int CCorrImages::Find(
 		i1->second, i2->second );
 
 	if( i1->second < i2->second ) { // already in the right order
-		s1 = corrs.find(CorrPair(i1->second, i2->second));
+		s1 = corrs.find( CorrPair( i1->second, i2->second ) );
 
 		if( s1 == corrs.end() )
 			return 0;
@@ -198,7 +196,7 @@ int CCorrImages::Find(
 		p2s = s1->p2s;
 	}
 	else {
-		s1 = corrs.find(CorrPair(i2->second, i1->second));
+		s1 = corrs.find( CorrPair( i2->second, i1->second ) );
 
 		if( s1 == corrs.end() )
 			return 0;
@@ -225,23 +223,23 @@ int CCorrImages::Add(
 {
 	map<string,int>::iterator	it1, it2;
 
-	it1 = names.find(name1);	// add if not there
+	it1 = names.find( name1 );	// add if not there
 
 	if( it1 == names.end() ) {
 		int j = names.size();
-		names.insert(pair<string,int>(name1,j));
-		it1 = names.find(string(name1));	// Now cannot fail
+		names.insert( pair<string,int>( name1, j ) );
+		it1 = names.find( string( name1 ) );	// Now cannot fail
 	}
 
 	it2 = names.find(name2);
 
 	if( it2 == names.end() ) {
 		int j = names.size();
-		names.insert(pair<string,int>(name2,j));
-		it2 = names.find(string(name2));	// Now cannot fail
+		names.insert( pair<string,int>( name2, j ) );
+		it2 = names.find( string( name2 ) );	// Now cannot fail
 	}
 
-	CorrPair c(it1->second, it2->second);
+	CorrPair c( it1->second, it2->second );
 
 	if( it1->second < it2->second ) {	// normal order
 		c.p1s	= p1s;
@@ -254,7 +252,7 @@ int CCorrImages::Add(
 		c.p2s	= p1s;
 	}
 
-	corrs.insert(c);
+	corrs.insert( c );
 	return 1;
 }
 
