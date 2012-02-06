@@ -22,14 +22,15 @@ SOURCES_MYPROJ := \
 	lsq.cpp
 
 _SRC_UTL_ := \
-	PipeFiles.cpp LinEqu.cpp TrakEM2_DTD.cpp
+	PipeFiles.cpp LinEqu.cpp TrakEM2_DTD.cpp \
+	numerical_recipes.cpp mrc.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	Maths.cpp CPoint.cpp CTForm.cpp
+	ImageIO.cpp Maths.cpp CPoint.cpp CTForm.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

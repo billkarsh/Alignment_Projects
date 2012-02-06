@@ -6,10 +6,12 @@
 #include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"CRegexID.h"
+#include	"Disk.h"
 #include	"File.h"
 #include	"PipeFiles.h"
 #include	"LinEqu.h"
 #include	"TrakEM2_DTD.h"
+#include	"ImageIO.h"
 #include	"Maths.h"
 #include	"CPoint.h"
 #include	"CTForm.h"
@@ -246,7 +248,8 @@ public:
 	int		unite_layer,
 			ref_layer,
 			max_pass,
-			xml_type;
+			xml_type,
+			viserr;				// 0, or, error scale
 	bool	strings,
 			make_layer_square,
 			use_all;			// align even if #pts < 3/tile
@@ -268,6 +271,7 @@ public:
 		ref_layer			= -1;
 		max_pass			= 1;
 		xml_type			= 0;
+		viserr				= 0;
 		strings				= false;
 		make_layer_square	= false;
 		use_all				= false;
@@ -384,6 +388,11 @@ private:
 			};
 	} SecErr;
 
+	typedef struct VisErr {
+
+		double	L, R, B, T, D;
+	}  VisErr;
+
 private:
 	vector<Error>	Epnt;	// each constraint
 	vector<SecErr>	Ein,	// worst in- and between-layer
@@ -407,8 +416,24 @@ private:
 	void Print_be_and_se_files( const vector<zsort> &zs );
 	void Print_errs_by_layer( const vector<zsort> &zs );
 
+	void ViseEval1(
+		vector<VisErr>			&ve,
+		const vector<double>	&X );
+
+	void ViseEval2(
+		vector<VisErr>			&ve,
+		const vector<double>	&X );
+
+	void BuildVise(
+		double					xmax,
+		double					ymax,
+		const vector<zsort>		&zs,
+		const vector<double>	&X );
+
 public:
 	void Evaluate(
+		double					xmax,
+		double					ymax,
 		const vector<zsort>		&zs,
 		const vector<double>	&X );
 };
@@ -523,6 +548,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting maximum passes to %d.\n", max_pass );
 		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
 			printf( "Setting xml image type to %d.\n", xml_type );
+		else if( GetArg( &viserr, "-viserr=%d", argv[i] ) )
+			printf( "Setting visual error scale to %d.\n", viserr );
 		else if( IsArg( "-strings", argv[i] ) )
 			strings = true;
 		else if( IsArg( "-mls", argv[i] ) ) {
@@ -2888,7 +2915,7 @@ static void WriteTrakEM(
 
 		// fix origin : undo trimming
 		int		j = I.itr * 6;
-		double	x = -gArgs.trim;
+		double	x = gArgs.trim;
 		double	x_orig = X[j  ]*x + X[j+1]*x + X[j+2];
 		double	y_orig = X[j+3]*x + X[j+4]*x + X[j+5];
 
@@ -2948,7 +2975,7 @@ static void WriteJython(
 
 		// fix origin : undo trimming
 		int		j = I.itr * 6;
-		double	x = -gArgs.trim;
+		double	x = gArgs.trim;
 		double	x_orig = X[j  ]*x + X[j+1]*x + X[j+2];
 		double	y_orig = X[j+3]*x + X[j+4]*x + X[j+5];
 
@@ -3548,10 +3575,501 @@ void EVL::Print_errs_by_layer( const vector<zsort> &zs )
 }
 
 /* --------------------------------------------------------------- */
+/* ViseWriteXML -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	visePix	128
+
+static void ViseWriteXML(
+	double					xmax,
+	double					ymax,
+	const vector<zsort>		&zs,
+	const vector<double>	&X )
+{
+	FILE	*f = FileOpenOrDie( "visexml.xml", "w" );
+
+	double	sclx = (double)visePix / gW,
+			scly = (double)visePix / gH;
+	int		oid  = 3;
+
+	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
+
+	TrakEM2WriteDTD( f );
+
+	fprintf( f, "<trakem2>\n" );
+
+	fprintf( f,
+	"\t<project\n"
+	"\t\tid=\"0\"\n"
+	"\t\ttitle=\"Project\"\n"
+	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t/>\n" );
+
+	fprintf( f,
+	"\t<t2_layer_set\n"
+	"\t\toid=\"%d\"\n"
+	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttitle=\"Top level\"\n"
+	"\t\tlayer_width=\"%.2f\"\n"
+	"\t\tlayer_height=\"%.2f\"\n"
+	"\t>\n",
+	oid++, sclx*xmax, scly*ymax );
+
+	int	prev	= -1;	// will be previously written layer
+	int	nr		= vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		// changed layer
+		if( zs[i].z != prev ) {
+
+			if( prev != -1 )
+				fprintf( f, "\t\t</t2_layer>\n" );
+
+			fprintf( f,
+			"\t\t<t2_layer\n"
+			"\t\t\toid=\"%d\"\n"
+			"\t\t\tz=\"%d\"\n"
+			"\t\t>\n",
+			oid++, zs[i].z );
+
+			prev = zs[i].z;
+		}
+
+		char	buf[256];
+		sprintf( buf, "ve_%d_%d.tif", I.z, I.id );
+
+		int		j = I.itr * 6;
+
+		fprintf( f,
+		"\t\t\t<t2_patch\n"
+		"\t\t\t\toid=\"%d\"\n"
+		"\t\t\t\twidth=\"%d\"\n"
+		"\t\t\t\theight=\"%d\"\n"
+		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
+		"\t\t\t\ttitle=\"%s\"\n"
+		"\t\t\t\ttype=\"4\"\n"
+		"\t\t\t\tfile_path=\"viseimg/%d/%s\"\n"
+		"\t\t\t\to_width=\"%d\"\n"
+		"\t\t\t\to_height=\"%d\"\n"
+		"\t\t\t/>\n",
+		oid++, visePix, visePix,
+		X[j], X[j+3], X[j+1], X[j+4], sclx*X[j+2], scly*X[j+5],
+		buf, I.z, buf, visePix, visePix );
+	}
+
+	if( nr > 0 )
+		fprintf( f,"\t\t</t2_layer>\n");
+
+	fprintf( f, "\t</t2_layer_set>\n");
+	fprintf( f, "</trakem2>\n");
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* ViseEval1 ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Each rgn gets a VisErr record that describes errors w.r.t.
+// adjacent tiles in same layer {L,R,B,T} and with down {D}.
+// In this first pass, each {L,R,B,T} bin gets a negative
+// count of the correspondence points that map to that side.
+// The issue is to make sure that corner points will map to
+// a proper side. Sides having < 3 points are actually empty.
+//
+void EVL::ViseEval1(
+	vector<VisErr>			&ve,
+	const vector<double>	&X )
+{
+	Point	M( gW/2, gH/2 );	// local image center
+	int		ne = Epnt.size();
+	double	aTL, aTR;			// top-left, right angles
+
+	aTR = atan2( M.y, M.x ) * 180/PI;
+	aTL = 180 - aTR;
+
+// zero all {L,R,B,T,D}
+	memset( &ve[0], 0, vRgn.size() * sizeof(VisErr) );
+
+	for( int i = 0; i < ne; ++i ) {
+
+		const Constraint	&C = vAllC[Epnt[i].idx];
+
+		int	z1 = vRgn[C.r1].z,
+			z2 = vRgn[C.r2].z;
+
+		if( z1 == z2 ) {
+
+			// constraints 1 & 2 done symmetrically
+			// so load into arrays and loop
+
+			const Point*	p[2] = {&C.p1, &C.p2};
+			int				r[2] = {C.r1, C.r2};
+
+			for( int j = 0; j < 2; ++j ) {
+
+				// the constraint points are in global coords
+				// so to see which side-sector a point is in
+				// we will get angle of vector from local center
+				// to local point
+
+				VisErr	&V = ve[r[j]];
+				TForm	Inv, T( &X[vRgn[r[j]].itr * 6] );
+				Point	L = *p[j];
+				double	a, *s;
+
+				InvertTrans( Inv, T );
+				Inv.Transform( L );
+
+				a = atan2( L.y-M.y, L.x-M.x ) * 180/PI;
+
+				// R (-aTR,aTR]
+				// T (aTR,aTL]
+				// B (-aTL,-aTR]
+				// L else
+
+				if( a > -aTL ) {
+
+					if( a > -aTR ) {
+
+						if( a > aTR ) {
+
+							if( a > aTL )
+								s = &V.L;
+							else
+								s = &V.T;
+						}
+						else
+							s = &V.R;
+					}
+					else
+						s = &V.B;
+				}
+				else
+					s = &V.L;
+
+				*s -= 1;	// counts are negative
+			}
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* ViseEval2 ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Each rgn gets a VisErr record that describes errors w.r.t.
+// adjacent tiles in same layer {L,R,B,T} and with down {D}.
+// In this second pass, we record the maximum error for each
+// bin. If a point maps to side with low occupancy from pass
+// one, then we remap it to a true side.
+//
+void EVL::ViseEval2(
+	vector<VisErr>			&ve,
+	const vector<double>	&X )
+{
+	Point	M( gW/2, gH/2 );	// local image center
+	int		ne = Epnt.size();
+	double	aTL, aTR;			// top-left, right angles
+
+	aTR = atan2( M.y, M.x ) * 180/PI;
+	aTL = 180 - aTR;
+
+	for( int i = 0; i < ne; ++i ) {
+
+		const Constraint	&C = vAllC[Epnt[i].idx];
+
+		int	z1 = vRgn[C.r1].z,
+			z2 = vRgn[C.r2].z;
+
+		if( z1 == z2 ) {
+
+			// constraints 1 & 2 done symmetrically
+			// so load into arrays and loop
+
+			const Point*	p[2] = {&C.p1, &C.p2};
+			int				r[2] = {C.r1, C.r2};
+
+			for( int j = 0; j < 2; ++j ) {
+
+				// the constraint points are in global coords
+				// so to see which side-sector a point is in
+				// we will get angle of vector from local center
+				// to local point
+
+				VisErr	&V = ve[r[j]];
+				TForm	Inv, T( &X[vRgn[r[j]].itr * 6] );
+				Point	L = *p[j];
+				double	a, *s;
+
+				InvertTrans( Inv, T );
+				Inv.Transform( L );
+
+				a = atan2( L.y-M.y, L.x-M.x ) * 180/PI;
+
+				// R (-aTR,aTR]
+				// T (aTR,aTL]
+				// B (-aTL,-aTR]
+				// L else
+
+				if( a > -aTL ) {
+
+					if( a > -aTR ) {
+
+						if( a > aTR ) {
+
+							if( a > aTL )
+								s = &V.L;
+							else
+								s = &V.T;
+						}
+						else
+							s = &V.R;
+					}
+					else
+						s = &V.B;
+				}
+				else
+					s = &V.L;
+
+				// occupancy test and remap
+
+				if( !*s )
+					continue;
+				else if( *s < -2 || *s > 0 )
+					;
+				else {
+					// remap
+
+					if( s == &V.L ) {
+
+						if( a >= -180 ) {
+							if( V.B < -3 || V.B > 0 )
+								s = &V.B;
+							else
+								continue;
+						}
+						else {
+							if( V.T < -3 || V.T > 0 )
+								s = &V.T;
+							else
+								continue;
+						}
+					}
+					else if( s == &V.R ) {
+
+						if( a <= 0 ) {
+							if( V.B < -3 || V.B > 0 )
+								s = &V.B;
+							else
+								continue;
+						}
+						else {
+							if( V.T < -3 || V.T > 0 )
+								s = &V.T;
+							else
+								continue;
+						}
+					}
+					else if( s == &V.B ) {
+
+						if( a <= -90 ) {
+							if( V.L < -3 || V.L > 0 )
+								s = &V.L;
+							else
+								continue;
+						}
+						else {
+							if( V.R < -3 || V.R > 0 )
+								s = &V.R;
+							else
+								continue;
+						}
+					}
+					else {
+
+						if( a >= 90 ) {
+							if( V.L < -3 || V.L > 0 )
+								s = &V.L;
+							else
+								continue;
+						}
+						else {
+							if( V.R < -3 || V.R > 0 )
+								s = &V.R;
+							else
+								continue;
+						}
+					}
+				}
+
+				if( Epnt[i].amt > *s )
+					*s = Epnt[i].amt;
+			}
+		}
+		else {
+
+			// for down, we will just lump all together into D
+
+			double	&D = (z1 > z2 ? ve[C.r1].D : ve[C.r2].D);
+
+			if( Epnt[i].amt > D )
+				D = Epnt[i].amt;
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* ViseColor ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static uint32 ViseColor( double err )
+{
+	const uint32	ezero = 0xFF0000FF,
+					eover = 0xFF00FFFF;
+
+	uint32	ecolr;
+
+	if( err <= 0 )
+		ecolr = ezero;
+	else if( err >= gArgs.viserr )
+		ecolr = eover;
+	else {
+		uint32	c = (uint32)(255 * err / gArgs.viserr);
+		ecolr = 0xFF000000 + (c << 8);
+	}
+
+	return ecolr;
+}
+
+/* --------------------------------------------------------------- */
+/* VisePaintRect ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void VisePaintRect(
+	vector<uint32>	&RGB,
+	int				x0,
+	int				xlim,
+	int				y0,
+	int				ylim,
+	double			errsqr )
+{
+	uint32	ecolr = ViseColor( (errsqr > 0 ? sqrt( errsqr ) : 0) );
+
+	++xlim;
+	++ylim;
+
+	for( int y = y0; y < ylim; ++y ) {
+
+		for( int x = x0; x < xlim; ++x )
+			RGB[x + visePix * y] = ecolr;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* BuildVise ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Build a set of error visualization images--
+//
+// visexml.xml is TrackEM2 file pointing at diagnostic images
+// in viseimg/. Each RGB image is 100x100 pixels. The central
+// square in each image depicts down errors {red=none, green
+// brightness proportional to max error}. The sides of the open
+// box in each image are similarly scaled for in-plane errors.
+//
+void EVL::BuildVise(
+	double					xmax,
+	double					ymax,
+	const vector<zsort>		&zs,
+	const vector<double>	&X )
+{
+	ViseWriteXML( xmax, ymax, zs, X );
+
+	int				nr = vRgn.size();
+	vector<VisErr>	ve( nr );
+
+	ViseEval1( ve, X );
+	ViseEval2( ve, X );
+
+	DskCreateDir( "viseimg", stdout );
+
+	char	buf[256];
+	int		prev = -1,	// will be previously written layer
+			twv  = visePix / 12;
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		// changed layer
+		if( zs[i].z != prev ) {
+			sprintf( buf, "viseimg/%d", zs[i].z );
+			DskCreateDir( buf, stdout );
+			prev = zs[i].z;
+		}
+
+		// light gray image
+		vector<uint32>	RGB( visePix * visePix, 0xFFD0D0D0 );
+
+		const VisErr	&V = ve[zs[i].i];
+
+		// down
+		if( zs[i].z != zs[0].z ) {
+
+			VisePaintRect( RGB,
+				5 * twv, 7 * twv,
+				5 * twv, 7 * twv,
+				V.D );
+		}
+
+		//left
+		VisePaintRect( RGB,
+			3 * twv, 4 * twv,
+			4 * twv, 8 * twv,
+			V.L );
+
+		//right
+		VisePaintRect( RGB,
+			8 * twv, 9 * twv,
+			4 * twv, 8 * twv,
+			V.R );
+
+		//bot
+		VisePaintRect( RGB,
+			4 * twv, 8 * twv,
+			3 * twv, 4 * twv,
+			V.B );
+
+		//top
+		VisePaintRect( RGB,
+			4 * twv, 8 * twv,
+			8 * twv, 9 * twv,
+			V.T );
+
+		// store
+		sprintf( buf, "viseimg/%d/ve_%d_%d.tif", I.z, I.z, I.id );
+		Raster32ToTifRGBA( buf, &RGB[0], visePix, visePix );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Evaluate ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 void EVL::Evaluate(
+	double					xmax,
+	double					ymax,
 	const vector<zsort>		&zs,
 	const vector<double>	&X )
 {
@@ -3560,6 +4078,9 @@ void EVL::Evaluate(
 	Tabulate( zs, X );
 	Print_be_and_se_files( zs );
 	Print_errs_by_layer( zs );
+
+	if( gArgs.viserr > 0 )
+		BuildVise( xmax, ymax, zs, X );
 
 	printf( "\n" );
 }
@@ -3673,7 +4194,7 @@ int main( int argc, char **argv )
 
 	EVL	evl;
 
-	evl.Evaluate( zs, X );
+	evl.Evaluate( xbnd, ybnd, zs, X );
 
 /* ---- */
 /* Done */
