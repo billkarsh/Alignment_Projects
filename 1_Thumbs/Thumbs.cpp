@@ -850,21 +850,25 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 /* TryTweaks ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// The best transform is repeatedly multiplied with each of eight
+// The best transform is repeatedly multiplied with each of several
 // near-unity tweak transforms to see if we get a better result.
 //
 static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	vector<TForm>	tweaks( 8 );
+	vector<TForm>	twk( 10 );
 
-	tweaks[0] = TForm( 0.995,  0.0,   0.0,  0.0,   0.995, 0.0 ); // slightly smaller
-	tweaks[1] = TForm( 1.005,  0.0,   0.0,  0.0,   1.005, 0.0 ); // slightly bigger
-	tweaks[2] = TForm( 0.995,  0.0,   0.0,  0.0,   1.005, 0.0 ); // X smaller, Y bigger
-	tweaks[3] = TForm( 1.005,  0.0,   0.0,  0.0,   0.995, 0.0 ); // slightly bigger
-	tweaks[4] = TForm( 1.000,  0.005, 0.0,  0.005, 1.001, 0.0 ); // toe in
-	tweaks[5] = TForm( 1.000, -0.005, 0.0, -0.005, 1.000, 0.0 ); // toe out
-	tweaks[6] = TForm( 1.000,  0.005, 0.0, -0.005, 1.001, 0.0 ); // Small rotate
-	tweaks[7] = TForm( 1.000, -0.005, 0.0,  0.005, 1.000, 0.0 ); // other way
+	twk[0]=TForm(1.005,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-up
+	twk[1]=TForm(0.995,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-dn
+	twk[2]=TForm(1.005,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xup
+	twk[3]=TForm(0.995,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xdn
+	twk[4]=TForm(1.000,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-yup
+	twk[5]=TForm(1.000,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-ydn
+	twk[4]=TForm(1.000,  0.0,   0.0,  0.005, 1.000, 0.0);//skw-yup
+	twk[5]=TForm(1.000,  0.0,   0.0, -0.005, 1.000, 0.0);//skw-ydn
+	twk[6]=TForm(1.000,  0.005, 0.0,  0.0,   1.000, 0.0);//skw-xrt
+	twk[7]=TForm(1.000, -0.005, 0.0,  0.0,   1.000, 0.0);//skw-xlf
+	twk[8]=TForm(0.995,  0.005, 0.0, -0.005, 0.995, 0.0);//rot-ccw
+	twk[9]=TForm(0.995, -0.005, 0.0,  0.005, 0.995, 0.0);//rot-cw
 
 	fprintf( flog, "Tweaks start, best R=%.3f.\n", best.R );
 
@@ -874,13 +878,13 @@ static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 
 		changed = false;
 
-		for( int i = 0; i < 8; ++i ) {
+		for( int i = 0; i < 10; ++i ) {
 
 			CorRec			C;
 			vector<Point>	ps = thm.ap;
 
 			C.A = best.A;
-			MultiplyTrans( C.T, best.T, tweaks[i] );
+			MultiplyTrans( C.T, best.T, twk[i] );
 
 			C.T.Apply_R_Part( ps );
 
