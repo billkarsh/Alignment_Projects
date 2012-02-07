@@ -3588,8 +3588,8 @@ static void ViseWriteXML(
 {
 	FILE	*f = FileOpenOrDie( "visexml.xml", "w" );
 
-	double	sclx = (double)visePix / gW,
-			scly = (double)visePix / gH;
+	double	sclx = (double)gW / visePix,
+			scly = (double)gH / visePix;
 	int		oid  = 3;
 
 	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
@@ -3613,7 +3613,7 @@ static void ViseWriteXML(
 	"\t\tlayer_width=\"%.2f\"\n"
 	"\t\tlayer_height=\"%.2f\"\n"
 	"\t>\n",
-	oid++, sclx*xmax, scly*ymax );
+	oid++, xmax, ymax );
 
 	int	prev	= -1;	// will be previously written layer
 	int	nr		= vRgn.size();
@@ -3643,7 +3643,7 @@ static void ViseWriteXML(
 		}
 
 		char	buf[256];
-		sprintf( buf, "ve_%d_%d.tif", I.z, I.id );
+		sprintf( buf, "ve_%d_%d.png", I.z, I.id );
 
 		int		j = I.itr * 6;
 
@@ -3660,7 +3660,7 @@ static void ViseWriteXML(
 		"\t\t\t\to_height=\"%d\"\n"
 		"\t\t\t/>\n",
 		oid++, visePix, visePix,
-		X[j], X[j+3], X[j+1], X[j+4], sclx*X[j+2], scly*X[j+5],
+		sclx*X[j], scly*X[j+3], sclx*X[j+1], scly*X[j+4], X[j+2], X[j+5],
 		buf, I.z, buf, visePix, visePix );
 	}
 
@@ -4000,9 +4000,12 @@ void EVL::BuildVise(
 
 	DskCreateDir( "viseimg", stdout );
 
+	FILE	*f = FileOpenOrDie( "viseparse.txt", "w" );
 	char	buf[256];
 	int		prev = -1,	// will be previously written layer
 			twv  = visePix / 12;
+
+	fprintf( f, "Z\tID\tL\tR\tB\tT\tD\n" );
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -4018,11 +4021,18 @@ void EVL::BuildVise(
 			DskCreateDir( buf, stdout );
 			prev = zs[i].z;
 		}
-
 		// light gray image
 		vector<uint32>	RGB( visePix * visePix, 0xFFD0D0D0 );
 
 		const VisErr	&V = ve[zs[i].i];
+
+		fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\n",
+		I.z, I.id,
+		(V.L > 0 ? sqrt(V.L) : 0),
+		(V.R > 0 ? sqrt(V.R) : 0),
+		(V.B > 0 ? sqrt(V.B) : 0),
+		(V.T > 0 ? sqrt(V.T) : 0),
+		(V.D > 0 ? sqrt(V.D) : 0) );
 
 		// down
 		if( zs[i].z != zs[0].z ) {
@@ -4057,10 +4067,19 @@ void EVL::BuildVise(
 			8 * twv, 9 * twv,
 			V.T );
 
+		// border
+		int	lim = visePix - 1;
+		VisePaintRect( RGB, 0, twv/2, 0, lim, .01 );
+		VisePaintRect( RGB, lim - twv/2, lim, 0, lim, .01 );
+		VisePaintRect( RGB, 0, lim, 0, twv/2, .01 );
+		VisePaintRect( RGB, 0, lim, lim - twv/2, lim, .01 );
+
 		// store
-		sprintf( buf, "viseimg/%d/ve_%d_%d.tif", I.z, I.z, I.id );
-		Raster32ToTifRGBA( buf, &RGB[0], visePix, visePix );
+		sprintf( buf, "viseimg/%d/ve_%d_%d.png", I.z, I.z, I.id );
+		Raster32ToPngRGBA( buf, &RGB[0], visePix, visePix );
 	}
+
+	fclose( f );
 }
 
 /* --------------------------------------------------------------- */
