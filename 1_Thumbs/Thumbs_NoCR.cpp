@@ -821,7 +821,7 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 // The best transform is repeatedly multiplied with each of several
 // near-unity tweak transforms to see if we get a better result.
 //
-static bool TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
+static void TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 {
 	vector<TForm>	twk( 10 );
 
