@@ -103,6 +103,7 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.PXDOG_R1, "PXDOG_R1=%d" );
 		GETPRM_MCH( &M.PXDOG_R2, "PXDOG_R2=%d" );
 		GETPRM_MCH( &M.FLD, "FLD=%c" );
+		GETPRM_MCH( &M.PRETWEAK, "PRETWEAK=%c" );
 		GETPRM_MCH( &M.SCALE, "SCALE=%lf" );
 		GETPRM_MCH( &M.XSCALE, "XSCALE=%lf" );
 		GETPRM_MCH( &M.YSCALE, "YSCALE=%lf" );
@@ -153,6 +154,7 @@ bool ReadMatchParams(
 		// finish Y/N booleans
 		M.PXDOG		= (M.PXDOG == 'Y');
 		M.FLD		= (M.FLD == 'Y');
+		M.PRETWEAK	= (M.PRETWEAK == 'Y');
 		M.SLOPPY_SL	= (M.SLOPPY_SL == 'Y');
 		M.TWEAKS	= (M.TWEAKS == 'Y');
 		M.INPALN	= (M.INPALN == 'Y');

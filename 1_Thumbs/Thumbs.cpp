@@ -64,6 +64,7 @@ typedef struct {
 
 static int		gErr	= errOK;
 static double	ang0	= 0.0;
+static TForm	Tptwk;
 
 
 
@@ -368,14 +369,16 @@ static void MakeThumbs(
 static void RotatePoints(
 	vector<Point>	&pts,
 	TForm			&T,
-	const TForm		&T0,
+	const TForm		&Tskew,
 	double			theta )
 {
 	double	c	= cos( theta ) * GBL.ctx.SCALE,
 			s	= sin( theta ) * GBL.ctx.SCALE;
 	TForm	ao( GBL.ctx.XSCALE * c, -GBL.ctx.YSCALE * s, 0.0,
 				GBL.ctx.XSCALE * s,  GBL.ctx.YSCALE * c, 0.0 );
+	TForm	T0;
 
+	MultiplyTrans( T0, Tskew, Tptwk );
 	MultiplyTrans( T, ao, T0 );
 	T.Apply_R_Part( pts );
 }
@@ -635,6 +638,112 @@ static double AngleScan(
 #endif
 
 /* --------------------------------------------------------------- */
+/* Pretweaks ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Several near-unity transforms are applied to A to boost initial
+// correlation at the center angle of an AngleScan sweep.
+//
+// Return true if any changes made.
+//
+static bool Pretweaks(
+	CorRec	&best,
+	double	center,
+	ThmRec	&thm,
+	FILE*	flog )
+{
+	vector<TForm>	twk( 10 );
+
+	twk[0]=TForm(1.005,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-up
+	twk[1]=TForm(0.995,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-dn
+	twk[2]=TForm(1.005,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xup
+	twk[3]=TForm(0.995,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xdn
+	twk[4]=TForm(1.000,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-yup
+	twk[5]=TForm(1.000,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-ydn
+	twk[4]=TForm(1.000,  0.0,   0.0,  0.005, 1.000, 0.0);//skw-yup
+	twk[5]=TForm(1.000,  0.0,   0.0, -0.005, 1.000, 0.0);//skw-ydn
+	twk[6]=TForm(1.000,  0.005, 0.0,  0.0,   1.000, 0.0);//skw-xrt
+	twk[7]=TForm(1.000, -0.005, 0.0,  0.0,   1.000, 0.0);//skw-xlf
+	twk[8]=TForm(0.995,  0.005, 0.0, -0.005, 0.995, 0.0);//rot-ccw
+	twk[9]=TForm(0.995, -0.005, 0.0,  0.005, 0.995, 0.0);//rot-cw
+
+	fprintf( flog, "Pretweaks start, best R=%.3f.\n", best.R );
+
+	clock_t	t0 = StartTiming();
+	bool	anychange = false;
+
+	for( int changed = true; changed; ) {
+
+		changed = false;
+
+		// find best twk[i]
+
+		int	ibest = -1;
+
+		for( int i = 0; i < 10; ++i ) {
+
+			CorRec	C;
+			TForm	Tback = Tptwk;
+
+			MultiplyTrans( Tptwk, twk[i], Tback );
+			RFromAngle( C, center, thm, flog );
+			fprintf( flog, "Pretweak %d R=%.3f\n", i, C.R );
+
+			if( C.R > best.R ) {
+				best	= C;
+				ibest	= i;
+			}
+
+			Tptwk = Tback;
+		}
+
+		// and apply it
+
+		if( ibest >= 0 ) {
+
+			TForm	Tback = Tptwk;
+
+			MultiplyTrans( Tptwk, twk[ibest], Tback );
+			RFromAngle( best, center, thm, flog );
+			fprintf( flog, "Pretweak %d R=%.3f  *\n", ibest, best.R );
+			anychange = changed = true;
+		}
+	}
+
+	StopTiming( stdout, "Pretweaks", t0 );
+
+	fprintf( flog, "Approx: Pretweak " );
+	Tptwk.PrintTransform( flog );
+
+	return anychange;
+}
+
+/* --------------------------------------------------------------- */
+/* AngleScanWithTweaks ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static double AngleScanWithTweaks(
+	CorRec	&best,
+	double	center,
+	double	hlfwid,
+	double	step,
+	ThmRec	&thm,
+	FILE*	flog )
+{
+	if( AngleScan( best, center, hlfwid, step, thm, flog )
+		< GBL.ctx.RTRSH ) {
+
+		if( GBL.mch.PRETWEAK &&
+			Pretweaks( best, center, thm, flog ) ) {
+
+			AngleScan( best, center, hlfwid, step, thm, flog );
+		}
+	}
+
+	return best.R;
+}
+
+/* --------------------------------------------------------------- */
 /* NewXFromParabola ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -806,7 +915,8 @@ static bool UsePriorAngles(
 	fprintf( flog, "Approx: Using prior angles n=%d, med=%f\n",
 	nprior, ang0 );
 
-	if( AngleScan( best, ang0, GBL.ctx.HFANGPR, 0.1, thm, flog )
+	if( AngleScanWithTweaks(
+			best, ang0, GBL.ctx.HFANGPR, 0.1, thm, flog )
 		< GBL.ctx.RTRSH ||
 		PeakHunt( best, 0.3, thm, flog )
 		< GBL.ctx.RTRSH ) {
@@ -828,7 +938,8 @@ static bool UsePriorAngles(
 
 static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	if( AngleScan( best, ang0, GBL.ctx.HFANGDN, 0.5, thm, flog )
+	if( AngleScanWithTweaks(
+			best, ang0, GBL.ctx.HFANGDN, 0.5, thm, flog )
 		< GBL.ctx.RTRSH ||
 		AngleScan( best, best.A, 1.0, 0.1, thm, flog )
 		< GBL.ctx.RTRSH ||

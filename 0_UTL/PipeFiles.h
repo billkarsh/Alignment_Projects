@@ -48,6 +48,7 @@ typedef struct {
 			PXDOG_R1,
 			PXDOG_R2,
 			FLD,
+			PRETWEAK,
 			SLOPPY_SL,
 			OLAP1D_SL,
 			OLAP1D_XL,
