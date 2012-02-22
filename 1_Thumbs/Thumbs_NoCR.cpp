@@ -701,10 +701,13 @@ static double AngleScanWithTweaks(
 	if( AngleScan( best, center, hlfwid, step, thm, flog )
 		< GBL.ctx.RTRSH ) {
 
-		if( GBL.mch.PRETWEAK &&
-			Pretweaks( best, center, thm, flog ) ) {
+		if( GBL.mch.PRETWEAK ) {
 
-			AngleScan( best, center, hlfwid, step, thm, flog );
+			if( Pretweaks( best,
+				(best.R > 0.0 ? best.A : center), thm, flog ) ) {
+
+				AngleScan( best, center, hlfwid, step, thm, flog );
+			}
 		}
 	}
 
