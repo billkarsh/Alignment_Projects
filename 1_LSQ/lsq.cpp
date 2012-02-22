@@ -1877,7 +1877,7 @@ static void SolveWithUnitMag(
 		double	s = X[j+3];
 		double	m = sqrt( c*c + s*s );
 
-		// c/m*x + s/m*y = 1
+		// c*x/m + s*y/m = 1
 
 		double	V[2] = {c * stiff, s * stiff};
 		int		I[2] = {j, j+3};
@@ -2173,7 +2173,7 @@ static void SolveSystemRigid( vector<double> &X )
 		double	s = Y[j+1];
 		double	m = sqrt( c*c + s*s );
 
-		// c/m*x + s/m*y = 1
+		// c*x/m + s*y/m = 1
 
 		double	V[2] = {c * stiff, s * stiff};
 		int		I[2] = {j, j+1};
