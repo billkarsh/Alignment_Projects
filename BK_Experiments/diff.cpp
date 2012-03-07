@@ -432,6 +432,23 @@ static void TestLoad( const char *patha, const char *pathb )
 }
 
 
+static void ReduceLeginonCoords()
+{
+	FILE	*fi = fopen( "120306201357_10x24_layout.txt", "r" );
+	FILE	*fo = fopen( "120306201357_10x24_layout2.txt", "w" );
+
+	char	path[2048];
+	int		x, y, z;
+
+	while( fscanf( fi, "%s%d%d%d", path, &x, &y, &z ) == 4 ) {
+		fprintf( fo, "%s\t%d\t%d\t%d\n", path, x/4, y/4, z );
+	}
+
+	fclose( fi );
+	fclose( fo );
+}
+
+
 int main( int argc, char* argv[] )
 {
 	Raw		R;
