@@ -62,6 +62,13 @@ public:
 	double det() const
 		{return t[0]*t[4] - t[1]*t[3];};
 
+	void NUSetScl( double a );
+	void NUSetXScl( double a );
+	void NUSetYScl( double a );
+	void NUSetXSkw( double a );
+	void NUSetYSkw( double a );
+	void NUSetRot( double r );
+
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;
 

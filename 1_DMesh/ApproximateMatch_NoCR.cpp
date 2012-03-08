@@ -644,7 +644,7 @@ static double AngleScan(
 /* --------------------------------------------------------------- */
 
 // Several near-unity transforms are applied to A to boost initial
-// correlation at the center angle of an AngleScan sweep.
+// correlation at the given center angle.
 //
 // Return true if any changes made.
 //
@@ -654,20 +654,20 @@ static bool Pretweaks(
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	vector<TForm>	twk( 10 );
+	vector<TForm>	twk( 12 );
 
-	twk[0]=TForm(1.005,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-up
-	twk[1]=TForm(0.995,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-dn
-	twk[2]=TForm(1.005,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xup
-	twk[3]=TForm(0.995,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xdn
-	twk[4]=TForm(1.000,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-yup
-	twk[5]=TForm(1.000,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-ydn
-	twk[4]=TForm(1.000,  0.0,   0.0,  0.005, 1.000, 0.0);//skw-yup
-	twk[5]=TForm(1.000,  0.0,   0.0, -0.005, 1.000, 0.0);//skw-ydn
-	twk[6]=TForm(1.000,  0.005, 0.0,  0.0,   1.000, 0.0);//skw-xrt
-	twk[7]=TForm(1.000, -0.005, 0.0,  0.0,   1.000, 0.0);//skw-xlf
-	twk[8]=TForm(0.995,  0.005, 0.0, -0.005, 0.995, 0.0);//rot-ccw
-	twk[9]=TForm(0.995, -0.005, 0.0,  0.005, 0.995, 0.0);//rot-cw
+	twk[0].NUSetScl( 1.005 );
+	twk[1].NUSetScl( 0.995 );
+	twk[2].NUSetXScl( 1.005 );
+	twk[3].NUSetXScl( 0.995 );
+	twk[4].NUSetYScl( 1.005 );
+	twk[5].NUSetYScl( 0.995 );
+	twk[6].NUSetXSkw( 0.005 );
+	twk[7].NUSetXSkw( -.005 );
+	twk[8].NUSetYSkw( 0.005 );
+	twk[9].NUSetYSkw( -.005 );
+	twk[10].NUSetRot( 0.005 );
+	twk[11].NUSetRot( -.005 );
 
 	fprintf( flog, "Pretweaks start, best R=%.3f.\n", best.R );
 
@@ -682,7 +682,7 @@ static bool Pretweaks(
 
 		int	ibest = -1;
 
-		for( int i = 0; i < 10; ++i ) {
+		for( int i = 0; i < 12; ++i ) {
 
 			CorRec	C;
 			TForm	Tback = Tptwk;
@@ -971,20 +971,20 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 //
 static void TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 {
-	vector<TForm>	twk( 10 );
+	vector<TForm>	twk( 12 );
 
-	twk[0]=TForm(1.005,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-up
-	twk[1]=TForm(0.995,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-dn
-	twk[2]=TForm(1.005,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xup
-	twk[3]=TForm(0.995,  0.0,   0.0,  0.0,   1.000, 0.0);//scl-xdn
-	twk[4]=TForm(1.000,  0.0,   0.0,  0.0,   1.005, 0.0);//scl-yup
-	twk[5]=TForm(1.000,  0.0,   0.0,  0.0,   0.995, 0.0);//scl-ydn
-	twk[4]=TForm(1.000,  0.0,   0.0,  0.005, 1.000, 0.0);//skw-yup
-	twk[5]=TForm(1.000,  0.0,   0.0, -0.005, 1.000, 0.0);//skw-ydn
-	twk[6]=TForm(1.000,  0.005, 0.0,  0.0,   1.000, 0.0);//skw-xrt
-	twk[7]=TForm(1.000, -0.005, 0.0,  0.0,   1.000, 0.0);//skw-xlf
-	twk[8]=TForm(0.995,  0.005, 0.0, -0.005, 0.995, 0.0);//rot-ccw
-	twk[9]=TForm(0.995, -0.005, 0.0,  0.005, 0.995, 0.0);//rot-cw
+	twk[0].NUSetScl( 1.005 );
+	twk[1].NUSetScl( 0.995 );
+	twk[2].NUSetXScl( 1.005 );
+	twk[3].NUSetXScl( 0.995 );
+	twk[4].NUSetYScl( 1.005 );
+	twk[5].NUSetYScl( 0.995 );
+	twk[6].NUSetXSkw( 0.005 );
+	twk[7].NUSetXSkw( -.005 );
+	twk[8].NUSetYSkw( 0.005 );
+	twk[9].NUSetYSkw( -.005 );
+	twk[10].NUSetRot( 0.005 );
+	twk[11].NUSetRot( -.005 );
 
 	fprintf( flog, "Tweaks start, best R=%.3f.\n", best.R );
 
@@ -994,7 +994,7 @@ static void TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 
 		changed = false;
 
-		for( int i = 0; i < 10; ++i ) {
+		for( int i = 0; i < 12; ++i ) {
 
 			CorRec			C;
 			vector<Point>	ps = thm.ap;
