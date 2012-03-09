@@ -755,7 +755,7 @@ static double PTWInterp(
 
 	T.NUSelect( sel, xnew );
 	ynew = PTWApply1( T, center, thm, flog, false );
-	fprintf( flog, "PTWIntrp %2d: %5.3f @ %.3f\n", sel, y1, ynew );
+	fprintf( flog, "PTWIntrp %2d: %5.3f @ %.3f\n", sel, ynew, xnew );
 
 	return xnew;
 }
