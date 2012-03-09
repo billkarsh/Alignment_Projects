@@ -75,12 +75,14 @@ void TForm::NUSetScl( double a )
 	t[3] = 0; t[4] = a; t[5] = 0;
 }
 
+
 // pos a enlarges
 void TForm::NUSetXScl( double a )
 {
 	t[0] = a; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = 1; t[5] = 0;
 }
+
 
 // pos a enlarges
 void TForm::NUSetYScl( double a )
@@ -89,12 +91,14 @@ void TForm::NUSetYScl( double a )
 	t[3] = 0; t[4] = a; t[5] = 0;
 }
 
+
 // pos a tips right
 void TForm::NUSetXSkw( double a )
 {
 	t[0] = 1; t[1] = a; t[2] = 0;
 	t[3] = 0; t[4] = 1; t[5] = 0;
 }
+
 
 // pos a tips up
 void TForm::NUSetYSkw( double a )
@@ -103,6 +107,7 @@ void TForm::NUSetYSkw( double a )
 	t[3] = a; t[4] = 1; t[5] = 0;
 }
 
+
 // pos r rotates CCW
 void TForm::NUSetRot( double r )
 {
@@ -110,6 +115,19 @@ void TForm::NUSetRot( double r )
 
 	t[0] = c;  t[1] = s; t[2] = 0;
 	t[3] = -s; t[4] = c; t[5] = 0;
+}
+
+
+void TForm::NUSelect( int sel, double a )
+{
+	switch( sel ) {
+		case tfnuXScl:	NUSetXScl( a );	break;
+		case tfnuYScl:	NUSetYScl( a );	break;
+		case tfnuXSkw:	NUSetXSkw( a );	break;
+		case tfnuYSkw:	NUSetYSkw( a );	break;
+		case tfnuRot:	NUSetRot( a );	break;
+		default:		NUSetScl( a );	break;
+	}
 }
 
 /* --------------------------------------------------------------- */

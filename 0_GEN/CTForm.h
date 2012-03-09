@@ -10,6 +10,20 @@
 
 
 /* --------------------------------------------------------------- */
+/* Constants ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+enum TFNearUnityConsts {
+// near unity transform selectors
+	tfnuScl		= 0,
+	tfnuXScl	= 1,
+	tfnuYScl	= 2,
+	tfnuXSkw	= 3,
+	tfnuYSkw	= 4,
+	tfnuRot		= 5
+};
+
+/* --------------------------------------------------------------- */
 /* class TForm --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -68,6 +82,8 @@ public:
 	void NUSetXSkw( double a );
 	void NUSetYSkw( double a );
 	void NUSetRot( double r );
+
+	void NUSelect( int sel, double a );
 
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;

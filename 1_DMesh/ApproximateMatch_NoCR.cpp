@@ -640,6 +640,129 @@ static double AngleScan(
 #endif
 
 /* --------------------------------------------------------------- */
+/* PTWApply1 ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Create product of Ttry with Tptwk and return new corr.
+// Make change to Tptwk permanent if keep = true.
+//
+static double PTWApply1(
+	const TForm	&Ttry,
+	double		center,
+	ThmRec		&thm,
+	FILE*		flog,
+	bool		keep )
+{
+	CorRec	C;
+	TForm	Tback = Tptwk;
+
+	MultiplyTrans( Tptwk, Ttry, Tback );
+	RFromAngle( C, center, thm, flog );
+
+	if( !keep )
+		Tptwk = Tback;
+
+	return C.R;
+}
+
+/* --------------------------------------------------------------- */
+/* PTWSweep ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// For near unity transform chosen by sel, perform a magnitude
+// sweep about unity in +/- nsteps of size astep. Return the
+// best NU-magnitude and its corresponding R.
+//
+static double PTWSweep(
+	double	&rbest,
+	int		sel,
+	int		nstep,
+	double	astep,
+	double	center,
+	ThmRec	&thm,
+	FILE*	flog )
+{
+	double	abase = 0.0;
+	int		ibest;
+
+	rbest = -1.0;
+
+	fprintf( flog, "PTWSweep %2d:", sel );
+
+	if( sel >= tfnuScl && sel <= tfnuYScl )
+		abase = 1.0;
+
+	for( int i = -nstep; i <= nstep; ++i ) {
+
+		double	R;
+		TForm	T;
+
+		T.NUSelect( sel, abase + i * astep );
+		R = PTWApply1( T, center, thm, flog, false );
+		fprintf( flog, " %5.3f", R );
+
+		if( R > rbest ) {
+			rbest = R;
+			ibest = i;
+		}
+	}
+
+	fprintf( flog, "\n" );
+
+	return abase + ibest * astep;
+}
+
+/* --------------------------------------------------------------- */
+/* NewXFromParabola ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static double NewXFromParabola(
+	double	x1,
+	double	d,
+	double	y0,
+	double	y1,
+	double	y2 )
+{
+	return x1 + d * (y0 - y2) / (2 * (y0 + y2 - y1 - y1));
+}
+
+/* --------------------------------------------------------------- */
+/* PTWInterp ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Use NewXFromParabola to interpolate a better NU-magnitude
+// where the center guess is (x1,y1) from the sweep and the
+// side points are +/1 d from that.
+//
+static double PTWInterp(
+	double	&ynew,
+	int		sel,
+	double	x1,
+	double	y1,
+	double	d,
+	double	center,
+	ThmRec	&thm,
+	FILE*	flog )
+{
+	double	y0, y2, xnew;
+	TForm	T;
+
+	T.NUSelect( sel, x1 - d );
+	y0 = PTWApply1( T, center, thm, flog, false );
+
+	T.NUSelect( sel, x1 + d );
+	y2 = PTWApply1( T, center, thm, flog, false );
+
+	xnew = NewXFromParabola( x1, d, y0, y1, y2 );
+
+	T.NUSelect( sel, xnew );
+	ynew = PTWApply1( T, center, thm, flog, false );
+	fprintf( flog, "PTWIntrp %2d: %5.3f @ %.3f\n", sel, y1, ynew );
+
+	return xnew;
+}
+
+/* --------------------------------------------------------------- */
 /* Pretweaks ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -649,67 +772,88 @@ static double AngleScan(
 // Return true if any changes made.
 //
 static bool Pretweaks(
-	CorRec	&best,
+	double	bestR,
 	double	center,
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	vector<TForm>	twk( 12 );
-
-	twk[0].NUSetScl( 1.005 );
-	twk[1].NUSetScl( 0.995 );
-	twk[2].NUSetXScl( 1.005 );
-	twk[3].NUSetXScl( 0.995 );
-	twk[4].NUSetYScl( 1.005 );
-	twk[5].NUSetYScl( 0.995 );
-	twk[6].NUSetXSkw( 0.005 );
-	twk[7].NUSetXSkw( -.005 );
-	twk[8].NUSetYSkw( 0.005 );
-	twk[9].NUSetYSkw( -.005 );
-	twk[10].NUSetRot( 0.005 );
-	twk[11].NUSetRot( -.005 );
-
-	fprintf( flog, "Pretweaks start, best R=%.3f.\n", best.R );
+	fprintf( flog, "Pretweaks start, best R=%.3f.\n", bestR );
 
 	clock_t	t0 = StartTiming();
 	bool	anychange = false;
 
-	for( int changed = true; changed; ) {
+// We will compose a Tptwk by multiplying NU transforms. We examine
+// 5 transform types vsel = {Scl, XScl, YScl, XSkw, YSkw}. Each type
+// will enter the product at most once, which is tracked with vused.
 
-		changed = false;
+	vector<int>	vsel( 5 );
+	vector<int>	vused( 5, 0 );
 
-		// find best twk[i]
+	for( int i = tfnuScl; i <= tfnuYSkw; ++i )
+		vsel[i] = i;
 
-		int	ibest = -1;
+// To decide which transform type to use, we will do a magnitude
+// sweep with each and see which type got the highest peak R. We
+// then use interpolation to improve the winner. If using that
+// type gives a better R than before, it goes into the product.
+// Repeat with other unused types.
 
-		for( int i = 0; i < 12; ++i ) {
+	for( int itype = 0; itype < 5; ++itype ) {
 
-			CorRec	C;
-			TForm	Tback = Tptwk;
+		// Do the sweeps
 
-			MultiplyTrans( Tptwk, twk[i], Tback );
-			RFromAngle( C, center, thm, flog );
-			fprintf( flog, "Pretweak %d R=%.3f\n", i, C.R );
+		vector<double>	vrbest( 5, 0.0 );
+		vector<double>	vibest( 5 );
 
-			if( C.R > best.R ) {
-				best	= C;
-				ibest	= i;
+		for( int i = 0; i < 5; ++i ) {
+
+			if( vused[i] )
+				continue;
+
+			vibest[i] = PTWSweep( vrbest[i], vsel[i],
+							5, .02, center, thm, flog );
+		}
+
+		// Find the best sweep
+
+		double	rbest	= -1;
+		int		selbest = -1;
+
+		for( int i = 0; i < 5; ++i ) {
+
+			if( vused[i] )
+				continue;
+
+			if( vrbest[i] > rbest ) {
+				rbest	= vrbest[i];
+				selbest	= i;
 			}
-
-			Tptwk = Tback;
 		}
 
-		// and apply it
+		if( selbest == -1 )
+			break;
 
-		if( ibest >= 0 ) {
+		// Improve candidate with interpolator
 
-			TForm	Tback = Tptwk;
+		double	a = PTWInterp( rbest, vsel[selbest],
+						vibest[selbest], vrbest[selbest],
+						.01, center, thm, flog );
 
-			MultiplyTrans( Tptwk, twk[ibest], Tback );
-			RFromAngle( best, center, thm, flog );
-			fprintf( flog, "Pretweak %d R=%.3f  *\n", ibest, best.R );
-			anychange = changed = true;
+		// Is it better than before?
+
+		if( rbest > bestR ) {
+
+			TForm	T, Tback = Tptwk;
+
+			fprintf( flog, "PTWUsing %2d\n", vsel[selbest] );
+			T.NUSelect( vsel[selbest], a );
+			MultiplyTrans( Tptwk, T, Tback );
+			vused[selbest]	= 1;
+			bestR			= rbest;
+			anychange		= true;
 		}
+		else
+			break;
 	}
 
 	StopTiming( stdout, "Pretweaks", t0 );
@@ -737,7 +881,7 @@ static double AngleScanWithTweaks(
 
 		if( GBL.mch.PRETWEAK ) {
 
-			if( Pretweaks( best,
+			if( Pretweaks( best.R,
 				(best.R > 0.0 ? best.A : center), thm, flog ) ) {
 
 				AngleScan( best, center, hlfwid, step, thm, flog );
@@ -746,20 +890,6 @@ static double AngleScanWithTweaks(
 	}
 
 	return best.R;
-}
-
-/* --------------------------------------------------------------- */
-/* NewXFromParabola ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static double NewXFromParabola(
-	double	x1,
-	double	d,
-	double	y0,
-	double	y1,
-	double	y2 )
-{
-	return x1 + d * (y0 - y2) / (2 * (y0 + y2 - y1 - y1));
 }
 
 /* --------------------------------------------------------------- */
