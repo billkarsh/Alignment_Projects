@@ -165,6 +165,62 @@ static void CalcTransforms(
 }
 
 /* --------------------------------------------------------------- */
+/* Decomp -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Decomp( const TForm &T, const char *label )
+{
+	printf( "main: %s:", label );
+	T.PrintTransform();
+
+	double	r = RadiansFromAffine( T );
+	TForm	R, D;
+
+	R.t[0] =
+	R.t[4] = cos( r );
+	R.t[1] = sin( r );
+	R.t[3] = -R.t[1];
+
+	MultiplyTrans( D, R, T );
+
+	printf( "main: Degrees: %g\n", r*180/PI );
+	printf( "main: Residue:" );
+	D.PrintTransform();
+
+	printf( "\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* ReportAveTForm ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void ReportAveTForm( int Ntrans, const TForm* tfs )
+{
+	if( !Ntrans )
+		return;
+
+	TForm	I, T = tfs[0];
+
+	if( Ntrans > 1 ) {
+
+		for( int i = 1; i < Ntrans; ++i ) {
+
+			for( int j = 0; j < 6; ++j )
+				T.t[j] += tfs[i].t[j];
+		}
+
+		for( int j = 0; j < 6; ++j )
+			T.t[j] /= Ntrans;
+	}
+
+	T.t[2] = T.t[5] = 0.0;
+
+	Decomp( T, "Average" );
+	InvertTrans( I, T );
+	Decomp( I, "Inverse" );
+}
+
+/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -231,6 +287,8 @@ int main( int argc, char* argv[] )
 /* ------------- */
 
 	CalcTransforms( rmap, Ntrans, tfs, ifs, px );
+
+	ReportAveTForm( Ntrans, tfs );
 
 /* ----------- */
 /* Diagnostics */
