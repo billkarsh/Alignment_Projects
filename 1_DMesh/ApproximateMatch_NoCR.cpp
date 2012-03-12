@@ -723,7 +723,12 @@ static double NewXFromParabola(
 	double	y1,
 	double	y2 )
 {
-	return x1 + d * (y0 - y2) / (2 * (y0 + y2 - y1 - y1));
+	double D = d * (y0 - y2) / (2 * (y0 + y2 - y1 - y1));
+
+	if( fabs( D ) <= 2 * d )
+		x1 += D;
+
+	return x1;
 }
 
 /* --------------------------------------------------------------- */
@@ -757,6 +762,12 @@ static double PTWInterp(
 
 	T.NUSelect( sel, xnew );
 	ynew = PTWApply1( T, center, thm, flog, false );
+
+	if( ynew < y1 ) {
+		xnew = x1;
+		ynew = y1;
+	}
+
 	fprintf( flog, "PTWIntrp %2d: %5.3f @ %.3f\n", sel, ynew, xnew );
 
 	return xnew;
@@ -803,14 +814,14 @@ static bool Pretweaks(
 		// Do the sweeps
 
 		vector<double>	vrbest( 5, 0.0 );
-		vector<double>	vibest( 5 );
+		vector<double>	vabest( 5 );
 
 		for( int i = 0; i < 5; ++i ) {
 
 			if( vused[i] )
 				continue;
 
-			vibest[i] = PTWSweep( vrbest[i], vsel[i],
+			vabest[i] = PTWSweep( vrbest[i], vsel[i],
 							5, .02, center, thm, flog );
 		}
 
@@ -836,8 +847,8 @@ static bool Pretweaks(
 		// Improve candidate with interpolator
 
 		double	a = PTWInterp( rbest, vsel[selbest],
-						vibest[selbest], vrbest[selbest],
-						.01, center, thm, flog );
+						vabest[selbest], vrbest[selbest],
+						.02, center, thm, flog );
 
 		// Is it better than before?
 
