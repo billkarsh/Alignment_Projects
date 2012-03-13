@@ -3642,8 +3642,15 @@ static void ViseWriteXML(
 			prev = zs[i].z;
 		}
 
-		char	buf[256];
-		sprintf( buf, "ve_%d_%d.png", I.z, I.id );
+		char		buf[256];
+		const char	*c, *n = I.GetName();
+
+		if( c = strstr( n, "col" ) ) {
+			sprintf( buf, "ve_z%d_id%d_%.*s.png",
+			I.z, I.id, strchr( c, '.' ) - c, c );
+		}
+		else
+			sprintf( buf, "ve_z%d_id%d.png", I.z, I.id );
 
 		int		j = I.itr * 6;
 
@@ -4005,7 +4012,7 @@ void EVL::BuildVise(
 	int		prev = -1,	// will be previously written layer
 			twv  = visePix / 12;
 
-	fprintf( f, "Z\tID\tL\tR\tB\tT\tD\n" );
+	fprintf( f, "Z\tID\tCol\tRow\tCam\tL\tR\tB\tT\tD\n" );
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -4025,9 +4032,14 @@ void EVL::BuildVise(
 		vector<uint32>	RGB( visePix * visePix, 0xFFD0D0D0 );
 
 		const VisErr	&V = ve[zs[i].i];
+		const char		*c, *n = I.GetName();
+		int				col = 0, row = 0, cam = 0;
 
-		fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\n",
-		I.z, I.id,
+		if( c = strstr( n, "col" ) )
+			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+
+		fprintf( f, "%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",
+		I.z, I.id, col, row, cam,
 		(V.L > 0 ? sqrt(V.L) : 0),
 		(V.R > 0 ? sqrt(V.R) : 0),
 		(V.B > 0 ? sqrt(V.B) : 0),
@@ -4075,7 +4087,15 @@ void EVL::BuildVise(
 		VisePaintRect( RGB, 0, lim, lim - twv/2, lim, .01 );
 
 		// store
-		sprintf( buf, "viseimg/%d/ve_%d_%d.png", I.z, I.z, I.id );
+		if( c ) {
+			sprintf( buf, "viseimg/%d/ve_z%d_id%d_%.*s.png",
+			I.z, I.z, I.id, strchr( c, '.' ) - c, c );
+		}
+		else {
+			sprintf( buf, "viseimg/%d/ve_z%d_id%d.png",
+			I.z, I.z, I.id );
+		}
+
 		Raster32ToPngRGBA( buf, &RGB[0], visePix, visePix );
 	}
 
