@@ -580,15 +580,16 @@ static double AngleScan(
 
 // Evaluate sweep
 // Search through decreasing R.
-// Take first result for which there are also +- m data points,
-// and the X and Y coords vary smoothly over that range (r > 0.8).
+// Take first result for which there are also +- m data points, and
+// the X and Y coords vary smoothly over that range (r > rthresh).
 // Also note that coords are rounded to nearest pixel, and that
 // lincor values that are NAN or INF are generally ok: they arise
 // from a zero variance in the coords, meaning that the point is
 // stationary, and that's a good thing because it's not noise.
 
-	const int m = 3;
-	const int M = 2*m + 1;
+	const double	rthresh = 0.7;
+	const			int m = 3;
+	const			int M = 2*m + 1;
 
 	for( int i = 0; i < nC; ++i ) {
 
@@ -615,13 +616,13 @@ static double AngleScan(
 		LineFit( NULL, NULL, &lincor, &A[0], &X[0], 0, n );
 		fprintf( flog, "LCOR: A=%8.3f, RX=%6.3f\n", A[m], lincor );
 
-		if( isfinite( lincor ) && fabs( lincor ) < 0.8 )
+		if( isfinite( lincor ) && fabs( lincor ) < rthresh )
 			continue;
 
 		LineFit( NULL, NULL, &lincor, &A[0], &Y[0], 0, n );
 		fprintf( flog, "LCOR: A=%8.3f, RY=%6.3f\n", A[m], lincor );
 
-		if( isfinite( lincor ) && fabs( lincor ) < 0.8 )
+		if( isfinite( lincor ) && fabs( lincor ) < rthresh )
 			continue;
 
 		best = vC[ic];
