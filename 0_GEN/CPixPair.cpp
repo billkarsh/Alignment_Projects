@@ -142,7 +142,6 @@ bool PixPair::Load(
 		goto exit;
 	}
 
-	ok		= true;
 	wf		= wa;
 	hf		= ha;
 	ws		= wa;
@@ -237,6 +236,8 @@ bool PixPair::Load(
 		VectorDblToTif8( "DoGb.tif", bvs_aln, ws, hs );
 	}
 #endif
+
+	ok = true;
 
 /* -------- */
 /* Clean up */
