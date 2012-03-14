@@ -118,9 +118,11 @@ void StatsRasterNonZeros(
 /* Normalize ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Normalizes vector to mean 0 and standard deviation 1
+// Normalizes vector to mean 0 and standard deviation 1.
 //
-void Normalize( vector<double> &v )
+// Return natural sd.
+//
+double Normalize( vector<double> &v )
 {
 	double	avg, std;
 	int		n = v.size();
@@ -131,12 +133,16 @@ void Normalize( vector<double> &v )
 
 	for( int i = 0; i < n; ++i )
 		v[i] = (v[i] - avg) / std;
+
+	return std;
 }
 
 
-// Normalizes doubles array to mean 0 and standard deviation 1
+// Normalizes doubles array to mean 0 and standard deviation 1.
 //
-void Normalize( double *a, int n )
+// Return natural sd.
+//
+double Normalize( double *a, int n )
 {
 	MeanStd	m;
 	double	avg, std;
@@ -151,6 +157,8 @@ void Normalize( double *a, int n )
 
 	for( i = 0; i < n; ++i )
 		a[i] = (a[i] - avg) / std;
+
+	return std;
 }
 
 /* --------------------------------------------------------------- */
@@ -160,7 +168,9 @@ void Normalize( double *a, int n )
 // Normalizes vector to mean 0 and standard deviation 1,
 // but only the non-zero elements.
 //
-void NormalizeNonZeros( vector<double> &v )
+// Return natural sd.
+//
+double NormalizeNonZeros( vector<double> &v )
 {
 	MeanStd	m;
 	double	avg, std;
@@ -179,15 +189,19 @@ void NormalizeNonZeros( vector<double> &v )
 		if( v[i] )
 			v[i] = (v[i] - avg) / std;
 	}
+
+	return std;
 }
 
 /* --------------------------------------------------------------- */
 /* CoNormalize --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Normalizes two vectors to common scale: mn,std = 0,1
+// Normalizes two vectors to common scale: mn,std = 0,1.
 //
-void CoNormalize( vector<double> &v1, vector<double> &v2 )
+// Return natural sd.
+//
+double CoNormalize( vector<double> &v1, vector<double> &v2 )
 {
 	MeanStd	m;
 	double	avg, std;
@@ -208,6 +222,8 @@ void CoNormalize( vector<double> &v1, vector<double> &v2 )
 
 	for( i = 0; i < n2; ++i )
 		v2[i] = (v2[i] - avg) / std;
+
+	return std;
 }
 
 /* --------------------------------------------------------------- */

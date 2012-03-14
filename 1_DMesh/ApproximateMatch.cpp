@@ -366,7 +366,7 @@ static bool SelectSubimage(
 /* MakeThumbs ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void MakeThumbs(
+static bool MakeThumbs(
 	ThmRec			&thm,
 	const OlapRec	&olp,
 	int				decfactor,
@@ -392,8 +392,27 @@ static void MakeThumbs(
 		thm.ap.size(), thm.reqArea, thm.scl );
 	}
 
-	Normalize( thm.av );
-	Normalize( thm.bv );
+	double	sd = Normalize( thm.av );
+
+	if( !sd || !isfinite( sd ) ) {
+
+		fprintf( flog,
+		"Thumbs: Image A intersection region has stdev: %f.\n", sd );
+
+		return false;
+	}
+
+	sd = Normalize( thm.bv );
+
+	if( !sd || !isfinite( sd ) ) {
+
+		fprintf( flog,
+		"Thumbs: Image B intersection region has stdev: %f.\n", sd );
+
+		return false;
+	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -1473,7 +1492,9 @@ bool ApproximateMatch(
 	ThmRec	thm;
 
 	SelectSubimage( olp, px, acr, bcr, flog );
-	MakeThumbs( thm, olp, 8, flog );
+
+	if( !MakeThumbs( thm, olp, 8, flog ) )
+		return false;
 
 /* --------------------- */
 /* Debug the angle sweep */
@@ -1528,7 +1549,9 @@ bool ApproximateMatch(
 // For cross-plane the improvement is usually < 0.5% but it doesn't
 // hurt, so we do it always.
 
-	MakeThumbs( thm, olp, 1, flog );
+	if( !MakeThumbs( thm, olp, 1, flog ) )
+		return false;
+
 	FinishAtFullRes( best, thm, flog );
 
 /* ------------------------------------------ */

@@ -58,12 +58,12 @@ void StatsRasterNonZeros(
 	double			&avg,
 	double			&std );
 
-void Normalize( vector<double> &v );
-void Normalize( double *a, int n );
+double Normalize( vector<double> &v );
+double Normalize( double *a, int n );
 
-void NormalizeNonZeros( vector<double> &v );
+double NormalizeNonZeros( vector<double> &v );
 
-void CoNormalize( vector<double> &v1, vector<double> &v2 );
+double CoNormalize( vector<double> &v1, vector<double> &v2 );
 
 void CoUpperTail(
 	vector<double>	&v1,
