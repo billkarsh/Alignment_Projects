@@ -2,6 +2,8 @@
 
 #include	"File.h"
 
+#include	<errno.h>
+
 
 
 
@@ -24,7 +26,9 @@ FILE *FileOpenOrDie(
 			flog = stdout;
 
 		fprintf( flog,
-		"Can't open file [%s] for op [%s].\n", name, rw );
+		"Can't open file [%s] for op [%s] errno [%d].\n",
+		name, rw, errno );
+
 		exit( 42 );
 	}
 
