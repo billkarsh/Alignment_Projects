@@ -591,8 +591,7 @@ void ImageFromValuesAndPoints(
 		double	x = plist[i].x - xmin,
 				y = plist[i].y - ymin;
 
-		if( x >= 0 && x < w-1 && y >= 0 && y < h-1 )
-			DistributePixel( x, y, v[i], I, w );
+		DistributePixel( x, y, v[i], I, w, h );
 	}
 }
 

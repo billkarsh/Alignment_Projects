@@ -182,14 +182,10 @@ void ABOverlay(
 				p.x -= xmin;
 				p.y -= ymin;
 
-				if( p.x >= 0 && p.x < w2-1 &&
-					p.y >= 0 && p.y < h2-1 ) {
+				double	pix = bv[ix + w*iy];
 
-					double	pix = bv[ix + w*iy];
-
-					DistributePixel( p.x, p.y, pix, &bpix[0], w2 );
-					m.Element( pix );
-				}
+				DistributePixel( p.x, p.y, pix, &bpix[0], w2, h2 );
+				m.Element( pix );
 			}
 		}
 	}

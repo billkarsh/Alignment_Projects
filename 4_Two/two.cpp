@@ -2127,9 +2127,8 @@ for(int i=0; i<npixels; i++) {
     // so now p is point, transformed into image 'above'.  Subtract (xmin, ymin) to get coordinate in image
     p.x -= xmin;
     p.y -= ymin;
-    if (p.x >= 0 && p.x < w2-1 && p.y >= 0 && p.y < h2-1)	// it's in the output image
-        DistributePixel( p.x, p.y, below[0].raster[ix+w*iy], rt, w2 );
-    }
+    DistributePixel( p.x, p.y, below[0].raster[ix+w*iy], rt, w2, h2 );
+}
 // transfer temp to the RED channel.  Invert and stretch contrast
 for(int i=0; i<npixels2; i++) {
     if( rt[i] > 0.0 ) {
@@ -2633,9 +2632,8 @@ for(int i=0; i<npixels; i++) {
     // so now p is the transformed point.  Subtract (xmin, ymin) to get coordinate in image
     p.x -= xmin;
     p.y -= ymin;
-    if (p.x >= 0 && p.x < w2-1 && p.y >= 0 && p.y < h2-1)	// it's in the output image
-        DistributePixel( p.x, p.y, raster[ix+w*iy], rt, w2 );
-    }
+    DistributePixel( p.x, p.y, raster[ix+w*iy], rt, w2, h2 );
+}
 // transfer temp to the RED channel.  Invert and stretch contrast
 for(int i=0; i<npixels2; i++) {
     if( rt[i] > 0.0 ) {

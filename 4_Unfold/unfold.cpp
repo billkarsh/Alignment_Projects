@@ -1364,11 +1364,11 @@ if (invert)  {
             if( nx >= 0.0 && nx < new_w-1 && ny >= 0.0 && ny < new_h-1 ) {
 				x1 = int(nx);  // will round down, since numbers are positive
 				y1 = int(ny);
-				int base = x1 +new_w*y1;
+				int base = x1 + new_w * y1;
 				if( who[base] != k && who[base] != -1 )
-				nMultiWrite++;
+					nMultiWrite++;
 				who[base] = k; // last person to write this pixel
-				DistributePixel( nx, ny, raster[x0 + w*y0], out_image, new_w );
+				DistributePixel( nx, ny, raster[x0 + w*y0], out_image, new_w, new_h );
             }
 	    //nb[x1+(new_h-1-y1)*new_w] = raster[x0 + w*y0];
 	    }

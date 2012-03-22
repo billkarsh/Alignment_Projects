@@ -195,25 +195,49 @@ void DistributePixel(
 	double			y,
 	double			val,
 	float*			image,
-	int				w );
+	int				w,
+	int				h );
 
 inline void DistributePixel(
 	double			x,
 	double			y,
 	double			val,
 	vector<double>	&image,
-	int				w )
+	int				w,
+	int				h )
 {
-	int		ix		= (int)x;
-	int		iy		= (int)y;
+	int		ix		= (int)floor( x );
+	int		iy		= (int)floor( y );
 	int		i		= ix + w * iy;
 	double	alpha	= x - ix;
 	double	beta	= y - iy;
 
-	image[i]			+= (1.0-alpha)*(1.0-beta)*val;
-	image[i + 1]		+=     (alpha)*(1.0-beta)*val;
-	image[i + w]		+= (1.0-alpha)*(    beta)*val;
-	image[i + 1 + w]	+=     (alpha)*(    beta)*val;
+	if( ix >= 0 && ix < w ) {
+
+		if( iy >= 0 && iy < h )
+			image[i] += (1.0-alpha)*(1.0-beta)*val;
+
+		++iy;
+
+		if( iy >= 0 && iy < h )
+			image[i + w] += (1.0-alpha)*beta*val;
+
+		--iy;
+	}
+
+	++ix;
+	++i;
+
+	if( ix >= 0 && ix < w ) {
+
+		if( iy >= 0 && iy < h )
+			image[i] += alpha*(1.0-beta)*val;
+
+		++iy;
+
+		if( iy >= 0 && iy < h )
+			image[i + w] += alpha*beta*val;
+	}
 }
 
 double BiCubicInterp( const double* image, int w, Point p );

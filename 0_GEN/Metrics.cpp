@@ -209,11 +209,8 @@ static void MakeMetricImagesFFT(
 		double	x = pts[i].x - B.L,
 				y = pts[i].y - B.B;
 
-		if( x >= 0 && x < Nx-1 && y >= 0 && y < Ny-1 ) {
-
-			DistributePixel( x, y, av[i], i1, Nx );
-			DistributePixel( x, y, bv[i], i2, Nx );
-		}
+		DistributePixel( x, y, av[i], i1, Nx, Ny );
+		DistributePixel( x, y, bv[i], i2, Nx, Ny );
 	}
 
 	for( int i = 0; i < N2; ++i )
@@ -315,8 +312,7 @@ static void MakeMetricImagesEMM(
 		double	x = pts[i].x - B.L,
 				y = pts[i].y - B.B;
 
-		if( x >= 0 && x < Nx-1 && y >= 0 && y < Ny-1 )
-			DistributePixel( x, y, av[i] - bv[i], diff, Nx );
+		DistributePixel( x, y, av[i] - bv[i], diff, Nx, Ny );
 	}
 
 /* ------------ */
