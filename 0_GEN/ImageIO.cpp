@@ -668,6 +668,51 @@ void Raster16ToTif8(
 }
 
 /* --------------------------------------------------------------- */
+/* RasterFltToTifFlt --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void RasterFltToTifFlt(
+	const char*		name,
+	const float*	raster,
+	int				w,
+	int				h,
+	FILE*			flog )
+{
+	TIFF	*image;
+	float	*f;
+
+	if( !(image = TIFFOpen( name, "w" )) ) {
+		fprintf( flog,
+		"TIF(f) Could not open [%s] for writing.\n", name );
+		exit( 42 );
+	}
+
+// Set values for basic tags before adding data
+	TIFFSetField( image, TIFFTAG_IMAGEWIDTH, w );
+	TIFFSetField( image, TIFFTAG_IMAGELENGTH, h );
+	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE, 32 );
+	TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
+	TIFFSetField( image, TIFFTAG_ROWSPERSTRIP, h );
+
+#if USE_TIF_DEFLATE
+	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE );
+#else
+	TIFFSetField( image, TIFFTAG_COMPRESSION, COMPRESSION_NONE );
+#endif
+
+	TIFFSetField( image, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP );
+	TIFFSetField( image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
+	TIFFSetField( image, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+
+// Write the information to the file
+	for( int row = 0; row < h; ++row )
+		TIFFWriteScanline( image, (void*)&raster[w*row], row, 0 );
+
+// Close the file
+	TIFFClose( image );
+}
+
+/* --------------------------------------------------------------- */
 /* RasterDblToTifFlt --------------------------------------------- */
 /* --------------------------------------------------------------- */
 

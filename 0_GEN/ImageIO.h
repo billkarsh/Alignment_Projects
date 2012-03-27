@@ -77,6 +77,13 @@ void Raster16ToTif8(
 	int				h,
 	FILE*			flog = stdout );
 
+void RasterFltToTifFlt(
+	const char*		name,
+	const float*	raster,
+	int				w,
+	int				h,
+	FILE*			flog = stdout );
+
 void RasterDblToTifFlt(
 	const char*		name,
 	const double*	raster,
