@@ -1194,11 +1194,56 @@ double InterpolatePixel(
 /* --------------------------------------------------------------- */
 
 double SafeInterp(
-	double			x,
-	double			y,
-	const uint8*	image,
-	int				w,
-	int				h )
+	double					x,
+	double					y,
+	const uint8*			image,
+	int						w,
+	int						h )
+{
+	int		ix		= (int)floor( x );
+	int		iy		= (int)floor( y );
+	int		i		= ix + w * iy;
+	double	alpha	= x - ix;
+	double	beta	= y - iy;
+	double	val		= 0.0;
+
+	if( ix >= 0 && ix < w ) {
+
+		if( iy >= 0 && iy < h )
+			val += (1.0-alpha)*(1.0-beta)*image[i];
+
+		++iy;
+
+		if( iy >= 0 && iy < h )
+			val += (1.0-alpha)*beta*image[i + w];
+
+		--iy;
+	}
+
+	++ix;
+	++i;
+
+	if( ix >= 0 && ix < w ) {
+
+		if( iy >= 0 && iy < h )
+			val += alpha*(1.0-beta)*image[i];
+
+		++iy;
+
+		if( iy >= 0 && iy < h )
+			val += alpha*beta*image[i + w];
+	}
+
+	return val;
+}
+
+
+double SafeInterp(
+	double					x,
+	double					y,
+	const vector<double>	&image,
+	int						w,
+	int						h )
 {
 	int		ix		= (int)floor( x );
 	int		iy		= (int)floor( y );

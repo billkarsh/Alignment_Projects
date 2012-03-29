@@ -188,11 +188,18 @@ double InterpolatePixel(
 	int						w );
 
 double SafeInterp(
-	double			x,
-	double			y,
-	const uint8*	image,
-	int				w,
-	int				h );
+	double					x,
+	double					y,
+	const uint8*			image,
+	int						w,
+	int						h );
+
+double SafeInterp(
+	double					x,
+	double					y,
+	const vector<double>	&image,
+	int						w,
+	int						h );
 
 void DistributePixel(
 	double			x,
