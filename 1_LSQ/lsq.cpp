@@ -2633,8 +2633,6 @@ static void Bounds(
 	}
 	else {
 
-		const double	BIGD = 1.0e30;
-
 		TForm	T, R;
 
 		xmin =  BIGD;

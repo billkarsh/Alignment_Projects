@@ -424,8 +424,6 @@ static void Bounds(
 	int						is0,
 	int						isN )
 {
-	const double	BIGD = 1.0e30;
-
 	B.L = BIGD, B.R = -BIGD,
 	B.B = BIGD, B.T = -BIGD;
 
