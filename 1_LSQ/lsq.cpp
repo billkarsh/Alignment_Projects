@@ -3516,7 +3516,6 @@ void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 		}
 		else
 			Line( fse, g1.x, g1.y, g2.x, g2.y );
-
 	}
 
 	fclose( fbe );
