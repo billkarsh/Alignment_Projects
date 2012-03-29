@@ -53,11 +53,9 @@ class Picture {
 
 public:
 	string	fname;	// file name
-	double	r;		// inlayer radius from center
 	int		z;		// Z layer
 	int		id;		// inlayer id
 	TForm	tr;		// local to global
-	TForm	inv;	// global to local
 
 public:
 	Picture()	{id = -1;};
