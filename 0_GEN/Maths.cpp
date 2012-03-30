@@ -1241,7 +1241,7 @@ double SafeInterp(
 double SafeInterp(
 	double					x,
 	double					y,
-	const vector<double>	&image,
+	const double*			image,
 	int						w,
 	int						h )
 {
