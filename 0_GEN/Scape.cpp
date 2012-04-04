@@ -130,6 +130,33 @@ static void ScanLims(
 }
 
 /* --------------------------------------------------------------- */
+/* Downsample ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Downsample( uint8 *ras, int w, int h, int iscl )
+{
+	int	n  = iscl * iscl,
+		ws = w / iscl,
+		hs = h / iscl;
+
+	for( int iy = 0; iy < hs; ++iy ) {
+
+		for( int ix = 0; ix < ws; ++ix ) {
+
+			double	sum = 0.0;
+
+			for( int dy = 0; dy < iscl; ++dy ) {
+
+				for( int dx = 0; dx < iscl; ++dx )
+					sum += ras[ix*iscl+dx + w*(iy*iscl+dy)];
+			}
+
+			ras[ix+ws*iy] = int(sum / n);
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Paint --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -138,6 +165,7 @@ static void Paint(
 	uint32					ws,
 	uint32					hs,
 	const vector<ScpTile>	&vTile,
+	int						iscl,
 	int						rmvedges,
 	FILE*					flog )
 {
@@ -154,10 +182,23 @@ static void Paint(
 
 		ScanLims( x0, xL, y0, yL, ws, hs, vTile[i].t2g, w, h );
 
+		InvertTrans( inv, vTile[i].t2g );
+
+		if( iscl > 1 ) {	// Scaling down
+
+			// actually downsample src image
+			Downsample( src, w, h, iscl );
+			w	/= iscl;
+			h	/= iscl;
+
+			// and point at the new pixels
+			TForm	A, t;
+			A.NUSetScl( 1.0/iscl );
+			MultiplyTrans( inv, A, t = inv );
+		}
+
 		wL = w - (rmvedges != 0);
 		hL = h - (rmvedges != 0);
-
-		InvertTrans( inv, vTile[i].t2g );
 
 		for( int iy = y0; iy < yL; ++iy ) {
 
@@ -219,7 +260,7 @@ uint8* Scape(
 
 	if( scp ) {
 		memset( scp, bkval, ns );
-		Paint( scp, ws, hs, vTile, rmvedges, flog );
+		Paint( scp, ws, hs, vTile, int(1/scale), rmvedges, flog );
 	}
 	else
 		fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );
