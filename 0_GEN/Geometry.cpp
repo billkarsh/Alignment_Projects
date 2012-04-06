@@ -484,7 +484,7 @@ void ErodeMap1Pix( vector<uint8> &map, int w, int h )
 /* --------------------------------------------------------------- */
 
 // Compile a pixel list from a polygon.
-// Polygon is defined by the point in vector Pgon,
+// Polygon is defined by the points in vector Pgon,
 // with the end point wrapping around.
 //
 void PixelListFromPolygon(
