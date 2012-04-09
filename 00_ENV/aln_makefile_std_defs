@@ -84,9 +84,19 @@ LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_PNG) $(STATICLIBS_ZLB) $(STATICLIBS_
 
 CC := g++
 
-# O3:		optimizer level 3 (max)
+# O3:					optimizer level 3 (max)
 
-CFLAGS := -O3
+# The following optimizations allow a developer to make classes with methods that
+# are used in some applications and not others. As long as the extra functionality
+# is never referenced in a given application, it will be stripped out.
+
+# fdata-sections:		separate data symbols (for linker removal)
+# ffunction-sections:	separate func symbols (for linker removal)
+# -Wl,XXX:				XXX is a linker option
+# --gc-sections:		garbage-collect unreferenced input sections
+# --strip-all:			omit symbols from output (makes smaller exe)
+
+CFLAGS := -O3 -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,--strip-all
 
 OUTPUT = -o $(PATH_OUT)/$@
 
