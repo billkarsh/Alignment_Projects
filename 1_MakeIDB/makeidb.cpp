@@ -32,13 +32,9 @@
 
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"Disk.h"
 #include	"File.h"
-#include	"ImageIO.h"
-#include	"CTForm.h"
-
-#include	"tinyxml.h"
+#include	"CTileSet.h"
 
 
 /* --------------------------------------------------------------- */
@@ -49,33 +45,16 @@
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class Picture {
-
-public:
-	string	fname;	// file name
-	int		z;		// Z layer
-	int		id;		// inlayer id
-	TForm	tr;		// local to global
-
-public:
-	Picture()	{id = -1;};
-};
-
 /* --------------------------------------------------------------- */
 /* cArgs_idb ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 class cArgs_idb {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
-
 public:
 	char	*infile,
-			*outdir;
+			*outdir,
+			*pat;
 	int		zmin,
 			zmax;
 	bool	Simple,
@@ -86,6 +65,7 @@ public:
 	{
 		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
+		pat			= "/N";
 		zmin		= 0;
 		zmax		= 32768;
 		Simple		= false;
@@ -93,8 +73,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int DecodeID( const char *name );
 };
 
 /* --------------------------------------------------------------- */
@@ -103,9 +81,8 @@ public:
 
 static char			gtopdir[2048];
 static cArgs_idb	gArgs;
+static CTileSet		TS;
 static FILE*		flog	= NULL;
-static uint32		gW		= 0,	// universal pic dims
-					gH		= 0;
 static int			ismrc	= false;
 
 
@@ -135,10 +112,6 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "/N" );
-
 	if( argc < 3 ) {
 		printf( "Usage: makeidb <source-file> [options].\n" );
 		exit( 42 );
@@ -154,7 +127,7 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
 			;
 		else if( GetArgStr( pat, "-p", argv[i] ) )
-			re_id.Set( pat );
+			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -170,219 +143,7 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 	}
 
 	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
 	fflush( flog );
-}
-
-/* --------------------------------------------------------------- */
-/* DecodeID ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-int cArgs_idb::DecodeID( const char *name )
-{
-#if 0
-// (Temporary) hack for Davi with no id in filename
-
-	static int	stile=0;
-	return stile++;
-
-#else
-// Standard method to extract id from filename
-
-	const char	*s = strrchr( name, '/' );
-	int			id;
-
-	if( !s ) {
-		fprintf( flog, "No '/' in [%s].\n", name );
-		exit( 42 );
-	}
-
-	if( !re_id.Decode( id, ++s ) ) {
-		printf( "No tile-id found in [%s].\n", s );
-		exit( 42 );
-	}
-
-	return id;
-
-#endif
-}
-
-/* --------------------------------------------------------------- */
-/* ParseSimple --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ParseSimple( vector<Picture> &vp )
-{
-	FILE	*fp = FileOpenOrDie( gArgs.infile, "r", flog );
-
-/* ---------- */
-/* Scan lines */
-/* ---------- */
-
-	for( ;; ) {
-
-		Picture	p;
-		char	name[2048];
-		int		x, y, z;
-
-		/* ---------- */
-		/* Get a line */
-		/* ---------- */
-
-		if( fscanf( fp, "%s%d%d%d", name, &x, &y, &z ) != 4 )
-			break;
-
-		if( z > gArgs.zmax )
-			break;
-
-		if( z < gArgs.zmin )
-			continue;
-
-		/* ---------------------- */
-		/* Read actual dimensions */
-		/* ---------------------- */
-
-		if( !gW ) {
-
-			uint8 *ras = Raster8FromAny( name, gW, gH, flog );
-
-			if( !ras || !gW ) {
-				fprintf( flog, "Error loading [%s].\n", name );
-				exit( 42 );
-			}
-
-			RasterFree( ras );
-		}
-
-		/* ----------------- */
-		/* Set picture entry */
-		/* ----------------- */
-
-		p.fname	= name;
-		p.z		= z;
-		p.id	= gArgs.DecodeID( name );
-		p.tr.SetXY( x, y );
-
-		vp.push_back( p );
-	}
-
-/* ----- */
-/* Close */
-/* ----- */
-
-	fclose( fp );
-}
-
-/* --------------------------------------------------------------- */
-/* ParseTrakEM2 -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ParseTrakEM2( vector<Picture> &vp )
-{
-/* ------------- */
-/* Load document */
-/* ------------- */
-
-	TiXmlDocument	doc( gArgs.infile );
-	bool			loadOK = doc.LoadFile();
-
-	if( !loadOK ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	layer = hDoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
-
-/* -------------- */
-/* For each layer */
-/* -------------- */
-
-	for( ; layer; layer = layer->NextSiblingElement() ) {
-
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
-
-		int	z = atoi( layer->Attribute( "z" ) );
-
-		if( z > gArgs.zmax )
-			break;
-
-		if( z < gArgs.zmin )
-			continue;
-
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-
-		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			Picture		p;
-			const char	*name = ptch->Attribute( "file_path" );
-
-			/* ---- */
-			/* Dims */
-			/* ---- */
-
-			if( !gW ) {
-
-				uint8 *ras = Raster8FromAny( name, gW, gH, flog );
-
-				if( !ras || !gW ) {
-					fprintf( flog, "Error loading [%s].\n", name );
-					exit( 42 );
-				}
-
-				RasterFree( ras );
-			}
-
-			/* ----------------- */
-			/* Set picture entry */
-			/* ----------------- */
-
-			p.fname	= name;
-			p.z		= z;
-			p.id	= gArgs.DecodeID( name );
-
-			p.tr.ScanTrackEM2( ptch->Attribute( "transform" ) );
-
-			vp.push_back( p );
-		}
-	}
-}
-
-/* --------------------------------------------------------------- */
-/* Sort_z_inc ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static bool Sort_z_inc( const Picture &A, const Picture &B )
-{
-	return A.z < B.z || (A.z == B.z && A.id < B.id);
 }
 
 /* --------------------------------------------------------------- */
@@ -408,13 +169,16 @@ static void WriteImageparamsFile()
 {
 	char	name[2048];
 	FILE	*f;
+	int		w, h;
+
+	TS.GetTileDims( w, h );
 
 	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
 
 	f = FileOpenOrDie( name, "w", flog );
 
 	fprintf( f, "IDBPATH %s\n", gtopdir );
-	fprintf( f, "IMAGESIZE %d %d\n", gW, gH );
+	fprintf( f, "IMAGESIZE %d %d\n", w, h );
 
 	fclose( f );
 }
@@ -472,37 +236,6 @@ static void WriteReportFile()
 }
 
 /* --------------------------------------------------------------- */
-/* GetLayerLimits ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-// Given starting index i0, which selects a layer z, set iN to be
-// one beyond the highest index of a picture having same z. This
-// makes loop limits [i0,iN) exclusive.
-//
-// If i0 or iN are out of bounds, both are set to -1.
-//
-static void GetLayerLimits(
-	const vector<Picture>	&vp,
-	int						&i0,
-	int						&iN )
-{
-	int	np = vp.size();
-
-	if( i0 < 0 || i0 >= np ) {
-
-		i0 = -1;
-		iN = -1;
-	}
-	else {
-
-		int	Z = vp[i0].z;
-
-		for( iN = i0 + 1; iN < np && vp[iN].z == Z; ++iN )
-			;
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* CreateLayerDir ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -524,11 +257,7 @@ static void CreateLayerDir( char *lyrdir, int L )
 // Write TileToImage.txt for this layer.
 // Each row gives {tile, global-Tr, image path}.
 //
-static void Make_TileToImage(
-	const char				*lyrdir,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
+static void Make_TileToImage( const char *lyrdir, int is0, int isN )
 {
 // Open file
 
@@ -552,13 +281,13 @@ static void Make_TileToImage(
 
 		for( int i = is0; i < isN; ++i ) {
 
-			const Picture&	P = vp[i];
-			const double*	T = P.tr.t;
+			const CUTile&	U = TS.vtil[i];
+			const double*	T = U.T.t;
 
 			fprintf( f,
 				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
-				P.id, T[0], T[1], T[2], T[3], T[4], T[5],
-				P.fname.c_str() );
+				U.id, T[0], T[1], T[2], T[3], T[4], T[5],
+				U.name.c_str() );
 		}
 	}
 	else {
@@ -567,20 +296,20 @@ static void Make_TileToImage(
 
 		char	nmrcpath[2048];
 
-		sprintf( nmrcpath, "%s/%d/nmrc", gtopdir, vp[is0].z );
+		sprintf( nmrcpath, "%s/%d/nmrc", gtopdir, TS.vtil[is0].z );
 		DskCreateDir( nmrcpath, flog );
 
 		// write the entries
 
 		for( int i = is0; i < isN; ++i ) {
 
-			const Picture&	P = vp[i];
-			const double*	T = P.tr.t;
+			const CUTile&	U = TS.vtil[i];
+			const double*	T = U.T.t;
 
 			fprintf( f,
 				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s/nmrc_%d_%d.png\n",
-				P.id, T[0], T[1], T[2], T[3], T[4], T[5],
-				nmrcpath, P.z, P.id );
+				U.id, T[0], T[1], T[2], T[3], T[4], T[5],
+				nmrcpath, U.z, U.id );
 		}
 	}
 
@@ -596,12 +325,11 @@ static void Make_TileToImage(
 // Create corresponding folder=fm (or folder=fmd).
 //
 static void Make_TileToFM(
-	const char				*lyrdir,
-	const char				*file,
-	const char				*folder,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
+	const char	*lyrdir,
+	const char	*file,
+	const char	*folder,
+	int			is0,
+	int			isN )
 {
 // Open file
 
@@ -620,18 +348,18 @@ static void Make_TileToFM(
 
 	char	fmpath[2048];
 
-	sprintf( fmpath, "%s/%d/%s", gtopdir, vp[is0].z, folder );
+	sprintf( fmpath, "%s/%d/%s", gtopdir, TS.vtil[is0].z, folder );
 	DskCreateDir( fmpath, flog );
 
 // Write sorted entries
 
 	for( int i = is0; i < isN; ++i ) {
 
-		const Picture&	P = vp[i];
+		const CUTile&	U = TS.vtil[i];
 
 		fprintf( f,
 			"%d\t%s/%s_%d_%d.png\n",
-			P.id, fmpath, folder, P.z, P.id );
+			U.id, fmpath, folder, U.z, U.id );
 	}
 
 	fclose( f );
@@ -646,11 +374,7 @@ static void Make_TileToFM(
 // This is used only for '-nf' option because these entries
 // all get connected-region count = 1.
 //
-static void Make_fmsame(
-	const char				*lyrdir,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
+static void Make_fmsame( const char *lyrdir, int is0, int isN )
 {
 	char	name[2048];
 	FILE	*f;
@@ -663,15 +387,15 @@ static void Make_fmsame(
 
 	char	fmpath[2048];
 
-	sprintf( fmpath, "%s/%d/fm", gtopdir, vp[is0].z );
+	sprintf( fmpath, "%s/%d/fm", gtopdir, TS.vtil[is0].z );
 
 // FOLDMAP2 entries
 
 	for( int i = is0; i < isN; ++i ) {
 
-		const Picture&	P = vp[i];
+		const CUTile&	U = TS.vtil[i];
 
-		fprintf( f, "FOLDMAP2 %d.%d 1\n", P.z, P.id );
+		fprintf( f, "FOLDMAP2 %d.%d 1\n", U.z, U.id );
 	}
 
 	fclose( f );
@@ -707,11 +431,7 @@ static void ConvertSpaces( char *out, const char *in )
 // Write script to tell program tiny to calculate foldmasks for
 // each tile (and create nmrc image if needed).
 //
-static void Make_MakeFM(
-	const char				*lyrdir,
-	const vector<Picture>	&vp,
-	int						is0,
-	int						isN )
+static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 {
 	char	name[2048];
 	FILE	*f;
@@ -725,7 +445,7 @@ static void Make_MakeFM(
 	fprintf( f, "all: " );
 
 	for( int i = is0; i < isN; ++i )
-		fprintf( f, "fm/fm_%d_%d.png ", vp[is0].z, vp[i].id );
+		fprintf( f, "fm/fm_%d_%d.png ", TS.vtil[is0].z, TS.vtil[i].id );
 
 	fprintf( f, "\n\n" );
 
@@ -733,12 +453,12 @@ static void Make_MakeFM(
 
 	for( int i = is0; i < isN; ++i ) {
 
-		const Picture&	P = vp[i];
+		const CUTile&	U = TS.vtil[i];
 		char dep[2048];
 
-		ConvertSpaces( dep, P.fname.c_str() );
+		ConvertSpaces( dep, U.name.c_str() );
 
-		fprintf( f, "fm/fm_%d_%d.png: %s\n", P.z, P.id, dep );
+		fprintf( f, "fm/fm_%d_%d.png: %s\n", U.z, U.id, dep );
 
 		if( gArgs.NoFolds ) {
 			if( ismrc ) {
@@ -746,14 +466,14 @@ static void Make_MakeFM(
 				"\ttiny %d %d '%s'"
 				" '-nmrc=nmrc/nmrc_%d_%d.png'"
 				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str(),
-				P.z, P.id );
+				U.z, U.id, U.name.c_str(),
+				U.z, U.id );
 			}
 			else {
 				fprintf( f,
 				"\ttiny %d %d '%s'"
 				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str() );
+				U.z, U.id, U.name.c_str() );
 			}
 		}
 		else {
@@ -764,10 +484,10 @@ static void Make_MakeFM(
 				" '-fm=fm/fm_%d_%d.png'"
 				" '-fmd=fmd/fmd_%d_%d.png'"
 				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str(),
-				P.z, P.id,
-				P.z, P.id,
-				P.z, P.id );
+				U.z, U.id, U.name.c_str(),
+				U.z, U.id,
+				U.z, U.id,
+				U.z, U.id );
 			}
 			else {
 				fprintf( f,
@@ -775,9 +495,9 @@ static void Make_MakeFM(
 				" '-fm=fm/fm_%d_%d.png'"
 				" '-fmd=fmd/fmd_%d_%d.png'"
 				" ${EXTRA}\n",
-				P.z, P.id, P.fname.c_str(),
-				P.z, P.id,
-				P.z, P.id );
+				U.z, U.id, U.name.c_str(),
+				U.z, U.id,
+				U.z, U.id );
 			}
 		}
 	}
@@ -791,34 +511,34 @@ static void Make_MakeFM(
 
 // Loop over layers, creating all: subdirs, scripts, work files.
 //
-static void ForEachLayer( const vector<Picture> &vp )
+static void ForEachLayer()
 {
 	int		is0, isN;
 
-	GetLayerLimits( vp, is0 = 0, isN );
+	TS.GetLayerLimits( is0 = 0, isN );
 
 	while( isN != -1 ) {
 
 		char	lyrdir[2048];
 
-		CreateLayerDir( lyrdir, vp[is0].z );
+		CreateLayerDir( lyrdir, TS.vtil[is0].z );
 
-		Make_TileToImage( lyrdir, vp, is0, isN );
+		Make_TileToImage( lyrdir, is0, isN );
 
 		if( gArgs.NoFolds ) {
 
 			if( ismrc )
-				Make_MakeFM( lyrdir, vp, is0, isN );
+				Make_MakeFM( lyrdir, is0, isN );
 			else
-				Make_fmsame( lyrdir, vp, is0, isN );
+				Make_fmsame( lyrdir, is0, isN );
 		}
 		else {
-			Make_TileToFM( lyrdir, "TileToFM",  "fm",  vp, is0, isN );
-			Make_TileToFM( lyrdir, "TileToFMD", "fmd", vp, is0, isN );
-			Make_MakeFM( lyrdir, vp, is0, isN );
+			Make_TileToFM( lyrdir, "TileToFM",  "fm",  is0, isN );
+			Make_TileToFM( lyrdir, "TileToFMD", "fmd", is0, isN );
+			Make_MakeFM( lyrdir, is0, isN );
 		}
 
-		GetLayerLimits( vp, is0 = isN, isN );
+		TS.GetLayerLimits( is0 = isN, isN );
 	}
 }
 
@@ -828,35 +548,34 @@ static void ForEachLayer( const vector<Picture> &vp )
 
 int main( int argc, char* argv[] )
 {
-	vector<Picture>	vp;
-
 /* ------------------ */
 /* Parse command line */
 /* ------------------ */
 
 	gArgs.SetCmdLine( argc, argv );
 
+	TS.SetLogFile( flog );
+	TS.SetDecoderPat( gArgs.pat );
+
 /* ---------------- */
 /* Read source file */
 /* ---------------- */
 
 	if( gArgs.Simple )
-		ParseSimple( vp );
+		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
 	else
-		ParseTrakEM2( vp );
+		TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
 
-	fprintf( flog, "Got %d images.\n", vp.size() );
+	fprintf( flog, "Got %d images.\n", TS.vtil.size() );
 
-	if( !vp.size() )
+	if( !TS.vtil.size() )
 		goto exit;
 
-	ismrc = strstr( vp[0].fname.c_str(), ".mrc" ) != NULL;
+	TS.SetTileDimsFromImageFile();
 
-/* ------------------------- */
-/* Sort tiles by layer, tile */
-/* ------------------------- */
+	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
-	sort( vp.begin(), vp.end(), Sort_z_inc );
+	TS.SortAll_z_id();
 
 /* --------------- */
 /* Create dir tree */
@@ -871,7 +590,7 @@ int main( int argc, char* argv[] )
 		WriteReportFile();
 	}
 
-	ForEachLayer( vp );
+	ForEachLayer();
 
 /* ---- */
 /* Done */

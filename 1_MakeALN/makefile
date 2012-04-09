@@ -12,7 +12,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # defines
 # =======
 
-SYMBOLS_MYPROJ :=
+SYMBOLS_MYPROJ := -DTIXML_USE_STL 
 
 # =======
 # sources
@@ -29,7 +29,8 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp \
-	Maths.cpp Geometry.cpp CPoint.cpp CTForm.cpp
+	CTileSet.cpp Maths.cpp Geometry.cpp \
+	CPoint.cpp CTForm.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
