@@ -258,10 +258,12 @@ static void WriteSub8File()
 
 	fprintf( f, "foreach i (`seq $1 $last`)\n" );
 	fprintf( f, "\techo $i\n" );
-	fprintf( f, "\tcd $i\n" );
-	fprintf( f, "\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 8 EXTRA='\"\"'\n" );
-	fprintf( f, "\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 8 EXTRA='\"\"'\n" );
-	fprintf( f, "\tcd ..\n" );
+	fprintf( f, "\tif (-d $i) then\n" );
+	fprintf( f, "\t\tcd $i\n" );
+	fprintf( f, "\t\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tendif\n" );
 	fprintf( f, "end\n" );
 
 	fclose( f );
@@ -295,10 +297,12 @@ static void WriteSub4File()
 
 	fprintf( f, "foreach i (`seq $1 $last`)\n" );
 	fprintf( f, "\techo $i\n" );
-	fprintf( f, "\tcd $i\n" );
-	fprintf( f, "\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 4 EXTRA='\"\"'\n" );
-	fprintf( f, "\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 4 EXTRA='\"\"'\n" );
-	fprintf( f, "\tcd ..\n" );
+	fprintf( f, "\tif (-d $i) then\n" );
+	fprintf( f, "\t\tcd $i\n" );
+	fprintf( f, "\t\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 4 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 4 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tendif\n" );
 	fprintf( f, "end\n" );
 
 	fclose( f );
