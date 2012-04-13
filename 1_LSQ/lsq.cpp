@@ -2935,10 +2935,10 @@ static void WriteTrakEM(
 	}
 
 	if( nr > 0 )
-		fprintf( f,"\t\t</t2_layer>\n");
+		fprintf( f, "\t\t</t2_layer>\n" );
 
-	fprintf( f, "\t</t2_layer_set>\n");
-	fprintf( f, "</trakem2>\n");
+	fprintf( f, "\t</t2_layer_set>\n" );
+	fprintf( f, "</trakem2>\n" );
 	fclose( f );
 }
 

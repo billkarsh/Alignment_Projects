@@ -237,7 +237,7 @@ static void Make_TileToImage( const char *lyrdir, int is0, int isN )
 
 	vector<int>	order;
 
-	TS.GetOrder_id( order, is0, isN );
+	isN = TS.GetOrder_id( order, is0, isN );
 
 // Open file
 
