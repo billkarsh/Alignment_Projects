@@ -34,8 +34,8 @@ public:
 uint8* Scape(
 	uint32			&ws,
 	uint32			&hs,
-	double			&w0,
-	double			&h0,
+	double			&x0,
+	double			&y0,
 	vector<ScpTile>	&vTile,
 	int				wi,
 	int				hi,

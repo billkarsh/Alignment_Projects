@@ -12,8 +12,8 @@
 static void AdjustBounds(
 	uint32			&ws,
 	uint32			&hs,
-	double			&w0,
-	double			&h0,
+	double			&x0,
+	double			&y0,
 	vector<ScpTile>	&vTile,
 	int				wi,
 	int				hi,
@@ -52,10 +52,10 @@ static void AdjustBounds(
 
 // scale, and expand out to integer bounds
 
-	w0 = floor( xmin * scale );
-	h0 = floor( ymin * scale );
-	ws = (int)ceil( (xmax + 1) * scale - w0 );
-	hs = (int)ceil( (ymax + 1) * scale - h0 );
+	x0 = xmin * scale;
+	y0 = ymin * scale;
+	ws = (int)ceil( (xmax - xmin + 1) * scale );
+	hs = (int)ceil( (ymax - xmin + 1) * scale );
 
 // ensure dims divisible by szmult
 
@@ -78,7 +78,7 @@ static void AdjustBounds(
 		TForm	&T = vTile[i].t2g;
 
 		MultiplyTrans( T, A, t = T );
-		T.AddXY( -w0, -h0 );
+		T.AddXY( -x0, -y0 );
 	}
 }
 
@@ -227,7 +227,7 @@ static void Paint(
 
 // Allocate and return pointer to new montage built by painting
 // the listed tiles, and return its dims (ws, hs), and the top-left
-// of the bounding box (w0, h0).
+// of the bounding box (x0, y0).
 //
 // Return NULL if unsuccessful.
 //
@@ -242,8 +242,8 @@ static void Paint(
 uint8* Scape(
 	uint32			&ws,
 	uint32			&hs,
-	double			&w0,
-	double			&h0,
+	double			&x0,
+	double			&y0,
 	vector<ScpTile>	&vTile,
 	int				wi,
 	int				hi,
@@ -253,7 +253,7 @@ uint8* Scape(
 	int				rmvedges,
 	FILE*			flog )
 {
-	AdjustBounds( ws, hs, w0, h0, vTile, wi, hi, scale, szmult );
+	AdjustBounds( ws, hs, x0, y0, vTile, wi, hi, scale, szmult );
 
 	int		ns		= ws * hs;
 	uint8	*scp	= (uint8*)RasterAlloc( ns );
