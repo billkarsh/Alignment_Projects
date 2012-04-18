@@ -3,7 +3,9 @@
 #include	"PipeFiles.h"
 
 #include	"CTileSet.h"
+#include	"Disk.h"
 #include	"File.h"
+#include	"TrakEM2_DTD.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Geometry.h"
@@ -221,9 +223,10 @@ void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 				const Til2Img&	E = t2i[i];
 				CUTile			til;
 
-				til.z	= z;
-				til.id	= E.tile;
-				til.T	= E.T;
+				til.name	= E.path;
+				til.z		= z;
+				til.id		= E.tile;
+				til.T		= E.T;
 
 				vtil.push_back( til );
 			}
@@ -371,7 +374,7 @@ void CTileSet::SortAll_z_r()
 
 // For each layer...
 
-	int		is0, isN;
+	int	is0, isN;
 
 	GetLayerLimits( is0 = 0, isN );
 
@@ -398,7 +401,9 @@ void CTileSet::SortAll_z_r()
 // Size and fill caller's order vector with indices of tiles
 // in layer [is0,isN) and in order of tile id.
 //
-void CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
+// Return updated loop limit (isN - is0).
+//
+int CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
 {
 	isN -= is0;
 
@@ -410,6 +415,8 @@ void CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
 	_Til = &vtil[0];
 
 	sort( order.begin(), order.end(), Sort_id_inc );
+
+	return isN;
 }
 
 /* --------------------------------------------------------------- */
@@ -443,6 +450,32 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 }
 
 /* --------------------------------------------------------------- */
+/* BoundsPlus1 --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Update existing bounds B by including tile i.
+//
+void CTileSet::BoundsPlus1( DBox &B, int i )
+{
+	vector<Point>	cnr( 4 );
+
+	cnr[0] = Point(  0.0, 0.0 );
+	cnr[1] = Point( gW-1, 0.0 );
+	cnr[2] = Point( gW-1, gH-1 );
+	cnr[3] = Point(  0.0, gH-1 );
+
+	vtil[i].T.Transform( cnr );
+
+	for( int k = 0; k < 4; ++k ) {
+
+		B.L = fmin( B.L, cnr[k].x );
+		B.R = fmax( B.R, cnr[k].x );
+		B.B = fmin( B.B, cnr[k].y );
+		B.T = fmax( B.T, cnr[k].y );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* LayerBounds --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -453,26 +486,46 @@ void CTileSet::LayerBounds( DBox &B, int is0, int isN )
 	B.L = BIGD, B.R = -BIGD,
 	B.B = BIGD, B.T = -BIGD;
 
-	for( int i = is0; i < isN; ++i ) {
+	for( int i = is0; i < isN; ++i )
+		BoundsPlus1( B, i );
+}
 
-		const CUTile&	U = vtil[i];
-		vector<Point>	cnr( 4 );
+/* --------------------------------------------------------------- */
+/* AllBounds ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point(  0.0, gH-1 );
+void CTileSet::AllBounds( DBox &B )
+{
+	B.L = BIGD, B.R = -BIGD,
+	B.B = BIGD, B.T = -BIGD;
 
-		U.T.Transform( cnr );
+	int	nt = vtil.size();
 
-		for( int k = 0; k < 4; ++k ) {
+	for( int i = 0; i < nt; ++i )
+		BoundsPlus1( B, i );
+}
 
-			B.L = fmin( B.L, cnr[k].x );
-			B.R = fmax( B.R, cnr[k].x );
-			B.B = fmin( B.B, cnr[k].y );
-			B.T = fmax( B.T, cnr[k].y );
-		}
-	}
+/* --------------------------------------------------------------- */
+/* Reframe ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Given result of AllBounds, calculate a neat BBox for whole
+// stack and translate all transforms to reference new origin.
+//
+void CTileSet::Reframe( DBox &B )
+{
+	int	xfl = int(floor( B.L )),
+		yfl = int(floor( B.B ));
+
+	B.L -= xfl;
+	B.R -= xfl;
+	B.B -= yfl;
+	B.T -= yfl;
+
+	int	nt = vtil.size();
+
+	for( int i = 0; i < nt; ++i )
+		vtil[i].T.AddXY( -xfl, -yfl );
 }
 
 /* --------------------------------------------------------------- */
@@ -674,6 +727,179 @@ double CTileSet::ABOlap( int a, int b )
 // Return area
 
 	return AreaOfPolygon( pgon ) / (gW * gH);
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTrakEM2Layer --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CTileSet::WriteTrakEM2Layer(
+	FILE*	f,
+	int		&oid,
+	int		type,
+	int		is0,
+	int		isN )
+{
+// Layer prologue
+
+	fprintf( f,
+	"\t\t<t2_layer\n"
+	"\t\t\toid=\"%d\"\n"
+	"\t\t\tz=\"%d\"\n"
+	"\t\t>\n",
+	oid++, vtil[is0].z );
+
+// Tiles
+
+	vector<int> order;
+
+	isN = GetOrder_id( order, is0, isN );
+
+	for( int i = 0; i < isN; ++i ) {
+
+		const CUTile&	U = vtil[order[i]];
+		const char		*name, *n1, *n2;
+
+		// title from name
+		name	= U.name.c_str();
+		n1		= strrchr( name, '/' );
+		n1		= (n1 ? n1 + 1 : name);
+		n2		= strrchr( n1, '.' );
+
+		fprintf( f,
+		"\t\t\t<t2_patch\n"
+		"\t\t\t\toid=\"%d\"\n"
+		"\t\t\t\twidth=\"%d\"\n"
+		"\t\t\t\theight=\"%d\"\n"
+		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
+		"\t\t\t\ttitle=\"%.*s\"\n"
+		"\t\t\t\ttype=\"%d\"\n"
+		"\t\t\t\tfile_path=\"%s\"\n"
+		"\t\t\t\to_width=\"%d\"\n"
+		"\t\t\t\to_height=\"%d\"\n"
+		"\t\t\t/>\n",
+		oid++, gW, gH,
+		U.T.t[0], U.T.t[3], U.T.t[1], U.T.t[4], U.T.t[2], U.T.t[5],
+		n2 - n1, n1, type, name, gW, gH );
+	}
+
+// Layer epilogue
+
+	fprintf( f, "\t\t</t2_layer>\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTrakEM2 -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Tiles must already be sorted by z (subsort doesn't matter).
+//
+// - BBox B previously obtained from AllBounds, Reframe.
+//
+// - Type is an ImagePlus pixel type code:
+//		GRAY8		= 0
+//		GRAY16		= 1
+//		GRAY32		= 2
+//		COLOR_256	= 3
+//		COLOR_RGB	= 4
+//
+void CTileSet::WriteTrakEM2( const char *path, DBox &B, int type )
+{
+// Open file
+
+	FILE	*f = FileOpenOrDie( path, "w" );
+
+// Prologue + bounds
+
+	int	oid = 3;
+
+	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
+
+	TrakEM2WriteDTD( f );
+
+	fprintf( f, "<trakem2>\n" );
+
+	fprintf( f,
+	"\t<project\n"
+	"\t\tid=\"0\"\n"
+	"\t\ttitle=\"Project\"\n"
+	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t/>\n" );
+
+	fprintf( f,
+	"\t<t2_layer_set\n"
+	"\t\toid=\"%d\"\n"
+	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttitle=\"Top level\"\n"
+	"\t\tlayer_width=\"%.2f\"\n"
+	"\t\tlayer_height=\"%.2f\"\n"
+	"\t>\n",
+	oid++, B.R, B.T );
+
+// Layers
+
+	int	is0, isN;
+
+	GetLayerLimits( is0 = 0, isN );
+
+	while( isN != -1 ) {
+
+		WriteTrakEM2Layer( f, oid, type, is0, isN );
+		GetLayerLimits( is0 = isN, isN );
+	}
+
+// Epilogue
+
+	fprintf( f, "\t</t2_layer_set>\n" );
+	fprintf( f, "</trakem2>\n" );
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTileToImage ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Tiles must already be sorted by z (subsort doesn't matter).
+//
+// Write one TileToImage.txt file for given layer.
+//
+void CTileSet::WriteTileToImage( const string &idb, int is0, int isN )
+{
+// Open file
+
+	char	name[2048];
+	FILE	*f;
+	int		len;
+
+	len = sprintf( name, "%s/%d", idb.c_str(), vtil[is0].z );
+	DskCreateDir( name, flog );
+
+	sprintf( name + len, "/TileToImage.txt" );
+
+	f = FileOpenOrDie( name, "w", flog );
+
+// Header
+
+	fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
+
+// Write sorted entries
+
+	vector<int> order;
+
+	isN = GetOrder_id( order, is0, isN );
+
+	for( int i = 0; i < isN; ++i ) {
+
+		const CUTile&	U = vtil[order[i]];
+		const double*	T = U.T.t;
+
+		fprintf( f,
+			"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
+			U.id, T[0], T[1], T[2], T[3], T[4], T[5],
+			U.name.c_str() );
+	}
+
+	fclose( f );
 }
 
 

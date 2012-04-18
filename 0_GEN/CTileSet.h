@@ -76,14 +76,29 @@ public:
 	void SortAll_z_id();
 	void SortAll_z_r();
 
-	void GetOrder_id( vector<int> &order, int is0, int isN );
+	int  GetOrder_id( vector<int> &order, int is0, int isN );
 
 	void GetLayerLimits( int &i0, int &iN );
 
+	void BoundsPlus1( DBox &B, int i );
 	void LayerBounds( DBox &B, int is0, int isN );
+	void AllBounds( DBox &B );
+	void Reframe( DBox &B );
+
 	void LayerAssignR( int is0, int isN, const DBox &B );
 
 	double ABOlap( int a, int b );
+
+	void WriteTrakEM2Layer(
+		FILE*	f,
+		int		&oid,
+		int		type,
+		int		is0,
+		int		isN );
+
+	void WriteTrakEM2( const char *path, DBox &B, int type );
+
+	void WriteTileToImage( const string &idb, int is0, int isN );
 };
 
 
