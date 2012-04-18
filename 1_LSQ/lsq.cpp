@@ -2677,15 +2677,6 @@ static void Bounds(
 	xmin, xmax, ymin, ymax );
 
 // Translate all transforms to put global origin at ~(0,0).
-// An integer change makes layer-to-layer alignment easier.
-
-	int	xfl = int(floor( xmin )),
-		yfl = int(floor( ymin ));
-
-	xmin -= xfl;
-	xmax -= xfl;
-	ymin -= yfl;
-	ymax -= yfl;
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -2693,10 +2684,15 @@ static void Bounds(
 
 		if( j >= 0 ) {
 			j		*= 6;
-			X[j+2]	-= xfl;
-			X[j+5]	-= yfl;
+			X[j+2]	-= xmin;
+			X[j+5]	-= ymin;
 		}
 	}
+
+	xmax = ceil( xmax - xmin + 1 );
+	ymax = ceil( ymax - ymin + 1 );
+	xmin = 0;
+	ymin = 0;
 
 // Open GNUPLOT files for debugging
 

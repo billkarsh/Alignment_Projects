@@ -514,18 +514,15 @@ void CTileSet::AllBounds( DBox &B )
 //
 void CTileSet::Reframe( DBox &B )
 {
-	int	xfl = int(floor( B.L )),
-		yfl = int(floor( B.B ));
-
-	B.L -= xfl;
-	B.R -= xfl;
-	B.B -= yfl;
-	B.T -= yfl;
-
 	int	nt = vtil.size();
 
 	for( int i = 0; i < nt; ++i )
-		vtil[i].T.AddXY( -xfl, -yfl );
+		vtil[i].T.AddXY( -B.L, -B.B );
+
+	B.R = ceil( B.R - B.L + 1 );
+	B.T = ceil( B.T - B.B + 1 );
+	B.L = 0;
+	B.B = 0;
 }
 
 /* --------------------------------------------------------------- */
