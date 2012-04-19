@@ -34,6 +34,13 @@ typedef struct TSAux {
 	TForm	inv;
 } TSAux;
 
+
+typedef struct TSClick {
+	int		Az, Bz;
+	Point	A1, B1,
+			A2, B2;
+} TSClick;
+
 /* --------------------------------------------------------------- */
 /* Class --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -80,6 +87,11 @@ public:
 
 	void GetLayerLimits( int &i0, int &iN );
 
+	void ReadClicksFile( vector<TSClick> &clk, const char *path );
+	TForm TFormFromClick( const TSClick &clk );
+	void ApplyClicksFromAToTop( const TSClick &clk );
+	void ApplyClicks( const char *path );
+
 	void BoundsPlus1( DBox &B, int i );
 	void LayerBounds( DBox &B, int is0, int isN );
 	void AllBounds( DBox &B );
@@ -96,7 +108,8 @@ public:
 		int		is0,
 		int		isN );
 
-	void WriteTrakEM2( const char *path, DBox &B, int type );
+	void WriteTrakEM2( const char *path, DBox &B, int type = -1 );
+	void WriteTrakEM2_EZ( const char *path, int type = -1 );
 
 	void WriteTileToImage( const string &idb, int is0, int isN );
 };

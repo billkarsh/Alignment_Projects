@@ -227,6 +227,7 @@ private:
 
 public:
 	// xml_type values: these are ImagePlus codes:
+	// AUTO			= -1
 	// GRAY8		= 0
 	// GRAY16		= 1
 	// GRAY32		= 2
@@ -270,7 +271,7 @@ public:
 		unite_layer			= -1;
 		ref_layer			= -1;
 		max_pass			= 1;
-		xml_type			= 0;
+		xml_type			= -1;
 		viserr				= 0;
 		strings				= false;
 		make_layer_square	= false;

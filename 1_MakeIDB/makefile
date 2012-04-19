@@ -28,7 +28,7 @@ SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
+	numerical_recipes.cpp mrc.cpp TrakEM2_DTD.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}

@@ -54,7 +54,8 @@ class cArgs_idb {
 public:
 	char	*infile,
 			*outdir,
-			*pat;
+			*pat,
+			*clk;
 	int		zmin,
 			zmax;
 	bool	Simple,
@@ -66,6 +67,7 @@ public:
 		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
 		pat			= "/N";
+		clk			= NULL;
 		zmin		= 0;
 		zmax		= 32768;
 		Simple		= false;
@@ -127,6 +129,8 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
 			;
 		else if( GetArgStr( pat, "-p", argv[i] ) )
+			;
+		else if( GetArgStr( clk, "-k", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -513,7 +517,7 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 //
 static void ForEachLayer()
 {
-	int		is0, isN;
+	int	is0, isN;
 
 	TS.GetLayerLimits( is0 = 0, isN );
 
@@ -576,6 +580,11 @@ int main( int argc, char* argv[] )
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
 	TS.SortAll_z_id();
+
+	if( gArgs.clk ) {
+		TS.ApplyClicks( gArgs.clk );
+		TS.WriteTrakEM2_EZ( "WithClicks.xml" );
+	}
 
 /* --------------- */
 /* Create dir tree */

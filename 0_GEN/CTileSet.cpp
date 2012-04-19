@@ -450,6 +450,110 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 }
 
 /* --------------------------------------------------------------- */
+/* ReadClicksFile ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void CTileSet::ReadClicksFile( vector<TSClick> &clk, const char *path )
+{
+	CLineScan	LS;
+	FILE*		f = FileOpenOrDie( path, "r" );
+
+	while( LS.Get( f ) > 0 ) {
+
+		TSClick	C;
+
+		if( sscanf( LS.line, "%d%d%lf%lf%lf%lf%lf%lf%lf%lf",
+			&C.Az, &C.Bz,
+			&C.A1.x, &C.A1.y, &C.B1.x, &C.B1.y,
+			&C.A2.x, &C.A2.y, &C.B2.x, &C.B2.y ) == 10 ) {
+
+			clk.push_back( C );
+		}
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* TFormFromClick ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+TForm CTileSet::TFormFromClick( const TSClick &clk )
+{
+	double	Adx		= clk.A2.x - clk.A1.x,
+			Ady		= clk.A2.y - clk.A1.y,
+			Bdx		= clk.B2.x - clk.B1.x,
+			Bdy		= clk.B2.y - clk.B1.y,
+			Alen2	= Adx*Adx + Ady*Ady,
+			Blen2	= Bdx*Bdx + Bdy*Bdy,
+			AdotB	= Adx*Bdx + Ady*Bdy,
+			AcrsB	= Adx*Bdy - Ady*Bdx,
+			rads	= acos( AdotB / sqrt( Alen2 * Blen2 ) );
+
+	if( AcrsB < 0 )
+		rads = 2*PI - rads;
+
+	TForm	R;
+
+	CreateCWRot( R, rads*180/PI, clk.A1 );
+	R.AddXY( clk.B1.x - clk.A1.x, clk.B1.y - clk.A1.y );
+
+	return R;
+}
+
+/* --------------------------------------------------------------- */
+/* ApplyClicksFromAToTop ----------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CTileSet::ApplyClicksFromAToTop( const TSClick &clk )
+{
+	TForm	t, R = TFormFromClick( clk );
+	int		is0, isN, nt = vtil.size();
+
+	GetLayerLimits( is0 = 0, isN );
+
+	while( isN != -1 ) {
+
+		if( vtil[is0].z == clk.Az ) {
+
+			for( int i = is0; i < nt; ++i )
+				MultiplyTrans( vtil[i].T, R, t = vtil[i].T );
+
+			break;
+		}
+
+		GetLayerLimits( is0 = isN, isN );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* ApplyClicks --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Tiles must already be sorted by z (subsort doesn't matter).
+//
+// Read clicks file given by path and apply.
+//
+// The file has following format:
+// Az Bz Ax1 Ay1 Bx1 By1 Ax2 Ay2 Bx2 By2
+//
+// That is, each line specifies a pair of points {A1,A2} on layer
+// Az, and a matched pair of points {B1,B2} on BELOW layer Bz;
+// again, Bz < Az.
+//
+void CTileSet::ApplyClicks( const char *path )
+{
+	vector<TSClick>	clk;
+
+	ReadClicksFile( clk, "clicks.txt" );
+
+	int	nc = clk.size();
+
+	for( int i = nc - 1; i >= 0; --i )
+		ApplyClicksFromAToTop( clk[i] );
+}
+
+/* --------------------------------------------------------------- */
 /* BoundsPlus1 --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -794,6 +898,7 @@ void CTileSet::WriteTrakEM2Layer(
 // - BBox B previously obtained from AllBounds, Reframe.
 //
 // - Type is an ImagePlus pixel type code:
+//		AUTO		= -1
 //		GRAY8		= 0
 //		GRAY16		= 1
 //		GRAY32		= 2
@@ -850,6 +955,29 @@ void CTileSet::WriteTrakEM2( const char *path, DBox &B, int type )
 	fprintf( f, "\t</t2_layer_set>\n" );
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTrakEM2_EZ ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Tiles must already be sorted by z (subsort doesn't matter).
+//
+// - Type is an ImagePlus pixel type code:
+//		AUTO		= -1
+//		GRAY8		= 0
+//		GRAY16		= 1
+//		GRAY32		= 2
+//		COLOR_256	= 3
+//		COLOR_RGB	= 4
+//
+void CTileSet::WriteTrakEM2_EZ( const char *path, int type )
+{
+	DBox	B;
+
+	AllBounds( B );
+	Reframe( B );
+	WriteTrakEM2( path, B, type );
 }
 
 /* --------------------------------------------------------------- */
