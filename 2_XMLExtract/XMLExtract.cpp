@@ -1,9 +1,12 @@
 //
-// Keep only TrakEM2 layers in given z range.
+// Keep only TrakEM2 layers in given z range
+// and given lrbt box.
 //
 
 #include	"Cmdline.h"
 #include	"File.h"
+#include	"GenDefs.h"
+#include	"CTForm.h"
 #include	"TrakEM2_UTL.h"
 
 
@@ -22,8 +25,9 @@
 class CArgs_xml {
 
 public:
-	char	*infile;
-	int		zmin, zmax;
+	vector<double>	lrbt;		// if not empty, forced bbox
+	char			*infile;
+	int				zmin, zmax;
 
 public:
 	CArgs_xml()
@@ -86,6 +90,13 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
+		else if( GetArgList( lrbt, "-lrbt=", argv[i] ) ) {
+
+			if( 4 != lrbt.size() ) {
+				printf( "Bad format in -lrbt [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -119,6 +130,7 @@ static void Extract()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
+	TiXmlNode		*lyrset;
 	TiXmlElement	*layer;
 
 	if( !doc.FirstChild() ) {
@@ -126,10 +138,11 @@ static void Extract()
 		exit( 42 );
 	}
 
-	layer = hdoc.FirstChild( "trakem2" )
+	lyrset = hdoc.FirstChild( "trakem2" )
 				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
+				.ToNode();
+
+	layer = lyrset->FirstChild( "t2_layer" )->ToElement();
 
 	if( !layer ) {
 		fprintf( flog, "No t2_layer [%s].\n", gArgs.infile );
@@ -140,10 +153,13 @@ static void Extract()
 /* Kill layers outside range */
 /* ------------------------- */
 
-	TiXmlNode		*lyrset = layer->Parent();
 	TiXmlElement	*next;
 
 	for( ; layer; layer = next ) {
+
+		/* ---------------- */
+		/* Layer in bounds? */
+		/* ---------------- */
 
 		// next layer0 before deleting anything
 		next = layer->NextSiblingElement();
@@ -152,6 +168,54 @@ static void Extract()
 
 		if( z < gArgs.zmin || z > gArgs.zmax )
 			lyrset->RemoveChild( layer );
+
+		/* --------------- */
+		/* Tile in bounds? */
+		/* --------------- */
+
+		if( !gArgs.lrbt.size() )
+			continue;
+
+		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+		TiXmlElement*	pnext;
+
+		for( ; ptch; ptch = pnext ) {
+
+			pnext = ptch->NextSiblingElement();
+
+			vector<Point>	cnr( 4 );
+			TForm			T;
+			DBox			B;
+			int				w, h;
+
+			w = atoi( ptch->Attribute( "width" ) );
+			h = atoi( ptch->Attribute( "height" ) );
+			T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+
+			B.L = BIGD, B.R = -BIGD,
+			B.B = BIGD, B.T = -BIGD;
+
+			cnr[0] = Point( 0.0, 0.0 );
+			cnr[1] = Point( w-1, 0.0 );
+			cnr[2] = Point( w-1, h-1 );
+			cnr[3] = Point( 0.0, h-1 );
+
+			T.Transform( cnr );
+
+			for( int k = 0; k < 4; ++k ) {
+
+				B.L = fmin( B.L, cnr[k].x );
+				B.R = fmax( B.R, cnr[k].x );
+				B.B = fmin( B.B, cnr[k].y );
+				B.T = fmax( B.T, cnr[k].y );
+			}
+
+			if( B.R <= gArgs.lrbt[0] || B.L >= gArgs.lrbt[1] ||
+				B.T <= gArgs.lrbt[2] || B.B >= gArgs.lrbt[3] ) {
+
+				layer->RemoveChild( ptch );
+			}
+		}
 	}
 
 /* ---- */
