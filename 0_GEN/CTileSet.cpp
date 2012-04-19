@@ -514,6 +514,9 @@ void CTileSet::ApplyClicksFromAToTop( const TSClick &clk )
 
 	while( isN != -1 ) {
 
+		if( vtil[is0].z > clk.Az )
+			break;
+
 		if( vtil[is0].z == clk.Az ) {
 
 			for( int i = is0; i < nt; ++i )
