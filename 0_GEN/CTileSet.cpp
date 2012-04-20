@@ -472,6 +472,8 @@ void CTileSet::ReadClicksFile( vector<TSClick> &clk, const char *path )
 	}
 
 	fclose( f );
+
+	sort( clk.begin(), clk.end() );
 }
 
 /* --------------------------------------------------------------- */
@@ -548,11 +550,28 @@ void CTileSet::ApplyClicks( const char *path )
 {
 	vector<TSClick>	clk;
 
-	ReadClicksFile( clk, "clicks.txt" );
+	ReadClicksFile( clk, path );
 
-	int	nc = clk.size();
+	int	cmin,
+		cmax,
+		nc		= clk.size(),
+		zmin	= vtil[0].z,
+		zmax	= vtil[vtil.size() - 1].z;
 
-	for( int i = nc - 1; i >= 0; --i )
+// Find lowest applicable click
+	for( cmin = 0; cmin < nc; ++cmin ) {
+		if( clk[cmin].Bz >= zmin )
+			break;
+	}
+
+// Find highest applicable click
+	for( cmax = nc - 1; cmax >= cmin; --cmax ) {
+		if( clk[cmax].Az <= zmax )
+			break;
+	}
+
+// Apply them top down
+	for( int i = cmax; i >= cmin; --i )
 		ApplyClicksFromAToTop( clk[i] );
 }
 

@@ -39,6 +39,9 @@ typedef struct TSClick {
 	int		Az, Bz;
 	Point	A1, B1,
 			A2, B2;
+
+	bool operator <  (const TSClick &rhs) const
+		{return Az < rhs.Az;};
 } TSClick;
 
 /* --------------------------------------------------------------- */

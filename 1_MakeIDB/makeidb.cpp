@@ -581,9 +581,13 @@ int main( int argc, char* argv[] )
 
 	TS.SortAll_z_id();
 
+	if( gArgs.Simple )
+		TS.WriteTrakEM2_EZ( "PreClicks.xml", 0 );
+
 	if( gArgs.clk ) {
 		TS.ApplyClicks( gArgs.clk );
-		TS.WriteTrakEM2_EZ( "WithClicks.xml" );
+		TS.WriteTrakEM2_EZ( "PostClicks.xml", 0 );
+		exit(1);
 	}
 
 /* --------------- */
