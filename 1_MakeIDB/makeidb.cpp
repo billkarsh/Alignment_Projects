@@ -29,6 +29,12 @@
 //
 // - All entries in TileToXXX files are in tile id order.
 //
+// If output directory (idbname) is unspecified, either by
+// omitting '-d' option entirely, or by using '-d' with no
+// name, then no idb is generated. Rather we write a trackEM2
+// file named 'IDBGenerator.xml' (useful for converting a
+// Rick simple file to XML).
+//
 
 
 #include	"Cmdline.h"
@@ -580,6 +586,20 @@ int main( int argc, char* argv[] )
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
 	TS.SortAll_z_id();
+
+/* ------------------------------- */
+/* Just convert Rick format to xml */
+/* ------------------------------- */
+
+	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) ) {
+
+		TS.WriteTrakEM2_EZ( "IDBGenerator.xml", 0 );
+		goto exit;
+	}
+
+/* --------------------------- */
+/* Diagnostics if using clicks */
+/* --------------------------- */
 
 	if( gArgs.Simple )
 		TS.WriteTrakEM2_EZ( "PreClicks.xml", 0 );
