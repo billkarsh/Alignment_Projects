@@ -31,9 +31,8 @@
 //
 // If output directory (idbname) is unspecified, either by
 // omitting '-d' option entirely, or by using '-d' with no
-// name, then no idb is generated. Rather we write a trackEM2
-// file named 'IDBGenerator.xml' (useful for converting a
-// Rick simple file to XML).
+// name, then no idb is generated. Rather, we write trackEM2
+// generator files.
 //
 
 
@@ -587,19 +586,9 @@ int main( int argc, char* argv[] )
 
 	TS.SortAll_z_id();
 
-/* ------------------------------- */
-/* Just convert Rick format to xml */
-/* ------------------------------- */
-
-	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) ) {
-
-		TS.WriteTrakEM2_EZ( "IDBGenerator.xml", 0 );
-		goto exit;
-	}
-
-/* --------------------------- */
-/* Diagnostics if using clicks */
-/* --------------------------- */
+/* ----------- */
+/* Diagnostics */
+/* ----------- */
 
 	if( gArgs.Simple )
 		TS.WriteTrakEM2_EZ( "PreClicks.xml", 0 );
@@ -607,8 +596,14 @@ int main( int argc, char* argv[] )
 	if( gArgs.clk ) {
 		TS.ApplyClicks( gArgs.clk );
 		TS.WriteTrakEM2_EZ( "PostClicks.xml", 0 );
-		exit(1);
 	}
+
+/* ----------------------- */
+/* Just make generator xml */
+/* ----------------------- */
+
+	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) )
+		goto exit;
 
 /* --------------- */
 /* Create dir tree */
