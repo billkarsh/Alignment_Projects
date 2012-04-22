@@ -1,6 +1,9 @@
 //
-// Keep only TrakEM2 layers in given z range
-// and given lrbt box.
+// Keep only TrakEM2 layers in given z range and, if using
+// -lrbt= or -xyr= options, in given XY-box.
+//
+// -lrbt= specifies left,right,bottom,top of a bbox.
+// -xyr=  specifies a box using Xcenter,Ycenter,radius.
 //
 
 #include	"Cmdline.h"
@@ -79,6 +82,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 		exit( 42 );
 	}
 
+	vector<double>	xyr;
+
 	for( int i = 1; i < argc; ++i ) {
 
 		// echo to log
@@ -96,6 +101,19 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 				printf( "Bad format in -lrbt [%s].\n", argv[i] );
 				exit( 42 );
 			}
+		}
+		else if( GetArgList( xyr, "-xyr=", argv[i] ) ) {
+
+			if( 3 != xyr.size() ) {
+				printf( "Bad format in -xyr [%s].\n", argv[i] );
+				exit( 42 );
+			}
+
+			lrbt.resize( 4 );
+			lrbt[0] = xyr[0] - xyr[2];
+			lrbt[1] = xyr[0] + xyr[2];
+			lrbt[2] = xyr[1] - xyr[2];
+			lrbt[3] = xyr[1] + xyr[2];
 		}
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
