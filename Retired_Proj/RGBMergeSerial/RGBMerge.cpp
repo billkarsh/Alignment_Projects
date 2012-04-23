@@ -271,20 +271,20 @@ static char *ChanName( char *buf, const Picture &p, int chn )
 
 static char *RGBName( char *buf, const Picture &p )
 {
-	char	name[256];
-	char	*s;
-	int		len;
+	char		name[256];
+	const char	*p1, *p2;
+	int			len;
 
 // name part
 
-	s = strrchr( p.fname.c_str(), '/' );
-	len = sprintf( name, "%s", s + 1 );
+	p1 = p.fname.c_str();
+	p2 = strrchr( p1, '/' );
+	len = sprintf( name, "%s", p2 + 1 );
 	strcpy( name + len - 5, "RGB.tif" );
 
 // full path
 
-	sprintf( buf, "%.*s_RGB/%s",
-		s - p.fname.c_str(), p.fname.c_str(), name );
+	sprintf( buf, "%.*s_RGB/%s", p2 - p1, p1, name );
 
 	return buf;
 }
@@ -366,13 +366,14 @@ static void Scale1Lyr1Clr(
 
 static void MakeFolder( const Picture &p )
 {
-	char	buf[2048];
-	char	*s;
+	char		buf[2048];
+	const char	*p1, *p2;
 
 // folder path
 
-	s = strrchr( p.fname.c_str(), '/' );
-	sprintf( buf, "%.*s_RGB", s - p.fname.c_str(), p.fname.c_str() );
+	p1 = p.fname.c_str();
+	p2 = strrchr( p1, '/' );
+	sprintf( buf, "%.*s_RGB", p2 - p1, p1 );
 
 // make dir
 

@@ -157,23 +157,4 @@ bool GetArgList( vector<double> &v, const char *pat, char *argv )
 	return ok;
 }
 
-/* --------------------------------------------------------------- */
-/* ExtractFilename ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-const char* ExtractFilename( const char *path )
-{
-	char		buf[2048];
-	const char	*slash, *dot;
-
-	if( !(slash = strrchr( path, '/' )) )
-		slash = path - 1;
-
-	dot = strrchr( path, '.' );
-
-	sprintf( buf, "%.*s", dot - slash - 1, slash + 1 );
-
-	return strdup( buf );
-}
-
 

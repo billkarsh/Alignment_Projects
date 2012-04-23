@@ -134,16 +134,14 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 void CArgs_xml::TopLevel()
 {
-	char	buf[2048];
-	char	*s;
+	char		buf[2048];
+	const char	*s;
 
 // create top directory
 	DskCreateDir( dst, flog );
 
 // copy xml
-	s = strrchr( infile, '/' );
-	if( !s )
-		s = infile;
+	s = FileNamePtr( infile );
 	sprintf( locxml, "%s/%s", dst, s );
 	sprintf( buf, "cp %s %s", infile, locxml );
 	system( buf );

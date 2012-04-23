@@ -290,14 +290,14 @@ static bool InROI( const Picture &p )
 
 static void MakeFolder( const Picture &p )
 {
-	char	buf[2048];
-	char	*s;
+	char		buf[2048];
+	const char	*p1, *p2;
 
 // folder path
 
-	s = strrchr( p.fname.c_str(), '/' );
-	sprintf( buf, "%.*s_%s",
-		s - p.fname.c_str(), p.fname.c_str(), gArgs.tag );
+	p1 = p.fname.c_str();
+	p2 = strrchr( p1, '/' );
+	sprintf( buf, "%.*s_%s", p2 - p1, p1, gArgs.tag );
 
 // make dir
 
@@ -310,12 +310,12 @@ static void MakeFolder( const Picture &p )
 
 static char *OutName( char *buf, const Picture &p )
 {
-	char	*s = strrchr( p.fname.c_str(), '/' );
+	const char	*p1 = p.fname.c_str();
+	const char	*p2 = strrchr( p1, '/' );
 
 // full path
 
-	sprintf( buf, "%.*s_%s%s",
-		s - p.fname.c_str(), p.fname.c_str(), gArgs.tag, s );
+	sprintf( buf, "%.*s_%s%s", p2 - p1, p1, gArgs.tag, p2 );
 
 	return buf;
 }

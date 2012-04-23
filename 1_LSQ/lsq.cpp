@@ -271,7 +271,7 @@ public:
 		unite_layer			= -1;
 		ref_layer			= -1;
 		max_pass			= 1;
-		xml_type			= -1;
+		xml_type			= 0;
 		viserr				= 0;
 		strings				= false;
 		make_layer_square	= false;
@@ -583,15 +583,10 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 
 int CArgs_lsq::TileIDFromName( const char *name )
 {
-	const char	*s = strrchr( name, '/' );
+	const char	*s = FileNamePtr( name );
 	int			id;
 
-	if( !s ) {
-		printf( "No '/' in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	if( !re_id.Decode( id, ++s ) ) {
+	if( !re_id.Decode( id, s ) ) {
 		printf( "No tile-id found in '%s'.\n", s );
 		exit( 42 );
 	}
@@ -2902,11 +2897,10 @@ static void WriteTrakEM(
 
 		// trim trailing quotes and '::'
 		// s = filename only
-		char	buf[2048];
+		char		buf[2048];
 		strcpy( buf, I.GetName() );
-		char	*p = strtok( buf, " ':\n" );
-		char	*s = strrchr( p, '/' );
-		s = (s ? s+1 : p);
+		char		*p = strtok( buf, " ':\n" );
+		const char	*s = FileNamePtr( p );
 
 		// fix origin : undo trimming
 		int		j = I.itr * 6;
@@ -3637,7 +3631,7 @@ static void ViseWriteXML(
 		}
 
 		char		buf[256];
-		const char	*c, *n = I.GetName();
+		const char	*c, *n = FileNamePtr( I.GetName() );
 
 		if( c = strstr( n, "col" ) ) {
 			sprintf( buf, "ve_z%d_id%d_%.*s.png",
@@ -4026,7 +4020,7 @@ void EVL::BuildVise(
 		vector<uint32>	RGB( visePix * visePix, 0xFFD0D0D0 );
 
 		const VisErr	&V = ve[zs[i].i];
-		const char		*c, *n = I.GetName();
+		const char		*c, *n = FileNamePtr( I.GetName() );
 		int				col = 0, row = 0, cam = 0;
 
 		if( c = strstr( n, "col" ) )

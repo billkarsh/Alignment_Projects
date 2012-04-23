@@ -50,15 +50,10 @@ int CTileSet::DecodeID( const char *name )
 #else
 // Standard method to extract id from filename
 
-	const char	*s = strrchr( name, '/' );
+	const char	*s = FileNamePtr( name );
 	int			id;
 
-	if( !s ) {
-		fprintf( flog, "No '/' in [%s].\n", name );
-		exit( 42 );
-	}
-
-	if( !re_id.Decode( id, ++s ) ) {
+	if( !re_id.Decode( id, s ) ) {
 		printf( "No tile-id found in [%s].\n", s );
 		exit( 42 );
 	}
@@ -885,9 +880,8 @@ void CTileSet::WriteTrakEM2Layer(
 
 		// title from name
 		name	= U.name.c_str();
-		n1		= strrchr( name, '/' );
-		n1		= (n1 ? n1 + 1 : name);
-		n2		= strrchr( n1, '.' );
+		n1		= FileNamePtr( name );
+		n2		= FileDotPtr( n1 );
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"

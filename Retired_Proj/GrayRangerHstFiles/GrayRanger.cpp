@@ -129,9 +129,9 @@ void CArgs_gray::SetCmdLine( int argc, char* argv[] )
 
 Picture::Picture( const char* name, int _z )
 {
-	char	*s;
+	const char	*s;
 
-	s = strrchr( name, '/' );
+	s = FileNamePtr( name );
 	s = strchr( s, '_' ) + 1;
 
 	z		= _z;

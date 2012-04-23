@@ -177,13 +177,8 @@ static void GetTF()
 /* Get */
 /* --- */
 
-	char	buf[256];
-	char	*st;
-
-	if( st = strrchr( gArgs.infile, '/' ) )
-		++st;
-	else
-		st = gArgs.infile;
+	char		buf[256];
+	const char	*st = FileNamePtr( gArgs.infile );
 
 	sprintf( buf, "%.*s_TF.txt", strlen( st ) - 4, st );
 

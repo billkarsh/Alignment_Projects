@@ -8,6 +8,7 @@
 //
 
 
+#include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"

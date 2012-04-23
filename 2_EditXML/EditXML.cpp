@@ -125,7 +125,7 @@ static void EditTitleAndPath( TiXmlElement* ptch )
 // now path
 
 	sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-	strcpy( strrchr( buf, '/' ) + 1, ptch->Attribute( "title" ) );
+	strcpy( (char*)FileNamePtr( buf ), ptch->Attribute( "title" ) );
 	ptch->SetAttribute( "file_path", buf );
 }
 

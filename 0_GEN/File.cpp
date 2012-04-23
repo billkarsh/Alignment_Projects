@@ -3,6 +3,7 @@
 #include	"File.h"
 
 #include	<errno.h>
+#include	<string.h>
 
 
 
@@ -33,6 +34,51 @@ FILE *FileOpenOrDie(
 	}
 
 	return f;
+}
+
+/* --------------------------------------------------------------- */
+/* FileNamePtr --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+const char* FileNamePtr( const char *path )
+{
+	const char	*name;
+
+	if( name = strrchr( path, '/' ) )
+		++name;
+	else
+		name = path;
+
+	return name;
+}
+
+/* --------------------------------------------------------------- */
+/* FileDotPtr ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+const char* FileDotPtr( const char *path )
+{
+	const char	*dot;
+
+	if( !(dot = strrchr( path, '.' )) )
+		dot = path + strlen( path );
+
+	return dot;
+}
+
+/* --------------------------------------------------------------- */
+/* FileCloneNamePart --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+char* FileCloneNamePart( const char *path )
+{
+	char		buf[2048];
+	const char	*name	= FileNamePtr( path ),
+				*dot	= FileDotPtr( name );
+
+	sprintf( buf, "%.*s", dot - name, name );
+
+	return strdup( buf );
 }
 
 

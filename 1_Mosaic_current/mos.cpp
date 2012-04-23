@@ -439,10 +439,10 @@ static int FileNameToLayerNumber(
 /* nmrc? */
 /* ----- */
 
-	char	*s = strrchr( fname, '/' );
+	const char	*s = FileNamePtr( fname );
 
-	if( s && !strncmp( s + 1, "nmrc_", 5 ) )
-		return atoi( s + 6 );	// just past '/nmrc_'
+	if( !strncmp( s, "nmrc_", 5 ) )
+		return atoi( s + 5 );
 
 /* ------------------ */
 /* Otherwise use ldir */
@@ -3480,8 +3480,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         // draw the Tile ID in the center of the tile.
         Point	p = Point( w/2, h/2 );
 		images[i].tf[1].Transform( p );
-        const char *fn = strrchr(images[i].GetRName(), '/');  // look backwards for the slash
-        fn = (fn == NULL ? images[i].GetRName() : fn);  // if none, use whole string
+        const char *fn = FileNamePtr( images[i].GetRName() );
         printf( "Draw image %s at %f %f\n", fn, p.x, p.y );
         if( p.x > 0 && p.x < nx-1 && p.y > 0 && p.y < ny-1 )
 			DrawText(&before[0], nx, ny, fn, int(p.x), int(p.y));

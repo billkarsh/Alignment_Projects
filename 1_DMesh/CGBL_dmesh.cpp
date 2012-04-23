@@ -3,6 +3,7 @@
 #include	"CGBL_dmesh.h"
 
 #include	"Cmdline.h"
+#include	"File.h"
 #include	"Debug.h"
 
 
@@ -248,8 +249,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Extract file name as useful label
 
-	A.file = ExtractFilename( A.t2i.path.c_str() );
-	B.file = ExtractFilename( B.t2i.path.c_str() );
+	A.file = FileCloneNamePart( A.t2i.path.c_str() );
+	B.file = FileCloneNamePart( B.t2i.path.c_str() );
 
 	return true;
 }

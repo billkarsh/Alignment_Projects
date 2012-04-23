@@ -1,5 +1,6 @@
 
 
+#include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
@@ -57,12 +58,9 @@ void Pic::LoadPic( const char *path )
 {
 	strcpy( this->path, path );
 
-	const char *s = strrchr( path, '/' );
-	if( s )
-		++s;
-	else
-		s = path;
-	strncpy( name, s, strlen(s) - 4 );
+	const char *s = FileNamePtr( path );
+
+	strncpy( name, s, strlen( s ) - 4 );
 
 	ras	= Raster8FromTif( path, w, h, stdout );
 //----------------

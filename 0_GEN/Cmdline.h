@@ -17,6 +17,4 @@ bool GetArgStr( char* &s, const char *pat, char *argv );
 bool GetArgList( vector<int> &v, const char *pat, char *argv );
 bool GetArgList( vector<double> &v, const char *pat, char *argv );
 
-const char* ExtractFilename( const char *path );
-
 

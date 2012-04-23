@@ -3,8 +3,6 @@
 #pragma once
 
 
-#include	"GenDefs.h"
-
 #include	<semaphore.h>
 #include	<stdio.h>
 

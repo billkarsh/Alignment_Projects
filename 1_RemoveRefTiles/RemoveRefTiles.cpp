@@ -61,10 +61,7 @@ int main( int argc, char **argv )
 
 // set s to point at extension or trailing NULL
 
-	char	*s = strrchr( argv[1], '.' );
-
-	if( !s )
-		s = argv[1] + strlen( argv[1] );
+	const char	*s = FileDotPtr( argv[1] );
 
 // compose outname & open
 

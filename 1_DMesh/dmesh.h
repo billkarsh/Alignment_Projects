@@ -3,6 +3,7 @@
 #pragma once
 
 
+#include	"GenDefs.h"
 #include	"CPixPair.h"
 
 

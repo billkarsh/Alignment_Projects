@@ -3,8 +3,6 @@
 #pragma once
 
 
-#include	"GenDefs.h"
-
 #include	<stdio.h>
 
 #include	<vector>
