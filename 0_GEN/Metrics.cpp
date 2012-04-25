@@ -60,93 +60,33 @@ static bool MeanSqrDiff(
 // Rotate set of points until they occupy the smallest area.
 // (Allows more efficient image-based measurements).
 //
-static void SmallestFootprint(
+// If zero is the best angle, then a pointer to the input vector
+// is returned. If any other angle is better, then (newpts) gets
+// the transformed points and a pointer to newpts is returned.
+//
+static const vector<Point>* SmallestFootprint(
 	vector<Point>			&newpts,
 	const vector<Point>		&pts,
 	const char				*msg,
 	FILE*					flog )
 {
-	int	np = pts.size();
-
-/* --------------------- */
-/* Create region outline */
-/* --------------------- */
-
-// For each y-row get the min and max x-coord.
-
-	DBox			B;
-	vector<Point>	outline;
-
-	BBoxFromPoints( B, pts );
-
-	{
-		int				ny = int(B.T - B.B) + 1;
-		vector<double>	minx( ny, B.R + 1 );
-		vector<double>	maxx( ny, B.L - 1 );
-
-		for( int i = 0; i < np; ++i ) {
-
-			int	yi = int(floor( pts[i].y - B.B ));
-
-			minx[yi] = min( minx[yi], pts[i].x );
-			maxx[yi] = max( maxx[yi], pts[i].x );
-		}
-
-		for( int yi = 0; yi < ny; ++yi ) {
-
-			if( minx[yi] <= maxx[yi] ) {
-
-				outline.push_back( Point( minx[yi], yi + B.B ) );
-				outline.push_back( Point( maxx[yi], yi + B.B ) );
-			}
-		}
-	}
-
-/* --------------- */
-/* Find best angle */
-/* --------------- */
-
-	double	best_area	= (B.R - B.L) * (B.T - B.B);
-	int		best_angle	= 0;
-
-	for( int angle = -45; angle <= 45; ++angle ) {
-
-		if( angle == 0 )
-			continue;
-
-		vector<Point>	P = outline;
-		TForm			T;
-		double			A;
-
-		T.NUSetRot( angle );
-		T.Apply_R_Part( P );
-		BBoxFromPoints( B, P );
-
-		A = (B.R - B.L) * (B.T - B.B);
-
-		if( A < best_area ) {
-
-			best_area	= A;
-			best_angle	= angle;
-		}
-	}
+	DBox	B;
+	int		a = TightestBBox( B, pts );
 
 	fprintf( flog,
 	"Metrics: %s: Smallest footprint deg=%d, area=%f.\n",
-	msg, best_angle, best_area );
+	msg, a, (B.R - B.L) * (B.T - B.B) );
 
-/* ------------------------ */
-/* Transform all the points */
-/* ------------------------ */
-
-	newpts = pts;
-
-	if( best_angle != 0 ) {
+	if( a == 0 )
+		return &pts;
+	else {
 
 		TForm	T;
 
-		T.NUSetRot( best_angle );
-		T.Apply_R_Part( newpts );
+		T.NUSetRot( a );
+		T.Apply_R_Part( newpts = pts );
+
+		return &newpts;
 	}
 }
 
@@ -544,14 +484,18 @@ double EarthMoversMetric(
 /* Make images */
 /* ----------- */
 
-	vector<Point>	P;
 	vector<double>	diff;
 	int				Nx, Ny;
 
-	SmallestFootprint( P, pts, msg, flog );
+	{
+		const vector<Point>	*pbest;
+		vector<Point>		altpts;
 
-	MakeMetricImagesEMM( diff, Nx, Ny,
-		P, av, bv, write_images, msg, flog );
+		pbest = SmallestFootprint( altpts, pts, msg, flog );
+
+		MakeMetricImagesEMM( diff, Nx, Ny,
+			*pbest, av, bv, write_images, msg, flog );
+	}
 
 /* ------- */
 /* Measure */
@@ -616,14 +560,18 @@ double FourierMatch(
 /* Make images */
 /* ----------- */
 
-	vector<Point>	P;
 	vector<double>	i1, i2, diff;
 	int				Nx, Ny;
 
-	SmallestFootprint( P, pts, msg, flog );
+	{
+		const vector<Point>	*pbest;
+		vector<Point>		altpts;
 
-	MakeMetricImagesFFT( i1, i2, diff, Nx, Ny,
-		P, av, bv, write_images, msg, flog );
+		pbest = SmallestFootprint( altpts, pts, msg, flog );
+
+		MakeMetricImagesFFT( i1, i2, diff, Nx, Ny,
+			*pbest, av, bv, write_images, msg, flog );
+	}
 
 /* ----------- */
 /* Image power */

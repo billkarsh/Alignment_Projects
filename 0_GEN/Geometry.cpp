@@ -2,6 +2,7 @@
 
 #include	"Geometry.h"
 #include	"Maths.h"
+#include	"CTForm.h"
 
 
 /* --------------------------------------------------------------- */
@@ -170,6 +171,86 @@ void BoxesFromShifts(
 	B1.R = B2.R - x;
 	B1.B = B2.B - y;
 	B1.T = B2.T - y;
+}
+
+/* --------------------------------------------------------------- */
+/* TightestBBox -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Try all integer angle rotations [-45,45] to determine the
+// orientation of the point set having smallest bbox.
+//
+// Return that bbox and corresponding angle.
+//
+int TightestBBox( DBox &B, const vector<Point> &pts )
+{
+	int	np = pts.size();
+
+/* --------------------- */
+/* Create region outline */
+/* --------------------- */
+
+// For each y-row get the min and max x-coord.
+
+	vector<Point>	outline;
+
+	BBoxFromPoints( B, pts );
+
+	{
+		int				ny = int(B.T - B.B) + 1;
+		vector<double>	minx( ny, B.R + 1 );
+		vector<double>	maxx( ny, B.L - 1 );
+
+		for( int i = 0; i < np; ++i ) {
+
+			int	iy = int(floor( pts[i].y - B.B ));
+
+			minx[iy] = fmin( minx[iy], pts[i].x );
+			maxx[iy] = fmax( maxx[iy], pts[i].x );
+		}
+
+		for( int iy = 0; iy < ny; ++iy ) {
+
+			if( minx[iy] <= maxx[iy] ) {
+
+				outline.push_back( Point( minx[iy], iy + B.B ) );
+				outline.push_back( Point( maxx[iy], iy + B.B ) );
+			}
+		}
+	}
+
+/* --------------- */
+/* Find best angle */
+/* --------------- */
+
+	double	best_area	= (B.R - B.L) * (B.T - B.B);
+	int		best_angle	= 0;
+
+	for( int angle = -45; angle <= 45; ++angle ) {
+
+		if( angle == 0 )
+			continue;
+
+		vector<Point>	P = outline;
+		TForm			T;
+		DBox			box;
+		double			area;
+
+		T.NUSetRot( angle );
+		T.Apply_R_Part( P );
+		BBoxFromPoints( box, P );
+
+		area = (box.R - box.L) * (box.T - box.B);
+
+		if( area < best_area ) {
+
+			B			= box;
+			best_area	= area;
+			best_angle	= angle;
+		}
+	}
+
+	return best_angle;
 }
 
 /* --------------------------------------------------------------- */
