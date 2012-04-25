@@ -91,8 +91,6 @@ public:
 	void Apply_R_Part( Point &p ) const;
 	void Apply_R_Part( vector<Point> &v ) const;
 
-	void RotateAround( Point s, Point tar, double rad );
-
 	void ScanTrackEM2( const char *s );
 
 	void WriteTransform( FILE *f, const char *s ) const;
@@ -107,7 +105,7 @@ public:
 void InvertTrans( TForm &inv, const TForm &t );
 void MultiplyTrans( TForm &r, const TForm &a, const TForm &b );
 void AToBTrans( TForm &atob, const TForm &a, const TForm &b );
-void CreateCWRot( TForm &T, double deg, const Point &pivot );
+void CreateCWRot( TForm &R, double deg, const Point &pivot );
 double RadiansFromAffine( const TForm &a );
 
 

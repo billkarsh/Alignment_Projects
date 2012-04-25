@@ -266,16 +266,8 @@ static void RotatePoints(
 	TForm			&T,
 	double			theta )
 {
-	theta *= PI/180.0;
-
-	double	c	= cos( theta ),
-			s	= sin( theta );
-	TForm	t(	c, -s, 0.0,
-				s,  c, 0.0 );
-
-	T = t;
-
-	t.Transform( pts );
+	T.NUSetRot( theta*PI/180.0 );
+	T.Transform( pts );
 }
 
 

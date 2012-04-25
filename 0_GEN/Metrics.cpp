@@ -94,7 +94,7 @@ static void SmallestFootprint(
 
 		for( int yi = 0; yi < ny; ++yi ) {
 
-			if( minx[yi] < maxx[yi] ) {
+			if( minx[yi] <= maxx[yi] ) {
 
 				outline.push_back( Point( minx[yi], yi + B.B ) );
 				outline.push_back( Point( maxx[yi], yi + B.B ) );
@@ -106,19 +106,20 @@ static void SmallestFootprint(
 /* Find best angle */
 /* --------------- */
 
-	double	best_area	= 1.0E30,
-			best_angle	= 0.0;
+	double	best_area	= (B.R - B.L) * (B.T - B.B);
+	int		best_angle	= 0;
 
 	for( int angle = -45; angle <= 45; ++angle ) {
 
-		double			r = angle * PI/180.0,
-						c = cos( r ),
-						s = sin( r );
+		if( angle == 0 )
+			continue;
+
 		vector<Point>	P = outline;
-		TForm			T( c, -s, 0.0, s, c, 0.0 );
+		TForm			T;
 		double			A;
 
-		T.Transform( P );
+		T.NUSetRot( angle );
+		T.Apply_R_Part( P );
 		BBoxFromPoints( B, P );
 
 		A = (B.R - B.L) * (B.T - B.B);
@@ -126,24 +127,27 @@ static void SmallestFootprint(
 		if( A < best_area ) {
 
 			best_area	= A;
-			best_angle	= r;
+			best_angle	= angle;
 		}
 	}
 
 	fprintf( flog,
-	"Metrics: %s: Smallest footprint rad=%f, deg=%f, area=%f.\n",
-	msg, best_angle, best_angle*180/PI, best_area );
+	"Metrics: %s: Smallest footprint deg=%d, area=%f.\n",
+	msg, best_angle, best_area );
 
 /* ------------------------ */
 /* Transform all the points */
 /* ------------------------ */
 
-	TForm	T(	cos( best_angle ), -sin( best_angle ), 0.0,
-				sin( best_angle ),  cos( best_angle ), 0.0 );
-
 	newpts = pts;
 
-	T.Transform( newpts );
+	if( best_angle != 0 ) {
+
+		TForm	T;
+
+		T.NUSetRot( best_angle );
+		T.Apply_R_Part( newpts );
+	}
 }
 
 /* --------------------------------------------------------------- */

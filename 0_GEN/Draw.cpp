@@ -86,8 +86,8 @@ void DrawCircle(
 	for( int i = 0; i < 100; ++i ) {
 
 		double	theta = i * dt;
-		int		ix = RND(xc + radius*cos(theta));
-		int		iy = RND(yc + radius*sin(theta));
+		int		ix = RND( xc + radius*cos( theta ) );
+		int		iy = RND( yc + radius*sin( theta ) );
 
 		if( 0 <= ix && ix < w && 0 <= iy && iy < h )
 			r[ix + (uint32)w*iy] = 255;

@@ -176,11 +176,7 @@ static void Decomp( const TForm &T, const char *label )
 	double	r = RadiansFromAffine( T );
 	TForm	R, D;
 
-	R.t[0] =
-	R.t[4] = cos( r );
-	R.t[1] = sin( r );
-	R.t[3] = -R.t[1];
-
+	R.NUSetRot( -r );
 	MultiplyTrans( D, R, T );
 
 	printf( "main: Degrees: %g\n", r*180/PI );

@@ -108,13 +108,13 @@ void TForm::NUSetYSkw( double a )
 }
 
 
-// pos r rotates CCW
+// pos r rotates CW
 void TForm::NUSetRot( double r )
 {
 	double	c = cos( r ), s = sin( r );
 
-	t[0] = c;  t[1] = s; t[2] = 0;
-	t[3] = -s; t[4] = c; t[5] = 0;
+	t[0] = c; t[1] = -s; t[2] = 0;
+	t[3] = s; t[4] =  c; t[5] = 0;
 }
 
 
@@ -175,28 +175,6 @@ void TForm::Apply_R_Part( vector<Point> &v ) const
 
 	for( int i = 0; i < N; ++i )
 		Apply_R_Part( v[i] );
-}
-
-/* --------------------------------------------------------------- */
-/* RotateAround -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Fiddle with the rotation, but still map point 's' to point 'tar'
-//
-void TForm::RotateAround( Point s, Point tar, double rad )
-{
-	double	co = cos( rad ), si = sin( rad );
-	double	a = t[0], b = t[1], c = t[3], d = t[4];
-
-	t[0] = a*co    + b*si;
-	t[1] = a*(-si) + b*co;
-	t[3] = c*co    + d*si;
-	t[4] = c*(-si) + d*co;
-
-// now make point s come out where it originally did
-	Point test( s.x, s.y );
-	Transform( test );
-	AddXY( tar.x - test.x, tar.y - test.y );
 }
 
 /* --------------------------------------------------------------- */
@@ -301,16 +279,13 @@ void AToBTrans( TForm &atob, const TForm &a, const TForm &b )
 //
 // That is, A' = piv + R(A-piv) = R(A) + piv - R(piv).
 //
-void CreateCWRot( TForm &T, double deg, const Point &pivot )
+void CreateCWRot( TForm &R, double deg, const Point &pivot )
 {
-	double	r = deg*PI/180, c = cos( r ), s = sin( r );
+	Point	Prot = pivot;
 
-	T.t[0] = c;
-	T.t[1] = -s;
-	T.t[2] = pivot.x - (c*pivot.x - s*pivot.y);
-	T.t[3] = s;
-	T.t[4] = c;
-	T.t[5] = pivot.y - (s*pivot.x + c*pivot.y);
+	R.NUSetRot( deg*PI/180 );
+	R.Apply_R_Part( Prot );
+	R.AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
 }
 
 /* --------------------------------------------------------------- */

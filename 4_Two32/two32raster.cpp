@@ -86,10 +86,11 @@ for(double step=1; step > 0.05; ) {
     int bdir = -1;  // flag to tell what the best direction is
 
     for(int rot = -1; rot<2; rot += 2) {  // try two rotations
-	TForm t2 = t;
-	Point cogt(cog.x, cog.y);
-	t2.Transform( cogt ); // transform the center of gravity
-	t2.RotateAround( cog, cogt, rot*step*PI/180 ); // +- step degrees
+
+    TForm	t2, R;
+    CreateCWRot( R, rot * step, cog );
+    MultiplyTrans( t2, R, t );
+
 	vector<Point> Tpoints = Plist;   //   Start with locs in source
 	t2.Transform( Tpoints );            // Transform to locations in target
         double junk1, junk2;
