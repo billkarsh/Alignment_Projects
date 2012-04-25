@@ -74,7 +74,7 @@ static const vector<Point>* SmallestFootprint(
 	int		a = TightestBBox( B, pts );
 
 	fprintf( flog,
-	"Metrics: %s: Smallest footprint deg=%d, area=%f.\n",
+	"Metrics: %s: Smallest footprint deg=%d, area=%g.\n",
 	msg, a, (B.R - B.L) * (B.T - B.B) );
 
 	if( a == 0 )
