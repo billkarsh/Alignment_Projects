@@ -71,19 +71,19 @@ static const vector<Point>* SmallestFootprint(
 	FILE*					flog )
 {
 	DBox	B;
-	int		a = TightestBBox( B, pts );
+	int		deg = TightestBBox( B, pts );
 
 	fprintf( flog,
 	"Metrics: %s: Smallest footprint deg=%d, area=%g.\n",
-	msg, a, (B.R - B.L) * (B.T - B.B) );
+	msg, deg, (B.R - B.L) * (B.T - B.B) );
 
-	if( a == 0 )
+	if( deg == 0 )
 		return &pts;
 	else {
 
 		TForm	T;
 
-		T.NUSetRot( a );
+		T.NUSetRot( deg*PI/180 );
 		T.Apply_R_Part( newpts = pts );
 
 		return &newpts;

@@ -106,7 +106,7 @@ void BBoxFromPoints( IBox &B, const vector<Point> &pts )
 
 void BBoxFromPoints( DBox &B, const vector<Point> &pts )
 {
-	int		npts = pts.size();
+	int	npts = pts.size();
 
 	B.L = B.R = pts[0].x;
 	B.B = B.T = pts[0].y;
@@ -219,6 +219,18 @@ int TightestBBox( DBox &B, const vector<Point> &pts )
 		}
 	}
 
+/* ------------------------------------------- */
+/* Outline only useful if fewer pts than whole */
+/* ------------------------------------------- */
+
+	const vector<Point>	*ppointset = &outline;
+
+	if( outline.size() >= np ) {
+
+		ppointset = &pts;
+		outline.clear();
+	}
+
 /* --------------- */
 /* Find best angle */
 /* --------------- */
@@ -231,12 +243,12 @@ int TightestBBox( DBox &B, const vector<Point> &pts )
 		if( angle == 0 )
 			continue;
 
-		vector<Point>	P = outline;
+		vector<Point>	P = *ppointset;
 		TForm			T;
 		DBox			box;
 		double			area;
 
-		T.NUSetRot( angle );
+		T.NUSetRot( angle*PI/180 );
 		T.Apply_R_Part( P );
 		BBoxFromPoints( box, P );
 
