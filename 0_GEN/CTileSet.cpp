@@ -445,10 +445,10 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 }
 
 /* --------------------------------------------------------------- */
-/* ReadClickPairsFile -------------------------------------------- */
+/* ReadClicksFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CTileSet::ReadClickPairsFile(
+void CTileSet::ReadClicksFile(
 	vector<TSClicks>	&clk,
 	const char			*path )
 {
@@ -457,14 +457,29 @@ void CTileSet::ReadClickPairsFile(
 
 	while( LS.Get( f ) > 0 ) {
 
-		TSClicks	C( 2 );
+		TSClicks	C;
+		int			N = 0, k;
 
-		if( sscanf( LS.line, "%d%d%lf%lf%lf%lf%lf%lf%lf%lf",
-			&C.Az, &C.Bz,
-			&C.A[0].x, &C.A[0].y, &C.B[0].x, &C.B[0].y,
-			&C.A[1].x, &C.A[1].y, &C.B[1].x, &C.B[1].y ) == 10 ) {
+		if( 2 == sscanf( LS.line, "%d%d%n", &C.Az, &C.Bz, &k ) ) {
 
-			clk.push_back( C );
+			for(;;) {
+
+				Point	A, B;
+
+				N += k + 1;
+
+				if( 4 == sscanf( LS.line + N, "%lf%lf%lf%lf%n",
+							&A.x, &A.y, &B.x, &B.y, &k ) ) {
+
+					C.A.push_back( A );
+					C.B.push_back( B );
+				}
+				else
+					break;
+			}
+
+			if( C.A.size() )
+				clk.push_back( C );
 		}
 	}
 
@@ -546,7 +561,7 @@ void CTileSet::ApplyClickPairs( const char *path )
 {
 	vector<TSClicks>	clk;
 
-	ReadClickPairsFile( clk, path );
+	ReadClicksFile( clk, path );
 
 	int	cmin,
 		cmax,

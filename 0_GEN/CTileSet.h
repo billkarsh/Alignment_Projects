@@ -39,9 +39,6 @@ typedef struct TSClicks {
 	int				Az, Bz;
 	vector<Point>	A,  B;
 
-	TSClicks( int npts )
-		{A.resize( npts ); B.resize( npts );};
-
 	bool operator <  (const TSClicks &rhs) const
 		{return Az < rhs.Az;};
 } TSClicks;
@@ -92,7 +89,7 @@ public:
 
 	void GetLayerLimits( int &i0, int &iN );
 
-	void ReadClickPairsFile(
+	void ReadClicksFile(
 		vector<TSClicks>	&clk,
 		const char			*path );
 
