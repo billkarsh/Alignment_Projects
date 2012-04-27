@@ -192,9 +192,9 @@ static void Paint(
 			h	/= iscl;
 
 			// and point at the new pixels
-			TForm	A, t;
+			TForm	A;
 			A.NUSetScl( 1.0/iscl );
-			MultiplyTrans( inv, A, t = inv );
+			MultiplyTrans( inv, A, TForm( inv ) );
 		}
 
 		wL = w - (rmvedges != 0);

@@ -35,14 +35,16 @@ typedef struct TSAux {
 } TSAux;
 
 
-typedef struct TSClick {
-	int		Az, Bz;
-	Point	A1, B1,
-			A2, B2;
+typedef struct TSClicks {
+	int				Az, Bz;
+	vector<Point>	A,  B;
 
-	bool operator <  (const TSClick &rhs) const
+	TSClicks( int npts )
+		{A.resize( npts ); B.resize( npts );};
+
+	bool operator <  (const TSClicks &rhs) const
 		{return Az < rhs.Az;};
-} TSClick;
+} TSClicks;
 
 /* --------------------------------------------------------------- */
 /* Class --------------------------------------------------------- */
@@ -90,10 +92,13 @@ public:
 
 	void GetLayerLimits( int &i0, int &iN );
 
-	void ReadClicksFile( vector<TSClick> &clk, const char *path );
-	TForm TFormFromClick( const TSClick &clk );
-	void ApplyClicksFromAToTop( const TSClick &clk );
-	void ApplyClicks( const char *path );
+	void ReadClickPairsFile(
+		vector<TSClicks>	&clk,
+		const char			*path );
+
+	TForm TFormFromClickPair( const TSClicks &clk );
+	void ApplyTFormFromZToTop( int Z, const TForm &R );
+	void ApplyClickPairs( const char *path );
 
 	void BoundsPlus1( DBox &B, int i );
 	void LayerBounds( DBox &B, int is0, int isN );

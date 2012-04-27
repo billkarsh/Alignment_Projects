@@ -445,22 +445,24 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 }
 
 /* --------------------------------------------------------------- */
-/* ReadClicksFile ------------------------------------------------ */
+/* ReadClickPairsFile -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CTileSet::ReadClicksFile( vector<TSClick> &clk, const char *path )
+void CTileSet::ReadClickPairsFile(
+	vector<TSClicks>	&clk,
+	const char			*path )
 {
 	CLineScan	LS;
 	FILE*		f = FileOpenOrDie( path, "r" );
 
 	while( LS.Get( f ) > 0 ) {
 
-		TSClick	C;
+		TSClicks	C( 2 );
 
 		if( sscanf( LS.line, "%d%d%lf%lf%lf%lf%lf%lf%lf%lf",
 			&C.Az, &C.Bz,
-			&C.A1.x, &C.A1.y, &C.B1.x, &C.B1.y,
-			&C.A2.x, &C.A2.y, &C.B2.x, &C.B2.y ) == 10 ) {
+			&C.A[0].x, &C.A[0].y, &C.B[0].x, &C.B[0].y,
+			&C.A[1].x, &C.A[1].y, &C.B[1].x, &C.B[1].y ) == 10 ) {
 
 			clk.push_back( C );
 		}
@@ -472,15 +474,15 @@ void CTileSet::ReadClicksFile( vector<TSClick> &clk, const char *path )
 }
 
 /* --------------------------------------------------------------- */
-/* TFormFromClick ------------------------------------------------ */
+/* TFormFromClickPair -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-TForm CTileSet::TFormFromClick( const TSClick &clk )
+TForm CTileSet::TFormFromClickPair( const TSClicks &clk )
 {
-	double	Adx		= clk.A2.x - clk.A1.x,
-			Ady		= clk.A2.y - clk.A1.y,
-			Bdx		= clk.B2.x - clk.B1.x,
-			Bdy		= clk.B2.y - clk.B1.y,
+	double	Adx		= clk.A[1].x - clk.A[0].x,
+			Ady		= clk.A[1].y - clk.A[0].y,
+			Bdx		= clk.B[1].x - clk.B[0].x,
+			Bdy		= clk.B[1].y - clk.B[0].y,
 			Alen2	= Adx*Adx + Ady*Ady,
 			Blen2	= Bdx*Bdx + Bdy*Bdy,
 			AdotB	= Adx*Bdx + Ady*Bdy,
@@ -492,32 +494,31 @@ TForm CTileSet::TFormFromClick( const TSClick &clk )
 
 	TForm	R;
 
-	CreateCWRot( R, rads*180/PI, clk.A1 );
-	R.AddXY( clk.B1.x - clk.A1.x, clk.B1.y - clk.A1.y );
+	CreateCWRot( R, rads*180/PI, clk.A[0] );
+	R.AddXY( clk.B[0].x - clk.A[0].x, clk.B[0].y - clk.A[0].y );
 
 	return R;
 }
 
 /* --------------------------------------------------------------- */
-/* ApplyClicksFromAToTop ----------------------------------------- */
+/* ApplyTFormFromZToTop ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CTileSet::ApplyClicksFromAToTop( const TSClick &clk )
+void CTileSet::ApplyTFormFromZToTop( int Z, const TForm &R )
 {
-	TForm	t, R = TFormFromClick( clk );
-	int		is0, isN, nt = vtil.size();
+	int	is0, isN, nt = vtil.size();
 
 	GetLayerLimits( is0 = 0, isN );
 
 	while( isN != -1 ) {
 
-		if( vtil[is0].z > clk.Az )
+		if( vtil[is0].z > Z )
 			break;
 
-		if( vtil[is0].z == clk.Az ) {
+		if( vtil[is0].z == Z ) {
 
 			for( int i = is0; i < nt; ++i )
-				MultiplyTrans( vtil[i].T, R, t = vtil[i].T );
+				MultiplyTrans( vtil[i].T, R, TForm( vtil[i].T ) );
 
 			break;
 		}
@@ -527,25 +528,25 @@ void CTileSet::ApplyClicksFromAToTop( const TSClick &clk )
 }
 
 /* --------------------------------------------------------------- */
-/* ApplyClicks --------------------------------------------------- */
+/* ApplyClickPairs ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Tiles must already be sorted by z (subsort doesn't matter).
 //
-// Read clicks file given by path and apply.
+// Read click pairs file given by path and apply.
 //
 // The file has following format:
 // Az Bz Ax1 Ay1 Bx1 By1 Ax2 Ay2 Bx2 By2
 //
-// That is, each line specifies a pair of points {A1,A2} on layer
-// Az, and a matched pair of points {B1,B2} on BELOW layer Bz;
+// That is, each line specifies a pair of points {A0,A1} on layer
+// Az, and a matched pair of points {B0,B1} on BELOW layer Bz;
 // again, Bz < Az.
 //
-void CTileSet::ApplyClicks( const char *path )
+void CTileSet::ApplyClickPairs( const char *path )
 {
-	vector<TSClick>	clk;
+	vector<TSClicks>	clk;
 
-	ReadClicksFile( clk, path );
+	ReadClickPairsFile( clk, path );
 
 	int	cmin,
 		cmax,
@@ -566,8 +567,10 @@ void CTileSet::ApplyClicks( const char *path )
 	}
 
 // Apply them top down
-	for( int i = cmax; i >= cmin; --i )
-		ApplyClicksFromAToTop( clk[i] );
+	for( int i = cmax; i >= cmin; --i ) {
+		TForm	R = TFormFromClickPair( clk[i] );
+		ApplyTFormFromZToTop( clk[i].Az, R );
+	}
 }
 
 /* --------------------------------------------------------------- */

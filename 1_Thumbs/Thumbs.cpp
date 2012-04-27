@@ -872,11 +872,11 @@ static bool Pretweaks(
 
 		if( rbest > bestR ) {
 
-			TForm	T, Tback = Tptwk;
+			TForm	T;
 
 			fprintf( flog, "PTWUsing %2d\n", vsel[selbest] );
 			T.NUSelect( vsel[selbest], a );
-			MultiplyTrans( Tptwk, T, Tback );
+			MultiplyTrans( Tptwk, T, TForm( Tptwk ) );
 			vused[selbest]	= 1;
 			bestR			= rbest;
 			anychange		= true;
