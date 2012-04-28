@@ -5,6 +5,7 @@
 #include	"CTileSet.h"
 #include	"Disk.h"
 #include	"File.h"
+#include	"LinEqu.h"
 #include	"TrakEM2_DTD.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
@@ -445,20 +446,21 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 }
 
 /* --------------------------------------------------------------- */
-/* ReadClicksFile ------------------------------------------------ */
+/* ReadClixFile -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CTileSet::ReadClicksFile(
-	vector<TSClicks>	&clk,
-	const char			*path )
+// File format:
+// Az Bz Ax1 Ay1 Bx1 By1 Ax2 Ay2 Bx2 By2 [...Axn Ayn Bxn Byn]
+//
+void CTileSet::ReadClixFile( vector<TSClix> &clk, const char *path )
 {
 	CLineScan	LS;
 	FILE*		f = FileOpenOrDie( path, "r" );
 
 	while( LS.Get( f ) > 0 ) {
 
-		TSClicks	C;
-		int			N = 0, k;
+		TSClix	C;
+		int		N = 0, k;
 
 		if( 2 == sscanf( LS.line, "%d%d%n", &C.Az, &C.Bz, &k ) ) {
 
@@ -478,7 +480,7 @@ void CTileSet::ReadClicksFile(
 					break;
 			}
 
-			if( C.A.size() )
+			if( C.A.size() >= 2 )
 				clk.push_back( C );
 		}
 	}
@@ -489,37 +491,103 @@ void CTileSet::ReadClicksFile(
 }
 
 /* --------------------------------------------------------------- */
-/* TFormFromClickPair -------------------------------------------- */
+/* RigidFromClix ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-TForm CTileSet::TFormFromClickPair( const TSClicks &clk )
+// Return approximately rigid transform (rot + trans): T(A) = B:
+//
+//		a Ax  -  b Ay  +  c  =  Bx
+//		b Ax  +  a Ay  +  d  =  By
+//
+// Here there are 4 free params: a, b, c, d, and each pair of
+// points (A, B) gives us two equations:
+//
+//      | Ax -Ay  1  0 |   | a |   | Bx |
+//      | Ay  Ax  0  1 | x | b | = | By |
+//                         | c |
+//                         | d |
+//
+TForm CTileSet::RigidFromClix( const TSClix &clk )
 {
-	double	Adx		= clk.A[1].x - clk.A[0].x,
-			Ady		= clk.A[1].y - clk.A[0].y,
-			Bdx		= clk.B[1].x - clk.B[0].x,
-			Bdy		= clk.B[1].y - clk.B[0].y,
-			Alen2	= Adx*Adx + Ady*Ady,
-			Blen2	= Bdx*Bdx + Bdy*Bdy,
-			AdotB	= Adx*Bdx + Ady*Bdy,
-			AcrsB	= Adx*Bdy - Ady*Bdx,
-			rads	= acos( AdotB / sqrt( Alen2 * Blen2 ) );
+// Create system of normal equations
 
-	if( AcrsB < 0 )
-		rads = 2*PI - rads;
+	vector<double>	X( 4 );
+	vector<double>	RHS( 4, 0.0 );
+	vector<LHSCol>	LHS( 4 );
+	int				np    = clk.A.size(),
+					i1[3] = { 0, 1, 2 },
+					i2[3] = { 0, 1, 3 };
 
-	TForm	R;
+	for( int i = 0; i < np; ++i ) {
 
-	CreateCWRot( R, rads*180/PI, clk.A[0] );
-	R.AddXY( clk.B[0].x - clk.A[0].x, clk.B[0].y - clk.A[0].y );
+		const Point&	A = clk.A[i];
+		const Point&	B = clk.B[i];
 
-	return R;
+		double	v1[3] = { A.x, -A.y, 1.0 };
+		double	v2[3] = { A.y,  A.x, 1.0 };
+
+		AddConstraint( LHS, RHS, 3, i1, v1, B.x );
+		AddConstraint( LHS, RHS, 3, i2, v2, B.y );
+	}
+
+// Solve
+
+	WriteSolveRead( X, LHS, RHS, true );
+
+// Return
+
+	return TForm( X[0], -X[1], X[2], X[1], X[0], X[3] );
+}
+
+/* --------------------------------------------------------------- */
+/* AffineFromClix ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Return 6 parameter affine transformation: T(A) = B:
+//
+//		a Ax  -  b Ay  +  c  =  Bx
+//		d Ax  +  e Ay  +  f  =  By
+//
+TForm CTileSet::AffineFromClix( const TSClix &clk )
+{
+	int	np = clk.A.size();
+
+	if( np < 3 )
+		return RigidFromClix( clk );
+
+// Create system of normal equations
+
+	vector<double>	X( 6 );
+	vector<double>	RHS( 6, 0.0 );
+	vector<LHSCol>	LHS( 6 );
+	int				i1[3] = { 0, 1, 2 },
+					i2[3] = { 3, 4, 5 };
+
+	for( int i = 0; i < np; ++i ) {
+
+		const Point&	A = clk.A[i];
+		const Point&	B = clk.B[i];
+
+		double	v[3] = { A.x, A.y, 1.0 };
+
+		AddConstraint( LHS, RHS, 3, i1, v, B.x );
+		AddConstraint( LHS, RHS, 3, i2, v, B.y );
+	}
+
+// Solve
+
+	WriteSolveRead( X, LHS, RHS, true );
+
+// Return
+
+	return TForm( &X[0] );
 }
 
 /* --------------------------------------------------------------- */
 /* ApplyTFormFromZToTop ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CTileSet::ApplyTFormFromZToTop( int Z, const TForm &R )
+void CTileSet::ApplyTFormFromZToTop( int Z, const TForm &T )
 {
 	int	is0, isN, nt = vtil.size();
 
@@ -533,7 +601,7 @@ void CTileSet::ApplyTFormFromZToTop( int Z, const TForm &R )
 		if( vtil[is0].z == Z ) {
 
 			for( int i = is0; i < nt; ++i )
-				MultiplyTrans( vtil[i].T, R, TForm( vtil[i].T ) );
+				MultiplyTrans( vtil[i].T, T, TForm( vtil[i].T ) );
 
 			break;
 		}
@@ -543,25 +611,25 @@ void CTileSet::ApplyTFormFromZToTop( int Z, const TForm &R )
 }
 
 /* --------------------------------------------------------------- */
-/* ApplyClickPairs ----------------------------------------------- */
+/* ApplyClix ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Tiles must already be sorted by z (subsort doesn't matter).
 //
-// Read click pairs file given by path and apply.
+// Read and apply click pairs file given by path.
 //
 // The file has following format:
-// Az Bz Ax1 Ay1 Bx1 By1 Ax2 Ay2 Bx2 By2
+// Az Bz Ax1 Ay1 Bx1 By1 Ax2 Ay2 Bx2 By2 [...Axn Ayn Bxn Byn]
 //
-// That is, each line specifies a pair of points {A0,A1} on layer
-// Az, and a matched pair of points {B0,B1} on BELOW layer Bz;
+// That is, each line specifies a set of points {Ai} on layer
+// Az, and a matched set of points {Bi} on BELOW layer Bz;
 // again, Bz < Az.
 //
-void CTileSet::ApplyClickPairs( const char *path )
+void CTileSet::ApplyClix( int tfType, const char *path )
 {
-	vector<TSClicks>	clk;
+	vector<TSClix>	clk;
 
-	ReadClicksFile( clk, path );
+	ReadClixFile( clk, path );
 
 	int	cmin,
 		cmax,
@@ -583,7 +651,14 @@ void CTileSet::ApplyClickPairs( const char *path )
 
 // Apply them top down
 	for( int i = cmax; i >= cmin; --i ) {
-		TForm	R = TFormFromClickPair( clk[i] );
+
+		TForm	R;
+
+		if( tfType == tsClixAffine )
+			R = AffineFromClix( clk[i] );
+		else
+			R = RigidFromClix( clk[i] );
+
 		ApplyTFormFromZToTop( clk[i].Az, R );
 	}
 }

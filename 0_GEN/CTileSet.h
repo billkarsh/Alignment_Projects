@@ -12,6 +12,16 @@ using namespace std;
 
 
 /* --------------------------------------------------------------- */
+/* Constants ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+enum TSConst {
+// ApplyClix()::tfType
+	tsClixRigid		= 0,
+	tsClixAffine	= 1
+};
+
+/* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -35,13 +45,13 @@ typedef struct TSAux {
 } TSAux;
 
 
-typedef struct TSClicks {
+typedef struct TSClix {
 	int				Az, Bz;
 	vector<Point>	A,  B;
 
-	bool operator <  (const TSClicks &rhs) const
+	bool operator <  (const TSClix &rhs) const
 		{return Az < rhs.Az;};
-} TSClicks;
+} TSClix;
 
 /* --------------------------------------------------------------- */
 /* Class --------------------------------------------------------- */
@@ -89,13 +99,11 @@ public:
 
 	void GetLayerLimits( int &i0, int &iN );
 
-	void ReadClicksFile(
-		vector<TSClicks>	&clk,
-		const char			*path );
-
-	TForm TFormFromClickPair( const TSClicks &clk );
-	void ApplyTFormFromZToTop( int Z, const TForm &R );
-	void ApplyClickPairs( const char *path );
+	void ReadClixFile( vector<TSClix> &clk, const char *path );
+	TForm RigidFromClix( const TSClix &clk );
+	TForm AffineFromClix( const TSClix &clk );
+	void ApplyTFormFromZToTop( int Z, const TForm &T );
+	void ApplyClix( int tfType, const char *path );
 
 	void BoundsPlus1( DBox &B, int i );
 	void LayerBounds( DBox &B, int is0, int isN );

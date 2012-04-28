@@ -594,7 +594,7 @@ int main( int argc, char* argv[] )
 		TS.WriteTrakEM2_EZ( "PreClicks.xml", 0 );
 
 	if( gArgs.clk ) {
-		TS.ApplyClickPairs( gArgs.clk );
+		TS.ApplyClix( tsClixRigid, gArgs.clk );
 		TS.WriteTrakEM2_EZ( "PostClicks.xml", 0 );
 	}
 
