@@ -54,8 +54,7 @@ public:
 			*exenam;
 	int		zmin,
 			zmax;
-	bool	Connect,	// just connect two layers
-			NoFolds,
+	bool	NoFolds,
 			NoDirs;
 
 public:
@@ -65,7 +64,6 @@ public:
 		exenam		= "ptest";
 		zmin		= 0;
 		zmax		= 32768;
-		Connect		= false;
 		NoFolds		= false;
 		NoDirs		= false;
 	};
@@ -132,8 +130,6 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
-		else if( IsArg( "-connect", argv[i] ) )
-			Connect = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
@@ -878,45 +874,6 @@ int main( int argc, char* argv[] )
 /* ------------------------------------------------- */
 
 	TS.SortAll_z_r();
-
-/* ------------------- */
-/* Handle connect mode */
-/* ------------------- */
-
-// Connect mode expects exactly two adjacent layers
-// and creates only make.up and make.down for them.
-
-	if( gArgs.Connect ) {
-
-		int	nt = TS.vtil.size();
-
-		if( nt < 2 || TS.vtil[0].z != TS.vtil[nt-1].z - 1 ) {
-
-			fprintf( flog,
-			"Bogons! Expected two consecutive layers for"
-			" connect mode.\n" );
-			exit( 42 );
-		}
-
-		char	lyrdir[2048];
-		int		is0, isN, iu0, iuN;
-
-		// makeUp for layer 0 onto 1
-
-		TS.GetLayerLimits( is0 = 0, isN );
-		iu0 = isN;
-		iuN = nt;
-
-		//sprintf( lyrdir, "%s/0", gArgs.outdir );
-		//Make_MakeUp( lyrdir, is0, isN, iu0, iuN );
-
-		// makeDown for layer 1 onto 0
-
-		sprintf( lyrdir, "%s/1", gArgs.outdir );
-		Make_MakeDown( lyrdir, iu0, iuN, is0, isN );
-
-		goto exit;
-	}
 
 /* --------------- */
 /* Create dir tree */

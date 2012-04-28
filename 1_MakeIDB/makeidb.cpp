@@ -31,7 +31,7 @@
 //
 // If output directory (idbname) is unspecified, either by
 // omitting '-d' option entirely, or by using '-d' with no
-// name, then no idb is generated. Rather, we write trackEM2
+// name, then no idb is generated. Rather, we write TrakEM2
 // generator files.
 //
 
@@ -594,7 +594,7 @@ int main( int argc, char* argv[] )
 		TS.WriteTrakEM2_EZ( "PreClicks.xml", 0 );
 
 	if( gArgs.clk ) {
-		TS.ApplyClix( tsClixRigid, gArgs.clk );
+		TS.ApplyClix( tsClixAffine, gArgs.clk );
 		TS.WriteTrakEM2_EZ( "PostClicks.xml", 0 );
 	}
 
