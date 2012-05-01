@@ -912,8 +912,16 @@ int ClosedSegIsects(
 		if( t < 0.0 || t > 1.0 )
 			return 0;
 
-		pi.x = int(p3.x + s * (p4.x - p3.x));
-		pi.y = int(p3.y + s * (p4.y - p3.y));
+		pi.x = int(p3.x + s * x34);
+		pi.y = int(p3.y + s * y34);
+
+		// Check that Ps == Pt
+
+		if( pi.x != int(p1.x + t * x12) ||
+			pi.y != int(p1.y + t * y12) ) {
+
+			return 0;
+		}
 
 		return 1;
 	}
