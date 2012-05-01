@@ -1,5 +1,5 @@
 //
-// MakeALN reads an IDB 'image database' and creates an alignment
+// makealn reads an IDB 'image database' and creates an alignment
 // workspace with this structure:
 //
 //	folder 'alnname'			// top folder
@@ -78,8 +78,6 @@ public:
 static CArgs_scr	gArgs;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
-static uint32		gW		= 0,	// universal pic dims
-					gH		= 0;
 
 
 

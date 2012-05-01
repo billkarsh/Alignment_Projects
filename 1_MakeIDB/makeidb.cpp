@@ -1,5 +1,5 @@
 //
-// MakeIDB reads either a Leginon (simple) file or TrakEM2 xml
+// makeidb reads either a Leginon (simple) file or TrakEM2 xml
 // file and creates an 'image database' with this structure:
 //
 //	folder 'idbname'		// top folder
