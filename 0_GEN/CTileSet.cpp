@@ -298,6 +298,24 @@ void CTileSet::InitAuxData()
 }
 
 /* --------------------------------------------------------------- */
+/* RecalcAuxInverses --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CTileSet::RecalcAuxInverses()
+{
+	if( !vaux.size() )
+		InitAuxData();
+
+	int	nt = vtil.size();
+
+	for( int i = 0; i < nt; ++i ) {
+
+		const CUTile&	U = vtil[i];
+		InvertTrans( vaux[U.ix].inv, U.T );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Sort_z_inc ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -794,6 +812,21 @@ double CTileSet::ABOlap( int a, int b )
 	if( !vaux.size() )
 		InitAuxData();
 
+// Quick proximity check
+
+	TForm	T;	// map a->b
+	Point	pb( gW/2, gH/2 ),
+			pa = pb;
+
+	MultiplyTrans( T, vaux[vtil[b].ix].inv, vtil[a].T );
+
+	T.Transform( pa );
+
+	if( pa.DistSqr( pb ) >= gW*gW + gH*gH )
+		return 0.0;
+
+// Detailed calculation
+
 	vector<vertex>	va( 4 ), vb( 4 );
 
 // Set b vertices (b-system) CCW ordered for LeftSide calcs
@@ -806,10 +839,7 @@ double CTileSet::ABOlap( int a, int b )
 // Set a vertices (b-system) CCW ordered for LeftSide calcs
 
 	{
-		TForm			T;	// map a->b
 		vector<Point>	p( 4 );
-
-		MultiplyTrans( T, vaux[vtil[b].ix].inv, vtil[a].T );
 
 		p[0] = Point( 0.0 , 0.0 );
 		p[1] = Point( gW-1, 0.0 );
