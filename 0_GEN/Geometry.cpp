@@ -902,26 +902,18 @@ int ClosedSegIsects(
 		int	x31	= p1.x - p3.x,
 			y31	= p1.y - p3.y;
 
-		double	s = (x31*y12 - x12*y31) / BxA;
+		double	s = (x31*y12 - x12*y31) / (double)BxA;
 
 		if( s < 0.0 || s > 1.0 )
 			return 0;
 
-		double	t = (x31*y34 - x34*y31) / BxA;
+		double	t = (x31*y34 - x34*y31) / (double)BxA;
 
 		if( t < 0.0 || t > 1.0 )
 			return 0;
 
 		pi.x = int(p3.x + s * x34);
 		pi.y = int(p3.y + s * y34);
-
-		// Check that Ps == Pt
-
-		if( pi.x != int(p1.x + t * x12) ||
-			pi.y != int(p1.y + t * y12) ) {
-
-			return 0;
-		}
 
 		return 1;
 	}
@@ -1110,12 +1102,12 @@ bool OpenSegsCross(
 		int	x31	= p1.x - p3.x,
 			y31	= p1.y - p3.y;
 
-		double	s = (x31*y12 - x12*y31) / BxA;
+		double	s = (x31*y12 - x12*y31) / (double)BxA;
 
 		if( s <= 0.0 || s >= 1.0 )
 			return false;
 
-		double	t = (x31*y34 - x34*y31) / BxA;
+		double	t = (x31*y34 - x34*y31) / (double)BxA;
 
 		return t > 0.0 && t < 1.0;
 	}
