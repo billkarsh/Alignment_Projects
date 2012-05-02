@@ -168,6 +168,18 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
+/* ScriptPerms --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ScriptPerms( const char *path )
+{
+	char	buf[2048];
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteRunlsqFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -177,7 +189,6 @@ static void WriteRunlsqFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/stack/runlsq", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -185,11 +196,7 @@ static void WriteRunlsqFile()
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
 	fclose( f );
-
-	sprintf( buf,
-	"chmod ug=rwx,o=rx %s/stack/runlsq", gArgs.outdir );
-
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -202,7 +209,6 @@ static void WriteSubmosFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/mosaic/submos", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -220,11 +226,7 @@ static void WriteSubmosFile()
 	fprintf( f, "end\n" );
 
 	fclose( f );
-
-	sprintf( buf,
-	"chmod ug=rwx,o=rx %s/mosaic/submos", gArgs.outdir );
-
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -237,7 +239,6 @@ static void WriteSub8File()
 	FILE	*f;
 
 	sprintf( buf, "%s/sub8", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -261,9 +262,7 @@ static void WriteSub8File()
 	fprintf( f, "end\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/sub8", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -276,7 +275,6 @@ static void WriteSub4File()
 	FILE	*f;
 
 	sprintf( buf, "%s/sub4", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -300,9 +298,7 @@ static void WriteSub4File()
 	fprintf( f, "end\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/sub4", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -315,7 +311,6 @@ static void WriteReportFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/report", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -327,9 +322,7 @@ static void WriteReportFile()
 	fprintf( f, "ls -l */pts.down > DwnPts.txt\n\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/report", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -342,7 +335,6 @@ static void WriteCombineFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/combine", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -370,9 +362,7 @@ static void WriteCombineFile()
 	fprintf( f, "mv pts.all stack\n\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/combine", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -385,7 +375,6 @@ static void WriteFinishFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/finish", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -395,9 +384,7 @@ static void WriteFinishFile()
 	fprintf( f, "./runlsq\n\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/finish", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */

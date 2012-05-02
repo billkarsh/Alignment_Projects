@@ -171,6 +171,18 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
+/* ScriptPerms --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ScriptPerms( const char *path )
+{
+	char	buf[2048];
+
+	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
+	system( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteImageparamsFile ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -202,7 +214,6 @@ static void WriteSubfmFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/subfm", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -216,9 +227,7 @@ static void WriteSubfmFile()
 	fprintf( f, "end\n\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/subfm", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -231,7 +240,6 @@ static void WriteReportFile()
 	FILE	*f;
 
 	sprintf( buf, "%s/report_fm", gArgs.outdir );
-
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -239,9 +247,7 @@ static void WriteReportFile()
 	fprintf( f, "ls -l */lou-f*.e* > FmErrs.txt\n\n" );
 
 	fclose( f );
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s/report_fm", gArgs.outdir );
-	system( buf );
+	ScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
