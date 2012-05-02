@@ -41,7 +41,6 @@ public:
 
 typedef struct TSAux {
 	double	r;
-	TForm	inv;
 } TSAux;
 
 
@@ -90,7 +89,6 @@ public:
 		{w = gW; h = gH;};
 
 	void InitAuxData();
-	void RecalcAuxInverses();
 
 	void SortAll_z();
 	void SortAll_z_id();

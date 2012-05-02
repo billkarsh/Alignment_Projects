@@ -292,26 +292,7 @@ void CTileSet::InitAuxData()
 
 			vtil[i].ix	= i;
 			vaux[i].r	= 0.0;
-			InvertTrans( vaux[i].inv, vtil[i].T );
 		}
-	}
-}
-
-/* --------------------------------------------------------------- */
-/* RecalcAuxInverses --------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void CTileSet::RecalcAuxInverses()
-{
-	if( !vaux.size() )
-		InitAuxData();
-
-	int	nt = vtil.size();
-
-	for( int i = 0; i < nt; ++i ) {
-
-		const CUTile&	U = vtil[i];
-		InvertTrans( vaux[U.ix].inv, U.T );
 	}
 }
 
@@ -809,16 +790,13 @@ public:
 //
 double CTileSet::ABOlap( int a, int b )
 {
-	if( !vaux.size() )
-		InitAuxData();
-
 // Quick proximity check
 
 	TForm	T;	// map a->b
 	Point	pb( gW/2, gH/2 ),
 			pa = pb;
 
-	MultiplyTrans( T, vaux[vtil[b].ix].inv, vtil[a].T );
+	AToBTrans( T, vtil[a].T, vtil[b].T );
 
 	T.Transform( pa );
 
