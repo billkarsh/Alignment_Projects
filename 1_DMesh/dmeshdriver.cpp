@@ -111,8 +111,8 @@ static void CalcTransforms(
 
 	if( GBL.mch.WMT ) {
 
-		sprintf( sfile, "../%d/%d/%d.%d.map.tif",
-		GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile );
+		sprintf( sfile, "../%d/%d.%d.map.tif",
+		GBL.A.tile, GBL.B.layer, GBL.B.tile );
 
 		Raster16ToTif8( sfile, rmap, wf, hf );
 	}
@@ -128,8 +128,8 @@ static void CalcTransforms(
 
 	if( GBL.mch.WTT ) {
 
-		sprintf( sfile, "../%d/%d/%d.%d.tf.txt",
-		GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile );
+		sprintf( sfile, "../%d/%d.%d.tf.txt",
+		GBL.A.tile, GBL.B.layer, GBL.B.tile );
 
 		f = fopen( sfile, "w" );
 	}

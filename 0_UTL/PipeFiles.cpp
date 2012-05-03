@@ -74,7 +74,7 @@ exit:
 //
 // The layer params specify an override file. E.g., if alr=5 and
 // blr=4 the search order (in alignment 'temp' directory) is first
-// '../matchparams_5_4.txt' then '../matchparams.txt' (no indices).
+// 'matchparams_5_4.txt' then 'matchparams.txt' (no indices).
 //
 bool ReadMatchParams(
 	MatchParams		&M,
@@ -86,11 +86,11 @@ bool ReadMatchParams(
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "../matchparams_%d_%d.txt", alr, blr );
+	sprintf( name, "../../matchparams_%d_%d.txt", alr, blr );
 	f = fopen( name, "r" );
 
 	if( !f ) {
-		sprintf( name, "../matchparams.txt" );
+		sprintf( name, "../../matchparams.txt" );
 		f = fopen( name, "r" );
 	}
 
@@ -187,7 +187,7 @@ void IDBReadImgParams( string &idbpath, FILE *flog )
 {
 	idbpath.clear();
 
-	FILE	*f = fopen( "../imageparams.txt", "r" );
+	FILE	*f = fopen( "../../imageparams.txt", "r" );
 
 	if( f ) {
 
@@ -701,6 +701,35 @@ void WriteThmPairHdr( FILE *f )
 	fprintf( f,
 	"Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR"
 	"\tT0\tT1\tX\tT3\tT4\tY\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* CreateJobsDir ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CreateJobsDir(
+	const char	*lyrdir,
+	int			ix,
+	int			iy,
+	int			za,
+	int			zb,
+	FILE		*flog )
+{
+    char	name[2048];
+    int		len;
+
+// Create dir
+	len = sprintf( name, "%s/%c%d_%d",
+			lyrdir, (za == zb ? 'S' : 'D'), ix, iy );
+	DskCreateDir( name, flog );
+
+// Create ThmPair file
+	if( zb >= 0 ) {
+		sprintf( name + len, "/ThmPair_%d_@_%d.txt", za, zb );
+		FILE	*f = FileOpenOrDie( name, "w", flog );
+		WriteThmPairHdr( f );
+		fclose( f );
+	}
 }
 
 /* --------------------------------------------------------------- */

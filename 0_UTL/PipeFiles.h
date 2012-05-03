@@ -152,6 +152,14 @@ bool ReadAllThmPair(
 
 void WriteThmPairHdr( FILE *f );
 
+void CreateJobsDir(
+	const char	*lyrdir,
+	int			ix,
+	int			iy,
+	int			za,
+	int			zb,
+	FILE		*flog );
+
 void WriteThmPair(
 	const ThmPair	&tpr,
 	int				alr,

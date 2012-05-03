@@ -230,15 +230,15 @@ static void WriteSubmosFile()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteSub8File ------------------------------------------------- */
+/* WriteSubNFile ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteSub8File()
+static void WriteSubNFile( int njobs )
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sub8", gArgs.outdir );
+	sprintf( buf, "%s/sub%d", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/csh\n\n" );
@@ -251,49 +251,14 @@ static void WriteSub8File()
 	fprintf( f, "\tset last = $2\n" );
 	fprintf( f, "endif\n\n" );
 
-	fprintf( f, "foreach i (`seq $1 $last`)\n" );
-	fprintf( f, "\techo $i\n" );
-	fprintf( f, "\tif (-d $i) then\n" );
-	fprintf( f, "\t\tcd $i\n" );
-	fprintf( f, "\t\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 8 EXTRA='\"\"'\n" );
-	fprintf( f, "\t\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 8 EXTRA='\"\"'\n" );
-	fprintf( f, "\t\tcd ..\n" );
-	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n" );
-
-	fclose( f );
-	ScriptPerms( buf );
-}
-
-/* --------------------------------------------------------------- */
-/* WriteSub4File ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void WriteSub4File()
-{
-	char	buf[2048];
-	FILE	*f;
-
-	sprintf( buf, "%s/sub4", gArgs.outdir );
-	f = FileOpenOrDie( buf, "w", flog );
-
-	fprintf( f, "#!/bin/csh\n\n" );
-
-	fprintf( f, "setenv MRC_TRIM 12\n\n" );
-
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
-	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
-
-	fprintf( f, "foreach i (`seq $1 $last`)\n" );
-	fprintf( f, "\techo $i\n" );
-	fprintf( f, "\tif (-d $i) then\n" );
-	fprintf( f, "\t\tcd $i\n" );
-	fprintf( f, "\t\tqsub -N lou-s-$i -cwd -V -b y -pe batch 8 make -f make.same -j 4 EXTRA='\"\"'\n" );
-	fprintf( f, "\t\tqsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f make.down -j 4 EXTRA='\"\"'\n" );
-	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif (-d $lyr) then\n" );
+	fprintf( f, "\t\tcd $lyr/S0_0\n" );
+	fprintf( f, "\t\tqsub -N qs0-0-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\tcd ../D0_0\n" );
+	fprintf( f, "\t\tqsub -N qd0-0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tendif\n" );
 	fprintf( f, "end\n" );
 
@@ -315,11 +280,11 @@ static void WriteReportFile()
 
 	fprintf( f, "#!/bin/csh\n\n" );
 
-	fprintf( f, "ls -l */lou-s*.e* > SamErrs.txt\n" );
-	fprintf( f, "ls -l */lou-d*.e* > DwnErrs.txt\n\n" );
+	fprintf( f, "ls -l */S0_0/qs0-0-*.e* > SameErrs.txt\n" );
+	fprintf( f, "ls -l */D0_0/qd0-0-*.e* > DownErrs.txt\n\n" );
 
-	fprintf( f, "ls -l */pts.same > SamPts.txt\n" );
-	fprintf( f, "ls -l */pts.down > DwnPts.txt\n\n" );
+	fprintf( f, "ls -l */S0_0/pts.same > SamePts.txt\n" );
+	fprintf( f, "ls -l */D0_0/pts.down > DownPts.txt\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -346,16 +311,16 @@ static void WriteCombineFile()
 
 	fprintf( f, "cp imageparams.txt pts.all\n\n" );
 
-	fprintf( f, "foreach i (`seq $1 $2`)\n" );
-	fprintf( f, "\tcat $idb/$i/fm.same >> pts.all\n" );
+	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "\tcat $idb/$lyr/fm.same >> pts.all\n" );
 	fprintf( f, "end\n\n" );
 
-	fprintf( f, "foreach i (`seq $1 $2`)\n" );
-	fprintf( f, "\techo $i\n" );
-	fprintf( f, "\tif ( $i == $1 ) then\n" );
-	fprintf( f, "\t\tcat $i/pts.{same} >> pts.all\n" );
+	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif ( $lyr == $1 ) then\n" );
+	fprintf( f, "\t\tcat $lyr/S0_0/pts.same >> pts.all\n" );
 	fprintf( f, "\telse\n" );
-	fprintf( f, "\t\tcat $i/pts.{down,same} >> pts.all\n" );
+	fprintf( f, "\t\tcat $lyr/{S0_0/pts.same,D0_0/pts.down} >> pts.all\n" );
 	fprintf( f, "\tendif\n" );
 	fprintf( f, "end\n\n" );
 
@@ -407,6 +372,24 @@ static void CreateLayerDir( char *lyrdir, int L )
 }
 
 /* --------------------------------------------------------------- */
+/* CreateJobSubdirs ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// S0_0 subdir is working dir for same layer alignments.
+// D0_0 subdir is working dir for all down jobs.
+//
+static void CreateJobSubdirs( const char *lyrdir, int is0, int id0 )
+{
+	int	zs = TS.vtil[is0].z,
+		zd = (id0 >= 0 ? TS.vtil[id0].z : -1);
+
+	fprintf( flog, "--CreateJobSubdirs: layer %d\n", zs );
+
+	CreateJobsDir( lyrdir, 0, 0, zs, zs, flog );
+	CreateJobsDir( lyrdir, 0, 0, zs, zd, flog );
+}
+
+/* --------------------------------------------------------------- */
 /* CreateTileSubdirs --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -430,41 +413,6 @@ static void CreateTileSubdirs( const char *lyrdir, int is0, int isN )
 		sprintf( subdir, "%s/%d", lyrdir, TS.vtil[i].id );
 		DskCreateDir( subdir, flog );
 	}
-}
-
-/* --------------------------------------------------------------- */
-/* Make_ThmPairFile ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void OneTprFile( const char *lyrdir, int a, int b )
-{
-    char	name[2048];
-    FILE	*f;
-
-	sprintf( name, "%s/ThmPair_%d_@_%d.txt", lyrdir, a, b );
-	f = FileOpenOrDie( name, "w", flog );
-	WriteThmPairHdr( f );
-	fclose( f );
-}
-
-
-// For a layer, make ThmPair files for this and adjacent layers.
-//
-static void Make_ThmPairFile(
-	const char				*lyrdir,
-	int						is0,
-	int						id0,
-	int						iu0 )
-{
-	fprintf( flog, "--Make_ThmPairFile: layer %d\n", TS.vtil[is0].z );
-
-	OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[is0].z );
-
-	if( id0 != -1 )
-		OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[id0].z );
-
-	//if( iu0 != -1 )
-	//	OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[iu0].z );
 }
 
 /* --------------------------------------------------------------- */
@@ -497,13 +445,14 @@ static bool ABOlap( int a, int b )
 /* --------------------------------------------------------------- */
 
 // Actually write the script to tell thumbs to process the pairs
-// of images described by (P). Argument mkname is a string from
-// {"same", "up", "down"}.
+// of images described by (P).
 //
 static void WriteThumbMakeFile(
-	const char				*lyrdir,
-	const char				*mkname,
-	const vector<Pair>		&P )
+	const char			*lyrdir,
+	int					SD,
+	int					ix,
+	int					iy,
+	const vector<Pair>	&P )
 {
     char	name[2048];
 	FILE	*f;
@@ -511,7 +460,8 @@ static void WriteThumbMakeFile(
 
 // open the file
 
-	sprintf( name, "%s/thumbs.%s", lyrdir, mkname );
+	sprintf( name, "%s/%c%d_%d/make.%s",
+	lyrdir, SD, ix, iy, (SD == 'S' ? "same" : "down") );
 
 	f = FileOpenOrDie( name, "w", flog );
 
@@ -564,7 +514,7 @@ static void Make_ThumbsSame( const char *lyrdir, int is0, int isN )
 
 // write jobs
 
-	WriteThumbMakeFile( lyrdir, "same", P );
+	WriteThumbMakeFile( lyrdir, 'S', 0, 0, P );
 }
 
 /* --------------------------------------------------------------- */
@@ -607,7 +557,7 @@ static void Make_ThumbsDown(
 // write jobs
 
 write:
-	WriteThumbMakeFile( lyrdir, "down", P );
+	WriteThumbMakeFile( lyrdir, 'D', 0, 0, P );
 }
 
 /* --------------------------------------------------------------- */
@@ -615,13 +565,14 @@ write:
 /* --------------------------------------------------------------- */
 
 // Actually write the script to tell ptest to process the pairs
-// of images described by (P). Argument mkname is a string from
-// {"same", "up", "down"}.
+// of images described by (P).
 //
 static void WriteMakeFile(
-	const char				*lyrdir,
-	const char				*mkname,
-	const vector<Pair>		&P )
+	const char			*lyrdir,
+	int					SD,
+	int					ix,
+	int					iy,
+	const vector<Pair>	&P )
 {
     char	name[2048];
 	FILE	*f;
@@ -629,7 +580,8 @@ static void WriteMakeFile(
 
 // open the file
 
-	sprintf( name, "%s/make.%s", lyrdir, mkname );
+	sprintf( name, "%s/%c%d_%d/make.%s",
+	lyrdir, SD, ix, iy, (SD == 'S' ? "same" : "down") );
 
 	f = FileOpenOrDie( name, "w", flog );
 
@@ -697,7 +649,7 @@ static void Make_MakeSame( const char *lyrdir, int is0, int isN )
 
 // write jobs
 
-	WriteMakeFile( lyrdir, "same", P );
+	WriteMakeFile( lyrdir, 'S', 0, 0, P );
 }
 
 /* --------------------------------------------------------------- */
@@ -709,6 +661,7 @@ static void Make_MakeSame( const char *lyrdir, int is0, int isN )
 //
 // (a, b) = (source[this layer], target[below layer]).
 //
+#if 1
 static void Make_MakeDown(
 	const char				*lyrdir,
 	int						is0,
@@ -740,42 +693,45 @@ static void Make_MakeDown(
 // write jobs
 
 write:
-	WriteMakeFile( lyrdir, "down", P );
+	WriteMakeFile( lyrdir, 'D', 0, 0, P );
 }
+#endif
 
-/* --------------------------------------------------------------- */
-/* Make_MakeUp --------------------------------------------------- */
-/* --------------------------------------------------------------- */
 
-// Write a make file submitting ptest jobs for pairs
-// of intersecting images across layers.
-//
-// (a, b) = (source[this layer], target[above layer]).
-//
-static void Make_MakeUp(
+#if 0
+static void Make_MakeDown(
 	const char				*lyrdir,
 	int						is0,
 	int						isN,
-	int						iu0,
-	int						iuN )
+	int						id0,
+	int						idN )
 {
 	vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeUp: layer %d @ %d\n",
-		TS.vtil[is0].z, (iu0 != -1 ? TS.vtil[iu0].z : -1) );
+	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
+		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
 
-	if( iu0 == -1 )
+	if( id0 == -1 )
 		goto write;
 
 // collect job indices
 
 	for( int a = is0; a < isN; ++a ) {
 
-		for( int b = iu0; b < iuN; ++b ) {
+		for( int b = id0; b < idN; ++b ) {
 
-			if( ABOlap( a, b ) )
+			int	w, h;
+
+			TS.GetTileDims( w, h );
+
+			Point	pa( w/2, h/2 ), pb = pa;
+
+			TS.vtil[a].T.Transform( pa );
+			TS.vtil[b].T.Transform( pb );
+
+			if( pb.DistSqr( pa ) < 4500*4500 )
 				P.push_back( Pair( a, b ) );
 		}
 	}
@@ -783,8 +739,9 @@ static void Make_MakeUp(
 // write jobs
 
 write:
-	WriteMakeFile( lyrdir, "up", P );
+	WriteMakeFile( lyrdir, 'D', 0, 0, P );
 }
+#endif
 
 /* --------------------------------------------------------------- */
 /* ForEachLayer -------------------------------------------------- */
@@ -794,12 +751,11 @@ write:
 //
 static void ForEachLayer()
 {
-	int		id0, idN, is0, isN, iu0, iuN;
+	int		id0, idN, is0, isN;
 
 	id0 = -1;
 	idN = -1;
 	TS.GetLayerLimits( is0 = 0, isN );
-	TS.GetLayerLimits( iu0 = isN, iuN );
 
 	while( isN != -1 ) {
 
@@ -807,23 +763,20 @@ static void ForEachLayer()
 
 		CreateLayerDir( lyrdir, TS.vtil[is0].z );
 
+		CreateJobSubdirs( lyrdir, is0, id0 );
+
 		if( !gArgs.NoDirs )
 			CreateTileSubdirs( lyrdir, is0, isN );
-
-		Make_ThmPairFile( lyrdir, is0, id0, iu0 );
 
 		//Make_ThumbsSame( lyrdir, is0, isN );
 		//Make_ThumbsDown( lyrdir, is0, isN, id0, idN );
 
 		Make_MakeSame( lyrdir, is0, isN );
 		Make_MakeDown( lyrdir, is0, isN, id0, idN );
-		//Make_MakeUp( lyrdir, is0, isN, iu0, iuN );
 
 		id0 = is0;
 		idN = isN;
-		is0 = iu0;
-		isN = iuN;
-		TS.GetLayerLimits( iu0 = iuN, iuN );
+		TS.GetLayerLimits( is0 = isN, isN );
 	}
 }
 
@@ -869,8 +822,8 @@ int main( int argc, char* argv[] )
 	WriteRunlsqFile();
 	WriteSubmosFile();
 
-	WriteSub8File();
-	WriteSub4File();
+	WriteSubNFile( 4 );
+	WriteSubNFile( 8 );
 	WriteReportFile();
 	WriteCombineFile();
 	WriteFinishFile();

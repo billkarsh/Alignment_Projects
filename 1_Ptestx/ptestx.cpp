@@ -70,6 +70,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 	void TopLevel();
+	void ALayer();
 	void Call_ptest();
 };
 
@@ -198,75 +199,29 @@ void CArgs_ptx::TopLevel()
 }
 
 /* --------------------------------------------------------------- */
-/* ThmPairFile --------------------------------------------------- */
+/* ALayer -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void ThmPairFile( const char *sz, int za, int zb )
+void CArgs_ptx::ALayer()
 {
 	char	buf[2048];
-	FILE	*f;
+	int		len;
 
-	sprintf( buf, "%s/ThmPair_%d_@_%d.txt", sz, za, zb );
-	f = FileOpenOrDie( buf, "w", flog );
-	WriteThmPairHdr( f );
-	fclose( f );
-}
+/* ---------------------------- */
+/* Create A layer and jobs dirs */
+/* ---------------------------- */
 
-/* --------------------------------------------------------------- */
-/* TileDir ------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void TileDir( const char *sz, int itile )
-{
-	char	buf[4096];
-
-// create tile dir
-	sprintf( buf, "%s/%d", sz, gArgs.tile[itile] );
+	len = sprintf( buf, "%s/%d", tmp, z[0] );
 	DskCreateDir( buf, flog );
-}
 
-/* --------------------------------------------------------------- */
-/* EachLayer ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
+	CreateJobsDir( buf, 0, 0, z[0], z[1], flog );
 
-static void EachLayer()
-{
-	for( int iz = 0; iz < 2; ++iz ) {
+/* --------------- */
+/* Create tile dir */
+/* --------------- */
 
-		char	sz[2048], buf[2048];
-
-		/* ---------------- */
-		/* Different layer? */
-		/* ---------------- */
-
-		if( iz == 1 && (gArgs.z[1] == gArgs.z[0]) )
-			break;
-
-		/* ---------------- */
-		/* Create layer dir */
-		/* ---------------- */
-
-		sprintf( sz, "%s/%d", gArgs.tmp, gArgs.z[iz] );
-		DskCreateDir( sz, flog );
-
-		/* ----------- */
-		/* ThmPairFile */
-		/* ----------- */
-
-		ThmPairFile( sz, gArgs.z[iz], gArgs.z[iz] );
-
-		if( gArgs.z[1] != gArgs.z[0] )
-			ThmPairFile( sz, gArgs.z[iz], gArgs.z[!iz] );
-
-		/* ----------------------------- */
-		/* Create tile dir (1 or 2 dirs) */
-		/* ----------------------------- */
-
-		TileDir( sz, iz );
-
-		if( gArgs.z[1] == gArgs.z[0] )
-			TileDir( sz, 1 );
-	}
+	sprintf( buf + len, "/%d", tile[0] );
+	DskCreateDir( buf, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -278,8 +233,10 @@ void CArgs_ptx::Call_ptest()
 	char	buf[2048];
 	int		len, narg;
 
-// set working dir to layer A
-	sprintf( buf, "%s/%d", tmp, z[0] );
+// set jobs dir
+	sprintf( buf, "%s/%d/%c0_0", tmp, z[0],
+	(z[1] == z[0] ? 'S' : 'D') );
+
 	chdir( buf );
 
 // build command line with any passon args
@@ -325,11 +282,11 @@ int main( int argc, char* argv[] )
 
 	gArgs.TopLevel();
 
-/* ---------- */
-/* Each layer */
-/* ---------- */
+/* ------- */
+/* A layer */
+/* ------- */
 
-	EachLayer();
+	gArgs.ALayer();
 
 /* --------------------- */
 /* Call through to ptest */
