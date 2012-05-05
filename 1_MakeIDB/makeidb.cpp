@@ -220,9 +220,9 @@ static void WriteSubfmFile()
 
 	fprintf( f, "setenv MRC_TRIM 12\n\n" );
 
-	fprintf( f, "foreach i (`seq $1 $2`)\n" );
-	fprintf( f, "\tcd $i\n" );
-	fprintf( f, "\tqsub -N lou-f-$i -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "\tcd $lyr\n" );
+	fprintf( f, "\tqsub -N lou-f-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
 	fprintf( f, "\tcd ..\n" );
 	fprintf( f, "end\n\n" );
 

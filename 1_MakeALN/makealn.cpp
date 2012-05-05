@@ -2,13 +2,16 @@
 // makealn reads an IDB 'image database' and creates an alignment
 // workspace with this structure:
 //
-//	folder 'alnname'			// top folder
-//		imageparams.txt			// IDBPATH, IMAGESIZE tags
-//		folder '0'				// folder per layer, here, '0'
-//			ThmPair_0_@_j.txt	// table of thumbnail results
-//			make.down			// make file for cross layers
-//			make.same			// make file for same layer
-//			folder '0'			// output folder per tile, here '0'
+//	folder 'alnname'				// top folder
+//		imageparams.txt				// IDBPATH, IMAGESIZE tags
+//		folder '0'					// folder per layer, here, '0'
+//			folder '0'				// output folder per tile, here '0'
+//			S0_0					// same layer jobs
+//				make.same			// make file for same layer
+//				ThmPair_0_@_0.txt	// table of thumbnail results
+//			D0_0					// down layer jobs
+//				make.down			// make file for cross layers
+//				ThmPair_0_@_j.txt	// table of thumbnail results
 //
 
 
@@ -215,15 +218,15 @@ static void WriteSubmosFile()
 
 	fprintf( f, "setenv MRC_TRIM 12\n\n" );
 
-	fprintf( f, "foreach i (`seq $1 $2`)\n" );
+	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
 
 	fprintf( f,
-	"\tqsub -N mos-$i -cwd -V -b y -pe batch 8"
-	" \"mos ../stack/simple 0,0,-1,-1 $i,$i -warp%s"
-	" > mos_$i.txt\"\n",
+	"\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
+	" \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s"
+	" > mos_$lyr.txt\"\n",
 	(gArgs.NoFolds ? " -nf" : "") );
 
-	fprintf( f, "end\n" );
+	fprintf( f, "end\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -255,12 +258,12 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif (-d $lyr) then\n" );
 	fprintf( f, "\t\tcd $lyr/S0_0\n" );
-	fprintf( f, "\t\tqsub -N qs0-0-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\tqsub -N qS0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
 	fprintf( f, "\t\tcd ../D0_0\n" );
-	fprintf( f, "\t\tqsub -N qd0-0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\tqsub -N qD0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
 	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n" );
+	fprintf( f, "end\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -307,7 +310,7 @@ static void WriteCombineFile()
 	fprintf( f, "rm -f pts.all\n\n" );
 
 	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
-	fprintf( f, "set idb = `sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' <imageparams.txt`\n\n" );
+	fprintf( f, "set idb = `sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < imageparams.txt`\n\n" );
 
 	fprintf( f, "cp imageparams.txt pts.all\n\n" );
 
