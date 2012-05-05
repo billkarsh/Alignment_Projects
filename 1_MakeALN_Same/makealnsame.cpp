@@ -261,7 +261,13 @@ static void WriteSubmosFile()
 
 	fprintf( f, "setenv MRC_TRIM 12\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "if ($#argv == 1) then\n" );
+	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tset last = $2\n" );
+	fprintf( f, "endif\n\n" );
+
+	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
 
 	fprintf( f,
 	"\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
@@ -387,7 +393,13 @@ static void WriteSubmonFile()
 
 	fprintf( f, "#!/bin/csh\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "if ($#argv == 1) then\n" );
+	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tset last = $2\n" );
+	fprintf( f, "endif\n\n" );
+
+	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
 
 	fprintf( f,
 	"\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8"
