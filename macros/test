@@ -1,0 +1,19 @@
+#!/bin/csh
+
+# Get line items from a file
+# foreach i (`cat aaa.txt`)
+# 	echo $i
+# end
+
+# Modifiers
+# :h = path less filename
+# :t = filename + ext
+# :e = ext without dot
+
+# Copy file arg1 to arg1_v2
+set ext = `echo $1 | sed 's|.*\(\.[^.]\)|\1|'`
+set base = `echo $1 | sed 's|\(.*\)'$ext'|\1|'`
+set v2 = $base"_v2"$ext
+echo $v2
+
+
