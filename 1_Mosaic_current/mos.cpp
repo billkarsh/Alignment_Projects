@@ -11,16 +11,11 @@
 #include	"Maths.h"
 #include	"Correlation.h"
 #include	"Geometry.h"
-#include	"CTForm.h"
 #include	"Draw.h"
 #include	"Memory.h"
 
 #include	<sys/resource.h>
 #include	<sys/stat.h>
-
-#include	<map>
-#include	<set>
-using namespace std;
 
 
 /* --------------------------------------------------------------- */

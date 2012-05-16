@@ -5,12 +5,8 @@
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
-
-#include	<map>
-#include	<set>
-using namespace std;
 
 
 /* --------------------------------------------------------------- */
@@ -20,32 +16,6 @@ using namespace std;
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-// ----------------------------------------
-
-// Map {z,id} <-> TForm
-
-class MZID {
-
-public:
-	int	z, id;
-
-public:
-	MZID() {};
-
-	bool operator < (const MZID &rhs) const
-		{
-			if( z < rhs.z )
-				return true;
-			if( z > rhs.z )
-				return false;
-
-			return id < rhs.id;
-		};
-
-	bool operator == (const MZID &rhs) const
-		{return z == rhs.z && id == rhs.id;};
-};
 
 /* --------------------------------------------------------------- */
 /* CArgs_xml ----------------------------------------------------- */
@@ -81,7 +51,7 @@ public:
 
 static CArgs_xml		gArgs;
 static FILE*			flog = NULL;
-static map<MZID, TForm>	M;
+static map<MZID,TForm>	M;
 static set<int>			Z;
 
 
@@ -166,41 +136,6 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 }
 
 /* --------------------------------------------------------------- */
-/* LoadTForms ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void LoadTForms()
-{
-	FILE		*f		= FileOpenOrDie( gArgs.tblfile, "r", flog );
-	CLineScan	LS;
-	int			lastz	= -1;
-
-	for(;;) {
-
-		if( LS.Get( f ) <= 0 )
-			break;
-
-		MZID	R;
-		TForm	T;
-		int		rgn;
-
-		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
-		&R.z, &R.id, &rgn,
-		&T.t[0], &T.t[1], &T.t[2],
-		&T.t[3], &T.t[4], &T.t[5] );
-
-		if( rgn != 1 )
-			continue;
-
-		Z.insert( R.z );
-
-		M[R] = T;
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
 /* Update -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -266,7 +201,7 @@ static void Update()
 
 			key.id = gArgs.IDFromPatch( p );
 
-			map<MZID, TForm>::iterator	it = M.find( key );
+			map<MZID,TForm>::iterator	it = M.find( key );
 
 			if( it == M.end() ) {
 				layer->RemoveChild( p );
@@ -312,7 +247,7 @@ int main( int argc, char* argv[] )
 /* Load lists of TForms and affected Z's */
 /* ------------------------------------- */
 
-	LoadTForms();
+	LoadTFormTbl_AllZ( M, Z, gArgs.tblfile, flog );
 
 /* ------------- */
 /* Write new xml */

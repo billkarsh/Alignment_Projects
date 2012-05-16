@@ -182,7 +182,7 @@ static void CopyOids()
 		/* Fill a map of source tile oids */
 		/* ------------------------------ */
 
-		map<string, int>	M;
+		map<string,int>	M;
 
 		for(
 			TiXmlElement *p = layerS->FirstChildElement( "t2_patch" );
@@ -205,7 +205,7 @@ static void CopyOids()
 
 			string	s = p->Attribute( "file_path" );
 
-			map<string, int>::iterator	mi = M.find( s );
+			map<string,int>::iterator	mi = M.find( s );
 
 			if( mi == M.end() ) {
 				fprintf( flog,

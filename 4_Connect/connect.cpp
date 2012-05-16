@@ -114,8 +114,8 @@ if( print ) {
 return rms;
 }
 
-map<string, int> PairIndex;  // maps the name to an index in next table
-vector<CorrPts> AllPts;      // keeps track of corresponding points for each pair
+map<string,int>	PairIndex;  // maps the name to an index in next table
+vector<CorrPts>	AllPts;      // keeps track of corresponding points for each pair
 
 void AddPairwisePoints(const char *name1, double x1, double y1, const char *name2, double x2, double y2)
 {
@@ -128,7 +128,7 @@ else
 
 // Now look up the string in the table, adding if necessary
 int loc; // will be the location in the table when this is done
-map<string, int>::iterator mi = PairIndex.find(name);
+map<string,int>::iterator	mi = PairIndex.find(name);
 if( mi == PairIndex.end() ) {
     // did not exist; add it
     AllPts.push_back(CorrPts());
@@ -167,7 +167,7 @@ return si != ign.end();
 
 // Converts a name to a zero based index.  Looks for the string in the mapping, and returns that
 // if found.  If not, adds to the table, assigning the value nt, then increments nt.
-int LookupAddIfNeeded(const char *name, map<string, int> &m, int &nt)
+int LookupAddIfNeeded(const char *name, map<string,int> &m, int &nt)
 {
 map<string,int>::iterator it = m.find(string(name));
 if( it != m.end() )

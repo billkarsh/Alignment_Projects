@@ -3,7 +3,6 @@
 // Based on Lou's 11/23/2010 copy of lsq.cpp
 
 
-#include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"Disk.h"
@@ -14,12 +13,9 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"CPoint.h"
-#include	"CTForm.h"
 
 #include	<math.h>
 
-#include	<map>
-#include	<set>
 #include	<stack>
 using namespace std;
 
@@ -68,26 +64,6 @@ public:
 public:
 	Constraint( int rr1, Point pp1, int rr2, Point pp2 )
 		{r1 = rr1; p1 = pp1; r2 = rr2; p2 = pp2;};
-};
-
-// ----------------------------------------
-
-// Image identifier for FOLDMAP lookups
-
-class ZID {
-
-public:
-	int	z, id;
-
-public:
-	ZID( int zz, int iid )
-		{z = zz; id = iid;};
-
-	bool operator < (const ZID &rhs) const
-		{return z < rhs.z || (z == rhs.z && id < rhs.id);};
-
-	bool operator == (const ZID &rhs) const
-		{return z == rhs.z && id == rhs.id;};
 };
 
 /* --------------------------------------------------------------- */
@@ -149,39 +125,6 @@ public:
 };
 
 /* --------------------------------------------------------------- */
-/* ZIDR ---------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Image identifier for POINT lookups
-
-class ZIDR {
-
-public:
-	int	z, id, rgn;
-
-public:
-	ZIDR( const RGN& R )
-		{z = R.z; id = R.id; rgn = R.rgn;};
-
-	bool operator < (const ZIDR &rhs) const
-		{
-			if( z < rhs.z )
-				return true;
-			if( z > rhs.z )
-				return false;
-			if( id < rhs.id )
-				return true;
-			if( id > rhs.id )
-				return false;
-
-			return rgn < rhs.rgn;
-		};
-
-	bool operator == (const ZIDR &rhs) const
-		{return z == rhs.z && id == rhs.id && rgn == rhs.rgn;};
-};
-
-/* --------------------------------------------------------------- */
 /* zsort --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -234,7 +177,7 @@ public:
 	// COLOR_256	= 3
 	// COLOR_RGB	= 4
 	//
-	vector<ZID>		include_only;	// if given, include only these
+	vector<MZID>	include_only;	// if given, include only these
 	vector<double>	lrbt;			// if not empty, forced bbox
 	double	same_strength,
 			square_strength,
@@ -447,11 +390,11 @@ static CArgs_lsq			gArgs;
 static FILE					*FOUT;		// outfile: 'simple'
 static string				idb;
 static vector<string>		rgnvname;	// tile names
-static map<ZID,int>			rgnmname;	// tile names
+static map<MZID,int>		rgnmname;	// tile names
 static vector<RGN>			vRgn;		// the regions
 static map<CRPair,int>		r12Idx;		// idx from region-pair
 static vector<Constraint>	vAllC;		// all POINT entries
-static map<ZID,int>			nConRgn;	// # corr-rgn this image
+static map<MZID,int>		nConRgn;	// # corr-rgn this image
 static int					gW = 4056,	// default image dims
 							gH = 4056,
 							gNTr = 0;	// Set by Set_itr_set_used
@@ -505,7 +448,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			for( int i = 0; i < ni; i += 2 ) {
 
 				include_only.push_back(
-					ZID( vi[i], vi[i+1] ) );
+					MZID( vi[i], vi[i+1] ) );
 
 				printf( "Include only %4d %4d.\n", vi[i], vi[i+1] );
 			}
@@ -680,8 +623,8 @@ RGN::RGN( const char *path, const DIR *dir )
 	rgn		= atoi( s + 1 );
 	itr		= -1;
 
-	ZID						zid( z, id );
-	map<ZID,int>::iterator	it = rgnmname.find( zid );
+	MZID					zid( z, id );
+	map<MZID,int>::iterator	it = rgnmname.find( zid );
 
 	if( it == rgnmname.end() ) {
 
@@ -698,8 +641,8 @@ RGN::RGN( const char *path, const char *key )
 	sscanf( key, "%d.%d:%d", &z, &id, &rgn );
 	itr		= -1;
 
-	ZID						zid( z, id );
-	map<ZID,int>::iterator	it = rgnmname.find( zid );
+	MZID					zid( z, id );
+	map<MZID,int>::iterator	it = rgnmname.find( zid );
 
 	if( it == rgnmname.end() ) {
 
@@ -718,8 +661,8 @@ const char* RGN::GetName() const
 {
 	if( iname < 0 ) {
 
-		ZID						zid( z, id );
-		map<ZID,int>::iterator	it = rgnmname.find( zid );
+		MZID					zid( z, id );
+		map<MZID,int>::iterator	it = rgnmname.find( zid );
 		int						k;
 
 		if( it == rgnmname.end() ) {
@@ -1235,12 +1178,12 @@ void CNX::SelectIncludedImages()
 // If already stored, that index is returned. Else, new
 // entries are created with index (nr); nr is incremented.
 //
-static int FindOrAdd( map<ZIDR,int> &m, int &nr, const RGN &R )
+static int FindOrAdd( map<MZIDR,int> &m, int &nr, const RGN &R )
 {
 // Already mapped?
 
-	ZIDR					key( R );
-	map<ZIDR,int>::iterator	it = m.find( key );
+	MZIDR						key( R.z, R.id, R.rgn );
+	map<MZIDR,int>::iterator	it = m.find( key );
 
 	if( it != m.end() )
 		return it->second;
@@ -1267,7 +1210,7 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 	FILE		*f = FileOpenOrDie( gArgs.pts_file, "r" );
 	CLineScan	LS;
 
-	map<ZIDR,int>	mapRGN;
+	map<MZIDR,int>	mapRGN;
 	int				nr = 0, nlines = 0;
 
 	for(;;) {
@@ -1338,7 +1281,7 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 
 			sscanf( LS.line + 8, "'%*[^']' %s %d", name1, &nrgn );
 			ZIDFromFMPath( z, id, name1 );
-			nConRgn[ZID( z, id )] = nrgn;
+			nConRgn[MZID( z, id )] = nrgn;
 
 			fprintf( FOUT, LS.line );
 		}
@@ -1381,7 +1324,7 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 	FILE		*f = FileOpenOrDie( gArgs.pts_file, "r" );
 	CLineScan	LS;
 
-	map<ZIDR,int>	mapRGN;
+	map<MZIDR,int>	mapRGN;
 	int				nr = 0, nlines = 0;
 
 	for(;;) {
@@ -1425,7 +1368,7 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 			int	z, id, nrgn;
 
 			sscanf( LS.line + 9, "%d.%d %d", &z, &id, &nrgn );
-			nConRgn[ZID( z, id )] = nrgn;
+			nConRgn[MZID( z, id )] = nrgn;
 		}
 		else if( !strncmp( LS.line, "IDBPATH", 7 ) ) {
 
@@ -1552,42 +1495,6 @@ static void SetIdentityTForm(
 /* SetUniteLayer ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// ----------------------------------------
-
-// Map {z,id,rgn} <-> TForm
-
-class MZIDR {
-
-public:
-	int	z, id, rgn;
-
-public:
-	MZIDR() {};
-
-	MZIDR( const RGN &R )
-		{z = R.z; id = R.id; rgn = R.rgn;};
-
-	bool operator < (const MZIDR &rhs) const
-		{
-			if( z < rhs.z )
-				return true;
-			if( z > rhs.z )
-				return false;
-			if( id < rhs.id )
-				return true;
-			if( id > rhs.id )
-				return false;
-
-			return rgn < rhs.rgn;
-		};
-
-	bool operator == (const MZIDR &rhs) const
-		{return z == rhs.z && id == rhs.id && rgn == rhs.rgn;};
-};
-
-// ----------------------------------------
-
-
 // Set one layer-full of TForms to those from a previous
 // solution output file gArgs.tfm_file.
 //
@@ -1602,34 +1509,7 @@ static void SetUniteLayer(
 
 	map<MZIDR,TForm>	M;
 
-	FILE		*f = FileOpenOrDie( gArgs.tfm_file, "r" );
-	CLineScan	LS;
-
-	for(;;) {
-
-		if( LS.Get( f ) <= 0 )
-			break;
-
-		MZIDR	R;
-		TForm	T;
-
-		R.z = atoi( LS.line );
-
-		if( R.z < gArgs.unite_layer )
-			continue;
-
-		if( R.z > gArgs.unite_layer )
-			break;
-
-		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
-		&R.z, &R.id, &R.rgn,
-		&T.t[0], &T.t[1], &T.t[2],
-		&T.t[3], &T.t[4], &T.t[5] );
-
-		M[R] = T;
-	}
-
-	fclose( f );
+	LoadTFormTbl_ThisZ( M, gArgs.unite_layer, gArgs.tfm_file );
 
 /* ----------------------------- */
 /* Set each TForm in given layer */
@@ -1641,19 +1521,21 @@ static void SetUniteLayer(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		if( vRgn[i].z != gArgs.unite_layer || vRgn[i].itr < 0 )
+		const RGN&	R = vRgn[i];
+
+		if( R.z != gArgs.unite_layer || R.itr < 0 )
 			continue;
 
 		map<MZIDR,TForm>::iterator	it;
 
-		it = M.find( MZIDR( vRgn[i] ) );
+		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
 
 		if( it == M.end() )
 			continue;
 
 		double	one	= stiff,
 				*t	= it->second.t;
-		int		j	= vRgn[i].itr * 6;
+		int		j	= R.itr * 6;
 
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[0] );		j++;
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[1] );		j++;
@@ -3117,8 +2999,8 @@ static void NoCorrs(
 
 			// Count conRgns for each
 
-			int	nr1 = nConRgn[ZID( A.z, A.id )],
-				nr2	= nConRgn[ZID( B.z, B.id )];
+			int	nr1 = nConRgn[MZID( A.z, A.id )],
+				nr2	= nConRgn[MZID( B.z, B.id )];
 
 			// only consider cases without folds
 			if( nr1 != 1 || nr2 != 1 )

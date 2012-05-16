@@ -56,7 +56,7 @@ public:
 
 static CArgs_xml		gArgs;
 static FILE*			flog = NULL;
-static map<int, TForm>	M;
+static map<int,TForm>	M;
 static set<int>			Z;
 
 
@@ -287,7 +287,7 @@ static void Update()
 
 			id = gArgs.IDFromPatch( p );
 
-			map<int, TForm>::iterator	it = M.find( id );
+			map<int,TForm>::iterator	it = M.find( id );
 
 			if( it == M.end() )
 				continue;

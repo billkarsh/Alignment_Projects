@@ -3,8 +3,11 @@
 #pragma once
 
 
+#include	"GenDefs.h"
 #include	"CTForm.h"
 
+#include	<map>
+#include	<set>
 #include	<string>
 using namespace std;
 
@@ -170,5 +173,17 @@ void WriteThmPair(
 	int				bcr );
 
 bool ZIDFromFMPath( int &z, int &id, const char *path );
+
+void LoadTFormTbl_AllZ(
+	map<MZID,TForm>	&Tmap,
+	set<int>		&Zset,
+	const char		*path,
+	FILE			*flog = NULL );
+
+void LoadTFormTbl_ThisZ(
+	map<MZIDR,TForm>	&Tmap,
+	int					z,
+	const char			*path,
+	FILE				*flog = NULL );
 
 

@@ -5,6 +5,7 @@
 // listed in del.txt.
 //
 
+#include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"File.h"
@@ -21,32 +22,6 @@ using namespace std;
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-// ----------------------------------------
-
-// Map {z,id} -> sd
-
-class MZID {
-
-public:
-	int	z, id;
-
-public:
-	MZID() {};
-
-	bool operator < (const MZID &rhs) const
-		{
-			if( z < rhs.z )
-				return true;
-			if( z > rhs.z )
-				return false;
-
-			return id < rhs.id;
-		};
-
-	bool operator == (const MZID &rhs) const
-		{return z == rhs.z && id == rhs.id;};
-};
 
 /* --------------------------------------------------------------- */
 /* CArgs_xml ----------------------------------------------------- */

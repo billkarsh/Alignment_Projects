@@ -826,4 +826,85 @@ bool ZIDFromFMPath( int &z, int &id, const char *path )
 	return true;
 }
 
+/* --------------------------------------------------------------- */
+/* LoadTFormTbl_AllZ --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// From an LSQ-style TFormTable file, fill out a table of
+// TForms[mapped by (z,id)] and a table of all unique z-values.
+//
+void LoadTFormTbl_AllZ(
+	map<MZID,TForm>	&Tmap,
+	set<int>		&Zset,
+	const char		*path,
+	FILE			*flog )
+{
+	FILE		*f	= FileOpenOrDie( path, "r", flog );
+	CLineScan	LS;
+
+	for(;;) {
+
+		if( LS.Get( f ) <= 0 )
+			break;
+
+		MZID	zid;
+		TForm	T;
+		int		rgn;
+
+		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		&zid.z, &zid.id, &rgn,
+		&T.t[0], &T.t[1], &T.t[2],
+		&T.t[3], &T.t[4], &T.t[5] );
+
+		if( rgn != 1 )
+			continue;
+
+		Zset.insert( zid.z );
+
+		Tmap[zid] = T;
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* LoadTFormTbl_ThisZ -------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void LoadTFormTbl_ThisZ(
+	map<MZIDR,TForm>	&Tmap,
+	int					z,
+	const char			*path,
+	FILE				*flog )
+{
+	FILE		*f	= FileOpenOrDie( path, "r", flog );
+	CLineScan	LS;
+
+	for(;;) {
+
+		if( LS.Get( f ) <= 0 )
+			break;
+
+		MZIDR	zir;
+		TForm	T;
+
+		zir.z = atoi( LS.line );
+
+		if( zir.z < z )
+			continue;
+
+		if( zir.z > z )
+			break;
+
+		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		&zir.z, &zir.id, &zir.rgn,
+		&T.t[0], &T.t[1], &T.t[2],
+		&T.t[3], &T.t[4], &T.t[5] );
+
+		Tmap[zir] = T;
+	}
+
+	fclose( f );
+}
+
 

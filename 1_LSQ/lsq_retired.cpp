@@ -113,9 +113,9 @@ static bool IgnoreNames(
 // Lookup by number.
 // Very inefficient; could (should) keep tables both ways.
 //
-static string LookupByNumber( map<string, int> &mapping, int k )
+static string LookupByNumber( map<string,int> &mapping, int k )
 {
-	map<string, int>::iterator	it;
+	map<string,int>::iterator	it;
 
 	for( it = mapping.begin(); it != mapping.end(); ++it ) {
 
