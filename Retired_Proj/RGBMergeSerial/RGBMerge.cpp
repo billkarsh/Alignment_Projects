@@ -23,6 +23,8 @@ public:
 	int		z;		// Z layer
 
 public:
+	Picture( const char *_n, int _z )	{fname=_n; z=_z;};
+
 	bool operator < (const Picture &rhs) const
 		{return z < rhs.z;};
 };
@@ -131,6 +133,28 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* GetTiles ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void GetTiles(
+	vector<Picture>	&vp,
+	TiXmlElement*	layer,
+	int				z )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		if( !gW ) {
+			gW = atoi( ptch->Attribute( "width" ) );
+			gH = atoi( ptch->Attribute( "height" ) );
+		}
+
+		vp.push_back( Picture( ptch->Attribute( "file_path" ), z ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ParseTrakEM2 -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -177,10 +201,6 @@ static void ParseTrakEM2( vector<Picture> &vp )
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
-
 		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
@@ -189,35 +209,7 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		if( z < gArgs.zmin )
 			continue;
 
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-
-		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			Picture		p;
-			const char	*name = ptch->Attribute( "file_path" );
-
-			/* ---- */
-			/* Dims */
-			/* ---- */
-
-			if( !gW ) {
-				gW = atoi( ptch->Attribute( "width" ) );
-				gH = atoi( ptch->Attribute( "height" ) );
-			}
-
-			/* ----------------- */
-			/* Set picture entry */
-			/* ----------------- */
-
-			p.fname	= name;
-			p.z		= z;
-
-			vp.push_back( p );
-		}
+		GetTiles( vp, layer, z );
 	}
 }
 
@@ -507,6 +499,23 @@ static void EditTitleAndPath( TiXmlElement* ptch )
 }
 
 /* --------------------------------------------------------------- */
+/* FixTiles ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void FixTiles( TiXmlElement* layer )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		EditTitleAndPath( ptch );
+		ptch->SetAttribute( "type", 4 );
+		ptch->SetAttribute( "min", 0 );
+		ptch->SetAttribute( "max", 255 );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* WriteXML ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -563,19 +572,7 @@ static void WriteXML( const vector<Fix> &fix )
 		if( !layer )
 			break;
 
-		// for each tile in this layer...
-		for(
-			TiXmlElement* ptch =
-			layer->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			// edit attributes
-			EditTitleAndPath( ptch );
-			ptch->SetAttribute( "type", 4 );
-			ptch->SetAttribute( "min", 0 );
-			ptch->SetAttribute( "max", 255 );
-		}
+		FixTiles( layer );
 	}
 
 /* ---- */

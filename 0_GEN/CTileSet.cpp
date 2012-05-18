@@ -116,6 +116,31 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 }
 
 /* --------------------------------------------------------------- */
+/* XMLGetTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void XMLGetTiles(
+	CTileSet		*TS,
+	TiXmlElement*	layer,
+	int				z )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		CUTile		til;
+		const char	*name = ptch->Attribute( "file_path" );
+
+		til.name	= name;
+		til.z		= z;
+		til.id		= TS->DecodeID( name );
+		til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+
+		TS->vtil.push_back( til );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* FillFromTrakEM2 ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -163,10 +188,6 @@ void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
-
 		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( z > zmax )
@@ -175,28 +196,7 @@ void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 		if( z < zmin )
 			continue;
 
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-
-		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			CUTile		til;
-			const char	*name = ptch->Attribute( "file_path" );
-
-			/* --------- */
-			/* Set entry */
-			/* --------- */
-
-			til.name	= name;
-			til.z		= z;
-			til.id		= DecodeID( name );
-			til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
-
-			vtil.push_back( til );
-		}
+		XMLGetTiles( this, layer, z );
 	}
 }
 

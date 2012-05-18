@@ -160,6 +160,26 @@ static void EditTitleAndPath( TiXmlElement* ptch )
 }
 
 /* --------------------------------------------------------------- */
+/* UpdateTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void UpdateTiles(
+	TiXmlElement*		layer,
+	const Scale			&scl )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		if( gArgs.chn >= 0 )
+			EditTitleAndPath( ptch );
+
+		ptch->SetAttribute( "min", scl.smin );
+		ptch->SetAttribute( "max", scl.smax );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* WriteXML ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -216,21 +236,7 @@ static void WriteXML( const vector<Scale> &vs )
 		if( !layer )
 			break;
 
-		// for each tile in this layer...
-		for(
-			TiXmlElement* ptch =
-			layer->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			// edit names
-			if( gArgs.chn >= 0 )
-				EditTitleAndPath( ptch );
-
-			// edit min and max
-			ptch->SetAttribute( "min", vs[iz].smin );
-			ptch->SetAttribute( "max", vs[iz].smax );
-		}
+		UpdateTiles( layer, vs[iz] );
 	}
 
 /* ---- */

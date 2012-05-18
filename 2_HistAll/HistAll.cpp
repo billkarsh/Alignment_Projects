@@ -143,6 +143,23 @@ Picture::Picture( const char* name, int _z )
 }
 
 /* --------------------------------------------------------------- */
+/* GetTiles ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void GetTiles(
+	vector<Picture>	&vp,
+	TiXmlElement*	layer,
+	int				z )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		vp.push_back( Picture( ptch->Attribute( "file_path" ), z ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ParseTrakEM2 -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -201,17 +218,7 @@ static void ParseTrakEM2( vector<Picture> &vp )
 		if( z < gArgs.zmin )
 			continue;
 
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-
-		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			vp.push_back(
-			Picture( ptch->Attribute( "file_path" ), z ) );
-		}
+		GetTiles( vp, layer, z );
 	}
 }
 

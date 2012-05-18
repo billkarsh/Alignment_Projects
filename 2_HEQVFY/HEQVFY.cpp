@@ -48,7 +48,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -125,7 +125,7 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_heq::IDFromPatch( TiXmlElement *p )
+int CArgs_heq::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -142,7 +142,7 @@ int CArgs_heq::IDFromPatch( TiXmlElement *p )
 /* OutName ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static char *OutName( char *buf, TiXmlElement *p )
+static char *OutName( char *buf, TiXmlElement* p )
 {
 	char		tag[32];
 	const char	*n = p->Attribute( "file_path" );
@@ -165,6 +165,24 @@ static char *OutName( char *buf, TiXmlElement *p )
 	}
 
 	return buf;
+}
+
+/* --------------------------------------------------------------- */
+/* ListMissingTiles ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ListMissingTiles( TiXmlElement* layer, int z )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		char	buf[2048];
+		int		id = gArgs.IDFromPatch( p );
+
+		if( !DskExists( OutName( buf, p ) ) )
+			fprintf( flog, "%d\t%d\n", z, id );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -226,21 +244,7 @@ static void ParseTrakEM2()
 		if( z < gArgs.zmin )
 			continue;
 
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			char	buf[2048];
-			int		id = gArgs.IDFromPatch( p );
-
-			if( !DskExists( OutName( buf, p ) ) )
-				fprintf( flog, "%d\t%d\n", z, id );
-		}
+		ListMissingTiles( layer, z );
 	}
 }
 

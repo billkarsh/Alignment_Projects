@@ -209,6 +209,21 @@ void CArgs_xml::RenameXML()
 }
 
 /* --------------------------------------------------------------- */
+/* UpdateTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void UpdateTiles( TiXmlElement* layer )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		if( gArgs.CopyImg( ptch ) )
+			gArgs.SetRelPath( ptch );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* DoLayers ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -231,7 +246,7 @@ static void DoLayers()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.GetXML() );
@@ -252,8 +267,8 @@ static void DoLayers()
 /* Kill layers outside range */
 /* ------------------------- */
 
-	TiXmlNode		*lyrset = layer->Parent();
-	TiXmlElement	*next;
+	TiXmlNode*		lyrset = layer->Parent();
+	TiXmlElement*	next;
 
 	for( ; layer; layer = next ) {
 
@@ -276,19 +291,8 @@ static void DoLayers()
 
 		int	z = atoi( layer->Attribute( "z" ) );
 
-		// make layer folder
 		gArgs.NewLayer( z );
-
-		// for each tile in this layer...
-		for(
-			TiXmlElement* ptch =
-			layer->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			if( gArgs.CopyImg( ptch ) )
-				gArgs.SetRelPath( ptch );
-		}
+		UpdateTiles( layer );
 	}
 
 /* ---- */

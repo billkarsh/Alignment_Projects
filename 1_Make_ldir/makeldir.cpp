@@ -154,6 +154,28 @@ void CArgs_ldir::FindPat(
 }
 
 /* --------------------------------------------------------------- */
+/* GetUniqueDirs ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void GetUniqueDirs( set<string> &S, TiXmlElement* layer )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		char		buf[2048];
+		const char*	name = p->Attribute( "file_path" );
+		const char* start;
+		const char* end;
+
+		gArgs.FindPat( start, end, name );
+
+		sprintf( buf, "%.*s", end - name, name );
+		S.insert( string( buf ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ParseTrakEM2 -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -223,23 +245,8 @@ static void ParseTrakEM2()
 		/* ----------------------------------------- */
 
 		set<string>		S;
-		TiXmlElement*	p;
 
-		for(
-			p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			char		buf[2048];
-			const char*	name = p->Attribute( "file_path" );
-			const char* start;
-			const char* end;
-
-			gArgs.FindPat( start, end, name );
-
-			sprintf( buf, "%.*s", end - name, name );
-			S.insert( string( buf ) );
-		}
+		GetUniqueDirs( S, layer );
 
 		/* ------------------ */
 		/* And write them out */

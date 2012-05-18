@@ -47,7 +47,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -137,7 +137,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -148,6 +148,24 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 	}
 
 	return id;
+}
+
+/* --------------------------------------------------------------- */
+/* GetTForms ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void GetTForms( TiXmlElement* layer )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		TForm	T;
+		int		id = gArgs.IDFromPatch( p );
+
+		T.ScanTrackEM2( p->Attribute( "transform" ) );
+		M[id] = T;
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -199,29 +217,40 @@ static void GetSrc()
 
 		int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z == gArgs.zsrc )
-			goto got_layer;
+		if( z == gArgs.zsrc ) {
+			GetTForms( layer );
+			return;
+		}
 	}
 
 	fprintf( flog, "Src layer not found.\n" );
 	exit( 42 );
+}
 
-/* -------------- */
-/* Collect tforms */
-/* -------------- */
+/* --------------------------------------------------------------- */
+/* UpdateTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-got_layer:
+static void UpdateTiles( TiXmlElement* layer )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for(
-		TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-		p;
-		p = p->NextSiblingElement() ) {
+	for( ; p; p = p->NextSiblingElement() ) {
 
-		TForm	T;
+		int	id = gArgs.IDFromPatch( p );
 
-		T.ScanTrackEM2( p->Attribute( "transform" ) );
+		map<int,TForm>::iterator	it = M.find( id );
 
-		M[gArgs.IDFromPatch( p )] = T;
+		if( it == M.end() )
+			continue;
+
+		const double	*t = it->second.t;
+		char			buf[256];
+
+		sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
+		t[0], t[3], t[1], t[4], t[2], t[5] );
+
+		p->SetAttribute( "transform", buf );
 	}
 }
 
@@ -248,7 +277,7 @@ static void Update()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog,
@@ -273,33 +302,12 @@ static void Update()
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z, id;
-
-		z = atoi( layer->Attribute( "z" ) );
+		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( Z.find( z ) == Z.end() )
 			continue;
 
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			id = gArgs.IDFromPatch( p );
-
-			map<int,TForm>::iterator	it = M.find( id );
-
-			if( it == M.end() )
-				continue;
-
-			const double	*t = it->second.t;
-			char			buf[256];
-
-			sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
-			t[0], t[3], t[1], t[4], t[2], t[5] );
-
-			p->SetAttribute( "transform", buf );
-		}
+		UpdateTiles( layer );
 	}
 
 /* ---- */

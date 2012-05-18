@@ -68,7 +68,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -160,7 +160,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -183,14 +183,12 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 /* Create rotation */
 /* --------------- */
 
-	TForm	TR;
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+	TForm			TR;
 
 	CreateCWRot( TR, degcw, Point( gArgs.x/2, gArgs.y/2 ) );
 
-	for(
-		TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-		p;
-		p = p->NextSiblingElement() ) {
+	for( ; p; p = p->NextSiblingElement() ) {
 
 		char	buf[256];
 		TForm	T0, T;
@@ -203,6 +201,35 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 
 		p->SetAttribute( "transform", buf );
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* GetTheTwoTForms ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static bool GetTheTwoTForms(
+	TForm			&T1,
+	TForm			&T2,
+	TiXmlElement*	layer )
+{
+	TiXmlElement*	p		= layer->FirstChildElement( "t2_patch" );
+	int				ngot	= 0;
+
+	for( ; ngot < 2 && p; p = p->NextSiblingElement() ) {
+
+		int	id = gArgs.IDFromPatch( p );
+
+		if( id == gArgs.id1 ) {
+			T1.ScanTrackEM2( p->Attribute( "transform" ) );
+			++ngot;
+		}
+		else if( id == gArgs.id2 ) {
+			T2.ScanTrackEM2( p->Attribute( "transform" ) );
+			++ngot;
+		}
+	}
+
+	return (ngot == 2);
 }
 
 /* --------------------------------------------------------------- */
@@ -228,7 +255,7 @@ static void Report()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
@@ -254,7 +281,7 @@ static void Report()
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
 		TForm	T1, T2;
-		int		ngot = 0, z = atoi( layer->Attribute( "z" ) );
+		int		z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
 			break;
@@ -262,24 +289,7 @@ static void Report()
 		if( z < gArgs.zmin )
 			continue;
 
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			int	id = gArgs.IDFromPatch( p );
-
-			if( id == gArgs.id1 ) {
-				T1.ScanTrackEM2( p->Attribute( "transform" ) );
-				++ngot;
-			}
-			else if( id == gArgs.id2 ) {
-				T2.ScanTrackEM2( p->Attribute( "transform" ) );
-				++ngot;
-			}
-		}
-
-		if( ngot < 2 ) {
+		if( !GetTheTwoTForms( T1, T2, layer ) ) {
 			fprintf( flog, "%d\tMissing ref tile\n", z );
 			continue;
 		}
@@ -326,7 +336,7 @@ static void RotateAuto()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
@@ -352,7 +362,7 @@ static void RotateAuto()
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
 		TForm	T1, T2;
-		int		ngot = 0, z = atoi( layer->Attribute( "z" ) );
+		int		z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
 			break;
@@ -360,24 +370,7 @@ static void RotateAuto()
 		if( z < gArgs.zmin )
 			continue;
 
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			int	id = gArgs.IDFromPatch( p );
-
-			if( id == gArgs.id1 ) {
-				T1.ScanTrackEM2( p->Attribute( "transform" ) );
-				++ngot;
-			}
-			else if( id == gArgs.id2 ) {
-				T2.ScanTrackEM2( p->Attribute( "transform" ) );
-				++ngot;
-			}
-		}
-
-		if( ngot < 2 ) {
+		if( !GetTheTwoTForms( T1, T2, layer ) ) {
 			fprintf( flog, "%d\tMissing ref tile\n", z );
 			continue;
 		}
@@ -432,7 +425,7 @@ static void Rotate1Layer()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );

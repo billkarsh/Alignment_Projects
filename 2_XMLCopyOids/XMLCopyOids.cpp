@@ -99,6 +99,50 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* GetTileOids --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void GetTileOids(
+	map<string,int>	&M,
+	TiXmlElement*	layer )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		string	s = p->Attribute( "file_path" );
+
+		M[s] = atoi( p->Attribute( "oid" ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* UpdateTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void UpdateTiles(
+	TiXmlElement*	layer,
+	map<string,int>	&M )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		string	s = p->Attribute( "file_path" );
+
+		map<string,int>::iterator	mi = M.find( s );
+
+		if( mi == M.end() ) {
+			fprintf( flog,
+			"Dest tile not found in src '%s'.\n", s.c_str() );
+			exit( 42 );
+		}
+
+		p->SetAttribute( "oid", mi->second );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* CopyOids ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -129,7 +173,8 @@ static void CopyOids()
 
 	TiXmlHandle		hDocD( &docD ),
 					hDocS( &docS );
-	TiXmlElement	*layerD, *layerS;
+	TiXmlElement*	layerD;
+	TiXmlElement*	layerS;
 
 	if( !docD.FirstChild() || !docS.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node.\n" );
@@ -178,43 +223,14 @@ static void CopyOids()
 
 		layerD->SetAttribute( "oid", oidS );
 
-		/* ------------------------------ */
-		/* Fill a map of source tile oids */
-		/* ------------------------------ */
+		/* ------------------ */
+		/* Transfer tile oids */
+		/* -------------------*/
 
 		map<string,int>	M;
 
-		for(
-			TiXmlElement *p = layerS->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			string	s = p->Attribute( "file_path" );
-
-			M[s] = atoi( p->Attribute( "oid" ) );
-		}
-
-		/* ----------------- */
-		/* Copy to dst tiles */
-		/* ----------------- */
-
-		for(
-			TiXmlElement *p = layerD->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			string	s = p->Attribute( "file_path" );
-
-			map<string,int>::iterator	mi = M.find( s );
-
-			if( mi == M.end() ) {
-				fprintf( flog,
-				"Dest tile not found in src '%s'.\n", s.c_str() );
-				exit( 42 );
-			}
-
-			p->SetAttribute( "oid", mi->second );
-		}
+		GetTileOids( M, layerS );
+		UpdateTiles( layerD, M );
 	}
 
 /* ---- */

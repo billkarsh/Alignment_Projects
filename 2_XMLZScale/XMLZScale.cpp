@@ -122,7 +122,7 @@ static void Process()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );

@@ -42,7 +42,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -122,7 +122,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -133,6 +133,41 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 	}
 
 	return id;
+}
+
+/* --------------------------------------------------------------- */
+/* CopyMatchingTF ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void CopyMatchingTF( TiXmlElement* layer, int z )
+{
+	MZID			key;
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	next;
+
+	key.z = z;
+
+	for( ; p; p = next ) {
+
+		next = p->NextSiblingElement();
+
+		key.id = gArgs.IDFromPatch( p );
+
+		map<MZID,TForm>::iterator	it = M.find( key );
+
+		if( it == M.end() ) {
+			layer->RemoveChild( p );
+			continue;
+		}
+
+		const double	*t = it->second.t;
+		char			buf[256];
+
+		sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
+		t[0], t[3], t[1], t[4], t[2], t[5] );
+
+		p->SetAttribute( "transform", buf );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -158,7 +193,7 @@ static void Update()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog,
@@ -183,39 +218,12 @@ static void Update()
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		MZID	key;
+		int	z = atoi( layer->Attribute( "z" ) );
 
-		key.z = atoi( layer->Attribute( "z" ) );
-
-		if( Z.find( key.z ) == Z.end() )
+		if( Z.find( z ) == Z.end() )
 			continue;
 
-		TiXmlElement	*next = NULL;
-
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = next ) {
-
-			next = p->NextSiblingElement();
-
-			key.id = gArgs.IDFromPatch( p );
-
-			map<MZID,TForm>::iterator	it = M.find( key );
-
-			if( it == M.end() ) {
-				layer->RemoveChild( p );
-				continue;
-			}
-
-			const double	*t = it->second.t;
-			char			buf[256];
-
-			sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
-			t[0], t[3], t[1], t[4], t[2], t[5] );
-
-			p->SetAttribute( "transform", buf );
-		}
+		CopyMatchingTF( layer, z );
 	}
 
 /* ---- */

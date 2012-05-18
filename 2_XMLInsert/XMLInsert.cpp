@@ -133,8 +133,9 @@ static void Insert()
 
 	TiXmlHandle		hDoc1( &doc1 ),
 					hDoc2( &doc2 );
-	TiXmlNode		*lyrset1;
-	TiXmlElement	*layer1, *layer2;
+	TiXmlNode*		lyrset1;
+	TiXmlElement*	layer1;
+	TiXmlElement*	layer2;
 
 	if( !doc1.FirstChild() || !doc2.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node.\n" );

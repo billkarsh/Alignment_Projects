@@ -100,6 +100,30 @@ void CArgs_xex::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* CollectTileDirs ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void CollectTileDirs( set<string> &dirs, TiXmlElement* layer )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		char	buf[4096], sub[256];
+		char	*start, *end;
+
+		sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
+
+		end = strstr( buf, "/Plate1_0" );
+		end[0] = 0;
+		start = strrchr( buf, '/' ) + 1;
+
+		sprintf( sub, "%.*s", end - start, start );
+		dirs.insert( string( sub ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ScanXML ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -159,23 +183,7 @@ static void ScanXML()
 		if( !(z % 100) )
 			printf( "z=%6d\n", z );
 
-		// for each tile in this layer...
-		for(
-			TiXmlElement* ptch =
-			layer->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			char	buf[4096], sub[256];
-			char	*start, *end;
-
-			sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-			end = strstr( buf, "/Plate1_0" );
-			end[0] = 0;
-			start = strrchr( buf, '/' ) + 1;
-			sprintf( sub, "%.*s", end - start, start );
-			dirs.insert( string( sub ) );
-		}
+		CollectTileDirs( dirs, layer );
 	}
 
 /* ----- */

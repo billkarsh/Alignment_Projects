@@ -159,6 +159,25 @@ static bool IsImg( string &s, TiXmlElement* ptch )
 }
 
 /* --------------------------------------------------------------- */
+/* ListMissing --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ListMissing( TiXmlElement* layer, int z )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		string	dir;
+
+		if( !IsDir( dir, ptch ) )
+			fprintf( flog, "%d\tD\t%s\n", z, dir.c_str() );
+		else if( !IsImg( dir, ptch ) )
+			fprintf( flog, "%d\tT\t%s\n", z, dir.c_str() );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ScanXML ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -216,20 +235,7 @@ static void ScanXML()
 		if( !(z % 100) )
 			printf( "z=%6d\n", z );
 
-		// for each tile in this layer...
-		for(
-			TiXmlElement* ptch =
-			layer->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			string	dir;
-
-			if( !IsDir( dir, ptch ) )
-				fprintf( flog, "%d\tD\t%s\n", z, dir.c_str() );
-			else if( !IsImg( dir, ptch ) )
-				fprintf( flog, "%d\tT\t%s\n", z, dir.c_str() );
-		}
+		ListMissing( layer, z );
 	}
 }
 

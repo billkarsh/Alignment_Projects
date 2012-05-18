@@ -126,6 +126,54 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* TrimTiles ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void TrimTiles( TiXmlElement* layer )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	pnext;
+
+	for( ; ptch; ptch = pnext ) {
+
+		pnext = ptch->NextSiblingElement();
+
+		vector<Point>	cnr( 4 );
+		TForm			T;
+		DBox			B;
+		int				w, h;
+
+		w = atoi( ptch->Attribute( "width" ) );
+		h = atoi( ptch->Attribute( "height" ) );
+		T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+
+		B.L = BIGD, B.R = -BIGD,
+		B.B = BIGD, B.T = -BIGD;
+
+		cnr[0] = Point( 0.0, 0.0 );
+		cnr[1] = Point( w-1, 0.0 );
+		cnr[2] = Point( w-1, h-1 );
+		cnr[3] = Point( 0.0, h-1 );
+
+		T.Transform( cnr );
+
+		for( int k = 0; k < 4; ++k ) {
+
+			B.L = fmin( B.L, cnr[k].x );
+			B.R = fmax( B.R, cnr[k].x );
+			B.B = fmin( B.B, cnr[k].y );
+			B.T = fmax( B.T, cnr[k].y );
+		}
+
+		if( B.R <= gArgs.lrbt[0] || B.L >= gArgs.lrbt[1] ||
+			B.T <= gArgs.lrbt[2] || B.B >= gArgs.lrbt[3] ) {
+
+			layer->RemoveChild( ptch );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Extract ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -148,8 +196,8 @@ static void Extract()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlNode		*lyrset;
-	TiXmlElement	*layer;
+	TiXmlNode*		lyrset;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
@@ -171,7 +219,7 @@ static void Extract()
 /* Kill layers outside range */
 /* ------------------------- */
 
-	TiXmlElement	*next;
+	TiXmlElement*	next;
 
 	for( ; layer; layer = next ) {
 
@@ -194,46 +242,7 @@ static void Extract()
 		if( !gArgs.lrbt.size() )
 			continue;
 
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-		TiXmlElement*	pnext;
-
-		for( ; ptch; ptch = pnext ) {
-
-			pnext = ptch->NextSiblingElement();
-
-			vector<Point>	cnr( 4 );
-			TForm			T;
-			DBox			B;
-			int				w, h;
-
-			w = atoi( ptch->Attribute( "width" ) );
-			h = atoi( ptch->Attribute( "height" ) );
-			T.ScanTrackEM2( ptch->Attribute( "transform" ) );
-
-			B.L = BIGD, B.R = -BIGD,
-			B.B = BIGD, B.T = -BIGD;
-
-			cnr[0] = Point( 0.0, 0.0 );
-			cnr[1] = Point( w-1, 0.0 );
-			cnr[2] = Point( w-1, h-1 );
-			cnr[3] = Point( 0.0, h-1 );
-
-			T.Transform( cnr );
-
-			for( int k = 0; k < 4; ++k ) {
-
-				B.L = fmin( B.L, cnr[k].x );
-				B.R = fmax( B.R, cnr[k].x );
-				B.B = fmin( B.B, cnr[k].y );
-				B.T = fmax( B.T, cnr[k].y );
-			}
-
-			if( B.R <= gArgs.lrbt[0] || B.L >= gArgs.lrbt[1] ||
-				B.T <= gArgs.lrbt[2] || B.B >= gArgs.lrbt[3] ) {
-
-				layer->RemoveChild( ptch );
-			}
-		}
+		TrimTiles( layer );
 	}
 
 /* ---- */

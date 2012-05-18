@@ -44,7 +44,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -120,7 +120,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -131,6 +131,58 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 	}
 
 	return id;
+}
+
+/* --------------------------------------------------------------- */
+/* GetSortedTForms ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class TS {
+// Use for sorting TForms
+public:
+	TForm	T;
+	int		id;
+public:
+	TS( int _i, TForm &_T )	{id=_i; T=_T;};
+
+	bool operator < (const TS &rhs) const
+		{return id < rhs.id;};
+};
+
+
+static void GetSortedTForms(
+	vector<TS>		&ts,
+	TiXmlElement*	layer )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		TForm	T;
+		int		id = gArgs.IDFromPatch( p );
+
+		T.ScanTrackEM2( p->Attribute( "transform" ) );
+		ts.push_back( TS( id, T ) );
+	}
+
+	sort( ts.begin(), ts.end() );
+}
+
+/* --------------------------------------------------------------- */
+/* PrintTForms --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void PrintTForms( FILE *f, const vector<TS> &ts, int z )
+{
+	int	nt = ts.size();
+
+	for( int i = 0; i < nt; ++i ) {
+
+		const double *t = ts[i].T.t;
+
+		fprintf( f, "%d\t%d\t1\t%f\t%f\t%f\t%f\t%f\t%f\n",
+		z, ts[i].id, t[0], t[1], t[2], t[3], t[4], t[5] );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -156,7 +208,7 @@ static void GetTF()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
@@ -194,21 +246,10 @@ static void GetTF()
 		if( z < gArgs.zmin )
 			continue;
 
-		// for each tile in this layer...
-		for(
-			TiXmlElement* p =
-			layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
+		vector<TS>	ts;
 
-			TForm	T;
-			int		id = gArgs.IDFromPatch( p );
-
-			T.ScanTrackEM2( p->Attribute( "transform" ) );
-
-			fprintf( f, "%d\t%d\t1\t%f\t%f\t%f\t%f\t%f\t%f\n",
-			z, id, T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5] );
-		}
+		GetSortedTForms( ts, layer );
+		PrintTForms( f, ts, z );
 	}
 
 	fclose( f );

@@ -49,7 +49,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -110,7 +110,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -127,7 +127,7 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 /* GetSD --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static int GetSD( TiXmlElement *p )
+static int GetSD( TiXmlElement* p )
 {
 	vector<uint16*>	vras;
 	uint32			w, h;
@@ -158,6 +158,21 @@ static int GetSD( TiXmlElement *p )
 }
 
 /* --------------------------------------------------------------- */
+/* GetTileSDs ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void GetTileSDs( TiXmlElement* layer, int z )
+{
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		fprintf( flog, "%d\t%d\t%d\n",
+		z, gArgs.IDFromPatch( p ), GetSD( p ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Process ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -180,7 +195,7 @@ static void Process()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog,
@@ -213,14 +228,7 @@ static void Process()
 		if( z < gArgs.z )
 			continue;
 
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			fprintf( flog, "%d\t%d\t%d\n",
-			z, gArgs.IDFromPatch( p ), GetSD( p ) );
-		}
+		GetTileSDs( layer, z );
 	}
 }
 

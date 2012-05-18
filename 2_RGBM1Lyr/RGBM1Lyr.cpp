@@ -195,6 +195,25 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* GetTiles ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void GetTiles( vector<Picture> &vp, TiXmlElement* layer )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		if( !gW ) {
+			gW = atoi( ptch->Attribute( "width" ) );
+			gH = atoi( ptch->Attribute( "height" ) );
+		}
+
+		vp.push_back( Picture( ptch ) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ParseTrakEM2 -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -241,35 +260,12 @@ static void ParseTrakEM2( vector<Picture> &vp )
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
-
 		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( z < gArgs.z )
 			continue;
 
-		/* ------------------------------ */
-		/* For each patch (tile) in layer */
-		/* ------------------------------ */
-
-		TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-
-		for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-			/* ---- */
-			/* Dims */
-			/* ---- */
-
-			if( !gW ) {
-				gW = atoi( ptch->Attribute( "width" ) );
-				gH = atoi( ptch->Attribute( "height" ) );
-			}
-
-			vp.push_back( Picture( ptch ) );
-		}
-
+		GetTiles( vp, layer );
 		break;
 	}
 }

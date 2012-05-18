@@ -122,6 +122,23 @@ static void EditPath( TiXmlElement* ptch )
 }
 
 /* --------------------------------------------------------------- */
+/* UpdateTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void UpdateTiles( TiXmlElement* layer )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		EditPath( ptch );
+		ptch->SetAttribute( "type", 1 );
+		ptch->SetAttribute( "min", 200 );
+		ptch->SetAttribute( "max", 1000 );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* WriteXML ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -176,19 +193,7 @@ static void WriteXML()
 		if( z < gArgs.zmin )
 			continue;
 
-		// for each tile in this layer...
-		for(
-			TiXmlElement* ptch =
-			layer->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			// edit attributes
-			EditPath( ptch );
-			ptch->SetAttribute( "type", 1 );
-			ptch->SetAttribute( "min", 200 );
-			ptch->SetAttribute( "max", 1000 );
-		}
+		UpdateTiles( layer );
 	}
 
 /* ---- */

@@ -1071,7 +1071,7 @@ TiXmlElement* child;
 TiXmlHandle hRoot(0);
 
 // block: should be <trakem2>
-TiXmlNode *node=0;
+TiXmlNode*	node=0;
 node =doc.FirstChild();
 child=hDoc.FirstChild("local_maps").FirstChild("entry").ToElement();
 // should always have a valid root but handle gracefully if it does not
@@ -1088,7 +1088,7 @@ for( child; child; child=child->NextSiblingElement() ) {
     im.mname = child->Attribute("map");
     //printf("z= %s\n", attr);
     // now look through all the <entry> elements in each
-    TiXmlElement *c2;
+    TiXmlElement*	c2;
     c2 = child->FirstChildElement("map");
     for( c2; c2; c2=c2->NextSiblingElement() ) {
         const char *tf  = c2->Attribute("transform");

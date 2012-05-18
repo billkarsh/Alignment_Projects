@@ -57,7 +57,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -132,7 +132,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -173,6 +173,37 @@ static void LoadSD()
 }
 
 /* --------------------------------------------------------------- */
+/* TrimTiles ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void TrimTiles( FILE* fres, TiXmlElement* layer, int z )
+{
+	MZID			key;
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	nextT;
+
+	key.z = z;
+
+	for( ; p; p = nextT ) {
+
+		nextT = p->NextSiblingElement();
+
+		key.id = gArgs.IDFromPatch( p );
+
+		map<MZID,int>::iterator	it = M.find( key );
+
+		if( it == M.end() ||
+			it->second < gArgs.sdmin ||
+			it->second > gArgs.sdmax ) {
+
+			layer->RemoveChild( p );
+		}
+		else
+			fprintf( fres, "%d\t%d\n", key.z, key.id );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Edit ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -195,7 +226,7 @@ static void Edit()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog,
@@ -218,48 +249,25 @@ static void Edit()
 /* Do layers */
 /* --------- */
 
-	TiXmlNode		*lyrset	= layer->Parent();
-	TiXmlElement	*nextL	= NULL;
+	TiXmlNode*		lyrset	= layer->Parent();
+	TiXmlElement*	nextL;
 	FILE			*fres	= FileOpenOrDie( "Resin.txt", "w" );
 
 	for( ; layer; layer = nextL ) {
 
 		nextL = layer->NextSiblingElement();
 
-		MZID	key;
+		int	z = atoi( layer->Attribute( "z" ) );
 
-		key.z = atoi( layer->Attribute( "z" ) );
-
-		if( key.z > gArgs.zmax ||
-			key.z < gArgs.zmin ||
-			Z.find( key.z ) == Z.end() ) {
+		if( z > gArgs.zmax ||
+			z < gArgs.zmin ||
+			Z.find( z ) == Z.end() ) {
 
 			lyrset->RemoveChild( layer );
 			continue;
 		}
 
-		TiXmlElement	*nextT = NULL;
-
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = nextT ) {
-
-			nextT = p->NextSiblingElement();
-
-			key.id = gArgs.IDFromPatch( p );
-
-			map<MZID,int>::iterator	it = M.find( key );
-
-			if( it == M.end() ||
-				it->second < gArgs.sdmin ||
-				it->second > gArgs.sdmax ) {
-
-				layer->RemoveChild( p );
-			}
-			else
-				fprintf( fres, "%d\t%d\n", key.z, key.id );
-		}
+		TrimTiles( fres, layer, z );
 
 		if( !layer->FirstChildElement( "t2_patch" ) )
 			lyrset->RemoveChild( layer );

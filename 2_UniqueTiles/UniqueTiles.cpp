@@ -90,6 +90,26 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
+/* PrintDupTiles ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void PrintDupTiles( TiXmlElement* layer, int z )
+{
+	set<string>		S;
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	for( ; p; p = p->NextSiblingElement() ) {
+
+		string	s = p->Attribute( "file_path" );
+
+		if( S.find( s ) != S.end() )
+			fprintf( flog, "%d\t%s\n", z, s.c_str() );
+		else
+			S.insert( s );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ParseTrakEM2 -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -136,21 +156,9 @@ static void ParseTrakEM2()
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		set<string>	S;
-		int			z = atoi( layer->Attribute( "z" ) );
+		int	z = atoi( layer->Attribute( "z" ) );
 
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = p->NextSiblingElement() ) {
-
-			string	s = p->Attribute( "file_path" );
-
-			if( S.find( s ) != S.end() )
-				fprintf( flog, "%d\t%s\n", z, s.c_str() );
-			else
-				S.insert( s );
-		}
+		PrintDupTiles( layer, z );
 	}
 }
 

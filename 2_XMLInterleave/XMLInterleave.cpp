@@ -151,8 +151,8 @@ static void Interleave()
 /* Interleave, adopting layer structure of file0 */
 /* --------------------------------------------- */
 
-	TiXmlNode		*lyrset0 = layer[0]->Parent();
-	TiXmlElement	*next0;
+	TiXmlNode*		lyrset0 = layer[0]->Parent();
+	TiXmlElement*	next0;
 	int				nextoid	= NextOID( hdoc[0] );
 
 	for( ;; ) {

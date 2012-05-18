@@ -48,7 +48,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -117,7 +117,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -162,6 +162,29 @@ static void LoadList()
 }
 
 /* --------------------------------------------------------------- */
+/* DeleteTiles --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void DeleteTiles( TiXmlElement* layer, int z )
+{
+	MZID			key;
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	nextT;
+
+	key.z = z;
+
+	for( ; p; p = nextT ) {
+
+		nextT = p->NextSiblingElement();
+
+		key.id = gArgs.IDFromPatch( p );
+
+		if( M.find( key ) != M.end() )
+			layer->RemoveChild( p );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Edit ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -184,7 +207,7 @@ static void Edit()
 /* ---------------- */
 
 	TiXmlHandle		hdoc( &doc );
-	TiXmlElement	*layer;
+	TiXmlElement*	layer;
 
 	if( !doc.FirstChild() ) {
 		fprintf( flog,
@@ -207,40 +230,22 @@ static void Edit()
 /* Do layers */
 /* --------- */
 
-	TiXmlNode		*lyrset	= layer->Parent();
-	TiXmlElement	*nextL	= NULL;
+	TiXmlNode*		lyrset	= layer->Parent();
+	TiXmlElement*	nextL;
 
 	for( ; layer; layer = nextL ) {
 
 		nextL = layer->NextSiblingElement();
 
-		MZID	key;
+		int	z = atoi( layer->Attribute( "z" ) );
 
-		key.z = atoi( layer->Attribute( "z" ) );
-
-		if( key.z > zhi )
+		if( z > zhi )
 			break;
 
-		if( key.z < zlo ||
-			Z.find( key.z ) == Z.end() ) {
-
+		if( z < zlo || Z.find( z ) == Z.end() )
 			continue;
-		}
 
-		TiXmlElement	*nextT = NULL;
-
-		for(
-			TiXmlElement *p = layer->FirstChildElement( "t2_patch" );
-			p;
-			p = nextT ) {
-
-			nextT = p->NextSiblingElement();
-
-			key.id = gArgs.IDFromPatch( p );
-
-			if( M.find( key ) != M.end() )
-				layer->RemoveChild( p );
-		}
+		DeleteTiles( layer, z );
 
 		if( !layer->FirstChildElement( "t2_patch" ) )
 			lyrset->RemoveChild( layer );

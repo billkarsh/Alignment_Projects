@@ -22,7 +22,7 @@ TiXmlElement* child;
 TiXmlHandle hRoot(0);
 
 // block: should be <trakem2>
-TiXmlNode *node=0;
+TiXmlNode*	node=0;
 node =doc.FirstChild();
 if( node == NULL )
     printf("No node??\n");
@@ -38,7 +38,7 @@ for( child; child; child=child->NextSiblingElement() ) {
     const char *attr  = child->Attribute("z");
     //printf("z= %s\n", attr);
     // now look through all the <t2_patch> elements in each
-    TiXmlElement *c2;
+    TiXmlElement*	c2;
     c2 = child->FirstChildElement("t2_patch");
     for( c2; c2; c2=c2->NextSiblingElement() ) {
 	//printf("got a <t2_patch>\n");

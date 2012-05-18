@@ -49,7 +49,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromPatch( TiXmlElement *p );
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -130,7 +130,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* IDFromPatch -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement *p )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
 	const char	*name = p->Attribute( "title" );
 	int			id;
@@ -141,6 +141,50 @@ int CArgs_xml::IDFromPatch( TiXmlElement *p )
 	}
 
 	return id;
+}
+
+/* -------------------------------------------------------------- */
+/* GetThisTForm ------------------------------------------------- */
+/* -------------------------------------------------------------- */
+
+static bool GetThisTForm( TForm &T, TiXmlElement* layer, int id )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		if( gArgs.IDFromPatch( ptch ) == id ) {
+
+			T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* -------------------------------------------------------------- */
+/* UpdateTiles -------------------------------------------------- */
+/* -------------------------------------------------------------- */
+
+static void UpdateTiles( TiXmlElement* layer, const TForm& T )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		char	buf[256];
+		TForm	told, tnew;
+
+		told.ScanTrackEM2( ptch->Attribute( "transform" ) );
+		MultiplyTrans( tnew, T, told );
+
+		sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
+		tnew.t[0], tnew.t[3], tnew.t[1],
+		tnew.t[4], tnew.t[2], tnew.t[5] );
+
+		ptch->SetAttribute( "transform", buf );
+	}
 }
 
 /* -------------------------------------------------------------- */
@@ -174,8 +218,9 @@ static void Unite()
 
 	TiXmlHandle		hDoc1( &doc1 ),
 					hDoc2( &doc2 );
-	TiXmlNode		*lyrset1;
-	TiXmlElement	*layer1, *layer2;
+	TiXmlNode*		lyrset1;
+	TiXmlElement*	layer1;
+	TiXmlElement*	layer2;
 
 	if( !doc1.FirstChild() || !doc2.FirstChild() ) {
 		fprintf( flog, "No trakEM2 node.\n" );
@@ -224,71 +269,31 @@ static void Unite()
 	TForm	T;
 
 	{
-		TForm			T1, T2i, T2;
-		TiXmlElement	*p1, *p2;
+		TForm	T1, T2i, T2;
 
-		for(
-			p1 = layer1->FirstChildElement( "t2_patch" );
-			p1;
-			p1 = p1->NextSiblingElement() ) {
-
-			if( gArgs.IDFromPatch( p1 ) == gArgs.reftile ) {
-
-				T1.ScanTrackEM2( p1->Attribute( "transform" ) );
-				goto match_p2;
-			}
+		if( !GetThisTForm( T1, layer1, gArgs.reftile ) ) {
+			fprintf( flog, "Reference tile not found in file1.\n" );
+			exit( 42 );
 		}
 
-		fprintf( flog, "Reference tile not found in file1.\n" );
-		exit( 42 );
-
-match_p2:
-		for(
-			p2 = layer2->FirstChildElement( "t2_patch" );
-			p2;
-			p2 = p2->NextSiblingElement() ) {
-
-			if( gArgs.IDFromPatch( p2 ) == gArgs.reftile ) {
-
-				T2.ScanTrackEM2( p2->Attribute( "transform" ) );
-				InvertTrans( T2i, T2 );
-				MultiplyTrans( T, T1, T2i );
-				goto unite;
-			}
+		if( !GetThisTForm( T2, layer2, gArgs.reftile ) ) {
+			fprintf( flog, "Reference tile not found in file2.\n" );
+			exit( 42 );
 		}
 
-		fprintf( flog, "Reference tile not found in file2.\n" );
-		exit( 42 );
+		InvertTrans( T2i, T2 );
+		MultiplyTrans( T, T1, T2i );
 	}
 
 // update and add
 
-unite:
 	layer2 = layer2->NextSiblingElement();
 
 	do {
 
 		layer2->SetAttribute( "z", ++z );
 		nextoid = SetOID( layer2, nextoid );
-
-		for(
-			TiXmlElement	*ptch =
-			layer2->FirstChildElement( "t2_patch" );
-			ptch;
-			ptch = ptch->NextSiblingElement() ) {
-
-			char	buf[256];
-			TForm	told, tnew;
-
-			told.ScanTrackEM2( ptch->Attribute( "transform" ) );
-			MultiplyTrans( tnew, T, told );
-
-			sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
-			tnew.t[0], tnew.t[3], tnew.t[1],
-			tnew.t[4], tnew.t[2], tnew.t[5] );
-
-			ptch->SetAttribute( "transform", buf );
-		}
+		UpdateTiles( layer2, T );
 
 		lyrset1->InsertEndChild( *layer2 );
 
