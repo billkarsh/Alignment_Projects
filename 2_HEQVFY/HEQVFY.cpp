@@ -131,7 +131,7 @@ int CArgs_heq::IDFromPatch( TiXmlElement* p )
 	int			id;
 
 	if( !re_id.Decode( id, name ) ) {
-		printf( "No tile-id found in '%s'.\n", name );
+		fprintf( flog, "No tile-id found in '%s'.\n", name );
 		exit( 42 );
 	}
 

@@ -55,7 +55,7 @@ int CTileSet::DecodeID( const char *name )
 	int			id;
 
 	if( !re_id.Decode( id, s ) ) {
-		printf( "No tile-id found in [%s].\n", s );
+		fprintf( flog, "No tile-id found in [%s].\n", s );
 		exit( 42 );
 	}
 
