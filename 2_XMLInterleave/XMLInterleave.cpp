@@ -99,52 +99,19 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static void Interleave()
 {
-/* -------------- */
-/* Load documents */
-/* -------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
 	int	nf = gArgs.infile.size();
 
-	vector<TiXmlDocument>	doc;
-
-	for( int i = 0; i < nf; ++i ) {
-
-		doc.push_back( TiXmlDocument( gArgs.infile[i] ) );
-
-		if( !doc[i].LoadFile() ) {
-			fprintf( flog,
-			"Could not open XML file [%s].\n", gArgs.infile[i] );
-			exit( 42 );
-		}
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	vector<TiXmlHandle>		hdoc;
+	vector<XML_TKEM>		xml;
 	vector<TiXmlElement*>	layer( nf );
 
 	for( int i = 0; i < nf; ++i ) {
 
-		hdoc.push_back( TiXmlHandle( &doc[i] ) );
-
-		if( !doc[i].FirstChild() ) {
-			fprintf( flog,
-			"No trakEM2 node [%s].\n", gArgs.infile[i] );
-			exit( 42 );
-		}
-
-		layer[i] = hdoc[i].FirstChild( "trakem2" )
-					.FirstChild( "t2_layer_set" )
-					.FirstChild( "t2_layer" )
-					.ToElement();
-
-		if( !layer[i] ) {
-			fprintf( flog,
-			"No t2_layer [%s].\n", gArgs.infile[i] );
-			exit( 42 );
-		}
+		xml.push_back( XML_TKEM( gArgs.infile[i], flog ) );
+		layer[i] = xml[i].GetFirstLayer();
 	}
 
 /* --------------------------------------------- */
@@ -153,7 +120,7 @@ static void Interleave()
 
 	TiXmlNode*		lyrset0 = layer[0]->Parent();
 	TiXmlElement*	next0;
-	int				nextoid	= NextOID( hdoc[0] );
+	int				nextoid	= xml[0].NextOID();
 
 	for( ;; ) {
 
@@ -184,13 +151,7 @@ static void Interleave()
 /* ---- */
 
 save:
-	doc[0].SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.infile[0], "xmltmp.txt" );
+	xml[0].Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

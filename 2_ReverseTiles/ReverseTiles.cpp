@@ -91,40 +91,12 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 
 static void WriteXML()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.infile );
-	bool			loadOK = doc.LoadFile();
-
-	if( !loadOK ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	layer = hDoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.infile, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */
@@ -150,13 +122,7 @@ static void WriteXML()
 /* Save */
 /* ---- */
 
-	doc.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.infile, "xmltmp.txt" );
+	xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

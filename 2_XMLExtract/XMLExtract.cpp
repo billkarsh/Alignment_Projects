@@ -6,11 +6,11 @@
 // -xyr=  specifies a box using Xcenter,Ycenter,radius.
 //
 
+#include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"File.h"
-#include	"GenDefs.h"
-#include	"CTForm.h"
 #include	"TrakEM2_UTL.h"
+#include	"CTForm.h"
 
 
 /* --------------------------------------------------------------- */
@@ -179,41 +179,13 @@ static void TrimTiles( TiXmlElement* layer )
 
 static void Extract()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.infile );
-
-	if( !doc.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hdoc( &doc );
-	TiXmlNode*		lyrset;
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-	lyrset = hdoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.ToNode();
-
-	layer = lyrset->FirstChild( "t2_layer" )->ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No t2_layer [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.infile, flog );
+	TiXmlNode*		lyrset	= xml.GetLayerset();
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ------------------------- */
 /* Kill layers outside range */
@@ -249,13 +221,7 @@ static void Extract()
 /* Save */
 /* ---- */
 
-	doc.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.infile, "xmltmp.txt" );
+	xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

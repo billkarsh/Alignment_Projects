@@ -1,7 +1,7 @@
 
 
-#include	"TrakEM2_UTL.h"
 #include	"File.h"
+#include	"TrakEM2_UTL.h"
 
 #include	<string.h>
 
@@ -9,6 +9,98 @@
 
 
 
+
+/* --------------------------------------------------------------- */
+/* class XML_TKEM ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void XML_TKEM::Open( const char *file, FILE* flog )
+{
+	this->flog	= flog;
+	this->file	= file;
+
+	if( !doc.LoadFile( file ) ) {
+		fprintf( flog, "Can't open XML file [%s].\n", file );
+		exit( 42 );
+	}
+
+	if( !doc.FirstChild( "trakem2" ) ) {
+		fprintf( flog, "No <trakEM2> tag [%s].\n", file );
+		exit( 42 );
+	}
+}
+
+
+void XML_TKEM::Save( const char *name, bool copyDTD )
+{
+	doc.SaveFile( name );
+
+	if( copyDTD )
+		CopyDTD( file, name );
+}
+
+
+TiXmlNode* XML_TKEM::GetLayerset()
+{
+	TiXmlHandle	hdoc( &doc );
+	TiXmlNode*	layerset;
+
+	layerset = hdoc.FirstChild( "trakem2" )
+				.FirstChild( "t2_layer_set" )
+				.ToNode();
+
+	if( !layerset ) {
+		fprintf( flog, "No <t2_layer_set> tag [%s].\n", file );
+		exit( 42 );
+	}
+
+	return layerset;
+}
+
+
+TiXmlElement* XML_TKEM::GetFirstLayer()
+{
+	TiXmlHandle		hdoc( &doc );
+	TiXmlElement*	layer;
+
+	layer = hdoc.FirstChild( "trakem2" )
+				.FirstChild( "t2_layer_set" )
+				.FirstChild( "t2_layer" )
+				.ToElement();
+
+	if( !layer ) {
+		fprintf( flog, "No <t2_layer> tag [%s].\n", file );
+		exit( 42 );
+	}
+
+	return layer;
+}
+
+
+TiXmlElement* XML_TKEM::GetLastLayer()
+{
+	TiXmlHandle		hdoc( &doc );
+	TiXmlElement*	layer;
+
+	layer = hdoc.FirstChild( "trakem2" )
+				.FirstChild( "t2_layer_set" )
+				.ToNode()
+				->LastChild( "t2_layer" )
+				->ToElement();
+
+	if( !layer ) {
+		fprintf( flog, "No <t2_layer> tag [%s].\n", file );
+		exit( 42 );
+	}
+
+	return layer;
+}
+
+
+int XML_TKEM::NextOID()
+{
+	return ::NextOID( &doc );
+}
 
 /* --------------------------------------------------------------- */
 /* NextOID ------------------------------------------------------- */

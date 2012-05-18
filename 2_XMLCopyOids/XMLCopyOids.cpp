@@ -148,53 +148,15 @@ static void UpdateTiles(
 
 static void CopyOids()
 {
-/* -------------- */
-/* Load documents */
-/* -------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	docD( gArgs.dst ),
-					docS( gArgs.src );
+	XML_TKEM		xmlD( gArgs.dst, flog );
+	TiXmlElement*	layerD	= xmlD.GetFirstLayer();
 
-	if( !docD.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.dst );
-		exit( 42 );
-	}
-
-	if( !docS.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.src );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDocD( &docD ),
-					hDocS( &docS );
-	TiXmlElement*	layerD;
-	TiXmlElement*	layerS;
-
-	if( !docD.FirstChild() || !docS.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	layerD = hDocD.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	layerS = hDocS.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layerD || !layerS ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
+	XML_TKEM		xmlS( gArgs.src, flog );
+	TiXmlElement*	layerS	= xmlS.GetFirstLayer();
 
 /* ------- */
 /* Process */
@@ -237,13 +199,7 @@ static void CopyOids()
 /* Save */
 /* ---- */
 
-	docD.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.dst, "xmltmp.txt" );
+	xmlD.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

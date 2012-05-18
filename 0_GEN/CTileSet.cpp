@@ -1,17 +1,14 @@
 
 
-#include	"PipeFiles.h"
-
-#include	"CTileSet.h"
 #include	"Disk.h"
 #include	"File.h"
-#include	"LinEqu.h"
 #include	"TrakEM2_UTL.h"
+#include	"PipeFiles.h"
+#include	"CTileSet.h"
+#include	"LinEqu.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Geometry.h"
-
-#include	"tinyxml.h"
 
 
 /* --------------------------------------------------------------- */
@@ -153,39 +150,12 @@ static TiXmlElement* XMLGetTiles(
 //
 void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( path );
-	bool			loadOK = doc.LoadFile();
-
-	if( !loadOK ) {
-		fprintf( flog, "Could not open XML file [%s].\n", path );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	layer = hDoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
+	XML_TKEM		xml( path, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */

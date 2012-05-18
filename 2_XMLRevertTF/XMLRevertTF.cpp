@@ -174,40 +174,12 @@ static void GetTForms( TiXmlElement* layer )
 
 static void GetSrc()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.srcfile );
-	bool			loadOK = doc.LoadFile();
-
-	if( !loadOK ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.srcfile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	layer = hDoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.srcfile, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------------- */
 /* Move up to src layer */
@@ -260,41 +232,12 @@ static void UpdateTiles( TiXmlElement* layer )
 
 static void Update()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.dstfile );
-
-	if( !doc.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.dstfile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hdoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog,
-		"No trakEM2 node [%s].\n", gArgs.dstfile );
-		exit( 42 );
-	}
-
-	layer = hdoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog,
-		"No t2_layer [%s].\n", gArgs.dstfile );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.dstfile, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ------------------------ */
 /* Copy matching transforms */
@@ -314,13 +257,7 @@ static void Update()
 /* Save */
 /* ---- */
 
-	doc.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.dstfile, "xmltmp.txt" );
+	xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

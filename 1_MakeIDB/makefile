@@ -35,8 +35,8 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	CTileSet.cpp ImageIO.cpp Maths.cpp CTForm.cpp \
-	LinEqu.cpp TrakEM2_UTL.cpp
+	TrakEM2_UTL.cpp CTileSet.cpp ImageIO.cpp \
+	Maths.cpp CTForm.cpp LinEqu.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

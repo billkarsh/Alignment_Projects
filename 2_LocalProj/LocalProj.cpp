@@ -229,39 +229,12 @@ static void UpdateTiles( TiXmlElement* layer )
 
 static void DoLayers()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.GetXML() );
-
-	if( !doc.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.GetXML() );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hdoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.GetXML() );
-		exit( 42 );
-	}
-
-	layer = hdoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No t2_layer [%s].\n", gArgs.GetXML() );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.GetXML(), flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ------------------------- */
 /* Kill layers outside range */
@@ -299,13 +272,7 @@ static void DoLayers()
 /* Save */
 /* ---- */
 
-	doc.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.GetXML(), "xmltmp.txt" );
+	xml.Save( "xmltmp.txt", true );
 
 /* ------------------ */
 /* Rename version two */

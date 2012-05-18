@@ -34,7 +34,7 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp Disk.cpp File.cpp \
+	Cmdline.cpp Disk.cpp File.cpp TrakEM2_UTL.cpp \
 	ImageIO.cpp Maths.cpp CTForm.cpp \
 	Timer.cpp Debug.cpp
 

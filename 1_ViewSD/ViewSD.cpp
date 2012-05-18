@@ -209,47 +209,18 @@ static void TrimTiles( FILE* fres, TiXmlElement* layer, int z )
 
 static void Edit()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.xmlfile );
-
-	if( !doc.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.xmlfile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hdoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog,
-		"No trakEM2 node [%s].\n", gArgs.xmlfile );
-		exit( 42 );
-	}
-
-	layer = hdoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog,
-		"No t2_layer [%s].\n", gArgs.xmlfile );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.xmlfile, flog );
+	TiXmlNode*		lyrset	= xml.GetLayerset();
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* --------- */
 /* Do layers */
 /* --------- */
 
-	TiXmlNode*		lyrset	= layer->Parent();
 	TiXmlElement*	nextL;
 	FILE			*fres	= FileOpenOrDie( "Resin.txt", "w" );
 
@@ -279,13 +250,7 @@ static void Edit()
 /* Save */
 /* ---- */
 
-	doc.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.xmlfile, "xmltmp.txt" );
+	xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

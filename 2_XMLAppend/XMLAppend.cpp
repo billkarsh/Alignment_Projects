@@ -93,62 +93,23 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static void Append()
 {
-/* -------------- */
-/* Load documents */
-/* -------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc1( gArgs.infile1 ),
-					doc2( gArgs.infile2 );
+	XML_TKEM		xml1( gArgs.infile1, flog );
+	TiXmlNode*		lyrset1	= xml1.GetLayerset();
+	TiXmlElement*	layer1	= xml1.GetLastLayer();
 
-	if( !doc1.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile1 );
-		exit( 42 );
-	}
-
-	if( !doc2.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile2 );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hDoc1( &doc1 ),
-					hDoc2( &doc2 );
-	TiXmlNode*		lyrset1;
-	TiXmlElement*	layer1;
-	TiXmlElement*	layer2;
-
-	if( !doc1.FirstChild() || !doc2.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node.\n" );
-		exit( 42 );
-	}
-
-	lyrset1 = hDoc1.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.ToNode();
-
-	layer2 = hDoc2.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !lyrset1 || !layer2 ) {
-		fprintf( flog, "No first trakEM2 child.\n" );
-		exit( 42 );
-	}
+	XML_TKEM		xml2( gArgs.infile2, flog );
+	TiXmlElement*	layer2	= xml2.GetFirstLayer();
 
 /* ------ */
 /* Append */
 /* ------ */
 
-	layer1 = lyrset1->LastChild( "t2_layer" )->ToElement();
-
 	int	z		= atoi( layer1->Attribute( "z" ) );	// last z
-	int	nextoid	= NextOID( hDoc1 );
+	int	nextoid	= xml1.NextOID();
 
 	do {
 		layer2->SetAttribute( "z", ++z );
@@ -160,13 +121,7 @@ static void Append()
 /* Save */
 /* ---- */
 
-	doc1.SaveFile( "xmltmp.txt" );
-
-/* ----------------- */
-/* Copy !DOCTYPE tag */
-/* ----------------- */
-
-	CopyDTD( gArgs.infile1, "xmltmp.txt" );
+	xml1.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */

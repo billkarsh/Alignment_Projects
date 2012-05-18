@@ -5,9 +5,8 @@
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"File.h"
+#include	"TrakEM2_UTL.h"
 #include	"CTForm.h"
-
-#include	"tinyxml.h"
 
 
 /* --------------------------------------------------------------- */
@@ -191,39 +190,12 @@ static void PrintTForms( FILE *f, const vector<TS> &ts, int z )
 
 static void GetTF()
 {
-/* ------------- */
-/* Load document */
-/* ------------- */
+/* ---- */
+/* Open */
+/* ---- */
 
-	TiXmlDocument	doc( gArgs.infile );
-
-	if( !doc.LoadFile() ) {
-		fprintf( flog,
-		"Could not open XML file [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-/* ---------------- */
-/* Verify <trakem2> */
-/* ---------------- */
-
-	TiXmlHandle		hdoc( &doc );
-	TiXmlElement*	layer;
-
-	if( !doc.FirstChild() ) {
-		fprintf( flog, "No trakEM2 node [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
-
-	layer = hdoc.FirstChild( "trakem2" )
-				.FirstChild( "t2_layer_set" )
-				.FirstChild( "t2_layer" )
-				.ToElement();
-
-	if( !layer ) {
-		fprintf( flog, "No t2_layer [%s].\n", gArgs.infile );
-		exit( 42 );
-	}
+	XML_TKEM		xml( gArgs.infile, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* --- */
 /* Get */
