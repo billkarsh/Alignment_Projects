@@ -19,7 +19,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	makealnsame.cpp
+	makemontages.cpp
 
 _SRC_UTL_ := \
 	PipeFiles.cpp
@@ -39,7 +39,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-makealnsame:
+makemontages:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \

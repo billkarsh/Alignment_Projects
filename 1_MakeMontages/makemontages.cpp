@@ -1,6 +1,6 @@
 //
-// makealnsame reads an IDB 'image database' and creates an alignment
-// workspace with this structure:
+// makemontages reads an IDB 'image database' and creates an
+// alignment workspace with this structure:
 //
 //	folder 'alnname'				// top folder
 //		imageparams.txt				// IDBPATH, IMAGESIZE tags
@@ -136,7 +136,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "makealnsame.log", "w" );
+	flog = FileOpenOrDie( "makemontages.log", "w" );
 
 // log start time
 
@@ -152,7 +152,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: makealnsame <idbpath> -dtemp -zmin=i -zmax=j"
+		"Usage: makemontages <idbpath> -dtemp -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
