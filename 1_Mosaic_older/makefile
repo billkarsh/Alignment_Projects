@@ -22,7 +22,7 @@ SOURCES_MYPROJ := \
 	mos.cpp
 
 _SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp LinEqu.cpp
+	numerical_recipes.cpp mrc.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
@@ -31,7 +31,7 @@ _SRC_GEN_ := \
 	File.cpp \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp CTForm.cpp \
-	Draw.cpp Debug.cpp
+	LinEqu.cpp Draw.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

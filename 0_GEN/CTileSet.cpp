@@ -6,7 +6,7 @@
 #include	"Disk.h"
 #include	"File.h"
 #include	"LinEqu.h"
-#include	"TrakEM2_DTD.h"
+#include	"TrakEM2_UTL.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Geometry.h"

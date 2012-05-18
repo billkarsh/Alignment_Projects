@@ -12,7 +12,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # defines
 # =======
 
-SYMBOLS_MYPROJ := -DTIXML_USE_STL 
+SYMBOLS_MYPROJ := -DTIXML_USE_STL
 
 # =======
 # sources

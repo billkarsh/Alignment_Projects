@@ -10,5 +10,5 @@ echo $file
 mkdir -p _prereplace
 cp $file _prereplace
 sed -i -e "s|$searchterm|$replaceterm|g" $file
-done 
+done
 

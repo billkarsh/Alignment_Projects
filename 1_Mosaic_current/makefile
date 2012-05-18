@@ -28,7 +28,7 @@ SOURCES_MYPROJ := \
 	mos.cpp json_reader.cpp json_writer.cpp json_value.cpp
 
 _SRC_UTL_ := \
-	PipeFiles.cpp numerical_recipes.cpp mrc.cpp LinEqu.cpp
+	PipeFiles.cpp numerical_recipes.cpp mrc.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
@@ -37,7 +37,7 @@ _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp CTForm.cpp \
-	Draw.cpp Memory.cpp Debug.cpp
+	LinEqu.cpp Draw.cpp Memory.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

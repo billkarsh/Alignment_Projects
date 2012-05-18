@@ -12,7 +12,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # defines
 # =======
 
-SYMBOLS_MYPROJ :=
+SYMBOLS_MYPROJ := -DTIXML_USE_STL
 
 # =======
 # sources
@@ -21,16 +21,22 @@ SYMBOLS_MYPROJ :=
 SOURCES_MYPROJ := \
 	lsq.cpp
 
+_SRC_XML_ := \
+	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+
+SOURCES_XML := \
+	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
+
 _SRC_UTL_ := \
-	PipeFiles.cpp LinEqu.cpp TrakEM2_DTD.cpp \
-	numerical_recipes.cpp mrc.cpp
+	PipeFiles.cpp numerical_recipes.cpp mrc.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	ImageIO.cpp Maths.cpp CPoint.cpp CTForm.cpp
+	ImageIO.cpp Maths.cpp CPoint.cpp CTForm.cpp \
+	LinEqu.cpp TrakEM2_UTL.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -46,6 +52,8 @@ $(OUTPUT) \
 $(INCLUDES_STD) \
     \
 $(SOURCES_MYPROJ) \
+    \
+$(SOURCES_XML) \
     \
 $(SOURCES_UTL) \
     \

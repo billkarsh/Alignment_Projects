@@ -9,7 +9,7 @@
 #include	"File.h"
 #include	"PipeFiles.h"
 #include	"LinEqu.h"
-#include	"TrakEM2_DTD.h"
+#include	"TrakEM2_UTL.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"CPoint.h"
