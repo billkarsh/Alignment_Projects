@@ -143,15 +143,13 @@ static void GetTiles(
 {
 	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-		if( !gW ) {
-			gW = atoi( ptch->Attribute( "width" ) );
-			gH = atoi( ptch->Attribute( "height" ) );
-		}
-
-		vp.push_back( Picture( ptch->Attribute( "file_path" ), z ) );
+	if( ptch && !gW ) {
+		gW = atoi( ptch->Attribute( "width" ) );
+		gH = atoi( ptch->Attribute( "height" ) );
 	}
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() )
+		vp.push_back( Picture( ptch->Attribute( "file_path" ), z ) );
 }
 
 /* --------------------------------------------------------------- */

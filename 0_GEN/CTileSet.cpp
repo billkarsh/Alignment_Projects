@@ -119,12 +119,13 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 /* XMLGetTiles --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void XMLGetTiles(
+static TiXmlElement* XMLGetTiles(
 	CTileSet		*TS,
 	TiXmlElement*	layer,
 	int				z )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	pfirst	= layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	ptch	= pfirst;
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
@@ -138,6 +139,8 @@ void XMLGetTiles(
 
 		TS->vtil.push_back( til );
 	}
+
+	return pfirst;
 }
 
 /* --------------------------------------------------------------- */
@@ -145,6 +148,8 @@ void XMLGetTiles(
 /* --------------------------------------------------------------- */
 
 // Needs previous call to SetDecoderPat().
+//
+// Automatically sets (gW,gH) from xml file.
 //
 void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 {
@@ -196,7 +201,12 @@ void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 		if( z < zmin )
 			continue;
 
-		XMLGetTiles( this, layer, z );
+		TiXmlElement* p0 = XMLGetTiles( this, layer, z );
+
+		if( p0 && !gW ) {
+			gW = atoi( p0->Attribute( "width" ) );
+			gH = atoi( p0->Attribute( "height" ) );
+		}
 	}
 }
 

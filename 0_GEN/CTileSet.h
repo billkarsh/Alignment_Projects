@@ -71,6 +71,9 @@ public:
 	vector<TSAux>	vaux;
 
 public:
+	CTileSet()
+		{flog=stdout; gW=0; gH=0;};
+
 	void SetLogFile( FILE* fout )
 		{flog = fout;};
 

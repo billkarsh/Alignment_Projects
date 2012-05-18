@@ -167,15 +167,13 @@ static void GetTiles( vector<Picture> &vp, TiXmlElement* layer )
 {
 	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-		if( !gW ) {
-			gW = atoi( ptch->Attribute( "width" ) );
-			gH = atoi( ptch->Attribute( "height" ) );
-		}
-
-		vp.push_back( Picture( ptch ) );
+	if( ptch && !gW ) {
+		gW = atoi( ptch->Attribute( "width" ) );
+		gH = atoi( ptch->Attribute( "height" ) );
 	}
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() )
+		vp.push_back( Picture( ptch ) );
 }
 
 /* --------------------------------------------------------------- */
