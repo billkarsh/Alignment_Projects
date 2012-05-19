@@ -1,10 +1,9 @@
 
 
-#include	"FoldMask.h"
-
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"PipeFiles.h"
+#include	"FoldMask.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Geometry.h"

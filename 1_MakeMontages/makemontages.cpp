@@ -15,11 +15,10 @@
 //
 
 
-#include	"PipeFiles.h"
-
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"CTileSet.h"
 #include	"Geometry.h"
 

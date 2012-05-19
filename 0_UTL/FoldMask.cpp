@@ -1,9 +1,8 @@
 
 
-#include	"FoldMask.h"
-#include	"PipeFiles.h"
-
 #include	"Disk.h"
+#include	"PipeFiles.h"
+#include	"FoldMask.h"
 #include	"ImageIO.h"
 
 

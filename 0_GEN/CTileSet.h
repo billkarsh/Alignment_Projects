@@ -4,8 +4,8 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
 #include	"CRegexID.h"
+#include	"CTForm.h"
 
 #include	<string>
 using namespace std;

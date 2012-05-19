@@ -24,11 +24,11 @@
 // is to be fetched from a given IDB.
 //
 
-#include	"PipeFiles.h"
 
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 
 
 /* --------------------------------------------------------------- */

@@ -3,10 +3,10 @@
 
 
 #include	"Cmdline.h"
-#include	"PipeFiles.h"
-#include	"LinEqu.h"
 #include	"Disk.h"
 #include	"File.h"
+#include	"PipeFiles.h"
+#include	"LinEqu.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
