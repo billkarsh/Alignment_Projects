@@ -288,8 +288,8 @@ static void WriteReportFile()
 
 	fprintf( f, "#!/bin/csh\n\n" );
 
-	fprintf( f, "ls -l */S0_0/qs0-0-*.e* > SameErrs.txt\n" );
-	fprintf( f, "ls -l */D0_0/qd0-0-*.e* > DownErrs.txt\n\n" );
+	fprintf( f, "ls -l */S0_0/qS0_0-*.e* > SameErrs.txt\n" );
+	fprintf( f, "ls -l */D0_0/qD0_0-*.e* > DownErrs.txt\n\n" );
 
 	fprintf( f, "ls -l */S0_0/pts.same > SamePts.txt\n" );
 	fprintf( f, "ls -l */D0_0/pts.down > DownPts.txt\n\n" );
