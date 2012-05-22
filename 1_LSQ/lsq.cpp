@@ -2367,8 +2367,9 @@ static void IterateInliers(
 /* Repeat while any new inliers or outliers */
 /* ---------------------------------------- */
 
-	int NewInlier = 1;
-	int NewOutlier = 0;
+	double	lastrms, lastin, lastout;
+	int		NewInlier  = 1;
+	int		NewOutlier = 0;
 
 	for( int pass = 1;
 		pass <= gArgs.max_pass && (NewInlier || NewOutlier);
@@ -2465,23 +2466,26 @@ static void IterateInliers(
 
 		// Overall error
 
-		double		rms	= sqrt( sum / in ),
-					big	= sqrt( big_in );
+		lastrms = sqrt( sum / in );
+		lastin  = sqrt( big_in );
+		lastout = sqrt( big_out );
+
 		const char	*flag;
 
-		if( rms > 20.0 )
+		if( lastrms > 20.0 )
 			flag = "<---------- rms!";
-		else if( big > 75.0 )
+		else if( lastin > 75.0 )
 			flag = "<---------- big!";
 		else
 			flag = "";
 
 		printf( "\t\t\t\t"
 		"RMS error %.2f, max error inlier %.2f, max outlier %.2f %s\n",
-		rms, big, sqrt( big_out ), flag );
+		lastrms, lastin, lastout, flag );
 	}
 
-	printf( "\n" );
+	printf( "\nFINAL RMS %.2f MAXIN %.2f MAXOUT %.2f\n\n",
+	lastrms, lastin, lastout );
 }
 
 /* --------------------------------------------------------------- */

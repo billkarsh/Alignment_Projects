@@ -411,6 +411,39 @@ static void WriteSubmonFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteReportMonsFile ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteReportMonsFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/sumymons", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/csh\n\n" );
+
+	fprintf( f, "if ($#argv == 1) then\n" );
+	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tset last = $2\n" );
+	fprintf( f, "endif\n\n" );
+
+	fprintf( f, "rm -rf MonSumy.txt\n\n" );
+
+	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "\tset log = $lyr/montage/lsq.txt\n" );
+	fprintf( f, "\tif( -f $log ) then\n" );
+	fprintf( f, "\t\techo Z $lyr `grep -e \"FINAL*\" $log` >> MonSumy.txt\n" );
+	fprintf( f, "\tendif\n" );
+	fprintf( f, "end\n\n" );
+
+	fclose( f );
+	ScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* CreateLayerDir ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -851,6 +884,7 @@ int main( int argc, char* argv[] )
 	WriteReportFile();
 	WriteMontage1File();
 	WriteSubmonFile();
+	WriteReportMonsFile();
 
 	ForEachLayer();
 
