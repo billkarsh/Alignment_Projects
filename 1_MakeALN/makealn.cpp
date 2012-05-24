@@ -264,8 +264,10 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "\tif (-d $lyr) then\n" );
 	fprintf( f, "\t\tcd $lyr/S0_0\n" );
 	fprintf( f, "\t\tqsub -N qS0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
-	fprintf( f, "\t\tcd ../D0_0\n" );
-	fprintf( f, "\t\tqsub -N qD0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\tif ($lyr > $1) then\n" );
+	fprintf( f, "\t\t\tcd ../D0_0\n" );
+	fprintf( f, "\t\t\tqsub -N qD0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\tendif\n" );
 	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tendif\n" );
 	fprintf( f, "end\n\n" );
