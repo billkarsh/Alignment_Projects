@@ -78,13 +78,14 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 
 		CUTile	til;
 		char	name[2048];
-		int		x, y, z;
+		double	x, y;
+		int		z;
 
 		/* ---------- */
 		/* Get a line */
 		/* ---------- */
 
-		if( fscanf( fp, "%s%d%d%d", name, &x, &y, &z ) != 4 )
+		if( fscanf( fp, "%s%lf%lf%d", name, &x, &y, &z ) != 4 )
 			break;
 
 		if( z > zmax )
