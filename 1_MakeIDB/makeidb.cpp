@@ -57,12 +57,21 @@
 class cArgs_idb {
 
 public:
+	// xml_type values: these are ImagePlus codes:
+	// AUTO			= -1
+	// GRAY8		= 0
+	// GRAY16		= 1
+	// GRAY32		= 2
+	// COLOR_256	= 3
+	// COLOR_RGB	= 4
+	//
 	char	*infile,
 			*outdir,
 			*pat,
 			*clk;
 	int		zmin,
-			zmax;
+			zmax,
+			xml_type;
 	bool	Simple,
 			NoFolds;
 
@@ -75,6 +84,7 @@ public:
 		clk			= NULL;
 		zmin		= 0;
 		zmax		= 32768;
+		xml_type	= 0;
 		Simple		= false;
 		NoFolds		= false;
 	};
@@ -140,6 +150,8 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
 			;
 		else if( IsArg( "-simple", argv[i] ) )
 			Simple = true;
@@ -605,11 +617,11 @@ int main( int argc, char* argv[] )
 /* ----------- */
 
 	if( gArgs.Simple )
-		TS.WriteTrakEM2_EZ( "PreClicks.xml", 0 );
+		TS.WriteTrakEM2_EZ( "PreClicks.xml", gArgs.xml_type );
 
 	if( gArgs.clk ) {
 		TS.ApplyClix( tsClixAffine, gArgs.clk );
-		TS.WriteTrakEM2_EZ( "PostClicks.xml", 0 );
+		TS.WriteTrakEM2_EZ( "PostClicks.xml", gArgs.xml_type );
 	}
 
 /* ----------------------- */
