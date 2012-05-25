@@ -227,9 +227,11 @@ static void WriteSubfmFile()
 	fprintf( f, "endif\n\n" );
 
 	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
-	fprintf( f, "\tcd $lyr\n" );
-	fprintf( f, "\tqsub -N lou-f-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
-	fprintf( f, "\tcd ..\n" );
+	fprintf( f, "\tif (-d $lyr) then\n" );
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\t\tqsub -N lou-f-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tendif\n" );
 	fprintf( f, "end\n\n" );
 
 	fclose( f );
