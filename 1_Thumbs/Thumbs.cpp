@@ -208,7 +208,7 @@ static bool WholeImage(
 /* SubimageSubI -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void SubimageSubI(
+static bool SubimageSubI(
 	SubI					&S,
 	const IBox				&Bolap,
 	const vector<double>	&v,
@@ -231,7 +231,8 @@ static void SubimageSubI(
 		}
 	}
 
-	np = S.p.size();
+	if( (np = S.p.size()) <= GBL.ctx.OLAP2D )
+		return false;
 
 	S.v.resize( np );
 	S.p.resize( np );
@@ -253,6 +254,8 @@ static void SubimageSubI(
 		S.p[i].x -= B.L;
 		S.p[i].y -= B.B;
 	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -261,6 +264,8 @@ static void SubimageSubI(
 
 // Describe the conservative a/b intersection region based upon
 // data from TileToImage.txt.
+//
+// Return true if non-empty olap.
 //
 static bool SelectSubimage(
 	OlapRec				&olp,
@@ -312,7 +317,7 @@ static bool SelectSubimage(
 	min1d = max( GBL.ctx.OLAP1D, 8 );
 
 	if( ow < min1d || oh < min1d ) {
-		fprintf( flog, "Subimage: Overlap looks small.\n" );
+		fprintf( flog, "Subimage: 1D overlap too small.\n" );
 		return WholeImage( olp, px, acr, bcr, flog );
 	}
 
@@ -322,8 +327,12 @@ static bool SelectSubimage(
 
 // Fill lists with ConnRegion data within the intersection
 
-	SubimageSubI( olp.a, Ba, *px.avs_aln, acr.pts, w );
-	SubimageSubI( olp.b, Bb, *px.bvs_aln, bcr.pts, w );
+	if( !SubimageSubI( olp.a, Ba, *px.avs_aln, acr.pts, w ) ||
+		!SubimageSubI( olp.b, Bb, *px.bvs_aln, bcr.pts, w ) ) {
+
+		fprintf( flog, "Subimage: 2D overlap too small.\n" );
+		return false;
+	}
 
 	return true;
 }
@@ -1446,7 +1455,8 @@ bool Thumbs(
 	OlapRec	olp;
 	ThmRec	thm;
 
-	SelectSubimage( olp, px, acr, bcr, flog );
+	if( !SelectSubimage( olp, px, acr, bcr, flog ) )
+		return false;
 
 	if( !MakeThumbs( thm, olp, 8, flog ) )
 		return false;

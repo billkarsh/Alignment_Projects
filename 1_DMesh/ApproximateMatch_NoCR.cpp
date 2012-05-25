@@ -290,7 +290,7 @@ static bool SelectSubimage(
 	min1d = max( GBL.ctx.OLAP1D, 8 );
 
 	if( olp.ow < min1d || olp.oh < min1d ) {
-		fprintf( flog, "Subimage: Overlap looks small.\n" );
+		fprintf( flog, "Subimage: 1D overlap too small.\n" );
 		return WholeImage( olp, px, flog );
 	}
 
