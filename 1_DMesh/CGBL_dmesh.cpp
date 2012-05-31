@@ -49,6 +49,7 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.imb				= NULL;
 	arg.fma				= NULL;
 	arg.fmb				= NULL;
+	arg.ForceSkew		= false;
 	arg.Transpose		= false;
 	arg.WithinSection	= false;
 	arg.Verbose			= false;
@@ -96,6 +97,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( arg.fmb, "-fmb=", argv[i] ) )
 			;
+		else if( IsArg( "-forceskew", argv[i] ) )
+			arg.ForceSkew = true;
 		else if( IsArg( "-tr", argv[i] ) )
 			arg.Transpose = true;
 		else if( IsArg( "-ws", argv[i] ) )
@@ -202,7 +205,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Command-line overrides ----\n" );
 
-	if( A.layer != B.layer ) {
+	if( arg.ForceSkew || A.layer != B.layer ) {
 
 		if( arg.SCALE != 999.0 && arg.SCALE != ctx.SCALE ) {
 			ctx.SCALE = arg.SCALE;

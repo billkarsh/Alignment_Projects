@@ -27,7 +27,8 @@ public:
 				*imb,
 				*fma,
 				*fmb;
-		bool	Transpose,		// transpose all images
+		bool	ForceSkew,		// apply SKEW args even if same layer
+				Transpose,		// transpose all images
 				WithinSection,	// overlap within a section
 				Verbose,		// run inspect diagnostics
 				NoFolds,		// ignore fold masks
