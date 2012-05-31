@@ -256,7 +256,7 @@ static double DebugLinearCorr(
 	double	rslt	= (prod < 1.0e-9 ? 0.0 : sumn/sqrt(prod));
 
 	fprintf( flog,
-	"\nDebugLinearCorr: s %f %f, a %f %f, ss %f %f %f, r %f.\n",
+	"\nDebugLinearCorr: s %f %f, a %f %f, ss %f %f %f, r %f\n",
 	suma, sumb, avga, avgb, sumn, sumd1, sumd2, rslt );
 
 	return rslt;
@@ -590,7 +590,7 @@ void PrintCorLandscape(
 	FILE			*flog )
 {
 	fprintf( flog,
-		"Landscape: Max %f at (%d, %d); Ox Oy radius = %d %d %d.\n",
+		"Landscape: Max %f at (%d, %d); Ox Oy radius = %d %d %d\n",
 		biggest, bigx, bigy, Ox, Oy, radius );
 
 	for( int iy = -lim; iy <= lim; iy += step ) {
@@ -785,7 +785,7 @@ double CLinCorr::GetCorr()
 	if( abs( r ) > 1.0001 ) {
 
 		fprintf( flog,
-		"NormCorr: Very odd - ir=%d rslt[i]=%f olap_area=%d.\n",
+		"NormCorr: Very odd - ir=%d rslt[i]=%f olap_area=%d\n",
 		ir, r, n );
 
 		fprintf( flog,
@@ -796,8 +796,8 @@ double CLinCorr::GetCorr()
 		OL2.L, OL2.B, OL2.R, OL2.T );
 
 		fprintf( flog,
-		"NormCorr: sums:      %f %f %f %f.\n"
-		"NormCorr: num d1 d2: %f %f %f.\n",
+		"NormCorr: sums:      %f %f %f %f\n"
+		"NormCorr: num d1 d2: %f %f %f\n",
 		im1sum, im1sum2, im2sum, im2sum2, num, d1, d2 );
 
 		DebugLinearCorr( flog, I1, I2, Nx, OL1, OL2 );
@@ -1002,7 +1002,7 @@ double CorrPatches(
 		M	= Ny*(Nx/2+1);
 
 	if( verbose )
-		fprintf( flog, "NormCorr: Nx = %d, Ny = %d.\n", Nx, Ny );
+		fprintf( flog, "NormCorr: Nx = %d, Ny = %d\n", Nx, Ny );
 
 // Create images from point lists.
 
@@ -1165,7 +1165,7 @@ skip:
 
 			fprintf( flog,
 			"NormCorr: Possible bigger area match:"
-			" %8d - %8d : %8.2f.\n", i1, i2, max_by_size[i] );
+			" %8d - %8d : %8.2f\n", i1, i2, max_by_size[i] );
 		}
 	}
 
@@ -1188,7 +1188,7 @@ skip:
 				a > LkFFT( rslt, Nx, Ny, x, y+1 ) ) {
 
 				fprintf( flog,
-				"NormCorr: Local max at %d %d, value %f.\n",
+				"NormCorr: Local max at %d %d, value %f\n",
 				x, y, a );
 			}
 		}
@@ -1368,7 +1368,7 @@ double CorrPatchToImage(
 
 	if( biggest > 1.0001 ) {
 
-		printf( "FindCor: Very odd - norm-rslt x y %f %d %d.\n",
+		printf( "FindCor: Very odd - norm-rslt x y %f %d %d\n",
 			biggest, bigx, bigy );
 		exit( 44 );
 	}
@@ -1548,7 +1548,7 @@ double CorrVectors(
 
 	if( N != b.size() ) {
 		fprintf( flog,
-		"CorrVectors: Sizes differ! %d %d.\n", N, b.size() );
+		"CorrVectors: Sizes differ! %d %d\n", N, b.size() );
 		exit( 42 );
 	}
 
@@ -1682,7 +1682,7 @@ double ImproveControlPts(
 	if( finThresh < 0 ) {
 
 		fprintf( flog,
-		"STAT: ImproveCpt: Skipping optimizer; final corr %f.\n",
+		"STAT: ImproveCpt: Skipping optimizer; final corr %f\n",
 		corr );
 
 		return corr;
@@ -2030,7 +2030,7 @@ void CCorImg::MakeRandA(
 	M  = Ny*(Nx/2+1);
 
 	if( verbose )
-		fprintf( flog, "Corr: Nx = %d, Ny = %d.\n", Nx, Ny );
+		fprintf( flog, "Corr: Nx = %d, Ny = %d\n", Nx, Ny );
 
 // Create images from point lists
 

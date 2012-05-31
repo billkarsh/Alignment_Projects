@@ -767,7 +767,7 @@ void ValuesFromImageAndPoints(
 
 	dvx = derx;
 	dvy = dery;
-	printf( "ValsFrmImg: Local derivatives %f %f.\n", derx, dery );
+	printf( "ValsFrmImg: Local derivatives %f %f\n", derx, dery );
 }
 
 /* --------------------------------------------------------------- */

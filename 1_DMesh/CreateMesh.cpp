@@ -250,7 +250,7 @@ static bool GetBoundaryPoints(
 
 	do {
 
-		//fprintf( flog, "-- %6d %6d %3d.\n", x, y, dir );
+		//fprintf( flog, "-- %6d %6d %3d\n", x, y, dir );
 
 		int	op = (dir+4)%8;	// sweep starts opposite to dir
 		int	k;
@@ -493,7 +493,7 @@ static void CutCorners(
 				q.pop();
 
 				fprintf( flog,
-				"Node 0 to %4d; xy=(%4d %4d); cost=%f.\n",
+				"Node 0 to %4d; xy=(%4d %4d); cost=%f\n",
 				T.to, graph[T.to].x, graph[T.to].y, T.cost );
 
 				/* --------- */
@@ -529,7 +529,7 @@ static void CutCorners(
 
 					if( big_print ) {
 						fprintf( flog,
-						"Target %3d; xy=(%4d %4d); len=%f.\n",
+						"Target %3d; xy=(%4d %4d); len=%f\n",
 						j, graph[j].x, graph[j].y, len );
 					}
 
@@ -544,7 +544,7 @@ static void CutCorners(
 
 						if( big_print ) {
 							fprintf( flog,
-							"Cost: src=%f; tot=%f; trg=%f.\n",
+							"Cost: src=%f; tot=%f; trg=%f\n",
 							graph[s].cost, cost, graph[j].cost );
 						}
 
@@ -560,7 +560,7 @@ static void CutCorners(
 							if( big_print ) {
 								fprintf( flog,
 								"Pushing node %3d;"
-								" cost=%f; back=%3d.\n",
+								" cost=%f; back=%3d\n",
 								j, cost, s );
 							}
 
@@ -604,7 +604,7 @@ static void CutCorners(
 			double		d		= graph[i].Dist( prev );
 
 			fprintf( flog,
-			"Edge from (%4d %4d) to (%4d %4d); len %7.2f.\n",
+			"Edge from (%4d %4d) to (%4d %4d); len %7.2f\n",
 			prev.x, prev.y, graph[i].x, graph[i].y, d );
 
 			edges.insert( edges.begin(),
@@ -736,7 +736,7 @@ static void ReverseWhole( vector<lineseg> &edges, FILE* flog )
 {
 	double	area = AreaOfPolygon( edges );
 
-	fprintf( flog, "After edge untangling area %.2f.\n", area );
+	fprintf( flog, "After edge untangling area %.2f\n", area );
 
 	if( area < 0.0 ) {
 
@@ -1365,7 +1365,7 @@ int MeshCreate(
 			(tri.size() && fabs( area - Aexpect ) > 1.000) ) {
 
 			fprintf( flog,
-			"Internal error! Area %f < 0, or not expected %f.\n",
+			"Internal error! Area %f < 0, or not expected %f\n",
 			area, Aexpect );
 
 			return 5;
@@ -1377,7 +1377,7 @@ int MeshCreate(
 
 		ListEdgesMatlab( edges, flog );
 
-		fprintf( flog, "\nEdges %d; Area %f.\n", edges.size(), area );
+		fprintf( flog, "\nEdges %d; Area %f\n", edges.size(), area );
 
 		/* ------------------- */
 		/* Remove longest edge */
@@ -1409,7 +1409,7 @@ int MeshCreate(
 		if( type == -2 ) {
 
 			fprintf( flog, "\nNo legal triangle at all??"
-			" %d triangles so far, area limit %d.\n",
+			" %d triangles so far, area limit %d\n",
 			tri.size(), GBL.mch.MTA );
 
 			if( tri.size() > 0 ) {
@@ -1438,7 +1438,7 @@ int MeshCreate(
 		double	Atri = AreaOfTriangle( va, vb, vc );
 
 		fprintf( flog,
-		"Triangle (%d %d) (%d %d) (%d %d); area %f.\n",
+		"Triangle (%d %d) (%d %d) (%d %d); area %f\n",
 		va.x, va.y, vb.x, vb.y, vc.x, vc.y, Atri );
 
 		AddTriangle( tri, ctl, va, vb, vc );

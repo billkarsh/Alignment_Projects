@@ -342,7 +342,7 @@ static bool ABOlap( int a, int b )
 {
 	double	A = TS.ABOlap( a, b );
 
-	fprintf( flog, "----ABOlap: Tile %3d - %3d; area frac %f.\n",
+	fprintf( flog, "----ABOlap: Tile %3d - %3d; area frac %f\n",
 	TS.vtil[a].id, TS.vtil[b].id, A );
 
 	return A > minolap;

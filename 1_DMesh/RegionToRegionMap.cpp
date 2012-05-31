@@ -89,7 +89,7 @@ static void ReportCenters(
 		map.transforms[i].PrintTransform( f );
 
 		fprintf( f,
-		"Mapping region %d xy= %f %f to region %d xy= %f %f.\n",
+		"Mapping region %d xy= %f %f to region %d xy= %f %f\n",
 		a_id, ca.x, ca.y, b_id, cb.x, cb.y );
 	}
 
@@ -229,7 +229,7 @@ void RegionToRegionMap(
 	if( ap_msh.size() < GBL.mch.MMA ) {
 
 		fprintf( flog,
-		"FAIL: Region too small - %d pixels, MMA %d.\n",
+		"FAIL: Region too small - %d pixels, MMA %d\n",
 		ap_msh.size(), GBL.mch.MMA );
 
 		return;
@@ -347,7 +347,7 @@ void RegionToRegionMap(
 		y = PercentYellow( mat.a, mat.b, flog );
 
 		fprintf( flog,
-		"Affine Triangle: %d points, corr %f, fm %f, yellow %.2f.\n",
+		"Affine Triangle: %d points, corr %f, fm %f, yellow %.2f\n",
 		N, sum/N, fm, y );
 
 	// Assess result quality
@@ -358,7 +358,7 @@ void RegionToRegionMap(
 
 				fprintf( flog,
 				"FAIL: Kicking out - Initial EMM too big (%f),"
-				" 2*EMT %f.\n", fm, 2.0*GBL.mch.EMT );
+				" 2*EMT %f\n", fm, 2.0*GBL.mch.EMT );
 
 				return;
 			}
@@ -369,7 +369,7 @@ void RegionToRegionMap(
 
 				fprintf( flog,
 				"FAIL: Kicking out - Initial FM too low (%f),"
-				" IFM %f.\n", fm, GBL.mch.IFM );
+				" IFM %f\n", fm, GBL.mch.IFM );
 
 				for( int wvlen = 5; wvlen <= 40; wvlen += 5 ) {
 
@@ -381,7 +381,7 @@ void RegionToRegionMap(
 							"AF2", flog );
 
 					fprintf( flog,
-					" wavelength %d, metric %f.\n", wvlen, ffm );
+					" wavelength %d, metric %f\n", wvlen, ffm );
 				}
 
 				return;
@@ -405,7 +405,7 @@ void RegionToRegionMap(
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - Small overlap?"
-		" %d pixels, MMA %d.\n",
+		" %d pixels, MMA %d\n",
 		ap_msh.size(), GBL.mch.MMA );
 
 		return;
@@ -417,7 +417,7 @@ void RegionToRegionMap(
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - No triangles."
-		" %d pixels, MMA %d.\n",
+		" %d pixels, MMA %d\n",
 		ap_msh.size(), GBL.mch.MMA );
 
 		return;
@@ -485,7 +485,7 @@ quality_control:
 
 	dfm = Metric( allp.pts, allp.a, allp.b, "DEF", flog );
 
-	fprintf( flog, "All points, deformable, dfm %f.\n\n", dfm );
+	fprintf( flog, "All points, deformable, dfm %f\n\n", dfm );
 
 // Sum over triangles: cross-corr, Fourier metric, yellow...
 
@@ -513,7 +513,7 @@ quality_control:
 			y = PercentYellow( matches[k].a, matches[k].b, flog );
 
 			fprintf( flog,
-			"Triangle %d: %d points, corr %f, fm %f, yellow %.2f.\n\n",
+			"Triangle %d: %d points, corr %f, fm %f, yellow %.2f\n\n",
 			k, N, sum/N, fm, y );
 
 			weighted_sum	+= fm * N;

@@ -110,7 +110,7 @@ void PicBase::DownsampleIfNeeded( FILE* flog )
 		scale	*= 2;
 	} while( w > 2048 || h > 2048 );
 
-	fprintf( flog, "DownsampleIfNeeded: Will scale by %d.\n", scale );
+	fprintf( flog, "DownsampleIfNeeded: Will scale by %d\n", scale );
 
 	if( w * scale != origw || h * scale != origh ) {
 
@@ -154,7 +154,7 @@ void PicBase::MakeFFTExist( int i )
 {
 	printf(
 	"MakeFFTExist: called with %d,"
-	" fft_of_frame.size=%d.\n", i, fft_of_frame.size() );
+	" fft_of_frame.size=%d\n", i, fft_of_frame.size() );
 
 	if( fft_of_frame.size() )	// already exists
 		return;
@@ -273,7 +273,7 @@ void PicBase::MakeDoGExist( vector<CD> &filter, int r1, int r2 )
 
 	int	N = CeilPow2( max( w, h ) + fltsz );
 
-	printf( "MakeDoGExist: Using size %d.\n", N );
+	printf( "MakeDoGExist: Using size %d\n", N );
 
 	int M = N * (N/2 + 1);	// size of array of complex coefficients
 

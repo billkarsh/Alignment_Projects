@@ -47,7 +47,7 @@ int ReadRawMRCFile(
 	//header[i] = (header[i] << 16) | ((header[i] >> 16) & 0xFFFF);
 
 	if( flog ) {
-		fprintf( flog, "Header: %d %d %d %d %d %d %d %d.\n",
+		fprintf( flog, "Header: %d %d %d %d %d %d %d %d\n",
 			header[0], header[1], header[2], header[3],
 			header[4], header[5], header[6], header[7] );
 	}
@@ -145,7 +145,7 @@ int ReadRawMRCFile(
 			flog = stdout;
 
 		fprintf( flog,
-		"Reading MRC file; expected mode 6 or 2, got %d.\n",
+		"Reading MRC file; expected mode 6 or 2, got %d\n",
 		header[3] );
 		exit( 42 );
 	}
@@ -439,7 +439,7 @@ uint8* ReadAnMRCFile(
 	nras = ReadRawMRCFile( vras, name, w, h, flog, Transpose );
 
 	if( nras > 1 )
-		fprintf( flog, "Only reading first MRC image of %d.\n", nras );
+		fprintf( flog, "Only reading first MRC image of %d\n", nras );
 
 	result = NormalizeMRCImage( vras[0], w, h, Ngauss );
 

@@ -93,7 +93,7 @@ void RotateAround( atform &t, Point s, Point tar, double rad )
 
 void WriteTransform( const char *s, const atform &t )
 {
-	printf( "%s %9.4f %9.4f %10.2f\n%s %9.4f %9.4f %10.2f.\n",
+	printf( "%s %9.4f %9.4f %10.2f\n%s %9.4f %9.4f %10.2f\n",
 		s, t[0], t[1], t[2], s, t[3], t[4], t[5] );
 }
 
@@ -103,7 +103,7 @@ void WriteTransform( const char *s, const atform &t )
 
 void PrintTransform( const atform &t )
 {
-	printf( "%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f.\n",
+	printf( "%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
 		t[0], t[1], t[2], t[3], t[4], t[5] );
 }
 

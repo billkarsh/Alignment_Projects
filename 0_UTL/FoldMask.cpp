@@ -25,7 +25,7 @@ static void PrintFoldmapHisto( const uint8* fm, int w, int h )
 	for( i = 0; i < 256; ++i ) {
 
 		if( cts[i] )
-			printf( "Foldmask: value=%3d, count=%8d.\n", i, cts[i] );
+			printf( "Foldmask: value=%3d, count=%8d\n", i, cts[i] );
 	}
 }
 
@@ -250,19 +250,19 @@ void ConnRgnsFromFoldMask(
 	}
 
 	fprintf( flog,
-	"ConnRegion: FoldMask w=%d, h=%d, area=%d, scale=%d.\n",
+	"ConnRegion: FoldMask w=%d, h=%d, area=%d, scale=%d\n",
 	wf, hf, N, scale );
 
 	fprintf( flog,
-	"ConnRegion: Included rgns=%3d, area=%8d, %%=%6.2f.\n",
+	"ConnRegion: Included rgns=%3d, area=%8d, %%=%6.2f\n",
 	n_inc, t_inc, 100.0*t_inc / N );
 
 	fprintf( flog,
-	"ConnRegion: Excluded rgns=%3d, area=%8d, %%=%6.2f.\n",
+	"ConnRegion: Excluded rgns=%3d, area=%8d, %%=%6.2f\n",
 	max_id - n_inc, t_exc, 100.0*t_exc / N );
 
 	fprintf( flog,
-	"ConnRegion:    Folds rgns=%3d, area=%8d, %%=%6.2f.\n",
+	"ConnRegion:    Folds rgns=%3d, area=%8d, %%=%6.2f\n",
 	(szrgn[0] != 0), szrgn[0], 100.0*szrgn[0] / N );
 
 	szrgn[0] = 0;	// mark for skip

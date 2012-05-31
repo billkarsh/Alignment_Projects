@@ -110,7 +110,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 	re_id.Set( "_N_" );
 
 	if( argc < 4 ) {
-		printf( "Usage: XMLRotTiles <xml-file> -z=i -degcw=f.\n" );
+		printf( "Usage: XMLRotTiles <xml-file> -z=i -degcw=f\n" );
 		exit( 42 );
 	}
 

@@ -48,7 +48,7 @@ static bool MeanSqrDiff(
 	}
 
 	fprintf( flog,
-	"Metrics: %s: Mean square difference %f.\n", msg, sum/na );
+	"Metrics: %s: Mean square difference %f\n", msg, sum/na );
 
 	return true;
 }
@@ -74,7 +74,7 @@ static const vector<Point>* SmallestFootprint(
 	int		deg = TightestBBox( B, pts );
 
 	fprintf( flog,
-	"Metrics: %s: Smallest footprint deg=%d, area=%g.\n",
+	"Metrics: %s: Smallest footprint deg=%d, area=%g\n",
 	msg, deg, (B.R - B.L) * (B.T - B.B) );
 
 	if( deg == 0 )
@@ -135,7 +135,7 @@ static void MakeMetricImagesFFT(
 	int	N2 = Nx * Ny;
 
 	fprintf( flog,
-	"MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d.\n",
+	"MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d\n",
 	B.L, B.R, B.B, B.T, Nx, Ny );
 
 /* ----------- */
@@ -189,7 +189,7 @@ static void MakeMetricImagesFFT(
 		}
 
 		fprintf( flog,
-		"MetricImages: Energies (1,2,dif) %f %f %f.\n",
+		"MetricImages: Energies (1,2,dif) %f %f %f\n",
 		e1, e2, ed );
 	}
 }
@@ -240,7 +240,7 @@ static void MakeMetricImagesEMM(
 	int	N2 = Nx * Ny;
 
 	fprintf( flog,
-	"MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d.\n",
+	"MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d\n",
 	B.L, B.R, B.B, B.T, Nx, Ny );
 
 /* ----------- */
@@ -277,7 +277,7 @@ static void MakeMetricImagesEMM(
 		for( int i = 0; i < N2; ++i )
 			ed += diff[i]*diff[i];
 
-		fprintf( flog, "MetricImages: Energies (dif) %f.\n", ed );
+		fprintf( flog, "MetricImages: Energies (dif) %f\n", ed );
 	}
 }
 
@@ -394,7 +394,7 @@ static double ApproxEarthMoversMetric(
 			if( dist < 0 ) {
 
 				printf(
-				"x %d, y %d, dx %d, dy %d, dist %f, d[x+w*y] %f.\n",
+				"x %d, y %d, dx %d, dy %d, dist %f, d[x+w*y] %f\n",
 				x, y, dx, dy, dist, d[x + w*y] );
 			}
 
@@ -614,7 +614,7 @@ double FourierMatch(
 
 	dot /= total;
 
-	fprintf( flog, "FFT: norm-dot %f, energy %f.\n", dot, total );
+	fprintf( flog, "FFT: norm-dot %f, energy %f\n", dot, total );
 
 /* --------------------------------*/
 /* Difference power: make spectrum */
@@ -671,7 +671,7 @@ double FourierMatch(
 		// report progress periodically
 		if( i && !(i % 10) ) {
 			fprintf( flog,
-			"FFT: %s: cum frac to %d = %f.\n", msg, i, cum/tot );
+			"FFT: %s: cum frac to %d = %f\n", msg, i, cum/tot );
 		}
 	}
 
@@ -724,7 +724,7 @@ double PercentYellow(
 		}
 
 		fprintf( flog,
-		"%Yellow: Tol %6.2f  red %6.1f  yellow %6.1f  green %6.1f.\n",
+		"%Yellow: Tol %6.2f  red %6.1f  yellow %6.1f  green %6.1f\n",
 		tol, 100.0*red/N, 100.0*yellow/N, 100.0*green/N );
 	}
 

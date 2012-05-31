@@ -57,7 +57,7 @@ static void TestNormCorr()
 					pts, vals, pb, vb, 0, 0, 4096,
 					SomeArea, NULL, NULL, NULL, ftc );
 
-	printf( "TestNormCorr: corr=%f, dx=%f dy=%f.\n", c, dx, dy );
+	printf( "TestNormCorr: corr=%f, dx=%f dy=%f\n", c, dx, dy );
 
 	StopTiming( stdout, "TestNormCorr", t1 );
 }

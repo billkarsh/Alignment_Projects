@@ -55,7 +55,7 @@ static double AontoBOverlap( const Picture &a, const Picture &b )
 			++in;
 	}
 
-	fprintf( flog, "----AontoBOverlap fraction %f.\n",
+	fprintf( flog, "----AontoBOverlap fraction %f\n",
 		double(in)/count );
 
 	return double(in)/count;

@@ -129,7 +129,7 @@ double Normalize( vector<double> &v )
 
 	Stats( v, avg, std );
 
-	//printf( "Normalize: Average=%f, std dev=%f.\n", avg, std );
+	//printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
 
 	for( int i = 0; i < n; ++i )
 		v[i] = (v[i] - avg) / std;
@@ -153,7 +153,7 @@ double Normalize( double *a, int n )
 
 	m.Stats( avg, std );
 
-	//printf( "Normalize: Average=%f, std dev=%f.\n", avg, std );
+	//printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
 
 	for( i = 0; i < n; ++i )
 		a[i] = (a[i] - avg) / std;
@@ -215,7 +215,7 @@ double CoNormalize( vector<double> &v1, vector<double> &v2 )
 
 	m.Stats( avg, std );
 
-	//printf( "CoNormalize: Average=%f, std dev=%f.\n", avg, std );
+	//printf( "CoNormalize: Average=%f, std dev=%f\n", avg, std );
 
 	for( i = 0; i < n1; ++i )
 		v1[i] = (v1[i] - avg) / std;
@@ -958,7 +958,7 @@ void LegPolyFlatten(
 
 				coef /= norm;
 
-				//printf( "LegFlatten: xo=%d yo=%d cof=%f.\n",
+				//printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
 				//	xo, yo, coef );
 
 				// now remove that component
@@ -1051,7 +1051,7 @@ void LegPolyFlatten(
 
 				coef /= norm;
 
-				//printf( "LegFlatten: xo=%d yo=%d cof=%f.\n",
+				//printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
 				//	xo, yo, coef );
 
 				// now remove that component
@@ -1450,7 +1450,7 @@ void ImageGradients(
 	slopey = (sum_yp - avgy * sum_p) / (sum_y2 - avgy * sum_y);
 
 	fprintf( flog,
-	"Gradients: Slope bias per 1000 pixels: x %f, y %f.\n",
+	"Gradients: Slope bias per 1000 pixels: x %f, y %f\n",
 	slopex*1000.0, slopey*1000.0 );
 }
 

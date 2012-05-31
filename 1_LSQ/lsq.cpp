@@ -450,7 +450,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 				include_only.push_back(
 					MZID( vi[i], vi[i+1] ) );
 
-				printf( "Include only %4d %4d.\n", vi[i], vi[i+1] );
+				printf( "Include only %4d %4d\n", vi[i], vi[i+1] );
 			}
 
 			printf( "<-only> option not implemented; IGNORED.\n" );
@@ -463,19 +463,19 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			}
 		}
 		else if( GetArg( &same_strength, "-same=%lf", argv[i] ) )
-			printf( "Setting same-layer strength to %f.\n", same_strength );
+			printf( "Setting same-layer strength to %f\n", same_strength );
 		else if( GetArg( &square_strength, "-square=%lf", argv[i] ) )
-			printf( "Setting square strength to %f.\n", square_strength );
+			printf( "Setting square strength to %f\n", square_strength );
 		else if( GetArg( &scale_strength, "-scale=%lf", argv[i] ) )
-			printf( "Setting scale strength to %f.\n", scale_strength );
+			printf( "Setting scale strength to %f\n", scale_strength );
 		else if( GetArg( &tfm_tol, "-tformtol=%lf", argv[i] ) )
-			printf( "Setting tform uniformity to %f.\n", tfm_tol );
+			printf( "Setting tform uniformity to %f\n", tfm_tol );
 		else if( GetArg( &thresh, "-threshold=%lf", argv[i] ) )
-			printf( "Setting threshold to %f.\n", thresh );
+			printf( "Setting threshold to %f\n", thresh );
 		else if( GetArg( &trim, "-trim=%lf", argv[i] ) )
-			printf( "Setting trim amount to %f.\n", trim );
+			printf( "Setting trim amount to %f\n", trim );
 		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
-			printf( "Setting deg-cw to %f.\n", degcw );
+			printf( "Setting deg-cw to %f\n", degcw );
 		else if( GetArgStr( unite, "-unite=", argv[i] ) ) {
 
 			char	buf[2048];
@@ -487,13 +487,13 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			unite_layer, tfm_file );
 		}
 		else if( GetArg( &ref_layer, "-refz=%d", argv[i] ) )
-			printf( "Reference layer %d.\n", ref_layer );
+			printf( "Reference layer %d\n", ref_layer );
 		else if( GetArg( &max_pass, "-pass=%d", argv[i] ) )
-			printf( "Setting maximum passes to %d.\n", max_pass );
+			printf( "Setting maximum passes to %d\n", max_pass );
 		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
-			printf( "Setting xml image type to %d.\n", xml_type );
+			printf( "Setting xml image type to %d\n", xml_type );
 		else if( GetArg( &viserr, "-viserr=%d", argv[i] ) )
-			printf( "Setting visual error scale to %d.\n", viserr );
+			printf( "Setting visual error scale to %d\n", viserr );
 		else if( IsArg( "-strings", argv[i] ) )
 			strings = true;
 		else if( IsArg( "-mls", argv[i] ) ) {
@@ -733,7 +733,7 @@ double RGD::CanAlign(
 
 		double	mag = sqrt( X[0]*X[0] + X[1]*X[1] );
 
-		printf( "  a=%f b=%f x0=%f y0=%f mag=%f.\n",
+		printf( "  a=%f b=%f x0=%f y0=%f mag=%f\n",
 		X[0], X[1], X[2], X[3], mag );
 	}
 
@@ -753,7 +753,7 @@ double RGD::CanAlign(
 		if( print ) {
 			printf(
 			"  (%8.2f %8.2f) -> (%8.2f %8.2f) =?"
-			" (%8.2f %8.2f) d=%8.2f.\n",
+			" (%8.2f %8.2f) d=%8.2f\n",
 			p1[i].x, p1[i].y, px, py,
 			p2[i].x, p2[i].y, sqrt(dx*dx + dy*dy) );
 		}
@@ -1233,7 +1233,7 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 						name2, key2, &p2.x, &p2.y ) ) {
 
 				printf(
-				"WARNING: 'CPOINT' format error; line %d.\n",
+				"WARNING: 'CPOINT' format error; line %d\n",
 				nlines );
 
 				continue;
@@ -1259,7 +1259,7 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 						name2, &p2.x, &p2.y ) ) {
 
 				printf(
-				"WARNING: 'POINT' format error; line %d.\n",
+				"WARNING: 'POINT' format error; line %d\n",
 				nlines );
 
 				continue;
@@ -1303,7 +1303,7 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 				*s = 0;
 
 			printf(
-			"WARNING: Unknown entry type; '%s' line %d.\n",
+			"WARNING: Unknown entry type; '%s' line %d\n",
 			LS.line, nlines );
 		}
 	}
@@ -1347,7 +1347,7 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 						key2, &p2.x, &p2.y ) ) {
 
 				printf(
-				"WARNING: 'CPOINT2' format error; line %d.\n",
+				"WARNING: 'CPOINT2' format error; line %d\n",
 				nlines );
 
 				continue;
@@ -1402,7 +1402,7 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 				*s = 0;
 
 			printf(
-			"WARNING: Unknown entry type; '%s' line %d.\n",
+			"WARNING: Unknown entry type; '%s' line %d\n",
 			LS.line, nlines );
 		}
 	}
@@ -1483,7 +1483,7 @@ static void SetIdentityTForm(
 
 		if( vRgn[k].itr == gNTr / 2 ) {
 
-			printf( "Ref region z=%d, id=%d.\n",
+			printf( "Ref region z=%d, id=%d\n",
 			vRgn[k].z, vRgn[k].id );
 			break;
 		}
@@ -1558,7 +1558,7 @@ static void PrintMagnitude( const vector<double> &X, int nvars )
 
 		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
 
-		printf( "Final magnitude is %f = %.6e.\n", mag, mag );
+		printf( "Final magnitude is %f = %.6e\n", mag, mag );
 	}
 }
 
@@ -1648,7 +1648,7 @@ static void SolveWithMontageSqr(
 
 		printf(
 		"\nNo reference layer specified,"
-		" using lowest layer %d.\n", gArgs.ref_layer );
+		" using lowest layer %d\n", gArgs.ref_layer );
 	}
 
 /* ---------------------------------------- */
@@ -1953,7 +1953,7 @@ static void SolveSystemRigid( vector<double> &X )
 
 			printf(
 			"\nNo reference layer specified,"
-			" using lowest layer %d.\n", gArgs.ref_layer );
+			" using lowest layer %d\n", gArgs.ref_layer );
 		}
 
 		/* ---------------------------------------- */
@@ -2712,7 +2712,7 @@ static void WriteTransforms(
 	fclose( f );
 
 	printf(
-	"Average magnitude=%f, min=%f, max=%f, max/min=%f.\n\n",
+	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
 	smag/gNTr, smin, smax, smax/smin );
 }
 
@@ -2919,7 +2919,7 @@ static double AontoBOverlap( TForm &a, TForm &b )
 			++in;
 	}
 
-	//printf( "----AontoBOverlap fraction %f.\n", double(in)/count );
+	//printf( "----AontoBOverlap fraction %f\n", double(in)/count );
 
 	return double(in)/count;
 }
@@ -3348,7 +3348,7 @@ void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 	double	bigpr	= (ne > NPRNT ? Epnt[ne - NPRNT].amt : 0.0),
 			bigpl	= (ne > NPLOT ? Epnt[ne - NPLOT].amt : 0.0);
 
-	printf( "Maximum layer number is %d.\n\n", zs[zs.size()-1].z );
+	printf( "Maximum layer number is %d\n\n", zs[zs.size()-1].z );
 
 	printf( "Ten largest constraint errors---\n" );
 	printf( "     Error\tLayer\tTile\t Rgn\tLayer\tTile\t Rgn\n" );

@@ -37,7 +37,7 @@ void Template::FillFrWithNormValues(
 	}
 
 	Stats( px, avg, std );
-	printf( "Template: %d, mean %f, std %f.\n", i, avg, std );
+	printf( "Template: %d, mean %f, std %f\n", i, avg, std );
 
 // Fill with normalized values
 
@@ -122,7 +122,7 @@ Point Template::Match(
 					NY = ymax - ymin + 1;
 
 	printf(
-	"Template: Matching x=[%d %d], y=[%d %d] of image %d.\n",
+	"Template: Matching x=[%d %d], y=[%d %d] of image %d\n",
 	xmin, xmax, ymin, ymax, j );
 
 // Get frame values

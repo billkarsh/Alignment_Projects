@@ -112,7 +112,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 		}
 
 		fprintf( flog,
-		"Pipe: Angle span: min, max, delta = %f %f %f.\n",
+		"Pipe: Angle span: min, max, delta = %f %f %f\n",
 		ang_min, ang_max, ang_max - ang_min );
 
 		// now calculate spans
@@ -133,12 +133,12 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 			fprintf( flog,
 			"FAIL: Pipe: Triangles too different:"
-			" angles %f %f %f; LDA %f.\n",
+			" angles %f %f %f; LDA %f\n",
 			ang_min, ang_max, ang_max-ang_min, GBL.mch.LDA );
 
 			fprintf( flog,
 			"FAIL: Pipe: Triangles too different:"
-			" elements %f %f %f %f %f %f; LDR %f LDC %f.\n",
+			" elements %f %f %f %f %f %f; LDR %f LDC %f\n",
 			pspan[0], pspan[1], pspan[2],
 			pspan[3], pspan[4], pspan[5],
 			GBL.mch.LDR, GBL.mch.LDC );
@@ -170,7 +170,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 				fprintf( flog,
 				"Pipe: Transform translation (%f %f)"
-				" not on allowed list, tolerance %f.\n",
+				" not on allowed list, tolerance %f\n",
 				vT[i].t[2], vT[i].t[5], GBL.mch.DXY );
 			}
 

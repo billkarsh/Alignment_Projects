@@ -606,7 +606,7 @@ bool ReadThmPair(
 			}
 
 			fprintf( flog,
-			"ReadThmPair: No entry for %d_%d@%d_%d; cr:%d-%d.\n",
+			"ReadThmPair: No entry for %d_%d@%d_%d; cr:%d-%d\n",
 			alr, atl, blr, btl, acr, bcr );
 		}
 		else

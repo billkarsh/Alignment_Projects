@@ -67,7 +67,7 @@ void ABOverlay(
 			if( mv >= Ntrans ) {
 
 				printf(
-				"ABOverlay: ERROR - tform idx=%d, Ntrans=%d.\n",
+				"ABOverlay: ERROR - tform idx=%d, Ntrans=%d\n",
 				mv, Ntrans );
 
 				return;
@@ -111,7 +111,7 @@ void ABOverlay(
 
 		printf(
 			"ABOverlay: region %d, center (%f %f) in A,"
-			" npixels=%d.\n",
+			" npixels=%d\n",
 			i, ctr[i].x, ctr[i].y, ncpts[i] );
 
 		tfs[i].Transform( ctr[i] );
@@ -376,7 +376,7 @@ static void CorrView(
 		m.Stats( mean, std );
 
 		printf( "CorrView: pt %6d %6d ---> dx, dy= %6.2f, %6.2f,"
-		" d=%6.2f, corr %6.3f, std %6.2f.\n\n",
+		" d=%6.2f, corr %6.3f, std %6.2f\n\n",
 		x, y, dx, dy, d, co, std );
 
 		// where 'qual' is good, write a block into the 'qual' map

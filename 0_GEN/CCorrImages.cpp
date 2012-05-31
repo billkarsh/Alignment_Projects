@@ -26,7 +26,7 @@ CCorrImages* CCorrImages::Read( const char *fname, FILE *flog )
 	TiXmlDocument	doc(fname);
 	bool			loadOK = doc.LoadFile();
 
-	printf( "CorrImage: XML load of corr file gives %d.\n", loadOK );
+	printf( "CorrImage: XML load of corr file gives %d\n", loadOK );
 
 	if( !loadOK ) {
 		printf(
@@ -84,7 +84,7 @@ CCorrImages* CCorrImages::Read( const char *fname, FILE *flog )
 
 			CorrPair	c( id1, id2 );
 
-			//printf( "CorrImage: Inserting pair %d %d.\n", id1, id2 );
+			//printf( "CorrImage: Inserting pair %d %d\n", id1, id2 );
 
 			TiXmlElement*	pa = child->FirstChildElement( "pts" );
 
@@ -181,7 +181,7 @@ int CCorrImages::Find(
 
 	set<CorrPair>::iterator	s1;
 
-	printf( "CorrImage: Looking for pair %d %d.\n",
+	printf( "CorrImage: Looking for pair %d %d\n",
 		i1->second, i2->second );
 
 	if( i1->second < i2->second ) { // already in the right order

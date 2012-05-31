@@ -329,7 +329,7 @@ void CArgs_mos::SetCmdLine( int argc, char* argv[] )
 	printf( "\n" );
 
 	if( warp )
-		printf( "Don't move strength = %g.\n", DontMoveStrength );
+		printf( "Don't move strength = %g\n", DontMoveStrength );
 
 // user region
 
@@ -1267,7 +1267,7 @@ static void PrintMagnitude( const vector<double> &X )
 
 		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
 
-		printf( "Final magnitude is %f = %.6e.\n", mag, mag );
+		printf( "Final magnitude is %f = %.6e\n", mag, mag );
 	}
 }
 
@@ -3346,7 +3346,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     printf("Image size is %d by %d, %d images\n", nx, ny, images.size());
     vector<uint16>imap(nx*ny,0);
     if( relevant_images.size() > 0xFFFF ) {  // since we hold this as 16 bits
-	printf("Too many images (%d) on layer %d.\n", relevant_images.size(), out_layer);
+	printf("Too many images (%d) on layer %d\n", relevant_images.size(), out_layer);
 	exit( 42 );
 	}
     vector<uint8>PatchFrom(nx*ny,0);

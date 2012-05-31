@@ -193,7 +193,7 @@ static bool WholeImage(
 		h = px.hs;
 
 	fprintf( flog,
-	"Subimage: Using whole images, pix=%d.\n", w * h );
+	"Subimage: Using whole images, pix=%d\n", w * h );
 
 // Values
 
@@ -297,7 +297,7 @@ static bool SelectSubimage(
 	np = olp.ow * olp.oh;
 
 	fprintf( flog,
-	"Subimage: Using intersection, w=%d, h=%d, pix=%d.\n",
+	"Subimage: Using intersection, w=%d, h=%d, pix=%d\n",
 	olp.ow, olp.oh, np );
 
 // Corners and a-centroid
@@ -356,7 +356,7 @@ static bool MakeThumbs(
 		thm.reqArea	/= decfactor * decfactor;
 
 		fprintf( flog,
-		"Thumbs: After decimation %d pts, reqArea %d, thmscl %d.\n",
+		"Thumbs: After decimation %d pts, reqArea %d, thmscl %d\n",
 		thm.ap.size(), thm.reqArea, thm.scl );
 	}
 
@@ -365,7 +365,7 @@ static bool MakeThumbs(
 	if( !sd || !isfinite( sd ) ) {
 
 		fprintf( flog,
-		"Thumbs: Image A intersection region has stdev: %f.\n", sd );
+		"Thumbs: Image A intersection region has stdev: %f\n", sd );
 
 		return false;
 	}
@@ -375,7 +375,7 @@ static bool MakeThumbs(
 	if( !sd || !isfinite( sd ) ) {
 
 		fprintf( flog,
-		"Thumbs: Image B intersection region has stdev: %f.\n", sd );
+		"Thumbs: Image B intersection region has stdev: %f\n", sd );
 
 		return false;
 	}
@@ -508,7 +508,7 @@ static double AngleScan(
 	FILE*	flog )
 {
 	fprintf( flog,
-	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f.\n",
+	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f\n",
 	center, hlfwid, step );
 
 	clock_t	t0 = StartTiming();
@@ -558,7 +558,7 @@ static double AngleScan(
 	FILE*	flog )
 {
 	fprintf( flog,
-	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f.\n",
+	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f\n",
 	center, hlfwid, step );
 
 //RFromAngle( best, center, thm, flog );
@@ -808,7 +808,7 @@ static bool Pretweaks(
 	ThmRec	&thm,
 	FILE*	flog )
 {
-	fprintf( flog, "Pretweaks start, best R=%.3f.\n", bestR );
+	fprintf( flog, "Pretweaks start, best R=%.3f\n", bestR );
 
 	clock_t	t0 = StartTiming();
 	bool	anychange = false;
@@ -987,7 +987,7 @@ static double PeakHunt(
 		best = B0;
 
 	fprintf( flog,
-	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
+	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f\n",
 	k, best.R, best.A, best.X, best.Y );
 
 	StopTiming( stdout, "PeakHunt", t0 );
@@ -1060,7 +1060,7 @@ static double PeakHunt(
 		best = B0;
 
 	fprintf( flog,
-	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f.\n",
+	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f\n",
 	k, best.R, best.A, best.X, best.Y );
 
 	StopTiming( stdout, "PeakHunt", t0 );
@@ -1088,7 +1088,7 @@ static bool UsePriorAngles(
 		< GBL.ctx.RTRSH ) {
 
 		fprintf( flog,
-		"FAIL: Approx: Prior angles R=%g below thresh=%g.\n",
+		"FAIL: Approx: Prior angles R=%g below thresh=%g\n",
 		best.R, GBL.ctx.RTRSH );
 
 		gErr = errLowRPrior;
@@ -1113,7 +1113,7 @@ static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
 		< GBL.ctx.RTRSH ) {
 
 		fprintf( flog,
-		"FAIL: Approx: Denovo R=%g below thresh=%g.\n",
+		"FAIL: Approx: Denovo R=%g below thresh=%g\n",
 		best.R, GBL.ctx.RTRSH );
 
 		gErr = errLowRDenov;
@@ -1147,7 +1147,7 @@ static void TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
 	twk[10].NUSetRot( 0.005 );
 	twk[11].NUSetRot( -.005 );
 
-	fprintf( flog, "Tweaks start, best R=%.3f.\n", best.R );
+	fprintf( flog, "Tweaks start, best R=%.3f\n", best.R );
 
 	clock_t	t0 = StartTiming();
 
@@ -1200,7 +1200,7 @@ static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
 	int		ok;
 
 	fprintf( flog,
-	"Approx: LowRes  R=%.3f, X=%.3f, Y=%.3f.\n",
+	"Approx: LowRes  R=%.3f, X=%.3f, Y=%.3f\n",
 	best.R, best.X, best.Y );
 
 	clock_t	t0 = StartTiming();
@@ -1536,7 +1536,7 @@ bool ApproximateMatch_NoCR(
 
 	best.T.MulXY( px.scl );
 
-	fprintf( flog, "Approx: Returning A=%f, R=%f, X=%f, Y=%f.\n",
+	fprintf( flog, "Approx: Returning A=%f, R=%f, X=%f, Y=%f\n",
 	best.A, best.R, best.T.t[2], best.T.t[5] );
 
 	fprintf( flog, "Approx: Best transform " );
@@ -1564,14 +1564,14 @@ bool ApproximateMatch_NoCR(
 
 		double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 
-		fprintf( flog, "Approx: err = %g, max = %d.\n",
+		fprintf( flog, "Approx: err = %g, max = %d\n",
 			err, GBL.mch.DINPUT );
 
 		if( err > GBL.mch.DINPUT ) {
 
 			fprintf( flog,
 			"FAIL: Approx: Too different from Tinput"
-			" err=%g, max=%d.\n",
+			" err=%g, max=%d\n",
 			err, GBL.mch.DINPUT );
 
 			return false;

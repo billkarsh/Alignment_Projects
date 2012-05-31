@@ -95,7 +95,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 
 	mh.Stats( mean, std );
 
-	printf( "\nMean %f, std %f, # different values %d.\n",
+	printf( "\nMean %f, std %f, # different values %d\n",
 		mean, std, ndv );
 
 // Unusual case; print them
@@ -130,7 +130,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 
 	orig.Stats( omean, ostd );
 
-	printf( "Histogram values: mean %f rms %f.\n", omean, ostd );
+	printf( "Histogram values: mean %f rms %f\n", omean, ostd );
 
 // Now try a 1 gaussian fit
 
@@ -150,13 +150,13 @@ static bool IsTooGaussian( const vector<int> &histo )
 	}
 
 	printf( "\n" );
-	printf( "Boxcar average is %f.\n", sum/cnt );
+	printf( "Boxcar average is %f\n", sum/cnt );
 
 	a[0] = 1.5 * sum/cnt;	// estimated peak value
 	a[1] = mean;			// where it is
 	a[2] = std * sqrt( 2 );	// and the divisor term
 
-	printf( "Before fit fit: height %f, loc %f, width %f.\n",
+	printf( "Before fit fit: height %f, loc %f, width %f\n",
 		a[0], a[1], a[2] / sqrt( 2 ) );
 
 	Fitmrq f( x, y, s, a, fgauss );
@@ -168,7 +168,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 		return false;	// it's safe to assume it's not very gaussian
 	}
 
-	printf( "After fit: height %f, loc %f, width %f.\n",
+	printf( "After fit: height %f, loc %f, width %f\n",
 		f.a[0], f.a[1], f.a[2]/sqrt(2) );
 
 // Now look at the residual
@@ -190,7 +190,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 
 	m.Stats( mean, std );
 
-	printf( "Residuals: mean %f, RMS about mean %f.\n", mean, std );
+	printf( "Residuals: mean %f, RMS about mean %f\n", mean, std );
 
 	return std < ostd/8;	// a guess
 }
@@ -525,7 +525,7 @@ for(int i=1; i<argc; i++) {
 
 	if( pe ) {
 		FoldMaskThresholdOverride = atof( pe );
-		printf( "Environment variable over-ride of threshold to %f.\n", FoldMaskThresholdOverride );
+		printf( "Environment variable over-ride of threshold to %f\n", FoldMaskThresholdOverride );
 		printf( "--- This is obsolete ---   Use the -fmto option instead.\n" );
 	}
 

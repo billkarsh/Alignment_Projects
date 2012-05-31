@@ -121,7 +121,7 @@ void InSectionOverlap(
 	int				y2		= h - 1 - y1;
 
 	fprintf( flog,
-	"Olap: w %d, h %d, x1 %d, y1 %d, x2, %d, y2 %d.\n",
+	"Olap: w %d, h %d, x1 %d, y1 %d, x2, %d, y2 %d\n",
 	w, h, x1, y1, x2, y2 );
 
 // Collect normalized points from the frame (border) area
@@ -153,11 +153,11 @@ void InSectionOverlap(
 	ma.HowMany(), ma.HowMany()*100.0 / (w*h) );
 
 	fprintf( flog,
-	"Olap: A frame mean = %f and std dev = %f.\n",
+	"Olap: A frame mean = %f and std dev = %f\n",
 	meana, stda );
 
 	fprintf( flog,
-	"Olap: B frame mean = %f and std dev = %f.\n",
+	"Olap: B frame mean = %f and std dev = %f\n",
 	meanb, stdb );
 
 	for( int ix = 0; ix < w; ++ix ) {
@@ -195,13 +195,13 @@ void InSectionOverlap(
 
 		fprintf( flog,
 		"Olap: Can't find a good starting point"
-		" - maximum c = %f.\n", c );
+		" - maximum c = %f\n", c );
 
 		Npts = 0;
 		return;
 	}
 
-	fprintf( flog, "Olap: dx, dy = %f %f.\n", dx, dy );
+	fprintf( flog, "Olap: dx, dy = %f %f\n", dx, dy );
 
 	int	idx = int(floor(dx+0.5));	// round
 	int	idy = int(floor(dy+0.5));
@@ -305,7 +305,7 @@ void InSectionOverlap(
 	if( c < threshold ) {
 
 		fprintf( flog,
-		"Olap: Correlation not good enough - %f.\n", c );
+		"Olap: Correlation not good enough - %f\n", c );
 
 		Npts = 0;
 		return;

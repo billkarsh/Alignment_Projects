@@ -344,7 +344,7 @@ double CorrPatches(
 // We will always use square FFTs.
 
 	int		N = FFTSizeSQR( w1, h1, w2, h2 );
-	fprintf( of, "NormCorr: N = %d.\n", N );
+	fprintf( of, "NormCorr: N = %d\n", N );
 
 // Number of complex values in FFT of 2D real
 
@@ -524,7 +524,7 @@ double CorrPatches(
 
 			fprintf( of,
 			"NormCorr: Possible bigger area match:"
-			" %8d - %8d : %8.2f.\n", i1, i2, max_by_size[i] );
+			" %8d - %8d : %8.2f\n", i1, i2, max_by_size[i] );
 		}
 	}
 

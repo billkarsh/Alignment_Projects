@@ -512,7 +512,7 @@ bool PixPair::Load(
 			scl		*= 2;
 		} while( ws > 2048 || hs > 2048 );
 
-		fprintf( flog, "PixPair: Scaling by %d.\n", scl );
+		fprintf( flog, "PixPair: Scaling by %d\n", scl );
 
 		if( ws * scl != wf || hs * scl != hf ) {
 

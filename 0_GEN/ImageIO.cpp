@@ -106,7 +106,7 @@ static void Raster8FromTifFloat(
 	sls = TIFFScanlineSize( tif );
 	raw = malloc( sls );
 
-	fprintf( flog, "TIF(f): Image length is %d.\n", h );
+	fprintf( flog, "TIF(f): Image length is %d\n", h );
 	fprintf( flog, "TIF(f): Scan line size is %d bytes.\n", sls );
 
 	for( row = 0; row < h; ++row ) {
@@ -148,7 +148,7 @@ static void Raster8FromTifFloat(
 		sprintf( name, "%d.tif", num );
 
 		fprintf( flog,
-		"TIF(f): ----> writing as %d.tif, w=%d h=%d.\n",
+		"TIF(f): ----> writing as %d.tif, w=%d h=%d\n",
 		num, w, h );
 
 		Raster8ToTif8( name, raster, w, h, flog );
@@ -208,7 +208,7 @@ static void Raster8FromTif16Bit(
 
 	fprintf( flog,
 	"TIF(16): Converting intensity using a standard"
-	" deviation of %f.\n", std );
+	" deviation of %f\n", std );
 
 	for( j = 0; j < npixels; ++j ) {
 
@@ -230,7 +230,7 @@ static void Raster8FromTif16Bit(
 		sprintf( name, "%d.tif", num );
 
 		fprintf( flog,
-		"TIF(16):  ----> writing as %d.tif, w=%d h=%d.\n",
+		"TIF(16):  ----> writing as %d.tif, w=%d h=%d\n",
 		num, w, h );
 
 		Raster8ToTif8( name, raster, w, h, flog );
@@ -357,7 +357,7 @@ uint8* Raster8FromTif(
 	npixels = w * h;
 
 	fprintf( flog,
-	"Raster8FromTif: Bits per sample %d, samples per pixel %d.\n",
+	"Raster8FromTif: Bits per sample %d, samples per pixel %d\n",
 	bps, spp );
 
 	fprintf( flog,
@@ -426,7 +426,7 @@ uint16* Raster16FromTif16(
 	npixels = w * h;
 
 	fprintf( flog,
-	"Raster16FromTif16: Bits per sample %d, samples per pixel %d.\n",
+	"Raster16FromTif16: Bits per sample %d, samples per pixel %d\n",
 	bps, spp );
 
 	fprintf( flog,

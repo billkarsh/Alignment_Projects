@@ -1870,7 +1870,7 @@ void ImageToFoldMap( Picture &pic, uint8* foldMask )
 		thresh = mean / std * 0.95;
 
 		printf(
-		"Foldmap: Forced to reduce threshold to %f.\n", thresh );
+		"Foldmap: Forced to reduce threshold to %f\n", thresh );
 	}
 
 	const char *p = getenv( "FoldMaskThreshold" );
@@ -1881,7 +1881,7 @@ void ImageToFoldMap( Picture &pic, uint8* foldMask )
 
 		printf(
 		"Foldmap: Environment variable over-ride of"
-		" threshold to %f.\n", thresh );
+		" threshold to %f\n", thresh );
 	}
 
 // Now find the connected regions

@@ -127,7 +127,7 @@ for(int i=0; i<images.size(); i++) {
 		Point pt(x,y);
 		tforms[t].tr.Transform( pt );
                 if( x == 8557 && y == 431 ) {  // just for debugging
-                    printf("X and Y in original image: %d %d.  Pixel value is %d.\n", x, y, t);
+                    printf("X and Y in original image: %d %d.  Pixel value is %d\n", x, y, t);
                     printf("Image id is %d. Transformation is", tforms[t].image_id);
 		    tforms[t].tr.PrintTransform();
                     printf("Point in image: x=%f y=%f\n", pt.x, pt.y);
@@ -139,7 +139,7 @@ for(int i=0; i<images.size(); i++) {
                     recon_raster[ix + w*iy] = raster[x + wm*y];
 		    }
 		else {
-                    printf("X and Y in original image: %d %d.  Pixel value is %d.\n", x, y, t);
+                    printf("X and Y in original image: %d %d.  Pixel value is %d\n", x, y, t);
                     printf("Image id is %d. Transformation is", tforms[t].image_id);
 		    tforms[t].tr.PrintTransform();
                     printf("Point out of image: x=%f y=%f\n", pt.x, pt.y);

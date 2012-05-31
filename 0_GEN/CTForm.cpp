@@ -195,7 +195,7 @@ void TForm::WriteTransform( FILE *f, const char *s ) const
 {
 	fprintf( f,
 	"%s %9.4f %9.4f %10.2f\n"
-	"%s %9.4f %9.4f %10.2f.\n",
+	"%s %9.4f %9.4f %10.2f\n",
 	s, t[0], t[1], t[2],
 	s, t[3], t[4], t[5] );
 }
@@ -209,7 +209,7 @@ void TForm::PrintTransform( FILE *f ) const
 	if( !f )
 		f = stdout;
 
-	fprintf( f, "%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f.\n",
+	fprintf( f, "%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
 		t[0], t[1], t[2], t[3], t[4], t[5] );
 }
 

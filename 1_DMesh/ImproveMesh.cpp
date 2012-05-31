@@ -199,7 +199,7 @@ static void ReportDeltaXY(
 		double	d = cpts[i].Dist( bfor[i] );
 
 		fprintf( flog,
-		"id=%6d: dx=%8.2f dy=%8.2f d=%8.2f.\n",
+		"id=%6d: dx=%8.2f dy=%8.2f d=%8.2f\n",
 		i, cpts[i].x - bfor[i].x, cpts[i].y - bfor[i].y, d );
 	}
 }
@@ -357,7 +357,7 @@ static void TransformsAndCenters(
 			 fabs( t.t[4] - Tguess.t[4] ) > 0.1) ) {
 
 			fprintf( flog,
-			"Large deviation in t[0], t[4]: vertices %d %d %d.\n",
+			"Large deviation in t[0], t[4]: vertices %d %d %d\n",
 			i0, i1, i2 );
 
 			fprintf( flog,
@@ -497,7 +497,7 @@ double ImproveMesh(
 	if( corr < threshold ) {
 
 		fprintf( flog,
-		"FAIL: ImproveMesh: corr=%f, below final thresh=%f.\n",
+		"FAIL: ImproveMesh: corr=%f, below final thresh=%f\n",
 		corr, threshold );
 
 		return corr;
