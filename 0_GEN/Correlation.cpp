@@ -2330,7 +2330,7 @@ bool CCorImg::FPeak(
 
 	for( int i = 0; i < nO; ++i ) {
 
-		int		ri	= 0,
+		int		ri	= BIG,
 				k	= forder[i],
 				ro, rm;
 
@@ -2351,10 +2351,19 @@ bool CCorImg::FPeak(
 		/* Scan for inner radius ri (pk ht down by 2x) */
 		/* ------------------------------------------- */
 
+		// We select the minimum ri from each of four major
+		// scan directions. Originally we used the average
+		// over the four directions and this had a problem
+		// when the peak (even though compact) rides atop an
+		// extended ridge (from a fold) or extended patch
+		// (due to resin). In such cases the rate of falloff
+		// could be very slow along the ridge, biasing the
+		// peak size estimate.
+
 up:
 		for( int y = ry - 1; y >= 0; --y ) {
 			if( F[rx + wR*y] <= 0.5*fpk ) {
-				ri += ry - y;
+				ri = min( ri, ry - y );
 				goto down;
 			}
 		}
@@ -2364,7 +2373,7 @@ up:
 down:
 		for( int y = ry + 1; y < hR; ++y ) {
 			if( F[rx + wR*y] <= 0.5*fpk ) {
-				ri += y - ry;
+				ri = min( ri, y - ry );
 				goto left;
 			}
 		}
@@ -2374,7 +2383,7 @@ down:
 left:
 		for( int x = rx - 1; x >= 0; --x ) {
 			if( F[x + wR*ry] <= 0.5*fpk ) {
-				ri += rx - x;
+				ri = min( ri, rx - x );
 				goto right;
 			}
 		}
@@ -2384,7 +2393,7 @@ left:
 right:
 		for( int x = rx + 1; x < wR; ++x ) {
 			if( F[x + wR*ry] <= 0.5*fpk ) {
-				ri += x - rx;
+				ri = min( ri, x - rx );
 				goto set_ri;
 			}
 		}
@@ -2399,8 +2408,6 @@ ri_close:
 		continue;
 
 set_ri:
-		ri /= 4;
-
 		// noise
 		if( ri <= 1 && R[k] < 0.1 ) {
 
