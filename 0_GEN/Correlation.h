@@ -167,6 +167,9 @@ double CorrImages(
 	void*					arglc,
 	double					mincor,
 	double					nbmaxht,
+	int						Ox,
+	int						Oy,
+	int						Or,
 	vector<CD>				&fft2 );
 
 

@@ -1897,6 +1897,8 @@ public:
 		const vector<Point>		&ip1,
 		const vector<Point>		&ip2 );
 
+	void MaskA( vector<uint8> &A, int Ox, int Oy, int Or );
+
 	void MakeRandA(
 		vector<double>			&R,
 		vector<uint8>			&A,
@@ -1908,6 +1910,9 @@ public:
 		void*					arglr,
 		EvalType				LegalCnt,
 		void*					arglc,
+		int						Ox,
+		int						Oy,
+		int						Or,
 		vector<CD>				&fft2 );
 
 	void MakeF(
@@ -2005,6 +2010,49 @@ bool CCorImg::SetDims(
 }
 
 /* --------------------------------------------------------------- */
+/* CCorImg::MaskA ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void CCorImg::MaskA( vector<uint8> &A, int Ox, int Oy, int Or )
+{
+	if( Or <= 0 )
+		return;
+
+	Ox += cx;
+	Oy += cy;
+
+	int	xmin = Ox - Or,
+		xmax = Ox + Or,
+		ymin = Oy - Or,
+		ymax = Oy + Or;
+
+	Or *= Or;
+
+	for( int i = 0; i < nR; ++i ) {
+
+		int	y = i / wR;
+
+		if( y < ymin || y > ymax ) {
+			A[i] = 0;
+			continue;
+		}
+
+		int	x = i - wR * y;
+
+		if( x < xmin || x > xmax ) {
+			A[i] = 0;
+			continue;
+		}
+
+		x -= Ox;
+		y -= Oy;
+
+		if( x*x + y*y > Or )
+			A[i] = 0;
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* CCorImg::MakeRandA -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -2019,6 +2067,9 @@ void CCorImg::MakeRandA(
 	void*					arglr,
 	EvalType				LegalCnt,
 	void*					arglc,
+	int						Ox,
+	int						Oy,
+	int						Or,
 	vector<CD>				&fft2 )
 {
 // Get array sizes (Nx,Ny) and FFT size M
@@ -2090,6 +2141,8 @@ void CCorImg::MakeRandA(
 				vmax = R[ir];
 		}
 	}
+
+	MaskA( A, Ox, Oy, Or );
 
 	if( dbgCor )
 		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
@@ -2781,10 +2834,13 @@ double CCorImg::ReturnR(
 // nbmaxht: A candidate F-peak is rejected if its guard band
 // contains another pixel with F > nbmaxht*peak.
 //
+// {Ox,Oy,Or}: If Or > 0, search narrowed to disc with origin
+// (Ox,Oy) and radius Or.
+//
 // fft2: Cache of image2 FFT. On entry, if fft2 has the
 // correct size it is used. Otherwise recomputed here.
 //
-#if 1
+#if 0
 // Version using F and well isolated F peak.
 double CorrImages(
 	FILE					*flog,
@@ -2801,6 +2857,9 @@ double CorrImages(
 	void*					arglc,
 	double					mincor,
 	double					nbmaxht,
+	int						Ox,
+	int						Oy,
+	int						Or,
 	vector<CD>				&fft2 )
 {
 	CCorImg			cc;
@@ -2823,7 +2882,8 @@ double CorrImages(
 	}
 
 	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
-		LegalRgn, arglr, LegalCnt, arglc, fft2 );
+		LegalRgn, arglr, LegalCnt, arglc,
+		Ox, Oy, Or, fft2 );
 
 	cc.MakeF( F, A, R );
 
@@ -2841,7 +2901,7 @@ double CorrImages(
 }
 #endif
 
-#if 0
+#if 1
 // Version using straight max R.
 double CorrImages(
 	FILE					*flog,
@@ -2858,6 +2918,9 @@ double CorrImages(
 	void*					arglc,
 	double					mincor,
 	double					nbmaxht,
+	int						Ox,
+	int						Oy,
+	int						Or,
 	vector<CD>				&fft2 )
 {
 	CCorImg			cc;
@@ -2879,7 +2942,8 @@ double CorrImages(
 	}
 
 	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
-		LegalRgn, arglr, LegalCnt, arglc, fft2 );
+		LegalRgn, arglr, LegalCnt, arglc,
+		Ox, Oy, Or, fft2 );
 
 	// actually orders R, here
 	cc.OrderF( order, R, A, R, mincor );
