@@ -155,18 +155,10 @@ static void CopyMatchingTF( TiXmlElement* layer, int z )
 
 		map<MZID,TForm>::iterator	it = M.find( key );
 
-		if( it == M.end() ) {
+		if( it != M.end() )
+			XMLSetTFVals( p, it->second.t );
+		else
 			layer->RemoveChild( p );
-			continue;
-		}
-
-		const double	*t = it->second.t;
-		char			buf[256];
-
-		sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
-		t[0], t[3], t[1], t[4], t[2], t[5] );
-
-		p->SetAttribute( "transform", buf );
 	}
 }
 

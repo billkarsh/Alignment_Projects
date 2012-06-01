@@ -190,16 +190,11 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 
 	for( ; p; p = p->NextSiblingElement() ) {
 
-		char	buf[256];
 		TForm	T0, T;
 
 		T0.ScanTrackEM2( p->Attribute( "transform" ) );
 		MultiplyTrans( T, T0, TR );
-
-		sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
-		T.t[0], T.t[3], T.t[1], T.t[4], T.t[2], T.t[5] );
-
-		p->SetAttribute( "transform", buf );
+		XMLSetTFVals( p, T.t );
 	}
 }
 

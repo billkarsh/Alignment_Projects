@@ -173,17 +173,11 @@ static void UpdateTiles( TiXmlElement* layer, const TForm& T )
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		char	buf[256];
 		TForm	told, tnew;
 
 		told.ScanTrackEM2( ptch->Attribute( "transform" ) );
 		MultiplyTrans( tnew, T, told );
-
-		sprintf( buf, "matrix(%f,%f,%f,%f,%f,%f)",
-		tnew.t[0], tnew.t[3], tnew.t[1],
-		tnew.t[4], tnew.t[2], tnew.t[5] );
-
-		ptch->SetAttribute( "transform", buf );
+		XMLSetTFVals( ptch, tnew.t );
 	}
 }
 

@@ -32,6 +32,8 @@ public:
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+void XMLSetTFVals( TiXmlElement* ptch, const double *t );
+
 int  NextOID( const TiXmlHandle hDoc );
 
 int  SetOID( TiXmlNode* par, int nextoid );
