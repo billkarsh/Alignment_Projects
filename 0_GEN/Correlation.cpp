@@ -2840,8 +2840,8 @@ double CCorImg::ReturnR(
 // fft2: Cache of image2 FFT. On entry, if fft2 has the
 // correct size it is used. Otherwise recomputed here.
 //
-#if 0
 // Version using F and well isolated F peak.
+//
 double CorrImages(
 	FILE					*flog,
 	int						verbose,
@@ -2899,11 +2899,28 @@ double CorrImages(
 
 	return cc.ReturnR( dx, dy, rx, ry, R );
 }
-#endif
 
-#if 1
+/* --------------------------------------------------------------- */
+/* CorrImagesR --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
+//
+// mincor: If non-zero, used to prescreen R values during the
+// peak-hunting phase.
+//
+// nbmaxht: Dummy slot for compatibility with F-version.
+//
+// {Ox,Oy,Or}: If Or > 0, search narrowed to disc with origin
+// (Ox,Oy) and radius Or.
+//
+// fft2: Cache of image2 FFT. On entry, if fft2 has the
+// correct size it is used. Otherwise recomputed here.
+//
 // Version using straight max R.
-double CorrImages(
+//
+double CorrImagesR(
 	FILE					*flog,
 	int						verbose,
 	double					&dx,
@@ -2952,6 +2969,5 @@ double CorrImages(
 
 	return cc.ReturnR( dx, dy, rx, ry, R );
 }
-#endif
 
 

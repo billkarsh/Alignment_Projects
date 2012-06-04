@@ -300,7 +300,7 @@ static bool SelectSubimage(
 	"Subimage: Using intersection, w=%d, h=%d, pix=%d\n",
 	olp.ow, olp.oh, np );
 
-// Corners and a-centroid
+// Corners
 
 	olp.aO	= Point( ax, ay );
 	olp.bO	= Point( bx, by );
