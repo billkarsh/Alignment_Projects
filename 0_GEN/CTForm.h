@@ -34,8 +34,7 @@ public:
 
 public:
 	TForm()
-		{t[0]=1.0; t[1]=0.0; t[2]=0.0;
-		 t[3]=0.0; t[4]=1.0; t[5]=0.0;};
+		{NUSetOne();};
 
 	TForm( const TForm &rhs )
 		{CopyIn( rhs );};
@@ -75,6 +74,9 @@ public:
 
 	double det() const
 		{return t[0]*t[4] - t[1]*t[3];};
+
+	void NUSetOne()
+		{NUSetScl( 1.0 );};
 
 	void NUSetScl( double a );
 	void NUSetXScl( double a );
