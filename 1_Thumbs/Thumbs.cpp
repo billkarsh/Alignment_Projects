@@ -3,23 +3,16 @@
 #include	"CGBL_Thumbs.h"
 #include	"Thumbs.h"
 
+#include	"CThmScan.h"
 #include	"Disk.h"
 #include	"Maths.h"
-#include	"Correlation.h"
 #include	"Geometry.h"
-#include	"Timer.h"
 #include	"Debug.h"
 
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-enum thmerrs {
-	errOK			= 0,
-	errLowRDenov	= 1,
-	errLowRPrior	= 2
-};
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -40,20 +33,6 @@ typedef struct {
 	SubI			a, b;
 } OlapRec;
 
-typedef struct {
-	vector<double>	av, bv;
-	vector<Point>	ap, bp;
-	vector<CD>		ftc;			// fourier transform cache
-	long			reqArea;
-	int				scl;
-} ThmRec;
-
-typedef struct {
-	TForm			T;
-	double			X, Y,
-					A, R;
-} CorRec;
-
 /* --------------------------------------------------------------- */
 /* Globals ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -62,9 +41,7 @@ typedef struct {
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static int		gErr	= errOK;
 static double	ang0	= 0.0;
-static TForm	Tptwk;
 
 
 
@@ -391,789 +368,6 @@ static bool MakeThumbs(
 }
 
 /* --------------------------------------------------------------- */
-/* RotatePoints -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void RotatePoints(
-	vector<Point>	&pts,
-	TForm			&T,
-	const TForm		&Tskew,
-	double			theta )
-{
-	double	c	= cos( theta ) * GBL.ctx.SCALE,
-			s	= sin( theta ) * GBL.ctx.SCALE;
-	TForm	Ta( GBL.ctx.XSCALE * c, -GBL.ctx.YSCALE * s, 0.0,
-				GBL.ctx.XSCALE * s,  GBL.ctx.YSCALE * c, 0.0 );
-	TForm	T0;
-
-	MultiplyTrans( T0, Tskew, Tptwk );
-	MultiplyTrans( T, Ta, T0 );
-	T.Apply_R_Part( pts );
-}
-
-/* --------------------------------------------------------------- */
-/* BigEnough ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static bool BigEnough( int sx, int sy, void *a )
-{
-	return	sx >= GBL.ctx.OLAP1D &&
-			sy >= GBL.ctx.OLAP1D &&
-			(long)sx * sy > (long)a;
-}
-
-/* --------------------------------------------------------------- */
-/* EnoughPoints -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static bool EnoughPoints( int count1, int count2, void *a )
-{
-	return count1 > (long)a && count2 > (long)a;
-}
-
-/* --------------------------------------------------------------- */
-/* RFromAngle ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void RFromAngle(
-	CorRec	&C,
-	double	a,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	TForm			Tskew( 1.0, 0.0, 0.0, GBL.ctx.SKEW, 1.0, 0.0 );
-	vector<Point>	ps = thm.ap;
-
-	C.A = a;
-
-	RotatePoints( ps, C.T, Tskew, a * PI/180.0 );
-
-	C.R = CorrImages(
-		flog, false, C.X, C.Y,
-		ps, thm.av, thm.bp, thm.bv,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea,
-		0.0, GBL.ctx.NBMXHT, 0, 0, -1, thm.ftc );
-}
-
-/* --------------------------------------------------------------- */
-/* DebugAngs ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void DebugAngs(
-	double	center,
-	double	hlfwid,
-	double	step,
-	ThmRec	&thm )
-{
-	char	file[256];
-
-	sprintf( file, "angs_%d_%d_@_%d_%d.log",
-		GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile );
-	FILE	*f = fopen( file, "w" );
-
-	fprintf( f, "Deg\tR\tX\tY\n" );
-
-	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
-
-		CorRec	C;
-
-		RFromAngle( C, a, thm, stdout );
-
-		fprintf( f, "%.3f\t%.4f\t%.3f\t%.3f\n",
-			a, C.R, C.X, C.Y );
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
-/* AngleScan ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void RecordAngle(
-	FILE			*f,
-	const char		*label,
-	const CorRec	&C )
-{
-	fprintf( f,
-	"%s: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
-	label, C.R, C.A, C.X, C.Y );
-}
-
-
-#if 0
-
-// Original version selecting best angle based on maximal R.
-
-static double AngleScan(
-	CorRec	&best,
-	double	center,
-	double	hlfwid,
-	double	step,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	fprintf( flog,
-	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f\n",
-	center, hlfwid, step );
-
-	clock_t	t0 = StartTiming();
-
-	RFromAngle( best, center, thm, flog );
-	RecordAngle( flog, "Center", best );
-
-	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
-
-		CorRec	C;
-
-		RFromAngle( C, a, thm, flog );
-		RecordAngle( flog, "  Scan", C );
-
-		if( C.R > best.R )
-			best = C;
-	}
-
-	RecordAngle( flog, "  Best", best );
-
-	StopTiming( stdout, "AngleScan", t0 );
-
-	return best.R;
-}
-
-#else
-
-// New version selecting best angle based on maximal R, but only if
-// coordinates XY vary smoothly in a neighborhood about that angle.
-// Smoothness measured as linear corr. coeff. from fitting X vs A.
-
-static const vector<CorRec>	*_vC;
-
-
-static bool Sort_vC_dec( int a, int b )
-{
-	return (*_vC)[a].R > (*_vC)[b].R;
-}
-
-
-static double AngleScan(
-	CorRec	&best,
-	double	center,
-	double	hlfwid,
-	double	step,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	fprintf( flog,
-	"AngleScan: center=%.3f, hlfwid=%.3f, step=%.3f\n",
-	center, hlfwid, step );
-
-//RFromAngle( best, center, thm, flog );
-//return;
-
-	clock_t	t0 = StartTiming();
-
-	best.X	= 0.0;
-	best.Y	= 0.0;
-	best.A	= 0.0;
-	best.R	= 0.0;
-
-// Sweep and collect
-
-	vector<CorRec>	vC;
-
-	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
-
-		CorRec	C;
-
-		RFromAngle( C, a, thm, flog );
-		RecordAngle( flog, "Scan", C );
-		vC.push_back( C );
-	}
-
-// Make indices sorted by decreasing R
-
-	int	nC = vC.size();
-
-	vector<int>	order( nC );
-
-	for( int i = 0; i < nC; ++i )
-		order[i] = i;
-
-	_vC = &vC;
-
-	sort( order.begin(), order.end(), Sort_vC_dec );
-
-// Evaluate sweep
-// Search through decreasing R.
-// Take first result for which there are also +- m data points, and
-// the X and Y coords vary smoothly over that range (r > rthresh).
-// Also note that coords are rounded to nearest pixel, and that
-// lincor values that are NAN or INF are generally ok: they arise
-// from a zero variance in the coords, meaning that the point is
-// stationary, and that's a good thing because it's not noise.
-
-	const double	rthresh = 0.7;
-	const			int m = 3;
-	const			int M = 2*m + 1;
-
-	for( int i = 0; i < nC; ++i ) {
-
-		int	ic = order[i];
-
-		if( ic < m )
-			continue;
-
-		if( nC-1 - ic < m )
-			continue;
-
-		vector<double>	A( M ), X( M ), Y( M );
-		double			lincor;
-		int				n = 0;
-
-		for( int j = ic - m; j <= ic + m; ++j ) {
-
-			A[n] = vC[j].A;
-			X[n] = ROUND( vC[j].X );
-			Y[n] = ROUND( vC[j].Y );
-			++n;
-		}
-
-		LineFit( NULL, NULL, &lincor, &A[0], &X[0], 0, n );
-		fprintf( flog, "LCOR: A=%8.3f, RX=%6.3f\n", A[m], lincor );
-
-		if( isfinite( lincor ) && fabs( lincor ) < rthresh )
-			continue;
-
-		LineFit( NULL, NULL, &lincor, &A[0], &Y[0], 0, n );
-		fprintf( flog, "LCOR: A=%8.3f, RY=%6.3f\n", A[m], lincor );
-
-		if( isfinite( lincor ) && fabs( lincor ) < rthresh )
-			continue;
-
-		best = vC[ic];
-		break;
-	}
-
-// Report
-
-	RecordAngle( flog, "Best", best );
-
-	StopTiming( stdout, "AngleScan", t0 );
-
-	return best.R;
-}
-
-#endif
-
-/* --------------------------------------------------------------- */
-/* PTWApply1 ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Create product of Ttry with Tptwk and return new corr.
-// Make change to Tptwk permanent if keep = true.
-//
-static double PTWApply1(
-	const TForm	&Ttry,
-	double		center,
-	ThmRec		&thm,
-	FILE*		flog,
-	bool		keep )
-{
-	CorRec	C;
-	TForm	Tback = Tptwk;
-
-	MultiplyTrans( Tptwk, Ttry, Tback );
-	RFromAngle( C, center, thm, flog );
-
-	if( !keep )
-		Tptwk = Tback;
-
-	return C.R;
-}
-
-/* --------------------------------------------------------------- */
-/* PTWSweep ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-// For near unity transform chosen by sel, perform a magnitude
-// sweep about unity in +/- nsteps of size astep. Return the
-// best NU-magnitude and its corresponding R.
-//
-static double PTWSweep(
-	double	&rbest,
-	int		sel,
-	int		nstep,
-	double	astep,
-	double	center,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	double	abase = 0.0;
-	int		ibest;
-
-	rbest = -1.0;
-
-	fprintf( flog, "PTWSweep %2d:", sel );
-
-	if( sel >= tfnuScl && sel <= tfnuYScl )
-		abase = 1.0;
-
-	for( int i = -nstep; i <= nstep; ++i ) {
-
-		double	R;
-		TForm	T;
-
-		T.NUSelect( sel, abase + i * astep );
-		R = PTWApply1( T, center, thm, flog, false );
-		fprintf( flog, " %5.3f", R );
-
-		if( R > rbest ) {
-			rbest = R;
-			ibest = i;
-		}
-	}
-
-	fprintf( flog, "\n" );
-
-	return abase + ibest * astep;
-}
-
-/* --------------------------------------------------------------- */
-/* NewXFromParabola ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static double NewXFromParabola(
-	double	x1,
-	double	d,
-	double	y0,
-	double	y1,
-	double	y2 )
-{
-	double D = d * (y0 - y2) / (2 * (y0 + y2 - y1 - y1));
-
-	if( fabs( D ) <= 2 * d )
-		x1 += D;
-
-	return x1;
-}
-
-/* --------------------------------------------------------------- */
-/* PTWInterp ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Use NewXFromParabola to interpolate a better NU-magnitude
-// where the center guess is (x1,y1) from the sweep and the
-// side points are +/1 d from that.
-//
-static double PTWInterp(
-	double	&ynew,
-	int		sel,
-	double	x1,
-	double	y1,
-	double	d,
-	double	center,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	double	y0, y2, xnew;
-	TForm	T;
-
-	T.NUSelect( sel, x1 - d );
-	y0 = PTWApply1( T, center, thm, flog, false );
-
-	T.NUSelect( sel, x1 + d );
-	y2 = PTWApply1( T, center, thm, flog, false );
-
-	xnew = NewXFromParabola( x1, d, y0, y1, y2 );
-
-	T.NUSelect( sel, xnew );
-	ynew = PTWApply1( T, center, thm, flog, false );
-
-	if( ynew < y1 ) {
-		xnew = x1;
-		ynew = y1;
-	}
-
-	fprintf( flog, "PTWIntrp %2d: %5.3f @ %.3f\n", sel, ynew, xnew );
-
-	return xnew;
-}
-
-/* --------------------------------------------------------------- */
-/* Pretweaks ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Several near-unity transforms are applied to A to boost initial
-// correlation at the given center angle.
-//
-// Return true if any changes made.
-//
-static bool Pretweaks(
-	double	bestR,
-	double	center,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	fprintf( flog, "Pretweaks start, best R=%.3f\n", bestR );
-
-	clock_t	t0 = StartTiming();
-	bool	anychange = false;
-
-// We will compose a Tptwk by multiplying NU transforms. We examine
-// 5 transform types vsel = {Scl, XScl, YScl, XSkw, YSkw}. Each type
-// will enter the product at most once, which is tracked with vused.
-
-	vector<int>	vsel( 5 );
-	vector<int>	vused( 5, 0 );
-
-	for( int i = tfnuScl; i <= tfnuYSkw; ++i )
-		vsel[i] = i;
-
-// To decide which transform type to use, we will do a magnitude
-// sweep with each and see which type got the highest peak R. We
-// then use interpolation to improve the winner. If using that
-// type gives a better R than before, it goes into the product.
-// Repeat with other unused types.
-
-	for( int itype = 0; itype < 5; ++itype ) {
-
-		// Do the sweeps
-
-		vector<double>	vrbest( 5, 0.0 );
-		vector<double>	vabest( 5 );
-
-		for( int i = 0; i < 5; ++i ) {
-
-			if( vused[i] )
-				continue;
-
-			vabest[i] = PTWSweep( vrbest[i], vsel[i],
-							5, .02, center, thm, flog );
-		}
-
-		// Find the best sweep
-
-		double	rbest	= -1;
-		int		selbest = -1;
-
-		for( int i = 0; i < 5; ++i ) {
-
-			if( vused[i] )
-				continue;
-
-			if( vrbest[i] > rbest ) {
-				rbest	= vrbest[i];
-				selbest	= i;
-			}
-		}
-
-		if( selbest == -1 )
-			break;
-
-		// Improve candidate with interpolator
-
-		double	a = PTWInterp( rbest, vsel[selbest],
-						vabest[selbest], vrbest[selbest],
-						.02, center, thm, flog );
-
-		// Is it better than before?
-
-		if( rbest > bestR ) {
-
-			TForm	T;
-
-			fprintf( flog, "PTWUsing %2d\n", vsel[selbest] );
-			T.NUSelect( vsel[selbest], a );
-			MultiplyTrans( Tptwk, T, TForm( Tptwk ) );
-			vused[selbest]	= 1;
-			bestR			= rbest;
-			anychange		= true;
-		}
-		else
-			break;
-	}
-
-	StopTiming( stdout, "Pretweaks", t0 );
-
-	fprintf( flog, "Approx: Pretweak " );
-	Tptwk.PrintTransform( flog );
-
-	return anychange;
-}
-
-/* --------------------------------------------------------------- */
-/* AngleScanWithTweaks ------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static double AngleScanWithTweaks(
-	CorRec	&best,
-	double	center,
-	double	hlfwid,
-	double	step,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	if( AngleScan( best, center, hlfwid, step, thm, flog )
-		< GBL.ctx.RTRSH ) {
-
-		if( GBL.mch.PRETWEAK ) {
-
-			if( Pretweaks( best.R,
-				(best.R > 0.0 ? best.A : center), thm, flog ) ) {
-
-				AngleScan( best, center, hlfwid, step, thm, flog );
-			}
-		}
-	}
-
-	return best.R;
-}
-
-/* --------------------------------------------------------------- */
-/* PeakHunt ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-// Bracket search for peak.
-//
-static double PeakHunt(
-	CorRec	&best,
-	double	hlfwid,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	CorRec	C,
-			B0	= best;
-	double	L	= best.A - hlfwid,
-			R	= best.A + hlfwid,
-			M, lr, rr;
-	int		k	= 1;
-
-	clock_t	t0 = StartTiming();
-
-	RFromAngle( C, L, thm, flog );
-	lr = C.R;
-
-	RFromAngle( C, R, thm, flog );
-	rr = C.R;
-
-	RFromAngle( best, M = (L+R)/2.0, thm, flog );
-
-	while( R - L > 0.0001 ) {
-
-		double	a;
-
-		++k;
-
-		// move left up
-		RFromAngle( C, a = (L+M)/2.0, thm, flog );
-
-		if( C.R >= best.R ) {
-			rr		= best.R;
-			R		= M;
-			best	= C;
-			M		= a;
-		}
-		else {
-			lr		= C.R;
-			L		= a;
-		}
-
-		// move right back
-		RFromAngle( C, a = (M+R)/2.0, thm, flog );
-
-		if( C.R >= best.R ) {
-			rr		= best.R;
-			L		= M;
-			best	= C;
-			M		= a;
-		}
-		else {
-			rr		= C.R;
-			R		= a;
-		}
-	}
-
-	if( B0.R > best.R )
-		best = B0;
-
-	fprintf( flog,
-	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f\n",
-	k, best.R, best.A, best.X, best.Y );
-
-	StopTiming( stdout, "PeakHunt", t0 );
-
-	return best.R;
-}
-
-/* --------------------------------------------------------------- */
-/* UsePriorAngles ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static bool UsePriorAngles(
-	CorRec	&best,
-	int		nprior,
-	ThmRec	&thm,
-	FILE*	flog )
-{
-	fprintf( flog, "Approx: Using prior angles n=%d, med=%f\n",
-	nprior, ang0 );
-
-	if( AngleScanWithTweaks(
-			best, ang0, GBL.ctx.HFANGPR, 0.1, thm, flog )
-		< GBL.ctx.RTRSH ||
-		PeakHunt( best, 0.3, thm, flog )
-		< GBL.ctx.RTRSH ) {
-
-		fprintf( flog,
-		"FAIL: Approx: Prior angles R=%g below thresh=%g\n",
-		best.R, GBL.ctx.RTRSH );
-
-		gErr = errLowRPrior;
-		return false;
-	}
-
-	return true;
-}
-
-/* --------------------------------------------------------------- */
-/* DenovoBestAngle ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static bool DenovoBestAngle( CorRec &best, ThmRec &thm, FILE* flog )
-{
-	if( AngleScanWithTweaks(
-			best, ang0, GBL.ctx.HFANGDN, 0.5, thm, flog )
-		< GBL.ctx.RTRSH ||
-		AngleScan( best, best.A, 1.0, 0.1, thm, flog )
-		< GBL.ctx.RTRSH ||
-		PeakHunt( best, 0.3, thm, flog )
-		< GBL.ctx.RTRSH ) {
-
-		fprintf( flog,
-		"FAIL: Approx: Denovo R=%g below thresh=%g\n",
-		best.R, GBL.ctx.RTRSH );
-
-		gErr = errLowRDenov;
-		return false;
-	}
-
-	return true;
-}
-
-/* --------------------------------------------------------------- */
-/* TryTweaks ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// The best transform is repeatedly multiplied with each of several
-// near-unity tweak transforms to see if we get a better result.
-//
-static void TryTweaks( CorRec &best, ThmRec &thm, FILE* flog )
-{
-	vector<TForm>	twk( 12 );
-
-	twk[0].NUSetScl( 1.005 );
-	twk[1].NUSetScl( 0.995 );
-	twk[2].NUSetXScl( 1.005 );
-	twk[3].NUSetXScl( 0.995 );
-	twk[4].NUSetYScl( 1.005 );
-	twk[5].NUSetYScl( 0.995 );
-	twk[6].NUSetXSkw( 0.005 );
-	twk[7].NUSetXSkw( -.005 );
-	twk[8].NUSetYSkw( 0.005 );
-	twk[9].NUSetYSkw( -.005 );
-	twk[10].NUSetRot( 0.005 );
-	twk[11].NUSetRot( -.005 );
-
-	fprintf( flog, "Tweaks start, best R=%.3f\n", best.R );
-
-	clock_t	t0 = StartTiming();
-
-	for( int changed = true; changed; ) {
-
-		changed = false;
-
-		for( int i = 0; i < 12; ++i ) {
-
-			CorRec			C;
-			vector<Point>	ps = thm.ap;
-
-			C.A = best.A;
-			MultiplyTrans( C.T, best.T, twk[i] );
-
-			C.T.Apply_R_Part( ps );
-
-			C.R = CorrImages(
-				flog, false, C.X, C.Y,
-				ps, thm.av, thm.bp, thm.bv,
-				BigEnough, (void*)thm.reqArea,
-				EnoughPoints, (void*)thm.reqArea,
-				0.0, GBL.ctx.NBMXHT, 0, 0, -1, thm.ftc );
-
-			fprintf( flog, "Tweak %d R=%.3f", i, C.R );
-
-			if( C.R > best.R ) {
-
-				fprintf( flog, "  *\n" );
-				changed	= true;
-				best	= C;
-			}
-			else
-				fprintf( flog, "\n" );
-		}
-	}
-
-	StopTiming( stdout, "TryTweaks", t0 );
-}
-
-/* --------------------------------------------------------------- */
-/* FinishAtFullRes ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Get final offsets at full resolution.
-//
-static void FinishAtFullRes( CorRec &best, ThmRec &thm, FILE* flog )
-{
-	CorRec	b0 = best;
-	int		ok;
-
-	fprintf( flog,
-	"Approx: LowRes  R=%.3f, X=%.3f, Y=%.3f\n",
-	best.R, best.X, best.Y );
-
-	clock_t	t0 = StartTiming();
-
-	vector<Point>	ps = thm.ap;
-
-	best.T.Apply_R_Part( ps );
-
-	best.R = CorrImages(
-		flog, false, best.X, best.Y,
-		ps, thm.av, thm.bp, thm.bv,
-		BigEnough, (void*)thm.reqArea,
-		EnoughPoints, (void*)thm.reqArea,
-		0.0, GBL.ctx.NBMXHT, 0, 0, -1, thm.ftc );
-
-	ok = (fabs( best.X - b0.X ) <= 20)
-	  && (fabs( best.Y - b0.Y ) <= 20);
-
-	fprintf( flog,
-	"Approx: FullRes R=%.3f, X=%.3f, Y=%.3f, use=%c.\n",
-	best.R, best.X, best.Y, (ok ? 'Y' : 'N') );
-
-// Always report the thumb-R instead of the fullres value because
-// fullres values are scaled differently. We prefer all values in
-// the file to be comparable.
-
-	if( ok )
-		best.R = b0.R;
-	else
-		best = b0;
-
-	StopTiming( stdout, "FinishAtFullRes", t0 );
-}
-
-/* --------------------------------------------------------------- */
 /* OffsetXY ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1300,14 +494,18 @@ static void RecordSumSqDif(
 /* RecordResult -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void RecordResult( const CorRec &best, int aid, int bid )
+static void RecordResult(
+	const CorRec	&best,
+	int				aid,
+	int				bid,
+	int				err )
 {
 	ThmPair	tpr;
 
 	tpr.T	= best.T;
 	tpr.A	= best.A;
 	tpr.R	= best.R;
-	tpr.err	= gErr;
+	tpr.err	= err;
 
 	WriteThmPair( tpr, GBL.A.layer, GBL.A.tile, aid,
 		GBL.B.layer, GBL.B.tile, bid );
@@ -1317,9 +515,9 @@ static void RecordResult( const CorRec &best, int aid, int bid )
 /* Failure ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static bool Failure( CorRec &best, int aid, int bid )
+static bool Failure( CorRec &best, int aid, int bid, int err )
 {
-	RecordResult( best, aid, bid );
+	RecordResult( best, aid, bid, err );
 	return false;
 }
 
@@ -1364,14 +562,19 @@ bool Thumbs(
 	const ConnRegion	&bcr,
 	FILE*				flog )
 {
-	fprintf( flog, "\n---- Thumbnail matching ----\n" );
+	CThmScan	S;
+	CorRec		best;
 
-	CorRec	best;
-
-	best.X	= -999.0;
-	best.Y	= -999.0;
-	best.A	= -999.0;
-	best.R	= -999.0;
+	S.Initialize( flog, best );
+	S.SetTuser(
+		GBL.ctx.SCALE, GBL.ctx.XSCALE, GBL.ctx.YSCALE,
+		0, GBL.ctx.SKEW );
+	S.SetRThresh( GBL.ctx.RTRSH );
+	S.SetNbMaxHt( GBL.ctx.NBMXHT );
+	S.SetSweepType( false, GBL.mch.PRETWEAK );
+	S.SetUseCorrR( false );
+	S.SetOlap1D( GBL.ctx.OLAP1D );
+	S.SetDisc( 0, 0, -1 );
 
 /* ----------------------- */
 /* Estimate starting angle */
@@ -1397,13 +600,15 @@ bool Thumbs(
 /* --------------------- */
 
 // -----------------------------------------------------------
-//	DebugAngs( ang0, GBL.ctx.HFANGPR, .1, thm );
-//	DebugAngs( ang0, 1, .01, thm );
+//	S.DebugAngs( GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile,
+//		ang0, GBL.ctx.HFANGPR, .1, thm );
+//	S.DebugAngs( GBL.A.layer, GBL.A.tile, GBL.B.layer, GBL.B.tile
+//		ang0, 1, .01, thm );
 //	exit( 42 );
 // -----------------------------------------------------------
 
 	if( dbgCor ) {
-		RFromAngle( best, ang0, thm, flog );
+		S.RFromAngle( best, ang0, thm );
 		return false;
 	}
 
@@ -1413,11 +618,14 @@ bool Thumbs(
 
 	if( nPriorAngles ) {
 
-		if( !UsePriorAngles( best, nPriorAngles, thm, flog ) )
-			return Failure( best, acr.id, bcr.id );
+		if( !S.UsePriorAngles( best, nPriorAngles, ang0,
+				GBL.ctx.HFANGPR, thm ) ) {
+
+			return Failure( best, acr.id, bcr.id, S.GetErr() );
+		}
 	}
-	else if( !DenovoBestAngle( best, thm, flog ) )
-		return Failure( best, acr.id, bcr.id );
+	else if( !S.DenovoBestAngle( best, ang0, GBL.ctx.HFANGDN, thm ) )
+		return Failure( best, acr.id, bcr.id, S.GetErr() );
 
 /* ----------------------- */
 /* Apply distortion tweaks */
@@ -1427,7 +635,7 @@ bool Thumbs(
 // optical, nor does RecordSumSqDif() show improvement in optical.
 
 	if( GBL.mch.TWEAKS )
-		TryTweaks( best, thm, flog );
+		S.PostTweaks( best, thm );
 
 /* --------------------------------- */
 /* Always do this scaling adjustment */
@@ -1448,7 +656,7 @@ bool Thumbs(
 	if( !MakeThumbs( thm, olp, 1, flog ) )
 		return false;
 
-	FinishAtFullRes( best, thm, flog );
+	S.FinishAtFullRes( best, thm );
 
 /* ------------------------------------------ */
 /* Translate from intersection to full coords */
@@ -1512,7 +720,7 @@ bool Thumbs(
 /* Report to world */
 /* --------------- */
 
-	RecordResult( best, acr.id, bcr.id );
+	RecordResult( best, acr.id, bcr.id, S.GetErr() );
 
 	return true;
 }
