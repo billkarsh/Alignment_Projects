@@ -1920,7 +1920,7 @@ public:
 		vector<uint8>			&A,
 		const vector<double>	&R );
 
-	void OrderF(
+	bool OrderF(
 		vector<int>				&forder,
 		const vector<double>	&F,
 		const vector<uint8>		&A,
@@ -2303,7 +2303,7 @@ static bool Sort_F_dec( int a, int b )
 	return _F[a] > _F[b];
 }
 
-void CCorImg::OrderF(
+bool CCorImg::OrderF(
 	vector<int>				&forder,
 	const vector<double>	&F,
 	const vector<uint8>		&A,
@@ -2329,6 +2329,16 @@ void CCorImg::OrderF(
 		}
 	}
 
+// Check non-empty
+
+	if( !forder.size() ) {
+
+		if( verbose )
+			fprintf( flog, "Corr: No peak candidates.\n" );
+
+		return false;
+	}
+
 // Sort by decreasing F
 
 	_F = &F[0];
@@ -2350,6 +2360,8 @@ void CCorImg::OrderF(
 				F[k], R[k], x0, y0 );
 		}
 	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -2545,7 +2557,7 @@ next_i:;
 	}
 
 	if( verbose )
-		fprintf( flog, "Corr: No peak candidates...\n" );
+		fprintf( flog, "Corr: All peaks rejected.\n" );
 
 	return false;
 }
@@ -2710,7 +2722,7 @@ next_i:;
 	}
 
 	if( verbose )
-		fprintf( flog, "Corr: No peak candidates...\n" );
+		fprintf( flog, "Corr: All peaks rejected.\n" );
 
 	return false;
 }
@@ -2887,9 +2899,8 @@ double CorrImages(
 
 	cc.MakeF( F, A, R );
 
-	cc.OrderF( forder, F, A, R, mincor );
-
-	if( !cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {
+	if( !cc.OrderF( forder, F, A, R, mincor ) ||
+		!cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {
 
 		dx	= 0.0;
 		dy	= 0.0;
@@ -2963,7 +2974,13 @@ double CorrImagesR(
 		Ox, Oy, Or, fft2 );
 
 	// actually orders R, here
-	cc.OrderF( order, R, A, R, mincor );
+	if( !cc.OrderF( order, R, A, R, mincor ) ) {
+
+		dx	= 0.0;
+		dy	= 0.0;
+
+		return 0.0;
+	}
 
 	cc.MaxR( rx, ry, order, R );
 
