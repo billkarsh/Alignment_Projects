@@ -334,8 +334,6 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 	clock_t	t0 = StartTiming();
 	bool	anychange = false;
 
-	Tptwk.NUSetOne();
-
 // We will compose a Tptwk by multiplying NU transforms. We examine
 // 5 transform types vsel = {Scl, XScl, YScl, XSkw, YSkw}. Each type
 // will enter the product at most once, which is tracked with vused.
@@ -781,7 +779,7 @@ void CThmScan::FinishAtFullRes( CorRec &best, ThmRec &thm )
 	clock_t	t0 = StartTiming();
 
 	SetUseCorrR( true );
-	SetDisc( (int)best.X, (int)best.Y, 40 );
+	SetDisc( (int)best.X, (int)best.Y, 80 );
 	RFromAngle( best, best.A, thm );
 
 	ok = (fabs( best.X - b0.X ) <= 20)
