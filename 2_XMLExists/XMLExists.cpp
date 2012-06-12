@@ -11,6 +11,12 @@
 // and '2' is string for channel 2, but names like 'RGB103'
 // could be searched.
 //
+// Can also use option -localproj as:
+// >XMLExists xxx.xml -localproj -zmin=0 -zmax=10
+//
+// Here, we do a size test on each referenced file_path, just
+// as it is.
+//
 
 
 #include	"Cmdline.h"
@@ -41,16 +47,18 @@ public:
 	char	*infile,
 			*dir,
 			*chn;
-	int		zmin, zmax;
+	int		zmin, zmax,
+			blocproj;
 
 public:
 	CArgs_xex()
 	{
-		infile	= NULL;
-		dir		= NULL;
-		chn		= NULL;
-		zmin	= 0;
-		zmax	= 32768;
+		infile		= NULL;
+		dir			= NULL;
+		chn			= NULL;
+		zmin		= 0;
+		zmax		= 32768;
+		blocproj	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -100,6 +108,8 @@ void CArgs_xex::SetCmdLine( int argc, char* argv[] )
 			else
 				chn = argv[i];
 		}
+		else if( IsArg( "-localproj", argv[i] ) )
+			blocproj = true;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -112,6 +122,23 @@ void CArgs_xex::SetCmdLine( int argc, char* argv[] )
 
 	fprintf( flog, "\n\nZ\tType\tPath\n" );
 	fflush( flog );
+}
+
+/* --------------------------------------------------------------- */
+/* ListMissingLP ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ListMissingLP( TiXmlElement* layer, int z )
+{
+	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+
+	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+
+		const char* f = ptch->Attribute( "file_path" );
+
+		if( DskBytes( f ) <= 0.0 )
+			fprintf( flog, "%d\tT\t%s\n", z, f );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -206,7 +233,10 @@ static void ScanXML()
 		if( !(z % 100) )
 			printf( "z=%6d\n", z );
 
-		ListMissing( layer, z );
+		if( gArgs.blocproj )
+			ListMissingLP( layer, z );
+		else
+			ListMissing( layer, z );
 	}
 }
 
