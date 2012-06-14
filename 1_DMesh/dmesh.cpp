@@ -73,9 +73,13 @@ static bool RoughMatch(
 		}
 
 		if( state == 2 ) {
-			fprintf( flog, "\n---- Thumbnail matching ----\n" );
-			fprintf( flog, "Reuse Approx: Best transform " );
-			T[0].PrintTransform( flog );
+
+			if( !calledthistime ) {
+				fprintf( flog, "\n---- Thumbnail matching ----\n" );
+				fprintf( flog, "Reuse Approx: Best transform " );
+				T[0].PrintTransform( flog );
+			}
+
 			guesses.push_back( T[0] );
 			return true;
 		}
