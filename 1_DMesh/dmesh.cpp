@@ -59,7 +59,33 @@ static bool RoughMatch(
 	if( GBL.A.layer == GBL.B.layer ||
 		GBL.arg.NoFolds || !GBL.mch.FLD ) {
 
-		return ApproximateMatch_NoCR( guesses, px, flog );
+		// Call NoCR at most once. Possible states
+		// are {0=never called, 1=failed, 2=success}.
+
+		static vector<TForm>	T;
+		static int				state = 0;
+
+		int	calledthistime = false;
+
+		if( !state ) {
+			state = 1 + ApproximateMatch_NoCR( T, px, flog );
+			calledthistime = true;
+		}
+
+		if( state == 2 ) {
+			fprintf( flog, "\n---- Thumbnail matching ----\n" );
+			fprintf( flog, "Reuse Approx: Best transform " );
+			T[0].PrintTransform( flog );
+			guesses.push_back( T[0] );
+			return true;
+		}
+
+		if( !calledthistime ) {
+			fprintf( flog, "\n---- Thumbnail matching ----\n" );
+			fprintf( flog, "FAIL: Approx: Case already failed.\n" );
+		}
+
+		return false;
 	}
 	else
 		return ApproximateMatch( guesses, px, acr, bcr, flog );
