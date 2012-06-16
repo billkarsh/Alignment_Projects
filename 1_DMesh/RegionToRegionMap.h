@@ -19,7 +19,7 @@ void RegionToRegionMap(
 	const PixPair		&px,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,
-	const TForm			&tr_guess,
+	TForm				tr_guess,
 	FILE				*flog,
 	FILE				*ftri );
 

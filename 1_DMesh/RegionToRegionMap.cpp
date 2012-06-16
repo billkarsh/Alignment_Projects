@@ -155,7 +155,7 @@ void RegionToRegionMap(
 	const PixPair		&px,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,
-	const TForm			&tr_guess,
+	TForm				tr_guess,
 	FILE				*flog,
 	FILE				*ftri )
 {
@@ -296,6 +296,8 @@ void RegionToRegionMap(
 
 		fprintf( flog, "    Inverse transform: " );
 		inv.PrintTransform( flog );
+
+		tr_guess = transforms[0];
 	}
 
 /* ------------------------ */
@@ -315,7 +317,7 @@ void RegionToRegionMap(
 			const Point&	ap = acr.pts[k];
 			Point			bp = ap;
 
-			transforms[0].Transform( bp );
+			tr_guess.Transform( bp );
 
 			if( bp.x >= 0 && bp.x < w-1 &&
 				bp.y >= 0 && bp.y < h-1 &&
@@ -432,7 +434,7 @@ void RegionToRegionMap(
 				tri, ctl,
 				ap_msh, av_msh,
 				bv_msh, w, h,
-				transforms[0],
+				tr_guess,
 				GBL.ctx.DFT,
 				flog, "deformable mesh" );
 

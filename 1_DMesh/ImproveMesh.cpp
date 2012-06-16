@@ -300,7 +300,7 @@ static void TransformsAndCenters(
 	const vector<triangle>	&tri,
 	const vector<Point>		&orig,
 	const vector<Point>		&cpts,
-	const TForm				&Tguess,
+	const TForm				&tr_guess,
 	FILE*					flog )
 {
 	fprintf( flog, "\n---- Transforms ----\n" );
@@ -351,10 +351,10 @@ static void TransformsAndCenters(
 		// Sanity check the "angular" change
 
 		if(	(fabs( t.t[0] - 1.0 ) > 0.1 &&
-			 fabs( t.t[0] - Tguess.t[0] ) > 0.1)
+			 fabs( t.t[0] - tr_guess.t[0] ) > 0.1)
 			||
 			(fabs( t.t[4] - 1.0 ) > 0.1 &&
-			 fabs( t.t[4] - Tguess.t[4] ) > 0.1) ) {
+			 fabs( t.t[4] - tr_guess.t[4] ) > 0.1) ) {
 
 			fprintf( flog,
 			"Large deviation in t[0], t[4]: vertices %d %d %d\n",
@@ -409,15 +409,9 @@ double ImproveMesh(
 {
 	fprintf( flog, "\n---- ImproveMesh - %s ----\n", describe );
 
-/* --------------- */
-/* Init transforms */
-/* --------------- */
-
-// As a convenience, we allow the caller to set 'tr_guess'
-// to some element of transforms[], but we need to zero
-// transforms[] here. Therefore, we save copy 'Tguess.'
-
-	TForm	Tguess = tr_guess;
+/* ---------------------- */
+/* Init output transforms */
+/* ---------------------- */
 
 	transforms.clear();
 	centers.clear();
@@ -525,7 +519,7 @@ double ImproveMesh(
 /* ------------------------------------------ */
 
 	TransformsAndCenters( transforms, centers,
-		tri, orig, cpts, Tguess, flog );
+		tri, orig, cpts, tr_guess, flog );
 
 	return corr;
 }
