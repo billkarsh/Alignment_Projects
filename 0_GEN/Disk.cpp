@@ -18,9 +18,9 @@
 /* Semaphores ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// To use this function, decide upon a name string to identify
-// the mutex and be sure that all clients use the identical name.
-// For example, "anglefile_layer2".
+// To use this function, decide upon a name string to uniquely
+// identify the resource/mutex and be sure that all clients use
+// the identical name. For example, "anglefile_layer2".
 //
 // On calling Get( name ), the return value is either false, which
 // means that we had an error creating/getting a mutex, or true,
