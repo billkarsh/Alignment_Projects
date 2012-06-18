@@ -10,6 +10,7 @@
 
 
 #define	USE_TIF_DEFLATE		0
+#define	GENEMEYERSTIFF		1
 
 
 /* --------------------------------------------------------------- */
@@ -344,7 +345,18 @@ uint8* Raster8FromTif(
 
 	fprintf( flog, "Raster8FromTif: Opening [%s].\n", name );
 
-	if( !(tif = TIFFOpen( name, "r" )) ) {
+#if GENEMEYERSTIFF
+// suppress exotic field warnings
+TIFFErrorHandler	oldEH = TIFFSetWarningHandler( NULL );
+#endif
+
+	tif = TIFFOpen( name, "r" );
+
+#if GENEMEYERSTIFF
+TIFFSetWarningHandler( oldEH );
+#endif
+
+	if( !tif ) {
 		fprintf( flog,
 		"Raster8FromTif: Cannot open [%s] for read.\n", name );
 		exit( 42 );
