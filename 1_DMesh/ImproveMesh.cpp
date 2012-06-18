@@ -272,6 +272,11 @@ static bool CheckAreas(
 /* Assess area change */
 /* ------------------ */
 
+// Special allowance for TSC "tri sum change"--
+//
+// If new tris cover wide area, use more generous TSC.
+//
+
 	double	sum_lim = GBL.mch.TSC;
 
 	if( sum_Anew > 500000 )
