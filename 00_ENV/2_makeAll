@@ -5,12 +5,12 @@ DIRS := 2_EditXML \
 		2_HEQ1Lyr 2_HEQ2Normal 2_HEQLayers 2_HEQVFY 2_HEQXML \
 		2_Hist1 2_HistAll 2_LocalProj 2_LsqErr 2_ReverseTiles \
 		2_RGBM1Lyr 2_RGBMerge 2_RGBMXML \
-		2_UniqueTiles 2_XMLAppend 2_XMLCopyOids \
-		2_XMLCopyTF 2_XMLExists 2_XMLExtract \
-		2_XMLGetTF 2_XMLInsert 2_XMLInterleave \
-		2_XMLLocalPaths 2_XMLMissingZ 2_XMLRenum \
-		2_XMLRevertTF 2_XMLRotTiles 2_XMLUnite \
-		2_XMLZScale
+		2_SetApigChan 2_UniqueTiles 2_XMLAppend \
+		2_XMLCopyOids 2_XMLCopyTF 2_XMLExists \
+		2_XMLExtract 2_XMLGetTF 2_XMLInsert \
+		2_XMLInterleave 2_XMLLocalPaths 2_XMLMissingZ \
+		2_XMLRenum 2_XMLRevertTF 2_XMLRotTiles \
+		2_XMLUnite 2_XMLZScale
 
 all:
 	cd ..; \
