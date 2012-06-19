@@ -2786,7 +2786,8 @@ static void WriteTrakEM(
 		char		buf[2048];
 		strcpy( buf, I.GetName() );
 		char		*p = strtok( buf, " ':\n" );
-		const char	*s = FileNamePtr( p );
+		const char	*s1 = FileNamePtr( p ),
+					*s2	= FileDotPtr( s1 );
 
 		// fix origin : undo trimming
 		int		j = I.itr * 6;
@@ -2800,7 +2801,7 @@ static void WriteTrakEM(
 		"\t\t\t\twidth=\"%d\"\n"
 		"\t\t\t\theight=\"%d\"\n"
 		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
-		"\t\t\t\ttitle=\"%s\"\n"
+		"\t\t\t\ttitle=\"%.*s\"\n"
 		"\t\t\t\ttype=\"%d\"\n"
 		"\t\t\t\tfile_path=\"%s\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
@@ -2808,7 +2809,7 @@ static void WriteTrakEM(
 		"\t\t\t/>\n",
 		oid++, gW - offset, gH - offset,
 		X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
-		s, gArgs.xml_type, p, gW - offset, gH - offset );
+		s2 - s1, s1, gArgs.xml_type, p, gW - offset, gH - offset );
 	}
 
 	if( nr > 0 )
@@ -3520,11 +3521,11 @@ static void ViseWriteXML(
 		const char	*c, *n = FileNamePtr( I.GetName() );
 
 		if( c = strstr( n, "col" ) ) {
-			sprintf( buf, "ve_z%d_id%d_%.*s.png",
+			sprintf( buf, "ve_z%d_id%d_%.*s",
 			I.z, I.id, strchr( c, '.' ) - c, c );
 		}
 		else
-			sprintf( buf, "ve_z%d_id%d.png", I.z, I.id );
+			sprintf( buf, "ve_z%d_id%d", I.z, I.id );
 
 		int		j = I.itr * 6;
 
@@ -3536,7 +3537,7 @@ static void ViseWriteXML(
 		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
 		"\t\t\t\ttitle=\"%s\"\n"
 		"\t\t\t\ttype=\"4\"\n"
-		"\t\t\t\tfile_path=\"viseimg/%d/%s\"\n"
+		"\t\t\t\tfile_path=\"viseimg/%d/%s.png\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
 		"\t\t\t\to_height=\"%d\"\n"
 		"\t\t\t/>\n",
