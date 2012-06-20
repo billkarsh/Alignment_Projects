@@ -402,8 +402,9 @@ static void Scale1Clr(
 	}
 
 // mn is between lowest val and 2 sdev below mode
+// Omit highest bins to avoid detector saturation
 
-	imin = IndexOfMaxVal( &bins[0], nbins );
+	imin = IndexOfMaxVal( &bins[0], nbins - 100 );
 	T	 = int(2.0 * sqrt( imin ));
 	mx   = imin - T;
 	mn   = FirstNonzero( &bins[0], nbins );

@@ -356,8 +356,9 @@ static void ScaleLayer( const vector<Picture> &vp )
 	}
 
 // smin is between lowest val and 2 sdev below mode
+// Omit highest bins to avoid detector saturation
 
-	imin = IndexOfMaxVal( &bins[0], nbins );
+	imin = IndexOfMaxVal( &bins[0], nbins - 100 );
 	T	 = int(2.0 * sqrt( imin ));
 	smax = imin - T;
 	smin = FirstNonzero( &bins[0], nbins );
