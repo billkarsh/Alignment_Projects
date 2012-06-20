@@ -3,7 +3,6 @@
 //
 // tag
 // z range
-// chn,
 // pct,
 // lrbt
 //
@@ -37,8 +36,7 @@ public:
 	char	*infile,
 			*tag;
 	int		zmin,
-			zmax,
-			chn;
+			zmax;
 
 public:
 	CArgs_gray()
@@ -49,7 +47,6 @@ public:
 		tag		= NULL;
 		zmin	= 0;
 		zmax	= 32768;
-		chn		= -1;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -112,8 +109,6 @@ void CArgs_gray::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
-		else if( GetArg( &chn, "-chn=%d", argv[i] ) )
-			;
 		else if( GetArg( &pct, "-pct=%lf", argv[i] ) )
 			;
 		else if( GetArgList( vi, "-lrbt=", argv[i] ) && vi.size() == 4 )
@@ -173,9 +168,6 @@ static void WriteScript( vector<int> &zlist )
 
 	char	sopt[256];
 	int		pos = 0;
-
-	if( gArgs.chn >= 0 )
-		pos += sprintf( sopt + pos, "-chn=%d ", gArgs.chn );
 
 	pos += sprintf( sopt + pos, "-pct=%g ", gArgs.pct );
 

@@ -1,5 +1,5 @@
 //
-// Using same tag, z range and channel as for HEQLayers, update
+// Using same tag and z range as for HEQLayers, update
 // the corresponding xml to point to the HEQ images.
 //
 
@@ -24,10 +24,12 @@
 class CArgs_rgbm {
 
 public:
+	char	dtag[32],
+			utag[32];
 	char	*infile,
 			*tag;
 	int		zmin, zmax,
-			chn;
+			ltag;
 
 public:
 	CArgs_rgbm()
@@ -36,7 +38,6 @@ public:
 		tag		= NULL;
 		zmin	= 0;
 		zmax	= 32768;
-		chn		= -1;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -77,6 +78,7 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 // parse command line args
 
 	if( argc < 3 ) {
+usage:
 		printf( "Usage: HEQXML <xml-file> <tag> [options].\n" );
 		exit( 42 );
 	}
@@ -97,13 +99,21 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
-		else if( GetArg( &chn, "-chn=%d", argv[i] ) )
-			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
 		}
 	}
+
+	if( tag ) {
+
+		ltag = sprintf( dtag, ".%s", tag );
+
+		utag[0] = '_';
+		strcpy( utag + 1, tag );
+	}
+	else
+		goto usage;
 
 	fprintf( flog, "\n\n" );
 	fflush( flog );
@@ -113,25 +123,36 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 /* EditTitleAndPath ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// If native image path has form par/dir/name.tif,
+// and user supplied tag is HEQ, the new path is
+// par/dir_HEQ/name.HEQ.tif.
+//
 static void EditTitleAndPath( TiXmlElement* ptch )
 {
-	char	buf[2048];
-	int		len;
+	char		buf[2048];
+	const char	*n, *e;
 
 // title first
 
-	len = sprintf( buf, "%s", ptch->Attribute( "title" ) );
+	n = ptch->Attribute( "title" );
+	e = FileDotPtr( n );
 
-	if( gArgs.chn >= 0 )
-		buf[len - 5] = '0' + gArgs.chn;
+	sprintf( buf, "%.*s%s", e - n, n, gArgs.dtag );
 
 	ptch->SetAttribute( "title", buf );
 
 // now path
 
-	sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-	sprintf( strrchr( buf, '/' ),
-		"_%s/%s", gArgs.tag, ptch->Attribute( "title" ) );
+	n = ptch->Attribute( "file_path" );
+
+	char	*s = strrchr( n, '/' );
+
+	sprintf( buf,
+		"%.*s%s"	// path excl / + _HEQ
+		"/%s.tif",	// / + name + .tif
+		s - n, n, gArgs.utag,
+		ptch->Attribute( "title" ) );
+
 	ptch->SetAttribute( "file_path", buf );
 }
 

@@ -1,7 +1,7 @@
 //
 // New TrakEM2 file with:
 //
-// "_HEQ" removed
+// HEQ-type tag removed
 // type=1
 // min=200
 // max=1000
@@ -29,13 +29,18 @@
 class CArgs_rgbm {
 
 public:
-	char	*infile;
-	int		zmin, zmax;
+	char	dtag[32],
+			utag[32];
+	char	*infile,
+			*tag;
+	int		zmin, zmax,
+			ltag;
 
 public:
 	CArgs_rgbm()
 	{
 		infile	= NULL;
+		tag		= NULL;
 		zmin	= 0;
 		zmax	= 32768;
 	};
@@ -77,8 +82,9 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 2 ) {
-		printf( "Usage: HEQ2Normal <xml-file> [options].\n" );
+	if( argc < 3 ) {
+usage:
+		printf( "Usage: HEQ2Normal <xml-file> <tag> [options].\n" );
 		exit( 42 );
 	}
 
@@ -87,8 +93,13 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
+		if( argv[i][0] != '-' ) {
+
+			if( !infile )
+				infile = argv[i];
+			else
+				tag = argv[i];
+		}
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -98,6 +109,16 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 			exit( 42 );
 		}
 	}
+
+	if( tag ) {
+
+		ltag = sprintf( dtag, ".%s", tag );
+
+		utag[0] = '_';
+		strcpy( utag + 1, tag );
+	}
+	else
+		goto usage;
 
 	fprintf( flog, "\n\n" );
 	fflush( flog );
@@ -111,14 +132,23 @@ static void EditPath( TiXmlElement* ptch )
 {
 	char		buf[2048];
 	const char	*n = ptch->Attribute( "file_path" );
-	char		*t = strstr( n, "_HEQ" );
-	int			len = 4;
+	char		*s = strrchr( n, '/' ),
+				*t;
 
-	if( t ) {
+	if( !s || !(t = strstr( ++s, gArgs.dtag )) )
+		return;
 
-		sprintf( buf, "%.*s%s", t - n, n, t + 4 );
-		ptch->SetAttribute( "file_path", buf );
-	}
+// fix title, chop off dtag
+
+	sprintf( buf, "%.*s", t - s, s );
+	ptch->SetAttribute( "title", buf );
+
+// fix directory, chop off / and utag, then append title
+
+	s -= 1 + gArgs.ltag;
+
+	sprintf( buf, "%.*s/%s.tif", s - n, n, ptch->Attribute( "title" ) );
+	ptch->SetAttribute( "file_path", buf );
 }
 
 /* --------------------------------------------------------------- */

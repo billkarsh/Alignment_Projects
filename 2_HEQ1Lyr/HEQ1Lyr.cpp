@@ -3,7 +3,6 @@
 //
 // tag
 // z layer
-// chn,
 // pct,
 // lrbt
 //
@@ -47,7 +46,7 @@ public:
 	double	pct;
 	char	*infile,
 			*tag;
-	int		z, chn;
+	int		z;
 
 public:
 	CArgs_heq()
@@ -57,7 +56,6 @@ public:
 		infile	= NULL;
 		tag		= NULL;
 		z		= 0;
-		chn		= -1;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -119,8 +117,6 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &z, "-z=%d", argv[i] ) )
 			;
-		else if( GetArg( &chn, "-chn=%d", argv[i] ) )
-			;
 		else if( GetArg( &pct, "-pct=%lf", argv[i] ) )
 			;
 		else if( GetArgList( vi, "-lrbt=", argv[i] ) && vi.size() == 4 )
@@ -141,20 +137,7 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 
 Picture::Picture( const TiXmlElement* ptch )
 {
-	if( gArgs.chn < 0 )
-		fname = ptch->Attribute( "file_path" );
-	else {
-
-		char	buf[2048];
-		int		len;
-
-		len = sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-
-		buf[len - 5] = '0' + gArgs.chn;
-
-		fname = buf;
-	}
-
+	fname = ptch->Attribute( "file_path" );
 	T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 }
 
@@ -281,10 +264,15 @@ static char *OutName( char *buf, const Picture &p )
 {
 	const char	*p1 = p.fname.c_str();
 	const char	*p2 = strrchr( p1, '/' );
+	const char	*p3 = FileDotPtr( p2 );
 
 // full path
 
-	sprintf( buf, "%.*s_%s%s", p2 - p1, p1, gArgs.tag, p2 );
+	sprintf( buf,
+		"%.*s_%s"
+		"%.*s.%s.tif",
+		p2 - p1, p1, gArgs.tag,
+		p3 - p2, p2, gArgs.tag );
 
 	return buf;
 }

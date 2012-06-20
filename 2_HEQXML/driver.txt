@@ -1,4 +1,0 @@
-#!/bin/csh
-
-HEQXML layer0_48_grn_rigid_montage.xml HEQ -zmin=0 -zmax=48 -chn=0
-

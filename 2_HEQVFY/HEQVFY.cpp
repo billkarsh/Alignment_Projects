@@ -1,6 +1,12 @@
 //
 // List missing HEQ files
 //
+// Usage:
+// > HEQVFY layer0_48_grn_rigid_montage.xml HEQ -zmin=2 -zmax=5
+//
+// The input xml file can either have native or tag-modified
+// file_paths. In either case, all we do here is call DskExists
+// on the target images, we do not verify the state of the xml.
 //
 
 #include	"Cmdline.h"
@@ -31,9 +37,12 @@ private:
 	CRegexID	re_id;
 
 public:
+	char	dtag[32],
+			utag[32];
 	char	*infile,
 			*tag;
-	int		zmin, zmax, chn;
+	int		zmin, zmax,
+			ltag;
 
 public:
 	CArgs_heq()
@@ -42,7 +51,6 @@ public:
 		tag		= NULL;
 		zmin	= 0;
 		zmax	= 32768;
-		chn		= -1;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -78,9 +86,9 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 
 	re_id.Set( "_N_" );
 
-	if( argc < 6 ) {
-		printf( "Usage: HEQVFY <xml-file> <tag>"
-		" -zmin=i -zmax=j -chn=c.\n" );
+	if( argc < 5 ) {
+usage:
+		printf( "Usage: HEQVFY <xml-file> <tag> -zmin=i -zmax=j.\n" );
 		exit( 42 );
 	}
 
@@ -102,13 +110,21 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( pat, "-p", argv[i] ) )
 			re_id.Set( pat );
-		else if( GetArg( &chn, "-chn=%d", argv[i] ) )
-			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
 		}
 	}
+
+	if( tag ) {
+
+		ltag = sprintf( dtag, ".%s", tag );
+
+		utag[0] = '_';
+		strcpy( utag + 1, tag );
+	}
+	else
+		goto usage;
 
 	fprintf( flog, "\n" );
 
@@ -141,26 +157,37 @@ int CArgs_heq::IDFromPatch( TiXmlElement* p )
 /* OutName ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// If native image path has form par/dir/name.tif,
+// and user supplied tag is HEQ, the new path is
+// par/dir_HEQ/name.HEQ.tif.
+//
+// To check existence of HEQ object, it is enough to
+// look for '.HEQ' piece.
+//
 static char *OutName( char *buf, TiXmlElement* p )
 {
-	char		tag[32];
 	const char	*n = p->Attribute( "file_path" );
-	char		*s = strrchr( n, '/' ),
-				*c = strrchr( s, '_' );
-	int			len = sprintf( tag, "_%s", gArgs.tag );
+	char		*s = strrchr( n, '/' );
 
-	if( !strncmp( tag, s - len, len ) ) {
+	if( strstr( s + 1, gArgs.dtag ) ) {
 
-		// dir already has tag - look there
+		// xml name in proper form
 
-		sprintf( buf, "%.*s_%d.tif", c - n, n, gArgs.chn );
+		strcpy( buf, n );
 	}
 	else {
 
-		// compose tagged name - look there
+		// compose prospective name
 
-		sprintf( buf, "%.*s%s%.*s_%d.tif",
-			s - n, n, tag, c - s, s, gArgs.chn );
+		char	*dot = strrchr( s, '.' );
+
+		sprintf( buf,
+			"%.*s%s"	// path excl / + _HEQ
+			"%.*s"		// / + name excl .tif
+			"%s.tif",	// .HEQ.tif
+			s - n, n, gArgs.utag,
+			dot - s, s,
+			gArgs.dtag );
 	}
 
 	return buf;
