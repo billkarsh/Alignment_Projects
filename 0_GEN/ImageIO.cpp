@@ -8,10 +8,15 @@
 #include	"png.h"
 #include	"tiffio.h"
 
+#include	<limits.h>
+
+
+/* --------------------------------------------------------------- */
+/* Macros -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
 #define	USE_TIF_DEFLATE		0
 #define	GENEMEYERSTIFF		1
-
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
@@ -180,6 +185,10 @@ static void Raster8FromTif16Bit(
 	uint16			*raw;
 	vector<double>	v( npixels );
 	int				NB, nb, j;
+	uint16			fmt;
+
+// check for signed data if 16-bit
+	TIFFGetField( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
 
 // read encoded strips
 	raw = (uint16*)malloc( npixels * sizeof(uint16) );
@@ -194,8 +203,16 @@ static void Raster8FromTif16Bit(
 	"TIF(16): Last Encoded strip had %d bytes.\n", nb );
 
 // pixels -> doubles vector
-	for( j = 0; j < npixels; ++j )
-		v[j] = raw[j];
+	if( fmt == SAMPLEFORMAT_INT ) {
+
+		for( j = 0; j < npixels; ++j )
+			v[j] = (int)raw[j] + SHRT_MIN;
+	}
+	else {
+
+		for( j = 0; j < npixels; ++j )
+			v[j] = raw[j];
+	}
 
 	free( raw );
 
@@ -423,9 +440,20 @@ uint16* Raster16FromTif16(
 	TIFF*	tif;
 	uint16*	raster;
 	size_t	npixels;
-	uint16	bps, spp;
+	uint16	bps, spp, fmt;
 
-	if( !(tif = TIFFOpen( name, "r" )) ) {
+#if GENEMEYERSTIFF
+// suppress exotic field warnings
+TIFFErrorHandler	oldEH = TIFFSetWarningHandler( NULL );
+#endif
+
+	tif = TIFFOpen( name, "r" );
+
+#if GENEMEYERSTIFF
+TIFFSetWarningHandler( oldEH );
+#endif
+
+	if( !tif ) {
 		fprintf( flog,
 		"Raster16FromTif16: Cannot open [%s] for read.\n", name );
 		exit( 42 );
@@ -435,6 +463,7 @@ uint16* Raster16FromTif16(
 	TIFFGetField( tif, TIFFTAG_IMAGELENGTH, &h );
 	TIFFGetField( tif, TIFFTAG_BITSPERSAMPLE, &bps );
 	TIFFGetField( tif, TIFFTAG_SAMPLESPERPIXEL, &spp );
+	TIFFGetField( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
 	npixels = w * h;
 
 	fprintf( flog,
@@ -458,6 +487,12 @@ uint16* Raster16FromTif16(
 
 				nb = TIFFReadEncodedStrip( tif, j,
 						raster + NB / 2, (tsize_t)-1 );
+			}
+
+			if( fmt == SAMPLEFORMAT_INT ) {
+
+				for( int i = 0; i < npixels; ++i )
+					raster[i] = (int)raster[i] + SHRT_MIN;
 			}
 		}
 		else {
