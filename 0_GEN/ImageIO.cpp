@@ -206,7 +206,7 @@ static void Raster8FromTif16Bit(
 	if( fmt == SAMPLEFORMAT_INT ) {
 
 		for( j = 0; j < npixels; ++j )
-			v[j] = (int)raw[j] + SHRT_MIN;
+			v[j] = ((int16*)raw)[j] + SHRT_MIN;
 	}
 	else {
 
@@ -492,7 +492,7 @@ TIFFSetWarningHandler( oldEH );
 			if( fmt == SAMPLEFORMAT_INT ) {
 
 				for( int i = 0; i < npixels; ++i )
-					raster[i] = (int)raster[i] + SHRT_MIN;
+					raster[i] = ((int16*)raster)[j] + SHRT_MIN;
 			}
 		}
 		else {
