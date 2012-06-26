@@ -2774,6 +2774,7 @@ static void WriteTrakEM(
 			fprintf( f,
 			"\t\t<t2_layer\n"
 			"\t\t\toid=\"%d\"\n"
+			"\t\t\tthickness=\"0\"\n"
 			"\t\t\tz=\"%d\"\n"
 			"\t\t>\n",
 			oid++, zs[i].z );
@@ -3510,6 +3511,7 @@ static void ViseWriteXML(
 			fprintf( f,
 			"\t\t<t2_layer\n"
 			"\t\t\toid=\"%d\"\n"
+			"\t\t\tthickness=\"0\"\n"
 			"\t\t\tz=\"%d\"\n"
 			"\t\t>\n",
 			oid++, zs[i].z );
