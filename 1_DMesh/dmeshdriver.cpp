@@ -251,6 +251,16 @@ int main( int argc, char* argv[] )
 		goto exit;
 	}
 
+/* ------------------- */
+/* Scaling adjustments */
+/* ------------------- */
+
+	GBL.ctx.OLAP1D	/=  px.scl;
+	GBL.ctx.OLAP2D	/= (px.scl * px.scl);
+	GBL.mch.MNL		/=  px.scl;
+	GBL.mch.MTA		/= (px.scl * px.scl);
+	GBL.mch.MMA		/= (px.scl * px.scl);
+
 /* ----------------------- */
 /* Just test overlap code? */
 /* ----------------------- */

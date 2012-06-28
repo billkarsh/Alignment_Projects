@@ -273,10 +273,10 @@ CThmScan::CThmScan()
 	swpSimple	= false;
 	swpPretweak	= true;
 	useCorrR	= false;
-	olap1D		= 0;
 	Ox			= 0;
 	Oy			= 0;
 	Or			= -1;
+	olap1D		= 0;
 }
 
 /* --------------------------------------------------------------- */
@@ -427,6 +427,8 @@ void CThmScan::RFromAngle( CorRec &C, double deg, ThmRec &thm )
 	C.A = deg;
 
 	RotatePoints( pts, C.T, deg * PI/180.0 );
+
+	olap1D = thm.olap1D;
 
 	C.R = (useCorrR ? CorrImagesR : CorrImages)(
 		flog, false, C.X, C.Y,

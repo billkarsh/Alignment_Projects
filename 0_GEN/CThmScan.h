@@ -29,7 +29,8 @@ typedef struct {
 	vector<Point>	ap, bp;
 	vector<CD>		ftc;		// fourier transform cache
 	long			reqArea;
-	int				scl;
+	int				olap1D,
+					scl;
 } ThmRec;
 
 typedef struct {
@@ -56,8 +57,8 @@ private:
 			swpSimple,
 			swpPretweak,
 			useCorrR,
-			olap1D,
-			Ox, Oy, Or;
+			Ox, Oy, Or,
+			olap1D;
 
 private:
 	void RotatePoints(
@@ -117,9 +118,6 @@ public:
 
 	void SetUseCorrR( int useCorrR )
 		{this->useCorrR = useCorrR;};
-
-	void SetOlap1D( int olap1D )
-		{this->olap1D = olap1D;};
 
 	void SetDisc( int Ox, int Oy, int Or )
 		{this->Ox = Ox; this->Oy = Oy; this->Or = Or;};

@@ -289,6 +289,7 @@ static bool MakeThumbs(
 	thm.bp		= olp.bp;
 	thm.ftc.clear();
 	thm.reqArea	= GBL.ctx.OLAP2D;
+	thm.olap1D	= GBL.ctx.OLAP1D;
 	thm.scl		= decfactor;
 
 	if( decfactor > 1 ) {
@@ -297,6 +298,7 @@ static bool MakeThumbs(
 		DecimateVector( thm.bp, thm.bv, olp.ow, olp.oh, decfactor );
 
 		thm.reqArea	/= decfactor * decfactor;
+		thm.olap1D  /= decfactor;
 
 		fprintf( flog,
 		"Thumbs: After decimation %d pts, reqArea %d, thmscl %d\n",
@@ -524,7 +526,6 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
 	S.SetSweepType( false, GBL.mch.PRETWEAK );
 	S.SetUseCorrR( false );
-	S.SetOlap1D( GBL.ctx.OLAP1D );
 	S.SetDisc( 0, 0, -1 );
 
 /* ----------------------- */

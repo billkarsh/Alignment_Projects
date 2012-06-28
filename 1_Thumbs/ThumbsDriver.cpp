@@ -56,6 +56,13 @@ int main( int argc, char* argv[] )
 		goto exit;
 	}
 
+/* ------------------- */
+/* Scaling adjustments */
+/* ------------------- */
+
+	GBL.ctx.OLAP1D /=  px.scl;
+	GBL.ctx.OLAP2D /= (px.scl * px.scl);
+
 /* ---------------------------------- */
 /* Use foldmasks according to context */
 /* ---------------------------------- */
