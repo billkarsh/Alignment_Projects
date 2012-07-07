@@ -183,6 +183,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DFT		= mch.DFT_SL;
 		ctx.OLAP1D	= mch.OLAP1D_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
+		ctx.INPALN	= mch.INPALN_SL;
+		ctx.DINPUT	= mch.DINPUT_SL;
 	}
 	else {
 
@@ -199,6 +201,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DFT		= mch.DFT_XL;
 		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
+		ctx.INPALN	= mch.INPALN_XL;
+		ctx.DINPUT	= mch.DINPUT_XL;
 	}
 
 // Commandline overrides

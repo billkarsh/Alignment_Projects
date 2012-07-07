@@ -121,8 +121,10 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.RTRSH_SL, "RTRSH_SL=%lf" );
 		GETPRM_MCH( &M.RTRSH_XL, "RTRSH_XL=%lf" );
 		GETPRM_MCH( &M.TWEAKS, "TWEAKS=%c" );
-		GETPRM_MCH( &M.INPALN, "INPALN=%c" );
-		GETPRM_MCH( &M.DINPUT, "DINPUT=%d" );
+		GETPRM_MCH( &M.INPALN_SL, "INPALN_SL=%c" );
+		GETPRM_MCH( &M.INPALN_XL, "INPALN_XL=%c" );
+		GETPRM_MCH( &M.DINPUT_SL, "DINPUT_SL=%d" );
+		GETPRM_MCH( &M.DINPUT_XL, "DINPUT_XL=%d" );
 		GETPRM_MCH( &M.DSL, "DSL=%c" );
 		GETPRM_MCH( &M.DIT_SL, "DIT_SL=%lf" );
 		GETPRM_MCH( &M.DIT_XL, "DIT_XL=%lf" );
@@ -156,7 +158,8 @@ bool ReadMatchParams(
 		M.PRETWEAK	= (M.PRETWEAK == 'Y');
 		M.SLOPPY_SL	= (M.SLOPPY_SL == 'Y');
 		M.TWEAKS	= (M.TWEAKS == 'Y');
-		M.INPALN	= (M.INPALN == 'Y');
+		M.INPALN_SL	= (M.INPALN_SL == 'Y');
+		M.INPALN_XL	= (M.INPALN_XL == 'Y');
 		M.DSL		= (M.DSL == 'Y');
 		M.ONE		= (M.ONE == 'Y');
 		M.EMM		= (M.EMM == 'Y');

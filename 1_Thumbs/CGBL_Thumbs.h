@@ -42,7 +42,9 @@ public:
 				HFANGPR,
 				RTRSH;
 		long	OLAP2D;
-		int		OLAP1D;
+		int		OLAP1D,
+				INPALN,
+				DINPUT;
 	} CntxtDep;
 
 	typedef struct {

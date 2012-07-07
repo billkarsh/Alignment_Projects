@@ -685,7 +685,7 @@ bool ApproximateMatch_NoCR(
 // Stay close to original transform, assuming some preliminary
 // alignment was done.
 
-	if( GBL.mch.INPALN ) {
+	if( GBL.ctx.INPALN ) {
 
 		TForm	T, Tinv, I;
 
@@ -701,14 +701,14 @@ bool ApproximateMatch_NoCR(
 		double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 
 		fprintf( flog, "Approx: err = %g, max = %d\n",
-			err, GBL.mch.DINPUT );
+			err, GBL.ctx.DINPUT );
 
-		if( err > GBL.mch.DINPUT ) {
+		if( err > GBL.ctx.DINPUT ) {
 
 			fprintf( flog,
 			"FAIL: Approx: Too different from Tinput"
 			" err=%g, max=%d\n",
-			err, GBL.mch.DINPUT );
+			err, GBL.ctx.DINPUT );
 
 			return false;
 		}
