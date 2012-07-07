@@ -593,7 +593,7 @@ bool Thumbs(
 	if( !SelectSubimage( olp, px, acr, bcr, flog ) )
 		return false;
 
-	if( !MakeThumbs( thm, olp, 8, flog ) )
+	if( !MakeThumbs( thm, olp, GBL.mch.THMDEC, flog ) )
 		return false;
 
 /* --------------------- */

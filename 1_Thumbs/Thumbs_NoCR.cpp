@@ -543,7 +543,7 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 
 	SelectSubimage( olp, px, flog );
 
-	if( !MakeThumbs( thm, olp, 8, flog ) )
+	if( !MakeThumbs( thm, olp, GBL.mch.THMDEC, flog ) )
 		return false;
 
 /* --------------------- */

@@ -53,6 +53,7 @@ typedef struct {
 			FLD,
 			PRETWEAK,
 			SLOPPY_SL,
+			THMDEC,
 			OLAP1D_SL,
 			OLAP1D_XL,
 			OLAP2D_SL,
