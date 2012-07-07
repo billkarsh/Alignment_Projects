@@ -7,6 +7,13 @@
 #include	"Timer.h"
 
 
+/* --------------------------------------------------------------- */
+/* Macros -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	MAX1DPIX	2048
+
+
 
 
 
@@ -187,13 +194,13 @@ bool PixPair::Load(
 /* Downsample all images */
 /* --------------------- */
 
-	if( ws > 2048 || hs >= 2048 ) {
+	if( ws > MAX1DPIX || hs > MAX1DPIX ) {
 
 		do {
 			ws		/= 2;
 			hs		/= 2;
 			scl		*= 2;
-		} while( ws > 2048 || hs > 2048 );
+		} while( ws > MAX1DPIX || hs > MAX1DPIX );
 
 		fprintf( flog, "PixPair: Scaling by %d\n", scl );
 
@@ -232,8 +239,8 @@ bool PixPair::Load(
 
 #if 0
 	if( bDoG ) {
-		VectorDblToTif8( "DoGa.tif", avs_aln, ws, hs );
-		VectorDblToTif8( "DoGb.tif", bvs_aln, ws, hs );
+		VectorDblToTif8( "DoGa.tif", *avs_aln, ws, hs );
+		VectorDblToTif8( "DoGb.tif", *bvs_aln, ws, hs );
 	}
 #endif
 

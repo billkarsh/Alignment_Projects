@@ -89,7 +89,7 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 			break;
 
 		if( z > zmax )
-			break;
+			continue;
 
 		if( z < zmin )
 			continue;
