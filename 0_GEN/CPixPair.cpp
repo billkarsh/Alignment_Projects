@@ -110,6 +110,88 @@ void PixPair::Downsample(
 }
 
 /* --------------------------------------------------------------- */
+/* Trapezoid ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Experiment to remove banana curve in Davi data.
+//
+static void Trapezoid( uint8 *ras, int w, int h )
+{
+	const double	grow = 0.008 / (w - 1);
+
+	int	np = w * h;
+	int	h2 = h / 2;
+
+	vector<double>	dbl( np, 0.0 );
+
+	for( int i = 0; i < np; ++i ) {
+
+		double	y;
+		int		iy = i / w;
+		int		ix = i - w * iy;
+
+		y = h2 + (iy - h2)*(1.0 + grow*(w - 1 - ix));
+
+		DistributePixel( ix, y, ras[i], dbl, w, h );
+	}
+
+	for( int i = 0; i < np; ++i )
+		ras[i] = (dbl[i] <= 255.0 ? (uint8)dbl[i] : 255);
+}
+
+/* --------------------------------------------------------------- */
+/* Trim ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Trim Nathan images and adjust w, h.
+//
+static void Trim( uint8* ras, uint32 &w, uint32 &h )
+{
+// Trim at least top two rows and make row count even
+
+	int	htrim = (h & 1 ? 3 : 2);
+
+	memmove( ras, ras + htrim*w, w*(h-=htrim) );
+
+// Trim rightmost col to make width even
+
+	if( w & 1 ) {
+
+		uint8	*dst, *src;
+
+		dst = ras + w - 1;
+		src = ras + w;
+
+		for( int i = 1; i < h; ++i, dst += w - 1, src += w )
+			memmove( dst, src, w - 1 );
+
+		w -= 1;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* HasTissue ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Experiment to kick out mostly agar images in Nathan data.
+//
+static bool HasTissue( const char *path )
+{
+	uint32	w, h;
+	uint16	*ras = Raster16FromTif16( path, w, h );
+	int		N = w*h, nlow = 0;
+
+	for( int i = 0; i < N; ++i ) {
+		if( ras[i] < 4000 )
+			++nlow;
+	}
+
+	RasterFree( ras );
+
+	return nlow < 0.20 * N;
+}
+
+/* --------------------------------------------------------------- */
 /* PixPair::Load ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -149,6 +231,18 @@ bool PixPair::Load(
 		goto exit;
 	}
 
+//-----------------------------------------------------------
+// Experiment to filter out mostly-agar Nathan images (not a good
+// way to do this because uses absolute intensity assumptions).
+// Also we trim off some rows and columns to fix aperture and
+// odd sizing issues (if needed).
+//
+	//if( !HasTissue( apath ) || !HasTissue( bpath ) )
+	//	goto exit;
+	//Trim( aras, wa, ha );
+	//Trim( bras, wb, hb );
+//-----------------------------------------------------------
+
 	wf		= wa;
 	hf		= ha;
 	ws		= wa;
@@ -158,6 +252,18 @@ bool PixPair::Load(
 /* ------- */
 /* Flatten */
 /* ------- */
+
+//-----------------------------------------------------------
+// Experiment to undo the banana effect in Davi data...
+// Not needed if Eric applies the correction before I
+// see the images.
+//
+	//Raster8ToTif8( "origA.tif", aras, wf, hf );
+	//Trapezoid( aras, wf, hf );
+	//Trapezoid( bras, wf, hf );
+	//Raster8ToTif8( "trapA.tif", aras, wf, hf );
+	//exit( 1 );
+//-----------------------------------------------------------
 
 	LegPolyFlatten( _avf, aras, wf, hf, order );
 	RasterFree( aras );
@@ -189,6 +295,41 @@ bool PixPair::Load(
 		avs_aln = avf_aln = &_avfflt;
 		bvs_aln = bvf_aln = &_bvfflt;
 	}
+
+//-----------------------------------------------------------
+// Experiment to apply spatial averaging to Nathan data...
+// Not needed if Nathan averages several (10) layers in z.
+//
+	//VectorDblToTif8( "PRE.tif", *avs_aln, ws, hs );
+	//{
+	//	double		K[] = {
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+	//	vector<CD>	kfft;
+	//	int			dm = 7;
+
+	//	Convolve( _avfflt, _avf, wf, hf, K, dm, dm, true, true, kfft );
+	//	Normalize( _avfflt );
+
+	//	Convolve( _bvfflt, _bvf, wf, hf, K, dm, dm, true, true, kfft );
+	//	Normalize( _bvfflt );
+
+	//	avs_aln = avf_aln = &_avfflt;
+	//	bvs_aln = bvf_aln = &_bvfflt;
+
+	//	bDoG = 1;
+	//}
+	//VectorDblToTif8( "POST.tif", *avs_aln, ws, hs );
+//-----------------------------------------------------------
 
 /* --------------------- */
 /* Downsample all images */
