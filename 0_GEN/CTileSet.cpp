@@ -933,10 +933,23 @@ double CTileSet::ABOlap( int a, int b )
 /* WriteTrakEM2Layer --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// - xmltype is an ImagePlus pixel type code:
+//		AUTO		= -1
+//		GRAY8		= 0
+//		GRAY16		= 1
+//		GRAY32		= 2
+//		COLOR_256	= 3
+//		COLOR_RGB	= 4
+//
+// - xmlmin, xmlmax are used iff xmlmin < xmlmax. To let TrakEM2
+// autoscale, set both to zero.
+//
 void CTileSet::WriteTrakEM2Layer(
 	FILE*	f,
 	int		&oid,
-	int		type,
+	int		xmltype,
+	int		xmlmin,
+	int		xmlmax,
 	int		is0,
 	int		isN )
 {
@@ -976,11 +989,21 @@ void CTileSet::WriteTrakEM2Layer(
 		"\t\t\t\ttype=\"%d\"\n"
 		"\t\t\t\tfile_path=\"%s\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
-		"\t\t\t\to_height=\"%d\"\n"
-		"\t\t\t/>\n",
+		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW, gH,
 		U.T.t[0], U.T.t[3], U.T.t[1], U.T.t[4], U.T.t[2], U.T.t[5],
-		n2 - n1, n1, type, name, gW, gH );
+		n2 - n1, n1, xmltype, name, gW, gH );
+
+		if( xmlmin < xmlmax ) {
+
+			fprintf( f,
+			"\t\t\t\tmin=\"%d\"\n"
+			"\t\t\t\tmax=\"%d\"\n"
+			"\t\t\t/>\n",
+			xmlmin, xmlmax );
+		}
+		else
+			fprintf( f, "\t\t\t/>\n" );
 	}
 
 // Layer epilogue
@@ -996,7 +1019,7 @@ void CTileSet::WriteTrakEM2Layer(
 //
 // - BBox B previously obtained from AllBounds, Reframe.
 //
-// - Type is an ImagePlus pixel type code:
+// - xmltype is an ImagePlus pixel type code:
 //		AUTO		= -1
 //		GRAY8		= 0
 //		GRAY16		= 1
@@ -1004,7 +1027,15 @@ void CTileSet::WriteTrakEM2Layer(
 //		COLOR_256	= 3
 //		COLOR_RGB	= 4
 //
-void CTileSet::WriteTrakEM2( const char *path, DBox &B, int type )
+// - xmlmin, xmlmax are used iff xmlmin < xmlmax. To let TrakEM2
+// autoscale, set both to zero.
+//
+void CTileSet::WriteTrakEM2(
+	const char	*path,
+	DBox		&B,
+	int			xmltype,
+	int			xmlmin,
+	int			xmlmax )
 {
 // Open file
 
@@ -1045,7 +1076,7 @@ void CTileSet::WriteTrakEM2( const char *path, DBox &B, int type )
 
 	while( isN != -1 ) {
 
-		WriteTrakEM2Layer( f, oid, type, is0, isN );
+		WriteTrakEM2Layer( f, oid, xmltype, xmlmin, xmlmax, is0, isN );
 		GetLayerLimits( is0 = isN, isN );
 	}
 
@@ -1062,7 +1093,7 @@ void CTileSet::WriteTrakEM2( const char *path, DBox &B, int type )
 
 // Tiles must already be sorted by z (subsort doesn't matter).
 //
-// - Type is an ImagePlus pixel type code:
+// - xmltype is an ImagePlus pixel type code:
 //		AUTO		= -1
 //		GRAY8		= 0
 //		GRAY16		= 1
@@ -1070,13 +1101,20 @@ void CTileSet::WriteTrakEM2( const char *path, DBox &B, int type )
 //		COLOR_256	= 3
 //		COLOR_RGB	= 4
 //
-void CTileSet::WriteTrakEM2_EZ( const char *path, int type )
+// - xmlmin, xmlmax are used iff xmlmin < xmlmax. To let TrakEM2
+// autoscale, set both to zero.
+//
+void CTileSet::WriteTrakEM2_EZ(
+	const char	*path,
+	int			xmltype,
+	int			xmlmin,
+	int			xmlmax )
 {
 	DBox	B;
 
 	AllBounds( B );
 	Reframe( B );
-	WriteTrakEM2( path, B, type );
+	WriteTrakEM2( path, B, xmltype, xmlmin, xmlmax );
 }
 
 /* --------------------------------------------------------------- */

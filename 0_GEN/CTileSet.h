@@ -119,12 +119,24 @@ public:
 	void WriteTrakEM2Layer(
 		FILE*	f,
 		int		&oid,
-		int		type,
+		int		xmltype,
+		int		xmlmin,
+		int		xmlmax,
 		int		is0,
 		int		isN );
 
-	void WriteTrakEM2( const char *path, DBox &B, int type = -1 );
-	void WriteTrakEM2_EZ( const char *path, int type = -1 );
+	void WriteTrakEM2(
+		const char	*path,
+		DBox		&B,
+		int			xmltype,
+		int			xmlmin,
+		int			xmlmax );
+
+	void WriteTrakEM2_EZ(
+		const char	*path,
+		int			xmltype,
+		int			xmlmin,
+		int			xmlmax );
 
 	void WriteTileToImage( const string &idb, int is0, int isN );
 };

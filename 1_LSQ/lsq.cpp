@@ -193,6 +193,8 @@ public:
 			ref_layer,
 			max_pass,
 			xml_type,
+			xml_min,
+			xml_max,
 			viserr;				// 0, or, error scale
 	bool	strings,
 			make_layer_square,
@@ -215,6 +217,8 @@ public:
 		ref_layer			= -1;
 		max_pass			= 1;
 		xml_type			= 0;
+		xml_min				= 0;
+		xml_max				= 0;
 		viserr				= 0;
 		strings				= false;
 		make_layer_square	= false;
@@ -492,6 +496,10 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting maximum passes to %d\n", max_pass );
 		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
 			printf( "Setting xml image type to %d\n", xml_type );
+		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
+			printf( "Setting xml image min to %d\n", xml_min );
+		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
+			printf( "Setting xml image max to %d\n", xml_max );
 		else if( GetArg( &viserr, "-viserr=%d", argv[i] ) )
 			printf( "Setting visual error scale to %d\n", viserr );
 		else if( IsArg( "-strings", argv[i] ) )
@@ -2806,11 +2814,21 @@ static void WriteTrakEM(
 		"\t\t\t\ttype=\"%d\"\n"
 		"\t\t\t\tfile_path=\"%s\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
-		"\t\t\t\to_height=\"%d\"\n"
-		"\t\t\t/>\n",
+		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW - offset, gH - offset,
 		X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
 		s2 - s1, s1, gArgs.xml_type, p, gW - offset, gH - offset );
+
+		if( gArgs.xml_min < gArgs.xml_max ) {
+
+			fprintf( f,
+			"\t\t\t\tmin=\"%d\"\n"
+			"\t\t\t\tmax=\"%d\"\n"
+			"\t\t\t/>\n",
+			gArgs.xml_min, gArgs.xml_max );
+		}
+		else
+			fprintf( f, "\t\t\t/>\n" );
 	}
 
 	if( nr > 0 )
@@ -3542,6 +3560,8 @@ static void ViseWriteXML(
 		"\t\t\t\tfile_path=\"viseimg/%d/%s.png\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
 		"\t\t\t\to_height=\"%d\"\n"
+		"\t\t\t\tmin=\"0\"\n"
+		"\t\t\t\tmax=\"255\"\n"
 		"\t\t\t/>\n",
 		oid++, visePix, visePix,
 		sclx*X[j], scly*X[j+3], sclx*X[j+1], scly*X[j+4], X[j+2], X[j+5],

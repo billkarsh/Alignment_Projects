@@ -71,7 +71,9 @@ public:
 			*clk;
 	int		zmin,
 			zmax,
-			xml_type;
+			xml_type,
+			xml_min,
+			xml_max;
 	bool	Simple,
 			NoFolds;
 
@@ -85,6 +87,8 @@ public:
 		zmin		= 0;
 		zmax		= 32768;
 		xml_type	= 0;
+		xml_min		= 0;
+		xml_max		= 0;
 		Simple		= false;
 		NoFolds		= false;
 	};
@@ -152,6 +156,10 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
 		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
 			;
 		else if( IsArg( "-simple", argv[i] ) )
 			Simple = true;
@@ -616,12 +624,18 @@ int main( int argc, char* argv[] )
 /* Diagnostics */
 /* ----------- */
 
-	if( gArgs.Simple )
-		TS.WriteTrakEM2_EZ( "PreClicks.xml", gArgs.xml_type );
+	if( gArgs.Simple ) {
+
+		TS.WriteTrakEM2_EZ( "PreClicks.xml",
+			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
+	}
 
 	if( gArgs.clk ) {
+
 		TS.ApplyClix( tsClixAffine, gArgs.clk );
-		TS.WriteTrakEM2_EZ( "PostClicks.xml", gArgs.xml_type );
+
+		TS.WriteTrakEM2_EZ( "PostClicks.xml",
+			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
 	}
 
 /* ----------------------- */
