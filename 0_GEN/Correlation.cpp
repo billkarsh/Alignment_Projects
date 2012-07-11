@@ -2018,8 +2018,8 @@ void CCorImg::MaskA( vector<uint8> &A, int Ox, int Oy, int Or )
 	if( Or <= 0 )
 		return;
 
-	Ox += cx;
-	Oy += cy;
+	Ox += B1.L - B2.L + cx;
+	Oy += B1.B - B2.B + cy;
 
 	int	xmin = Ox - Or,
 		xmax = Ox + Or,
