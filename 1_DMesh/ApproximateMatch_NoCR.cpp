@@ -17,6 +17,13 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Zero angle hypothesis: That within a layer the tile-tile
+// angles are all zero, unless sample actually distorts during
+// imaging, which may be true in EM. However, zero may still be
+// good enough angle estimator.
+//
+#define	ZEROANG	1
+
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -98,6 +105,18 @@ static int SetStartingAngle( FILE* flog )
 		nprior	= 1;
 		goto adjust_olap;
 	}
+
+// In-layer zero angle hypothesis
+
+#if ZEROANG
+
+	if( GBL.A.layer == GBL.B.layer ) {
+
+		ang0	= 0.0;
+		return 1;
+	}
+
+#endif
 
 // Try to get prior angles
 
@@ -605,10 +624,87 @@ bool ApproximateMatch_NoCR(
 //	exit( 42 );
 // -----------------------------------------------------------
 
+#if ZEROANG
+
+	if( dbgCor && GBL.A.layer != GBL.B.layer ) {
+		S.RFromAngle( best, ang0, thm );
+		return false;
+	}
+
+#else
+
 	if( dbgCor ) {
 		S.RFromAngle( best, ang0, thm );
 		return false;
 	}
+
+#endif
+
+/* --------------------------------------------- */
+/* Zero angle search constrained by stage coords */
+/* --------------------------------------------- */
+
+#if ZEROANG
+
+	if( GBL.A.layer == GBL.B.layer ) {
+
+		TForm	atob;
+		Point	delta, TaO = olp.aO;
+		int		Ox, Oy, Or;
+
+		AToBTrans( atob, GBL.A.t2i.T, GBL.B.t2i.T );
+		atob.Transform( delta );
+		atob.Apply_R_Part( TaO );
+
+		Ox = ROUND((delta.x / px.scl - olp.bO.x + TaO.x) / thm.scl);
+		Oy = ROUND((delta.y / px.scl - olp.bO.y + TaO.y) / thm.scl);
+		Or = GBL.ctx.DINPUT / (thm.scl * px.scl);
+
+		fprintf( flog, "SetDisc( %d, %d, %d )\n", Ox, Oy, Or );
+
+		S.SetUseCorrR( true );
+		S.SetDisc( Ox, Oy, Or );
+		S.RFromAngle( best, 0, thm );
+
+		fprintf( flog,
+		"Initial: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
+		best.R, best.A, best.X, best.Y );
+
+		if( dbgCor )
+			return false;
+
+		if( best.R < GBL.ctx.RTRSH ) {
+
+			if( GBL.mch.PRETWEAK ) {
+
+				S.Pretweaks( best.R, 0, thm );
+				S.RFromAngle( best, 0, thm );
+
+				fprintf( flog,
+				"Tweaked: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
+				best.R, best.A, best.X, best.Y );
+			}
+
+			if( best.R < GBL.ctx.RTRSH ) {
+
+				fprintf( flog,
+				"FAIL: Approx: Zeroang R=%g below thresh=%g\n",
+				best.R, GBL.ctx.RTRSH );
+
+				return Failure( best, 2 );
+			}
+		}
+
+		Point	dS(
+				(best.X - Ox) * (thm.scl * px.scl),
+				(best.Y - Oy) * (thm.scl * px.scl) );
+
+		fprintf( flog, "Peak-Disc: dR %d dX %d dY %d\n",
+		int(sqrt( dS.RSqr() )), int(dS.x), int(dS.y) );
+	}
+	else
+
+#endif
 
 /* ------------------------------------------- */
 /* Search range of angles for best correlation */
