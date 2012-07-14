@@ -1,16 +1,19 @@
-#!/bin/csh
+#!/bin/sh
 
-foreach i (`seq $1 $2`)
+for i in `seq $1 $2`
+do
 	echo $i
 	cd $i
-	if ( $i == $1 ) then
+	if [ $i = $1 ]
+	then
 		make -f make.pts pts.same
 		make -f make.pts pts.up
-	else if ( $i == $2 ) then
+	elif [ $i = $2 ]
+	then
 		make -f make.pts pts.same
 		make -f make.pts pts.down
 	else
 		make -f make.pts
-	endif
+	fi
 	cd ..
-end
+done
