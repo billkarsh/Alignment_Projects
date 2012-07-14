@@ -1,4 +1,0 @@
-#!/bin/csh
-
-XMLUnite file1.xml file2.xml
-

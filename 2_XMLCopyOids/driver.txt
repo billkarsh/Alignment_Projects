@@ -1,4 +1,0 @@
-#!/bin/csh
-
-XMLCopyOids dst.xml src.xml
-

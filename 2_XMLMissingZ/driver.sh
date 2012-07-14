@@ -1,0 +1,4 @@
+#!/bin/sh
+
+XMLMissingZ layer0_48_grn_rigid_montage.xml -zmin=2 -zmax=5
+

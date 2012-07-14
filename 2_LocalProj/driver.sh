@@ -1,0 +1,4 @@
+#!/bin/sh
+
+localproj /groups/apig/tomo/EX2/temp_Fstd/stack/MultLayAff.xml -dst=/groups/apig/tomo/QQQ7 -zmin=1 -zmax=2
+
