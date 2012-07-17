@@ -233,10 +233,10 @@ static void WriteRunlsqFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/stack/runlsq", gArgs.outdir );
+	sprintf( buf, "%s/stack/runlsq.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
@@ -253,28 +253,34 @@ static void WriteSubmosFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/mosaic/submos", gArgs.outdir );
+	sprintf( buf, "%s/mosaic/submos.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+	fprintf( f, "export MRC_TRIM=12\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
 
 	fprintf( f,
-	"\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
+	"\t\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
 	" \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s"
 	" > mos_$lyr.txt\"\n",
 	(gArgs.NoFolds ? " -nf" : "") );
 
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -289,31 +295,35 @@ static void WriteSubsNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/subs%d", gArgs.outdir, njobs );
+	sprintf( buf, "%s/subs%d.sh", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+	fprintf( f, "export MRC_TRIM=12\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
-	fprintf( f, "\tif (-d $lyr) then\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tforeach jb (`ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}'`)\n" );
+	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tend\n" );
+	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\t\tcd ..\n" );
-	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -328,10 +338,10 @@ static void WriteReportFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report", gArgs.outdir );
+	sprintf( buf, "%s/report.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "ls -l */S*/qS*.e* > SameErrs.txt\n\n" );
 
@@ -350,29 +360,30 @@ static void WriteMontage1File()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/montage1", gArgs.outdir );
+	sprintf( buf, "%s/montage1.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "cd $1\n\n" );
 
 	fprintf( f, "rm -f pts.all\n\n" );
 
 	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
-	fprintf( f, "set idb = `sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < ../imageparams.txt`\n\n" );
+	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < ../imageparams.txt)\n\n" );
 
 	fprintf( f, "cp ../imageparams.txt pts.all\n" );
 	fprintf( f, "cat $idb/$1/fm.same >> pts.all\n\n" );
 
-	fprintf( f, "foreach jb (`ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}'`)\n" );
+	fprintf( f, "for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "do\n" );
 	fprintf( f, "\tcat $jb/pts.same >> pts.all\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "done\n\n" );
 
 	fprintf( f, "mv pts.all montage\n\n" );
 
 	fprintf( f, "cd montage\n" );
-	fprintf( f, "./runlsq\n\n" );
+	fprintf( f, "./runlsq.sh\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -387,24 +398,30 @@ static void WriteSubmonFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/submon", gArgs.outdir );
+	sprintf( buf, "%s/submon.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
 
 	fprintf( f,
-	"\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8"
-	" \"./montage1 $lyr\"\n" );
+	"\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8"
+	" \"./montage1.sh $lyr\"\n" );
 
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -419,25 +436,28 @@ static void WriteReportMonsFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sumymons", gArgs.outdir );
+	sprintf( buf, "%s/sumymons.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
 	fprintf( f, "rm -rf MonSumy.txt\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
-	fprintf( f, "\tset log = $lyr/montage/lsq.txt\n" );
-	fprintf( f, "\tif( -f $log ) then\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\tlog=$lyr/montage/lsq.txt\n" );
+	fprintf( f, "\tif [ -f \"$log\" ]\n" );
+	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\techo Z $lyr `grep -e \"FINAL*\" $log` >> MonSumy.txt\n" );
-	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -470,10 +490,10 @@ static void CreateLayerDir( char *lyrdir, int L )
 	DskCreateDir( buf, flog );
 
 // Create montage script
-	sprintf( buf + len, "/runlsq" );
+	sprintf( buf + len, "/runlsq.sh" );
 	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 

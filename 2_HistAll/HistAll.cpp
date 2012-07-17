@@ -205,14 +205,14 @@ static void WriteScript( const vector<Picture> &vp )
 
 // open file
 
-	FILE	*f = FileOpenOrDie( "HST/make.hst", "w", flog );
+	FILE	*f = FileOpenOrDie( "HST/make.hst.sh", "w", flog );
 
 // write
 
 	int		np = vp.size(),
 			nc = gArgs.chn.size();
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	for( int ip = 0; ip < np; ++ip ) {
 
@@ -236,7 +236,7 @@ static void WriteScript( const vector<Picture> &vp )
 
 // make executable
 
-	chmod( "HST/make.hst", S_IRWXU | S_IRWXG | S_IRWXO );
+	chmod( "HST/make.hst.sh", S_IRWXU | S_IRWXG | S_IRWXO );
 }
 
 /* --------------------------------------------------------------- */

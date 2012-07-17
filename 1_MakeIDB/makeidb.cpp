@@ -233,26 +233,29 @@ static void WriteSubfmFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/subfm", gArgs.outdir );
+	sprintf( buf, "%s/subfm.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+	fprintf( f, "export MRC_TRIM=12\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
-	fprintf( f, "\tif (-d $lyr) then\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
 	fprintf( f, "\t\tqsub -N lou-f-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
 	fprintf( f, "\t\tcd ..\n" );
-	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -267,10 +270,10 @@ static void WriteReportFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report_fm", gArgs.outdir );
+	sprintf( buf, "%s/report_fm.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "ls -l */lou-f*.e* > FmErrs.txt\n\n" );
 

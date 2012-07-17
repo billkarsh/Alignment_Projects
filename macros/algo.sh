@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 
 #
 # > makealn myidb -dtemp -zmin=0 -zmax=5

@@ -1,14 +1,14 @@
 #!/bin/sh
 
 
-if [ $# = 1 ]
+if (($# == 1))
 then
     last=$1
 else
     last=$2
 fi
 
-for i in `seq $1 $last`
+for i in $(seq $1 $last)
 do
 	j=$(($i + 2))
 	echo trying $i to $j

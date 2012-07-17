@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 
 # > ./subdel dirname
 

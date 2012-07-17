@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 
 # Suppose you want to work with images of type 'TIF'...
 #
@@ -12,41 +12,45 @@
 #
 
 
-if( "$4" =~ "/*" ) then
-	set dsttop = $4
+if [ $(printf "%.1s" $4) = "/" ]
+then
+	dsttop=$4
 else
-	set dsttop = $PWD/$4
-endif
+	dsttop=$PWD/$4
+fi
 
+if [ "$1" = "-c" ]
+then # compress
 
-if( "$1" =~ "-c" ) then # compress
-
-	set dsttop = $dsttop/$2"_gzip"/$2
+	dsttop=$dsttop/$2"_gzip"/$2
 
 	cd $3
 
-	foreach srcdir (`ls -d V91*`)
+	for srcdir in $(ls -d V91*)
+	do
 		echo $srcdir
-		set dstdir = $dsttop/$srcdir
+		dstdir=$dsttop/$srcdir
 		mkdir -p $dstdir
 		tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0
-	end
+	done
 
-else if( "$1" =~ "-u" ) then # uncompress
+elif [ "$1" = "-u" ]
+then # uncompress
 
-	set dsttop = $dsttop/$2"_unzp"/$2
+	dsttop=$dsttop/$2"_unzp"/$2
 	mkdir -p $dsttop
 
 	cd $3
 
-	foreach srcdir (`ls -d V91*`)
+	for srcdir in $(ls -d V91*)
+	do
 		echo $srcdir
 		tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop
-	end
+	done
 else
 	echo "Error: Arg #1 must be -c or -u"
 	exit
-endif
+fi
 
 
 #qsub -N del-$srcdir -cwd -V -b y -pe batch 8 "tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0"

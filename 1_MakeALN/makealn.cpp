@@ -190,10 +190,10 @@ static void WriteRunlsqFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/stack/runlsq", gArgs.outdir );
+	sprintf( buf, "%s/stack/runlsq.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
@@ -210,28 +210,34 @@ static void WriteSubmosFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/mosaic/submos", gArgs.outdir );
+	sprintf( buf, "%s/mosaic/submos.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+	fprintf( f, "export MRC_TRIM=12\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
 
 	fprintf( f,
-	"\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
+	"\t\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
 	" \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s"
 	" > mos_$lyr.txt\"\n",
 	(gArgs.NoFolds ? " -nf" : "") );
 
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -246,31 +252,35 @@ static void WriteSubNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sub%d", gArgs.outdir, njobs );
+	sprintf( buf, "%s/sub%d.sh", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "setenv MRC_TRIM 12\n\n" );
+	fprintf( f, "export MRC_TRIM=12\n\n" );
 
-	fprintf( f, "if ($#argv == 1) then\n" );
-	fprintf( f, "\tset last = $1\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
-	fprintf( f, "\tset last = $2\n" );
-	fprintf( f, "endif\n\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $last`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
-	fprintf( f, "\tif (-d $lyr) then\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr/S0_0\n" );
 	fprintf( f, "\t\tqsub -N qS0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
-	fprintf( f, "\t\tif ($lyr > $1) then\n" );
+	fprintf( f, "\t\tif (($lyr > $1))\n" );
+	fprintf( f, "\t\tthen\n" );
 	fprintf( f, "\t\t\tcd ../D0_0\n" );
 	fprintf( f, "\t\t\tqsub -N qD0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
-	fprintf( f, "\t\tendif\n" );
+	fprintf( f, "\t\tfi\n" );
 	fprintf( f, "\t\tcd ../..\n" );
-	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -285,10 +295,10 @@ static void WriteReportFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report", gArgs.outdir );
+	sprintf( buf, "%s/report.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "ls -l */S0_0/qS0_0-*.e* > SameErrs.txt\n" );
 	fprintf( f, "ls -l */D0_0/qD0_0-*.e* > DownErrs.txt\n\n" );
@@ -309,30 +319,33 @@ static void WriteCombineFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/combine", gArgs.outdir );
+	sprintf( buf, "%s/combine.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f, "rm -f pts.all\n\n" );
 
 	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
-	fprintf( f, "set idb = `sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < imageparams.txt`\n\n" );
+	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < imageparams.txt)\n\n" );
 
 	fprintf( f, "cp imageparams.txt pts.all\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $2)\n" );
+	fprintf( f, "do\n" );
 	fprintf( f, "\tcat $idb/$lyr/fm.same >> pts.all\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "done\n\n" );
 
-	fprintf( f, "foreach lyr (`seq $1 $2`)\n" );
+	fprintf( f, "for lyr in $(seq $1 $2)\n" );
+	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
-	fprintf( f, "\tif ( $lyr == $1 ) then\n" );
+	fprintf( f, "\tif (($lyr == $1))\n" );
+	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcat $lyr/S0_0/pts.same >> pts.all\n" );
 	fprintf( f, "\telse\n" );
 	fprintf( f, "\t\tcat $lyr/{S0_0/pts.same,D0_0/pts.down} >> pts.all\n" );
-	fprintf( f, "\tendif\n" );
-	fprintf( f, "end\n\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fprintf( f, "mv pts.all stack\n\n" );
 
@@ -349,14 +362,14 @@ static void WriteFinishFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/finish", gArgs.outdir );
+	sprintf( buf, "%s/finish.sh", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "./combine %d %d\n", gArgs.zmin, gArgs.zmax );
+	fprintf( f, "./combine.sh %d %d\n", gArgs.zmin, gArgs.zmax );
 	fprintf( f, "cd stack\n" );
-	fprintf( f, "./runlsq\n\n" );
+	fprintf( f, "./runlsq.sh\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );

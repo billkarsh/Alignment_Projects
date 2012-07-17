@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 
 ls -l */lou-d*.e* > DwnErrs.txt
 ls -l */lou-s*.e* > SamErrs.txt

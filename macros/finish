@@ -1,7 +1,0 @@
-#!/bin/csh
-
-./combine 0 2
-cd stack
-./runlsq
-
-

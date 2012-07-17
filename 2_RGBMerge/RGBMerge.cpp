@@ -238,13 +238,13 @@ static void WriteScript( vector<int> &zlist )
 
 // open file
 
-	FILE	*f = FileOpenOrDie( "make.merge", "w", flog );
+	FILE	*f = FileOpenOrDie( "make.merge.sh", "w", flog );
 
 // write
 
 	int		nz = zlist.size();
 
-	fprintf( f, "#!/bin/csh\n\n" );
+	fprintf( f, "#!/bin/sh\n\n" );
 
 	for( int iz = 0; iz < nz; ++iz ) {
 
@@ -260,7 +260,7 @@ static void WriteScript( vector<int> &zlist )
 
 // make executable
 
-	chmod( "make.merge", S_IRWXU | S_IRWXG | S_IRWXO );
+	chmod( "make.merge.sh", S_IRWXU | S_IRWXG | S_IRWXO );
 }
 
 /* --------------------------------------------------------------- */

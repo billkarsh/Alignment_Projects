@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 
 lsq pts.all ../../ldir -p_N_ -scale=0.1 -square=0.1 > lsq.txt
 

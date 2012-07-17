@@ -10,9 +10,9 @@ fi
 
 for i in $(seq $1 $last)
 do
-	cd $i
 	echo $i
-	lsq pts.same.nf -scale=1000 -square=1000 | egrep 'RMS|Bad pair'
+	cd $i
+	qsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f thumbs.down -j 8 EXTRA=''
 	cd ..
 done
 

@@ -1,6 +1,6 @@
-#!/bin/csh
+#!/bin/sh
 
-setenv MRC_TRIM 12
+export MRC_TRIM=12
 
 #
 # > makeidb myxml -didb -p_Nex.mrc

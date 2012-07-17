@@ -1,24 +1,27 @@
-#!/bin/csh
+#!/bin/sh
 
 rm -f pts.all
 
 #get line 1, subst 'IDBPATH=xxx' with 'xxx'
-set idb = `sed -n -e 's|IDBPATH \(.*\)|\1|' -e '1p' <imageparams.txt`
+idb=$(sed -n -e 's|IDBPATH \(.*\)|\1|' -e '1p' < imageparams.txt)
 
 cp imageparams.txt pts.all
 
-foreach i (`seq $1 $2`)
+for i in $(seq $1 $2)
+do
 	cat $idb/$i/fm.same >> pts.all
-end
+done
 
-foreach i (`seq $1 $2`)
+for i in $(seq $1 $2)
+do
 	echo $i
-	if ( $i == $1 ) then
+	if (($i == $1))
+	then
 		cat $i/pts.{same} >> pts.all
 	else
 		cat $i/pts.{down,same} >> pts.all
-	endif
-end
+	fi
+done
 
 mv pts.all stack
 
