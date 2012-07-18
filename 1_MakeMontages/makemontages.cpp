@@ -233,7 +233,7 @@ static void WriteRunlsqFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/stack/runlsq.sh", gArgs.outdir );
+	sprintf( buf, "%s/stack/runlsq.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -253,7 +253,7 @@ static void WriteSubmosFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/mosaic/submos.sh", gArgs.outdir );
+	sprintf( buf, "%s/mosaic/submos.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -295,7 +295,7 @@ static void WriteSubsNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/subs%d.sh", gArgs.outdir, njobs );
+	sprintf( buf, "%s/subs%d.sht", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -338,7 +338,7 @@ static void WriteReportFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report.sh", gArgs.outdir );
+	sprintf( buf, "%s/report.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -360,7 +360,7 @@ static void WriteMontage1File()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/montage1.sh", gArgs.outdir );
+	sprintf( buf, "%s/montage1.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -383,7 +383,7 @@ static void WriteMontage1File()
 	fprintf( f, "mv pts.all montage\n\n" );
 
 	fprintf( f, "cd montage\n" );
-	fprintf( f, "./runlsq.sh\n\n" );
+	fprintf( f, "./runlsq.sht\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );
@@ -398,7 +398,7 @@ static void WriteSubmonFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/submon.sh", gArgs.outdir );
+	sprintf( buf, "%s/submon.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -418,7 +418,7 @@ static void WriteSubmonFile()
 
 	fprintf( f,
 	"\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8"
-	" \"./montage1.sh $lyr\"\n" );
+	" \"./montage1.sht $lyr\"\n" );
 
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n\n" );
@@ -436,7 +436,7 @@ static void WriteReportMonsFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sumymons.sh", gArgs.outdir );
+	sprintf( buf, "%s/sumymons.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -490,7 +490,7 @@ static void CreateLayerDir( char *lyrdir, int L )
 	DskCreateDir( buf, flog );
 
 // Create montage script
-	sprintf( buf + len, "/runlsq.sh" );
+	sprintf( buf + len, "/runlsq.sht" );
 	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );

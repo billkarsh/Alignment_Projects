@@ -1,0 +1,22 @@
+#!/bin/sh
+
+export MRC_TRIM=12
+
+cd lou_example
+scr green_raw.xml -dtemp -p_N_
+
+cd temp
+
+cp /groups/apig/tomo/lou_stuff/thmparams.txt .
+cp /groups/apig/tomo/lou_stuff/dmeshparams.txt .
+cp /groups/apig/tomo/lou_stuff/subfm.sht .
+cp /groups/apig/tomo/lou_stuff/sub8.sht .
+cp /groups/apig/tomo/lou_stuff/thmdown.sht .
+cp /groups/apig/tomo/lou_stuff/thmsame.sht .
+cp /groups/apig/tomo/lou_stuff/combine.sht .
+cp /groups/apig/tomo/lou_stuff/finish.sht .
+cp /groups/apig/tomo/lou_stuff/report.sht .
+
+cp /groups/apig/tomo/lou_stuff/runlsq.sht stack/
+
+./subfm.sht 0 2

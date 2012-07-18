@@ -180,7 +180,7 @@ static void WriteScript( vector<int> &zlist )
 
 // open file
 
-	FILE	*f = FileOpenOrDie( "make.heq.sh", "w", flog );
+	FILE	*f = FileOpenOrDie( "make.heq.sht", "w", flog );
 
 // write
 
@@ -202,7 +202,7 @@ static void WriteScript( vector<int> &zlist )
 
 // make executable
 
-	chmod( "make.heq.sh", S_IRWXU | S_IRWXG | S_IRWXO );
+	chmod( "make.heq.sht", S_IRWXU | S_IRWXG | S_IRWXO );
 }
 
 /* --------------------------------------------------------------- */

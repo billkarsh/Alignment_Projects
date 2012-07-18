@@ -205,7 +205,7 @@ static void WriteScript( const vector<Picture> &vp )
 
 // open file
 
-	FILE	*f = FileOpenOrDie( "HST/make.hst.sh", "w", flog );
+	FILE	*f = FileOpenOrDie( "HST/make.hst.sht", "w", flog );
 
 // write
 
@@ -236,7 +236,7 @@ static void WriteScript( const vector<Picture> &vp )
 
 // make executable
 
-	chmod( "HST/make.hst.sh", S_IRWXU | S_IRWXG | S_IRWXO );
+	chmod( "HST/make.hst.sht", S_IRWXU | S_IRWXG | S_IRWXO );
 }
 
 /* --------------------------------------------------------------- */

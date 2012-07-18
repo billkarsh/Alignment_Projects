@@ -190,7 +190,7 @@ static void WriteRunlsqFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/stack/runlsq.sh", gArgs.outdir );
+	sprintf( buf, "%s/stack/runlsq.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -210,7 +210,7 @@ static void WriteSubmosFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/mosaic/submos.sh", gArgs.outdir );
+	sprintf( buf, "%s/mosaic/submos.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -252,7 +252,7 @@ static void WriteSubNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sub%d.sh", gArgs.outdir, njobs );
+	sprintf( buf, "%s/sub%d.sht", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -295,7 +295,7 @@ static void WriteReportFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report.sh", gArgs.outdir );
+	sprintf( buf, "%s/report.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -319,7 +319,7 @@ static void WriteCombineFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/combine.sh", gArgs.outdir );
+	sprintf( buf, "%s/combine.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -362,14 +362,14 @@ static void WriteFinishFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/finish.sh", gArgs.outdir );
+	sprintf( buf, "%s/finish.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "./combine.sh %d %d\n", gArgs.zmin, gArgs.zmax );
+	fprintf( f, "./combine.sht %d %d\n", gArgs.zmin, gArgs.zmax );
 	fprintf( f, "cd stack\n" );
-	fprintf( f, "./runlsq.sh\n\n" );
+	fprintf( f, "./runlsq.sht\n\n" );
 
 	fclose( f );
 	ScriptPerms( buf );

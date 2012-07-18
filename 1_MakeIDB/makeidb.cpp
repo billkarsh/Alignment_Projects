@@ -233,7 +233,7 @@ static void WriteSubfmFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/subfm.sh", gArgs.outdir );
+	sprintf( buf, "%s/subfm.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -270,7 +270,7 @@ static void WriteReportFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report_fm.sh", gArgs.outdir );
+	sprintf( buf, "%s/report_fm.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );

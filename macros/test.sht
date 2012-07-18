@@ -26,8 +26,12 @@
 # echo $v2
 
 
-# find files at all depths from here like *.sh
-# find . -name "*.sh"
+# find files at all depths from here like *.sht
+# find . -name "*.sht"
+
+# Rename all files containing '.sh' to '.sht'
+# rename <from pattern <to pattern> <where>
+# rename .sh .sht *.sh
 
 
 # Get path part of filename from $1
@@ -38,3 +42,9 @@
 # export MRC_TRIM=12
 
 
+if ((2 + 3 == 5))
+then
+echo yes
+else
+echo no
+fi

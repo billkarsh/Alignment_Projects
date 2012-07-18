@@ -4,11 +4,11 @@
 #
 # To compress image directory aaa/bbb/TIF and put result at ccc/
 #
-# > ./tar.csh -c TIF aaa/bbb/TIF ccc
+# > ./tar.sht -c TIF aaa/bbb/TIF ccc
 #
 # To uncompress image directory aaa/bbb/TIF and put result at ccc/
 #
-# > ./tar.csh -u TIF aaa/bbb/TIF ccc
+# > ./tar.sht -u TIF aaa/bbb/TIF ccc
 #
 
 

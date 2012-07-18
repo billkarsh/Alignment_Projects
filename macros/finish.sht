@@ -1,0 +1,7 @@
+#!/bin/sh
+
+./combine.sht 0 2
+cd stack
+./runlsq.sht
+
+
