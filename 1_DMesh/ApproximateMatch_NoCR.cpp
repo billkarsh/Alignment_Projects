@@ -781,8 +781,13 @@ bool ApproximateMatch_NoCR(
 // Stay close to original transform, assuming some preliminary
 // alignment was done.
 
-	if( GBL.ctx.INPALN ) {
+#if ZEROANG
+// Soln already known close enough to input
+	if( GBL.A.layer == GBL.B.layer )
+		GBL.ctx.INPALN = false;
+#endif
 
+	{
 		TForm	T, Tinv, I;
 
 		AToBTrans( T, GBL.A.t2i.T, GBL.B.t2i.T );
@@ -799,7 +804,7 @@ bool ApproximateMatch_NoCR(
 		fprintf( flog, "Approx: err = %g, max = %d\n",
 			err, GBL.ctx.DINPUT );
 
-		if( err > GBL.ctx.DINPUT ) {
+		if( GBL.ctx.INPALN && err > GBL.ctx.DINPUT ) {
 
 			fprintf( flog,
 			"FAIL: Approx: Too different from Tinput"

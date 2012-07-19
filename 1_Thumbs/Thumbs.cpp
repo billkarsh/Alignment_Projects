@@ -688,8 +688,7 @@ bool Thumbs(
 // Stay close to original transform, assuming some preliminary
 // alignment was done.
 
-	if( GBL.ctx.INPALN ) {
-
+	{
 		TForm	T, Tinv, I;
 
 		AToBTrans( T, GBL.A.t2i.T, GBL.B.t2i.T );
@@ -706,7 +705,7 @@ bool Thumbs(
 		fprintf( flog, "Approx: err = %g, max = %d\n",
 			err, GBL.ctx.DINPUT );
 
-		if( err > GBL.ctx.DINPUT ) {
+		if( GBL.ctx.INPALN && err > GBL.ctx.DINPUT ) {
 
 			fprintf( flog,
 			"FAIL: Approx: Too different from Tinput"
