@@ -55,7 +55,7 @@ static void AdjustBounds(
 	x0 = xmin * scale;
 	y0 = ymin * scale;
 	ws = (int)ceil( (xmax - xmin + 1) * scale );
-	hs = (int)ceil( (ymax - xmin + 1) * scale );
+	hs = (int)ceil( (ymax - ymin + 1) * scale );
 
 // ensure dims divisible by szmult
 
