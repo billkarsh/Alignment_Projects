@@ -30,7 +30,7 @@ typedef struct {
 	vector<CD>		ftc;		// fourier transform cache
 	long			reqArea;
 	int				olap1D,
-					scl;
+					scl;		// for caller convenience
 } ThmRec;
 
 typedef struct {
