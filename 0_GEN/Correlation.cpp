@@ -2350,13 +2350,13 @@ bool CCorImg::OrderF(
 		if( ndbg > 40 )
 			ndbg = 40;
 
-		printf( "top %d by F:\n", ndbg );
+		fprintf( flog, "top %d by F:\n", ndbg );
 
 		for( int i = 0; i < ndbg; ++i ) {
 			int	k	= forder[i];
 			int	y0	= k / wR;
 			int	x0	= k - wR * y0;
-			printf( "F %.3f R %.3f (x,y)=(%d,%d)\n",
+			fprintf( flog, "F %.3f R %.3f (x,y)=(%d,%d)\n",
 				F[k], R[k], x0, y0 );
 		}
 	}
