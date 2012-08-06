@@ -178,6 +178,7 @@ public:
 		CorRec	&best,
 		double	ang0,
 		double	hfangdn,
+		double	step,
 		ThmRec	&thm );
 
 	void PostTweaks( CorRec &best, ThmRec &thm );

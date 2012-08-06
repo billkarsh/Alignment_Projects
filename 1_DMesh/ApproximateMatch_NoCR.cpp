@@ -718,8 +718,11 @@ bool ApproximateMatch_NoCR(
 			return Failure( best, S.GetErr() );
 		}
 	}
-	else if( !S.DenovoBestAngle( best, ang0, GBL.ctx.HFANGDN, thm ) )
+	else if( !S.DenovoBestAngle( best,
+				ang0, GBL.ctx.HFANGDN, 0.5, thm ) ) {
+
 		return Failure( best, S.GetErr() );
+	}
 
 /* ----------------------- */
 /* Apply distortion tweaks */

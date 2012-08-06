@@ -625,8 +625,11 @@ bool Thumbs(
 			return Failure( best, acr.id, bcr.id, S.GetErr() );
 		}
 	}
-	else if( !S.DenovoBestAngle( best, ang0, GBL.ctx.HFANGDN, thm ) )
+	else if( !S.DenovoBestAngle( best,
+				ang0, GBL.ctx.HFANGDN, 0.5, thm ) ) {
+
 		return Failure( best, acr.id, bcr.id, S.GetErr() );
+	}
 
 /* ----------------------- */
 /* Apply distortion tweaks */
