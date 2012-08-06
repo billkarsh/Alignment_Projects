@@ -254,7 +254,7 @@ double CThmScan::PeakHunt( CorRec &best, double hlfwid, ThmRec &thm )
 	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f\n",
 	k, best.R, best.A, best.X, best.Y );
 
-	StopTiming( stdout, "PeakHunt", t0 );
+	StopTiming( flog, "PeakHunt", t0 );
 
 	return best.R;
 }
@@ -408,7 +408,7 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 			break;
 	}
 
-	StopTiming( stdout, "Pretweaks", t0 );
+	StopTiming( flog, "Pretweaks", t0 );
 
 	fprintf( flog, "Approx: Pretweak " );
 	Tptwk.PrintTransform( flog );
@@ -521,7 +521,7 @@ double CThmScan::AngleScanMaxR(
 
 	RecordAngle( flog, "  Best", best );
 
-	StopTiming( stdout, "AngleScan", t0 );
+	StopTiming( flog, "AngleScan", t0 );
 
 	return best.R;
 }
@@ -645,7 +645,7 @@ double CThmScan::AngleScanConstXY(
 
 	RecordAngle( flog, "Best", best );
 
-	StopTiming( stdout, "AngleScan", t0 );
+	StopTiming( flog, "AngleScan", t0 );
 
 	return best.R;
 }
@@ -800,7 +800,7 @@ void CThmScan::FinishAtFullRes( CorRec &best, ThmRec &thm )
 	else
 		best = b0;
 
-	StopTiming( stdout, "FinishAtFullRes", t0 );
+	StopTiming( flog, "FinishAtFullRes", t0 );
 }
 
 
