@@ -42,9 +42,18 @@
 # export MRC_TRIM=12
 
 
-if ((2 + 3 == 5))
+# if ((2 + 3 == 5))
+# then
+# echo yes
+# else
+# echo no
+# fi
+
+if [ "$1" != "" ]
 then
-echo yes
+echo is arg
 else
-echo no
+echo no arg
 fi
+
+

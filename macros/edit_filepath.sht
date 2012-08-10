@@ -1,0 +1,67 @@
+#!/bin/sh
+
+
+# This script edits the file_path tags in TrakEM2 xml files.
+# It does simple substitutions at the start of the paths.
+#
+# For example, suppose the image files were originally like:
+#
+# /groups/svoboda/arraytmgrphy/LM-Images/V91005p2Series/...
+# ...SerialImages/V91005p2_s3_r2r3r4/Plate1_0/TIF_HEQ/F4_31_0.tif
+#
+# And now the data are on "E" drive with paths like:
+#
+# E://TIF_HEQ/V91005p2_s3_r2r3r4/Plate1_0/TIF_HEQ/F4_31_0.tif
+#
+# Option (1) is to edit this script, setting variables old, new
+# as follows:
+#
+# old="/groups/svoboda/arraytmgrphy/LM-Images/V91005p2Series/SerialImages"
+# new="E://TIF_HEQ"
+#
+# And then run this script as follows:
+#
+# > ./edit_filepath.csh Myxmlfile.xml
+#
+# Option (2) is to put the old and new strings on a very long command
+# line like this:
+#
+# > ./edit_filepath.csh Myxmlfile.xml '/groups/svoboda/arraytmgrphy/LM-Images/V91005p2Series/SerialImages' 'E://TIF_HEQ'
+#
+# IMPORTANT:
+# In option (1) put double-quotes ("") around the strings.
+# In option (2) put single-quotes ('') around the arguments.
+# This is especially important if there are any spaces in the strings.
+#
+# In any case, the original file is left alone, and the output will be
+# Myxmlfile_v2.xml
+#
+
+
+# Copy file arg1 to arg1_v2
+ext=$(echo $1 | sed 's|.*\(\.[^.]\)|\1|')
+base=$(echo $1 | sed 's|\(.*\)'$ext'|\1|')
+v2=$base"_v2"$ext
+
+
+# Use variables to define hardcoded substitutions
+old="/groups/apig/tomo/"
+new="E://myplace/"
+
+
+# Get old and new patterns from command line as $2, $3
+if [ "$2" != "" ]
+then
+	old=$2
+fi
+
+if [ "$3" != "" ]
+then
+	new=$3
+fi
+
+
+# Do substitutions on all lines
+sed 's|file_path="'$old'|file_path="'$new'|' < $1 > $v2
+
+
