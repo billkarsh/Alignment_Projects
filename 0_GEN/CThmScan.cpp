@@ -736,7 +736,7 @@ bool CThmScan::DenovoBestAngle(
 {
 	if( AngleScanWithTweaks( best, ang0, hfangdn, step, thm )
 			< rthresh ||
-		AngleScanSel( best, best.A, 1.0, 0.1, thm )
+		AngleScanSel( best, best.A, step * 2.0, step * 0.2, thm )
 			< rthresh ||
 		PeakHunt( best, 0.3, thm )
 			< rthresh ) {
