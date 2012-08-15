@@ -227,7 +227,7 @@ static void Paint(
 
 // Allocate and return pointer to new montage built by painting
 // the listed tiles, and return its dims (ws, hs), and the top-left
-// of the bounding box (x0, y0).
+// of the scaled bounding box (x0, y0).
 //
 // Return NULL if unsuccessful.
 //
