@@ -183,6 +183,10 @@ next_parent:
 			else
 				goto illegal;
 		}
+		else if( !in[1] ) {
+			++in;
+			goto append;
+		}
 		else {
 illegal:
 			fprintf( flog, "Illegal path '%s'.\n", in0 );
@@ -191,8 +195,10 @@ illegal:
 	}
 	else {
 append:
-		*end++ = '/';
-		strcpy( end, in );
+		if( in[0] ) {
+			*end++ = '/';
+			strcpy( end, in );
+		}
 	}
 
 	return true;
