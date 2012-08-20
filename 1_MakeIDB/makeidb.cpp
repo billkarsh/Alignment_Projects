@@ -617,7 +617,8 @@ int main( int argc, char* argv[] )
 	if( !TS.vtil.size() )
 		goto exit;
 
-	TS.SetTileDimsFromImageFile();
+	if( gArgs.Simple )
+		TS.SetTileDimsFromImageFile();
 
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 

@@ -71,10 +71,10 @@ static char			gtopdir[2048];
 static CArgs_scr	gArgs;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
-static uint32		gW		= 0,	// universal pic dims
-					gH		= 0;
-static int			gZMax	= 0;
-static int			ismrc	= false;
+static int			gW		= 0,	// universal pic dims
+					gH		= 0,
+					gZMax	= 0,
+					ismrc	= false;
 
 
 
@@ -889,7 +889,10 @@ int main( int argc, char* argv[] )
 	if( !TS.vtil.size() )
 		goto exit;
 
-	TS.SetTileDimsFromImageFile();
+	if( gArgs.Simple )
+		TS.SetTileDimsFromImageFile();
+
+	TS.GetTileDims( gW, gH );
 
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
