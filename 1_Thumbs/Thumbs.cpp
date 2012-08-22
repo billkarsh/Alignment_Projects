@@ -575,7 +575,7 @@ bool Thumbs(
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
 	S.SetSweepType( false, GBL.mch.PRETWEAK );
 	S.SetUseCorrR( false );
-	S.SetDisc( 0, 0, -1 );
+	S.SetDisc( 0, 0, -1, -1 );
 
 /* ----------------------- */
 /* Estimate starting angle */

@@ -584,7 +584,7 @@ bool ApproximateMatch_NoCR(
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
 	S.SetSweepType( false, GBL.mch.PRETWEAK );
 	S.SetUseCorrR( false );
-	S.SetDisc( 0, 0, -1 );
+	S.SetDisc( 0, 0, -1, -1 );
 
 /* --------------------------------------------- */
 /* Optionally reiterate result from existing log */
@@ -650,7 +650,7 @@ bool ApproximateMatch_NoCR(
 
 		TForm	atob;
 		Point	delta, TaO = olp.aO;
-		int		Ox, Oy, Or;
+		int		Ox, Oy, Rx;
 
 		AToBTrans( atob, GBL.A.t2i.T, GBL.B.t2i.T );
 		atob.Transform( delta );
@@ -658,12 +658,12 @@ bool ApproximateMatch_NoCR(
 
 		Ox = ROUND((delta.x / px.scl - olp.bO.x + TaO.x) / thm.scl);
 		Oy = ROUND((delta.y / px.scl - olp.bO.y + TaO.y) / thm.scl);
-		Or = GBL.ctx.DINPUT / (thm.scl * px.scl);
+		Rx = GBL.ctx.DINPUT / (thm.scl * px.scl);
 
-		fprintf( flog, "SetDisc( %d, %d, %d )\n", Ox, Oy, Or );
+		fprintf( flog, "SetDisc( %d, %d, %d, %d )\n", Ox, Oy, Rx, Rx );
 
 		S.SetUseCorrR( true );
-		S.SetDisc( Ox, Oy, Or );
+		S.SetDisc( Ox, Oy, Rx, Rx );
 		S.RFromAngle( best, 0, thm );
 
 		fprintf( flog,

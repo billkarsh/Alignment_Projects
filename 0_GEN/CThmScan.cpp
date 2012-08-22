@@ -275,7 +275,8 @@ CThmScan::CThmScan()
 	useCorrR	= false;
 	Ox			= 0;
 	Oy			= 0;
-	Or			= -1;
+	Rx			= -1;
+	Ry			= -1;
 	olap1D		= 0;
 }
 
@@ -435,7 +436,7 @@ void CThmScan::RFromAngle( CorRec &C, double deg, ThmRec &thm )
 		pts, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, nbmaxht, Ox, Oy, Or, thm.ftc );
+		0.0, nbmaxht, Ox, Oy, Rx, Ry, thm.ftc );
 }
 
 /* --------------------------------------------------------------- */
@@ -759,7 +760,7 @@ bool CThmScan::DenovoBestAngle(
 void CThmScan::PostTweaks( CorRec &best, ThmRec &thm )
 {
 	SetUseCorrR( true );
-	SetDisc( (int)best.X, (int)best.Y, 40 );
+	SetDisc( (int)best.X, (int)best.Y, 40, 40 );
 	Pretweaks( best.R, best.A, thm );
 	RFromAngle( best, best.A, thm );
 }
@@ -782,7 +783,7 @@ void CThmScan::FinishAtFullRes( CorRec &best, ThmRec &thm )
 	clock_t	t0 = StartTiming();
 
 	SetUseCorrR( true );
-	SetDisc( (int)best.X, (int)best.Y, 80 );
+	SetDisc( (int)best.X, (int)best.Y, 80, 80 );
 	RFromAngle( best, best.A, thm );
 
 	ok = (fabs( best.X - b0.X ) <= 20)

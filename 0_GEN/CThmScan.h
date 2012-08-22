@@ -57,7 +57,7 @@ private:
 			swpSimple,
 			swpPretweak,
 			useCorrR,
-			Ox, Oy, Or,
+			Ox, Oy, Rx, Ry,
 			olap1D;
 
 private:
@@ -119,8 +119,8 @@ public:
 	void SetUseCorrR( int useCorrR )
 		{this->useCorrR = useCorrR;};
 
-	void SetDisc( int Ox, int Oy, int Or )
-		{this->Ox = Ox; this->Oy = Oy; this->Or = Or;};
+	void SetDisc( int Ox, int Oy, int Rx, int Ry )
+		{this->Ox = Ox; this->Oy = Oy; this->Rx = Rx; this->Ry = Ry;};
 
 	int GetErr()
 		{return err;};

@@ -612,7 +612,7 @@ bool ApproximateMatch(
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
 	S.SetSweepType( false, GBL.mch.PRETWEAK );
 	S.SetUseCorrR( false );
-	S.SetDisc( 0, 0, -1 );
+	S.SetDisc( 0, 0, -1, -1 );
 
 /* --------------------------------------------- */
 /* Optionally reiterate result from existing log */

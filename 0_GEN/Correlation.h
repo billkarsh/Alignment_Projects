@@ -169,7 +169,8 @@ double CorrImages(
 	double					nbmaxht,
 	int						Ox,
 	int						Oy,
-	int						Or,
+	int						Rx,
+	int						Ry,
 	vector<CD>				&fft2 );
 
 double CorrImagesR(
@@ -189,7 +190,8 @@ double CorrImagesR(
 	double					nbmaxht,
 	int						Ox,
 	int						Oy,
-	int						Or,
+	int						Rx,
+	int						Ry,
 	vector<CD>				&fft2 );
 
 

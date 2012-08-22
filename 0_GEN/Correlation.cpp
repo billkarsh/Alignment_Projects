@@ -1897,7 +1897,12 @@ public:
 		const vector<Point>		&ip1,
 		const vector<Point>		&ip2 );
 
-	void MaskA( vector<uint8> &A, int Ox, int Oy, int Or );
+	void MaskA(
+		vector<uint8>			&A,
+		int						Ox,
+		int						Oy,
+		int						Rx,
+		int						Ry );
 
 	void MakeRandA(
 		vector<double>			&R,
@@ -1912,7 +1917,8 @@ public:
 		void*					arglc,
 		int						Ox,
 		int						Oy,
-		int						Or,
+		int						Rx,
+		int						Ry,
 		vector<CD>				&fft2 );
 
 	void MakeF(
@@ -2013,20 +2019,28 @@ bool CCorImg::SetDims(
 /* CCorImg::MaskA ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CCorImg::MaskA( vector<uint8> &A, int Ox, int Oy, int Or )
+// Oval described as x^2 + (a^2)*(y^2) = Rx^2, where a = Rx/Ry.
+//
+void CCorImg::MaskA(
+	vector<uint8>			&A,
+	int						Ox,
+	int						Oy,
+	int						Rx,
+	int						Ry )
 {
-	if( Or <= 0 )
+	if( Rx <= 0 || Ry <= 0 )
 		return;
 
 	Ox += B1.L - B2.L + cx;
 	Oy += B1.B - B2.B + cy;
 
-	int	xmin = Ox - Or,
-		xmax = Ox + Or,
-		ymin = Oy - Or,
-		ymax = Oy + Or;
+	int	xmin = Ox - Rx,
+		xmax = Ox + Rx,
+		ymin = Oy - Ry,
+		ymax = Oy + Ry;
 
-	Or *= Or;
+	double	rx2 = Rx * Rx,
+			asq = rx2 / ((double)Ry * Ry);
 
 	for( int i = 0; i < nR; ++i ) {
 
@@ -2047,7 +2061,7 @@ void CCorImg::MaskA( vector<uint8> &A, int Ox, int Oy, int Or )
 		x -= Ox;
 		y -= Oy;
 
-		if( x*x + y*y > Or )
+		if( x*x + asq*y*y > rx2 )
 			A[i] = 0;
 	}
 }
@@ -2069,7 +2083,8 @@ void CCorImg::MakeRandA(
 	void*					arglc,
 	int						Ox,
 	int						Oy,
-	int						Or,
+	int						Rx,
+	int						Ry,
 	vector<CD>				&fft2 )
 {
 // Get array sizes (Nx,Ny) and FFT size M
@@ -2142,7 +2157,7 @@ void CCorImg::MakeRandA(
 		}
 	}
 
-	MaskA( A, Ox, Oy, Or );
+	MaskA( A, Ox, Oy, Rx, Ry );
 
 	if( dbgCor )
 		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
@@ -2846,8 +2861,8 @@ double CCorImg::ReturnR(
 // nbmaxht: A candidate F-peak is rejected if its guard band
 // contains another pixel with F > nbmaxht*peak.
 //
-// {Ox,Oy,Or}: If Or > 0, search narrowed to disc with origin
-// (Ox,Oy) and radius Or.
+// {Ox,Oy,Rx,Ry}: If Rx > 0 and Ry > 0, search narrowed to oval
+// with origin (Ox,Oy) and semimajor axes Rx,Ry.
 //
 // fft2: Cache of image2 FFT. On entry, if fft2 has the
 // correct size it is used. Otherwise recomputed here.
@@ -2871,7 +2886,8 @@ double CorrImages(
 	double					nbmaxht,
 	int						Ox,
 	int						Oy,
-	int						Or,
+	int						Rx,
+	int						Ry,
 	vector<CD>				&fft2 )
 {
 	CCorImg			cc;
@@ -2895,7 +2911,7 @@ double CorrImages(
 
 	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
 		LegalRgn, arglr, LegalCnt, arglc,
-		Ox, Oy, Or, fft2 );
+		Ox, Oy, Rx, Ry, fft2 );
 
 	cc.MakeF( F, A, R );
 
@@ -2923,8 +2939,8 @@ double CorrImages(
 //
 // nbmaxht: Dummy slot for compatibility with F-version.
 //
-// {Ox,Oy,Or}: If Or > 0, search narrowed to disc with origin
-// (Ox,Oy) and radius Or.
+// {Ox,Oy,Rx,Ry}: If Rx > 0 and Ry > 0, search narrowed to oval
+// with origin (Ox,Oy) and semimajor axes Rx,Ry.
 //
 // fft2: Cache of image2 FFT. On entry, if fft2 has the
 // correct size it is used. Otherwise recomputed here.
@@ -2948,7 +2964,8 @@ double CorrImagesR(
 	double					nbmaxht,
 	int						Ox,
 	int						Oy,
-	int						Or,
+	int						Rx,
+	int						Ry,
 	vector<CD>				&fft2 )
 {
 	CCorImg			cc;
@@ -2971,7 +2988,7 @@ double CorrImagesR(
 
 	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
 		LegalRgn, arglr, LegalCnt, arglc,
-		Ox, Oy, Or, fft2 );
+		Ox, Oy, Rx, Ry, fft2 );
 
 	// actually orders R, here
 	if( !cc.OrderF( order, R, A, R, mincor ) ) {
