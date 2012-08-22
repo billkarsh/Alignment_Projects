@@ -5,8 +5,8 @@ DIRS := 1_Align 1_Clean_ThmPairs 1_CpyFMs \
 		1_MakeALN 1_MakeIDB 1_MakeMontages \
 		1_MakeRoughDowns 1_Make_ldir 1_Mosaic_current \
 		1_MRCSD1Lyr 1_Ptestx 1_RemoveRefTiles \
-		1_Script 1_Thumbs 1_Tiny \
-		1_UpdateMontages 1_ViewSD
+		1_RoughDownPair 1_Script 1_Thumbs \
+		1_Tiny 1_UpdateMontages 1_ViewSD
 
 all:
 	cd ..; \

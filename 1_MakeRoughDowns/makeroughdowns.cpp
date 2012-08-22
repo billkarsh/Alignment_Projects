@@ -24,6 +24,7 @@
 class CArgs_rough {
 
 public:
+	double	Rstrip;
 	char	xmlfile[2048],
 			outdir[2048];
 	char	*pat;
@@ -35,6 +36,7 @@ public:
 public:
 	CArgs_rough()
 	{
+		Rstrip		= 0.14;
 		xmlfile[0]	= 0;
 		pat			= "/N";
 		zmin		= 0;
@@ -110,6 +112,8 @@ void CArgs_rough::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &nstriptiles, "-nstriptiles=%d", argv[i] ) )
 			;
 		else if( GetArg( &sclfac, "-scale=%d", argv[i] ) )
+			;
+		else if( GetArg( &Rstrip, "-Rstrip=%lf", argv[i] ) )
 			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
@@ -189,8 +193,10 @@ static void WriteScript( vector<int> &zlist )
 
 	char	sopt[2048];
 
-	sprintf( sopt, "-d%s -p%s -nstriptiles=%d -scale=%d",
-		gArgs.outdir, gArgs.pat, gArgs.nstriptiles, gArgs.sclfac );
+	sprintf( sopt,
+	"-d%s -p%s -nstriptiles=%d -scale=%d -Rstrip=%g",
+	gArgs.outdir, gArgs.pat, gArgs.nstriptiles,
+	gArgs.sclfac, gArgs.Rstrip );
 
 // open file
 
