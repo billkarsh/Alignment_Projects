@@ -1067,7 +1067,7 @@ bool CSuperscape::MakeRas( int z )
 //	OrientScape( S );
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, true, flog );
+			gArgs.invscl, 1, 0, flog );
 
 	return (ras != NULL);
 }
@@ -1097,7 +1097,7 @@ bool CSuperscape::MakeWholeRaster( int z )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, true, flog );
+			gArgs.invscl, 1, 0, flog );
 
 	return (ras != NULL);
 }
@@ -1144,7 +1144,7 @@ bool CSuperscape::MakeRasV( int z )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, true, flog );
+			gArgs.invscl, 1, 0, flog );
 
 	return (ras != NULL);
 }
@@ -1191,7 +1191,7 @@ bool CSuperscape::MakeRasH( int z )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, true, flog );
+			gArgs.invscl, 1, 0, flog );
 
 	return (ras != NULL);
 }
@@ -1231,11 +1231,10 @@ static void MakeStripRasters( CSuperscape &A, CSuperscape &B )
 
 #if 1
 	A.MakeRasH( gArgs.za );
-	B.MakeRasV( gArgs.zb );
-
 	sprintf( buf, "Astrip_%d.tif", gArgs.za );
 	A.DrawRas( buf );
 
+	B.MakeRasV( gArgs.zb );
 	sprintf( buf, "Bstrip_%d.tif", gArgs.zb );
 	B.DrawRas( buf );
 #else

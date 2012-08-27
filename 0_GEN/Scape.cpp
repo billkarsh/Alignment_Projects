@@ -86,6 +86,14 @@ static void AdjustBounds(
 /* ScanLims ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+// Fill in the range of coords [x0,xL); [y0,yL) in the scape
+// that the given tile will occupy. This tells the painter
+// which region to fill in.
+//
+// We expand the tile by one pixel to be conservative, and
+// transform the tile bounds to scape coords. In no case are
+// the scape coords to exceed [0,ws); [0,hs).
+//
 static void ScanLims(
 	int			&x0,
 	int			&xL,
@@ -133,27 +141,45 @@ static void ScanLims(
 /* Downsample ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Downsample( uint8 *ras, int w, int h, int iscl )
+static void Downsample( uint8 *ras, int &w, int &h, int iscl )
 {
 	int	n  = iscl * iscl,
-		ws = w / iscl,
-		hs = h / iscl;
+		ws = (int)ceil( (double)w / iscl ),
+		hs = (int)ceil( (double)h / iscl ),
+		w0 = w,
+		xo, yo, xr, yr;
+
+	yr = iscl - h % iscl;
+	xr = iscl - w % iscl;
 
 	for( int iy = 0; iy < hs; ++iy ) {
+
+		yo = 0;
+
+		if( iy == hs - 1 )
+			yo = yr;
 
 		for( int ix = 0; ix < ws; ++ix ) {
 
 			double	sum = 0.0;
 
+			xo = 0;
+
+			if( ix == ws - 1 )
+				xo = xr;
+
 			for( int dy = 0; dy < iscl; ++dy ) {
 
 				for( int dx = 0; dx < iscl; ++dx )
-					sum += ras[ix*iscl+dx + w*(iy*iscl+dy)];
+					sum += ras[ix*iscl-xo+dx + w0*(iy*iscl-yo+dy)];
 			}
 
 			ras[ix+ws*iy] = int(sum / n);
 		}
 	}
+
+	w = ws;
+	h = hs;
 }
 
 /* --------------------------------------------------------------- */
@@ -166,7 +192,6 @@ static void Paint(
 	uint32					hs,
 	const vector<ScpTile>	&vTile,
 	int						iscl,
-	int						rmvedges,
 	FILE*					flog )
 {
 	int		nt = vTile.size();
@@ -175,21 +200,22 @@ static void Paint(
 
 		TForm	inv;
 		int		x0, xL, y0, yL,
-				wL, hL;
+				wL, hL,
+				wi, hi;
 		uint32	w,  h;
 		uint8*	src = Raster8FromAny(
 						vTile[i].name.c_str(), w, h, flog );
 
 		ScanLims( x0, xL, y0, yL, ws, hs, vTile[i].t2g, w, h );
+		wi = w;
+		hi = h;
 
 		InvertTrans( inv, vTile[i].t2g );
 
 		if( iscl > 1 ) {	// Scaling down
 
 			// actually downsample src image
-			Downsample( src, w, h, iscl );
-			w	/= iscl;
-			h	/= iscl;
+			Downsample( src, wi, hi, iscl );
 
 			// and point at the new pixels
 			TForm	A;
@@ -197,8 +223,8 @@ static void Paint(
 			MultiplyTrans( inv, A, TForm( inv ) );
 		}
 
-		wL = w - (rmvedges != 0);
-		hL = h - (rmvedges != 0);
+		wL = wi - 1;
+		hL = hi - 1;
 
 		for( int iy = y0; iy < yL; ++iy ) {
 
@@ -212,7 +238,7 @@ static void Paint(
 					p.y >= 0 && p.y < hL ) {
 
 					scp[ix+ws*iy] =
-					(int)SafeInterp( p.x, p.y, src, w, h );
+					(int)SafeInterp( p.x, p.y, src, wi, hi );
 				}
 			}
 		}
@@ -235,7 +261,6 @@ static void Paint(
 // scale	- for example, 0.25 reduces by 4X.
 // szmult	- scape dims made divisible by szmult.
 // bkval	- default scape value where no data.
-// rmvedges	- don't paint tile's edgemost pixels (smoother result).
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
@@ -250,7 +275,6 @@ uint8* Scape(
 	double			scale,
 	int				szmult,
 	int				bkval,
-	int				rmvedges,
 	FILE*			flog )
 {
 	AdjustBounds( ws, hs, x0, y0, vTile, wi, hi, scale, szmult );
@@ -260,7 +284,7 @@ uint8* Scape(
 
 	if( scp ) {
 		memset( scp, bkval, ns );
-		Paint( scp, ws, hs, vTile, int(1/scale), rmvedges, flog );
+		Paint( scp, ws, hs, vTile, int(1/scale), flog );
 	}
 	else
 		fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );
