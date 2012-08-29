@@ -31,7 +31,8 @@ public:
 	int		zmin,
 			zmax,
 			nstriptiles,
-			sclfac;
+			sclfac,
+			sdnorm;
 
 public:
 	CArgs_rough()
@@ -43,6 +44,7 @@ public:
 		zmax		= 32768;
 		nstriptiles	= 5;
 		sclfac		= 200;
+		sdnorm		= 0;	// 12 useful for Davi EM
 
 		strcpy( outdir, "NoSuch" ); // protect real dirs
 	};
@@ -112,6 +114,8 @@ void CArgs_rough::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &nstriptiles, "-nstriptiles=%d", argv[i] ) )
 			;
 		else if( GetArg( &sclfac, "-scale=%d", argv[i] ) )
+			;
+		else if( GetArg( &sdnorm, "-sdnorm=%d", argv[i] ) )
 			;
 		else if( GetArg( &Rstrip, "-Rstrip=%lf", argv[i] ) )
 			;
@@ -194,9 +198,9 @@ static void WriteScript( vector<int> &zlist )
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"-d%s -p%s -nstriptiles=%d -scale=%d -Rstrip=%g",
+	"-d%s -p%s -nstriptiles=%d -scale=%d -sdnorm=%d -Rstrip=%g",
 	gArgs.outdir, gArgs.pat, gArgs.nstriptiles,
-	gArgs.sclfac, gArgs.Rstrip );
+	gArgs.sclfac, gArgs.sdnorm, gArgs.Rstrip );
 
 // open file
 

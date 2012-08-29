@@ -183,6 +183,41 @@ static void Downsample( uint8 *ras, int &w, int &h, int iscl )
 }
 
 /* --------------------------------------------------------------- */
+/* NormRas ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Force image mean to 127 and sd to sdnorm.
+//
+static void NormRas( uint8 *r, int w, int h, int sdnorm )
+{
+// convert to doubles
+
+	int				n = w * h;
+	vector<double>	v( n );
+
+	for( int i = 0; i < n; ++i )
+		v[i] = r[i];
+
+// mean=0, sd=1
+
+	Normalize( v );
+
+// rescale to mean=127, sd=sdnorm
+
+	for( int i = 0; i < n; ++i ) {
+
+		int	pix = 127 + int(v[i] * sdnorm);
+
+		if( pix < 0 )
+			pix = 0;
+		else if( pix > 255 )
+			pix = 255;
+
+		r[i] = pix;
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Paint --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -192,6 +227,7 @@ static void Paint(
 	uint32					hs,
 	const vector<ScpTile>	&vTile,
 	int						iscl,
+	int						sdnorm,
 	FILE*					flog )
 {
 	int		nt = vTile.size();
@@ -225,6 +261,9 @@ static void Paint(
 
 		wL = wi - 1;
 		hL = hi - 1;
+
+		if( sdnorm > 0 )
+			NormRas( src, wi, hi, sdnorm );
 
 		for( int iy = y0; iy < yL; ++iy ) {
 
@@ -261,6 +300,7 @@ static void Paint(
 // scale	- for example, 0.25 reduces by 4X.
 // szmult	- scape dims made divisible by szmult.
 // bkval	- default scape value where no data.
+// sdnorm	- if > 0, image normalized to mean=127, sd=sdnorm.
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
@@ -275,6 +315,7 @@ uint8* Scape(
 	double			scale,
 	int				szmult,
 	int				bkval,
+	int				sdnorm,
 	FILE*			flog )
 {
 	AdjustBounds( ws, hs, x0, y0, vTile, wi, hi, scale, szmult );
@@ -284,7 +325,7 @@ uint8* Scape(
 
 	if( scp ) {
 		memset( scp, bkval, ns );
-		Paint( scp, ws, hs, vTile, int(1/scale), flog );
+		Paint( scp, ws, hs, vTile, int(1/scale), sdnorm, flog );
 	}
 	else
 		fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );

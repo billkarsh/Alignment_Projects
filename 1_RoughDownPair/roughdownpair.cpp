@@ -102,6 +102,7 @@ public:
 			zb,
 			nstriptiles,
 			sclfac,
+			sdnorm,
 			blksize;
 	bool	scapeonly,
 			NoFolds,
@@ -119,6 +120,7 @@ public:
 		zb			= 0;
 		nstriptiles	= 5;
 		sclfac		= 200;
+		sdnorm		= 0;	// 12 useful for Davi EM
 		invscl		= 1.0/sclfac;
 		blksize		= 60;
 		scapeonly	= false;
@@ -179,7 +181,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 	strcpy( atime, ctime( &t0 ) );
 	atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Make makecross workspace: %s ", atime );
+	fprintf( flog, "Make roughdownpair: %s ", atime );
 
 // parse command line args
 
@@ -211,6 +213,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &sclfac, "-scale=%d", argv[i] ) )
 			invscl = 1.0/sclfac;
+		else if( GetArg( &sdnorm, "-sdnorm=%d", argv[i] ) )
+			;
 		else if( GetArg( &Rstrip, "-Rstrip=%lf", argv[i] ) )
 			;
 		else if( GetArg( &blksize, "-b=%d", argv[i] ) )
@@ -1067,7 +1071,7 @@ bool CSuperscape::MakeRas( int z )
 //	OrientScape( S );
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, flog );
+			gArgs.invscl, 1, 0, gArgs.sdnorm, flog );
 
 	return (ras != NULL);
 }
@@ -1097,7 +1101,7 @@ bool CSuperscape::MakeWholeRaster( int z )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, flog );
+			gArgs.invscl, 1, 0, gArgs.sdnorm, flog );
 
 	return (ras != NULL);
 }
@@ -1144,7 +1148,7 @@ bool CSuperscape::MakeRasV( int z )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, flog );
+			gArgs.invscl, 1, 0, gArgs.sdnorm, flog );
 
 	return (ras != NULL);
 }
@@ -1191,7 +1195,7 @@ bool CSuperscape::MakeRasH( int z )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.invscl, 1, 0, flog );
+			gArgs.invscl, 1, 0, gArgs.sdnorm, flog );
 
 	return (ras != NULL);
 }

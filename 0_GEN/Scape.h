@@ -42,6 +42,7 @@ uint8* Scape(
 	double			scale,
 	int				szmult,
 	int				bkval,
+	int				sdnorm,
 	FILE*			flog );
 
 
