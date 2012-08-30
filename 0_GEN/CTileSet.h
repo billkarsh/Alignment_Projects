@@ -104,7 +104,6 @@ public:
 	void ReadClixFile( vector<TSClix> &clk, const char *path );
 	TForm RigidFromClix( const TSClix &clk );
 	TForm AffineFromClix( const TSClix &clk );
-	void ApplyTFormFromZToTop( int Z, const TForm &T );
 	void ApplyClix( int tfType, const char *path );
 
 	void BoundsPlus1( DBox &B, int i );

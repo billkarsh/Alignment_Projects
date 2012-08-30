@@ -564,33 +564,6 @@ TForm CTileSet::AffineFromClix( const TSClix &clk )
 }
 
 /* --------------------------------------------------------------- */
-/* ApplyTFormFromZToTop ------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-void CTileSet::ApplyTFormFromZToTop( int Z, const TForm &T )
-{
-	int	is0, isN, nt = vtil.size();
-
-	GetLayerLimits( is0 = 0, isN );
-
-	while( isN != -1 ) {
-
-		if( vtil[is0].z > Z )
-			break;
-
-		if( vtil[is0].z == Z ) {
-
-			for( int i = is0; i < nt; ++i )
-				MultiplyTrans( vtil[i].T, T, TForm( vtil[i].T ) );
-
-			break;
-		}
-
-		GetLayerLimits( is0 = isN, isN );
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* ApplyClix ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -614,23 +587,34 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 	int	cmin,
 		cmax,
 		nc		= clk.size(),
+		nt		= vtil.size(),
 		zmin	= vtil[0].z,
-		zmax	= vtil[vtil.size() - 1].z;
+		zmax	= vtil[nt - 1].z;
 
 // Find lowest applicable click
-	for( cmin = 0; cmin < nc; ++cmin ) {
+
+	for( cmin = 0; cmin < nc - 1; ++cmin ) {
 		if( clk[cmin].Bz >= zmin )
 			break;
 	}
 
+	zmin = clk[cmin].Az;
+
 // Find highest applicable click
+
 	for( cmax = nc - 1; cmax >= cmin; --cmax ) {
 		if( clk[cmax].Az <= zmax )
 			break;
 	}
 
-// Apply them top down
-	for( int i = cmax; i >= cmin; --i ) {
+// Each click affects all layers from clk[i].Az through zmax.
+// Assign TForm vT[k] for each possible layer in range [zmin, zmax].
+// The vT[k] accumulate effects of sequential click transforms.
+
+	int				nz = zmax - zmin + 1;
+	vector<TForm>	vT( nz );
+
+	for( int i = cmin; i <= cmax; ++i ) {
 
 		TForm	R;
 
@@ -639,7 +623,30 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 		else
 			R = RigidFromClix( clk[i] );
 
-		ApplyTFormFromZToTop( clk[i].Az, R );
+		for( int k = clk[i].Az - zmin; k < nz; ++k )
+			MultiplyTrans( vT[k], R, TForm( vT[k] ) );
+	}
+
+// Walk actual layers and apply corresponding vT[k]
+
+	int	is0, isN;
+
+	GetLayerLimits( is0 = 0, isN );
+
+	while( isN != -1 ) {
+
+		int	z = vtil[is0].z;
+
+		if( z >= zmin ) {
+
+			for( int i = is0; i < isN; ++i ) {
+
+				MultiplyTrans(
+				vtil[i].T, vT[z-zmin], TForm( vtil[i].T ) );
+			}
+		}
+
+		GetLayerLimits( is0 = isN, isN );
 	}
 }
 
