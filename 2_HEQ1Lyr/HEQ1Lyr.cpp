@@ -311,8 +311,15 @@ static void WriteImages(
 
 			if( ras[i] <= smin )
 				i8[i] = 0;
-			else
-				i8[i] = (uint8)(log(ras[i] - (double)smin) * scale);
+			else {
+
+				double	pix = log(ras[i] - (double)smin) * scale;
+
+				if( pix > 255 )
+					pix = 255;
+
+				i8[i] = (uint8)pix;
+			}
 		}
 
 		RasterFree( ras );
