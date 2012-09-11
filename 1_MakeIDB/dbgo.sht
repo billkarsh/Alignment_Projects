@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+makeidb Z7-119.txt -didb0 -simple -nf -p_idN -zmin=7 -zmax=119
+
+
