@@ -19,7 +19,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	roughdownpair.cpp
+	alignmontages1.cpp
 
 _SRC_XML_ := \
 	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
@@ -27,18 +27,8 @@ _SRC_XML_ := \
 SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
-_SRC_UTL_ := \
-	PipeFiles.cpp numerical_recipes.cpp mrc.cpp
-
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
-
 _SRC_GEN_ := \
-	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	TrakEM2_UTL.cpp CTileSet.cpp ImageIO.cpp \
-	Maths.cpp Correlation.cpp CPoint.cpp \
-	Geometry.cpp CTForm.cpp Scape.cpp \
-	CThmScan.cpp Timer.cpp Debug.cpp
+	Cmdline.cpp Disk.cpp File.cpp TrakEM2_UTL.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -47,7 +37,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-roughdownpair:
+alignmontages1:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \
@@ -56,8 +46,6 @@ $(INCLUDES_STD) \
 $(SOURCES_MYPROJ) \
     \
 $(SOURCES_XML) \
-    \
-$(SOURCES_UTL) \
     \
 $(SOURCES_GEN) \
     \

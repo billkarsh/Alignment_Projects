@@ -1,5 +1,5 @@
 //
-// Write script to submit roughdownpair jobs.
+// Write script to submit scapeops jobs (subscapes).
 //
 
 
@@ -18,33 +18,33 @@
 /* --------------------------------------------------------------- */
 
 /* --------------------------------------------------------------- */
-/* CArgs_rough --------------------------------------------------- */
+/* CArgs_alnmon -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CArgs_rough {
+class CArgs_alnmon {
 
 public:
-	double	Rstrip;
+	double	abcorr;
 	char	xmlfile[2048],
 			outdir[2048];
 	char	*pat;
 	int		zmin,
 			zmax,
-			nstriptiles,
-			sclfac,
-			sdnorm;
+			abwide,
+			abscl,
+			absdev;
 
 public:
-	CArgs_rough()
+	CArgs_alnmon()
 	{
-		Rstrip		= 0.14;
+		abcorr		= 0.20;
 		xmlfile[0]	= 0;
 		pat			= "/N";
 		zmin		= 0;
 		zmax		= 32768;
-		nstriptiles	= 5;
-		sclfac		= 200;
-		sdnorm		= 0;	// 12 useful for Davi EM
+		abwide		= 5;
+		abscl		= 200;
+		absdev		= 0;	// 12 useful for Davi EM
 
 		strcpy( outdir, "NoSuch" ); // protect real dirs
 	};
@@ -56,7 +56,7 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CArgs_rough	gArgs;
+static CArgs_alnmon	gArgs;
 static char			gtopdir[2048];
 static FILE*		flog = NULL;
 
@@ -69,11 +69,11 @@ static FILE*		flog = NULL;
 /* SetCmdLine ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CArgs_rough::SetCmdLine( int argc, char* argv[] )
+void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "makeroughdowns.log", "w" );
+	flog = FileOpenOrDie( "alignmontages1.log", "w" );
 
 // log start time
 
@@ -83,13 +83,13 @@ void CArgs_rough::SetCmdLine( int argc, char* argv[] )
 	strcpy( atime, ctime( &t0 ) );
 	atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Make down scripts: %s ", atime );
+	fprintf( flog, "Make scapeops scripts: %s ", atime );
 
 // parse command line args
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: makeroughdowns <xmlfile> -dtemp -zmin=i -zmax=j"
+		"Usage: alignmontages1 <xmlfile> -dtemp -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -111,13 +111,13 @@ void CArgs_rough::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
-		else if( GetArg( &nstriptiles, "-nstriptiles=%d", argv[i] ) )
+		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
 			;
-		else if( GetArg( &sclfac, "-scale=%d", argv[i] ) )
+		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			;
-		else if( GetArg( &sdnorm, "-sdnorm=%d", argv[i] ) )
+		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &Rstrip, "-Rstrip=%lf", argv[i] ) )
+		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
 			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
@@ -171,7 +171,7 @@ static void ParseTrakEM2( vector<int> &zlist )
 static void CreateTopDir()
 {
 // create top subdir
-	sprintf( gtopdir, "%s/roughdowns", gArgs.outdir );
+	sprintf( gtopdir, "%s/alignmontages", gArgs.outdir );
 	DskCreateDir( gtopdir, flog );
 }
 
@@ -188,41 +188,60 @@ static void ScriptPerms( const char *path )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteScript --------------------------------------------------- */
+/* WriteSubscapes ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteScript( vector<int> &zlist )
+static void WriteSubscapes( vector<int> &zlist )
 {
-// compose common argument string
+// compose common argument string for all but last layer
 
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"-d%s -p%s -nstriptiles=%d -scale=%d -sdnorm=%d -Rstrip=%g",
-	gArgs.outdir, gArgs.pat, gArgs.nstriptiles,
-	gArgs.sclfac, gArgs.sdnorm, gArgs.Rstrip );
+	"'%s' -d%s -p%s"
+	" -mb -mbscl=%d"
+	" -ab -abwide=%d -abscl=%d -absdev=%d -abcorr=%g",
+	gArgs.xmlfile, gArgs.outdir, gArgs.pat,
+	gArgs.abscl,
+	gArgs.abwide, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
 
 // open file
 
 	char	path[2048];
 	FILE	*f;
 
-	sprintf( path, "%s/subrough.sht", gtopdir );
+	sprintf( path, "%s/subscapes.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
-// write
-
-	int		nz = zlist.size();
-
 	fprintf( f, "#!/bin/sh\n\n" );
+
+// subdirs
+
+	fprintf( f, "mkdir -p strips\n" );
+	fprintf( f, "mkdir -p montages\n" );
+	fprintf( f, "mkdir -p scplogs\n\n" );
+
+// write all but last layer
+
+	int	nz = zlist.size();
 
 	for( int iz = 1; iz < nz; ++iz ) {
 
 		fprintf( f,
 		"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-		" roughdownpair '%s' %s -za=%d -zb=%d\n",
-		zlist[iz], gArgs.xmlfile, sopt, zlist[iz], zlist[iz - 1] );
+		" scapeops %s -za=%d -zb=%d\n",
+		zlist[iz - 1],
+		sopt, zlist[iz], zlist[iz - 1] );
 	}
+
+// last layer
+
+	fprintf( f,
+	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
+	" scapeops '%s' -d%s -p%s -mb -mbscl=%d -zb=%d\n",
+	zlist[nz - 1],
+	gArgs.xmlfile, gArgs.outdir, gArgs.pat,
+	gArgs.abscl, zlist[nz - 1] );
 
 	fprintf( f, "\n" );
 
@@ -230,6 +249,28 @@ static void WriteScript( vector<int> &zlist )
 
 // make executable
 
+	ScriptPerms( path );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteGather --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteGather()
+{
+	char	path[2048];
+	FILE	*f;
+
+	sprintf( path, "%s/gather.sht", gtopdir );
+	f = FileOpenOrDie( path, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f,
+	"alignmontages2 -d. -zmin=%d -zmax=%d\n\n",
+	gArgs.zmin, gArgs.zmax );
+
+	fclose( f );
 	ScriptPerms( path );
 }
 
@@ -262,7 +303,8 @@ int main( int argc, char* argv[] )
 
 	CreateTopDir();
 
-	WriteScript( zlist );
+	WriteSubscapes( zlist );
+	WriteGather();
 
 /* ---- */
 /* Done */
