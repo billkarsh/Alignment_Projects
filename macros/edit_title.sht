@@ -1,0 +1,46 @@
+#!/bin/sh
+
+
+# This script edits the title tags in TrakEM2 xml files,
+# to change from one channel specifier to another. The
+# image names are expected to look like B7_15_channel,
+# where, channel can be anything like '3' or '2.heq' etc.
+#
+# 1) Edit the old and new variables in this script to
+# define the channel part of the image names (the part
+# after the second underscore).
+#
+# 2) Run the script:
+# >./edit_title.sht Myfile.xml
+#
+# This produces copy Myfile_v2.xml
+#
+
+
+# Copy file arg1 to arg1_v2
+ext=$(echo $1 | sed 's|.*\(\.[^.]\)|\1|')
+base=$(echo $1 | sed 's|\(.*\)'$ext'|\1|')
+v2=$base"_v2"$ext
+
+
+# Use variables to define hardcoded channel substitution
+old="2.HEQ"
+new="3"
+
+
+# Optionally, get old and new patterns from command line as $2, $3
+if [ "$2" != "" ]
+then
+	old=$2
+fi
+
+if [ "$3" != "" ]
+then
+	new=$3
+fi
+
+
+# Do substitutions on all lines
+sed 's|title="\(.*_[0-9]\{1,\}_\)'$old'|title="\1'$new'|' < $1 > $v2
+
+
