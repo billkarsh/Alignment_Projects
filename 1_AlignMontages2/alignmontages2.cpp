@@ -1,14 +1,13 @@
 //
-// Collect scapeops results into rough stack.
+// Collect scapeops results into rough stack for viewing/editing.
 //
 
 
-#include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
+#include	"../1_AlignMontages2/ScapeMeta.h"
 
 
 /* --------------------------------------------------------------- */
@@ -18,22 +17,6 @@
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-class CScapeMeta {
-public:
-	DBox	B;
-	double	x0, y0;
-	int		z,
-			deg,
-			scl,
-			ws, hs;
-};
-
-class CLog {
-public:
-	CScapeMeta	M, A, B;
-	TForm		T;
-};
 
 /* --------------------------------------------------------------- */
 /* CArgs_alnmon -------------------------------------------------- */
@@ -121,102 +104,6 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* ReadLog1 ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static bool ReadLog1( CLog &L, int z )
-{
-	char		buf[2048];
-	sprintf( buf, "%s/scplogs/scp_%d.log", gArgs.outdir, z );
-
-	if( !DskExists( buf ) )
-		return false;
-
-	FILE		*f = FileOpenOrDie( buf, "r" );
-	CLineScan	LS;
-
-	while( LS.Get( f ) > 0 ) {
-
-		if( LS.line[0] != '*' )
-			continue;
-
-		char	key = LS.line[1];
-
-		LS.Get( f );
-
-		if( key == 'M' ) {
-
-			CScapeMeta	&E = L.M;
-
-			sscanf( LS.line,
-			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
-			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
-			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
-		}
-		else if( key == 'A' ) {
-
-			CScapeMeta	&E = L.A;
-
-			sscanf( LS.line,
-			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
-			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
-			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
-		}
-		else if( key == 'B' ) {
-
-			CScapeMeta	&E = L.B;
-
-			sscanf( LS.line,
-			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
-			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
-			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
-		}
-		else if( key == 'T' ) {
-
-			double	*t = L.T.t;
-
-			sscanf( LS.line + 1,
-			"%lf,%lf,%lf,%lf,%lf,%lf",
-			&t[0], &t[1], &t[2],
-			&t[3], &t[4], &t[5] );
-
-			break;
-		}
-	}
-
-	fclose( f );
-	return true;
-}
-
-/* --------------------------------------------------------------- */
-/* ReadLogs ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static int ReadLogs( vector<CLog> &vL )
-{
-	for( int z = gArgs.zmin; z <= gArgs.zmax; ) {
-
-		CLog	L;
-
-		L.A.z = -1;
-
-		if( ReadLog1( L, z ) ) {
-
-			vL.push_back( L );
-
-			if( L.A.z == -1 )
-				break;
-
-			z = L.A.z;
-		}
-		else
-			++z;
-	}
-
-	return vL.size();
-}
-
-/* --------------------------------------------------------------- */
 /* MakeTForms ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -259,7 +146,7 @@ static void MakeTForms(
 
 		// Now convert Tba to global transform T0a
 		// T0a = T01.T12...Tba.
-		MultiplyTrans( vT[ia], vT[ib], TForm(vT[ia]) );
+		MultiplyTrans( vT[ia], vT[ib], TForm( vT[ia] ) );
 	}
 }
 
@@ -268,7 +155,7 @@ static void MakeTForms(
 /* --------------------------------------------------------------- */
 
 static void MakeBounds(
-	DBox	&B,
+	DBox				&B,
 	const vector<CLog>	&vL,
 	const vector<TForm>	&vT )
 {
@@ -382,7 +269,7 @@ static void WriteTrakEM2(
 	"\t\tlayer_width=\"%.2f\"\n"
 	"\t\tlayer_height=\"%.2f\"\n"
 	"\t>\n",
-	oid++, B.R, B.T );
+	oid++, B.R - B.L, B.T - B.B );
 
 // Layers
 
@@ -407,7 +294,8 @@ static void BuildStack()
 // Get log data
 
 	vector<CLog>	vL;
-	int				nL = ReadLogs( vL );
+	int				nL = ReadLogs( vL, gArgs.outdir,
+							gArgs.zmin, gArgs.zmax );
 
 	if( !nL )
 		return;

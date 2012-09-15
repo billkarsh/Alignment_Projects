@@ -1243,10 +1243,10 @@ static void MakeStripRasters( CSuperscape &A, CSuperscape &B )
 // A-scape -> B-scape
 //	MultiplyTrans( t, best.T, Ra );
 //
-// B-scape -> B->oriented
+// B-scape -> B-oriented
 //	t.AddXY( B.x0, B.y0 );
 //
-// B->oriented -> B-montage
+// B-oriented -> B-montage
 //	Rbi.NUSetRot( -B.deg*PI/180 );
 //	MultiplyTrans( best.T, Rbi, t );
 //

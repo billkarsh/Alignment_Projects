@@ -275,6 +275,29 @@ static void WriteGather()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteFinal ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteFinal()
+{
+	char	path[2048];
+	FILE	*f;
+
+	sprintf( path, "%s/final.sht", gtopdir );
+	f = FileOpenOrDie( path, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f,
+	"alignmontages3 '%s' -d. -p%s -zmin=%d -zmax=%d"
+	" -xmltype=0 -xmlmin=0 -xmlmax=0\n\n",
+	gArgs.xmlfile, gArgs.pat, gArgs.zmin, gArgs.zmax );
+
+	fclose( f );
+	ScriptPerms( path );
+}
+
+/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -305,6 +328,7 @@ int main( int argc, char* argv[] )
 
 	WriteSubscapes( zlist );
 	WriteGather();
+	WriteFinal();
 
 /* ---- */
 /* Done */

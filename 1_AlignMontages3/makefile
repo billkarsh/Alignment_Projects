@@ -19,7 +19,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	alignmontages2.cpp ../1_AlignMontages2/ScapeMeta.cpp
+	alignmontages3.cpp ../1_AlignMontages2/ScapeMeta.cpp
 
 _SRC_XML_ := \
 	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
@@ -28,8 +28,8 @@ SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp Disk.cpp File.cpp TrakEM2_UTL.cpp \
-	CTForm.cpp
+	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
+	TrakEM2_UTL.cpp CTileSet.cpp CTForm.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -38,7 +38,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-alignmontages2:
+alignmontages3:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \
