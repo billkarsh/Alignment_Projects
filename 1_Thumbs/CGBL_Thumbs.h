@@ -59,11 +59,12 @@ public:
 // ============
 
 public:
-	DriverArgs	arg;
-	MatchParams	mch;
-	CntxtDep	ctx;
-	string		idb;
-	PicSpecs	A, B;
+	DriverArgs		arg;
+	vector<TForm>	Tab;	// start thumbs here
+	MatchParams		mch;
+	CntxtDep		ctx;
+	string			idb;
+	PicSpecs		A, B;
 
 // =================
 // Object management

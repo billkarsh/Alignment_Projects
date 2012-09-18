@@ -56,11 +56,7 @@ static double	ang0	= 0.0;
 
 static bool Orig( vector<TForm> &G )
 {
-	TForm	T;
-
-	AToBTrans( T, GBL.A.t2i.T, GBL.B.t2i.T );
-
-	G.push_back( T );
+	G.push_back( GBL.Tab[0] );
 
 	return true;
 }
@@ -139,14 +135,8 @@ static int SetStartingAngle( FILE* flog )
 
 // Otherwise estimate from initial tforms
 
-	if( !nprior ) {
-
-		TForm	atob;
-
-		AToBTrans( atob, GBL.A.t2i.T, GBL.B.t2i.T );
-
-		ang0 = 180.0/PI * RadiansFromAffine( atob );
-	}
+	if( !nprior )
+		ang0 = 180.0/PI * RadiansFromAffine( GBL.Tab[0] );
 
 // Force tiny ang0 to zero
 
@@ -233,11 +223,9 @@ static bool SelectSubimage(
 	int	dx, dy;
 
 	{
-		TForm	atob;
 		Point	delta;
 
-		AToBTrans( atob, GBL.A.t2i.T, GBL.B.t2i.T );
-		atob.Transform( delta );
+		GBL.Tab[0].Transform( delta );
 
 		dx = int(delta.x) / px.scl;
 		dy = int(delta.y) / px.scl;
@@ -648,13 +636,11 @@ bool ApproximateMatch_NoCR(
 
 	if( GBL.A.layer == GBL.B.layer ) {
 
-		TForm	atob;
 		Point	delta, TaO = olp.aO;
 		int		Ox, Oy, Rx;
 
-		AToBTrans( atob, GBL.A.t2i.T, GBL.B.t2i.T );
-		atob.Transform( delta );
-		atob.Apply_R_Part( TaO );
+		GBL.Tab[0].Transform( delta );
+		GBL.Tab[0].Apply_R_Part( TaO );
 
 		Ox = ROUND((delta.x / px.scl - olp.bO.x + TaO.x) / thm.scl);
 		Oy = ROUND((delta.y / px.scl - olp.bO.y + TaO.y) / thm.scl);
@@ -791,13 +777,12 @@ bool ApproximateMatch_NoCR(
 #endif
 
 	{
-		TForm	T, Tinv, I;
+		TForm	Tinv, I;
 
-		AToBTrans( T, GBL.A.t2i.T, GBL.B.t2i.T );
 		fprintf( flog, "Approx: Orig transform " );
-		T.PrintTransform( flog );
+		GBL.Tab[0].PrintTransform( flog );
 
-		InvertTrans( Tinv, T );
+		InvertTrans( Tinv, GBL.Tab[0] );
 		MultiplyTrans( I, Tinv, best.T );
 		fprintf( flog, "Approx: Idnt transform " );
 		I.PrintTransform( flog );
