@@ -1,6 +1,0 @@
-#!/bin/sh
-
-
-alignmontages1 newmons.xml -d. -p_idN -zmin=7 -zmax=119 -abwide=5 -abscl=200 -absdev=12 -abcorr=.20
-
-

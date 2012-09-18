@@ -19,7 +19,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	alignmontages3.cpp ../1_AlignMontages2/ScapeMeta.cpp
+	cross_lowtohires.cpp ../1_Cross_LowRes/ScapeMeta.cpp
 
 _SRC_XML_ := \
 	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
@@ -38,7 +38,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-alignmontages3:
+cross_lowtohires:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \

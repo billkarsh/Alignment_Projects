@@ -1,7 +1,7 @@
 
 
-DIRS := 1_Align 1_AlignMontages1 1_AlignMontages2 \
-		1_AlignMontages3 1_Clean_ThmPairs 1_CpyFMs \
+DIRS := 1_Align 1_Clean_ThmPairs 1_CpyFMs \
+		1_Cross_LowRes 1_Cross_LowToHiRes 1_Cross_TopScripts \
 		1_DelTiles 1_DMesh 1_LSQ \
 		1_MakeALN 1_MakeIDB 1_MakeMontages \
 		1_Make_ldir 1_Mosaic_current 1_MRCSD1Lyr \

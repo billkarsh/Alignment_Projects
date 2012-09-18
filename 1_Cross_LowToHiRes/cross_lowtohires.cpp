@@ -1,5 +1,5 @@
 //
-// Transfer edited rough stack back to all tiles.
+// Transfer edited low res stack tforms back to all tiles.
 //
 
 
@@ -8,7 +8,7 @@
 #include	"File.h"
 #include	"CTileSet.h"
 #include	"TrakEM2_UTL.h"
-#include	"../1_AlignMontages2/ScapeMeta.h"
+#include	"../1_Cross_LowRes/ScapeMeta.h"
 
 
 /* --------------------------------------------------------------- */
@@ -71,7 +71,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "alignmontages3.log", "w" );
+	flog = FileOpenOrDie( "cross_lowtohires.log", "w" );
 
 // log start time
 
@@ -87,7 +87,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: alignmontages3 <xml-file> -d. -zmin=i -zmax=j"
+		"Usage: cross_lowtohires <xml-file> -d. -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -132,7 +132,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 static void LoadTForms( vector<TForm> &vT )
 {
 	char	path[2048];
-	sprintf( path, "%s/LowResMons.xml", gArgs.outdir );
+	sprintf( path, "%s/LowRes.xml", gArgs.outdir );
 
 	XML_TKEM		xml( path, flog );
 	TiXmlElement*	layer	= xml.GetFirstLayer();
@@ -268,7 +268,7 @@ int main( int argc, char* argv[] )
 
 	UpdateTForms();
 
-	TS.WriteTrakEM2_EZ( "AlignedTiles.xml",
+	TS.WriteTrakEM2_EZ( "HiRes.xml",
 		gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
 
 /* ---- */

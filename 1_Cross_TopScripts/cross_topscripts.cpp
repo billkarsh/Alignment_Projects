@@ -1,5 +1,5 @@
 //
-// Write script to submit scapeops jobs (subscapes).
+// Write scripts governing cross layer alignment.
 //
 
 
@@ -18,10 +18,10 @@
 /* --------------------------------------------------------------- */
 
 /* --------------------------------------------------------------- */
-/* CArgs_alnmon -------------------------------------------------- */
+/* CArgs_cross --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CArgs_alnmon {
+class CArgs_cross {
 
 public:
 	double	abcorr;
@@ -35,7 +35,7 @@ public:
 			absdev;
 
 public:
-	CArgs_alnmon()
+	CArgs_cross()
 	{
 		abcorr		= 0.20;
 		xmlfile[0]	= 0;
@@ -56,7 +56,7 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CArgs_alnmon	gArgs;
+static CArgs_cross	gArgs;
 static char			gtopdir[2048];
 static FILE*		flog = NULL;
 
@@ -69,11 +69,11 @@ static FILE*		flog = NULL;
 /* SetCmdLine ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
+void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "alignmontages1.log", "w" );
+	flog = FileOpenOrDie( "cross_topscripts.log", "w" );
 
 // log start time
 
@@ -89,7 +89,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: alignmontages1 <xmlfile> -dtemp -zmin=i -zmax=j"
+		"Usage: cross_topscripts <xmlfile> -dtemp -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -171,7 +171,7 @@ static void ParseTrakEM2( vector<int> &zlist )
 static void CreateTopDir()
 {
 // create top subdir
-	sprintf( gtopdir, "%s/alignmontages", gArgs.outdir );
+	sprintf( gtopdir, "%s/cross_wkspc", gArgs.outdir );
 	DskCreateDir( gtopdir, flog );
 }
 
@@ -253,21 +253,21 @@ static void WriteSubscapes( vector<int> &zlist )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteGather --------------------------------------------------- */
+/* WriteLowresgo ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteGather()
+static void WriteLowresgo()
 {
 	char	path[2048];
 	FILE	*f;
 
-	sprintf( path, "%s/gather.sht", gtopdir );
+	sprintf( path, "%s/lowresgo.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f,
-	"alignmontages2 -d. -zmin=%d -zmax=%d\n\n",
+	"cross_lowres -d. -zmin=%d -zmax=%d\n\n",
 	gArgs.zmin, gArgs.zmax );
 
 	fclose( f );
@@ -275,21 +275,21 @@ static void WriteGather()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteFinal ---------------------------------------------------- */
+/* WriteHiresgo -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteFinal()
+static void WriteHiresgo()
 {
 	char	path[2048];
 	FILE	*f;
 
-	sprintf( path, "%s/final.sht", gtopdir );
+	sprintf( path, "%s/hiresgo.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f,
-	"alignmontages3 '%s' -d. -p%s -zmin=%d -zmax=%d"
+	"cross_lowtohires '%s' -d. -p%s -zmin=%d -zmax=%d"
 	" -xmltype=0 -xmlmin=0 -xmlmax=0\n\n",
 	gArgs.xmlfile, gArgs.pat, gArgs.zmin, gArgs.zmax );
 
@@ -327,8 +327,8 @@ int main( int argc, char* argv[] )
 	CreateTopDir();
 
 	WriteSubscapes( zlist );
-	WriteGather();
-	WriteFinal();
+	WriteLowresgo();
+	WriteHiresgo();
 
 /* ---- */
 /* Done */

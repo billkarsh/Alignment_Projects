@@ -2,7 +2,7 @@
 
 #include	"Disk.h"
 #include	"File.h"
-#include	"../1_AlignMontages2/ScapeMeta.h"
+#include	"../1_Cross_LowRes/ScapeMeta.h"
 
 
 

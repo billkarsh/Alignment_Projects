@@ -1,5 +1,5 @@
 //
-// Collect scapeops results into rough stack for viewing/editing.
+// Collect scapeops results into low res stack for viewing/editing.
 //
 
 
@@ -7,7 +7,7 @@
 #include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"../1_AlignMontages2/ScapeMeta.h"
+#include	"../1_Cross_LowRes/ScapeMeta.h"
 
 
 /* --------------------------------------------------------------- */
@@ -59,7 +59,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "alignmontages2.log", "w" );
+	flog = FileOpenOrDie( "cross_lowres.log", "w" );
 
 // log start time
 
@@ -75,7 +75,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 4 ) {
 		printf(
-		"Usage: alignmontages2 -d. -zmin=i -zmax=j"
+		"Usage: cross_lowres -d. -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -314,7 +314,7 @@ static void BuildStack()
 
 // Write
 
-	WriteTrakEM2( "LowResMons.xml", B, vL, vT );
+	WriteTrakEM2( "LowRes.xml", B, vL, vT );
 }
 
 /* --------------------------------------------------------------- */

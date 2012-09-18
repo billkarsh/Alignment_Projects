@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+cp /groups/apig/share/ClusterSupport/bins/SuperLUSymSolve /groups/apig/tomo/lou_stuff/binaries
+
+
