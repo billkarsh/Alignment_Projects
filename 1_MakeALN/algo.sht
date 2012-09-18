@@ -1,0 +1,9 @@
+#!/bin/sh
+
+wrk=temp0
+
+makealn idb0 -d$wrk -zmin=7 -zmax=119 -nf -nd
+
+cp prms/* $wrk
+
+
