@@ -114,6 +114,35 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 }
 
 /* --------------------------------------------------------------- */
+/* RejectTile ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Chance to optionally apply rejection criteria against tile.
+//
+// Return true to reject.
+//
+static bool RejectTile( const CUTile &til )
+{
+// ------------------------------------
+// accept only col/row subsection
+#if 0
+	const char	*c, *n;
+	int			row, col;
+
+	n = FileNamePtr( til.name );
+	if( c = strstr( n, "col" ) ) {
+		sscanf( c, "col%d_row%d", &col, &row );
+//		if( col < 56 || col > 68 || row < 55 || row > 67 )
+		if( col < 61 || col > 62 || row < 61 || row > 62 )
+			return true;
+	}
+#endif
+// ------------------------------------
+
+	return false;
+}
+
+/* --------------------------------------------------------------- */
 /* XMLGetTiles --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -135,7 +164,8 @@ static TiXmlElement* XMLGetTiles(
 		til.id		= TS->DecodeID( name );
 		til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 
-		TS->vtil.push_back( til );
+		if( !RejectTile( til ) )
+			TS->vtil.push_back( til );
 	}
 
 	return pfirst;
