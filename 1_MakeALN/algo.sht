@@ -1,14 +1,16 @@
 #!/bin/sh
 
 # Make workspace 'temp' for 'myidb'...
-# Makes everything except thmparams and dmeshparams files.
+# Makes everything except matchparams.txt file.
 #
 # > makealn myidb -dtemp -zmin=0 -zmax=5
 #
 # Options:
-# -nf no foldmasks
-# -nd no tile directories
-# -exe=ptestalt
+# -minareafrac=0.02		;same and cross req. area olap frac
+# -downradiuspix=4096	;0, or, sloppy match radius for downs
+# -exe=ptestalt			;exe other than 'ptest'
+# -nf					;no foldmasks
+# -nd					;no tile directories
 #
 
 wrk=temp0

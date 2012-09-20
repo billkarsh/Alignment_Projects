@@ -27,11 +27,6 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	minolap	0.025
-
-// Special override for Davi: allow tiny overlap
-//#define	minolap	0.0003
-
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -86,6 +81,13 @@ public:
 class CArgs_scr {
 
 public:
+	// minareafrac used for same and cross layer.
+	// Typical vals:
+	// 0.025	historic typical
+	// 0.020	Davi and new typical
+	// 0.0003	Davi older Harvard data
+	//
+	double	minareafrac;
 	string	idbpath;
 	char	*outdir,
 			*exenam;
@@ -98,6 +100,7 @@ public:
 public:
 	CArgs_scr()
 	{
+		minareafrac	= 0.020;
 		outdir		= "NoSuch";	// prevent overwriting real dir
 		exenam		= "ptest";
 		zmin		= 0;
@@ -166,6 +169,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
 			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
+			;
+		else if( GetArg( &minareafrac, "-minareafrac=%lf", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -688,7 +693,7 @@ void BlockSet::PartitionJobs( int is0, int isN )
 
 		for( int b = a + 1; b < isN; ++b ) {
 
-			if( TS.ABOlap( a, b ) > minolap )
+			if( TS.ABOlap( a, b ) > gArgs.minareafrac )
 				K[ix + kx*iy].P.push_back( Pair( a, b ) );
 		}
 	}

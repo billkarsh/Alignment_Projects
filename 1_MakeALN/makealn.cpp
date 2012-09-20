@@ -26,11 +26,6 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	minolap	0.025
-
-// Special override for Davi: allow tiny overlap
-//#define	minolap	0.0003
-
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -51,10 +46,20 @@ public:
 class CArgs_scr {
 
 public:
+	// minareafrac used for same and cross layer.
+	// Typical vals:
+	// 0.025	historic typical
+	// 0.020	Davi and new typical
+	// 0.0003	Davi older Harvard data
+	//
+	// downradiuspix = 0, or, sloppy match radius for downs
+	//
+	double	minareafrac;
 	string	idbpath;
 	char	*outdir,
 			*exenam;
-	int		zmin,
+	int		downradiuspix,
+			zmin,
 			zmax;
 	bool	NoFolds,
 			NoDirs;
@@ -62,12 +67,14 @@ public:
 public:
 	CArgs_scr()
 	{
-		outdir		= "NoSuch";	// prevent overwriting real dir
-		exenam		= "ptest";
-		zmin		= 0;
-		zmax		= 32768;
-		NoFolds		= false;
-		NoDirs		= false;
+		minareafrac		= 0.020;
+		outdir			= "NoSuch";	// prevent overwriting real dir
+		exenam			= "ptest";
+		downradiuspix	= 0;
+		zmin			= 0;
+		zmax			= 32768;
+		NoFolds			= false;
+		NoDirs			= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -125,6 +132,10 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
 			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
+			;
+		else if( GetArg( &minareafrac, "-minareafrac=%lf", argv[i] ) )
+			;
+		else if( GetArg( &downradiuspix, "-downradiuspix=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -324,6 +335,9 @@ static void WriteCombineFile()
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
+	fprintf( f, "# Gather point pair files into stack/pts.all\n" );
+	fprintf( f, "#\n\n" );
+
 	fprintf( f, "rm -f pts.all\n\n" );
 
 	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
@@ -460,7 +474,7 @@ static bool ABOlap( int a, int b )
 	fprintf( flog, "----ABOlap: Tile %3d - %3d; area frac %f\n",
 	TS.vtil[a].id, TS.vtil[b].id, A );
 
-	return A > minolap;
+	return A > gArgs.minareafrac;
 }
 
 /* --------------------------------------------------------------- */
@@ -684,8 +698,7 @@ static void Make_MakeSame( const char *lyrdir, int is0, int isN )
 //
 // (a, b) = (source[this layer], target[below layer]).
 //
-#if 1
-static void Make_MakeDown(
+static void Make_MakeDownTight(
 	const char				*lyrdir,
 	int						is0,
 	int						isN,
@@ -718,11 +731,9 @@ static void Make_MakeDown(
 write:
 	WriteMakeFile( lyrdir, 'D', 0, 0, P );
 }
-#endif
 
 
-#if 0
-static void Make_MakeDown(
+static void Make_MakeDownLoose(
 	const char				*lyrdir,
 	int						is0,
 	int						isN,
@@ -730,6 +741,7 @@ static void Make_MakeDown(
 	int						idN )
 {
 	vector<Pair>	P;
+	int				Rsqr = gArgs.downradiuspix * gArgs.downradiuspix;
 
 	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
@@ -754,7 +766,7 @@ static void Make_MakeDown(
 			TS.vtil[a].T.Transform( pa );
 			TS.vtil[b].T.Transform( pb );
 
-			if( pb.DistSqr( pa ) < 4500*4500 )
+			if( pb.DistSqr( pa ) < Rsqr )
 				P.push_back( Pair( a, b ) );
 		}
 	}
@@ -764,7 +776,6 @@ static void Make_MakeDown(
 write:
 	WriteMakeFile( lyrdir, 'D', 0, 0, P );
 }
-#endif
 
 /* --------------------------------------------------------------- */
 /* ForEachLayer -------------------------------------------------- */
@@ -795,7 +806,11 @@ static void ForEachLayer()
 		//Make_ThumbsDown( lyrdir, is0, isN, id0, idN );
 
 		Make_MakeSame( lyrdir, is0, isN );
-		Make_MakeDown( lyrdir, is0, isN, id0, idN );
+
+		if( gArgs.downradiuspix )
+			Make_MakeDownLoose( lyrdir, is0, isN, id0, idN );
+		else
+			Make_MakeDownTight( lyrdir, is0, isN, id0, idN );
 
 		id0 = is0;
 		idN = isN;
