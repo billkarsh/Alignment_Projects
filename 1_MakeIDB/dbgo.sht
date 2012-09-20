@@ -1,5 +1,24 @@
 #!/bin/sh
 
+# Make image database 'idb' from 'myxml' file...
+# Makes everything.
+#
+# > makeidb myxml -didb -p_Nex.mrc
+#
+# Required -p pattern describes the context around
+# the tile ID 'N' part of image names.
+#
+# Options:
+# -simple interpret input as Rick file
+# -zmin=i -zmax=j restricts layer range
+# -nf no foldmasks
+# -kMyClicksfile.txt
+# -xmltype=0
+# -xmlmin=0
+# -xmlmax=0
+#
+
+export MRC_TRIM=12
 
 makeidb Z7-119.txt -didb0 -simple -nf -p_idN -zmin=7 -zmax=119
 

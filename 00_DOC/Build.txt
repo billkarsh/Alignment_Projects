@@ -34,7 +34,6 @@ export MRC_TRIM=12
 # and append Lou's cluster-bins path
 PATH=$PATH:$HOME/bin
 PATH=$PATH:/groups/apig/tomo/lou_stuff/binaries
-PATH=$PATH:/groups/scheffer/home/schefferl/cluster-bins
 export PATH
 
 # Set place to look for libpng14 library

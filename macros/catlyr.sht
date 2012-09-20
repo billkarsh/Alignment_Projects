@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Concatenate Rick files for individual dirs into one big file
+#
+
 dir=/groups/bock/bocklab/people/eric/scratch/32stack-clahe/
 
 for z in $(seq 7 119)

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Clean work files from older Lou-style temp structure
+#
+
 rm lou-*
 rm *.log
 rm *.tif

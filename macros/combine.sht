@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Gather point pair files into stack/pts.all
+#
+
 rm -f pts.all
 
 #get line 1, subst 'IDBPATH=xxx' with 'xxx'

@@ -1,5 +1,16 @@
 #!/bin/sh
 
+# Make workspace 'temp' for 'myidb'...
+# Makes everything except thmparams and dmeshparams files.
+#
+# > makealn myidb -dtemp -zmin=0 -zmax=5
+#
+# Options:
+# -nf no foldmasks
+# -nd no tile directories
+# -exe=ptestalt
+#
+
 wrk=temp0
 
 makealn idb0 -d$wrk -zmin=7 -zmax=119 -nf -nd
