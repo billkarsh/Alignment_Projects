@@ -149,9 +149,11 @@ static void Trim( uint8* ras, uint32 &w, uint32 &h )
 {
 // Trim at least top two rows and make row count even
 
-	int	htrim = (h & 1 ? 3 : 2);
+//	int	htrim = (h & 1 ? 3 : 2);	// Nathan
+	int	htrim = (h & 1 ? 1 : 0);	// Davi (just make even)
 
-	memmove( ras, ras + htrim*w, w*(h-=htrim) );
+	if( htrim )
+		memmove( ras, ras + htrim*w, w*(h-=htrim) );
 
 // Trim rightmost col to make width even
 
