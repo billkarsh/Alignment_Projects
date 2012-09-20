@@ -1322,6 +1322,50 @@ static void ReadPts_StrTags( CNX *cnx, RGD *rgd, const DIR *dir )
 }
 
 /* --------------------------------------------------------------- */
+/* RejectPair ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Chance to optionally apply rejection criteria against
+// point pairs.
+//
+// Return true to reject.
+//
+static bool RejectPair( const RGN &R1, const RGN &R2 )
+{
+// ------------------------------------
+// reject layer 30 and 38
+#if 0
+	if( R1.z == 30 || R1.z == 38 || R2.z == 30 || R2.z == 38 )
+		return true;
+#endif
+// ------------------------------------
+
+// ------------------------------------
+// accept only col/row subsection
+#if 0
+	const char	*c, *n;
+	int			row, col;
+
+	n = FileNamePtr( R1.GetName() );
+	if( c = strstr( n, "col" ) ) {
+		sscanf( c, "col%d_row%d", &col, &row );
+		if( col < 56 || col > 68 || row < 55 || row > 67 )
+			return true;
+	}
+
+	n = FileNamePtr( R2.GetName() );
+	if( c = strstr( n, "col" ) ) {
+		sscanf( c, "col%d_row%d", &col, &row );
+		if( col < 56 || col > 68 || row < 55 || row > 67 )
+			return true;
+	}
+#endif
+// ------------------------------------
+
+	return false;
+}
+
+/* --------------------------------------------------------------- */
 /* ReadPts_NumTags ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1363,6 +1407,10 @@ static void ReadPts_NumTags( CNX *cnx, RGD *rgd )
 
 			RGN	R1( key1 );
 			RGN	R2( key2 );
+
+			if( RejectPair( R1, R2 ) )
+				continue;
+
 			int r1 = FindOrAdd( mapRGN, nr, R1 );
 			int r2 = FindOrAdd( mapRGN, nr, R2 );
 
