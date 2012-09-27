@@ -198,10 +198,10 @@ static void WriteSubscapes( vector<int> &zlist )
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"'%s' -d%s -p%s"
+	"'%s' -p%s"
 	" -mb -mbscl=%d"
 	" -ab -abwide=%d -abscl=%d -absdev=%d -abcorr=%g",
-	gArgs.xmlfile, gArgs.outdir, gArgs.pat,
+	gArgs.xmlfile, gArgs.pat,
 	gArgs.abscl,
 	gArgs.abwide, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
 
@@ -238,10 +238,9 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	fprintf( f,
 	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -d%s -p%s -mb -mbscl=%d -zb=%d\n",
+	" scapeops '%s' -p%s -mb -mbscl=%d -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.xmlfile, gArgs.outdir, gArgs.pat,
-	gArgs.abscl, zlist[nz - 1] );
+	gArgs.xmlfile, gArgs.pat, gArgs.abscl, zlist[nz - 1] );
 
 	fprintf( f, "\n" );
 

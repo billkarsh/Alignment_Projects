@@ -28,13 +28,13 @@ SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_UTL_ := \
-	PipeFiles.cpp numerical_recipes.cpp mrc.cpp
+	numerical_recipes.cpp mrc.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
+	Cmdline.cpp CRegexID.cpp File.cpp \
 	TrakEM2_UTL.cpp CTileSet.cpp ImageIO.cpp \
 	Maths.cpp Correlation.cpp CPoint.cpp \
 	Geometry.cpp CTForm.cpp Scape.cpp \
