@@ -74,6 +74,8 @@ FILE *FileOpenOrDie(
 	const char	*rw,
 	FILE		*flog = NULL );
 
+void FileScriptPerms( const char *path );
+
 const char* FileNamePtr( const char *path );
 const char* FileDotPtr( const char *path );
 char* FileCloneNamePart( const char *path );

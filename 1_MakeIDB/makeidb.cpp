@@ -191,18 +191,6 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
-/* ScriptPerms --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ScriptPerms( const char *path )
-{
-	char	buf[2048];
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
-	system( buf );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteImageparamsFile ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -258,7 +246,7 @@ static void WriteSubfmFile()
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -278,7 +266,7 @@ static void WriteReportFile()
 	fprintf( f, "ls -l */lou-f*.e* > FmErrs.txt\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */

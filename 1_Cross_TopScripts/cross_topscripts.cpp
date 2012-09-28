@@ -176,18 +176,6 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
-/* ScriptPerms --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ScriptPerms( const char *path )
-{
-	char	buf[2048];
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
-	system( buf );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteSubscapes ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -248,7 +236,7 @@ static void WriteSubscapes( vector<int> &zlist )
 
 // make executable
 
-	ScriptPerms( path );
+	FileScriptPerms( path );
 }
 
 /* --------------------------------------------------------------- */
@@ -266,11 +254,11 @@ static void WriteLowresgo()
 	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f,
-	"cross_lowres -d. -zmin=%d -zmax=%d\n\n",
+	"cross_lowres -zmin=%d -zmax=%d\n\n",
 	gArgs.zmin, gArgs.zmax );
 
 	fclose( f );
-	ScriptPerms( path );
+	FileScriptPerms( path );
 }
 
 /* --------------------------------------------------------------- */
@@ -288,12 +276,35 @@ static void WriteHiresgo()
 	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f,
-	"cross_lowtohires '%s' -d. -p%s -zmin=%d -zmax=%d"
+	"cross_lowtohires '%s' -lowres=LowRes.xml"
+	" -p%s -zmin=%d -zmax=%d"
 	" -xmltype=0 -xmlmin=0 -xmlmax=0\n\n",
 	gArgs.xmlfile, gArgs.pat, gArgs.zmin, gArgs.zmax );
 
 	fclose( f );
-	ScriptPerms( path );
+	FileScriptPerms( path );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteCarvego -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteCarvego()
+{
+	char	path[2048];
+	FILE	*f;
+
+	sprintf( path, "%s/carvego.sht", gtopdir );
+	f = FileOpenOrDie( path, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f,
+	"cross_carveblocks HiRes.xml -p%s -zmin=%d -zmax=%d -b=10\n\n",
+	gArgs.pat, gArgs.zmin, gArgs.zmax );
+
+	fclose( f );
+	FileScriptPerms( path );
 }
 
 /* --------------------------------------------------------------- */
@@ -328,6 +339,7 @@ int main( int argc, char* argv[] )
 	WriteSubscapes( zlist );
 	WriteLowresgo();
 	WriteHiresgo();
+	WriteCarvego();
 
 /* ---- */
 /* Done */

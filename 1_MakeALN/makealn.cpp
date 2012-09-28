@@ -181,18 +181,6 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
-/* ScriptPerms --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ScriptPerms( const char *path )
-{
-	char	buf[2048];
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
-	system( buf );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteRunlsqFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -209,7 +197,7 @@ static void WriteRunlsqFile()
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -251,7 +239,7 @@ static void WriteSubmosFile()
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -294,7 +282,7 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -318,7 +306,7 @@ static void WriteReportFile()
 	fprintf( f, "ls -l */D0_0/pts.down > DownPts.txt\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -364,7 +352,7 @@ static void WriteCombineFile()
 	fprintf( f, "mv pts.all stack\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -386,7 +374,7 @@ static void WriteFinishFile()
 	fprintf( f, "./runlsq.sht\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */

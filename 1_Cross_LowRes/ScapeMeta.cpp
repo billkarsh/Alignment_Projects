@@ -13,10 +13,10 @@
 /* ReadLog1 ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static bool ReadLog1( CLog &L, const char *outdir, int z )
+static bool ReadLog1( CLog &L, int z )
 {
-	char		buf[2048];
-	sprintf( buf, "%s/scplogs/scp_%d.log", outdir, z );
+	char		buf[256];
+	sprintf( buf, "scplogs/scp_%d.log", z );
 
 	if( !DskExists( buf ) )
 		return false;
@@ -81,11 +81,7 @@ static bool ReadLog1( CLog &L, const char *outdir, int z )
 /* ReadLogs ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-int ReadLogs(
-	vector<CLog>	&vL,
-	const char		*outdir,
-	int				zmin,
-	int				zmax )
+int ReadLogs( vector<CLog> &vL, int zmin, int zmax )
 {
 	for( int z = zmin; z <= zmax; ) {
 
@@ -93,7 +89,7 @@ int ReadLogs(
 
 		L.A.z = -1;
 
-		if( ReadLog1( L, outdir, z ) ) {
+		if( ReadLog1( L, z ) ) {
 
 			vL.push_back( L );
 

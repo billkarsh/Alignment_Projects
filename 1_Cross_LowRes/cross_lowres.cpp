@@ -4,7 +4,6 @@
 
 
 #include	"Cmdline.h"
-#include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"../1_Cross_LowRes/ScapeMeta.h"
@@ -25,7 +24,6 @@
 class CArgs_alnmon {
 
 public:
-	char	outdir[2048];
 	int		zmin,
 			zmax;
 
@@ -73,23 +71,19 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 4 ) {
+	if( argc < 3 ) {
 		printf(
-		"Usage: cross_lowres -d. -zmin=i -zmax=j"
+		"Usage: cross_lowres -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
 
 	for( int i = 1; i < argc; ++i ) {
 
-		char	*_outdir;
-
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArgStr( _outdir, "-d", argv[i] ) )
-			DskAbsPath( outdir, sizeof(outdir), _outdir, flog );
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
@@ -294,8 +288,7 @@ static void BuildStack()
 // Get log data
 
 	vector<CLog>	vL;
-	int				nL = ReadLogs( vL, gArgs.outdir,
-							gArgs.zmin, gArgs.zmax );
+	int				nL = ReadLogs( vL, gArgs.zmin, gArgs.zmax );
 
 	if( !nL )
 		return;

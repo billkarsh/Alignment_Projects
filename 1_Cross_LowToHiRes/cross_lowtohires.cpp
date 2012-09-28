@@ -1,10 +1,9 @@
 //
-// Transfer edited low res stack tforms back to all tiles.
+// Transfer edited low res stack tforms back to orig tiles.
 //
 
 
 #include	"Cmdline.h"
-#include	"Disk.h"
 #include	"File.h"
 #include	"CTileSet.h"
 #include	"TrakEM2_UTL.h"
@@ -26,9 +25,9 @@
 class CArgs_alnmon {
 
 public:
-	char	*xmlfile,
+	char	*xml_orig,
+			*xml_lowres,
 			*pat;
-	char	outdir[2048];
 	int		zmin,
 			zmax,
 			xml_type,
@@ -38,7 +37,8 @@ public:
 public:
 	CArgs_alnmon()
 	{
-		xmlfile		= NULL;
+		xml_orig	= NULL;
+		xml_lowres	= "LowRes.xml";
 		pat			= "/N";
 		zmin		= 0;
 		zmax		= 32768;
@@ -85,26 +85,24 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 5 ) {
+	if( argc < 4 ) {
 		printf(
-		"Usage: cross_lowtohires <xml-file> -d. -zmin=i -zmax=j"
+		"Usage: cross_lowtohires <xml-file> -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
 
 	for( int i = 1; i < argc; ++i ) {
 
-		char	*_outdir;
-
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			xmlfile = argv[i];
+			xml_orig = argv[i];
+		else if( GetArgStr( xml_lowres, "-lowres=", argv[i] ) )
+			;
 		else if( GetArgStr( pat, "-p", argv[i] ) )
 			;
-		else if( GetArgStr( _outdir, "-d", argv[i] ) )
-			DskAbsPath( outdir, sizeof(outdir), _outdir, flog );
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -131,10 +129,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 static void LoadTForms( vector<TForm> &vT )
 {
-	char	path[2048];
-	sprintf( path, "%s/LowRes.xml", gArgs.outdir );
-
-	XML_TKEM		xml( path, flog );
+	XML_TKEM		xml( gArgs.xml_lowres, flog );
 	TiXmlElement*	layer	= xml.GetFirstLayer();
 	int				nz = 0;
 
@@ -155,8 +150,7 @@ static void UpdateTForms()
 // Get log data
 
 	vector<CLog>	vL;
-	int				nL = ReadLogs( vL, gArgs.outdir,
-							gArgs.zmin, gArgs.zmax );
+	int				nL = ReadLogs( vL, gArgs.zmin, gArgs.zmax );
 
 	if( !nL )
 		return;
@@ -253,7 +247,7 @@ int main( int argc, char* argv[] )
 /* Read dest file */
 /* -------------- */
 
-	TS.FillFromTrakEM2( gArgs.xmlfile, gArgs.zmin, gArgs.zmax );
+	TS.FillFromTrakEM2( gArgs.xml_orig, gArgs.zmin, gArgs.zmax );
 
 	fprintf( flog, "Got %d images.\n", TS.vtil.size() );
 

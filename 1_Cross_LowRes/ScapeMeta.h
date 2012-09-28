@@ -28,10 +28,6 @@ public:
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int ReadLogs(
-	vector<CLog>	&vL,
-	const char		*outdir,
-	int				zmin,
-	int				zmax );
+int ReadLogs( vector<CLog> &vL, int zmin, int zmax );
 
 

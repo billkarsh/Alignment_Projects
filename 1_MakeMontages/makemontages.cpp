@@ -121,9 +121,7 @@ static CArgs_scr	gArgs;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
 static int			gW		= 0,	// universal pic dims
-					gH		= 0,
-					gW2		= 0,
-					gH2		= 0;
+					gH		= 0;
 
 
 
@@ -218,18 +216,6 @@ static void CreateTopDir()
 }
 
 /* --------------------------------------------------------------- */
-/* ScriptPerms --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ScriptPerms( const char *path )
-{
-	char	buf[2048];
-
-	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
-	system( buf );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteRunlsqFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -246,7 +232,7 @@ static void WriteRunlsqFile()
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -288,7 +274,7 @@ static void WriteSubmosFile()
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -331,7 +317,7 @@ static void WriteSubsNFile( int njobs )
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -353,7 +339,7 @@ static void WriteReportFile()
 	fprintf( f, "ls -l */S*/pts.same > SamePts.txt\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -391,7 +377,7 @@ static void WriteMontage1File()
 	fprintf( f, "./runlsq.sht\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -429,7 +415,7 @@ static void WriteSubmonFile()
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -465,7 +451,7 @@ static void WriteReportMonsFile()
 	fprintf( f, "done\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -503,7 +489,7 @@ static void CreateLayerDir( char *lyrdir, int L )
 	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
 
 	fclose( f );
-	ScriptPerms( buf );
+	FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -670,9 +656,12 @@ void BlockSet::PartitionJobs( int is0, int isN )
 	K.clear();
 	K.resize( nb );
 
+	int	W2 = gW/2,
+		H2 = gH/2;
+
 	for( int a = is0; a < isN; ++a ) {
 
-		Point	pa( gW2, gH2 );
+		Point	pa( W2, H2 );
 		int		ix, iy;
 
 		TS.vtil[a].T.Transform( pa );
@@ -703,7 +692,7 @@ void BlockSet::PartitionJobs( int is0, int isN )
 /* Consolidate --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Append small job sets into more central neighbors.
+// Distribute small job sets into low occupancy neighbors.
 //
 void BlockSet::Consolidate()
 {
@@ -886,8 +875,6 @@ int main( int argc, char* argv[] )
 
 	TS.SetTileDimsFromIDB( gArgs.idbpath );
 	TS.GetTileDims( gW, gH );
-	gW2 = gW/2;
-	gH2 = gH/2;
 
 /* ------------------------------------------------- */
 /* Within each layer, sort tiles by dist from center */
