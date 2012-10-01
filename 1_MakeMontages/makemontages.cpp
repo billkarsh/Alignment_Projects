@@ -105,7 +105,7 @@ public:
 		exenam		= "ptest";
 		zmin		= 0;
 		zmax		= 32768;
-		blksize		= 60;
+		blksize		= 8;
 		NoFolds		= false;
 		NoDirs		= false;
 	};
@@ -634,7 +634,7 @@ void BlockSet::OrientLayer( int is0, int isN )
 //
 void BlockSet::SetDims()
 {
-	dx = (int)sqrt( gArgs.blksize );
+	dx = gArgs.blksize;
 	dy = dx;
 	dx *= gW;
 	dy *= gH;

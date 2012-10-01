@@ -6,7 +6,7 @@
 # > makemontages myidb -dtemp -zmin=0 -zmax=5
 #
 # Options:
-# -b=60				;<num> jobs per subblock
+# -b=8				;subblock 1D size <in tiles>
 # -minareafrac=0.02	;same and cross req. area olap frac
 # -exe=ptestalt		;exe other than 'ptest'
 # -nf				;no foldmasks
@@ -15,7 +15,7 @@
 
 wrk=temp0
 
-makemontages idb0 -d$wrk -zmin=7 -zmax=119 -nf -nd -b=60
+makemontages idb0 -d$wrk -zmin=7 -zmax=119 -nf -nd -b=8
 
 cp prms/* $wrk
 
