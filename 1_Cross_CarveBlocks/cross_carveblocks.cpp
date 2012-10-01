@@ -4,6 +4,7 @@
 
 
 #include	"Cmdline.h"
+#include	"Disk.h"
 #include	"File.h"
 #include	"PipeFiles.h"
 #include	"CTileSet.h"
@@ -53,8 +54,8 @@ public:
 class CArgs_alnmon {
 
 public:
-	char	*xml_hires,
-			*pat;
+	char	xml_hires[2048];
+	char	*pat;
 	int		zmin,
 			zmax,
 			blksize;
@@ -62,11 +63,11 @@ public:
 public:
 	CArgs_alnmon()
 	{
-		xml_hires	= "HiRes.xml";
-		pat			= "/N";
-		zmin		= 0;
-		zmax		= 32768;
-		blksize		= 10;
+		xml_hires[0]	= 0;
+		pat				= "/N";
+		zmin			= 0;
+		zmax			= 32768;
+		blksize			= 10;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -122,7 +123,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			xml_hires = argv[i];
+			DskAbsPath( xml_hires, sizeof(xml_hires), argv[i], flog );
 		else if( GetArgStr( pat, "-p", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
@@ -507,6 +508,7 @@ static void ForEachLayer()
 		BS.CarveIntoBlocks( is0, isN );
 		BS.WriteParams( za, zb );
 
+		zb = za;
 		TS.GetLayerLimits( is0 = isN, isN );
 	}
 }
