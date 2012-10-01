@@ -54,20 +54,26 @@ public:
 class CArgs_alnmon {
 
 public:
+	double	abcorr;
 	char	xml_hires[2048];
 	char	*pat;
 	int		zmin,
 			zmax,
-			blksize;
+			blksize,
+			abscl,
+			absdev;
 
 public:
 	CArgs_alnmon()
 	{
+		abcorr			= 0.20;
 		xml_hires[0]	= 0;
 		pat				= "/N";
 		zmin			= 0;
 		zmax			= 32768;
 		blksize			= 10;
+		abscl			= 200;
+		absdev			= 0;	// 12 useful for Davi EM
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -132,6 +138,12 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &blksize, "-b=%d", argv[i] ) )
 			;
+		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
+			;
+		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
+			;
+		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
+			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -174,7 +186,9 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock\n" );
+	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8"
+		" cross_thisblock -p%s -abscl=%d -absdev=%d -abcorr=%g\n",
+		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\t\tcd ..\n" );

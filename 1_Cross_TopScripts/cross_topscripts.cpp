@@ -300,8 +300,13 @@ static void WriteCarvego()
 	fprintf( f, "#!/bin/sh\n\n" );
 
 	fprintf( f,
-	"cross_carveblocks HiRes.xml -p%s -zmin=%d -zmax=%d -b=10\n\n",
-	gArgs.pat, gArgs.zmin, gArgs.zmax );
+	"cross_carveblocks"
+	" HiRes.xml -p%s"
+	" -b=10 -abscl=%d -absdev=%d -abcorr=%g"
+	" -zmin=%d -zmax=%d\n\n",
+	gArgs.pat,
+	gArgs.abscl, gArgs.absdev, gArgs.abcorr,
+	gArgs.zmin, gArgs.zmax );
 
 	fclose( f );
 	FileScriptPerms( path );
