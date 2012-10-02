@@ -43,10 +43,12 @@ double DeltaSeconds( clock_t start )
 /* StopTiming ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void StopTiming( FILE *flog, const char *msg, clock_t start )
+clock_t StopTiming( FILE *flog, const char *msg, clock_t start )
 {
 	fprintf( flog, "Timer: %s took %.3f seconds.\n",
 	msg, DeltaSeconds( start ) );
+
+	return StartTiming();
 }
 
 

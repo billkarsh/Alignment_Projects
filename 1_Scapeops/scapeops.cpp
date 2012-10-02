@@ -530,8 +530,7 @@ static void ScapeStuff()
 		B.DrawRas( buf );
 		B.KillRas();
 		B.WriteMeta( 'M', gArgs.zb, gArgs.mbscl );
-		StopTiming( flog, "MakeMontage", t0 );
-		t0 = StartTiming();
+		t0 = StopTiming( flog, "MakeMontage", t0 );
 	}
 
 	if( !gArgs.isab )
@@ -541,8 +540,7 @@ static void ScapeStuff()
 	A.OrientLayer();
 
 	MakeStripRasters( A, B );
-	StopTiming( flog, "MakeStrips", t0 );
-	t0 = StartTiming();
+	t0 = StopTiming( flog, "MakeStrips", t0 );
 
 	A.MakePoints( thm.av, thm.ap );
 	A.KillRas();
@@ -586,8 +584,7 @@ static void ScapeStuff()
 		best.T.t[3], best.T.t[4], best.T.t[5] );
 	}
 
-	StopTiming( flog, "Corr", t0 );
-	t0 = StartTiming();
+	t0 = StopTiming( flog, "Corr", t0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -623,8 +620,7 @@ int main( int argc, char* argv[] )
 
 	TS.GetTileDims( gW, gH );
 
-	StopTiming( flog, "ReadFile", t0 );
-	t0 = StartTiming();
+	t0 = StopTiming( flog, "ReadFile", t0 );
 
 /* ------------- */
 /* Sort by layer */
