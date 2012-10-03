@@ -186,7 +186,7 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8"
+	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
 		" cross_thisblock -p%s -abscl=%d -absdev=%d -abcorr=%g\n",
 		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
 	fprintf( f, "\t\t\tcd ..\n" );
@@ -486,7 +486,7 @@ void BlockSet::WriteParams( int za, int zb )
 
 			fprintf( f, "nIDs=%d\n", nID );
 			for( int j = 0; j < nID; ++j )
-				fprintf( f, "%d\n", K[i].vID[j] );
+				fprintf( f, "%d\n", TS.vtil[K[i].vID[j]].id );
 
 			fclose( f );
 		}

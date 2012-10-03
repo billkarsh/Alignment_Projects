@@ -14,6 +14,9 @@
 #include	"Timer.h"
 #include	"Debug.h"
 
+#include	<set>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
@@ -34,14 +37,12 @@
 class CSuperscape {
 
 public:
-	DBox	B;			// oriented bounding box
-	double	x0, y0;		// scape corner in oriented system
-	uint8	*ras;		// scape pixels
-	uint32	ws, hs;		// scape dims
-	int		is0, isN,	// layer index range
-			Bxc, Byc,	// oriented layer center
-			Bxw, Byh,	// oriented layer span
-			deg;		// rotate this much to orient
+	vector<int>	vID;
+	DBox		B;			// oriented bounding box
+	double		x0, y0;		// scape corner in oriented system
+	uint8		*ras;		// scape pixels
+	uint32		ws, hs;		// scape dims
+	int			is0, isN;	// layer index range
 
 public:
 	CSuperscape()
@@ -72,15 +73,31 @@ public:
 		};
 
 	void FindLayerIndices( int z );
-	void OrientLayer();
+	void vID_From_sID();
+	void CalcBBox();
 
-	bool MakeWholeRaster();
-	bool MakeRasV();
-	bool MakeRasH();
+	bool MakeRasA();
+	bool MakeRasB( const DBox &A );
 
 	void WriteMeta( char clbl, int z, int scl );
 
 	void MakePoints( vector<double> &v, vector<Point> &p );
+};
+
+/* --------------------------------------------------------------- */
+/* CBlockDat ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class CBlockDat {
+
+public:
+	char		xmlfile[2048];
+	int			za, zb;
+	int			ntil;
+	set<int>	sID;
+
+public:
+	void ReadFile();
 };
 
 /* --------------------------------------------------------------- */
@@ -93,35 +110,19 @@ public:
 	double	inv_abscl,
 			abcorr,
 			abctr;
-	char	*infile,
-			*pat;
-	int		za,
-			zb,
-			abwide,
-			mbscl,
-			abscl,
-			mbsdev,
+	char	*pat;
+	int		abscl,
 			absdev;
-	bool	ismb,
-			isab,
-			abdbg;
+	bool	abdbg;
 
 public:
 	CArgs_scp()
 	{
 		abcorr		= 0.20;
 		abctr		= 0.0;
-		infile		= NULL;
 		pat			= "/N";
-		za			= -1;
-		zb			= -1;
-		abwide		= 5;
-		mbscl		= 200;
 		abscl		= 200;
-		mbsdev		= 0;	// 12 useful for Davi EM
 		absdev		= 0;	// 12 useful for Davi EM
-		ismb		= false;
-		isab		= false;
 		abdbg		= false;
 
 		inv_abscl	= 1.0/abscl;
@@ -135,6 +136,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_scp	gArgs;
+static CBlockDat	gDat;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
 static int			gW		= 0,	// universal pic dims
@@ -178,30 +180,16 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArg( &za, "-za=%d", argv[i] ) )
-			;
-		else if( GetArg( &zb, "-zb=%d", argv[i] ) )
-			;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
-			;
-		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
-			;
-		else if( GetArg( &mbscl, "-mbscl=%d", argv[i] ) )
+		if( GetArgStr( pat, "-p", argv[i] ) )
 			;
 		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			inv_abscl = 1.0/abscl;
-		else if( GetArg( &mbsdev, "-mbsdev=%d", argv[i] ) )
-			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
-		else if( IsArg( "-mb", argv[i] ) )
-			ismb = true;
-		else if( IsArg( "-ab", argv[i] ) )
-			isab = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else {
@@ -212,6 +200,46 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 
 	fprintf( flog, "\n" );
 	fflush( flog );
+}
+
+/* --------------------------------------------------------------- */
+/* ReadFile ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void CBlockDat::ReadFile()
+{
+	FILE		*f = FileOpenOrDie( "blockdat.txt", "r", flog );
+	CLineScan	LS;
+	int			item = 0;
+
+	while( LS.Get( f ) > 0 ) {
+
+		if( item == 0 ) {
+			sscanf( LS.line, "file=%s", xmlfile );
+			item = 1;
+		}
+		else if( item == 1 ) {
+			sscanf( LS.line, "ZaZb=%d,%d", &za, &zb );
+			item = 2;
+		}
+		else if( item == 2 ) {
+			sscanf( LS.line, "nIDs=%d", &ntil );
+			item = 3;
+		}
+		else {
+
+			for( int i = 0; i < ntil; ++i ) {
+
+				int	id;
+
+				sscanf( LS.line, "%d", &id );
+				sID.insert( id );
+				LS.Get( f );
+			}
+		}
+	}
+
+	fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -227,142 +255,101 @@ void CSuperscape::FindLayerIndices( int z )
 }
 
 /* --------------------------------------------------------------- */
-/* OrientLayer --------------------------------------------------- */
+/* vID_From_sID -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Rotate layer to have smallest footprint.
-//
-void CSuperscape::OrientLayer()
+void CSuperscape::vID_From_sID()
 {
-// Collect all tile corners
-
-	vector<Point>	C;
-
-	for( int i = is0; i < isN; ++i ) {
-
-		vector<Point>	p( 4 );
-
-		p[0] = Point( 0.0 , 0.0 );
-		p[1] = Point( gW-1, 0.0 );
-		p[2] = Point( gW-1, gH-1 );
-		p[3] = Point( 0.0 , gH-1 );
-
-		TS.vtil[i].T.Transform( p );
-
-		for( int i = 0; i < 4; ++i )
-			C.push_back( p[i] );
-	}
-
-// Rotate layer upright and translate to (0,0)
-
-	TForm	R;
-
-	deg = TightestBBox( B, C );
-
-	R.NUSetRot( deg*PI/180 );
+	int	n = 0;
+	vID.resize( gDat.ntil );
 
 	for( int i = is0; i < isN; ++i ) {
 
-		TForm&	T = TS.vtil[i].T;
+		if( gDat.sID.find( TS.vtil[i].id ) != gDat.sID.end() ) {
 
-		MultiplyTrans( T, R, TForm( T ) );
+			vID[n++] = i;
+
+			if( n == gDat.ntil )
+				break;
+		}
 	}
-
-	Bxc = int((B.R + B.L)/2.0);
-	Byc = int((B.B + B.T)/2.0);
-	Bxw = int(B.R - B.L);
-	Byh = int(B.T - B.B);
 }
 
 /* --------------------------------------------------------------- */
-/* MakeWholeRaster ----------------------------------------------- */
+/* CalcBBox ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-bool CSuperscape::MakeWholeRaster()
+void CSuperscape::CalcBBox()
+{
+	B.L =  BIGD;
+	B.R = -BIGD;
+	B.B =  BIGD;
+	B.T = -BIGD;
+
+	for( int i = 0; i < gDat.ntil; ++i ) {
+
+		vector<Point>	cnr( 4 );
+
+		cnr[0] = Point( 0.0 , 0.0 );
+		cnr[1] = Point( gW-1, 0.0 );
+		cnr[2] = Point( gW-1, gH-1 );
+		cnr[3] = Point( 0.0 , gH-1 );
+
+		TS.vtil[vID[i]].T.Transform( cnr );
+
+		for( int k = 0; k < 4; ++k ) {
+
+			B.L = fmin( B.L, cnr[k].x );
+			B.R = fmax( B.R, cnr[k].x );
+			B.B = fmin( B.B, cnr[k].y );
+			B.T = fmax( B.T, cnr[k].y );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* MakeRasA ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+bool CSuperscape::MakeRasA()
 {
 	vector<ScpTile>	S;
 
-	for( int i = is0; i < isN; ++i ) {
+	for( int i = 0; i < gDat.ntil; ++i ) {
 
-		const CUTile& U = TS.vtil[i];
+		const CUTile& U = TS.vtil[vID[i]];
 
 		S.push_back( ScpTile( U.name, U.T ) );
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			1.0/gArgs.mbscl, 1, 0, gArgs.mbsdev, flog );
+			1.0/gArgs.abscl, 1, 0, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }
 
 /* --------------------------------------------------------------- */
-/* MakeRasV ------------------------------------------------------ */
+/* MakeRasB ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-bool CSuperscape::MakeRasV()
+bool CSuperscape::MakeRasB( const DBox &A )
 {
-// Collect strip tiles
-
 	vector<ScpTile>	S;
-	int				w1, w2, h1, h2;
-
-	w1 = (gArgs.abwide * gW)/2;
-	w2 = Bxc + w1;
-	w1 = Bxc - w1;
-
-	h1 = int(Byh * 0.45);
-	h2 = Byc + h1;
-	h1 = Byc - h1;
+	int				W2 = gW/2, H2 = gH/2;
 
 	for( int i = is0; i < isN; ++i ) {
 
-		const CUTile&	U = TS.vtil[i];
+		const CUTile& U = TS.vtil[i];
 
-		if( U.T.t[2] >= w1 && U.T.t[2] <= w2 &&
-			U.T.t[5] >= h1 && U.T.t[5] <= h2 ) {
+		Point	p( W2, H2 );
+		U.T.Transform( p );
 
+		if( p.x >= A.L && p.x <= A.R && p.y >= A.B && p.y <= A.T )
 			S.push_back( ScpTile( U.name, U.T ) );
-		}
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
-
-	return (ras != NULL);
-}
-
-/* --------------------------------------------------------------- */
-/* MakeRasH ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-bool CSuperscape::MakeRasH()
-{
-// Collect strip tiles
-
-	vector<ScpTile>	S;
-	int				w1, w2, h1, h2;
-
-	w1 = int(Bxw * 0.45);
-	w2 = Bxc + w1;
-	w1 = Bxc - w1;
-
-	h1 = (gArgs.abwide * gH)/2;
-	h2 = Byc + h1;
-	h1 = Byc - h1;
-
-	for( int i = is0; i < isN; ++i ) {
-
-		const CUTile&	U = TS.vtil[i];
-
-		if( U.T.t[2] >= w1 && U.T.t[2] <= w2 &&
-			U.T.t[5] >= h1 && U.T.t[5] <= h2 ) {
-
-			S.push_back( ScpTile( U.name, U.T ) );
-		}
-	}
-
-	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
+			1.0/gArgs.abscl, 1, 0, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }
@@ -374,11 +361,11 @@ bool CSuperscape::MakeRasH()
 void CSuperscape::WriteMeta( char clbl, int z, int scl )
 {
 	fprintf( flog,
-	"*%c: z deg [l,r,b,t] scl [ws,hs] [x0,y0]\n", clbl );
+	"*%c: z scl [ws,hs] [x0,y0]\n", clbl );
 
 	fprintf( flog,
-	"%d %d [%g,%g,%g,%g] %d [%d,%d] [%g,%g]\n",
-	z, deg, B.L, B.R, B.B, B.T, scl, ws, hs, x0, y0 );
+	"%d %d [%d,%d] [%g,%g]\n",
+	z, scl, ws, hs, x0, y0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -407,68 +394,9 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 }
 
 /* --------------------------------------------------------------- */
-/* MakeStripRasters ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void MakeStripRasters( CSuperscape &A, CSuperscape &B )
-{
-	char	buf[256];
-
-#if 1
-	A.MakeRasH();
-	sprintf( buf, "strips/A_%d.png", gArgs.za );
-	A.DrawRas( buf );
-
-	B.MakeRasV();
-	sprintf( buf, "strips/B_%d.png", gArgs.zb );
-	B.DrawRas( buf );
-#else
-// simple debugging - load existing image, but does
-// NOT acquire {x0,y0,B,...} meta data!!
-
-	sprintf( buf, "Astrip_%d.png", gArgs.za );
-	A.Load( buf, flog );
-
-	sprintf( buf, "Bstrip_%d.png", gArgs.zb );
-	B.Load( buf, flog );
-#endif
-}
-
-/* --------------------------------------------------------------- */
 /* ScapeStuff ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// The strip alignment from S.DenovoBestAngle (followed by SetXY)
-// produces a transform A->B = best.T for the scaled down scapes.
-// Here's how to convert that to a transform between the original
-// montages:
-//
-// Recapitulate total process...
-//	TForm	Rbi, Ra, t;
-//
-// Scale back up
-//	best.T.MulXY( gArgs.abscl );
-//	A.x0 *= gArgs.abscl;
-//	A.y0 *= gArgs.abscl;
-//	B.x0 *= gArgs.abscl;
-//	B.y0 *= gArgs.abscl;
-//
-// A-montage -> A-oriented
-//	Ra.NUSetRot( A.deg*PI/180 );
-//
-// A-oriented -> A-scape
-//	Ra.AddXY( -A.x0, -A.y0 );
-//
-// A-scape -> B-scape
-//	MultiplyTrans( t, best.T, Ra );
-//
-// B-scape -> B-oriented
-//	t.AddXY( B.x0, B.y0 );
-//
-// B-oriented -> B-montage
-//	Rbi.NUSetRot( -B.deg*PI/180 );
-//	MultiplyTrans( best.T, Rbi, t );
-//
 static void ScapeStuff()
 {
 	clock_t		t0 = StartTiming();
@@ -477,49 +405,43 @@ static void ScapeStuff()
 	CThmScan	S;
 	CorRec		best;
 
-	B.FindLayerIndices( gArgs.zb );
-	B.OrientLayer();
+	A.FindLayerIndices( gDat.za );
+	A.vID_From_sID();
+	A.CalcBBox();
+#if 1
+	A.MakeRasA();
+	A.DrawRas( "Aras.png" );
+#else
+	A.Load( "Aras.png", flog );
+#endif
+	t0 = StopTiming( flog, "MakeRasA", t0 );
 
-	if( gArgs.ismb ) {
-
-		char	buf[256];
-
-		B.MakeWholeRaster();
-		sprintf( buf, "montages/M_%d_0.png", gArgs.zb );
-		B.DrawRas( buf );
-		B.KillRas();
-		B.WriteMeta( 'M', gArgs.zb, gArgs.mbscl );
-		StopTiming( flog, "MakeMontage", t0 );
-		t0 = StartTiming();
-	}
-
-	if( !gArgs.isab )
-		return;
-
-	A.FindLayerIndices( gArgs.za );
-	A.OrientLayer();
-
-	MakeStripRasters( A, B );
-	StopTiming( flog, "MakeStrips", t0 );
-	t0 = StartTiming();
+	B.FindLayerIndices( gDat.zb );
+#if 1
+	B.MakeRasB( A.B );
+	B.DrawRas( "Bras.png" );
+#else
+	B.Load( "Bras.png", flog );
+#endif
+	t0 = StopTiming( flog, "MakeRasB", t0 );
 
 	A.MakePoints( thm.av, thm.ap );
 	A.KillRas();
-	A.WriteMeta( 'A', gArgs.za, gArgs.abscl );
+	A.WriteMeta( 'A', gDat.za, gArgs.abscl );
 
 	B.MakePoints( thm.bv, thm.bp );
 	B.KillRas();
-	B.WriteMeta( 'B', gArgs.zb, gArgs.abscl );
+	B.WriteMeta( 'B', gDat.zb, gArgs.abscl );
 
 	thm.ftc.clear();
-	thm.reqArea	= int(gW * gH * gArgs.inv_abscl * gArgs.inv_abscl);
-	thm.olap1D	= int(gW * gArgs.inv_abscl * 0.20);
+	thm.reqArea	= int(A.ws * A.hs * 0.64);
+	thm.olap1D	= int(A.ws * 0.80);
 	thm.scl		= 1;
 
-	int	Ox	= -int(A.ws/2),
-		Oy	=  int(B.hs/2),
-		Rx	=  int(-Ox * 0.80),
-		Ry	=  int( Oy * 0.80);
+	int	Ox	= 0,
+		Oy	= 0,
+		Rx	= int(2 * gW * gArgs.inv_abscl),
+		Ry	= int(2 * gH * gArgs.inv_abscl);
 
 	S.Initialize( flog, best );
 	S.SetTuser( 1, 1, 1, 0, 0 );
@@ -536,17 +458,22 @@ static void ScapeStuff()
 	}
 	else {
 
-		S.DenovoBestAngle( best, 0, 175, 5, thm );
-		best.T.SetXY( best.X, best.Y );
+		if( S.DenovoBestAngle( best, 0, 4, .2, thm ) )
+			best.T.SetXY( best.X, best.Y );
+		else {
+			// return a block-block transform that
+			// converts to identity content-content
+			best.T.NUSetOne();
+			best.T.SetXY( A.x0 - B.x0, A.y0 - B.y0 );
+		}
 
-		fprintf( flog, "*T: [0,1,2,3,4,5] (strip-strip)\n" );
+		fprintf( flog, "*T: [0,1,2,3,4,5] (block-block)\n" );
 		fprintf( flog, "[%g,%g,%g,%g,%g,%g]\n",
 		best.T.t[0], best.T.t[1], best.T.t[2],
 		best.T.t[3], best.T.t[4], best.T.t[5] );
 	}
 
-	StopTiming( flog, "Corr", t0 );
-	t0 = StartTiming();
+	t0 = StopTiming( flog, "Corr", t0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -566,14 +493,17 @@ int main( int argc, char* argv[] )
 	TS.SetLogFile( flog );
 	TS.SetDecoderPat( gArgs.pat );
 
+/* --------------- */
+/* Read block data */
+/* --------------- */
+
+	gDat.ReadFile();
+
 /* ---------------- */
 /* Read source data */
 /* ---------------- */
 
-	if( gArgs.zb >= 0 && gArgs.za < 0 )
-		gArgs.za = gArgs.zb;
-
-	TS.FillFromTrakEM2( gArgs.infile, gArgs.zb, gArgs.za );
+	TS.FillFromTrakEM2( gDat.xmlfile, gDat.zb, gDat.za );
 
 	fprintf( flog, "Got %d images.\n", TS.vtil.size() );
 
@@ -582,8 +512,7 @@ int main( int argc, char* argv[] )
 
 	TS.GetTileDims( gW, gH );
 
-	StopTiming( flog, "ReadFile", t0 );
-	t0 = StartTiming();
+	t0 = StopTiming( flog, "ReadFile", t0 );
 
 /* ------------- */
 /* Sort by layer */
