@@ -1,5 +1,5 @@
 //
-// > MRCSD1Lyr file.xml -z=121 -p_Nex.mrc
+// > MRCSD1Lyr file.xml -z=121 -p=_Nex.mrc
 //
 // Given xml file of 16-bit mrc images, create text file named
 // sd_zzz.txt, each line of which lists: z, tileID, image stddev.
@@ -87,7 +87,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			xmlfile = argv[i];
 		else if( GetArg( &z, "-z=%d", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			re_id.Set( pat );
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );

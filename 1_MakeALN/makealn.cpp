@@ -117,7 +117,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: makealn <idbpath> -dtemp -zmin=i -zmax=j"
+		"Usage: makealn <idbpath> -d=temp -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -129,13 +129,13 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			idbpath = argv[i];
-		else if( GetArg( &downradiuspix, "-downradiuspix=%d", argv[i] ) )
-			;
-		else if( GetArgStr( outdir, "-d", argv[i] ) )
+		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;
 		else if( GetArg( &minareafrac, "-minareafrac=%lf", argv[i] ) )
+			;
+		else if( GetArg( &downradiuspix, "-downradiuspix=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;

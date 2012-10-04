@@ -105,7 +105,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				sdfile = argv[i];
 		}
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			re_id.Set( pat );
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;

@@ -101,7 +101,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			xml_orig = argv[i];
 		else if( GetArgStr( xml_lowres, "-lowres=", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;

@@ -180,7 +180,7 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArgStr( pat, "-p", argv[i] ) )
+		if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			inv_abscl = 1.0/abscl;

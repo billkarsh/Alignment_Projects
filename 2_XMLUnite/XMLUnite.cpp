@@ -107,7 +107,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				infile2 = argv[i];
 		}
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			re_id.Set( pat );
 		else if( GetArg( &zolap, "-olap=%d", argv[i] ) )
 			;

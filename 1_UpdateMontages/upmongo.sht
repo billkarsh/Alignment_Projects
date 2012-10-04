@@ -1,5 +1,5 @@
 #!/bin/sh
 
-updatemontages PreClicks.xml temp0 -zmin=7 -zmax=119 -p_idN
+updatemontages PreClicks.xml temp0 -zmin=7 -zmax=119 -p=_idN
 
 

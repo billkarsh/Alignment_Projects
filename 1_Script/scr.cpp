@@ -121,7 +121,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( IsArg( "-connect", argv[i] ) )
 			Connect = true;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( IsArg( "-simple", argv[i] ) )
 			Simple = true;
@@ -129,7 +129,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
 			NoFolds = NoDirs = true;
-		else if( GetArgStr( outdir, "-d", argv[i] ) )
+		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );

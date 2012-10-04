@@ -89,7 +89,7 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: cross_topscripts <xmlfile> -dtemp -zmin=i -zmax=j"
+		"Usage: cross_topscripts <xmlfile> -d=temp -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -103,9 +103,9 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			DskAbsPath( xmlfile, sizeof(xmlfile), argv[i], flog );
-		else if( GetArgStr( _outdir, "-d", argv[i] ) )
+		else if( GetArgStr( _outdir, "-d=", argv[i] ) )
 			DskAbsPath( outdir, sizeof(outdir), _outdir, flog );
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -186,7 +186,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"'%s' -p%s"
+	"'%s' -p=%s"
 	" -mb -mbscl=%d"
 	" -ab -abwide=%d -abscl=%d -absdev=%d -abcorr=%g",
 	gArgs.xmlfile, gArgs.pat,
@@ -226,7 +226,7 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	fprintf( f,
 	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -p%s -mb -mbscl=%d -zb=%d\n",
+	" scapeops '%s' -p=%s -mb -mbscl=%d -zb=%d\n",
 	zlist[nz - 1],
 	gArgs.xmlfile, gArgs.pat, gArgs.abscl, zlist[nz - 1] );
 
@@ -277,7 +277,7 @@ static void WriteHiresgo()
 
 	fprintf( f,
 	"cross_lowtohires '%s' -lowres=LowRes.xml"
-	" -p%s -zmin=%d -zmax=%d"
+	" -p=%s -zmin=%d -zmax=%d"
 	" -xmltype=0 -xmlmin=0 -xmlmax=0\n\n",
 	gArgs.xmlfile, gArgs.pat, gArgs.zmin, gArgs.zmax );
 
@@ -301,7 +301,7 @@ static void WriteCarvego()
 
 	fprintf( f,
 	"cross_carveblocks"
-	" HiRes.xml -p%s"
+	" HiRes.xml -p=%s"
 	" -b=10 -abscl=%d -absdev=%d -abcorr=%g"
 	" -zmin=%d -zmax=%d\n\n",
 	gArgs.pat,

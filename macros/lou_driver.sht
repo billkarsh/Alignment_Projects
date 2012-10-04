@@ -3,7 +3,7 @@
 export MRC_TRIM=12
 
 cd lou_example
-scr green_raw.xml -dtemp -p_N_
+scr green_raw.xml -d=temp -p=_N_
 
 cd temp
 

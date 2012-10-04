@@ -145,11 +145,11 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( outdir, "-d", argv[i] ) )
+		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
-		else if( GetArgStr( clk, "-k", argv[i] ) )
+		else if( GetArgStr( clk, "-k=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;

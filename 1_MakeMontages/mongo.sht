@@ -3,7 +3,7 @@
 # Make workspace 'temp' for 'myidb'...
 # Makes everything except matchparams.txt file.
 #
-# > makemontages myidb -dtemp -zmin=0 -zmax=5
+# > makemontages myidb -d=temp -zmin=0 -zmax=5
 #
 # Options:
 # -b=8				;subblock 1D size <in tiles>
@@ -15,7 +15,7 @@
 
 wrk=temp0
 
-makemontages idb0 -d$wrk -zmin=7 -zmax=119 -nf -nd -b=8
+makemontages idb0 -d=$wrk -zmin=7 -zmax=119 -nf -nd -b=8
 
 cp prms/* $wrk
 

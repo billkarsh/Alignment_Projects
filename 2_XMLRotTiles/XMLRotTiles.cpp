@@ -2,7 +2,7 @@
 // Three modes of operation:
 //
 // (0)
-// XMLRotTiles file.xml -mode=0 -p_N_ -id1=i -id2=j -zmin=z1 -zmax=z2
+// XMLRotTiles file.xml -mode=0 -p=_N_ -id1=i -id2=j -zmin=z1 -zmax=z2
 // Using spec tiles (id1, id2) which are left-to-right across
 // horz line, define global layer angle, and, generate table:
 //
@@ -14,7 +14,7 @@
 // is dim (x,y).
 //
 // (2)
-// XMLRotTiles file.xml -mode=2 -p_N_ -id1=i -id2=j -x=4096 -y=4096 \
+// XMLRotTiles file.xml -mode=2 -p=_N_ -id1=i -id2=j -x=4096 -y=4096 \
 //	-zmin=z1 -zmax=z2 -tdeg=0
 // Using same calcs as mode (0), actually rotate the layer if delta
 // exceeds spec thresh tdeg. Each tile is dim (x,y).
@@ -121,7 +121,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			re_id.Set( pat );
 		else if( GetArg( &mode, "-mode=%d", argv[i] ) )
 			;

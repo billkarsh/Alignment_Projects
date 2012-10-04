@@ -65,7 +65,7 @@ bool GetArg( void *v, const char *pat, const char *argv )
 //	for( int i = 1; i < argc; ++i ) {
 //		if( argv[i][0] != '-' )
 //			noa.push_back( argv[i] );
-//		else if( GetArgStr( dirptr, "-d", argv[i] ) )
+//		else if( GetArgStr( dirptr, "-d=", argv[i] ) )
 //			;
 //	}
 //

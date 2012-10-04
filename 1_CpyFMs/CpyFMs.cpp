@@ -69,7 +69,7 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 // parse command line args
 
 	if( argc < 3 ) {
-		printf( "Usage: CpyFMs <txt-file> -d<workdir>.\n" );
+		printf( "Usage: CpyFMs <txt-file> -d=<workdir>.\n" );
 		exit( 42 );
 	}
 
@@ -80,7 +80,7 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( outdir, "-d", argv[i] ) )
+		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );

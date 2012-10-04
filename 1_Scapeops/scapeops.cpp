@@ -1,9 +1,9 @@
 //
 // scapeops
 //
-// Given file, working dir, id pattern:
+// Given file, id pattern:
 //
-// xmlfile -d%s -p%s	# e.g. -dtemp -p_N_
+// xmlfile -p=%s	# e.g. -p=_N_
 //
 // Perform montage drawing and/or strip aligning as follows:
 //
@@ -218,7 +218,7 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zb, "-zb=%d", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
 			;

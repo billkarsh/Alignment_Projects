@@ -130,7 +130,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			DskAbsPath( xml_hires, sizeof(xml_hires), argv[i], flog );
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -187,7 +187,7 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
-		" cross_thisblock -p%s -abscl=%d -absdev=%d -abcorr=%g\n",
+		" cross_thisblock -p=%s -abscl=%d -absdev=%d -abcorr=%g\n",
 		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );

@@ -152,7 +152,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: makemontages <idbpath> -dtemp -zmin=i -zmax=j"
+		"Usage: makemontages <idbpath> -d=temp -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -164,7 +164,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			idbpath = argv[i];
-		else if( GetArgStr( outdir, "-d", argv[i] ) )
+		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;

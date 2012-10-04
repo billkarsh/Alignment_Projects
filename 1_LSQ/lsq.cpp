@@ -512,7 +512,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			use_all = true;
 			printf( "Using all correspondences.\n" );
 		}
-		else if( GetArgStr( pat, "-p", argv[i] ) ) {
+		else if( GetArgStr( pat, "-p=", argv[i] ) ) {
 			re_id.Set( pat );
 			printf( "Setting pattern '%s'.\n", pat );
 		}

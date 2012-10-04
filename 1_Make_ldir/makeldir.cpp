@@ -7,9 +7,9 @@
 // command line argument. The pattern is applied to the whole path
 // and can be any regular expression. For example:
 //
-//	leginon		-p_[0-9]+sq_
-//	nmrc		-p/temp/[0-9]+/
-//	apig		-p/[A-H][1-9]_
+//	leginon		-p=_[0-9]+sq_
+//	nmrc		-p=/temp/[0-9]+/
+//	apig		-p=/[A-H][1-9]_
 //
 
 #include	"Cmdline.h"
@@ -96,11 +96,11 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 // parse command line args
 
 	if( argc < 3 ) {
-		printf( "Usage: makeldir <xml-file> -ppat [options].\n" );
+		printf( "Usage: makeldir <xml-file> -p=pat [options].\n" );
 		printf( "Suggested patterns:"
-		"  <leginon> -p_[0-9]+sq_"
-		"  <nmrc> -p/temp/[0-9]+/"
-		"  <apig> -p/[A-H][1-9]_\n" );
+		"  <leginon> -p=_[0-9]+sq_"
+		"  <nmrc> -p=/temp/[0-9]+/"
+		"  <apig> -p=/[A-H][1-9]_\n" );
 		exit( 42 );
 	}
 
@@ -111,7 +111,7 @@ void CArgs_ldir::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;

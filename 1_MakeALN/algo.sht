@@ -3,7 +3,7 @@
 # Make workspace 'temp' for 'myidb'...
 # Makes everything except matchparams.txt file.
 #
-# > makealn myidb -dtemp -zmin=0 -zmax=5
+# > makealn myidb -d=temp -zmin=0 -zmax=5
 #
 # Options:
 # -minareafrac=0.02		;same and cross req. area olap frac
@@ -15,7 +15,7 @@
 
 wrk=temp0
 
-makealn idb0 -d$wrk -zmin=7 -zmax=119 -nf -nd
+makealn idb0 -d=$wrk -zmin=7 -zmax=119 -nf -nd
 
 cp prms/* $wrk
 

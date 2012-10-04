@@ -108,7 +108,7 @@ usage:
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			re_id.Set( pat );
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );

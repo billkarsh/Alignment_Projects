@@ -98,7 +98,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				txtfile = argv[i];
 		}
-		else if( GetArgStr( pat, "-p", argv[i] ) )
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			re_id.Set( pat );
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
