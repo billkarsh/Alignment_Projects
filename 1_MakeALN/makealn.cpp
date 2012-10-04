@@ -129,13 +129,13 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			idbpath = argv[i];
+		else if( GetArg( &downradiuspix, "-downradiuspix=%d", argv[i] ) )
+			;
 		else if( GetArgStr( outdir, "-d", argv[i] ) )
 			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;
 		else if( GetArg( &minareafrac, "-minareafrac=%lf", argv[i] ) )
-			;
-		else if( GetArg( &downradiuspix, "-downradiuspix=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
