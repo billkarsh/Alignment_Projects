@@ -434,8 +434,8 @@ static void ScapeStuff()
 	B.WriteMeta( 'B', gDat.zb, gArgs.abscl );
 
 	thm.ftc.clear();
-	thm.reqArea	= int(A.ws * A.hs * 0.64);
-	thm.olap1D	= int(A.ws * 0.80);
+	thm.reqArea	= 0;
+	thm.olap1D	= 0;
 	thm.scl		= 1;
 
 	int	Ox	= 0,
