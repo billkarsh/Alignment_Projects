@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Reset all data for montage at layer $1
+
+
+if (($# == 0))
+then
+	echo "Need layer number"
+	exit
+fi
+
+#save copy of lsq script
+mv $1/montage/runlsq.sht ~~runlsq.sht
+
+cd $1
+
+rm -rf montage
+
+for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+do
+	cd $jb
+	rm p*
+	rm q*
+	hdr=$(printf "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
+	echo "$hdr" > "ThmPair_"$1"_@_"$1".txt"
+	cd ..
+done
+
+mkdir montage
+
+cd ..
+
+#restore saved lsq script
+mv ~~runlsq.sht $1/montage/runlsq.sht
+
+

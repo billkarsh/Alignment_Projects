@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Build rick file for juan
+
+rm layout.txt
+
+for i in $(seq 0 99)
+do
+	s=$(printf "/groups/apig/tomo/Juan/pics/im_0_%02d.png 0 0 %d\n" $i $i)
+	echo "$s" > temp.txt
+	cat temp.txt >> layout.txt
+done 
+
+rm temp.txt
+
+
