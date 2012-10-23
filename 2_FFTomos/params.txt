@@ -1,0 +1,5 @@
+TIFpath=./TIF
+rick=rickfile.txt
+chan=0,path/file0.tif
+chan=2,path/file2.tif
+
