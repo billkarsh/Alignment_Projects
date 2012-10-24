@@ -190,17 +190,12 @@ static void Downsample( uint8 *ras, int &w, int &h, int iscl )
 //
 static void NormRas( uint8 *r, int w, int h, int sdnorm )
 {
-// convert to doubles
+// flatfield & convert to doubles
 
 	int				n = w * h;
-	vector<double>	v( n );
+	vector<double>	v;
 
-	for( int i = 0; i < n; ++i )
-		v[i] = r[i];
-
-// mean=0, sd=1
-
-	Normalize( v );
+	LegPolyFlatten( v, r, w, h, 1 );
 
 // rescale to mean=127, sd=sdnorm
 
