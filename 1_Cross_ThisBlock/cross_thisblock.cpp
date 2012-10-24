@@ -447,7 +447,8 @@ static void ScapeStuff()
 	S.SetTuser( 1, 1, 1, 0, 0 );
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
-	S.SetSweepType( true, false );
+	S.SetSweepConstXY( false );
+	S.SetSweepPretweak( false );
 	S.SetUseCorrR( false );
 	S.SetDisc( Ox, Oy, Rx, Ry );
 
