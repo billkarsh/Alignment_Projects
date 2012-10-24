@@ -154,6 +154,8 @@ public:
 
 static CArgs_scp	gArgs;
 static CTileSet		TS;
+static CSuperscape	*gA, *gB;
+static CThmScan		*gS;
 static FILE*		flog	= NULL;
 static int			gW		= 0,	// universal pic dims
 					gH		= 0;
@@ -476,6 +478,27 @@ static void MakeStripRasters( CSuperscape &A, CSuperscape &B )
 }
 
 /* --------------------------------------------------------------- */
+/* NewAngProc ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// At any given angle the corners of A and B strip coincide
+// and are at (0,0) in B-system. (Ox,Oy) brings center of A
+// coincident with center of B, so, Oxy = Bc - Rot(Ac).
+//
+static void NewAngProc( double deg )
+{
+	double	r  = deg*PI/180,
+			c  = cos( r ),
+			s  = sin( r );
+	int		Ox = int(gB->ws - (c*gA->ws - s*gA->hs))/2,
+			Oy = int(gB->hs - (s*gA->ws + c*gA->hs))/2,
+			Rx = int(gA->ws * 0.25),
+			Ry = int(gB->hs * 0.25);
+
+	gS->SetDisc( Ox, Oy, Rx, Ry );
+}
+
+/* --------------------------------------------------------------- */
 /* ScapeStuff ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -555,18 +578,17 @@ static void ScapeStuff()
 	thm.olap1D	= int(gW * gArgs.inv_abscl * 0.20);
 	thm.scl		= 1;
 
-	int	Ox	= -int(A.ws/2),
-		Oy	=  int(B.hs/2),
-		Rx	=  int(-Ox * 0.80),
-		Ry	=  int( Oy * 0.80);
-
 	S.Initialize( flog, best );
 	S.SetTuser( 1, 1, 1, 0, 0 );
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepType( true, false );
-	S.SetUseCorrR( false );
-	S.SetDisc( Ox, Oy, Rx, Ry );
+	S.SetUseCorrR( true );
+	S.SetNewAngProc( NewAngProc );
+
+	gA = &A;
+	gB = &B;
+	gS = &S;
 
 	if( gArgs.abdbg ) {
 

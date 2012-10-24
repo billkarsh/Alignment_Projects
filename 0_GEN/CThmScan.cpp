@@ -266,6 +266,7 @@ double CThmScan::PeakHunt( CorRec &best, double hlfwid, ThmRec &thm )
 CThmScan::CThmScan()
 {
 	ME			= this;
+	newAngProc	= NULL;
 	flog		= stdout;
 	rthresh		= 0.30;
 	nbmaxht		= 0.75;
@@ -428,6 +429,9 @@ void CThmScan::RFromAngle( CorRec &C, double deg, ThmRec &thm )
 	C.A = deg;
 
 	RotatePoints( pts, C.T, deg * PI/180.0 );
+
+	if( newAngProc )
+		newAngProc( deg );
 
 	olap1D = thm.olap1D;
 

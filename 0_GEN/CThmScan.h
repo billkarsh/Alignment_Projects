@@ -39,6 +39,8 @@ typedef struct {
 					A, R;
 } CorRec;
 
+typedef void (*T_NewAngProc)( double deg );
+
 /* --------------------------------------------------------------- */
 /* Class --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -48,17 +50,18 @@ class CThmScan {
 	friend bool BigEnough( int sx, int sy, void *a );
 
 private:
-	FILE	*flog;
-	TForm	Tuser,
-			Tptwk;
-	double	rthresh,
-			nbmaxht;
-	int		err,
-			swpSimple,
-			swpPretweak,
-			useCorrR,
-			Ox, Oy, Rx, Ry,
-			olap1D;
+	T_NewAngProc	newAngProc;
+	FILE			*flog;
+	TForm			Tuser,
+					Tptwk;
+	double			rthresh,
+					nbmaxht;
+	int				err,
+					swpSimple,
+					swpPretweak,
+					useCorrR,
+					Ox, Oy, Rx, Ry,
+					olap1D;
 
 private:
 	void RotatePoints(
@@ -121,6 +124,9 @@ public:
 
 	void SetDisc( int Ox, int Oy, int Rx, int Ry )
 		{this->Ox = Ox; this->Oy = Oy; this->Rx = Rx; this->Ry = Ry;};
+
+	void SetNewAngProc( T_NewAngProc proc )
+		{newAngProc = proc;};
 
 	int GetErr()
 		{return err;};
