@@ -57,7 +57,7 @@ private:
 	double			rthresh,
 					nbmaxht;
 	int				err,
-					swpSimple,
+					swpConstXY,
 					swpPretweak,
 					useCorrR,
 					Ox, Oy, Rx, Ry,
@@ -115,9 +115,11 @@ public:
 	void SetNbMaxHt( double nbmaxht )
 		{this->nbmaxht = nbmaxht;};
 
-	void SetSweepType( int swpSimple, int swpPretweak )
-		{this->swpSimple = swpSimple;
-		 this->swpPretweak = swpPretweak;};
+	void SetSweepConstXY( int swpConstXY )
+		{this->swpConstXY = swpConstXY;};
+
+	void SetSweepPretweak( int swpPretweak )
+		{this->swpPretweak = swpPretweak;};
 
 	void SetUseCorrR( int useCorrR )
 		{this->useCorrR = useCorrR;};

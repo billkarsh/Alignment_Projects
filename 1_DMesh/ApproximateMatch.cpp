@@ -598,7 +598,8 @@ bool ApproximateMatch(
 		0, GBL.ctx.SKEW );
 	S.SetRThresh( GBL.ctx.RTRSH );
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
-	S.SetSweepType( false, GBL.mch.PRETWEAK );
+	S.SetSweepConstXY( true );
+	S.SetSweepPretweak( GBL.mch.PRETWEAK );
 	S.SetUseCorrR( false );
 	S.SetDisc( 0, 0, -1, -1 );
 

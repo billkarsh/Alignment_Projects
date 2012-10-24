@@ -271,7 +271,7 @@ CThmScan::CThmScan()
 	rthresh		= 0.30;
 	nbmaxht		= 0.75;
 	err			= errOK;
-	swpSimple	= false;
+	swpConstXY	= true;
 	swpPretweak	= true;
 	useCorrR	= false;
 	Ox			= 0;
@@ -666,10 +666,10 @@ double CThmScan::AngleScanSel(
 	double	step,
 	ThmRec	&thm )
 {
-	if( swpSimple )
-		return AngleScanMaxR( best, center, hlfwid, step, thm );
-	else
+	if( swpConstXY )
 		return AngleScanConstXY( best, center, hlfwid, step, thm );
+	else
+		return AngleScanMaxR( best, center, hlfwid, step, thm );
 }
 
 /* --------------------------------------------------------------- */

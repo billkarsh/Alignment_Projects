@@ -582,7 +582,8 @@ static void ScapeStuff()
 	S.SetTuser( 1, 1, 1, 0, 0 );
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
-	S.SetSweepType( true, false );
+	S.SetSweepConstXY( false );
+	S.SetSweepPretweak( false );
 	S.SetUseCorrR( true );
 	S.SetNewAngProc( NewAngProc );
 
@@ -592,6 +593,8 @@ static void ScapeStuff()
 
 	if( gArgs.abdbg ) {
 
+		//S.RFromAngle( best, gArgs.abctr, thm );
+		//S.Pretweaks( best.R, gArgs.abctr, thm );
 		dbgCor = true;
 		S.RFromAngle( best, gArgs.abctr, thm );
 	}
