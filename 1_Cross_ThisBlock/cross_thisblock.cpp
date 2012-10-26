@@ -449,7 +449,7 @@ static void ScapeStuff()
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( false );
-	S.SetUseCorrR( false );
+	S.SetUseCorrR( true );
 	S.SetDisc( Ox, Oy, Rx, Ry );
 
 	if( gArgs.abdbg ) {
