@@ -54,7 +54,7 @@ static double	ang0	= 0.0;
 
 static bool Orig( vector<TForm> &G )
 {
-	G.push_back( GBL.Tab[0] );
+	G.push_back( GBL.Tab );
 
 	return true;
 }
@@ -122,7 +122,7 @@ static int SetStartingAngle( FILE* flog )
 // Otherwise estimate from initial tforms
 
 	if( !nprior )
-		ang0 = 180.0/PI * RadiansFromAffine( GBL.Tab[0] );
+		ang0 = 180.0/PI * RadiansFromAffine( GBL.Tab );
 
 // Force tiny ang0 to zero
 
@@ -287,7 +287,7 @@ static bool SelectSubimage(
 	{
 		Point	delta;
 
-		GBL.Tab[0].Transform( delta );
+		GBL.Tab.Transform( delta );
 
 		dx = int(delta.x) / px.scl;
 		dy = int(delta.y) / px.scl;
@@ -729,9 +729,9 @@ bool ApproximateMatch(
 		TForm	Tinv, I;
 
 		fprintf( flog, "Approx: Orig transform " );
-		GBL.Tab[0].PrintTransform( flog );
+		GBL.Tab.PrintTransform( flog );
 
-		InvertTrans( Tinv, GBL.Tab[0] );
+		InvertTrans( Tinv, GBL.Tab );
 		MultiplyTrans( I, Tinv, best.T );
 		fprintf( flog, "Approx: Idnt transform " );
 		I.PrintTransform( flog );

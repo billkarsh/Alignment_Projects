@@ -60,7 +60,7 @@ public:
 
 public:
 	DriverArgs		arg;
-	vector<TForm>	Tab;	// start thumbs here
+	TForm			Tab;	// start thumbs here
 	MatchParams		mch;
 	CntxtDep		ctx;
 	string			idb;

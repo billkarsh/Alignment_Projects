@@ -217,10 +217,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 // Starting TForm A -> B
 
-	TForm	tab;
-
-	AToBTrans( tab, GBL.A.t2i.T, GBL.B.t2i.T );
-	Tab.push_back( tab );
+	AToBTrans( Tab, GBL.A.t2i.T, GBL.B.t2i.T );
 
 // Extract file name as useful label
 
