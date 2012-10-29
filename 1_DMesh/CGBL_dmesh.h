@@ -68,8 +68,8 @@ public:
 public:
 	DriverArgs		arg;
 	TForm			Tab;	// start thumbs here
-	vector<TForm>	Tusr;	// bypass thumbs, start mesh here
-	vector<Point>	XYusr;	// command line expected XY
+	vector<TForm>	Tmsh;	// bypass thumbs, start mesh here
+	vector<Point>	XYexp;	// command line expected XY
 	MatchParams		mch;
 	CntxtDep		ctx;
 	string			idb;

@@ -113,23 +113,23 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			arg.Heatmap = true;
 		else if( IsArg( "-dbgcor", argv[i] ) )
 			dbgCor = true;
-		else if( GetArgList( vdbl, "-TRA=", argv[i] ) ) {
+		else if( GetArgList( vdbl, "-Tmsh=", argv[i] ) ) {
 
 			if( 6 == vdbl.size() )
-				Tusr.push_back( TForm( &vdbl[0] ) );
+				Tmsh.push_back( TForm( &vdbl[0] ) );
 			else {
 				printf(
-				"main: WARNING: Bad format in -TRA [%s].\n",
+				"main: WARNING: Bad format in -Tmsh [%s].\n",
 				argv[i] );
 			}
 		}
-		else if( GetArgList( vdbl, "-EXY=", argv[i] ) ) {
+		else if( GetArgList( vdbl, "-XYexp=", argv[i] ) ) {
 
 			if( 2 == vdbl.size() )
-				XYusr.push_back( Point( vdbl[0], vdbl[1] ) );
+				XYexp.push_back( Point( vdbl[0], vdbl[1] ) );
 			else {
 				printf(
-				"main: WARNING: Bad format in -EXY [%s].\n",
+				"main: WARNING: Bad format in -XYexp [%s].\n",
 				argv[i] );
 			}
 		}

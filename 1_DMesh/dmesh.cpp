@@ -179,7 +179,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 // Translations in bounds?
 
-	if( nT && (nXY = GBL.XYusr.size()) ) {
+	if( nT && (nXY = GBL.XYexp.size()) ) {
 
 		bool	allok = true;
 
@@ -193,7 +193,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 				Point	p( vT[i].t[2], vT[i].t[5] );
 
-				iok |= p.Dist( GBL.XYusr[j] ) <= GBL.mch.DXY;
+				iok |= p.Dist( GBL.XYexp[j] ) <= GBL.mch.DXY;
 			}
 
 			if( !iok ) {
@@ -438,7 +438,7 @@ void PipelineDeformableMap(
 			// start list with user's transform arguments
 
 			CStatus			stat( Acr[i].id, Bcr[j].id );
-			vector<TForm>	guesses = GBL.Tusr;
+			vector<TForm>	guesses = GBL.Tmsh;
 
 			if( RoughMatch( guesses, px, Acr[i], Bcr[j], flog ) ) {
 
