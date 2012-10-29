@@ -62,6 +62,10 @@
 
 	In a TrackEM2 XML file transform attributes are written
 	"matrix(m00,m10,m01,m11,m02,m12)".
+
+	The conventional order to be used for compounding operations
+	is as follows. Given X=x-skew, Y=y-skew, S=x-y-orboth-scale,
+	P=pretweak, R=rotation, then, T = R((S(YX))P).
 */
 
 /* --------------------------------------------------------------- */
@@ -128,6 +132,32 @@ void TForm::NUSelect( int sel, double a )
 		case tfnuRot:	NUSetRot( a );	break;
 		default:		NUSetScl( a );	break;
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* CmpDistort ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Conventionalized compounding of distortions.
+// T = Scale.(Yskew.Xskew)
+//
+void TForm::CmpDistort(
+	double	scl,
+	double	xscl,
+	double	yscl,
+	double	xskw,
+	double	yskw )
+{
+	TForm	S, Y, X, YX;
+
+	X.NUSetXSkw( xskw );
+	Y.NUSetYSkw( yskw );
+
+	S.t[0] = xscl*scl; S.t[1] = 0;        S.t[2] = 0;
+	S.t[3] = 0;        S.t[4] = yscl*scl; S.t[5] = 0;
+
+	MultiplyTrans( YX, Y, X );
+	MultiplyTrans( *this, S, YX );
 }
 
 /* --------------------------------------------------------------- */
@@ -302,27 +332,18 @@ void CreateCWRot( TForm &R, double deg, const Point &pivot )
 // by Ken Shoemake).
 //
 // From TForm's matrix-part P = R( a ), iteratively compute
-// N = (P + Inv(Trp(P)) / 2, until max element-wise change
+// N = (P + Trp(Inv(P)) / 2, until max element-wise change
 // in (N - P) is tiny.
 //
 double RadiansFromAffine( const TForm &a )
 {
-	double	P[4] = {a.t[0],a.t[1],a.t[3],a.t[4]};
+	double	P[4] = {a.t[0], a.t[1], a.t[3], a.t[4]};
 
 	for( int iter = 0; iter < 100; ++iter ) {
 
-		double	N[4], d, t;
-
-		// N = P-transpose
-		N[0] = P[0]; N[1] = P[2]; N[2] = P[1]; N[3] = P[3];
-
-		// N = N-inverse;
-		d = N[0]*N[3] - N[1]*N[2];
-		t = N[0];
-		N[0] =  N[3] / d;
-		N[1] = -N[1] / d;
-		N[2] = -N[2] / d;
-		N[3] =  N[0] / d;
+		// N = Trp(Pinv)
+		double	d = P[0]*P[3] - P[1]*P[2];
+		double	N[4] = {P[3]/d, -P[2]/d, -P[1]/d, P[0]/d};
 
 		// N = (P + N)/2
 		N[0] = (P[0] + N[0]) / 2.0;

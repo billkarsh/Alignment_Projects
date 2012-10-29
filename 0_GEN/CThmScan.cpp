@@ -308,16 +308,7 @@ void CThmScan::SetTuser(
 	double	xskw,
 	double	yskw )
 {
-	TForm	X, Y, S, temp;
-
-	X.NUSetXSkw( xskw );
-	Y.NUSetYSkw( yskw );
-
-	S.t[0] = xscl*scl; S.t[1] = 0;        S.t[2] = 0;
-	S.t[3] = 0;        S.t[4] = yscl*scl; S.t[5] = 0;
-
-	MultiplyTrans( temp, Y, X );
-	MultiplyTrans( Tuser, S, temp );
+	Tuser.CmpDistort( scl, xscl, yscl, xskw, yskw );
 }
 
 /* --------------------------------------------------------------- */

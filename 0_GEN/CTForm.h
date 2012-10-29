@@ -87,6 +87,13 @@ public:
 
 	void NUSelect( int sel, double a );
 
+	void CmpDistort(
+		double	scl,
+		double	xscl,
+		double	yscl,
+		double	xskw,
+		double	yskw );
+
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;
 
