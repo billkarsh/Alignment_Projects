@@ -233,10 +233,7 @@ static bool CheckAreas(
 
 		if( GBL.A.layer != GBL.B.layer ) {
 
-			double	f = GBL.ctx.SCALE
-						* GBL.ctx.SCALE
-						* GBL.ctx.XSCALE
-						* GBL.ctx.YSCALE;
+			double	f = GBL.ctx.Tdfm.EffArea();
 
 			if( f < 0.99 || f > 1.01 ) {
 

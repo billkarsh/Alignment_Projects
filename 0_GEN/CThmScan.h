@@ -52,7 +52,7 @@ class CThmScan {
 private:
 	T_NewAngProc	newAngProc;
 	FILE			*flog;
-	TForm			Tuser,
+	TForm			Tdfm,
 					Tptwk;
 	double			rthresh,
 					nbmaxht;
@@ -102,12 +102,8 @@ public:
 	void SetFlog( FILE* flog )
 		{this->flog = flog;};
 
-	void SetTuser(
-		double	scl,
-		double	xscl,
-		double	yscl,
-		double	xskw,
-		double	yskw );
+	void SetTdfm( const TForm &Tdfm )
+		{this->Tdfm = Tdfm;};
 
 	void SetRThresh( double rthresh )
 		{this->rthresh = rthresh;};

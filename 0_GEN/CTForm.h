@@ -87,12 +87,14 @@ public:
 
 	void NUSelect( int sel, double a );
 
-	void CmpDistort(
+	void ComposeDfm(
 		double	scl,
 		double	xscl,
 		double	yscl,
 		double	xskw,
 		double	yskw );
+
+	double EffArea() const;
 
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;

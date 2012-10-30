@@ -18,30 +18,27 @@ class CGBL_dmesh {
 
 public:
 	typedef struct {
-		double	SCALE,
-				XSCALE,
-				YSCALE,
-				SKEW,
-				CTR;
-		char	*ima,			// override idb paths
-				*imb,
-				*fma,
-				*fmb;
-		bool	ForceSkew,		// apply SKEW args even if same layer
-				Transpose,		// transpose all images
-				WithinSection,	// overlap within a section
-				Verbose,		// run inspect diagnostics
-				NoFolds,		// ignore fold masks
-				SingleFold,		// assign id=1 to all non-fold rgns
-				Heatmap;		// run CorrView
+		vector<TForm>	Tdfm;
+		double			SCALE,
+						XSCALE,
+						YSCALE,
+						SKEW,
+						CTR;
+		char			*ima,			// override idb paths
+						*imb,
+						*fma,
+						*fmb;
+		bool			Transpose,		// transpose all images
+						WithinSection,	// overlap within a section
+						Verbose,		// run inspect diagnostics
+						NoFolds,		// ignore fold masks
+						SingleFold,		// assign id=1 to all non-fold rgns
+						Heatmap;		// run CorrView
 	} DriverArgs;
 
 	typedef struct {
-		double	SCALE,
-				XSCALE,
-				YSCALE,
-				SKEW,
-				NBMXHT,
+		TForm	Tdfm;
+		double	NBMXHT,
 				HFANGDN,
 				HFANGPR,
 				RTRSH,

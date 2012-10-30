@@ -109,7 +109,7 @@ adjust_olap:
 				s = sin( a );
 
 		GBL.ctx.OLAP2D =
-			int(GBL.ctx.OLAP2D / fmax( c*c, s*s ));
+			long(GBL.ctx.OLAP2D / fmax( c*c, s*s ));
 	}
 
 	return nprior;
@@ -560,9 +560,7 @@ bool Thumbs(
 	CorRec		best;
 
 	S.Initialize( flog, best );
-	S.SetTuser(
-		GBL.ctx.SCALE, GBL.ctx.XSCALE, GBL.ctx.YSCALE,
-		0, GBL.ctx.SKEW );
+	S.SetTdfm( GBL.ctx.Tdfm );
 	S.SetRThresh( GBL.ctx.RTRSH );
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
 	S.SetSweepConstXY( true );

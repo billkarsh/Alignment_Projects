@@ -49,7 +49,6 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.imb				= NULL;
 	arg.fma				= NULL;
 	arg.fmb				= NULL;
-	arg.ForceSkew		= false;
 	arg.Transpose		= false;
 	arg.WithinSection	= false;
 	arg.Verbose			= false;
@@ -73,12 +72,22 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 // Parse args
 
 	char			*key;
-	vector<double>	vdbl;
+	vector<double>	vD;
 
 	for( int i = 1; i < argc; ++i ) {
 
 		if( argv[i][0] != '-' )
 			key = argv[i];
+		else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
+
+			if( 6 == vD.size() )
+				arg.Tdfm.push_back( TForm( &vD[0] ) );
+			else {
+				printf(
+				"main: WARNING: Bad format in -Tdfm [%s].\n",
+				argv[i] );
+			}
+		}
 		else if( GetArg( &arg.SCALE, "-SCALE=%lf", argv[i] ) )
 			;
 		else if( GetArg( &arg.XSCALE, "-XSCALE=%lf", argv[i] ) )
@@ -97,8 +106,6 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( arg.fmb, "-fmb=", argv[i] ) )
 			;
-		else if( IsArg( "-forceskew", argv[i] ) )
-			arg.ForceSkew = true;
 		else if( IsArg( "-tr", argv[i] ) )
 			arg.Transpose = true;
 		else if( IsArg( "-ws", argv[i] ) )
@@ -113,20 +120,20 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			arg.Heatmap = true;
 		else if( IsArg( "-dbgcor", argv[i] ) )
 			dbgCor = true;
-		else if( GetArgList( vdbl, "-Tmsh=", argv[i] ) ) {
+		else if( GetArgList( vD, "-Tmsh=", argv[i] ) ) {
 
-			if( 6 == vdbl.size() )
-				Tmsh.push_back( TForm( &vdbl[0] ) );
+			if( 6 == vD.size() )
+				Tmsh.push_back( TForm( &vD[0] ) );
 			else {
 				printf(
 				"main: WARNING: Bad format in -Tmsh [%s].\n",
 				argv[i] );
 			}
 		}
-		else if( GetArgList( vdbl, "-XYexp=", argv[i] ) ) {
+		else if( GetArgList( vD, "-XYexp=", argv[i] ) ) {
 
-			if( 2 == vdbl.size() )
-				XYexp.push_back( Point( vdbl[0], vdbl[1] ) );
+			if( 2 == vD.size() )
+				XYexp.push_back( Point( vD[0], vD[1] ) );
 			else {
 				printf(
 				"main: WARNING: Bad format in -XYexp [%s].\n",
@@ -166,14 +173,13 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 	if( !ReadMatchParams( mch, A.layer, B.layer ) )
 		return false;
 
-// Context dependent choices: (same,cross) layer
+// Which file params to use according to (same,cross) layer
+
+	double	cSCALE=1, cXSCALE=1, cYSCALE=1, cSKEW=0;
 
 	if( A.layer == B.layer ) {
 
-		ctx.SCALE	= 1.0;
-		ctx.XSCALE	= 1.0;
-		ctx.YSCALE	= 1.0;
-		ctx.SKEW	= 0.0;
+		//ctx.Tdfm = identity (default)
 		ctx.NBMXHT	= mch.NBMXHT_SL;
 		ctx.HFANGDN	= mch.HFANGDN_SL;
 		ctx.HFANGPR	= mch.HFANGPR_SL;
@@ -181,17 +187,20 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DIT		= mch.DIT_SL;
 		ctx.DFA		= mch.DFA_SL;
 		ctx.DFT		= mch.DFT_SL;
-		ctx.OLAP1D	= mch.OLAP1D_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
+		ctx.OLAP1D	= mch.OLAP1D_SL;
 		ctx.INPALN	= mch.INPALN_SL;
 		ctx.DINPUT	= mch.DINPUT_SL;
 	}
 	else {
 
-		ctx.SCALE	= mch.SCALE;
-		ctx.XSCALE	= mch.XSCALE;
-		ctx.YSCALE	= mch.YSCALE;
-		ctx.SKEW	= mch.SKEW;
+		cSCALE	= mch.SCALE;
+		cXSCALE	= mch.XSCALE;
+		cYSCALE	= mch.YSCALE;
+		cSKEW	= mch.SKEW;
+
+		ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
+
 		ctx.NBMXHT	= mch.NBMXHT_XL;
 		ctx.HFANGDN	= mch.HFANGDN_XL;
 		ctx.HFANGPR	= mch.HFANGPR_XL;
@@ -199,8 +208,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DIT		= mch.DIT_XL;
 		ctx.DFA		= mch.DFA_XL;
 		ctx.DFT		= mch.DFT_XL;
-		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
+		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.INPALN	= mch.INPALN_XL;
 		ctx.DINPUT	= mch.DINPUT_XL;
 	}
@@ -209,27 +218,42 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Command-line overrides ----\n" );
 
-	if( arg.ForceSkew || A.layer != B.layer ) {
+	if( arg.Tdfm.size() ) {
 
-		if( arg.SCALE != 999.0 && arg.SCALE != ctx.SCALE ) {
-			ctx.SCALE = arg.SCALE;
+		ctx.Tdfm = arg.Tdfm[0];
+		printf( "Tdfm=" );
+		arg.Tdfm[0].PrintTransform();
+	}
+	else {
+
+		int	update = false;
+
+		if( arg.SCALE != 999.0 ) {
+			cSCALE	= arg.SCALE;
+			update	= true;
 			printf( "SCALE=%g\n", arg.SCALE );
 		}
 
-		if( arg.XSCALE != 999.0 && arg.XSCALE != ctx.XSCALE ) {
-			ctx.XSCALE = arg.XSCALE;
+		if( arg.XSCALE != 999.0 ) {
+			cXSCALE	= arg.XSCALE;
+			update	= true;
 			printf( "XSCALE=%g\n", arg.XSCALE );
 		}
 
-		if( arg.YSCALE != 999.0 && arg.YSCALE != ctx.YSCALE ) {
-			ctx.YSCALE = arg.YSCALE;
+		if( arg.YSCALE != 999.0 ) {
+			cYSCALE	= arg.YSCALE;
+			update	= true;
 			printf( "YSCALE=%g\n", arg.YSCALE );
 		}
 
-		if( arg.SKEW != 999.0 && arg.SKEW != ctx.SKEW ) {
-			ctx.SKEW = arg.SKEW;
+		if( arg.SKEW != 999.0 ) {
+			cSKEW	= arg.SKEW;
+			update	= true;
 			printf( "SKEW=%g\n", arg.SKEW );
 		}
+
+		if( update )
+			ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
 	}
 
 	if( arg.CTR != 999.0 )

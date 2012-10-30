@@ -68,7 +68,7 @@ void CThmScan::RotatePoints(
 	TForm	A, temp;
 
 	A.NUSetRot( rads );
-	MultiplyTrans( temp, Tuser, Tptwk );
+	MultiplyTrans( temp, Tdfm, Tptwk );
 	MultiplyTrans( T, A, temp );
 	T.Apply_R_Part( pts );
 }
@@ -295,20 +295,6 @@ void CThmScan::Initialize( FILE* flog, CorRec &best )
 	best.Y	= -999.0;
 	best.A	= -999.0;
 	best.R	= -999.0;
-}
-
-/* --------------------------------------------------------------- */
-/* SetTuser ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-void CThmScan::SetTuser(
-	double	scl,
-	double	xscl,
-	double	yscl,
-	double	xskw,
-	double	yskw )
-{
-	Tuser.CmpDistort( scl, xscl, yscl, xskw, yskw );
 }
 
 /* --------------------------------------------------------------- */

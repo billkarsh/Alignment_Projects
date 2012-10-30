@@ -579,7 +579,6 @@ static void ScapeStuff()
 	thm.scl		= 1;
 
 	S.Initialize( flog, best );
-	S.SetTuser( 1, 1, 1, 0, 0 );
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );

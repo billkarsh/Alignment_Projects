@@ -23,6 +23,9 @@
 // any idb-derived specs. However, idb is required if any image
 // is to be fetched from a given IDB.
 //
+// Other ptest options:
+//	Any params not eaten by ptestx are passed on to ptest.
+//
 
 
 #include	"Cmdline.h"

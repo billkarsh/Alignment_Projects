@@ -444,7 +444,6 @@ static void ScapeStuff()
 		Ry	= int(2 * gH * gArgs.inv_abscl);
 
 	S.Initialize( flog, best );
-	S.SetTuser( 1, 1, 1, 0, 0 );
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );

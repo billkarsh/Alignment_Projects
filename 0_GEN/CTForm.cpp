@@ -63,9 +63,9 @@
 	In a TrackEM2 XML file transform attributes are written
 	"matrix(m00,m10,m01,m11,m02,m12)".
 
-	The conventional order to be used for compounding operations
-	is as follows. Given X=x-skew, Y=y-skew, S=x-y-orboth-scale,
-	P=pretweak, R=rotation, then, T = R((S(YX))P).
+	We use a standard order for compounding operations. Let
+	X=xskew, Y=yskew, S=scaling, P=pretweak, R=rot+trans.
+	Then, D = S(YX), and T = R(DP).
 */
 
 /* --------------------------------------------------------------- */
@@ -135,13 +135,13 @@ void TForm::NUSelect( int sel, double a )
 }
 
 /* --------------------------------------------------------------- */
-/* CmpDistort ---------------------------------------------------- */
+/* ComposeDfm ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Conventionalized compounding of distortions.
-// T = Scale.(Yskew.Xskew)
+// Conventionalized compounding of deformations.
+// Tdfm = Scale.(Yskew.Xskew)
 //
-void TForm::CmpDistort(
+void TForm::ComposeDfm(
 	double	scl,
 	double	xscl,
 	double	yscl,
@@ -158,6 +158,38 @@ void TForm::CmpDistort(
 
 	MultiplyTrans( YX, Y, X );
 	MultiplyTrans( *this, S, YX );
+}
+
+/* --------------------------------------------------------------- */
+/* EffArea ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return area of polygon obtained from: T( unit square ).
+//
+// Method follows Geometry::AreaOfPolygon().
+//
+double TForm::EffArea() const
+{
+	vector<Point>	v;
+
+	v.push_back( Point(0,0) );
+	v.push_back( Point(1,0) );
+	v.push_back( Point(1,1) );
+	v.push_back( Point(0,1) );
+
+	Transform( v );
+
+	double	A = 0;
+
+	for( int i = 0; i < 4; ++i ) {
+
+		const Point&	a = v[i];
+		const Point&	b = v[(i+1)%4];
+
+		A += (a.x - b.x) * (a.y + b.y);
+	}
+
+	return A / 2;
 }
 
 /* --------------------------------------------------------------- */
