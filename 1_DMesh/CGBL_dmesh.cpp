@@ -280,7 +280,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Starting TForm A -> B
 
-	AToBTrans( Tab, GBL.A.t2i.T, GBL.B.t2i.T );
+	AToBTrans( Tab, A.t2i.T, B.t2i.T );
 
 // Extract file name as useful label
 
