@@ -60,7 +60,10 @@ public:
 			*exenam;
 	int		downradiuspix,
 			zmin,
-			zmax;
+			zmax,
+			xml_type,
+			xml_min,
+			xml_max;
 	bool	NoFolds,
 			NoDirs;
 
@@ -73,6 +76,9 @@ public:
 		downradiuspix	= 0;
 		zmin			= 0;
 		zmax			= 32768;
+		xml_type		= -999;
+		xml_min			= -999;
+		xml_max			= -999;
 		NoFolds			= false;
 		NoDirs			= false;
 	};
@@ -141,6 +147,12 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
+		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
+			;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
@@ -184,20 +196,38 @@ static void CreateTopDir()
 /* WriteRunlsqFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteRunlsqFile()
+static void _WriteRunlsqFile( const char *path )
 {
-	char	buf[2048];
-	FILE	*f;
-
-	sprintf( buf, "%s/stack/runlsq.sht", gArgs.outdir );
-	f = FileOpenOrDie( buf, "w", flog );
+	FILE	*f = FileOpenOrDie( path, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "lsq pts.all -scale=.1 -square=.1 > lsq.txt\n\n" );
+	char	xmlprms[256] = "";
+	int		L = 0;
+
+	if( gArgs.xml_type != -999 )
+		L += sprintf( xmlprms + L, "-xmltype=%d ", gArgs.xml_type );
+
+	if( gArgs.xml_min != -999 )
+		L += sprintf( xmlprms + L, "-xmlmin=%d ", gArgs.xml_min );
+
+	if( gArgs.xml_max != -999 )
+		L += sprintf( xmlprms + L, "-xmlmax=%d ", gArgs.xml_max );
+
+	fprintf( f,
+	"lsq pts.all -scale=.1 -square=.1 %s> lsq.txt\n\n",
+	xmlprms );
 
 	fclose( f );
-	FileScriptPerms( buf );
+	FileScriptPerms( path );
+}
+
+
+static void WriteRunlsqFile()
+{
+	char	buf[2048];
+	sprintf( buf, "%s/stack/runlsq.sht", gArgs.outdir );
+	_WriteRunlsqFile( buf );
 }
 
 /* --------------------------------------------------------------- */

@@ -11,6 +11,9 @@
 # -exe=ptestalt			;exe other than 'ptest'
 # -nf					;no foldmasks
 # -nd					;no tile directories
+# -xmltype=0
+# -xmlmin=0
+# -xmlmax=0
 #
 
 wrk=temp0
