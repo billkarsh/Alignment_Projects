@@ -16,24 +16,28 @@ class CGBL_dmesh {
 // Types
 // =====
 
-public:
+private:
 	typedef struct {
 		vector<TForm>	Tdfm;
 		double			SCALE,
 						XSCALE,
 						YSCALE,
-						SKEW,
-						CTR;
-		char			*ima,			// override idb paths
-						*imb,
-						*fma,
-						*fmb;
-		bool			Transpose,		// transpose all images
-						WithinSection,	// overlap within a section
-						Verbose,		// run inspect diagnostics
-						NoFolds,		// ignore fold masks
-						SingleFold,		// assign id=1 to all non-fold rgns
-						Heatmap;		// run CorrView
+						SKEW;
+		char			*ima,	// override idb paths
+						*imb;
+	} PrvDrvArgs;
+
+public:
+	typedef struct {
+		double	CTR;
+		char	*fma,			// override idb paths
+				*fmb;
+		bool	Transpose,		// transpose all images
+				WithinSection,	// overlap within a section
+				Verbose,		// run inspect diagnostics
+				NoFolds,		// ignore fold masks
+				SingleFold,		// assign id=1 to all non-fold rgns
+				Heatmap;		// run CorrView
 	} DriverArgs;
 
 	typedef struct {
@@ -61,6 +65,9 @@ public:
 // ============
 // Data members
 // ============
+
+private:
+	PrvDrvArgs		_arg;
 
 public:
 	DriverArgs		arg;

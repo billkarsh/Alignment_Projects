@@ -65,11 +65,11 @@ void CThmScan::RotatePoints(
 	TForm			&T,
 	double			rads )
 {
-	TForm	A, temp;
+	TForm	R, temp;
 
-	A.NUSetRot( rads );
+	R.NUSetRot( rads );
 	MultiplyTrans( temp, Tdfm, Tptwk );
-	MultiplyTrans( T, A, temp );
+	MultiplyTrans( T, R, temp );
 	T.Apply_R_Part( pts );
 }
 

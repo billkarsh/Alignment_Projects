@@ -16,21 +16,25 @@ class CGBL_Thumbs {
 // Types
 // =====
 
-public:
+private:
 	typedef struct {
 		vector<TForm>	Tdfm;
 		double			SCALE,
 						XSCALE,
 						YSCALE,
-						SKEW,
-						CTR;
-		char			*ima,			// override idb paths
-						*imb,
-						*fma,
-						*fmb;
-		bool			Transpose,		// transpose all images
-						NoFolds,		// ignore fold masks
-						SingleFold;		// assign id=1 to all non-fold rgns
+						SKEW;
+		char			*ima,	// override idb paths
+						*imb;
+	} PrvDrvArgs;
+
+public:
+	typedef struct {
+		double	CTR;
+		char	*fma,			// override idb paths
+				*fmb;
+		bool	Transpose,		// transpose all images
+				NoFolds,		// ignore fold masks
+				SingleFold;		// assign id=1 to all non-fold rgns
 	} DriverArgs;
 
 	typedef struct {
@@ -55,6 +59,9 @@ public:
 // ============
 // Data members
 // ============
+
+private:
+	PrvDrvArgs		_arg;
 
 public:
 	DriverArgs		arg;

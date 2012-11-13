@@ -40,13 +40,14 @@ CGBL_Thumbs	GBL;
 
 CGBL_Thumbs::CGBL_Thumbs()
 {
-	arg.SCALE			= 999.0;
-	arg.XSCALE			= 999.0;
-	arg.YSCALE			= 999.0;
-	arg.SKEW			= 999.0;
+	_arg.SCALE			= 999.0;
+	_arg.XSCALE			= 999.0;
+	_arg.YSCALE			= 999.0;
+	_arg.SKEW			= 999.0;
+	_arg.ima			= NULL;
+	_arg.imb			= NULL;
+
 	arg.CTR				= 999.0;
-	arg.ima				= NULL;
-	arg.imb				= NULL;
 	arg.fma				= NULL;
 	arg.fmb				= NULL;
 	arg.Transpose		= false;
@@ -78,26 +79,26 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
 
 			if( 6 == vD.size() )
-				arg.Tdfm.push_back( TForm( &vD[0] ) );
+				_arg.Tdfm.push_back( TForm( &vD[0] ) );
 			else {
 				printf(
 				"main: WARNING: Bad format in -Tdfm [%s].\n",
 				argv[i] );
 			}
 		}
-		else if( GetArg( &arg.SCALE, "-SCALE=%lf", argv[i] ) )
+		else if( GetArg( &_arg.SCALE, "-SCALE=%lf", argv[i] ) )
 			;
-		else if( GetArg( &arg.XSCALE, "-XSCALE=%lf", argv[i] ) )
+		else if( GetArg( &_arg.XSCALE, "-XSCALE=%lf", argv[i] ) )
 			;
-		else if( GetArg( &arg.YSCALE, "-YSCALE=%lf", argv[i] ) )
+		else if( GetArg( &_arg.YSCALE, "-YSCALE=%lf", argv[i] ) )
 			;
-		else if( GetArg( &arg.SKEW, "-SKEW=%lf", argv[i] ) )
+		else if( GetArg( &_arg.SKEW, "-SKEW=%lf", argv[i] ) )
 			;
 		else if( GetArg( &arg.CTR, "-CTR=%lf", argv[i] ) )
 			;
-		else if( GetArgStr( arg.ima, "-ima=", argv[i] ) )
+		else if( GetArgStr( _arg.ima, "-ima=", argv[i] ) )
 			;
-		else if( GetArgStr( arg.imb, "-imb=", argv[i] ) )
+		else if( GetArgStr( _arg.imb, "-imb=", argv[i] ) )
 			;
 		else if( GetArgStr( arg.fma, "-fma=", argv[i] ) )
 			;
@@ -183,38 +184,38 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Command-line overrides ----\n" );
 
-	if( arg.Tdfm.size() ) {
+	if( _arg.Tdfm.size() ) {
 
-		ctx.Tdfm = arg.Tdfm[0];
+		ctx.Tdfm = _arg.Tdfm[0];
 		printf( "Tdfm=" );
-		arg.Tdfm[0].PrintTransform();
+		_arg.Tdfm[0].PrintTransform();
 	}
 	else {
 
 		int	update = false;
 
-		if( arg.SCALE != 999.0 ) {
-			cSCALE	= arg.SCALE;
+		if( _arg.SCALE != 999.0 ) {
+			cSCALE	= _arg.SCALE;
 			update	= true;
-			printf( "SCALE=%g\n", arg.SCALE );
+			printf( "SCALE=%g\n", _arg.SCALE );
 		}
 
-		if( arg.XSCALE != 999.0 ) {
-			cXSCALE	= arg.XSCALE;
+		if( _arg.XSCALE != 999.0 ) {
+			cXSCALE	= _arg.XSCALE;
 			update	= true;
-			printf( "XSCALE=%g\n", arg.XSCALE );
+			printf( "XSCALE=%g\n", _arg.XSCALE );
 		}
 
-		if( arg.YSCALE != 999.0 ) {
-			cYSCALE	= arg.YSCALE;
+		if( _arg.YSCALE != 999.0 ) {
+			cYSCALE	= _arg.YSCALE;
 			update	= true;
-			printf( "YSCALE=%g\n", arg.YSCALE );
+			printf( "YSCALE=%g\n", _arg.YSCALE );
 		}
 
-		if( arg.SKEW != 999.0 ) {
-			cSKEW	= arg.SKEW;
+		if( _arg.SKEW != 999.0 ) {
+			cSKEW	= _arg.SKEW;
 			update	= true;
-			printf( "SKEW=%g\n", arg.SKEW );
+			printf( "SKEW=%g\n", _arg.SKEW );
 		}
 
 		if( update )
@@ -232,8 +233,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	IDBReadImgParams( idb );
 
-	if( !IDBTil2Img( A.t2i, idb, A.layer, A.tile, arg.ima ) ||
-		!IDBTil2Img( B.t2i, idb, B.layer, B.tile, arg.imb ) ) {
+	if( !IDBTil2Img( A.t2i, idb, A.layer, A.tile, _arg.ima ) ||
+		!IDBTil2Img( B.t2i, idb, B.layer, B.tile, _arg.imb ) ) {
 
 		return false;
 	}
