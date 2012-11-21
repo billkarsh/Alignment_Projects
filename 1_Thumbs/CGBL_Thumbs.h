@@ -3,7 +3,7 @@
 #pragma once
 
 
-#include	"PipeFiles.h"
+#include	"../1_DMesh/CThmUtil.h"
 
 
 /* --------------------------------------------------------------- */
@@ -18,13 +18,15 @@ class CGBL_Thumbs {
 
 private:
 	typedef struct {
-		vector<TForm>	Tdfm;
+		vector<TForm>	Tdfm,
+						Tab;
 		double			SCALE,
 						XSCALE,
 						YSCALE,
 						SKEW;
 		char			*ima,	// override idb paths
 						*imb;
+		int				MODE;
 	} PrvDrvArgs;
 
 public:
@@ -39,22 +41,16 @@ public:
 
 	typedef struct {
 		TForm	Tdfm;
-		double	NBMXHT,
+		double	XYCONF,
+				NBMXHT,
 				HFANGDN,
 				HFANGPR,
 				RTRSH;
 		long	OLAP2D;
-		int		OLAP1D,
-				INPALN,
-				DINPUT;
+		int		MODE,
+				OLAP1D,
+				LIMXY;
 	} CntxtDep;
-
-	typedef struct {
-		int			layer,
-					tile;
-		Til2Img		t2i;
-		const char	*file;
-	} PicSpecs;
 
 // ============
 // Data members

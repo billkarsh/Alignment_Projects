@@ -19,7 +19,8 @@ SYMBOLS_MYPROJ :=
 # =======
 
 SOURCES_MYPROJ := \
-	ThumbsDriver.cpp CGBL_Thumbs.cpp Thumbs_NoCR.cpp Thumbs.cpp
+	ThumbsDriver.cpp CGBL_Thumbs.cpp ../1_DMesh/CThmUtil.cpp \
+	Thumbs_NoCR.cpp Thumbs.cpp
 
 _SRC_UTL_ := \
 	PipeFiles.cpp FoldMask.cpp \

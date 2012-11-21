@@ -46,6 +46,7 @@ CGBL_dmesh::CGBL_dmesh()
 	_arg.SKEW			= 999.0;
 	_arg.ima			= NULL;
 	_arg.imb			= NULL;
+	_arg.MODE			= 0;
 
 	arg.CTR				= 999.0;
 	arg.fma				= NULL;
@@ -89,6 +90,16 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 				argv[i] );
 			}
 		}
+		else if( GetArgList( vD, "-Tab=", argv[i] ) ) {
+
+			if( 6 == vD.size() )
+				_arg.Tab.push_back( TForm( &vD[0] ) );
+			else {
+				printf(
+				"main: WARNING: Bad format in -Tab [%s].\n",
+				argv[i] );
+			}
+		}
 		else if( GetArg( &_arg.SCALE, "-SCALE=%lf", argv[i] ) )
 			;
 		else if( GetArg( &_arg.XSCALE, "-XSCALE=%lf", argv[i] ) )
@@ -97,11 +108,13 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &_arg.SKEW, "-SKEW=%lf", argv[i] ) )
 			;
-		else if( GetArg( &arg.CTR, "-CTR=%lf", argv[i] ) )
-			;
 		else if( GetArgStr( _arg.ima, "-ima=", argv[i] ) )
 			;
 		else if( GetArgStr( _arg.imb, "-imb=", argv[i] ) )
+			;
+		else if( GetArg( &_arg.MODE, "-MODE=%c", argv[i] ) )
+			;
+		else if( GetArg( &arg.CTR, "-CTR=%lf", argv[i] ) )
 			;
 		else if( GetArgStr( arg.fma, "-fma=", argv[i] ) )
 			;
@@ -181,6 +194,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 	if( A.layer == B.layer ) {
 
 		//ctx.Tdfm = identity (default)
+		ctx.XYCONF	= mch.XYCONF_SL;
 		ctx.NBMXHT	= mch.NBMXHT_SL;
 		ctx.HFANGDN	= mch.HFANGDN_SL;
 		ctx.HFANGPR	= mch.HFANGPR_SL;
@@ -189,9 +203,9 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DFA		= mch.DFA_SL;
 		ctx.DFT		= mch.DFT_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
+		ctx.MODE	= mch.MODE_SL;
 		ctx.OLAP1D	= mch.OLAP1D_SL;
-		ctx.INPALN	= mch.INPALN_SL;
-		ctx.DINPUT	= mch.DINPUT_SL;
+		ctx.LIMXY	= mch.LIMXY_SL;
 	}
 	else {
 
@@ -202,6 +216,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 		ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
 
+		ctx.XYCONF	= mch.XYCONF_XL;
 		ctx.NBMXHT	= mch.NBMXHT_XL;
 		ctx.HFANGDN	= mch.HFANGDN_XL;
 		ctx.HFANGPR	= mch.HFANGPR_XL;
@@ -210,14 +225,19 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.DFA		= mch.DFA_XL;
 		ctx.DFT		= mch.DFT_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
+		ctx.MODE	= mch.MODE_XL;
 		ctx.OLAP1D	= mch.OLAP1D_XL;
-		ctx.INPALN	= mch.INPALN_XL;
-		ctx.DINPUT	= mch.DINPUT_XL;
+		ctx.LIMXY	= mch.LIMXY_XL;
 	}
 
 // Commandline overrides
 
 	printf( "\n---- Command-line overrides ----\n" );
+
+	if( _arg.MODE ) {
+		ctx.MODE = _arg.MODE;
+		printf( "MODE=%c\n", _arg.MODE );
+	}
 
 	if( _arg.Tdfm.size() ) {
 
@@ -257,6 +277,23 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
 	}
 
+	if( _arg.Tab.size() ) {
+
+		printf( "Tab=" );
+		_arg.Tab[0].PrintTransform();
+	}
+
+	if( ctx.MODE == 'Z' ) {
+		ctx.MODE = 'C';
+		arg.CTR = 0.0;
+		printf( "MODE=C (was Z)\n", arg.CTR );
+	}
+	else if( ctx.MODE == 'M' ) {
+		ctx.MODE = 'N';
+		arg.CTR = 0.0;
+		printf( "MODE=N (was M)\n", arg.CTR );
+	}
+
 	if( arg.CTR != 999.0 )
 		printf( "CTR=%g\n", arg.CTR );
 
@@ -281,7 +318,10 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Starting TForm A -> B
 
-	AToBTrans( Tab, A.t2i.T, B.t2i.T );
+	if( _arg.Tab.size() )
+		Tab = _arg.Tab[0];
+	else
+		AToBTrans( Tab, A.t2i.T, B.t2i.T );
 
 // Extract file name as useful label
 

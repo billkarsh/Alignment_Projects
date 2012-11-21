@@ -535,10 +535,13 @@ quality_control:
 
 	fprintf( flog, "\n---- Final reports ----\n" );
 
+	char	buf[128];
 	string	reason;
 
-	if( yell < GBL.mch.FYL )
-		reason += "-Not enough yellow pixels- ";
+	if( yell < GBL.mch.FYL ) {
+		sprintf( buf, "-Yellow=%g < FYL=%g- ", yell, GBL.mch.FYL );
+		reason += buf;
+	}
 
 	if( GBL.mch.EMM ) {
 
@@ -548,11 +551,18 @@ quality_control:
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
 
-		if( score > GBL.mch.EMT )
-			reason += "-Weighted Earth Mover Metric too high- ";
+		if( score > GBL.mch.EMT ) {
+			sprintf( buf,
+			"-Weighted EMM=%g > EMT=%g- ", score, GBL.mch.EMT );
+			reason += buf;
+		}
 
-		if( dfm > GBL.mch.EMT*1.10 )
-			reason += "-EMM too high(>10% over threshold)- ";
+		if( dfm > GBL.mch.EMT*1.10 ) {
+			sprintf( buf,
+			"-EMM=%g > %g = (EMT=%g * 1.10)- ",
+			dfm, GBL.mch.EMT*1.10, GBL.mch.EMT );
+			reason += buf;
+		}
 
 		//if( score > dfm*1.1 && score > GBL.mch.EMT/2.0 ) {
 		//	reason +=	"-not great EMM, and Weighted EMM"

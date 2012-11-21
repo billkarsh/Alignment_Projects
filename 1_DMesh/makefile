@@ -23,10 +23,10 @@ SYMBOLS_MYPROJ := -DCREATEMESH_WRITE_DEBUG_IMAGES
 # =======
 
 SOURCES_MYPROJ := \
-	dmeshdriver.cpp CGBL_dmesh.cpp dmesh.cpp \
+	dmeshdriver.cpp CGBL_dmesh.cpp CThmUtil.cpp \
 	ApproximateMatch_NoCR.cpp ApproximateMatch.cpp \
-	RegionToRegionMap.cpp CreateMesh.cpp ImproveMesh.cpp \
-	InSectionOverlap.cpp
+	dmesh.cpp RegionToRegionMap.cpp CreateMesh.cpp \
+	ImproveMesh.cpp InSectionOverlap.cpp
 
 _SRC_UTL_ := \
 	PipeFiles.cpp FoldMask.cpp \

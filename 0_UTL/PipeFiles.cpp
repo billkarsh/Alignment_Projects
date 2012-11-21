@@ -107,7 +107,10 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.XSCALE, "XSCALE=%lf" );
 		GETPRM_MCH( &M.YSCALE, "YSCALE=%lf" );
 		GETPRM_MCH( &M.SKEW, "SKEW=%lf" );
-		GETPRM_MCH( &M.SLOPPY_SL, "SLOPPY_SL=%c" );
+		GETPRM_MCH( &M.MODE_SL, "MODE_SL=%c" );
+		GETPRM_MCH( &M.MODE_XL, "MODE_XL=%c" );
+		GETPRM_MCH( &M.XYCONF_SL, "XYCONF_SL=%lf" );
+		GETPRM_MCH( &M.XYCONF_XL, "XYCONF_XL=%lf" );
 		GETPRM_MCH( &M.THMDEC, "THMDEC=%d" );
 		GETPRM_MCH( &M.OLAP1D_SL, "OLAP1D_SL=%d" );
 		GETPRM_MCH( &M.OLAP1D_XL, "OLAP1D_XL=%d" );
@@ -122,10 +125,8 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.RTRSH_SL, "RTRSH_SL=%lf" );
 		GETPRM_MCH( &M.RTRSH_XL, "RTRSH_XL=%lf" );
 		GETPRM_MCH( &M.TWEAKS, "TWEAKS=%c" );
-		GETPRM_MCH( &M.INPALN_SL, "INPALN_SL=%c" );
-		GETPRM_MCH( &M.INPALN_XL, "INPALN_XL=%c" );
-		GETPRM_MCH( &M.DINPUT_SL, "DINPUT_SL=%d" );
-		GETPRM_MCH( &M.DINPUT_XL, "DINPUT_XL=%d" );
+		GETPRM_MCH( &M.LIMXY_SL, "LIMXY_SL=%d" );
+		GETPRM_MCH( &M.LIMXY_XL, "LIMXY_XL=%d" );
 		GETPRM_MCH( &M.DSL, "DSL=%c" );
 		GETPRM_MCH( &M.DIT_SL, "DIT_SL=%lf" );
 		GETPRM_MCH( &M.DIT_XL, "DIT_XL=%lf" );
@@ -153,20 +154,21 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.WMT, "WMT=%c" );
 		GETPRM_MCH( &M.WTT, "WTT=%c" );
 
+		// ensure upper case
+		M.MODE_SL = toupper( M.MODE_SL );
+		M.MODE_XL = toupper( M.MODE_XL );
+
 		// finish Y/N booleans
-		M.PXDOG		= (M.PXDOG == 'Y');
-		M.FLD		= (M.FLD == 'Y');
-		M.PRETWEAK	= (M.PRETWEAK == 'Y');
-		M.SLOPPY_SL	= (M.SLOPPY_SL == 'Y');
-		M.TWEAKS	= (M.TWEAKS == 'Y');
-		M.INPALN_SL	= (M.INPALN_SL == 'Y');
-		M.INPALN_XL	= (M.INPALN_XL == 'Y');
-		M.DSL		= (M.DSL == 'Y');
-		M.ONE		= (M.ONE == 'Y');
-		M.EMM		= (M.EMM == 'Y');
-		M.WDI		= (M.WDI == 'Y');
-		M.WMT		= (M.WMT == 'Y');
-		M.WTT		= (M.WTT == 'Y');
+		M.PXDOG		= (toupper( M.PXDOG ) == 'Y');
+		M.FLD		= (toupper( M.FLD ) == 'Y');
+		M.PRETWEAK	= (toupper( M.PRETWEAK ) == 'Y');
+		M.TWEAKS	= (toupper( M.TWEAKS ) == 'Y');
+		M.DSL		= (toupper( M.DSL ) == 'Y');
+		M.ONE		= (toupper( M.ONE ) == 'Y');
+		M.EMM		= (toupper( M.EMM ) == 'Y');
+		M.WDI		= (toupper( M.WDI ) == 'Y');
+		M.WMT		= (toupper( M.WMT ) == 'Y');
+		M.WTT		= (toupper( M.WTT ) == 'Y');
 
 		fprintf( flog, "\n" );
 

@@ -4,4 +4,4 @@ fld=/groups/apig/apig/casano/plate_opt/low_res/F_21day_A1_02
 
 fixcoords $fld/F_21day_A1_02_TrackEM2_Chn1.txt $fld/ImageMeta.txt
 
- 
+

@@ -9,7 +9,7 @@ do
 	s=$(printf "/groups/apig/tomo/Juan/pics/im_0_%02d.png 0 0 %d\n" $i $i)
 	echo "$s" > temp.txt
 	cat temp.txt >> layout.txt
-done 
+done
 
 rm temp.txt
 
