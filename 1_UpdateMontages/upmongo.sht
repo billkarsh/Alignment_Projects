@@ -1,5 +1,18 @@
 #!/bin/sh
 
+# Update transforms in given 'myxml' file using TFormTables in given
+# temp directory. Preserves montage-montage orientation. Output file
+# named 'myxml_v2.xml'.
+#
+# > updatemontages myxml temp -p=_Nex.mrc
+#
+# Required -p= pattern describes the context around
+# the tile ID 'N' part of image names.
+#
+# Options:
+# -zmin=i -zmax=j restricts layer range
+#
+
 updatemontages PreClicks.xml temp0 -zmin=7 -zmax=119 -p=_idN
 
 
