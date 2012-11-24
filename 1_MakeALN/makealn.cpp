@@ -759,7 +759,6 @@ static void Make_MakeDownLoose(
 	int						idN )
 {
 	vector<Pair>	P;
-	int				Rsqr = gArgs.downradiuspix * gArgs.downradiuspix;
 
 	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
@@ -775,7 +774,8 @@ static void Make_MakeDownLoose(
 
 		for( int b = id0; b < idN; ++b ) {
 
-			int	w, h;
+			double	D;
+			int		w, h;
 
 			TS.GetTileDims( w, h );
 
@@ -784,7 +784,13 @@ static void Make_MakeDownLoose(
 			TS.vtil[a].T.Transform( pa );
 			TS.vtil[b].T.Transform( pb );
 
-			if( pb.DistSqr( pa ) < Rsqr )
+			D = pb.Dist( pa );
+
+			fprintf( flog,
+			"----Loose: Tile %3d - %3d; dist %d\n",
+			TS.vtil[a].id, TS.vtil[b].id, (int)D );
+
+			if( D < gArgs.downradiuspix )
 				P.push_back( Pair( a, b ) );
 		}
 	}
