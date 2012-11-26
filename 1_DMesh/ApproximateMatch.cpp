@@ -162,7 +162,7 @@ bool ApproximateMatch(
 	if( !U.Crop( olp, acr, bcr, GBL.ctx.XYCONF ) )
 		return false;
 
-	if( !U.MakeThumbs( thm, olp, GBL.mch.THMDEC ) )
+	if( !U.MakeThumbs( thm, olp, GBL.ctx.THMDEC ) )
 		return false;
 
 /* ------ */

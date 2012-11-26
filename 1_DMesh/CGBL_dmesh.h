@@ -54,6 +54,7 @@ public:
 				DFT;
 		long	OLAP2D;
 		int		MODE,
+				THMDEC,
 				OLAP1D,
 				LIMXY;
 	} CntxtDep;

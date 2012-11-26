@@ -172,6 +172,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		ctx.RTRSH	= mch.RTRSH_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
 		ctx.MODE	= mch.MODE_SL;
+		ctx.THMDEC	= mch.THMDEC_SL;
 		ctx.OLAP1D	= mch.OLAP1D_SL;
 		ctx.LIMXY	= mch.LIMXY_SL;
 	}
@@ -191,6 +192,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		ctx.RTRSH	= mch.RTRSH_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
 		ctx.MODE	= mch.MODE_XL;
+		ctx.THMDEC	= mch.THMDEC_XL;
 		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.LIMXY	= mch.LIMXY_XL;
 	}

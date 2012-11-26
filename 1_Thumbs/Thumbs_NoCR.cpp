@@ -62,7 +62,7 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 
 	U.Crop_NoCR( olp, GBL.ctx.XYCONF );
 
-	if( !U.MakeThumbs( thm, olp, GBL.mch.THMDEC ) )
+	if( !U.MakeThumbs( thm, olp, GBL.ctx.THMDEC ) )
 		return false;
 
 /* ------ */
