@@ -56,6 +56,8 @@ typedef struct {
 			PRETWEAK,
 			MODE_SL,
 			MODE_XL,
+			TAB2DFM_SL,
+			TAB2DFM_XL,
 			THMDEC_SL,
 			THMDEC_XL,
 			OLAP1D_SL,

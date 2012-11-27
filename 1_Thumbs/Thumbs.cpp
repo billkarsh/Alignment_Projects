@@ -62,7 +62,8 @@ bool Thumbs(
 
 	OlapRec	olp;
 	ThmRec	thm;
-	int		nPriorAngles = U.SetStartingAngle( GBL.arg.CTR );
+	int		nPriorAngles = U.SetStartingAngle(
+								GBL.ctx.Tdfm, GBL.arg.CTR );
 
 	if( !U.Crop( olp, acr, bcr, GBL.ctx.XYCONF ) )
 		return false;

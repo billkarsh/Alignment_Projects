@@ -86,7 +86,7 @@ public:
 	bool Echo( vector<TForm> &guesses );
 	bool FromLog( vector<TForm> &guesses );
 
-	int SetStartingAngle( double CTR );
+	int SetStartingAngle( const TForm &Tdfm, double CTR );
 
 	void SubI_ThesePoints(
 		SubI					&S,

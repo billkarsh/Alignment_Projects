@@ -19,7 +19,8 @@
 	after a solution is found, to optimize the starting point
 	for subsequent mesh phase.
 
-	Tdfm is hierarchically set by file params {SCALE, XSCALE,
+	Tdfm is hierarchically set by separating it from the initial
+	Tab, but can be overridden by file params {SCALE, XSCALE,
 	YSCALE, SKEW}. These are overridden if provided on command
 	line. All that is overridden if command line -Tdfm given.
 
@@ -157,7 +158,8 @@ bool ApproximateMatch(
 
 	OlapRec	olp;
 	ThmRec	thm;
-	int		nPriorAngles = U.SetStartingAngle( GBL.arg.CTR );
+	int		nPriorAngles = U.SetStartingAngle(
+								GBL.ctx.Tdfm, GBL.arg.CTR );
 
 	if( !U.Crop( olp, acr, bcr, GBL.ctx.XYCONF ) )
 		return false;

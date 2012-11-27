@@ -161,8 +161,11 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 // Which file params to use according to (same,cross) layer
 
 	double	cSCALE=1, cXSCALE=1, cYSCALE=1, cSKEW=0;
+	int		cDfmFromTab;
 
 	if( A.layer == B.layer ) {
+
+		cDfmFromTab	= mch.TAB2DFM_SL;
 
 		//ctx.Tdfm = identity (default)
 		ctx.XYCONF	= mch.XYCONF_SL;
@@ -185,6 +188,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 		ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
 
+		cDfmFromTab	= mch.TAB2DFM_XL;
+
 		ctx.XYCONF	= mch.XYCONF_XL;
 		ctx.NBMXHT	= mch.NBMXHT_XL;
 		ctx.HFANGDN	= mch.HFANGDN_XL;
@@ -196,75 +201,6 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.LIMXY	= mch.LIMXY_XL;
 	}
-
-// Commandline overrides
-
-	printf( "\n---- Command-line overrides ----\n" );
-
-	if( _arg.MODE ) {
-		ctx.MODE = _arg.MODE;
-		printf( "MODE=%c\n", _arg.MODE );
-	}
-
-	if( _arg.Tdfm.size() ) {
-
-		ctx.Tdfm = _arg.Tdfm[0];
-		printf( "Tdfm=" );
-		_arg.Tdfm[0].PrintTransform();
-	}
-	else {
-
-		int	update = false;
-
-		if( _arg.SCALE != 999.0 ) {
-			cSCALE	= _arg.SCALE;
-			update	= true;
-			printf( "SCALE=%g\n", _arg.SCALE );
-		}
-
-		if( _arg.XSCALE != 999.0 ) {
-			cXSCALE	= _arg.XSCALE;
-			update	= true;
-			printf( "XSCALE=%g\n", _arg.XSCALE );
-		}
-
-		if( _arg.YSCALE != 999.0 ) {
-			cYSCALE	= _arg.YSCALE;
-			update	= true;
-			printf( "YSCALE=%g\n", _arg.YSCALE );
-		}
-
-		if( _arg.SKEW != 999.0 ) {
-			cSKEW	= _arg.SKEW;
-			update	= true;
-			printf( "SKEW=%g\n", _arg.SKEW );
-		}
-
-		if( update )
-			ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
-	}
-
-	if( _arg.Tab.size() ) {
-
-		printf( "Tab=" );
-		_arg.Tab[0].PrintTransform();
-	}
-
-	if( ctx.MODE == 'Z' ) {
-		ctx.MODE = 'C';
-		arg.CTR = 0.0;
-		printf( "MODE=C (was Z)\n", arg.CTR );
-	}
-	else if( ctx.MODE == 'M' ) {
-		ctx.MODE = 'N';
-		arg.CTR = 0.0;
-		printf( "MODE=N (was M)\n", arg.CTR );
-	}
-
-	if( arg.CTR != 999.0 )
-		printf( "CTR=%g\n", arg.CTR );
-
-	printf( "\n" );
 
 // Fetch Til2Img entries
 
@@ -294,6 +230,87 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	A.file = FileCloneNamePart( A.t2i.path.c_str() );
 	B.file = FileCloneNamePart( B.t2i.path.c_str() );
+
+// Commandline overrides
+
+	printf( "\n---- Command-line overrides ----\n" );
+
+	if( _arg.Tab.size() ) {
+
+		printf( "Tab=" );
+		_arg.Tab[0].PrintTransform();
+	}
+
+	int	altTdfm = false;
+
+	if( _arg.Tdfm.size() ) {
+
+		ctx.Tdfm	= _arg.Tdfm[0];
+		altTdfm		= true;
+	}
+	else {
+
+		if( _arg.SCALE != 999.0 ) {
+			cSCALE	= _arg.SCALE;
+			altTdfm	= true;
+			printf( "SCALE=%g\n", _arg.SCALE );
+		}
+
+		if( _arg.XSCALE != 999.0 ) {
+			cXSCALE	= _arg.XSCALE;
+			altTdfm	= true;
+			printf( "XSCALE=%g\n", _arg.XSCALE );
+		}
+
+		if( _arg.YSCALE != 999.0 ) {
+			cYSCALE	= _arg.YSCALE;
+			altTdfm	= true;
+			printf( "YSCALE=%g\n", _arg.YSCALE );
+		}
+
+		if( _arg.SKEW != 999.0 ) {
+			cSKEW	= _arg.SKEW;
+			altTdfm	= true;
+			printf( "SKEW=%g\n", _arg.SKEW );
+		}
+
+		if( altTdfm )
+			ctx.Tdfm.ComposeDfm( cSCALE, cXSCALE, cYSCALE, 0, cSKEW );
+	}
+
+	if( !altTdfm && cDfmFromTab ) {
+
+		TForm	R;
+		R.NUSetRot( -RadiansFromAffine( Tab ) );
+
+		ctx.Tdfm = Tab;
+		ctx.Tdfm.SetXY( 0, 0 );
+		MultiplyTrans( ctx.Tdfm, R, TForm( ctx.Tdfm ) );
+	}
+
+	printf( "Tdfm=" );
+	ctx.Tdfm.PrintTransform();
+
+	if( _arg.MODE ) {
+		ctx.MODE = _arg.MODE;
+		printf( "MODE=%c\n", _arg.MODE );
+	}
+
+	if( ctx.MODE == 'Z' ) {
+		ctx.MODE = 'C';
+		arg.CTR = 0.0;
+		printf( "MODE=C (was Z)\n", arg.CTR );
+	}
+	else if( ctx.MODE == 'M' ) {
+		ctx.MODE = 'N';
+		arg.CTR = 0.0;
+		printf( "MODE=N (was M)\n", arg.CTR );
+	}
+
+	if( arg.CTR != 999.0 )
+		printf( "CTR=%g\n", arg.CTR );
+
+	printf( "\n" );
 
 	return true;
 }

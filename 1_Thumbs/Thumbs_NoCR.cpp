@@ -58,7 +58,8 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 
 	OlapRec	olp;
 	ThmRec	thm;
-	int		nPriorAngles = U.SetStartingAngle( GBL.arg.CTR );
+	int		nPriorAngles = U.SetStartingAngle(
+								GBL.ctx.Tdfm, GBL.arg.CTR );
 
 	U.Crop_NoCR( olp, GBL.ctx.XYCONF );
 

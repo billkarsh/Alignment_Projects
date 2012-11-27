@@ -47,23 +47,15 @@ bool CThmUtil::FromLog( vector<TForm> &guesses )
 
 // Rotate Tab to reflect starting ang0 (degrees).
 //
-static void RotateTab( TForm &Tab, double ang0 )
+static void RotateTab( TForm &Tab, const TForm &Tdfm, double ang0 )
 {
-	double	acur = RadiansFromAffine( Tab );
+	TForm	R;
+	double	Vx = Tab.t[2],
+			Vy = Tab.t[5];
 
-	ang0 *= PI/180.0;
-
-	if( acur != ang0 ) {
-
-		TForm	R;
-		double	Vx = Tab.t[2],
-				Vy = Tab.t[5];
-
-		R.NUSetRot( ang0 - acur );
-		Tab.SetXY( 0, 0 );
-		MultiplyTrans( Tab, R, TForm( Tab ) );
-		Tab.SetXY( Vx, Vy );
-	}
+	R.NUSetRot( ang0 * PI/180.0 );
+	MultiplyTrans( Tab, R, Tdfm );
+	Tab.SetXY( Vx, Vy );
 }
 
 /* --------------------------------------------------------------- */
@@ -78,8 +70,7 @@ static void RotateTab( TForm &Tab, double ang0 )
 // =====
 //
 // All modes use ang0 as the dbgCor angle and the center angle.
-// In all cases, Tab, the starting guess for the sought rigid
-// transform, is adjusted to reflect ang0.
+// In all cases, Tab is adjusted to reflect ang0 and Tdfm.
 //
 // Generally, Tab is used from the idb, unless it was overridden
 // from the command line as -Tab=. Further, if the command line
@@ -92,7 +83,7 @@ static void RotateTab( TForm &Tab, double ang0 )
 // above applies. However, if nprior is >= 4, then ang0 is set
 // to the median of those angles.
 //
-int CThmUtil::SetStartingAngle( double CTR )
+int CThmUtil::SetStartingAngle( const TForm &Tdfm, double CTR )
 {
 	vector<ThmPair>	tpr;
 	int				ntpr, nprior = 0;
@@ -101,10 +92,8 @@ int CThmUtil::SetStartingAngle( double CTR )
 
 	if( MODE == 'N' || MODE == 'C' ) {
 
-		if( CTR != 999.0 ) {
+		if( CTR != 999.0 )
 			ang0 = CTR;
-			RotateTab( Tab, CTR );
-		}
 		else
 			ang0 = 180.0/PI * RadiansFromAffine( Tab );
 
@@ -146,10 +135,6 @@ int CThmUtil::SetStartingAngle( double CTR )
 	if( fabs( ang0 ) < 0.001 )
 		ang0 = 0.0;
 
-// Adjust Tab
-
-	RotateTab( Tab, ang0 );
-
 // Adjust OLAP2D_XL
 
 adjust_olap:
@@ -161,6 +146,10 @@ adjust_olap:
 
 		OLAP2D = long(OLAP2D / fmax( c*c, s*s ));
 	}
+
+// Adjust Tab
+
+	RotateTab( Tab, Tdfm, ang0 );
 
 	return nprior;
 }

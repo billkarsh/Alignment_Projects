@@ -109,6 +109,8 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.SKEW, "SKEW=%lf" );
 		GETPRM_MCH( &M.MODE_SL, "MODE_SL=%c" );
 		GETPRM_MCH( &M.MODE_XL, "MODE_XL=%c" );
+		GETPRM_MCH( &M.TAB2DFM_SL, "TAB2DFM_SL=%c" );
+		GETPRM_MCH( &M.TAB2DFM_XL, "TAB2DFM_XL=%c" );
 		GETPRM_MCH( &M.XYCONF_SL, "XYCONF_SL=%lf" );
 		GETPRM_MCH( &M.XYCONF_XL, "XYCONF_XL=%lf" );
 		GETPRM_MCH( &M.THMDEC_SL, "THMDEC_SL=%d" );
@@ -160,16 +162,18 @@ bool ReadMatchParams(
 		M.MODE_XL = toupper( M.MODE_XL );
 
 		// finish Y/N booleans
-		M.PXDOG		= (toupper( M.PXDOG ) == 'Y');
-		M.FLD		= (toupper( M.FLD ) == 'Y');
-		M.PRETWEAK	= (toupper( M.PRETWEAK ) == 'Y');
-		M.TWEAKS	= (toupper( M.TWEAKS ) == 'Y');
-		M.DSL		= (toupper( M.DSL ) == 'Y');
-		M.ONE		= (toupper( M.ONE ) == 'Y');
-		M.EMM		= (toupper( M.EMM ) == 'Y');
-		M.WDI		= (toupper( M.WDI ) == 'Y');
-		M.WMT		= (toupper( M.WMT ) == 'Y');
-		M.WTT		= (toupper( M.WTT ) == 'Y');
+		M.PXDOG			= (toupper( M.PXDOG ) == 'Y');
+		M.FLD			= (toupper( M.FLD ) == 'Y');
+		M.PRETWEAK		= (toupper( M.PRETWEAK ) == 'Y');
+		M.TAB2DFM_SL	= (toupper( M.TAB2DFM_SL ) == 'Y');
+		M.TAB2DFM_XL	= (toupper( M.TAB2DFM_XL ) == 'Y');
+		M.TWEAKS		= (toupper( M.TWEAKS ) == 'Y');
+		M.DSL			= (toupper( M.DSL ) == 'Y');
+		M.ONE			= (toupper( M.ONE ) == 'Y');
+		M.EMM			= (toupper( M.EMM ) == 'Y');
+		M.WDI			= (toupper( M.WDI ) == 'Y');
+		M.WMT			= (toupper( M.WMT ) == 'Y');
+		M.WTT			= (toupper( M.WTT ) == 'Y');
 
 		fprintf( flog, "\n" );
 

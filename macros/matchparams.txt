@@ -25,6 +25,8 @@ SKEW=0             <default 0.0>      "Transform elem[3] user-applied distortion
 #
 MODE_SL=Z          <default Z>        "Notes above"
 MODE_XL=Y          <default Y>        "Notes above"
+TAB2DFM_SL=Y       <default Y>        "Adopt Tdfm from Tab"
+TAB2DFM_XL=Y       <default Y>        "Adopt Tdfm from Tab"
 XYCONF_SL=0        <default 0.0>      "[0,1.0] confidence in Tab XY"
 XYCONF_XL=0        <default 0.0>      "[0,1.0] confidence in Tab XY"
 THMDEC_SL=8        <default 8>        "2^N thumb decimation factor"
