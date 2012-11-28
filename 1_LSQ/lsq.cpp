@@ -2797,6 +2797,7 @@ static void WriteTrakEM(
 	"\t\tid=\"0\"\n"
 	"\t\ttitle=\"Project\"\n"
 	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t\tn_mipmap_threads=\"8\"\n"
 	"\t/>\n" );
 
 	fprintf( f,
@@ -3545,6 +3546,7 @@ static void ViseWriteXML(
 	"\t\tid=\"0\"\n"
 	"\t\ttitle=\"Project\"\n"
 	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t\tn_mipmap_threads=\"8\"\n"
 	"\t/>\n" );
 
 	fprintf( f,
