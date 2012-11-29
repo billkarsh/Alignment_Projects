@@ -27,15 +27,9 @@ _SRC_XML_ := \
 SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
-_SRC_UTL_ := \
-	PipeFiles.cpp
-
-SOURCES_UTL := \
-	$(PATH_UTL)/$(_SRC_UTL_)
-
 _SRC_GEN_ := \
-	Cmdline.cpp CRegexID.cpp File.cpp TrakEM2_UTL.cpp \
-	CTForm.cpp
+	Cmdline.cpp CRegexID.cpp File.cpp PipeFiles.cpp \
+	TrakEM2_UTL.cpp CTForm.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -53,8 +47,6 @@ $(INCLUDES_STD) \
 $(SOURCES_MYPROJ) \
     \
 $(SOURCES_XML) \
-    \
-$(SOURCES_UTL) \
     \
 $(SOURCES_GEN) \
     \

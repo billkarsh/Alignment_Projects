@@ -28,15 +28,15 @@ SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_UTL_ := \
-	PipeFiles.cpp numerical_recipes.cpp mrc.cpp
+	numerical_recipes.cpp mrc.cpp
 
 SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	TrakEM2_UTL.cpp ImageIO.cpp Maths.cpp \
-	CPoint.cpp CTForm.cpp LinEqu.cpp
+	PipeFiles.cpp TrakEM2_UTL.cpp ImageIO.cpp \
+	Maths.cpp CPoint.cpp CTForm.cpp LinEqu.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
