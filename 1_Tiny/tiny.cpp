@@ -210,8 +210,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 {
 	int	nhist = histo.size();
 
-// Find the mean and std deviation through the
-// following exceedingly brute force technique.
+// Mean and std deviation.
 
 	MeanStd	mh;
 	double	mean, std;
@@ -219,10 +218,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 
 	for( int i = 0; i < 256; ++i ) {
 
-		// accumulate element 'value' times
-		for( int j = 0; j < histo[i]; ++j )
-			mh.Element( i );
-
+		mh.Run( i, histo[i] );
 		ndv += (histo[i] > 0);
 	}
 
@@ -290,7 +286,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 	a[2] = std * sqrt( 2 );	// and the divisor term
 
 	printf( "Before fit fit: height %f, loc %f, width %f\n",
-		a[0], a[1], a[2] / sqrt( 2 ) );
+		a[0], mean, std );
 
 	Fitmrq f( x, y, s, a, fgauss );
 
@@ -458,14 +454,14 @@ if( FoldMaskThresholdOverride != 0.0 ) {
 
 // pixels to vector
 vector<double> v(npixels);
-vector<double> vorig(npixels);	//@@@
 for(int i=0; i<npixels; i++) {
     int y = i / w;
     int x = i - w * y;   // pixels next to background pixels should also be black
     int pix = raster[i];
     v[i] = (pix-mean)/std;
-     vorig[i] = v[i];	//@@@
    }
+
+vector<double> vorig = v;
 
 if( remove_low_contrast ) {
     // If there are chunks with no contrast, get rid of them.

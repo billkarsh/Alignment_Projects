@@ -41,6 +41,7 @@ public:
 	MeanStd()					{Reset();};
 	void Reset()				{sum = sum2 = 0.0; n=0;};
 	void Element( double a )	{sum += a; sum2 += a*a; ++n;};
+	void Run( double a, int k ) {sum += a*k; sum2 += a*a*k; n += k;};
 	int  HowMany()				{return n;};
 	void Stats( double &avg, double &std );
 };
