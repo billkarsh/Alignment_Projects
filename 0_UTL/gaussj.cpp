@@ -1,3 +1,5 @@
+
+
 void gaussj(MatDoub_IO &a, MatDoub_IO &b)
 {
 	Int i,icol,irow,j,k,l,ll,n=a.nrows(),m=b.ncols();
@@ -43,6 +45,7 @@ void gaussj(MatDoub_IO &a, MatDoub_IO &b)
 				SWAP(a[k][indxr[l]],a[k][indxc[l]]);
 	}
 }
+
 
 void gaussj(MatDoub_IO &a)
 {
