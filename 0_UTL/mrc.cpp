@@ -275,9 +275,7 @@ for(int pass=0; pass < 3 && try_again; pass++) {
 	FILE *fp = fopen(fname,"w");
 	MeanStd m;
 	for(int i=0; i<x.size(); i++) {
-	    VecDoub DyDa(N*3);
-	    double yy;
-	    fgauss(x[i], f.a, yy, DyDa);
+	    double yy = ygauss( x[i], f.a );
 	    if( fp )  // if we cannot write, that's OK
 		fprintf(fp,"%f %f %f\n", x[i], yy, y[i]);
 	    residual[i] = y[i] - yy;

@@ -2,7 +2,7 @@
 
 Int fpoly_np = 10;
 
-VecDoub fpoly(const Doub x) {
+VecDoub fpoly( Doub x ) {
 	Int j;
 	VecDoub p(fpoly_np);
 	p[0]=1.0;
@@ -13,7 +13,7 @@ VecDoub fpoly(const Doub x) {
 
 Int fleg_nl = 10;
 
-VecDoub fleg(const Doub x) {
+VecDoub fleg( Doub x ) {
 	Int j;
 	Doub twox,f2,f1,d;
 	VecDoub pl(fleg_nl);
@@ -33,7 +33,7 @@ VecDoub fleg(const Doub x) {
 }
 
 
-void fgauss(const Doub x, VecDoub_I &a, Doub &y, VecDoub_O &dyda) {
+void fgauss( Doub x, VecDoub_I &a, Doub &y, VecDoub_O &dyda ) {
 	Int i,na=a.size();
 	Doub fac,ex,arg;
 	y=0.;
@@ -46,6 +46,21 @@ void fgauss(const Doub x, VecDoub_I &a, Doub &y, VecDoub_O &dyda) {
 		dyda[i+1]=fac/a[i+2];
 		dyda[i+2]=fac*arg/a[i+2];
 	}
+}
+
+
+Doub ygauss( Doub x, VecDoub_I &a ) {
+
+	Doub	arg, y = 0.0;
+	Int		na = a.size();
+
+	for( Int i = 0; i < na; i += 3 ) {
+
+		arg = (x - a[i+1]) / a[i+2];
+		y  += a[i] * exp(-arg*arg);
+	}
+
+	return y;
 }
 
 

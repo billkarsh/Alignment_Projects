@@ -11,6 +11,7 @@
 
 // function prototypes
 void gaussj( MatDoub_IO &a, MatDoub_IO &b );
-void fgauss( const Doub x, VecDoub_I &a, Doub &y, VecDoub_O &dyda );
+void fgauss( Doub x, VecDoub_I &a, Doub &y, VecDoub_O &dyda );
+Doub ygauss( Doub x, VecDoub_I &a );
 
 

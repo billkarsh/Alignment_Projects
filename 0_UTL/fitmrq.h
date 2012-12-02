@@ -3,7 +3,7 @@
 #pragma once
 
 
-typedef void (*Fitfunc)(const Doub, VecDoub_I &, Doub &, VecDoub_O &);
+typedef void (*Fitfunc)( Doub, VecDoub_I &, Doub &, VecDoub_O & );
 
 
 struct Fitmrq {
@@ -20,12 +20,12 @@ struct Fitmrq {
 	Doub		chisq;
 
 	Fitmrq(
-		const VecDoub_I	&xx,
-		const VecDoub_I	&yy,
-		const VecDoub_I	&ssig,
-		VecDoub_I		&aa,
-		Fitfunc			funks,
-		Doub			TOL=1.e-3 )
+		VecDoub_I	&xx,
+		VecDoub_I	&yy,
+		VecDoub_I	&ssig,
+		VecDoub_I	&aa,
+		Fitfunc		funks,
+		Doub		TOL = 1.e-3 )
 		:
 			ndat(xx.size()), ma(aa.size()),
 			x(xx), y(yy), sig(ssig),
@@ -33,17 +33,17 @@ struct Fitmrq {
 			ia(ma), a(aa),
 			alpha(ma,ma), covar(ma,ma)
 		{
-			for( Int i=0; i<ma; ++i )
+			for( Int i = 0; i < ma; ++i )
 				ia[i] = true;
 		};
 
-	void hold(const Int i, const Doub val) {ia[i]=false; a[i]=val;};
-	void free(const Int i) {ia[i]=true;};
+	void hold( Int i, Doub val )	{ia[i]=false; a[i]=val;};
+	void free( Int i )				{ia[i]=true;};
 
 	void fit();
 
-	void mrqcof(VecDoub_I &a, MatDoub_O &alpha, VecDoub_O &beta);
-	void covsrt(MatDoub_IO &covar);
+	void mrqcof( VecDoub_I &a, MatDoub_O &alpha, VecDoub_O &beta );
+	void covsrt( MatDoub_IO &covar );
 };
 
 

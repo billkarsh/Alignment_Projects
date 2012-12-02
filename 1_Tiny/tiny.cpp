@@ -19,7 +19,6 @@
 class CArgs_tiny {
 
 public:
-	double	energyT;
 	double	fmTOverride;
 	char	*infile,
 			*nmrc,
@@ -34,7 +33,6 @@ public:
 public:
 	CArgs_tiny()
 	{
-		energyT			= 10.0;
 		fmTOverride		= 0.0;
 		infile			= NULL;
 		nmrc			= NULL;
@@ -93,8 +91,6 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( fmd, "-fmd=", argv[i] ) )
 			;
-		else if( GetArg( &energyT, "-energy=%lf", argv[i] ) )
-			printf( "Energy Threshold now %f\n", energyT );
 		else if( GetArg( &fmTOverride, "-fmto=%lf", argv[i] ) ) {
 
 			printf( "Fold Mask Threshold over-ridden, now %f\n",
@@ -216,7 +212,7 @@ static bool IsTooGaussian( const vector<int> &histo )
 	double	mean, std;
 	int		ndv = 0;	// number of different values
 
-	for( int i = 0; i < 256; ++i ) {
+	for( int i = 0; i < nhist; ++i ) {
 
 		mh.Run( i, histo[i] );
 		ndv += (histo[i] > 0);
@@ -254,7 +250,6 @@ static bool IsTooGaussian( const vector<int> &histo )
 		orig.Element( histo[i] );
 	}
 
-	VecDoub	residual = y;
 	double	omean, ostd;
 
 	orig.Stats( omean, ostd );
@@ -266,11 +261,10 @@ static bool IsTooGaussian( const vector<int> &histo )
 	VecDoub	a( 3 );
 	double	sum = 0.0;
 	double	cnt = 0;
+	int		ilo = max(   0, int(mean-std) ),
+			ihi = min( 255, int(mean+std) );
 
-	for(
-		int i = max( 0, int(mean-std) );
-		i <= min( 255, int(mean+std) );
-		++i ) {
+	for( int i = ilo; i <= ihi; ++i ) {
 
 		sum += histo[i];
 		++cnt;
@@ -300,22 +294,12 @@ static bool IsTooGaussian( const vector<int> &histo )
 	printf( "After fit: height %f, loc %f, width %f\n",
 		f.a[0], f.a[1], f.a[2]/sqrt(2) );
 
-// Now look at the residual
+// Now look at residuals
 
 	MeanStd	m;
-	int		nx = x.size();
 
-	for( int i = 0; i < nx; ++i ) {
-
-		VecDoub DyDa( 3 );
-		double	yy;
-
-		fgauss( x[i], f.a, yy, DyDa );
-
-		residual[i] = y[i] - yy;
-
-		m.Element( residual[i] );
-	}
+	for( int i = 0; i < nhist; ++i )
+		m.Element( y[i] - ygauss( x[i], f.a ) );
 
 	m.Stats( mean, std );
 
@@ -325,11 +309,65 @@ static bool IsTooGaussian( const vector<int> &histo )
 }
 
 /* --------------------------------------------------------------- */
+/* RemoveTooGaussian --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// March a sampling window of size SxS across raster in steps of
+// size D < S, so windows overlap. Within each window get a value
+// histogram and remove all pixels (in that window) from goodp if
+// they look homogeneous in intensity. Homogeneous regions either
+// are dominated by one value, or have a gaussian-like intensity
+// distribution (narrow).
+//
+static void RemoveTooGaussian(
+	vector<uint8>	&goodp,
+	const uint8		*raster,
+	int				w,
+	int				h )
+{
+	const int	D = 128;
+	const int	S = 256;
+
+	int	ymax = (int)ceil( (double(h) - S) / D ),
+		xmax = (int)ceil( (double(w) - S) / D );
+
+	for( int iy = 0; iy <= ymax; ++iy ) {
+
+		int	yhi = min( h, iy*D + S ),
+			ylo = yhi - S;
+
+		for( int ix = 0; ix <= xmax; ++ix ) {
+
+			int	xhi = min( w, ix*D + S ),
+				xlo = xhi - S;
+
+			vector<int>	histo( 256, 0 );
+
+			for( int jy = ylo; jy < yhi; ++jy ) {
+
+				for( int jx = xlo; jx < xhi; ++jx )
+					++histo[raster[jx + w*jy]];
+			}
+
+			if( SingleValueDominates( histo ) ||
+				IsTooGaussian( histo ) ) {
+
+				for( int jy = ylo; jy < yhi; ++jy ) {
+
+					for( int jx = xlo; jx < xhi; ++jx )
+						goodp[jx + w*jy] = 0;
+				}
+			}
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ImageToFoldMap ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Here we convert an input image to a map where 0 = on fold, 1=region 1, 2=region 2, etc.
-// Normally the pipeline does this, but we do it here for standalone testing.
+// Here we convert an input image to a map where 0 = on fold,
+// 1 = region 1, 2 = region 2, etc.
 //
 // Return maximal region id.
 //
@@ -339,61 +377,36 @@ static int ImageToFoldMap(
 	bool			remove_low_contrast = false,
 	double			FoldMaskThresholdOverride = 0.0 )
 {
+	uint8	*raster = pic.raster;
+	int		w = pic.w,
+			h = pic.h,
+			npixels = w * h;
 
-// Here, define the connected region(s) on the above layer.
-int w = pic.w;
-int h = pic.h;
-uint8 *raster = pic.raster;
-int npixels = w * h;
+	vector<uint8>	goodp( npixels, 1 );
+	bool			remove_too_gaussian = true;
 
-// First, find the mean and standard deviation of the 'real'
-// non-saturated pixels. Create a mask to remove pixels from
-// regions that look too much like gaussians, or that are
-// dominated by a single value. These are almost always just
-// a flat color.
+	if( remove_too_gaussian )
+		RemoveTooGaussian( goodp, raster, w, h );
 
-vector<uint8> goodp(npixels, 1);  // start by assuming all pixels are good
-bool remove_too_gaussian = true;
-if( remove_too_gaussian ) {
-    // If there are chunks that are too gaussian, don't use them
-    int nx = (w-256)/128+1;     // origin steps by 128; tile size is 256
-    double dx = (w-256)/double(nx);  // idea is to tile with overlapping 128x128 squares
-    int ny = (w-256)/128+1;
-    double dy = (w-256)/double(ny);
-    for(double y=0; y< (h-255); y += dy) {
-	int ymin = min(int(y), h-256);  // just in case
-	int ymax = ymin+255;
-	for(double x=0; x< (w-255); x += dx) {
-	    int xmin = min(int(x), w-256);
-	    int xmax = xmin+256;
-	    vector<int> histo(256,0);
-	    //printf("xmin, ymin = (%d %d)\n", xmin, ymin);
-	    for(int ix=xmin; ix <= xmax; ix++)
-		for(int iy=ymin; iy <= ymax; iy++)
-		    histo[raster[ix + w*iy]]++;
-	    if( SingleValueDominates( histo ) || IsTooGaussian( histo ) ) {
-		for(int ix=xmin; ix <= xmax; ix++)
-		    for(int iy=ymin; iy <= ymax; iy++)
-			goodp[ix + w*iy] = 0;
-		}
-	    }
-	}
-    }
+
+
+
+
 //write_png_file("goodp.png", &goodp[0], w, h);  // for debugging
 // Ignore any that are too close to saturated light or dark.
-int SAT=3;  // how close to the boundary do you need to be to be considered 'saturated'
-MeanStd m;
-int ngood = 0;
-for(int x=0; x<w; x++) {
-    for(int y=0; y<h; y++) {
+int		SAT = 3;  // how close to the boundary do you need to be to be considered 'saturated'
+MeanStd	m;
+int		ngood = 0;
+for( int y = 0; y < h; ++y ) {
+    for( int x = 0; x < w; ++x ) {
         if( goodp[x + w*y] ) {
 	    ngood++;
             uint8 pix = raster[x + w*y];
             if( goodp[x + w*y] && pix >= SAT && pix <= 255-SAT )
 	        m.Element(pix);
-	    }
+		}
 	}
-    }
+}
 printf("%d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/ngood);
 
 if(m.HowMany()/double(ngood) < 0.9) {

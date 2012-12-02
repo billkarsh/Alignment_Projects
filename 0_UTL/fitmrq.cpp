@@ -1,6 +1,7 @@
 
 
-void Fitmrq::fit() {
+void Fitmrq::fit()
+{
 	Int j,k,l,iter,done=0;
 	Doub alamda=.001,ochisq;
 	VecDoub atry(ma),beta(ma),da(ma);
@@ -49,7 +50,8 @@ void Fitmrq::fit() {
 }
 
 
-void Fitmrq::mrqcof(VecDoub_I &a, MatDoub_O &alpha, VecDoub_O &beta) {
+void Fitmrq::mrqcof( VecDoub_I &a, MatDoub_O &alpha, VecDoub_O &beta )
+{
 	Int i,j,k,l,m;
 	Doub ymod,wt,sig2i,dy;
 	VecDoub dyda(ma);
@@ -77,7 +79,8 @@ void Fitmrq::mrqcof(VecDoub_I &a, MatDoub_O &alpha, VecDoub_O &beta) {
 }
 
 
-void Fitmrq::covsrt(MatDoub_IO &covar) {
+void Fitmrq::covsrt( MatDoub_IO &covar )
+{
 	Int i,j,k;
 	for (i=mfit;i<ma;i++)
 		for (j=0;j<i+1;j++) covar[i][j]=covar[j][i]=0.0;
