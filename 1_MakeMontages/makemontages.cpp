@@ -20,6 +20,7 @@
 #include	"File.h"
 #include	"PipeFiles.h"
 #include	"CTileSet.h"
+#include	"CLens.h"
 #include	"Geometry.h"
 
 
@@ -90,6 +91,7 @@ public:
 	double	minareafrac;
 	string	idbpath;
 	char	*outdir,
+			*lensfile,
 			*exenam;
 	int		zmin,
 			zmax,
@@ -105,6 +107,7 @@ public:
 	{
 		minareafrac	= 0.020;
 		outdir		= "NoSuch";	// prevent overwriting real dir
+		lensfile	= NULL;
 		exenam		= "ptest";
 		zmin		= 0;
 		zmax		= 32768;
@@ -125,6 +128,7 @@ public:
 
 static CArgs_scr	gArgs;
 static CTileSet		TS;
+static CLens		LN;
 static FILE*		flog	= NULL;
 static int			gW		= 0,	// universal pic dims
 					gH		= 0;
@@ -171,6 +175,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		if( argv[i][0] != '-' )
 			idbpath = argv[i];
 		else if( GetArgStr( outdir, "-d=", argv[i] ) )
+			;
+		else if( GetArgStr( lensfile, "-lensfile=", argv[i] ) )
 			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;
@@ -585,18 +591,40 @@ static void WriteMakeFile(
 
 	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
 
-	for( int i = 0; i < np; ++i ) {
+	if( gArgs.lensfile ) {
 
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
+		for( int i = 0; i < np; ++i ) {
 
-		fprintf( f,
-		"%d/%d.%d.map.tif:\n",
-		A.id, B.z, B.id );
+			const CUTile&	A = TS.vtil[P[i].a];
+			const CUTile&	B = TS.vtil[P[i].b];
+			char			Tdfm[128];
 
-		fprintf( f,
-		"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
-		gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
+			fprintf( f,
+			"%d/%d.%d.map.tif:\n",
+			A.id, B.z, B.id );
+
+			LN.PrintArg( Tdfm, A.name.c_str(), B.name.c_str() );
+
+			fprintf( f,
+			"\t%s %d/%d@%d/%d%s%s ${EXTRA}\n\n",
+			gArgs.exenam, A.z, A.id, B.z, B.id, Tdfm, option_nf );
+		}
+	}
+	else {
+
+		for( int i = 0; i < np; ++i ) {
+
+			const CUTile&	A = TS.vtil[P[i].a];
+			const CUTile&	B = TS.vtil[P[i].b];
+
+			fprintf( f,
+			"%d/%d.%d.map.tif:\n",
+			A.id, B.z, B.id );
+
+			fprintf( f,
+			"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
+			gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
+		}
 	}
 
 	fclose( f );
@@ -888,6 +916,9 @@ int main( int argc, char* argv[] )
 /* ---------------- */
 /* Read source data */
 /* ---------------- */
+
+	if( gArgs.lensfile && !LN.ReadFile( gArgs.lensfile, flog ) )
+		exit( 42 );
 
 	TS.FillFromIDB( gArgs.idbpath, gArgs.zmin, gArgs.zmax );
 

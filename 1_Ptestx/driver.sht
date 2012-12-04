@@ -1,5 +1,38 @@
 #!/bin/sh
 
+# Make workspace 'temp' and then call ptest.
+#
+# > ptestx za/ia@zb/ib -d=temp -prm=matchparams.txt
+#
+# Options:
+# -idb=idb0				;path to IDB
+# -ima=path				;path to image a
+# -imb=path				;path to image b
+# -fma=path				;path to foldmask a
+# -fmb=path				;path to foldmask b
+# -clr					;erase current -d=temp
+#
+# {ima, imb, fma, fmb} override IDB.
+#
+# ptest Options:
+# -Tdfm=1,0,0,0,1,0		;deformation a to b
+# -Tab=1,0,0,0,1,0		;transform a to b
+# -SCALE=1.0			;a/b
+# -XSCALE=1.0			;a/b
+# -YSCALE=1.0			;a/b
+# -SKEW=0.0				;a/b (yskew)
+# -MODE=%c				;see matchparams.txt
+# -CTR=0.0				;ang0
+# -tr					;transpose
+# -nf					;no folds
+# -sf					;single fold
+# -v					;registered & comp images
+# -heatmap				;qual.tif
+# -dbgcor				;stop at correlation images
+# -Tmsh=1,0,0,0,1,0		;bypass thumbs, start mesh here
+# -XYexp=0.0,0.0		;final mesh expected XY
+#
+
 ptestx 624/16@623/10 -ima=/groups/apig/tomo/BBB_107/temp/624/16/nmrc_624_16.png -imb=/groups/apig/tomo/BBB_107/temp/623/10/nmrc_623_10.png -clr -d=temp -prm=matchparams.txt -CTR=0
 
 

@@ -6,6 +6,7 @@
 # > makemontages myidb -d=temp -zmin=0 -zmax=5
 #
 # Options:
+# -lensfile=path	;table of 4 affines indexed by cam-id
 # -b=8				;subblock 1D size <in tiles>
 # -minareafrac=0.02	;same and cross req. area olap frac
 # -exe=ptestalt		;exe other than 'ptest'

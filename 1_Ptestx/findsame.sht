@@ -1,0 +1,6 @@
+#!/bin/sh
+
+grep -e "ptest 30/30021022@30/30022023" S*/make.same
+
+
+
