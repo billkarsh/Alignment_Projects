@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
 			GBL.B.t2i.path.c_str(),
 			GBL.mch.PXBRO, GBL.mch.PXDOG,
 			GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
-			stdout ) ) {
+			stdout, GBL.arg.Transpose ) ) {
 
 		goto exit;
 	}

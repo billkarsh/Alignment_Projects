@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
 {
     uint32	w, h, w2, h2;
     size_t	npixels, npixels2;
-    uint8*	raster = Raster8FromTif( argv[1], w, h, stdout );
-    uint8*	raster2 = Raster8FromTif( argv[1], w2, h2, stdout );
+    uint8*	raster = Raster8FromTif( argv[1], w, h );
+    uint8*	raster2 = Raster8FromTif( argv[1], w2, h2 );
 
     npixels		= w * h;
     npixels2	= w2 * h2;

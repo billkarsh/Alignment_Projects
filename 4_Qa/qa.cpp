@@ -202,9 +202,9 @@ if( argc < 4 ) {
     }
 
 uint32 w, h;
-uint8* a = Raster8FromTif(argv[1], w, h, stdout);
+uint8* a = Raster8FromTif( argv[1], w, h );
 uint32 ww,hh;
-uint8* b = Raster8FromTif(argv[2], ww, hh, stdout);
+uint8* b = Raster8FromTif( argv[2], ww, hh );
 if( w != ww || h != hh ) {
     printf("Images are different sizes w,h=%d,%d w,h=%d %d\n", w, h, ww, hh);
     return 42;

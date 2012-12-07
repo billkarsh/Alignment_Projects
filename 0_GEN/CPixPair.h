@@ -49,7 +49,8 @@ public:
 		int			bDoG,
 		int			r1,
 		int			r2,
-		FILE*		flog );
+		FILE*		flog = stdout,
+		bool		transpose = false );
 };
 
 

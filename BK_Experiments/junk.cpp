@@ -94,7 +94,7 @@ static void RunCorrTest()
 {
 	uint32	w, h;
 	uint8*	I8 = Raster8FromAny(
-			"/groups/apig/tomo/EX2/TIF1/A1_13_2.tif", w, h, stdout );
+			"/groups/apig/tomo/EX2/TIF1/A1_13_2.tif", w, h );
 	int		nI = w * h;
 
 	vector<double>	I( nI );

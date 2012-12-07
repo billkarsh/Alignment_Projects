@@ -62,7 +62,7 @@ void Pic::LoadPic( const char *path )
 
 	strncpy( name, s, strlen( s ) - 4 );
 
-	ras	= Raster8FromTif( path, w, h, stdout );
+	ras	= Raster8FromTif( path, w, h );
 //----------------
 //{
 //	if( strstr( name, "A1_3_2" ) ) {
@@ -405,8 +405,8 @@ static void TestLoad( const char *patha, const char *pathb )
 	uint32			w, h, n;
 	uint8			*rasa, *rasb;
 
-	rasa	= Raster8FromTif( patha, w, h, stdout );
-	rasb	= Raster8FromTif( pathb, w, h, stdout );
+	rasa	= Raster8FromTif( patha, w, h );
+	rasb	= Raster8FromTif( pathb, w, h );
 
 	vector<double>	av, bv;
 	vector<Point>	ap, bp;

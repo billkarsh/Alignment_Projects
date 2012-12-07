@@ -18,15 +18,15 @@ int ReadRawMRCFile(
 	const char*		name,
 	uint32			&w,
 	uint32			&h,
-	FILE*			flog,
-	bool			Transpose = false );
+	FILE*			flog = stdout,
+	bool			transpose = false );
 
 uint8* ReadAnMRCFile(
 	const char*		name,
 	uint32			&w,
 	uint32			&h,
-	FILE*			flog,
-	bool			Transpose = false,
+	FILE*			flog = stdout,
+	bool			transpose = false,
 	int				Ngauss = 2 );
 
 int ReadMultiImageMRCFile(
@@ -34,8 +34,8 @@ int ReadMultiImageMRCFile(
 	const char*		name,
 	uint32			&w,
 	uint32			&h,
-	FILE*			flog,
-	bool			Transpose = false,
+	FILE*			flog = stdout,
+	bool			transpose = false,
 	int				Ngauss = 2 );
 
 

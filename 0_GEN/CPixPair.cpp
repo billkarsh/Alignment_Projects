@@ -204,7 +204,8 @@ bool PixPair::Load(
 	int			bDoG,
 	int			r1,
 	int			r2,
-	FILE*		flog )
+	FILE*		flog,
+	bool		transpose )
 {
 	printf( "\n---- Image loading ----\n" );
 
@@ -218,8 +219,8 @@ bool PixPair::Load(
 	uint32	wa, ha, wb, hb;
 	int		ok = false;
 
-	aras = Raster8FromAny( apath, wa, ha, flog, false );
-	bras = Raster8FromAny( bpath, wb, hb, flog, false );
+	aras = Raster8FromAny( apath, wa, ha, flog, transpose );
+	bras = Raster8FromAny( bpath, wb, hb, flog, transpose );
 
 	if( !aras || !bras ) {
 		fprintf( flog,

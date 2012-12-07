@@ -74,7 +74,7 @@ uint8* Raster8FromAny(
 
 	p = strstr( name, ".png" );
 	if( p && !p[4] )
-		return Raster8FromPng( name, w, h, flog );
+		return Raster8FromPng( name, w, h, flog, transpose );
 
 // unknown format
 	fprintf( flog,
@@ -319,19 +319,18 @@ static void Raster8FromTifRGBA(
 /* Transpose ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Transpose(
-	uint8*	raster,
-	uint32	&w,
-	uint32	&h )
+static void Transpose( uint8* raster, uint32 &w, uint32 &h )
 {
-	int		i, t, npixels = w * h;
-
 // swap pixels
-	for( i = 0; i < npixels; ++i ) {
 
-		int		y = i / w;
-		int		x = i - w * y;
-		int		k = y + h * x;
+	int	np = w * h;
+
+	for( int i = 0; i < np; ++i ) {
+
+		int	t;
+		int	y = i / w,
+			x = i - w * y,
+			k = y + h * x;
 
 		t			= raster[k];
 		raster[k]	= raster[i];
@@ -339,9 +338,12 @@ static void Transpose(
 	}
 
 // swap w and h
-	i = w;
+
+	uint32	t;
+
+	t = w;
 	w = h;
-	h = i;
+	h = t;
 }
 
 /* --------------------------------------------------------------- */
@@ -874,44 +876,6 @@ void VectorDblToTif8(
 	Raster8ToTif8( name, &buf[0], w, h, flog );
 }
 
-
-void VectorDblToTif8(
-	const vector<Point>		&pts,
-	const vector<double>	&vals,
-	int						id,
-	FILE*					flog )
-{
-	uint8	*raster;
-	char	name[256];
-	int		dim, nPts;
-
-	sprintf( name, "%d.tif", id );
-
-	dim		= 2048,
-	nPts	= pts.size();
-	raster	= (uint8*)malloc( dim * dim * sizeof(uint8) );
-
-	for( int i = 0; i < dim*dim; ++i )
-		raster[i] = 127;
-
-	for( int i = 0; i < nPts; ++i ) {
-
-		int x	= int(pts[i].x);
-		int y	= int(pts[i].y);
-		int pix	= 127 + (int)(vals[i]*25.0);
-
-		if( pix < 0 )
-			pix = 0;
-		else if( pix > 255 )
-			pix = 255;
-
-		raster[x+dim*y] = pix;
-	}
-
-	Raster8ToTif8( name, raster, dim, dim, flog );
-	free( raster );
-}
-
 /* --------------------------------------------------------------- */
 /* Raster8FromPng ------------------------------------------------ */
 /* --------------------------------------------------------------- */
@@ -920,7 +884,8 @@ uint8* Raster8FromPng(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,
-	FILE*		flog )
+	FILE*		flog,
+	bool		transpose )
 {
 	FILE*		f			= NULL;
 	png_structp	png_ptr		= NULL;
@@ -1050,6 +1015,8 @@ exit:
 			raster = NULL;
 		}
 	}
+	else if( transpose )
+		Transpose( raster, w, h );
 
 	return raster;
 }

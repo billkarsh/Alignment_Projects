@@ -525,7 +525,7 @@ static void OffsetCoords(
 
 static uint8* LoadNormImg( const char *name, uint32 &w, uint32 &h )
 {
-	uint8*	ras = Raster8FromAny( name, w, h, stdout );
+	uint8*	ras = Raster8FromAny( name, w, h );
 
 	if( !strstr( name, ".mrc" ) ) {
 
@@ -2449,7 +2449,7 @@ CLineScan		*ls = new CLineScan;
 
 			// Get image dimensions
 			if( !w ) {
-				uint8	*r = Raster8FromAny( tname, w, h, stdout );
+				uint8	*r = Raster8FromAny( tname, w, h );
 				RasterFree( r );
 				w /= gArgs.scale;
 				h /= gArgs.scale;
@@ -2837,7 +2837,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		    file_name = string( images[i].fname );
 	        else
                     file_name = string( gArgs.fold_dir ) + "/" +string(images[i].fname);  //pre-pend the fold directory name
-		images[i].foldmap = Raster8FromAny( file_name.c_str(), ww, hh, stdout );
+		images[i].foldmap = Raster8FromAny( file_name.c_str(), ww, hh );
                 ImageResize( images[i].foldmap, ww, hh, gArgs.scale );
 		FillInHolesInFoldmap( images[i].foldmap, w, h );
 		FoldmapRenumber( images[i] );

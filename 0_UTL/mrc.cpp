@@ -24,13 +24,46 @@ void FreeMRC( vector<uint16*> &vras )
 }
 
 
+static void Transpose( vector<uint16*> &vras, uint32 &w, uint32 &h )
+{
+// swap pixels
+
+	int	nr = vras.size(), np = w * h;
+
+	for( int ir = 0; ir < nr; ++ir ) {
+
+		uint16	*raster = vras[ir];
+
+		for( int i = 0; i < np; ++i ) {
+
+			int	t;
+			int	y = i / w,
+				x = i - w * y,
+				k = y + h * x;
+
+			t			= raster[k];
+			raster[k]	= raster[i];
+			raster[i]	= t;
+		}
+	}
+
+// swap w and h
+
+	uint32	t;
+
+	t = w;
+	w = h;
+	h = t;
+}
+
+
 int ReadRawMRCFile(
 	vector<uint16*>	&vras,
 	const char*		name,
 	uint32			&w,
 	uint32			&h,
 	FILE*			flog,
-	bool			Transpose )
+	bool			transpose )
 {
 	if( flog )
 		fprintf( flog, "Opening MRC file '%s'.\n", name );
@@ -151,6 +184,9 @@ int ReadRawMRCFile(
 	}
 
 	fclose( fp );
+
+	if( transpose )
+		Transpose( vras, w, h );
 
 	return nras;
 }
@@ -425,7 +461,7 @@ uint8* ReadAnMRCFile(
 	uint32			&w,
 	uint32			&h,
 	FILE*			flog,
-	bool			Transpose,
+	bool			transpose,
 	int				Ngauss )
 {
 	uint8*			result;
@@ -434,7 +470,7 @@ uint8* ReadAnMRCFile(
 
 	fprintf( flog, "Using %d gaussian normalization.\n", Ngauss );
 
-	nras = ReadRawMRCFile( vras, name, w, h, flog, Transpose );
+	nras = ReadRawMRCFile( vras, name, w, h, flog, transpose );
 
 	if( nras > 1 )
 		fprintf( flog, "Only reading first MRC image of %d\n", nras );
@@ -454,13 +490,13 @@ int ReadMultiImageMRCFile(
 	uint32			&w,
 	uint32			&h,
 	FILE*			flog,
-	bool			Transpose,
+	bool			transpose,
 	int				Ngauss )
 {
 	vector<uint16*>	vras16;
 	int				nras;
 
-	nras = ReadRawMRCFile( vras16, name, w, h, flog, Transpose );
+	nras = ReadRawMRCFile( vras16, name, w, h, flog, transpose );
 
 	vector<uint8*>	result( nras );
 

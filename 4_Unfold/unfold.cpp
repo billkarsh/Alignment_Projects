@@ -1148,7 +1148,7 @@ uint8*	raster2;
 size_t npixels2;
 
 // One way to get the image - commented out for now
-    //raster2 = Raster8FromTif(fname2, w2, h2, stdout);
+    //raster2 = Raster8FromTif( fname2, w2, h2 );
     //npixels2 = w2*h2;
 //
 //The other way = construct a master image.

@@ -381,8 +381,8 @@ bool PixPair::Load(
 	uint32	wa, ha, wb, hb;
 	int		ok = false;
 
-	aras = Raster8FromAny( apath, wa, ha, flog, false );
-	bras = Raster8FromAny( bpath, wb, hb, flog, false );
+	aras = Raster8FromAny( apath, wa, ha, flog );
+	bras = Raster8FromAny( bpath, wb, hb, flog );
 
 	if( !aras || !bras ) {
 		fprintf( flog,

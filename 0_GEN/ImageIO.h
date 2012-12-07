@@ -22,7 +22,7 @@ uint8* Raster8FromAny(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,
-	FILE*		flog,
+	FILE*		flog = stdout,
 	bool		transpose = false );
 
 /* --------------------------------------------------------------- */
@@ -33,7 +33,7 @@ uint8* Raster8FromTif(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,
-	FILE*		flog,
+	FILE*		flog = stdout,
 	bool		transpose = false );
 
 uint16* Raster16FromTif16(
@@ -106,12 +106,6 @@ void VectorDblToTif8(
 	int						h,
 	FILE*					flog = stdout );
 
-void VectorDblToTif8(
-	const vector<Point>		&pts,
-	const vector<double>	&vals,
-	int						id,
-	FILE*					flog = stdout );
-
 /* --------------------------------------------------------------- */
 /* Png ----------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -120,7 +114,8 @@ uint8* Raster8FromPng(
 	const char*	name,
 	uint32		&w,
 	uint32		&h,
-	FILE*		flog = stdout );
+	FILE*		flog = stdout,
+	bool		transpose = false );
 
 uint16* Raster16FromPng(
 	const char*	name,

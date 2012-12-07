@@ -116,7 +116,7 @@ for(int i=0; i<images.size(); i++) {
     int y1 = images[i].ymax;
     printf("Image %d, x=[%6d %6d] y = [%6d %6d]\n", i, x0, x1, y0, y1);
     uint32 w, h;
-    //uint8* junk = Raster8FromTif(images[i].fname, w, h, stdout, false);
+    //uint8* junk = Raster8FromTif( images[i].fname, w, h );
     //RasterFree(junk);
     vector<uint8> recon_raster(w*h,0);  // create an empty raster
     printf("Original size was %d wide by %d tall\n", w, h);

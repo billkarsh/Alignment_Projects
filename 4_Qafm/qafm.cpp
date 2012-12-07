@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	for(int i=1; i<argc; i++) {
 
 		uint32	w, h;
-		uint8*	a = Raster8FromTif(argv[i], w, h, stdout);
+		uint8*	a = Raster8FromTif( argv[i], w, h );
 		uint32	np = w*h;
 		uint32	ps[256];
 		uint32	j;

@@ -13,7 +13,7 @@ int main( int argc, char **argv )
 	uint32*	raster32;
 	uint32	w=0, h=0;
 
-	raster8 = Raster8FromTif( sin, w, h, stdout );
+	raster8 = Raster8FromTif( sin, w, h );
 	raster16 = (uint16*)malloc( w*h*sizeof(uint16) );
 	raster32 = (uint32*)malloc( w*h*sizeof(uint32) );
 	for( int i = 0; i < w*h; ++i ) {
