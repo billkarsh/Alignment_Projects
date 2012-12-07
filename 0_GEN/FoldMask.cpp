@@ -141,9 +141,8 @@ void SetBoundsAndColors(
 	int					wf,
 	int					hf )
 {
-	int		x, y,
-			ip, np = wf * hf,
-			ir, nr = cr.size();
+	int	np = wf * hf,
+		nr = cr.size();
 
 // zero foldmask (the fold value)
 	memset( foldMask, 0, np );
@@ -152,7 +151,7 @@ void SetBoundsAndColors(
 	printf( "SetBnd&Clr: Big enough regions = %d:\n", nr );
 
 // for each region
-	for( ir = 0; ir < nr; ++ir ) {
+	for( int ir = 0; ir < nr; ++ir ) {
 
 		ConnRegion&	C = cr[ir];
 
@@ -168,10 +167,10 @@ void SetBoundsAndColors(
 		C.id = ir + 1;
 
 		// for each point
-		for( ip = 0; ip < np; ++ip ) {
+		for( int ip = 0; ip < np; ++ip ) {
 
-			x = (int)C.pts[ip].x;
-			y = (int)C.pts[ip].y;
+			int	x = (int)C.pts[ip].x,
+				y = (int)C.pts[ip].y;
 
 			// update bounds
 			if( x < C.B.L )
@@ -189,7 +188,91 @@ void SetBoundsAndColors(
 		}
 
 		// print this region
-		printf( "\tid=%d, pts=%d, x=[%d %d], y=[%d %d].\n",
+		printf( "\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
+			C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
+	}
+}
+
+
+// Given vector of ConnRegion whose points are determined...
+// (1) Calculate each region's bounds
+// (2) Color the folmask raster with region ids...
+//
+// In this case, each point to be colored in the foldmask is
+// enlarged to a (D+1)x(D+1) box and we color all the points
+// of each such box that are also above thresh in image valid.
+//
+void SetBoundsAndColors(
+	vector<ConnRegion>		&cr,
+	uint8*					foldMask,
+	const vector<double>	&valid,
+	int						wf,
+	int						hf,
+	double					thresh,
+	int						D )
+{
+	int	np = wf * hf,
+		nr = cr.size();
+
+// zero foldmask (the fold value)
+	memset( foldMask, 0, np );
+
+// print region header
+	printf( "SetBnd&Clr: Big enough regions = %d:\n", nr );
+
+// for each region
+	for( int ir = 0; ir < nr; ++ir ) {
+
+		ConnRegion&	C = cr[ir];
+
+		np = C.pts.size();
+
+		// init bounds
+		C.B.L	= BIG;
+		C.B.B	= BIG;
+		C.B.R	= -BIG;
+		C.B.T	= -BIG;
+
+		// assign region id
+		C.id = ir + 1;
+
+		// for each point
+		for( int ip = 0; ip < np; ++ip ) {
+
+			int	x   = (int)C.pts[ip].x,
+				y   = (int)C.pts[ip].y,
+				xlo = max(    0, x - D ),
+				xhi = min( wf-1, x + D ),
+				ylo = max(    0, y - D ),
+				yhi = min( hf-1, y + D ),
+				clr = ir + 1,
+				idx;
+
+			// update bounds
+			if( xlo < C.B.L )
+				C.B.L = xlo;
+			else if( xhi > C.B.R )
+				C.B.R = xhi;
+
+			if( ylo < C.B.B )
+				C.B.B = ylo;
+			else if( yhi > C.B.T )
+				C.B.T = yhi;
+
+			// color mask pixels
+
+			for( y = ylo; y <= yhi; ++y ) {
+
+				for( x = xlo; x <= xhi; ++x ) {
+
+					if( valid[idx = x + wf*y] > thresh )
+						foldMask[idx] = clr;
+				}
+			}
+		}
+
+		// print this region
+		printf( "\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
 			C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
 	}
 }

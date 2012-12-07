@@ -24,7 +24,10 @@ public:
 			*nmrc,
 			*fm,
 			*fmd;
-	int		Z, ID;
+	int		Z,
+			ID,
+			D,
+			minarea;
 	bool	nomasks,
 			oneregion,
 			transpose,
@@ -40,6 +43,8 @@ public:
 		fmd				= NULL;
 		Z				= -1;
 		ID				= -1;
+		D				= -1;
+		minarea			= 90000;
 		nomasks			= false;
 		oneregion		= false;
 		transpose		= false;
@@ -93,9 +98,15 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &fmTOverride, "-fmto=%lf", argv[i] ) ) {
 
-			printf( "Fold Mask Threshold over-ridden, now %f\n",
+			printf( "Fold Mask Threshold overridden, now %f.\n",
 			fmTOverride );
 		}
+		else if( GetArg( &D, "-D=%d", argv[i] ) ) {
+
+			printf( "Fold radius overridden, now %d.\n", D );
+		}
+		else if( GetArg( &minarea, "-minarea=%d", argv[i] ) )
+			;
 		else if( IsArg( "-nf", argv[i] ) ) {
 
 			nomasks = true;
@@ -137,7 +148,7 @@ void CArgs_tiny::SetCmdLine( int argc, char* argv[] )
 		fmTOverride );
 
 		printf(
-		"--- This is obsolete ---  Use the -fmto option instead.\n" );
+		"--- This is obsolete ---  Use the -fmto option instead\n" );
 	}
 }
 
@@ -186,7 +197,7 @@ static bool SingleValueDominates( const vector<int> &histo )
 		if( histo[i] > total/2 ) {
 
 			printf(
-			"Dominant value %d, %d occurences in %d pixels.\n",
+			"Dominant value %d, %d occurences in %d pixels\n",
 			i, histo[i], total );
 
 			return true;
@@ -325,6 +336,8 @@ static void RemoveTooGaussian(
 	int				w,
 	int				h )
 {
+	vector<int>	histo( 256 );
+
 	const int	D = 128;
 	const int	S = 256;
 
@@ -341,7 +354,7 @@ static void RemoveTooGaussian(
 			int	xhi = min( w, ix*D + S ),
 				xlo = xhi - S;
 
-			vector<int>	histo( 256, 0 );
+			memset( &histo[0], 0, 256*sizeof(int) );
 
 			for( int jy = ylo; jy < yhi; ++jy ) {
 
@@ -363,6 +376,300 @@ static void RemoveTooGaussian(
 }
 
 /* --------------------------------------------------------------- */
+/* AccumNonSaturated --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static double AccumNonSaturated(
+	MeanStd				&m,
+	const vector<uint8>	&goodp,
+	const uint8			*raster,
+	int					np,
+	int					SAT )
+{
+	double	fracReal;
+	int		ngood = 0;
+
+	m.Reset();
+
+	for( int i = 0; i < np; ++i ) {
+
+		if( goodp[i] ) {
+
+			int	pix = raster[i];
+
+			++ngood;
+
+			if( pix >= SAT && pix <= 255-SAT )
+				m.Element( pix );
+		}
+	}
+
+	fracReal = (double)m.HowMany() / ngood;
+
+	printf( "SAT=%d: %d non-sat, %f percent non-sat\n",
+		SAT, m.HowMany(), fracReal * 100.0 );
+
+	return fracReal;
+}
+
+/* --------------------------------------------------------------- */
+/* StatsForNonSaturated ------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Get stats for pixels within SAT of 0, 255.
+//
+static int StatsForNonSaturated(
+	double				&mean,
+	double				&std,
+	const vector<uint8>	&goodp,
+	const uint8			*raster,
+	int					w,
+	int					h )
+{
+	MeanStd	m;
+	double	fracReal;
+	int		np = w * h, SAT;
+
+	fracReal = AccumNonSaturated( m, goodp, raster, np, SAT = 3 );
+
+	if( fracReal < 0.9 ) {
+		printf( "Saturated image!  Retrying with SAT = 1\n");
+		AccumNonSaturated( m, goodp, raster, np, SAT = 1 );
+	}
+
+	m.Stats( mean, std );
+	printf( "Non-sat pixels: mean = %f stddev = %f\n", mean, std );
+
+	return SAT;
+}
+
+/* --------------------------------------------------------------- */
+/* StatsForRealPixels -------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Calculate mean, std for those pixels that look real.
+//
+// 'Unreal' data suffer one or more of these faults:
+// - Value histogram dominated by one value (very narrow).
+// - Value histogram described by single gaussian (too narrow).
+// - Value too close to saturation (within SAT of 0 or 255).
+//
+static int StatsForRealPixels (
+	double		&mean,
+	double		&std,
+	const uint8	*raster,
+	int			w,
+	int			h )
+{
+	vector<uint8>	goodp( w * h, 1 );
+
+	RemoveTooGaussian( goodp, raster, w, h );
+
+	return StatsForNonSaturated( mean, std, goodp, raster, w, h );
+}
+
+/* --------------------------------------------------------------- */
+/* ZeroWhitePixels ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Zero white pixels in raster iff white (near SAT) value is
+// outside useful range, that is, if brighter than 2.5 sigma
+// from mean.
+//
+static void ZeroWhitePixels(
+	uint8	*raster,
+	int		np,
+	double	mean,
+	double	std,
+	int		SAT )
+{
+	if( mean + 2.5 * std < 255 ) {
+
+		printf( "Removing white pixels\n" );
+
+		for( int i = 0; i < np; ++i ) {
+
+			if( raster[i] > 255 - SAT )
+				raster[i] = 0;
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* SelectThreshAndD ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Choose value thresh such that normalized values > -thresh are
+// real rather than folds. That's the test used in compiling cr's.
+// The stats calculation calls 'good' pixels in range [SAT,255-SAT].
+// So the highest fold value is SAT-1.
+//
+// Also select radius D such that all  pixels within D of a fold
+// are ignored.
+//
+static void SelectThreshAndD(
+	double	&thresh,
+	int		&D,
+	double	mean,
+	double	std,
+	int		SAT )
+{
+	thresh	= 4.0;	// try 4 stddevs and shrink as needed
+	D		= 10;
+
+	if( (SAT-1 - mean) / std > -thresh ) {
+
+		// 4 stddevs too wide...
+		// Set 95% of exact range.
+
+		thresh = 0.95 * (mean - (SAT-1)) / std;
+
+		printf( "Thresh forced down to %g\n", thresh );
+
+		if( thresh < 2.0 ) {
+
+			// Black area too expansive -> fragmentation...
+			// Set as wide as possible, out to value = 0.5
+
+			thresh	= (mean - 0.5) / std;
+			D		= 0;
+
+			printf(
+			"Desparate action: Thresh = %g excluding only v = 0...\n"
+			"...And setting D = 0\n" );
+		}
+	}
+
+	if( gArgs.fmTOverride != 0 ) {
+		thresh = gArgs.fmTOverride;
+		printf( "Explicit override of thresh %g\n", thresh );
+	}
+
+	if( gArgs.D > -1 ) {
+		D = gArgs.D;
+		printf( "Explicit override of D %d\n", D );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* RemoveLowContrast --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// March a sampling window of size SxS across image in steps of
+// size D < S, so windows overlap. Within each window evaluate
+// contrast and if low, force those v-pixels below threshold.
+//
+static void RemoveLowContrast(
+	vector<double>	&v,
+	int				w,
+	int				h,
+	double			std,
+	double			thresh )
+{
+	const int	D = 32;
+	const int	S = 128;
+
+	vector<double>	window( S*S );
+	vector<int>		remove;
+
+// Evaluate
+
+	int	ymax = (int)ceil( (double(h) - S) / D ),
+		xmax = (int)ceil( (double(w) - S) / D );
+
+	for( int iy = 0; iy <= ymax; ++iy ) {
+
+		int	yhi = min( h, iy*D + S ),
+			ylo = yhi - S;
+
+		for( int ix = 0; ix <= xmax; ++ix ) {
+
+			int	xhi = min( w, ix*D + S ),
+				xlo = xhi - S;
+
+			for( int jy = ylo; jy < yhi; ++jy ) {
+
+				memcpy(
+					&window[S*(jy-ylo)],
+					&v[xlo + w*jy],
+					S*sizeof(double) );
+			}
+
+			if( IsLowContrast( window, std ) ) {
+
+				for( int jy = ylo; jy < yhi; ++jy ) {
+
+					for( int jx = xlo; jx < xhi; ++jx )
+						remove.push_back( jx + w*jy );
+				}
+			}
+		}
+	}
+
+// Remove
+
+	int	nr = remove.size();
+
+	printf( "Low contrast pixels = %d\n", nr );
+
+	if( nr ) {
+
+		thresh = -thresh - 1.0;
+
+		for( int i = 0; i < nr; ++i )
+			v[remove[i]] = thresh;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* Widen --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Remove pixels within radius D of any fold pixel.
+//
+static void Widen(
+	vector<double>	&v,
+	int				w,
+	int				h,
+	double			thresh,
+	int				D )
+{
+	int	nr, np = w * h;
+
+	vector<int>	remove;
+
+	thresh = -thresh;
+
+	for( int i = 0; i < np; ++i ) {
+
+		if( v[i] <= thresh )
+			remove.push_back( i );
+	}
+
+	if( nr = remove.size() ) {
+
+		thresh -= 1.0;
+
+		for( int ir = 0; ir < nr; ++ir ) {
+
+			int	i = remove[ir],
+				y = i / w,
+				x = i - w * y,
+				ylo = max(   0, y - D ),
+				yhi = min( h-1, y + D ),
+				xlo = max(   0, x - D ),
+				xhi = min( w-1, x + D );
+
+			for( y = ylo; y <= yhi; ++y ) {
+
+				for( x = xlo; x <= xhi; ++x )
+					v[x + w*y] = thresh;
+			}
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* ImageToFoldMap ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -374,165 +681,44 @@ static void RemoveTooGaussian(
 static int ImageToFoldMap(
 	uint8*			FoldMask,
 	const PicBase	&pic,
-	bool			remove_low_contrast = false,
-	double			FoldMaskThresholdOverride = 0.0 )
+	bool			remove_low_contrast = false )
 {
+	double	mean, std, thresh;
 	uint8	*raster = pic.raster;
 	int		w = pic.w,
 			h = pic.h,
-			npixels = w * h;
+			npixels = w * h,
+			SAT, D;
 
-	vector<uint8>	goodp( npixels, 1 );
-	bool			remove_too_gaussian = true;
+// Calc fold thresh and width extension D
 
-	if( remove_too_gaussian )
-		RemoveTooGaussian( goodp, raster, w, h );
+	SAT = StatsForRealPixels( mean, std, raster, w, h );
 
+	ZeroWhitePixels( raster, npixels, mean, std, SAT );
 
+	SelectThreshAndD( thresh, D, mean, std, SAT );
 
+// Make normalized images
 
+	vector<double>	v(npixels);
 
-//write_png_file("goodp.png", &goodp[0], w, h);  // for debugging
-// Ignore any that are too close to saturated light or dark.
-int		SAT = 3;  // how close to the boundary do you need to be to be considered 'saturated'
-MeanStd	m;
-int		ngood = 0;
-for( int y = 0; y < h; ++y ) {
-    for( int x = 0; x < w; ++x ) {
-        if( goodp[x + w*y] ) {
-	    ngood++;
-            uint8 pix = raster[x + w*y];
-            if( goodp[x + w*y] && pix >= SAT && pix <= 255-SAT )
-	        m.Element(pix);
-		}
-	}
-}
-printf("%d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/ngood);
+	for( int i = 0; i < npixels; ++i )
+		v[i] = (raster[i] - mean) / std;
 
-if(m.HowMany()/double(ngood) < 0.9) {
-    printf("Saturated image!  Retrying with SAT=1\n");
-    SAT = 1;
-    m.Reset();
-    for(int x=0; x<w; x++) {
-        for(int y=0; y<h; y++) {
-            if( goodp[x + w*y] ) {
-                uint8 pix = raster[x + w*y];
-                if( goodp[x + w*y] && pix >= SAT && pix <= 255-SAT )
-	            m.Element(pix);
-		}
-	    }
-	}
-    printf("%d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/ngood);
-    }
+	vector<double>	vorig = v;
 
-double mean, std;
-m.Stats(mean, std);  // find existing statistics
-printf("Of the above image points, mean= %f and std dev = %f\n", mean, std);
+// Remove low contrast
 
-// If pure white is outside the range of practical values, then it too
-// should be ignored, as it is not useful info.  But if 255 is within the
-// 'practical' range, we don't want to cut these pixels out
-if( mean + 2.5*std < 255 ) {
-    printf("Removing white pixels\n");
-    for(int i=0; i<npixels; i++) {
-	uint8 pix = raster[i];
-	if (pix > 255-SAT)           // too bright is just as bad as too dark - not useful info
-	    raster[i] = 0;
-	}
-    }
+	if( remove_low_contrast )
+		RemoveLowContrast( v, w, h, std, thresh );
 
-// Now find the connected regions.  We want to ignore very black pixels as folds, and those
-// near them (distance = D) as unreliable, and might connect regions which should be disconnected.
-// However, if the image as a whole is too black, this will result in lots of disconnected
-// regions, as there will be many black pixels and many near them.  So reset the parameters in
-// these cases.
-int D=10;
-int nbig = 0;
-vector<ConnRegion> cr;
-double thresh = 4.0;          // we would like 4 std dev, if possible
-if( mean - thresh*std < 1 ) {  // but if not, pick a value that is feasible
-    thresh = mean/std*0.95;   // set to 95% of the way to 0
-    printf("Forced to reduce threshold to %f std dev.\n", thresh);
-    if( thresh < 2.0 ) {       // we'll get too many black, and fragment the area
-	thresh = (mean - 0.5)/std;  // set threshold to a pixel value of 0.5 (on scale of 255)
-	printf("Desperate measures.  Changing threshold to %f, so only v=0 pixels are out.\n", thresh);
-        printf("Also disabling black pixel expansion\n");
-	D = 0;
-	}
-    }
-if( FoldMaskThresholdOverride != 0.0 ) {
-    thresh = FoldMaskThresholdOverride;
-    printf("Explicit over-ride of threshold; set to %f\n", thresh);
-    }
+// Widen folds
 
-// pixels to vector
-vector<double> v(npixels);
-for(int i=0; i<npixels; i++) {
-    int y = i / w;
-    int x = i - w * y;   // pixels next to background pixels should also be black
-    int pix = raster[i];
-    v[i] = (pix-mean)/std;
-   }
+	Widen( v, w, h, thresh, D );
 
-vector<double> vorig = v;
+// Propagate connected regions
 
-if( remove_low_contrast ) {
-    // If there are chunks with no contrast, get rid of them.
-    int nx = (w-128)/32+1;     // origin steps by 32; tile size is 128
-    double dx = (w-128)/double(nx);  // idea is to tile with overlapping 128x128 squares
-    int ny = (w-128)/32+1;
-    double dy = (w-128)/double(ny);
-    vector<int> zap_me;        // save list of pixels to be zapped, since cannot zap on the fly without
-			       // munging the overlapping squares
-    for(double y=0; y< (h-127); y += dy) {
-	int ymin = min(int(y), h-128);  // just in case
-	int ymax = ymin+127;
-	for(double x=0; x< (w-127); x += dx) {
-	    int xmin = min(int(x), w-128);
-	    int xmax = xmin+127;
-	    vector<double>local(128*128);
-	    //printf("xmin, ymin = (%d %d)\n", xmin, ymin);
-	    for(int ix=xmin; ix <= xmax; ix++)
-		for(int iy=ymin; iy <= ymax; iy++)
-		    local[(ix-xmin) + 128*(iy-ymin)] = v[ix + w*iy];
-	    if( IsLowContrast(local, std) ) {
-		for(int ix=xmin; ix <= xmax; ix++)
-		    for(int iy=ymin; iy <= ymax; iy++)
-			zap_me.push_back(ix + w*iy);
-		}
-	    }
-	}
-    printf("Zap list has %d entries\n", zap_me.size());
-    for(int i=0; i<zap_me.size(); i++)
-	v[zap_me[i]] = -thresh - 100.0;  // sure to be bad
-    }
-
-// for those that should not be included, remove all pixels within distance D as well.  This will
-// remove tiny filaments connected big regions together.
-vector<int> remove;  // indices of points to be removed.
-for(int i=0; i<npixels; i++)
-    if( v[i] < -thresh )
-	remove.push_back(i);
-for(int ii=0; ii<remove.size(); ii++) {
-    int i = remove[ii];
-    int y = i / w;
-    int x = i - w * y;
-    int x0 = max(x-D,0);
-    int x1 = min(x+D, w-1);
-    int y0 = max(y-D,0);
-    int y1 = min(y+D,h-1);
-    for(int xx = x0; xx <= x1; xx++) {
-	for(int yy = y0; yy <= y1; yy++) {
-	    v[xx + w*yy] = -thresh - 1.0;   // set to a value that is more than enough black
-            }
-        }
-    }
-
-
-// -----------------------------------------------------
-#if 0
-
-// Now find the connected regions
+	vector<ConnRegion>	cr;
 
 	for( int i = 0; i < npixels; ++i ) {
 
@@ -545,108 +731,16 @@ for(int ii=0; ii<remove.size(); ii++) {
 					-thresh, -thresh - 1.0 );
 
 			printf(
-			"ImageToFoldMap: ConnRegion with %d pixels.\n", npts );
+			"ImageToFoldMap: ConnRegion with %d pixels\n", npts );
 
-			if( npts > 90000 ) {	// want 100k, but we shrank it
+			if( npts > gArgs.minarea )
 				cr.push_back( c );
-				++nbig;
-			}
 		}
 	}
 
 // Final accounting
 
-   SetBoundsAndColors( cr, FoldMask, w, h );
-
-#endif
-// -----------------------------------------------------
-#if 1
-int start = 0;
-// find all connected regions of 'reasonable' values.  The background should be about
-// -4 or -5 on this scale.
-for(int k=0;;){
-    int i;
-    for(i=start; i<npixels; i++)  // find first good pixel
-	 if (v[i] > -thresh)
-	    break;
-    if (i >= npixels)             // if there are not any, then all done
-	break;
-    // found at least one pixel.  Find all connected ones.
-    //printf("found v[%d] = %f\n", i, v[i]);
-    start = i+1;  // next time, start here...
-    ConnRegion c;
-    stack<int> st;
-    //printf("push %d\n", i);
-    st.push(i);
-    while(!st.empty()) {
-	int j = st.top();
-	//printf("pop %d, val %f\n",j, v[j]);
-	st.pop();
-	//if (fabs(v[j]) < thresh) {
-	if (v[j] > -thresh) {
-	    int y = j/w;
-	    int x = j-y*w;
-	    //printf("j, x, y = %d %d %d, v=%f\n", j, x, y, v[j]);
-	    Point p(x,y);
-	    c.pts.push_back(p);
-	    v[j] = -thresh - 1.0;  // make this point not eligible any more
-	    if (x-1 >= 0) st.push(j-1);
-	    if (x+1 < w)  st.push(j+1);
-	    if (y-1 >= 0) st.push(j-w);
-	    if (y+1 < h)  st.push(j+w);
-	    }
-	}
-    //printf("Connected region of %d pixels\n", c.pts.size());
-    if (c.pts.size() > 90000) {  // want 100k, but we shrank it
-	nbig++;
-	cr.push_back(c);
-        }
-    }
-printf("got a total of %d regions that are big enough\n", nbig);
-// Now color in the map with the region ids. Also increase in size by amount D, since
-// we shrank by that amount earlier.
-for(int i=0; i<npixels; i++)
-    FoldMask[i] = 0;
-for(int i=0; i<nbig; i++) {
-    for(int k=0; k<cr[i].pts.size(); k++) {
-        int x = int(cr[i].pts[k].x);
-        int y = int(cr[i].pts[k].y);
-	int x0 = max(x-D,0);
-	int x1 = min(x+D, w-1);
-	int y0 = max(y-D,0);
-	int y1 = min(y+D,h-1);
-	for(int xx = x0; xx <= x1; xx++) {
-	    for(int yy = y0; yy <= y1; yy++) {
-                if (vorig[xx+yy*w] >= -thresh)
-		FoldMask[xx+yy*w] = i+1;
-		}
-	    }
-	}
-   }
-
-// find the bounding boxes
-for(int i=0; i<nbig; i++) {
-    cr[i].B.L = BIG; cr[i].B.B = BIG; cr[i].B.R = -BIG; cr[i].B.T = -BIG;
-    }
-for(int i=0; i<npixels; i++) {
-    int k = FoldMask[i] - 1;
-    if (k >= 0) { // part of some region
-        int y = i/w;
-        int x = i-y*w;
-	cr[k].B.L = min(cr[k].B.L, x);
-	cr[k].B.R = max(cr[k].B.R, x);
-	cr[k].B.B = min(cr[k].B.B, y);
-	cr[k].B.T = max(cr[k].B.T, y);
-	}
-    }
-
-// Print the bounding boxes
-for(int k=0; k<nbig; k++) {
-    printf("k=%d, #points %d, region size is [%d %d] in x, [%d %d] in y\n", k, cr[k].pts.size(),
-     cr[k].B.L, cr[k].B.R, cr[k].B.B, cr[k].B.T);
-    }
-#endif
-// -----------------------------------------------------
+   SetBoundsAndColors( cr, FoldMask, vorig, w, h, -thresh, D );
 
    return cr.size();
 }
@@ -696,7 +790,7 @@ static uint8* MakeDrawingMask(
 
 	uint8	*FoldMaskDraw = (uint8*)malloc( np );
 
-	ImageToFoldMap( FoldMaskDraw, pic, false, gArgs.fmTOverride );
+	ImageToFoldMap( FoldMaskDraw, pic, false );
 
 // Next create the mapping from labels in the drawing map to
 // that label/region in the alignment map with which there is
@@ -817,8 +911,7 @@ int main( int argc, char **argv )
 
 		// Otherwise, calculate real foldmasks
 
-		ncr = ImageToFoldMap( FoldMaskAlign, p,
-				true, gArgs.fmTOverride );
+		ncr = ImageToFoldMap( FoldMaskAlign, p, true );
 
 		if( gArgs.fmd )
 			FoldMaskDraw = MakeDrawingMask( p, FoldMaskAlign, np );

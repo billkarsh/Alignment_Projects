@@ -53,6 +53,15 @@ void SetBoundsAndColors(
 	int					wf,
 	int					hf );
 
+void SetBoundsAndColors(
+	vector<ConnRegion>		&cr,
+	uint8*					foldMask,
+	const vector<double>	&valid,
+	int						wf,
+	int						hf,
+	double					thresh,
+	int						D );
+
 void ConnRgnsFromFoldMask(
 	vector<ConnRegion>	&cr,
 	const uint8*		foldMask,
