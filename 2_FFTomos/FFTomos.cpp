@@ -1,4 +1,6 @@
 //
+// "FF tomography images"
+//
 // Apply flatfield to all images in a rick file.
 //
 
