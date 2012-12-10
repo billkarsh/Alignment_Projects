@@ -158,12 +158,12 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.WTT, "WTT=%c" );
 
 		// ensure upper case
-		M.MODE_SL = toupper( M.MODE_SL );
-		M.MODE_XL = toupper( M.MODE_XL );
+		M.FLD		= toupper( M.FLD );
+		M.MODE_SL	= toupper( M.MODE_SL );
+		M.MODE_XL	= toupper( M.MODE_XL );
 
 		// finish Y/N booleans
 		M.PXDOG			= (toupper( M.PXDOG ) == 'Y');
-		M.FLD			= (toupper( M.FLD ) == 'Y');
 		M.PRETWEAK		= (toupper( M.PRETWEAK ) == 'Y');
 		M.TAB2DFM_SL	= (toupper( M.TAB2DFM_SL ) == 'Y');
 		M.TAB2DFM_XL	= (toupper( M.TAB2DFM_XL ) == 'Y');

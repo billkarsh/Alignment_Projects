@@ -21,10 +21,11 @@
 # -XSCALE=1.0			;a/b
 # -YSCALE=1.0			;a/b
 # -SKEW=0.0				;a/b (yskew)
+# -FLD=%c				;Y=use, N=none, X=XL only
 # -MODE=%c				;see matchparams.txt
 # -CTR=0.0				;ang0
 # -tr					;transpose
-# -nf					;no folds
+# -nf					;no folds (prefer -FLD=N)
 # -sf					;single fold
 # -v					;registered & comp images
 # -heatmap				;qual.tif

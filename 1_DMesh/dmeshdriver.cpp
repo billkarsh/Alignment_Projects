@@ -61,7 +61,6 @@ static void CalcTransforms(
 	double*		tr_array = NULL;
 	clock_t		t0;
 	int			wf, hf;
-	bool		nofile;
 
 /* --------------- */
 /* Initialize data */
@@ -74,19 +73,17 @@ static void CalcTransforms(
 	Ntrans	= 0;
 	rmap	= (uint16*)malloc( wf * hf * sizeof(uint16) );
 
-	nofile	= GBL.arg.NoFolds || !GBL.mch.FLD;
-
 	// Note that the foldmasks are always at full resolution.
 
 	fold_mask_a = GetFoldMask(
 					GBL.idb, GBL.A.layer, GBL.A.tile,
-					GBL.arg.fma, wf, hf,
-					nofile, GBL.arg.Transpose, GBL.arg.SingleFold );
+					GBL.arg.fma, wf, hf, (GBL.ctx.FLD == 'N'),
+					GBL.arg.Transpose, GBL.arg.SingleFold );
 
 	fold_mask_b = GetFoldMask(
 					GBL.idb, GBL.B.layer, GBL.B.tile,
-					GBL.arg.fmb, wf, hf,
-					nofile, GBL.arg.Transpose, GBL.arg.SingleFold );
+					GBL.arg.fmb, wf, hf, (GBL.ctx.FLD == 'N'),
+					GBL.arg.Transpose, GBL.arg.SingleFold );
 
 /* ------------- */
 /* Call Pipeline */

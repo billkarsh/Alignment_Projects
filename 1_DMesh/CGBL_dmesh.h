@@ -26,7 +26,8 @@ private:
 						SKEW;
 		char			*ima,	// override idb paths
 						*imb;
-		int				MODE;
+		int				FLD,
+						MODE;
 	} PrvDrvArgs;
 
 public:
@@ -37,7 +38,6 @@ public:
 		bool	Transpose,		// transpose all images
 				WithinSection,	// overlap within a section
 				Verbose,		// run inspect diagnostics
-				NoFolds,		// ignore fold masks
 				SingleFold,		// assign id=1 to all non-fold rgns
 				Heatmap;		// run CorrView
 	} DriverArgs;
@@ -53,7 +53,8 @@ public:
 				RFA,
 				RFT;
 		long	OLAP2D;
-		int		MODE,
+		int		FLD,
+				MODE,
 				THMDEC,
 				OLAP1D,
 				LIMXY,

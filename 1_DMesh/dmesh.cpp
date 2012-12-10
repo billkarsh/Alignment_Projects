@@ -56,8 +56,7 @@ static bool RoughMatch(
 	if( guesses.size() > 0 )
 		return true;
 
-	if( GBL.A.layer == GBL.B.layer ||
-		GBL.arg.NoFolds || !GBL.mch.FLD ) {
+	if( GBL.ctx.FLD == 'N' ) {
 
 		// Call NoCR at most once. Possible states
 		// are {0=never called, 1=failed, 2=success}.
@@ -402,7 +401,7 @@ void PipelineDeformableMap(
 
 	vector<ConnRegion>	Acr, Bcr;
 
-	if( GBL.arg.NoFolds || !GBL.mch.FLD ) {
+	if( GBL.ctx.FLD == 'N' ) {
 
 		fprintf( flog, "Forcing single connected region.\n" );
 

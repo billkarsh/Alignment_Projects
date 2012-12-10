@@ -67,11 +67,8 @@ int main( int argc, char* argv[] )
 /* Use foldmasks according to context */
 /* ---------------------------------- */
 
-	if( GBL.A.layer == GBL.B.layer ||
-		GBL.arg.NoFolds || !GBL.mch.FLD ) {
-
+	if( GBL.ctx.FLD == 'N' )
 		Thumbs_NoCR( px, stdout );
-	}
 	else {
 
 		/* --------------- */

@@ -46,13 +46,13 @@ CGBL_Thumbs::CGBL_Thumbs()
 	_arg.SKEW			= 999.0;
 	_arg.ima			= NULL;
 	_arg.imb			= NULL;
+	_arg.FLD			= 0;
 	_arg.MODE			= 0;
 
 	arg.CTR				= 999.0;
 	arg.fma				= NULL;
 	arg.fmb				= NULL;
 	arg.Transpose		= false;
-	arg.NoFolds			= false;
 	arg.SingleFold		= false;
 
 	A.layer	= 0;
@@ -109,6 +109,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( _arg.imb, "-imb=", argv[i] ) )
 			;
+		else if( GetArg( &_arg.FLD, "-FLD=%c", argv[i] ) )
+			;
 		else if( GetArg( &_arg.MODE, "-MODE=%c", argv[i] ) )
 			;
 		else if( GetArg( &arg.CTR, "-CTR=%lf", argv[i] ) )
@@ -120,7 +122,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		else if( IsArg( "-tr", argv[i] ) )
 			arg.Transpose = true;
 		else if( IsArg( "-nf", argv[i] ) )
-			arg.NoFolds = true;
+			_arg.FLD = 'N';
 		else if( IsArg( "-sf", argv[i] ) )
 			arg.SingleFold = true;
 		else if( IsArg( "-dbgcor", argv[i] ) )
@@ -162,6 +164,8 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	double	cSCALE=1, cXSCALE=1, cYSCALE=1, cSKEW=0;
 	int		cDfmFromTab;
+
+	ctx.FLD = mch.FLD;
 
 	if( A.layer == B.layer ) {
 
@@ -290,6 +294,16 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	printf( "Tdfm=" );
 	ctx.Tdfm.PrintTransform();
+
+	if( _arg.FLD ) {
+		ctx.FLD = _arg.FLD;
+		printf( "FLD=%c\n", _arg.FLD );
+	}
+
+	if( ctx.FLD = 'X' ) {
+		ctx.FLD = (GBL.A.layer == GBL.B.layer ? 'N' : 'Y');
+		printf( "FLD=%c (was X)\n", ctx.FLD );
+	}
 
 	if( _arg.MODE ) {
 		ctx.MODE = _arg.MODE;
