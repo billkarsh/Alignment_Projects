@@ -481,14 +481,14 @@ double ImproveMesh(
 
 	double	corr = threshold;
 
-	if( !GBL.mch.DSL && (GBL.A.layer == GBL.B.layer) )
+	if( !GBL.ctx.OPT )
 		corr = -1;
 
 	corr = ImproveControlPts(
 				cpts, am, av,
 				bimg, w, h,
 				flog, describe,
-				GBL.ctx.DIT, corr );
+				GBL.ctx.RIT, corr );
 
 	if( corr < threshold ) {
 

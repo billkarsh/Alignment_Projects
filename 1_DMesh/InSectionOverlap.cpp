@@ -300,7 +300,7 @@ void InSectionOverlap(
 
 	c = ImproveControlPts(
 			cpts, lambdas, spv, image2, 4096, 4096, flog,
-			"in-section", GBL.ctx.DIT, threshold );
+			"in-section", GBL.ctx.RIT, threshold );
 
 	if( c < threshold ) {
 

@@ -202,14 +202,15 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.HFANGDN	= mch.HFANGDN_SL;
 		ctx.HFANGPR	= mch.HFANGPR_SL;
 		ctx.RTRSH	= mch.RTRSH_SL;
-		ctx.DIT		= mch.DIT_SL;
-		ctx.DFA		= mch.DFA_SL;
-		ctx.DFT		= mch.DFT_SL;
+		ctx.RIT		= mch.RIT_SL;
+		ctx.RFA		= mch.RFA_SL;
+		ctx.RFT		= mch.RFT_SL;
 		ctx.OLAP2D	= mch.OLAP2D_SL;
 		ctx.MODE	= mch.MODE_SL;
 		ctx.THMDEC	= mch.THMDEC_SL;
 		ctx.OLAP1D	= mch.OLAP1D_SL;
 		ctx.LIMXY	= mch.LIMXY_SL;
+		ctx.OPT		= mch.OPT_SL;
 	}
 	else {
 
@@ -227,14 +228,15 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.HFANGDN	= mch.HFANGDN_XL;
 		ctx.HFANGPR	= mch.HFANGPR_XL;
 		ctx.RTRSH	= mch.RTRSH_XL;
-		ctx.DIT		= mch.DIT_XL;
-		ctx.DFA		= mch.DFA_XL;
-		ctx.DFT		= mch.DFT_XL;
+		ctx.RIT		= mch.RIT_XL;
+		ctx.RFA		= mch.RFA_XL;
+		ctx.RFT		= mch.RFT_XL;
 		ctx.OLAP2D	= mch.OLAP2D_XL;
 		ctx.MODE	= mch.MODE_XL;
 		ctx.THMDEC	= mch.THMDEC_XL;
 		ctx.OLAP1D	= mch.OLAP1D_XL;
 		ctx.LIMXY	= mch.LIMXY_XL;
+		ctx.OPT		= true;
 	}
 
 // Fetch Til2Img entries

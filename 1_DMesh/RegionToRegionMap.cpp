@@ -281,7 +281,7 @@ void RegionToRegionMap(
 			ap_msh, av_msh,
 			bv_msh, w, h,
 			tr_guess,
-			GBL.ctx.DFA,
+			GBL.ctx.RFA,
 			flog, "affine" );
 
 	if( !transforms.size() )
@@ -435,7 +435,7 @@ void RegionToRegionMap(
 				ap_msh, av_msh,
 				bv_msh, w, h,
 				tr_guess,
-				GBL.ctx.DFT,
+				GBL.ctx.RFT,
 				flog, "deformable mesh" );
 
 	if( !transforms.size() )

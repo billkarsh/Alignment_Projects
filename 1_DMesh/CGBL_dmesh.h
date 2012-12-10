@@ -49,14 +49,15 @@ public:
 				HFANGDN,
 				HFANGPR,
 				RTRSH,
-				DIT,
-				DFA,
-				DFT;
+				RIT,
+				RFA,
+				RFT;
 		long	OLAP2D;
 		int		MODE,
 				THMDEC,
 				OLAP1D,
-				LIMXY;
+				LIMXY,
+				OPT;
 	} CntxtDep;
 
 // ============
