@@ -426,11 +426,9 @@ static void ScapeStuff()
 	t0 = StopTiming( flog, "MakeRasB", t0 );
 
 	A.MakePoints( thm.av, thm.ap );
-	A.KillRas();
 	A.WriteMeta( 'A', gDat.za, gArgs.abscl );
 
 	B.MakePoints( thm.bv, thm.bp );
-	B.KillRas();
 	B.WriteMeta( 'B', gDat.zb, gArgs.abscl );
 
 	thm.ftc.clear();
