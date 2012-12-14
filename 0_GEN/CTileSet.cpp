@@ -806,7 +806,7 @@ public:
 // about their common centroid so they can be assembled into
 // directed and ordered line segments for the area calculator.
 //
-double CTileSet::ABOlap( int a, int b )
+double CTileSet::ABOlap( int a, int b, const TForm *Tab )
 {
 // Quick proximity check
 
@@ -814,7 +814,10 @@ double CTileSet::ABOlap( int a, int b )
 	Point	pb( gW/2, gH/2 ),
 			pa = pb;
 
-	AToBTrans( T, vtil[a].T, vtil[b].T );
+	if( Tab )
+		T = *Tab;
+	else
+		AToBTrans( T, vtil[a].T, vtil[b].T );
 
 	T.Transform( pa );
 

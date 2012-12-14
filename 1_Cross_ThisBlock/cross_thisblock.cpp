@@ -30,6 +30,15 @@ using namespace std;
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+class Pair {
+
+public:
+	int	a, b;
+
+public:
+	Pair( int _a, int _b )	{a = _a; b = _b;};
+};
+
 /* --------------------------------------------------------------- */
 /* Superscape ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -113,7 +122,8 @@ public:
 	char	*pat;
 	int		abscl,
 			absdev;
-	bool	abdbg;
+	bool	abdbg,
+			NoFolds;
 
 public:
 	CArgs_scp()
@@ -124,6 +134,7 @@ public:
 		abscl		= 200;
 		absdev		= 0;	// 12 useful for Davi EM
 		abdbg		= false;
+		NoFolds		= false;
 
 		inv_abscl	= 1.0/abscl;
 	};
@@ -192,6 +203,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
+		else if( IsArg( "-nf", argv[i] ) )
+			NoFolds = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -394,6 +407,97 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 }
 
 /* --------------------------------------------------------------- */
+/* FindPairs ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FindPairs(
+	vector<Pair>		&P,
+	const CSuperscape	&A,
+	const CSuperscape	&B,
+	const TForm			&Tm )
+{
+	int	na = A.vID.size();
+
+	for( int ka = 0; ka < na; ++ka ) {
+
+		TForm	Ta;
+		int		ia = A.vID[ka];
+
+		MultiplyTrans( Ta, Tm, TS.vtil[ia].T );
+
+		for( int ib = B.is0; ib < B.isN; ++ib ) {
+
+			TForm	Tab;
+
+			AToBTrans( Tab, Ta, TS.vtil[ib].T );
+
+			if( TS.ABOlap( ia, ib, &Tab ) >= 0.02 )
+				P.push_back( Pair( ia, ib ) );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteMakeFile ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Actually write the script to tell ptest to process the pairs
+// of images described by (P).
+//
+static void WriteMakeFile(
+	const vector<Pair>	&P,
+	const TForm			&Tm )
+{
+	FILE	*f;
+	int		np = P.size();
+
+// open the file
+
+	f = FileOpenOrDie( "make.down", "w", flog );
+
+// write 'all' targets line
+
+	fprintf( f, "all: " );
+
+	for( int i = 0; i < np; ++i ) {
+
+		const CUTile&	A = TS.vtil[P[i].a];
+		const CUTile&	B = TS.vtil[P[i].b];
+
+		fprintf( f, "%d/%d.%d.map.tif ", A.id, B.z, B.id );
+	}
+
+	fprintf( f, "\n\n" );
+
+// Write each 'target: dependencies' line
+//		and each 'rule' line
+
+	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
+
+	for( int i = 0; i < np; ++i ) {
+
+		const CUTile&	A = TS.vtil[P[i].a];
+		const CUTile&	B = TS.vtil[P[i].b];
+		TForm			T;
+
+		fprintf( f,
+		"%d/%d.%d.map.tif:\n",
+		A.id, B.z, B.id );
+
+		MultiplyTrans( T, Tm, A.T );
+		AToBTrans( T, TForm( T ), B.T );
+
+		fprintf( f,
+		"\tptest %d/%d@%d/%d -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
+		A.z, A.id, B.z, B.id,
+		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+		option_nf );
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
 /* ScapeStuff ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -438,29 +542,32 @@ static void ScapeStuff()
 
 	int	Ox	= 0,
 		Oy	= 0,
-		Rx	= int(2 * gW * gArgs.inv_abscl),
-		Ry	= int(2 * gH * gArgs.inv_abscl);
+		Rx	= int(3 * gW * gArgs.inv_abscl),
+		Ry	= int(3 * gH * gArgs.inv_abscl);
 
 	S.Initialize( flog, best );
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
-	S.SetSweepPretweak( false );
+	S.SetSweepPretweak( true );
 	S.SetUseCorrR( true );
 	S.SetDisc( Ox, Oy, Rx, Ry );
 
 	if( gArgs.abdbg ) {
 
+		S.Pretweaks( 0, gArgs.abctr, thm );
 		dbgCor = true;
 		S.RFromAngle( best, gArgs.abctr, thm );
 	}
 	else {
 
+		S.Pretweaks( 0, 0, thm );
+
 		if( S.DenovoBestAngle( best, 0, 4, .2, thm ) )
 			best.T.SetXY( best.X, best.Y );
 		else {
 			// return a block-block transform that
-			// converts to identity content-content
+			// converts to identity montage-montage
 			best.T.NUSetOne();
 			best.T.SetXY( A.x0 - B.x0, A.y0 - B.y0 );
 		}
@@ -472,6 +579,35 @@ static void ScapeStuff()
 	}
 
 	t0 = StopTiming( flog, "Corr", t0 );
+
+	if( gArgs.abdbg )
+		return;
+
+// Build: montage -> montage transform
+
+	TForm	s, t;
+
+	// A montage -> A block image
+	s.NUSetScl( 1.0/gArgs.abscl );
+	s.AddXY( -A.x0, -A.y0 );
+
+	// A block image -> B block image
+	MultiplyTrans( t, best.T, s );
+
+	// B block image -> B montage
+	t.AddXY( B.x0, B.y0 );
+	s.NUSetScl( gArgs.abscl );
+	MultiplyTrans( best.T, s, t );
+
+// List pairs
+
+	vector<Pair>	P;
+
+	FindPairs( P, A, B, best.T );
+
+// Write make file for block
+
+	WriteMakeFile( P, best.T );
 }
 
 /* --------------------------------------------------------------- */

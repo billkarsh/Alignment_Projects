@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Put this script into a Dx_y folder to debug block
+
+
+export MRC_TRIM=12
+
+qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -p=_idN -abscl=50 -absdev=12 -abcorr=0.022 -nf
+

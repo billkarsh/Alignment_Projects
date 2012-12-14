@@ -62,6 +62,7 @@ public:
 			blksize,
 			abscl,
 			absdev;
+	bool	NoFolds;
 
 public:
 	CArgs_alnmon()
@@ -74,6 +75,7 @@ public:
 		blksize			= 10;
 		abscl			= 200;
 		absdev			= 0;	// 12 useful for Davi EM
+		NoFolds			= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -144,6 +146,8 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
 			;
+		else if( IsArg( "-nf", argv[i] ) )
+			NoFolds = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -189,8 +193,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
-		" cross_thisblock -p=%s -abscl=%d -absdev=%d -abcorr=%g\n",
-		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
+		" cross_thisblock -p=%s -abscl=%d -absdev=%d -abcorr=%g"
+		"%s\n",
+		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr,
+		(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\t\tcd ..\n" );

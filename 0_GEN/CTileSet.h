@@ -113,7 +113,7 @@ public:
 
 	void LayerAssignR( int is0, int isN, const DBox &B );
 
-	double ABOlap( int a, int b );
+	double ABOlap( int a, int b, const TForm *Tab = NULL );
 
 	void WriteTrakEM2Layer(
 		FILE*	f,

@@ -314,15 +314,15 @@ static void WriteSubmosFile()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteSubsNFile ------------------------------------------------ */
+/* WriteSSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteSubsNFile( int njobs )
+static void WriteSSubNFile( int njobs )
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/subs%d.sht", gArgs.outdir, njobs );
+	sprintf( buf, "%s/ssub%d.sht", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -357,15 +357,60 @@ static void WriteSubsNFile( int njobs )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteReportFile ----------------------------------------------- */
+/* WriteDSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteReportFile()
+static void WriteDSubNFile( int njobs )
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report.sht", gArgs.outdir );
+	sprintf( buf, "%s/dsub%d.sht", gArgs.outdir, njobs );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "export MRC_TRIM=12\n\n" );
+
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
+
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
+	fprintf( f, "\t\t\tcd $jb\n" );
+	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\t\tcd ..\n" );
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteReportFiles ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteReportFiles()
+{
+	char	buf[2048];
+	FILE	*f;
+
+// same
+
+	sprintf( buf, "%s/sreport.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
@@ -373,6 +418,20 @@ static void WriteReportFile()
 	fprintf( f, "ls -l */S*/qS*.e* > SameErrs.txt\n\n" );
 
 	fprintf( f, "ls -l */S*/pts.same > SamePts.txt\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+
+// down
+
+	sprintf( buf, "%s/dreport.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "ls -l */D*/qD*.e* > DownErrs.txt\n\n" );
+
+	fprintf( f, "ls -l */D*/pts.down > DownPts.txt\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -945,9 +1004,11 @@ int main( int argc, char* argv[] )
 	WriteRunlsqFile();
 	WriteSubmosFile();
 
-	WriteSubsNFile( 4 );
-	WriteSubsNFile( 8 );
-	WriteReportFile();
+	WriteSSubNFile( 4 );
+	WriteSSubNFile( 8 );
+	WriteDSubNFile( 4 );
+	WriteDSubNFile( 8 );
+	WriteReportFiles();
 	WriteMontage1File();
 	WriteSubmonFile();
 	WriteReportMonsFile();
