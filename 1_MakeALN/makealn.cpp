@@ -759,6 +759,11 @@ static void Make_MakeDownLoose(
 	int						idN )
 {
 	vector<Pair>	P;
+	int				w, h;
+
+	TS.GetTileDims( w, h );
+	w /= 2;
+	h /= 2;
 
 	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
@@ -775,11 +780,7 @@ static void Make_MakeDownLoose(
 		for( int b = id0; b < idN; ++b ) {
 
 			double	D;
-			int		w, h;
-
-			TS.GetTileDims( w, h );
-
-			Point	pa( w/2, h/2 ), pb = pa;
+			Point	pa( w, h ), pb = pa;
 
 			TS.vtil[a].T.Transform( pa );
 			TS.vtil[b].T.Transform( pb );
