@@ -337,7 +337,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		printf( "FLD=%c\n", _arg.FLD );
 	}
 
-	if( ctx.FLD = 'X' ) {
+	if( ctx.FLD == 'X' ) {
 		ctx.FLD = (GBL.A.layer == GBL.B.layer ? 'N' : 'Y');
 		printf( "FLD=%c (was X)\n", ctx.FLD );
 	}
