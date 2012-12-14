@@ -167,7 +167,7 @@ static void WriteSubblocksFile()
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "../dsubblocks.sht" );
+	sprintf( buf, "subblocks.sht" );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n\n" );
