@@ -18,9 +18,10 @@ rm -rf montage
 
 for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
 do
+	echo $jb
 	cd $jb
-	rm p*
-	rm q*
+	rm -f p*
+	rm -f q*
 	hdr=$(printf "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
 	echo "$hdr" > "ThmPair_"$1"_@_"$1".txt"
 	cd ..
