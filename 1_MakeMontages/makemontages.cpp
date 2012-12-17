@@ -341,13 +341,15 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\t\tcd $lyr\n\n" );
+
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\t\tdone\n\n" );
+
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n\n" );
@@ -384,13 +386,15 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\t\tcd $lyr\n\n" );
+
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\t\tdone\n\n" );
+
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n\n" );
@@ -544,6 +548,87 @@ static void WriteReportMonsFile()
 	fprintf( f, "\t\techo Z $lyr `grep -e \"FINAL*\" $log` >> MonSumy.txt\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteCombineFile ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteCombineFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/combine.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "# Gather point pair files into stack/pts.all\n" );
+	fprintf( f, "#\n\n" );
+
+	fprintf( f, "rm -f pts.all\n\n" );
+
+	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
+	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < imageparams.txt)\n\n" );
+
+	fprintf( f, "cp imageparams.txt pts.all\n\n" );
+
+	fprintf( f, "for lyr in $(seq $1 $2)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\tcat $idb/$lyr/fm.same >> pts.all\n" );
+	fprintf( f, "done\n\n" );
+
+	fprintf( f, "for lyr in $(seq $1 $2)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tcd $lyr\n\n" );
+
+	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
+	fprintf( f, "\t\t\tcat $jb/pts.same >> ../pts.all\n" );
+	fprintf( f, "\t\tdone\n\n" );
+
+	fprintf( f, "\t\tif (($lyr != $1))\n" );
+	fprintf( f, "\t\tthen\n" );
+	fprintf( f, "\t\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\t\tdo\n" );
+	fprintf( f, "\t\t\t\tcat $jb/pts.down >> ../pts.all\n" );
+	fprintf( f, "\t\t\tdone\n" );
+	fprintf( f, "\t\tfi\n\n" );
+
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
+
+	fprintf( f, "mv pts.all stack\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteFinishFile ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteFinishFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/finish.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "./combine.sht %d %d\n", gArgs.zmin, gArgs.zmax );
+	fprintf( f, "cd stack\n" );
+	fprintf( f, "./runlsq.sht\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -1012,6 +1097,8 @@ int main( int argc, char* argv[] )
 	WriteMontage1File();
 	WriteSubmonFile();
 	WriteReportMonsFile();
+	WriteCombineFile();
+	WriteFinishFile();
 
 	ForEachLayer();
 
