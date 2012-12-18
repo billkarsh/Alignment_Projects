@@ -188,7 +188,8 @@ static void WriteSubblocksFile()
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\t\tcd $lyr\n\n" );
+
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
@@ -198,7 +199,8 @@ static void WriteSubblocksFile()
 		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr,
 		(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\t\tdone\n\n" );
+
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n\n" );

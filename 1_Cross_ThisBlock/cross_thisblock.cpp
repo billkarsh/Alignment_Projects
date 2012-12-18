@@ -550,8 +550,8 @@ static void ScapeStuff()
 
 	int	Ox	= 0,
 		Oy	= 0,
-		Rx	= int(3 * gW * gArgs.inv_abscl),
-		Ry	= int(3 * gH * gArgs.inv_abscl);
+		Rx	= int(0.33 * A.ws),
+		Ry	= int(0.33 * A.hs);
 
 	S.Initialize( flog, best );
 	S.SetRThresh( gArgs.abcorr );
