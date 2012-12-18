@@ -278,7 +278,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	if( _arg.Tab.size() ) {
 
-		printf( "Tab=" );
+		printf( "Tab= " );
 		_arg.Tab[0].PrintTransform();
 	}
 
