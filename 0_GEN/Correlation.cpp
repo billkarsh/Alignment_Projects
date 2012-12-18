@@ -551,7 +551,9 @@ void ParabPeakFFT(
 			z0,
 			z2;
 
-	if( (z0 = LkFFT( I, nx, ny, ix - d, iy )) &&
+	if( ix - d >= 0 &&
+		ix + d < nx &&
+		(z0 = LkFFT( I, nx, ny, ix - d, iy )) &&
 		(z2 = LkFFT( I, nx, ny, ix + d, iy )) ) {
 
 		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
@@ -560,7 +562,9 @@ void ParabPeakFFT(
 			xpk += z0;
 	}
 
-	if( (z0 = LkFFT( I, nx, ny, ix, iy - d )) &&
+	if( iy - d >= 0 &&
+		iy + d < ny &&
+		(z0 = LkFFT( I, nx, ny, ix, iy - d )) &&
 		(z2 = LkFFT( I, nx, ny, ix, iy + d )) ) {
 
 		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
@@ -2789,16 +2793,19 @@ static void ParabPeak(
 	double			&ypk,
 	int				d,
 	const double	*I,
-	int				N )
+	int				w,
+	int				h )
 {
 	int		ix = (int)xpk,
 			iy = (int)ypk;
-	double	z1 = I[ix + N*iy],
+	double	z1 = I[ix + w*iy],
 			z0,
 			z2;
 
-	if( (z0 = I[ix-d + N*iy]) > 0.0 &&
-		(z2 = I[ix+d + N*iy]) > 0.0 ) {
+	if( ix - d >= 0 &&
+		ix + d <  w &&
+		(z0 = I[ix-d + w*iy]) > 0.0 &&
+		(z2 = I[ix+d + w*iy]) > 0.0 ) {
 
 		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
@@ -2806,8 +2813,10 @@ static void ParabPeak(
 			xpk += z0;
 	}
 
-	if( (z0 = I[ix + N*(iy-d)]) > 0.0 &&
-		(z2 = I[ix + N*(iy+d)]) > 0.0 ) {
+	if( iy - d >= 0 &&
+		iy + d <  h &&
+		(z0 = I[ix + w*(iy-d)]) > 0.0 &&
+		(z2 = I[ix + w*(iy+d)]) > 0.0 ) {
 
 		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
@@ -2837,7 +2846,7 @@ double CCorImg::ReturnR(
 
 	dx = rx;
 	dy = ry;
-	ParabPeak( dx, dy, 1, &R[0], wR );
+	ParabPeak( dx, dy, 1, &R[0], wR, hR );
 
 	dx += B2.L - B1.L - cx;
 	dy += B2.B - B1.B - cy;
