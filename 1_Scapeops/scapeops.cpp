@@ -361,8 +361,8 @@ bool CSuperscape::MakeRasV()
 
 		const CUTile&	U = TS.vtil[i];
 
-		if( U.T.t[2] >= w1 && U.T.t[2] <= w2 &&
-			U.T.t[5] >= h1 && U.T.t[5] <= h2 ) {
+		if( U.T.t[2] + gW > w1 && U.T.t[2] < w2 &&
+			U.T.t[5] + gH > h1 && U.T.t[5] < h2 ) {
 
 			S.push_back( ScpTile( U.name, U.T ) );
 		}
@@ -397,8 +397,8 @@ bool CSuperscape::MakeRasH()
 
 		const CUTile&	U = TS.vtil[i];
 
-		if( U.T.t[2] >= w1 && U.T.t[2] <= w2 &&
-			U.T.t[5] >= h1 && U.T.t[5] <= h2 ) {
+		if( U.T.t[2] + gW > w1 && U.T.t[2] < w2 &&
+			U.T.t[5] + gH > h1 && U.T.t[5] < h2 ) {
 
 			S.push_back( ScpTile( U.name, U.T ) );
 		}
