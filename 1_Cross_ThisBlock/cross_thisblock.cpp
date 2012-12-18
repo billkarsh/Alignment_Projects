@@ -401,7 +401,15 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 		}
 	}
 
-	Normalize( v );
+	double	sd = Normalize( v );
+
+	if( !sd || !isfinite( sd ) ) {
+
+		fprintf( flog,
+		"FAIL: Image intersection region has stdev: %f\n", sd );
+
+		exit( 42 );
+	}
 
 	KillRas();
 }
