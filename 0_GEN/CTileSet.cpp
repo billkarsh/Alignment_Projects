@@ -61,6 +61,35 @@ int CTileSet::DecodeID( const char *name )
 }
 
 /* --------------------------------------------------------------- */
+/* RejectTile ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Chance to optionally apply rejection criteria against tile.
+//
+// Return true to reject.
+//
+static bool RejectTile( const CUTile &til )
+{
+// ------------------------------------
+// accept only col/row subsection
+#if 0
+	const char	*c, *n;
+	int			row, col;
+
+	n = FileNamePtr( til.name.c_str() );
+	if( c = strstr( n, "col" ) ) {
+		sscanf( c, "col%d_row%d", &col, &row );
+//		if( col < 56 || col > 68 || row < 55 || row > 67 )
+		if( col < 33 || col > 55 || row < 73 || row > 103 )
+			return true;
+	}
+#endif
+// ------------------------------------
+
+	return false;
+}
+
+/* --------------------------------------------------------------- */
 /* FillFromRickFile ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -103,7 +132,8 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 		til.id		= DecodeID( name );
 		til.T.SetXY( x, y );
 
-		vtil.push_back( til );
+		if( !RejectTile( til ) )
+			vtil.push_back( til );
 	}
 
 /* ----- */
@@ -111,35 +141,6 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 /* ----- */
 
 	fclose( fp );
-}
-
-/* --------------------------------------------------------------- */
-/* RejectTile ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Chance to optionally apply rejection criteria against tile.
-//
-// Return true to reject.
-//
-static bool RejectTile( const CUTile &til )
-{
-// ------------------------------------
-// accept only col/row subsection
-#if 0
-	const char	*c, *n;
-	int			row, col;
-
-	n = FileNamePtr( til.name );
-	if( c = strstr( n, "col" ) ) {
-		sscanf( c, "col%d_row%d", &col, &row );
-//		if( col < 56 || col > 68 || row < 55 || row > 67 )
-		if( col < 61 || col > 62 || row < 61 || row > 62 )
-			return true;
-	}
-#endif
-// ------------------------------------
-
-	return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -235,7 +236,8 @@ void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 				til.id		= E.tile;
 				til.T		= E.T;
 
-				vtil.push_back( til );
+				if( !RejectTile( til ) )
+					vtil.push_back( til );
 			}
 		}
 	}
