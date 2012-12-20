@@ -336,7 +336,7 @@ bool CSuperscape::MakeRasA()
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			1.0/gArgs.abscl, 1, 0, gArgs.absdev, flog );
+			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }
@@ -362,7 +362,7 @@ bool CSuperscape::MakeRasB( const DBox &A )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			1.0/gArgs.abscl, 1, 0, gArgs.absdev, flog );
+			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }
@@ -548,8 +548,8 @@ static void ScapeStuff()
 	thm.olap1D	= 0;
 	thm.scl		= 1;
 
-	int	Ox	= 0,
-		Oy	= 0,
+	int	Ox	= int(A.x0 - B.x0),
+		Oy	= int(A.y0 - B.y0),
 		Rx	= int(0.33 * A.ws),
 		Ry	= int(0.33 * A.hs);
 
@@ -596,7 +596,7 @@ static void ScapeStuff()
 	TForm	s, t;
 
 	// A montage -> A block image
-	s.NUSetScl( 1.0/gArgs.abscl );
+	s.NUSetScl( gArgs.inv_abscl );
 	s.AddXY( -A.x0, -A.y0 );
 
 	// A block image -> B block image
