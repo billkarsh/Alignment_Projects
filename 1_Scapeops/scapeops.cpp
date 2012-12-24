@@ -53,6 +53,7 @@ class CSuperscape {
 
 public:
 	DBox	B;			// oriented bounding box
+	Point	Opts;		// origin of aligned point list
 	double	x0, y0;		// scape corner in oriented system
 	uint8	*ras;		// scape pixels
 	uint32	ws, hs;		// scape dims
@@ -430,6 +431,8 @@ void CSuperscape::WriteMeta( char clbl, int z, int scl )
 
 void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 {
+// collect point and value lists
+
 	int		np = ws * hs;
 
 	for( int i = 0; i < np; ++i ) {
@@ -443,6 +446,22 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 			p.push_back( Point( ix, iy ) );
 		}
 	}
+
+// get points origin and translate to zero
+
+	DBox	bb;
+
+	BBoxFromPoints( bb, p );
+	Opts = Point( bb.L, bb.B );
+	np = p.size();
+
+	for( int i = 0; i < np; ++i ) {
+
+		p[i].x -= Opts.x;
+		p[i].y -= Opts.y;
+	}
+
+// normalize values
 
 	double	sd = Normalize( v );
 
@@ -606,6 +625,12 @@ static void ScapeStuff()
 	else {
 
 		S.DenovoBestAngle( best, 0, 175, 5, thm );
+
+		best.T.Apply_R_Part( A.Opts );
+
+		best.X += B.Opts.x - A.Opts.x;
+		best.Y += B.Opts.y - A.Opts.y;
+
 		best.T.SetXY( best.X, best.Y );
 
 		fprintf( flog, "*T: [0,1,2,3,4,5] (strip-strip)\n" );
