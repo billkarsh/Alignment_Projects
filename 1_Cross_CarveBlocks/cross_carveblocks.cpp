@@ -210,6 +210,40 @@ static void WriteSubblocksFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteReportFiles ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteReportFiles()
+{
+	char	buf[2048];
+	FILE	*f;
+
+// errors
+
+	sprintf( buf, "ereport.sht" );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "ls -l ../*/D*/xD*.e* > BlockErrs.txt\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+
+// fails
+
+	sprintf( buf, "freport.sht" );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* OrientLayer --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -572,6 +606,7 @@ int main( int argc, char* argv[] )
 /* ------------- */
 
 	WriteSubblocksFile();
+	WriteReportFiles();
 
 /* ----- */
 /* Carve */
