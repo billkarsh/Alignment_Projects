@@ -313,6 +313,11 @@ uint8* Scape(
 	int				sdnorm,
 	FILE*			flog )
 {
+	if( !vTile.size() ) {
+		fprintf( flog, "Scape: Empty tile list.\n" );
+		return NULL;
+	}
+
 	AdjustBounds( ws, hs, x0, y0, vTile, wi, hi, scale, szmult );
 
 	int		ns		= ws * hs;

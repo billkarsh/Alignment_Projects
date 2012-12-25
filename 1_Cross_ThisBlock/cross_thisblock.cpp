@@ -423,10 +423,7 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 	double	sd = Normalize( v );
 
 	if( !sd || !isfinite( sd ) ) {
-
-		fprintf( flog,
-		"FAIL: Image intersection region has stdev: %f\n", sd );
-
+		fprintf( flog, "FAIL: Block has stdev: %f\n", sd );
 		exit( 42 );
 	}
 
@@ -549,7 +546,10 @@ static void ScapeStuff()
 
 	B.FindLayerIndices( gDat.zb );
 #if 1
-	B.MakeRasB( A.B );
+	if( !B.MakeRasB( A.B ) ) {
+		fprintf( flog, "FAIL: No B tiles in block.\n" );
+		return;
+	}
 	B.DrawRas( "Bras.png" );
 #else
 	B.Load( "Bras.png", flog );

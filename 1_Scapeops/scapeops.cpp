@@ -466,10 +466,7 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 	double	sd = Normalize( v );
 
 	if( !sd || !isfinite( sd ) ) {
-
-		fprintf( flog,
-		"FAIL: Image intersection region has stdev: %f\n", sd );
-
+		fprintf( flog, "FAIL: Scape has stdev: %f\n", sd );
 		exit( 42 );
 	}
 
