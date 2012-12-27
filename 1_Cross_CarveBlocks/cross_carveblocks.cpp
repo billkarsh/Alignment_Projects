@@ -54,7 +54,8 @@ public:
 class CArgs_alnmon {
 
 public:
-	double	abcorr;
+	double	abcorr,
+			xyconf;		// neib radius = (1-conf)(scapewide)
 	char	xml_hires[2048];
 	char	*pat;
 	int		zmin,
@@ -68,6 +69,7 @@ public:
 	CArgs_alnmon()
 	{
 		abcorr			= 0.20;
+		xyconf			= 0.25;
 		xml_hires[0]	= 0;
 		pat				= "/N";
 		zmin			= 0;
@@ -146,6 +148,11 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
 			;
+		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
+
+			if( xyconf < 0.0 || xyconf > 1.0 )
+				xyconf = 0.5;
+		}
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else {
@@ -195,9 +202,9 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
 		" cross_thisblock -p=%s -abscl=%d -absdev=%d -abcorr=%g"
-		"%s\n",
+		" -xyconf=%g%s\n",
 		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr,
-		(gArgs.NoFolds ? " -nf" : "") );
+		gArgs.xyconf, (gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n\n" );
 

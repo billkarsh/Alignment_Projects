@@ -119,7 +119,8 @@ class CArgs_scp {
 public:
 	double	inv_abscl,
 			abcorr,
-			abctr;
+			abctr,
+			xyconf;		// neib radius = (1-conf)(scapewide)
 	char	*pat;
 	int		abscl,
 			absdev;
@@ -131,6 +132,7 @@ public:
 	{
 		abcorr		= 0.20;
 		abctr		= 0.0;
+		xyconf		= 0.25;
 		pat			= "/N";
 		abscl		= 200;
 		absdev		= 0;	// 12 useful for Davi EM
@@ -202,6 +204,11 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
+		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
+
+			if( xyconf < 0.0 || xyconf > 1.0 )
+				xyconf = 0.5;
+		}
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else if( IsArg( "-nf", argv[i] ) )
@@ -569,8 +576,8 @@ static void ScapeStuff()
 
 	int	Ox	= int(A.x0 - B.x0),
 		Oy	= int(A.y0 - B.y0),
-		Rx	= int(0.33 * A.ws),
-		Ry	= int(0.33 * A.hs);
+		Rx	= int((1.0 - gArgs.xyconf) * A.ws),
+		Ry	= int((1.0 - gArgs.xyconf) * A.hs);
 
 	S.Initialize( flog, best );
 	S.SetRThresh( gArgs.abcorr );
