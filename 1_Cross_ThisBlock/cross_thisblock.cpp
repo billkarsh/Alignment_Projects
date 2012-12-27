@@ -411,13 +411,17 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 		}
 	}
 
+	if( !(np = p.size()) ) {
+		fprintf( flog, "FAIL: Block has no non-zero pixels.\n" );
+		exit( 42 );
+	}
+
 // get points origin and translate to zero
 
 	DBox	bb;
 
 	BBoxFromPoints( bb, p );
 	Opts = Point( bb.L, bb.B );
-	np = p.size();
 
 	for( int i = 0; i < np; ++i ) {
 
