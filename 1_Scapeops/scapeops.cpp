@@ -608,7 +608,7 @@ static void ScapeStuff()
 	S.SetRThresh( gArgs.abcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
-	S.SetSweepPretweak( false );
+	S.SetSweepPretweak( true );
 	S.SetUseCorrR( true );
 	S.SetNewAngProc( NewAngProc );
 
