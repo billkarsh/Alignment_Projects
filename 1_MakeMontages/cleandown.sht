@@ -3,26 +3,34 @@
 # Reset all down data for layer $1
 
 
-if (($# == 0))
+if (($# == 1))
 then
-	echo "Need layer number"
-	exit
+	last=$1
+else
+	last=$2
 fi
 
-cd $1
-
-b=$(($1 - 1))
-
-for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+for lyr in $(seq $1 $last)
 do
-	echo $jb
-	cd $jb
-	rm -f p*
-	rm -f q*
-	hdr=$(printf "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
-	echo "$hdr" > "ThmPair_"$1"_@_"$b".txt"
-	cd ..
-done
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		cd $lyr
 
-cd ..
+		b=$(($lyr - 1))
+
+		for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		do
+			echo $jb
+			cd $jb
+			rm -f p*
+			rm -f q*
+			hdr=$(printf "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
+			echo "$hdr" > "ThmPair_"$lyr"_@_"$b".txt"
+			cd ..
+		done
+
+		cd ..
+	fi
+done
 
