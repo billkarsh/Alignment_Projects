@@ -419,9 +419,34 @@ static void WriteReportFiles()
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
+
 	fprintf( f, "ls -l */S*/qS*.e* > SameErrs.txt\n\n" );
 
 	fprintf( f, "ls -l */S*/pts.same > SamePts.txt\n\n" );
+
+	fprintf( f, "rm -f SameNopts.txt\n\n" );
+	fprintf( f, "touch SameNopts.txt\n\n" );
+
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tfor jb in $(ls -d $lyr/* | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
+	fprintf( f, "\t\t\tif [ ! -e $jb/pts.same ]\n" );
+	fprintf( f, "\t\t\tthen\n" );
+	fprintf( f, "\t\t\t\techo \"$jb\" >> SameNopts.txt\n" );
+	fprintf( f, "\t\t\tfi\n" );
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -433,9 +458,34 @@ static void WriteReportFiles()
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n\n" );
+
 	fprintf( f, "ls -l */D*/qD*.e* > DownErrs.txt\n\n" );
 
 	fprintf( f, "ls -l */D*/pts.down > DownPts.txt\n\n" );
+
+	fprintf( f, "rm -f DownNopts.txt\n\n" );
+	fprintf( f, "touch DownNopts.txt\n\n" );
+
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tfor jb in $(ls -d $lyr/* | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
+	fprintf( f, "\t\t\tif [ ! -e $jb/pts.down ]\n" );
+	fprintf( f, "\t\t\tthen\n" );
+	fprintf( f, "\t\t\t\techo \"$jb\" >> DownNopts.txt\n" );
+	fprintf( f, "\t\t\tfi\n" );
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
