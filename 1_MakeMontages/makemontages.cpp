@@ -430,7 +430,7 @@ static void WriteReportFiles()
 
 	fprintf( f, "ls -l */S*/pts.same > SamePts.txt\n\n" );
 
-	fprintf( f, "rm -f SameNopts.txt\n\n" );
+	fprintf( f, "rm -f SameNopts.txt\n" );
 	fprintf( f, "touch SameNopts.txt\n\n" );
 
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
@@ -469,7 +469,7 @@ static void WriteReportFiles()
 
 	fprintf( f, "ls -l */D*/pts.down > DownPts.txt\n\n" );
 
-	fprintf( f, "rm -f DownNopts.txt\n\n" );
+	fprintf( f, "rm -f DownNopts.txt\n" );
 	fprintf( f, "touch DownNopts.txt\n\n" );
 
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
