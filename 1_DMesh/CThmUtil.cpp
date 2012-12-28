@@ -568,10 +568,18 @@ bool CThmUtil::Disc(
 	Point	dS(
 			(best.X - Ox) * (thm.scl * px.scl),
 			(best.Y - Oy) * (thm.scl * px.scl) );
+	int		dR = int(sqrt( dS.RSqr() ));
 
 	fprintf( flog,
-	"Peak-Disc: dR %d dX %d dY %d\n",
-	int(sqrt( dS.RSqr() )), int(dS.x), int(dS.y) );
+	"Peak-Disc: dR %d dX %d dY %d\n", dR, int(dS.x), int(dS.y) );
+
+	if( dR >= LIMXY ) {
+
+		fprintf( flog,
+		"FAIL: Approx: Peak outside disc dR=%d\n", dR );
+
+		return Failure( best, errLowRPrior );
+	}
 
 	return true;
 }
@@ -795,7 +803,7 @@ bool CThmUtil::Check_LIMXY( const TForm &Tbest )
 
 // Optional rejection test
 
-	if( LIMXY && MODE != 'N' && err > LIMXY ) {
+	if( LIMXY && err > LIMXY ) {
 
 		fprintf( flog,
 		"FAIL: Approx: Too different from Tab err=%g, max=%d\n",
