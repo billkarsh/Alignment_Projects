@@ -4,6 +4,7 @@
 
 #include	"Cmdline.h"
 #include	"File.h"
+#include	"CLens.h"
 #include	"Debug.h"
 
 
@@ -260,13 +261,6 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n" );
 
-// Starting TForm A -> B
-
-	if( _arg.Tab.size() )
-		Tab = _arg.Tab[0];
-	else
-		AToBTrans( Tab, A.t2i.T, B.t2i.T );
-
 // Extract file name as useful label
 
 	A.file = FileCloneNamePart( A.t2i.path.c_str() );
@@ -278,9 +272,26 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	if( _arg.Tab.size() ) {
 
+		Tab = _arg.Tab[0];
+
+		// remove lens parts of Tab coming from cross_thisblock
+
+		if( mch.PXLENS && A.layer != B.layer ) {
+
+			CLens	LN;
+
+			if( !LN.ReadIDB( idb ) )
+				return false;
+
+			LN.UpdateTFormRHS( Tab, A.t2i.path.c_str(), true );
+			LN.UpdateTFormLHS( Tab, B.t2i.path.c_str(), false );
+		}
+
 		printf( "Tab= " );
-		_arg.Tab[0].PrintTransform();
+		Tab.PrintTransform();
 	}
+	else
+		AToBTrans( Tab, A.t2i.T, B.t2i.T );
 
 	int	altTdfm = false;
 

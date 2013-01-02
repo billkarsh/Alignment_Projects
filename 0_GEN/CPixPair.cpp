@@ -3,6 +3,7 @@
 #include	"CPixPair.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
+#include	"CLens.h"
 #include	"Correlation.h"
 #include	"Timer.h"
 
@@ -194,27 +195,75 @@ static bool HasTissue( const char *path )
 }
 
 /* --------------------------------------------------------------- */
+/* Lens ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Lens(
+	CLens			&LN,
+	vector<double>	&vout,
+	const char		*path,
+	uint8*			&ras,
+	int				w,
+	int				h,
+	int				order )
+{
+// Flatten and release raster
+
+	vector<double>	vflat;
+	LegPolyFlatten( vflat, ras, w, h, order );
+	RasterFree( ras );
+
+// Transform into vout
+
+	TForm	T = LN.GetTf( path );
+	int		np = w * h;
+
+	vout.resize( np, 0.0 );
+
+	for( int i = 0; i < np; ++i ) {
+
+		int		y = i / w,
+				x = i - w*y;
+		Point	p( x, y );
+
+		T.Transform( p );
+		DistributePixel( p.x, p.y, vflat[i], vout, w, h );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* PixPair::Load ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Send NULL idb parameter if not using lenses.
+//
 bool PixPair::Load(
-	const char	*apath,
-	const char	*bpath,
-	int			order,
-	int			bDoG,
-	int			r1,
-	int			r2,
-	FILE*		flog,
-	bool		transpose )
+	const char		*apath,
+	const char		*bpath,
+	const string	&idb,
+	int				order,
+	int				bDoG,
+	int				r1,
+	int				r2,
+	FILE*			flog,
+	bool			transpose )
 {
 	printf( "\n---- Image loading ----\n" );
 
-	clock_t		t0 = StartTiming();
+/* ----------------- */
+/* Prepare lens data */
+/* ----------------- */
+
+	CLens	LN;
+
+	if( &idb && !LN.ReadIDB( idb ) )
+		return false;
 
 /* ----------------------------- */
 /* Load and sanity check rasters */
 /* ----------------------------- */
 
+	clock_t	t0 = StartTiming();
 	uint8	*aras, *bras;
 	uint32	wa, ha, wb, hb;
 	int		ok = false;
@@ -268,11 +317,21 @@ bool PixPair::Load(
 	//exit( 1 );
 //-----------------------------------------------------------
 
-	LegPolyFlatten( _avf, aras, wf, hf, order );
-	RasterFree( aras );
+	if( &idb ) {
 
-	LegPolyFlatten( _bvf, bras, wf, hf, order );
-	RasterFree( bras );
+		Lens( LN, _avf, apath, aras, wf, hf, order );
+		Lens( LN, _bvf, bpath, bras, wf, hf, order );
+		//VectorDblToTif8( "LensA.tif", _avf, wf, hf );
+		//VectorDblToTif8( "LensB.tif", _bvf, wf, hf );
+	}
+	else {
+
+		LegPolyFlatten( _avf, aras, wf, hf, order );
+		RasterFree( aras );
+
+		LegPolyFlatten( _bvf, bras, wf, hf, order );
+		RasterFree( bras );
+	}
 
 	avs_vfy	= avs_aln = avf_vfy	= avf_aln = &_avf;
 	bvs_vfy	= bvs_aln = bvf_vfy	= bvf_aln = &_bvf;

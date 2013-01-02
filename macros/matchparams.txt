@@ -11,6 +11,7 @@
 # Image params
 #
 PXBRO=1            <default 1>        "Max Legendre poly order for bkg removal"
+PXLENS=N           <default N>        "Y=Apply IDB/lens.txt"
 PXDOG=N            <default N>        "Y=Apply DoG filter"
 PXDOG_R1=3         <default 3>        "DoG inner radius"
 PXDOG_R2=6         <default 6>        "DoG outer radius"

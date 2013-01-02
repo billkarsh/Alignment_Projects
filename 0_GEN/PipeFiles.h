@@ -49,6 +49,7 @@ typedef struct {
 			LDC,
 			DXY;
 	int		PXBRO,
+			PXLENS,
 			PXDOG,
 			PXDOG_R1,
 			PXDOG_R2,

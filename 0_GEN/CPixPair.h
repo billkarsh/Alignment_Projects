@@ -5,6 +5,7 @@
 
 #include	<stdio.h>
 
+#include	<string>
 #include	<vector>
 using namespace std;
 
@@ -43,14 +44,15 @@ private:
 
 public:
 	bool Load(
-		const char	*apath,
-		const char	*bpath,
-		int			order,
-		int			bDoG,
-		int			r1,
-		int			r2,
-		FILE*		flog = stdout,
-		bool		transpose = false );
+		const char		*apath,
+		const char		*bpath,
+		const string	&idb,
+		int				order,
+		int				bDoG,
+		int				r1,
+		int				r2,
+		FILE*			flog = stdout,
+		bool			transpose = false );
 };
 
 
