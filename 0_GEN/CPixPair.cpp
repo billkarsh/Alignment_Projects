@@ -240,7 +240,7 @@ static void Lens(
 bool PixPair::Load(
 	const char		*apath,
 	const char		*bpath,
-	const string	&idb,
+	const string	*idb,
 	int				order,
 	int				bDoG,
 	int				r1,
@@ -256,7 +256,7 @@ bool PixPair::Load(
 
 	CLens	LN;
 
-	if( &idb && !LN.ReadIDB( idb ) )
+	if( idb && !LN.ReadIDB( *idb ) )
 		return false;
 
 /* ----------------------------- */
@@ -317,7 +317,7 @@ bool PixPair::Load(
 	//exit( 1 );
 //-----------------------------------------------------------
 
-	if( &idb ) {
+	if( idb ) {
 
 		Lens( LN, _avf, apath, aras, wf, hf, order );
 		Lens( LN, _bvf, bpath, bras, wf, hf, order );
