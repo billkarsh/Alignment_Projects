@@ -9,6 +9,7 @@
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
+#include	"CLens.h"
 #include	"LinEqu.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
@@ -197,6 +198,7 @@ public:
 			xml_max,
 			viserr;				// 0, or, error scale
 	bool	strings,
+			lens,
 			make_layer_square,
 			use_all;			// align even if #pts < 3/tile
 
@@ -221,6 +223,7 @@ public:
 		xml_max				= 0;
 		viserr				= 0;
 		strings				= false;
+		lens				= false;
 		make_layer_square	= false;
 		use_all				= false;
 	};
@@ -504,6 +507,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting visual error scale to %d\n", viserr );
 		else if( IsArg( "-strings", argv[i] ) )
 			strings = true;
+		else if( IsArg( "-lens", argv[i] ) )
+			lens = true;
 		else if( IsArg( "-mls", argv[i] ) ) {
 			make_layer_square = true;
 			printf( "Making reference layer square.\n" );
@@ -2547,6 +2552,32 @@ static void IterateInliers(
 }
 
 /* --------------------------------------------------------------- */
+/* ApplyLens ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ApplyLens( vector<double> &X, bool inv )
+{
+	if( !gArgs.lens )
+		return;
+
+	CLens	LN;
+	int		nr = vRgn.size();
+
+	if( !LN.ReadIDB( idb ) )
+		exit( 42 );
+
+	for( int i = 0; i < nr; ++i ) {
+
+		int	itr = vRgn[i].itr;
+
+		if( itr < 0 )
+			continue;
+
+		LN.UpdateDoublesRHS( &X[itr * 6], vRgn[i].GetName(), inv );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Bounds -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -4153,6 +4184,7 @@ int main( int argc, char **argv )
 	vector<double>	X;
 
 	IterateInliers( X, zs );
+	ApplyLens( X, false );
 
 /* ------------------ */
 /* Calc global bounds */
@@ -4174,6 +4206,7 @@ int main( int argc, char **argv )
 /* Report any missing correspondences */
 /* ---------------------------------- */
 
+	ApplyLens( X, true );
 	NoCorrs( zs, X );
 
 /* ------------------------ */

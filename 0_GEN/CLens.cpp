@@ -94,21 +94,9 @@ bool CLens::ReadIDB( const string &idb, FILE* flog )
 {
 	char	path[2048];
 
-	sprintf( path, "%s/affine.txt", idb.c_str() );
+	sprintf( path, "%s/lens.txt", idb.c_str() );
 
 	return ReadFile( path, flog );
-}
-
-/* --------------------------------------------------------------- */
-/* Tdfm ---------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void CLens::Tdfm( TForm &T, int a, int b )
-{
-	if( a != b )
-		MultiplyTrans( T, Ti[b], Tf[a] );
-	else
-		T.NUSetOne();
 }
 
 /* --------------------------------------------------------------- */
@@ -122,7 +110,7 @@ int CLens::CamID( const char *name )
 	if( !(s = strstr( s, "_cam" )) ) {
 
 		fprintf( flog,
-		"Lens::PrintArg: Missing cam-id [%s].\n", name );
+		"Lens::CamID Missing cam-id [%s].\n", name );
 		exit( 42 );
 	}
 
@@ -130,20 +118,33 @@ int CLens::CamID( const char *name )
 }
 
 /* --------------------------------------------------------------- */
-/* PrintArg ------------------------------------------------------ */
+/* UpdateDoublesRHS ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CLens::PrintArg(
-	char		*buf,
-	const char	*aname,
-	const char	*bname )
+void CLens::UpdateDoublesRHS( double *D, const char *name, bool inv )
 {
 	TForm	T;
 
-	Tdfm( T, CamID( aname ), CamID( bname ) );
+	MultiplyTrans( T, TForm( D ), (inv ? Ti : Tf)[CamID( name )] );
+	T.CopyOut( D );
+}
 
-	sprintf( buf, " -Tdfm=%g,%g,%g,%g,%g,%g",
-		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5] );
+/* --------------------------------------------------------------- */
+/* UpdateTFormRHS ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void CLens::UpdateTFormRHS( TForm &T, const char *name, bool inv )
+{
+	MultiplyTrans( T, TForm( T ), (inv ? Ti : Tf)[CamID( name )] );
+}
+
+/* --------------------------------------------------------------- */
+/* UpdateTFormLHS ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void CLens::UpdateTFormLHS( TForm &T, const char *name, bool inv )
+{
+	MultiplyTrans( T, (inv ? Ti : Tf)[CamID( name )], TForm( T ) );
 }
 
 
