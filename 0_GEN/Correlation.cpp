@@ -1566,6 +1566,15 @@ double CorrVectors(
 			++nz;
 	}
 
+	if( !isfinite( sum2 ) ) {
+		fprintf( flog,
+		"CorrVectors: Likely all zero pixels, corr sum = %g"
+		" ... returning corr = zero.\n", sum2 );
+
+		nz		= N;
+		sum2	= 0.0;
+	}
+
 //	fprintf( flog, "CorrVectors: %d of %d were small.\n", nz, N );
 
 	N -= nz;
@@ -1573,7 +1582,7 @@ double CorrVectors(
 	if( nnz )
 		*nnz = N;
 
-	return sum2 / N;
+	return (N ? sum2 / N : 0.0);
 }
 
 /* --------------------------------------------------------------- */
