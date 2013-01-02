@@ -107,7 +107,7 @@ static void PrintMagnitude( const vector<double> &X )
 
 		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
 
-		printf( "Final magnitude is %f = %.6e\n", mag, mag );
+		printf( "Final magnitude is %g\n", mag );
 	}
 }
 
