@@ -132,7 +132,7 @@ public:
 	{
 		abcorr		= 0.20;
 		abctr		= 0.0;
-		xyconf		= 0.25;
+		xyconf		= 0.50;
 		pat			= "/N";
 		abscl		= 200;
 		absdev		= 0;	// 12 useful for Davi EM
@@ -574,8 +574,8 @@ static void ScapeStuff()
 	B.WriteMeta( 'B', gDat.zb, gArgs.abscl );
 
 	thm.ftc.clear();
-	thm.reqArea	= 0;
-	thm.olap1D	= 0;
+	thm.reqArea	= int(0.02 * A.ws * A.hs);
+	thm.olap1D	= 4;
 	thm.scl		= 1;
 
 	int	Ox	= int(A.x0 - B.x0),

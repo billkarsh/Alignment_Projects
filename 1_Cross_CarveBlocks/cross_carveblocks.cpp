@@ -69,7 +69,7 @@ public:
 	CArgs_alnmon()
 	{
 		abcorr			= 0.20;
-		xyconf			= 0.25;
+		xyconf			= 0.50;
 		xml_hires[0]	= 0;
 		pat				= "/N";
 		zmin			= 0;
