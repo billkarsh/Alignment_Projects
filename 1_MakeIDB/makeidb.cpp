@@ -68,6 +68,7 @@ public:
 	char	*infile,
 			*outdir,
 			*pat,
+			*lens,
 			*clk;
 	int		zmin,
 			zmax,
@@ -83,6 +84,7 @@ public:
 		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
 		pat			= "/N";
+		lens		= NULL;
 		clk			= NULL;
 		zmin		= 0;
 		zmax		= 32768;
@@ -149,6 +151,8 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
+		else if( GetArgStr( lens, "-lens=", argv[i] ) )
+			;
 		else if( GetArgStr( clk, "-k=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
@@ -210,6 +214,19 @@ static void WriteImageparamsFile()
 	fprintf( f, "IMAGESIZE %d %d\n", w, h );
 
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* CopyLensFile -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void CopyLensFile()
+{
+	if( gArgs.lens ) {
+		char	buf[2048];
+		sprintf( buf, "cp %s %s/lens.txt", gArgs.lens, gArgs.outdir );
+		system( buf );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -644,6 +661,7 @@ int main( int argc, char* argv[] )
 	CreateTopDir();
 
 	WriteImageparamsFile();
+	CopyLensFile();
 
 	if( !gArgs.NoFolds || ismrc ) {
 		WriteSubfmFile();

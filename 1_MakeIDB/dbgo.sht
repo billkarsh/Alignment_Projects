@@ -12,6 +12,7 @@
 # -simple interpret input as Rick file
 # -zmin=i -zmax=j restricts layer range
 # -nf no foldmasks
+# -lens=AffineLensFile.txt
 # -k=MyClicksfile.txt
 # -xmltype=0
 # -xmlmin=0
