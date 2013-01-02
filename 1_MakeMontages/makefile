@@ -19,7 +19,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	makemontages.cpp CLens.cpp
+	makemontages.cpp
 
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp PipeFiles.cpp \

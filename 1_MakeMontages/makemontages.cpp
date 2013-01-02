@@ -20,7 +20,6 @@
 #include	"File.h"
 #include	"PipeFiles.h"
 #include	"CTileSet.h"
-#include	"CLens.h"
 #include	"Geometry.h"
 
 
@@ -91,7 +90,6 @@ public:
 	double	minareafrac;
 	string	idbpath;
 	char	*outdir,
-			*lensfile,
 			*exenam;
 	int		zmin,
 			zmax,
@@ -99,7 +97,8 @@ public:
 			xml_type,
 			xml_min,
 			xml_max;
-	bool	NoFolds,
+	bool	lens,
+			NoFolds,
 			NoDirs;
 
 public:
@@ -107,7 +106,6 @@ public:
 	{
 		minareafrac	= 0.020;
 		outdir		= "NoSuch";	// prevent overwriting real dir
-		lensfile	= NULL;
 		exenam		= "ptest";
 		zmin		= 0;
 		zmax		= 32768;
@@ -115,6 +113,7 @@ public:
 		xml_type	= -999;
 		xml_min		= -999;
 		xml_max		= -999;
+		lens		= false;
 		NoFolds		= false;
 		NoDirs		= false;
 	};
@@ -128,7 +127,6 @@ public:
 
 static CArgs_scr	gArgs;
 static CTileSet		TS;
-static CLens		LN;
 static FILE*		flog	= NULL;
 static int			gW		= 0,	// universal pic dims
 					gH		= 0;
@@ -176,8 +174,6 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			idbpath = argv[i];
 		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
-		else if( GetArgStr( lensfile, "-lensfile=", argv[i] ) )
-			;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;
 		else if( GetArg( &minareafrac, "-minareafrac=%lf", argv[i] ) )
@@ -194,6 +190,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
 			;
+		else if( IsArg( "-lens", argv[i] ) )
+			lens = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
@@ -243,21 +241,23 @@ static void _WriteRunlsqFile( const char *path )
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
-	char	xmlprms[256] = "";
+	char	xprms[256] = "";
 	int		L = 0;
 
+	if( gArgs.lens )
+		L += sprintf( xprms + L, "-lens " );
+
 	if( gArgs.xml_type != -999 )
-		L += sprintf( xmlprms + L, "-xmltype=%d ", gArgs.xml_type );
+		L += sprintf( xprms + L, "-xmltype=%d ", gArgs.xml_type );
 
 	if( gArgs.xml_min != -999 )
-		L += sprintf( xmlprms + L, "-xmlmin=%d ", gArgs.xml_min );
+		L += sprintf( xprms + L, "-xmlmin=%d ", gArgs.xml_min );
 
 	if( gArgs.xml_max != -999 )
-		L += sprintf( xmlprms + L, "-xmlmax=%d ", gArgs.xml_max );
+		L += sprintf( xprms + L, "-xmlmax=%d ", gArgs.xml_max );
 
 	fprintf( f,
-	"lsq pts.all -scale=.1 -square=.1 %s> lsq.txt\n\n",
-	xmlprms );
+	"lsq pts.all -scale=.1 -square=.1 %s> lsq.txt\n\n", xprms );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -785,40 +785,18 @@ static void WriteMakeFile(
 
 	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
 
-	if( gArgs.lensfile ) {
+	for( int i = 0; i < np; ++i ) {
 
-		for( int i = 0; i < np; ++i ) {
+		const CUTile&	A = TS.vtil[P[i].a];
+		const CUTile&	B = TS.vtil[P[i].b];
 
-			const CUTile&	A = TS.vtil[P[i].a];
-			const CUTile&	B = TS.vtil[P[i].b];
-			char			Tdfm[128];
+		fprintf( f,
+		"%d/%d.%d.map.tif:\n",
+		A.id, B.z, B.id );
 
-			fprintf( f,
-			"%d/%d.%d.map.tif:\n",
-			A.id, B.z, B.id );
-
-			LN.PrintArg( Tdfm, A.name.c_str(), B.name.c_str() );
-
-			fprintf( f,
-			"\t%s %d/%d@%d/%d%s%s ${EXTRA}\n\n",
-			gArgs.exenam, A.z, A.id, B.z, B.id, Tdfm, option_nf );
-		}
-	}
-	else {
-
-		for( int i = 0; i < np; ++i ) {
-
-			const CUTile&	A = TS.vtil[P[i].a];
-			const CUTile&	B = TS.vtil[P[i].b];
-
-			fprintf( f,
-			"%d/%d.%d.map.tif:\n",
-			A.id, B.z, B.id );
-
-			fprintf( f,
-			"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
-			gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
-		}
+		fprintf( f,
+		"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
+		gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
 	}
 
 	fclose( f );
@@ -1110,9 +1088,6 @@ int main( int argc, char* argv[] )
 /* ---------------- */
 /* Read source data */
 /* ---------------- */
-
-	if( gArgs.lensfile && !LN.ReadFile( gArgs.lensfile, flog ) )
-		exit( 42 );
 
 	TS.FillFromIDB( gArgs.idbpath, gArgs.zmin, gArgs.zmax );
 

@@ -73,7 +73,7 @@ bool CLens::ReadFile( const char *path, FILE* flog )
 
 	for( int i = 0; i < 4; ++i ) {
 
-		Tf[i].SetXY( 0, 0 );
+//		Tf[i].SetXY( 0, 0 );
 		InvertTrans( Ti[i], Tf[i] );
 	}
 
@@ -84,6 +84,19 @@ exit:
 		fclose( f );
 
 	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* ReadIDB ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool CLens::ReadIDB( const string &idb, FILE* flog )
+{
+	char	path[2048];
+
+	sprintf( path, "%s/affine.txt", idb.c_str() );
+
+	return ReadFile( path, flog );
 }
 
 /* --------------------------------------------------------------- */
