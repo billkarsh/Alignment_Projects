@@ -303,6 +303,16 @@ void CSuperscape::OrientLayer()
 
 	deg = TightestBBox( B, C );
 
+	if( B.R - B.L > B.T - B.B ) {
+
+		// Make tall: rotate 90 degrees if wider than tall
+
+		deg = (deg < 0 ? deg + 90 : deg - 90);
+		R.NUSetRot( deg*PI/180 );
+		R.Apply_R_Part( C );
+		BBoxFromPoints( B, C );
+	}
+
 	R.NUSetRot( deg*PI/180 );
 
 	for( int i = is0; i < isN; ++i ) {
