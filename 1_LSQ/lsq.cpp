@@ -1966,7 +1966,7 @@ static void SolveSystemRigid( vector<double> &X )
 	double	stiff	= 1.0;
 
 	double	one	= stiff;
-	int		j	= (gNTr / 2) * 6;
+	int		j	= (gNTr / 2) * 4;
 
 	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
