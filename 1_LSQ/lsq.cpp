@@ -1537,7 +1537,6 @@ static void SetIdentityTForm(
 
 // Report which tile we set
 
-#if 1
 	int	nr = vRgn.size();
 
 	for( int k = 0; k < nr; ++k ) {
@@ -1549,7 +1548,6 @@ static void SetIdentityTForm(
 			break;
 		}
 	}
-#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -1683,6 +1681,7 @@ static void SolveWithSquareness(
 // repeat for top and bottom. Of course, this assumes
 // a symmetric montage.
 //
+#if 1
 static void SolveWithMontageSqr(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
@@ -1792,6 +1791,90 @@ static void SolveWithMontageSqr(
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X, 6 );
 }
+#endif
+
+#if 0
+// Experiment to simply hardcode which tiles to use as corners.
+// In practice, though, looks like this constraint causes montage
+// to buckle if there really is a natural warp like a banana shape,
+// so not recommended.
+//
+static void SolveWithMontageSqr(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS )
+{
+	int	nr = vRgn.size();
+
+/* ------------------------ */
+/* Assign hand-picked tiles */
+/* ------------------------ */
+
+	int	jNW, jNE, jSE, jSW, nass = 0;
+
+	for( int i = 0; i < nr && nass < 4; ++i ) {
+
+		if( vRgn[i].itr < 0 )
+			continue;
+
+		int id = vRgn[i].id;
+
+		if( id == 19000000 ) {
+			jNW = i;
+			++nass;
+		}
+		else if( id == 19069000 ) {
+			jNE = i;
+			++nass;
+		}
+		else if( id == 19000149 ) {
+			jSW = i;
+			++nass;
+		}
+		else if( id == 19069149 ) {
+			jSE = i;
+			++nass;
+		}
+	}
+
+	if( nass != 4 ) {
+		printf( "***   ***   *** Missing squareness corner.\n" );
+		return;
+	}
+
+/* ------------------------------------------- */
+/* Use these corner tiles to impose squareness */
+/* ------------------------------------------- */
+
+	double	stiff = gArgs.square_strength;
+
+// Top = bottom (DX = DX)
+
+	{
+		double	V[4] = {stiff, -stiff, -stiff, stiff};
+		int		I[4] = {jSE+2,  jSW+2,  jNE+2, jNW+2};
+
+		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
+	}
+
+// Left = right (DY = DY)
+
+	{
+		double	V[4] = {stiff, -stiff, -stiff, stiff};
+		int		I[4] = {jSE+5,  jSW+5,  jNE+5, jNW+5};
+
+		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
+	}
+
+/* --------------- */
+/* Update solution */
+/* --------------- */
+
+	printf( "Solve with [montage squareness].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X, 6 );
+}
+#endif
 
 /* --------------------------------------------------------------- */
 /* SolveWithUnitMag ---------------------------------------------- */
