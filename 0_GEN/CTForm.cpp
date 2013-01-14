@@ -294,12 +294,15 @@ void InvertTrans( TForm &inv, const TForm &t )
 {
 	double	det = t.t[0]*t.t[4] - t.t[1]*t.t[3];
 
+// simple inverse of matrix part
 	inv.t[0] =  t.t[4]/det;
 	inv.t[1] = -t.t[1]/det;
-	inv.t[2] = (t.t[5]*t.t[1]-t.t[4]*t.t[2])/det;
 	inv.t[3] = -t.t[3]/det;
 	inv.t[4] =  t.t[0]/det;
-	inv.t[5] = (t.t[2]*t.t[3]-t.t[0]*t.t[5])/det;
+
+// apply inverse to translation and negate
+	inv.t[2] = -(inv.t[0]*t.t[2] + inv.t[1]*t.t[5]);
+	inv.t[5] = -(inv.t[3]*t.t[2] + inv.t[4]*t.t[5]);
 }
 
 /* --------------------------------------------------------------- */
