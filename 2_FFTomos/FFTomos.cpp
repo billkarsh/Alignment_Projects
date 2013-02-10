@@ -49,6 +49,7 @@ static char		tifdir[2048],
 static FILE*	frick = NULL;
 static uint16*	ffras[4] = {NULL,NULL,NULL,NULL};
 static double	ffave[4];
+static int		useT[4] = {0,0,0,0};
 static TForm	gT[4];
 static uint32	gW = 0,	gH = 0;		// universal pic dims
 
@@ -108,7 +109,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // Param file:
 // TIFpath=./TIF
 // rick=fullpath
-// chan=0,scale=1,dx=0,dy=0,fullpath
+// chan=0,useAff=T,Aff=[1 0 0 0 1 0],fullpath
 // ... as many as used chans, up to 4
 //
 static void ReadParams()
@@ -141,20 +142,26 @@ static void ReadParams()
 
 	while( LS.Get( f ) > 0 ) {
 
-		double	scl, x, y;
+		double	A[6];
 		int		chan, np;
+		char	cUse;
 
 		// scan parameters
 
-		if( 5 != sscanf( LS.line,
-			"chan=%d,scale=%lf,dx=%lf,dy=%lf,%s",
-			&chan, &scl, &x, &y, buf ) ) {
+		if( 9 != sscanf( LS.line,
+			"chan=%d,useAff=%c,Aff=[%lf%lf%lf%lf%lf%lf],%s",
+			&chan, &cUse,
+			&A[0], &A[1], &A[2], &A[3], &A[4], &A[5],
+			buf ) ) {
 
 			break;
 		}
 
-		fprintf( flog, "chan=%d,scale=%g,dx=%g,dy=%g,%s\n",
-			chan, scl, x, y, buf );
+		fprintf( flog,
+		"chan=%d,useAff=%c,Aff=[%g %g %g %g %g %g],%s\n",
+		chan, cUse,
+		A[0], A[1], A[2], A[3], A[4], A[5],
+		buf );
 
 		// compute FF average
 
@@ -172,8 +179,8 @@ static void ReadParams()
 
 		// compute gT
 
-		gT[chan].NUSetScl( scl );
-		gT[chan].SetXY( x, y );
+		if( useT[chan] = (toupper( cUse ) == 'T') )
+			gT[chan] = TForm( A );
 	}
 
 	fprintf( flog, "\n" );
@@ -250,7 +257,7 @@ static void ProcessRick()
 
 		// apply TForm
 
-		if( gT[chan].t[0] != 1.0 || gT[chan].t[2] || gT[chan].t[5] )
+		if( useT[chan] )
 			MagChannel( ras, gT[chan] );
 
 		// write it out
