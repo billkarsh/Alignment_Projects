@@ -1,5 +1,5 @@
 //
-// "FF tomography images"
+// "FF and scale tomography images"
 //
 // Apply flatfield to all images in a rick file.
 //
@@ -9,6 +9,7 @@
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
+#include	"CTForm.h"
 
 
 /* --------------------------------------------------------------- */
@@ -48,6 +49,7 @@ static char		tifdir[2048],
 static FILE*	frick = NULL;
 static uint16*	ffras[4] = {NULL,NULL,NULL,NULL};
 static double	ffave[4];
+static TForm	gT[4];
 static uint32	gW = 0,	gH = 0;		// universal pic dims
 
 
@@ -106,7 +108,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // Param file:
 // TIFpath=./TIF
 // rick=fullpath
-// chan=0,fullpath
+// chan=0,scale=1,dx=0,dy=0,fullpath
 // ... as many as used chans, up to 4
 //
 static void ReadParams()
@@ -115,27 +117,47 @@ static void ReadParams()
 	CLineScan	LS;
 	char		buf[2048];
 
+// scann the TIF folder path
+
 	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "TIFpath=%s", tifdir ) )
 		exit( 42 );
 	fprintf( flog, "TIFpath=%s\n", tifdir );
+
+// create the FF folder next to it
 
 	strcpy( ffdir, tifdir );
 	char	*s = strrchr( ffdir, '/' );
 	strcpy( s + 1, "FF" );
 	DskCreateDir( ffdir, flog );
 
+// scan rick file name and open it
+
 	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "rick=%s", buf ) )
 		exit( 42 );
 	fprintf( flog, "rick=%s\n", buf );
 	frick = FileOpenOrDie( buf, "r" );
 
+// now for each channel directive
+
 	while( LS.Get( f ) > 0 ) {
 
-		int	chan, np;
+		double	scl, x, y;
+		int		chan, np;
 
-		if( 2 != sscanf( LS.line, "chan=%d,%s", &chan, buf ) )
+		// scan parameters
+
+		if( 5 != sscanf( LS.line,
+			"chan=%d,scale=%lf,dx=%lf,dy=%lf,%s",
+			&chan, &scl, &x, &y, buf ) ) {
+
 			break;
-		fprintf( flog, "chan=%d,%s\n", chan, buf );
+		}
+
+		fprintf( flog, "chan=%d,scale=%g,dx=%g,dy=%g,%s\n",
+			chan, scl, x, y, buf );
+
+		// compute FF average
+
 		ffras[chan] = Raster16FromTif16( buf, gW, gH, flog );
 
 		np = gW * gH;
@@ -147,11 +169,43 @@ static void ReadParams()
 			ffave[chan] += ffras[chan][i];
 		}
 		ffave[chan] /= np;
+
+		// compute gT
+
+		gT[chan].NUSetScl( scl );
+		gT[chan].SetXY( x, y );
 	}
 
 	fprintf( flog, "\n" );
 
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* MagChannel ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void MagChannel( uint16* ras, const TForm &T )
+{
+	int				np = gW * gH;
+	vector<double>	v( np );
+	vector<double>	I( np, 0.0 );
+
+	for( int i = 0; i < np; ++i )
+		v[i] = ras[i];
+
+	for( int i = 0; i < np; ++i ) {
+
+		int		y = i / gW,
+				x = i - gW * y;
+		Point	p( x, y );
+
+		T.Transform( p );
+		DistributePixel( p.x, p.y, v[i], I, gW, gH );
+	}
+
+	for( int i = 0; i < np; ++i )
+		ras[i] = (uint16)I[i];
 }
 
 /* --------------------------------------------------------------- */
@@ -167,7 +221,21 @@ static void ProcessRick()
 
 		char	path[2048], name[256];
 
+		// read an image name
+
 		sscanf( LS.line, "%s", name );
+
+		// get its channel
+
+		char	*s = strrchr( name, '_' );
+		chan = atoi( s + 1 );
+
+		// only interested in given channels
+
+		if( chan < 0 || chan > 3 || !ffras[chan] )
+			continue;
+
+		// now read the image
 
 		sprintf( path, "%s/%s", tifdir, name );
 		uint16*	ras = Raster16FromTif16( path, gW, gH, flog );
@@ -175,18 +243,18 @@ static void ProcessRick()
 		if( !ras )
 			break;
 
-		char	*s = strrchr( name, '_' );
-		chan = atoi( s + 1 );
-
-		if( chan < 0 || chan > 3 || !ffras[chan] ) {
-			fprintf( flog, "Bad chan # [%s]\n", name );
-			goto done_ff;
-		}
+		// flat-field the image
 
 		for( int i = 0; i < np; ++i )
 			ras[i] = uint16(ras[i]*ffave[chan]/ffras[chan][i]);
 
-done_ff:
+		// apply TForm
+
+		if( gT[chan].t[0] != 1.0 || gT[chan].t[2] || gT[chan].t[5] )
+			MagChannel( ras, gT[chan] );
+
+		// write it out
+
 		sprintf( path, "%s/%.*s.FF.tif",
 			ffdir, strlen( name ) - 4, name );
 		Raster16ToTif16( path, ras, gW, gH, flog );
