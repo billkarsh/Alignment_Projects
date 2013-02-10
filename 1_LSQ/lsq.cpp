@@ -1354,14 +1354,16 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 	n = FileNamePtr( R1.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
-		if( col < 56 || col > 68 || row < 55 || row > 67 )
+//		if( col < 56 || col > 68 || row < 55 || row > 67 )
+		if( row > 2 || col > 2 )
 			return true;
 	}
 
 	n = FileNamePtr( R2.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
-		if( col < 56 || col > 68 || row < 55 || row > 67 )
+//		if( col < 56 || col > 68 || row < 55 || row > 67 )
+		if( row > 2 || col > 2 )
 			return true;
 	}
 #endif
@@ -1819,7 +1821,7 @@ static void SolveWithMontageSqr(
 
 		int id = vRgn[i].id;
 
-		if( id == 19000000 ) {
+		if( id == 19001000 ) {
 			jNW = i;
 			++nass;
 		}
@@ -1827,7 +1829,7 @@ static void SolveWithMontageSqr(
 			jNE = i;
 			++nass;
 		}
-		else if( id == 19000149 ) {
+		else if( id == 19001149 ) {
 			jSW = i;
 			++nass;
 		}
