@@ -47,11 +47,12 @@ static FILE*	flog = NULL;
 static char		tifdir[2048],
 				ffdir[2048];
 static FILE*	frick = NULL;
-static uint16*	ffras[4] = {NULL,NULL,NULL,NULL};
-static double	ffave[4];
-static int		useT[4] = {0,0,0,0};
+static uint16*	ffras[4]	= {NULL,NULL,NULL,NULL};
+static double	ffave[4]	= {0,0,0,0};
+static int		useT[4]		= {0,0,0,0};
 static TForm	gT[4];
 static uint32	gW = 0,	gH = 0;		// universal pic dims
+static int		gped = 0;
 
 
 
@@ -109,6 +110,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // Param file:
 // TIFpath=./TIF
 // rick=fullpath
+// ped=0
 // chan=0,useAff=T,Aff=[1 0 0 0 1 0],fullpath
 // ... as many as used chans, up to 4
 //
@@ -137,6 +139,12 @@ static void ReadParams()
 		exit( 42 );
 	fprintf( flog, "rick=%s\n", buf );
 	frick = FileOpenOrDie( buf, "r" );
+
+// pedestal
+
+	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "ped=%d", &gped ) )
+		exit( 42 );
+	fprintf( flog, "ped=%d\n", gped );
 
 // now for each channel directive
 
@@ -169,12 +177,17 @@ static void ReadParams()
 
 		np = gW * gH;
 
-		ffave[chan] = 0;
 		for( int i = 0; i < np; ++i ) {
-			if( ffras[chan][i] <= 0 )
+
+			if( ffras[chan][i] >= gped )
+				ffras[chan][i] -= gped;
+
+			if( ffras[chan][i] == 0 )
 				ffras[chan][i] = 1;
+
 			ffave[chan] += ffras[chan][i];
 		}
+
 		ffave[chan] /= np;
 
 		// compute gT
@@ -252,8 +265,13 @@ static void ProcessRick()
 
 		// flat-field the image
 
-		for( int i = 0; i < np; ++i )
+		for( int i = 0; i < np; ++i ) {
+
+			if( ras[i] >= gped )
+				ras[i] -= gped;
+
 			ras[i] = uint16(ras[i]*ffave[chan]/ffras[chan][i]);
+		}
 
 		// apply TForm
 
