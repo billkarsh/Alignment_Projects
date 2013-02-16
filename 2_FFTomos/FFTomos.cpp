@@ -205,14 +205,11 @@ static void ReadParams()
 /* MagChannel ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#if 0
 static void MagChannel( uint16* ras, const TForm &T )
 {
 	int				np = gW * gH;
-	vector<double>	v( np );
 	vector<double>	I( np, 0.0 );
-
-	for( int i = 0; i < np; ++i )
-		v[i] = ras[i];
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -221,11 +218,38 @@ static void MagChannel( uint16* ras, const TForm &T )
 		Point	p( x, y );
 
 		T.Transform( p );
-		DistributePixel( p.x, p.y, v[i], I, gW, gH );
+		DistributePixel( p.x, p.y, ras[i], I, gW, gH );
 	}
 
 	for( int i = 0; i < np; ++i )
 		ras[i] = (uint16)I[i];
+}
+#endif
+
+static void MagChannel( uint16* ras, const TForm &T )
+{
+	TForm			I;
+	int				np = gW * gH;
+	vector<uint16>	src( np );
+
+	InvertTrans( I, T );
+	memcpy( &src[0], ras, np * sizeof(uint16) );
+
+	for( int i = 0; i < np; ++i ) {
+
+		int		y = i / gW,
+				x = i - gW * y;
+		Point	p( x, y );
+
+		I.Transform( p );
+
+		if( p.x >= 0 && p.x < gW - 1 &&
+			p.y >= 0 && p.y < gH - 1 ) {
+
+			ras[x+gW*y] =
+			(uint16)SafeInterp( p.x, p.y, &src[0], gW, gH );
+		}
+	}
 }
 
 /* --------------------------------------------------------------- */

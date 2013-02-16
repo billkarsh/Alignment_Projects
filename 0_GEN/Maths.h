@@ -198,6 +198,13 @@ double SafeInterp(
 double SafeInterp(
 	double					x,
 	double					y,
+	const uint16*			image,
+	int						w,
+	int						h );
+
+double SafeInterp(
+	double					x,
+	double					y,
 	const double*			image,
 	int						w,
 	int						h );
