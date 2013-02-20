@@ -49,6 +49,9 @@ static char		tifdir[2048],
 static FILE*	frick = NULL;
 static uint16*	ffras[4]	= {NULL,NULL,NULL,NULL};
 static double	ffave[4]	= {0,0,0,0};
+static double	ffstd[4]	= {0,0,0,0};
+static int		fford[4]	= {0,0,0,0};
+static int		ffoff[4]	= {0,0,0,0};
 static int		useT[4]		= {0,0,0,0};
 static TForm	gT[4];
 static uint32	gW = 0,	gH = 0;		// universal pic dims
@@ -114,6 +117,9 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // chan=0,useAff=T,Aff=[1 0 0 0 1 0],fullpath
 // ... as many as used chans, up to 4
 //
+// If fullpath for flat-field has form LEG:order:offset:mean:std
+// then Legendre polys are used instead of external file.
+//
 static void ReadParams()
 {
 	FILE*		f = FileOpenOrDie( gArgs.prmfile, "r" );
@@ -171,24 +177,39 @@ static void ReadParams()
 		A[0], A[1], A[2], A[3], A[4], A[5],
 		buf );
 
-		// compute FF average
+		// determine FF method
 
-		ffras[chan] = Raster16FromTif16( buf, gW, gH, flog );
+		if( 4 == sscanf( buf, "LEG:%d:%d:%lf:%lf",
+			&fford[chan], &ffoff[chan],
+			&ffave[chan], &ffstd[chan] ) ) {
 
-		np = gW * gH;
+			fprintf( flog, "ff chan %d using LEG [%d,%d,%g,%g].\n",
+			chan,
+			fford[chan], ffoff[chan],
+			ffave[chan], ffstd[chan] );
 
-		for( int i = 0; i < np; ++i ) {
-
-			if( ffras[chan][i] >= gped )
-				ffras[chan][i] -= gped;
-
-			if( ffras[chan][i] == 0 )
-				ffras[chan][i] = 1;
-
-			ffave[chan] += ffras[chan][i];
 		}
+		else {
 
-		ffave[chan] /= np;
+			// external file: compute FF average
+
+			ffras[chan] = Raster16FromTif16( buf, gW, gH, flog );
+
+			np = gW * gH;
+
+			for( int i = 0; i < np; ++i ) {
+
+				if( ffras[chan][i] >= gped )
+					ffras[chan][i] -= gped;
+
+				if( ffras[chan][i] == 0 )
+					ffras[chan][i] = 1;
+
+				ffave[chan] += ffras[chan][i];
+			}
+
+			ffave[chan] /= np;
+		}
 
 		// compute gT
 
@@ -199,6 +220,58 @@ static void ReadParams()
 	fprintf( flog, "\n" );
 
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* FFChannel ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FFChannel( uint16* ras, int chan )
+{
+	int	np = gW * gH;
+
+	if( ffras[chan] ) {
+
+		// external file
+
+		for( int i = 0; i < np; ++i ) {
+
+			if( ras[i] >= gped )
+				ras[i] -= gped;
+
+			ras[i] = uint16(ras[i]*ffave[chan]/ffras[chan][i]);
+		}
+	}
+	else {
+
+		// ped subtract
+
+		for( int i = 0; i < np; ++i ) {
+
+			if( ras[i] >= gped )
+				ras[i] -= gped;
+		}
+
+		// Legendre polys
+
+		vector<double>	V;
+
+		LegPolyFlatten( V, ras, gW, gH, fford[chan], ffoff[chan] );
+
+		// rescale to given mean, stddev
+
+		for( int i = 0; i < np; ++i ) {
+
+			int	pix = int(ffave[chan] + V[i] * ffstd[chan]);
+
+			if( pix < 0 )
+				pix = 0;
+			else if( pix > 65535 )
+				pix = 65535;
+
+			ras[i] = pix;
+		}
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -276,7 +349,7 @@ static void ProcessRick()
 
 		// only interested in given channels
 
-		if( chan < 0 || chan > 3 || !ffras[chan] )
+		if( chan < 0 || chan > 3 )
 			continue;
 
 		// now read the image
@@ -289,13 +362,7 @@ static void ProcessRick()
 
 		// flat-field the image
 
-		for( int i = 0; i < np; ++i ) {
-
-			if( ras[i] >= gped )
-				ras[i] -= gped;
-
-			ras[i] = uint16(ras[i]*ffave[chan]/ffras[chan][i]);
-		}
+		FFChannel( ras, chan );
 
 		// apply TForm
 

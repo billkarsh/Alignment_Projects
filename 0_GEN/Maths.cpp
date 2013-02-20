@@ -983,6 +983,116 @@ void LegPolyFlatten(
 /* LegPolyFlatten ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+// Project all src pixels onto low order Legendre polynomials
+// and remove those components. Place results in vals.
+//
+void LegPolyFlatten(
+	vector<double>		&vals,
+	const uint16*		src,
+	int					w,
+	int					h,
+	int					maxOrder,
+	int					offset )
+{
+// Copy indicated points to vals and make value hist
+
+	vector<uint32>	hist( 65536, 0 );
+	int				npts = w * h, thresh = 0;
+
+	vals.resize( npts );
+
+	for( int i = 0; i < npts; ++i ) {
+
+		vals[i] = src[i];
+		++hist[src[i]];
+	}
+
+// Threshold for fitting poly = mode + offset
+
+	uint32	pk = hist[0];
+
+	for( int i = 1; i < 65536; ++i ) {
+
+		if( hist[i] > pk ) {
+			thresh	= i;
+			pk		= hist[i];
+		}
+	}
+
+	thresh += offset;
+
+// Correct vals
+
+	if( maxOrder > 0 ) {
+
+		// Create Legendre basis polynomials
+
+		vector<vector<double> > xpolys;
+		vector<vector<double> > ypolys;
+
+		LegPolyCreate( xpolys, maxOrder, w );
+		LegPolyCreate( ypolys, maxOrder, h );
+
+		// Remove projections onto polys up to maxOrder
+
+		for( int xo = 0; xo <= maxOrder; ++xo ) {
+
+			const double*	XP = &xpolys[xo][0];
+
+			for( int yo = 0; yo <= maxOrder; ++yo ) {
+
+				// the (0,0) term is just normalization
+				// which we do later anyway
+
+				if( xo + yo == 0 )
+					continue;
+
+				const double*	YP = &ypolys[yo][0];
+
+				// get projection coefficient
+
+				double	coef = 0.0, norm = 0.0;
+
+				for( int i = 0; i < npts; ++i ) {
+
+					if( src[i] <= thresh ) {
+
+						int		y = i / w,
+								x = i - w * y;
+						double	F = XP[x] * YP[y];
+
+						coef	+= F * vals[i];
+						norm	+= F * F;
+					}
+				}
+
+				coef /= norm;
+
+				//printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
+				//	xo, yo, coef );
+
+				// now remove that component
+
+				for( int i = 0; i < npts; ++i ) {
+
+					int		y = i / w,
+							x = i - w * y;
+
+					vals[i] -= coef * XP[x] * YP[y];
+				}
+			}
+		}
+	}
+
+// Final normalization
+
+	Normalize( vals );
+}
+
+/* --------------------------------------------------------------- */
+/* LegPolyFlatten ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
 // Project src pixels (those in pts list) onto low order Legendre
 // polynomials and remove those components. Place results in vals.
 //

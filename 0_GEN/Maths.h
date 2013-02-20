@@ -151,6 +151,14 @@ void LegPolyFlatten(
 
 void LegPolyFlatten(
 	vector<double>		&vals,
+	const uint16*		src,
+	int					w,
+	int					h,
+	int					maxOrder,
+	int					offset );
+
+void LegPolyFlatten(
+	vector<double>		&vals,
 	const vector<Point>	&pts,
 	const uint8*		src,
 	int					w,
