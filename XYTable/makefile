@@ -22,7 +22,7 @@ SOURCES_MYPROJ := \
 	xytable.cpp
 
 _SRC_GEN_ := \
-	Cmdline.cpp File.cpp CTForm.cpp
+	Cmdline.cpp File.cpp TAffine.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

@@ -44,7 +44,7 @@ class ConnRegion_old { // a connected region
 		       // to reconstruct the image
    int dx, dy;          // deltas to make it line up with image 2
    IBox B; // bounding box in original image
-   TForm trans;  // transform that maps into image2
+   TAffine trans;  // transform that maps into image2
    double corr;  // the correlation we got on this piece
    };
 
@@ -59,7 +59,7 @@ class ConnRegion_old { // a connected region
 // the array image2.
 // returns the best correlation obtained.
 double ImproveCorrelation(vector<Point> &Plist, vector<double> &spv, vector<double>image2,
- int dx, int dy, TForm &t, FILE *flog)
+ int dx, int dy, TAffine &t, FILE *flog)
 {
 printf("Contains %d pixels\n", Plist.size() );
 Normalize(spv);
@@ -88,7 +88,7 @@ for(double step=1; step > 0.05; ) {
     printf(" %f %f %f %f %f %f: correlation %f\n",
      t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5], start);
     best_so_far = start;
-    TForm tbest;  // best transform found
+    TAffine tbest;  // best transform found
     int bdir = -1;  // flag to tell what the best direction is
 
     // make steps of this size until no more improvement
@@ -100,7 +100,7 @@ for(double step=1; step > 0.05; ) {
 	double sx = step*dvx/norm;  // direction sin()
 	double sy = step*dvy/norm;
 	printf("step is %f %f\n", sx, sy);
-	TForm t2( t );
+	TAffine t2( t );
 	t2.AddXY( sx, sy );
 	Tpoints = Plist;   //   Start with locs in source
 	t2.Transform( Tpoints );            // Transform to locations in target
@@ -119,9 +119,9 @@ for(double step=1; step > 0.05; ) {
 
     for(int rot = -1; rot<2; rot += 2) {  // try two rotations, too
 
-    TForm	t2, R;
-    CreateCWRot( R, rot * step, cog );
-    MultiplyTrans( t2, R, t );
+    TAffine	t2, R;
+    R.SetCWRot( rot * step, cog );
+    t2 = R * t;
 
 	vector<Point> Tpoints = Plist;   //   Start with locs in source
 	t2.Transform( Tpoints );            // Transform to locations in target
@@ -221,7 +221,7 @@ vp[i].tr.Transform( delta );        vp[i].tr.Transform( zero );
 // make the fix in global space, since this is where the tr[2] and [5] are applied
 vp[j].tr.AddXY( delta.x - zero.x, delta.y - zero.y );
 printf("deltas in global image space %f %f\n", delta.x-zero.x, delta.y-zero.y);
-InvertTrans(vp[j].Inverse, vp[j].tr);  // Recompute j's inverse
+vp[j].Inverse.InverseOf( vp[j].tr );
 }
 
 // are two images neighbors?  .  If pass 2, just tell if they overlap by at last half in
@@ -416,7 +416,7 @@ double scale = i1.Dist( i2 ) / j1.Dist( j2 );
 double ai = atan2(i2.y-i1.y, i2.x-i1.x);
 double aj = atan2(j2.y-j1.y, j2.x-j1.x);
 printf("Scale %f, angle %f radians, distance %f\n", scale, ai-aj, i1.Dist( i2 ) );
-TForm tf(
+TAffine tf(
 	scale*cos(ai-aj),
 	scale*(-sin(ai-aj)),
 	0.0,
@@ -441,7 +441,7 @@ tf.Transform( p1 );
 tf.Transform( p2 );
 printf(" Closure data: corners map to (%f %f) (%f %f)\n", p1.x, p1.y, p2.x, p2.y);
 vp[j].tr.CopyIn( tf );
-InvertTrans(vp[j].Inverse, tf);
+vp[j].Inverse.InverseOf( tf );
 }
 
 // Point Pi in image i should align with point Pj in image j.  i < j.  Direction 'unconstrained'
@@ -659,8 +659,8 @@ vector<double> rhs;
 for(int i=0; i<vp.size(); i++) {
     for(int j=i+1; j<vp.size(); j++) {
 	printf("\nChecking %d to %d\n", i, j);
-        printf(" Initial transform %d:", i); vp[i].tr.PrintTransform();
-        printf(" Initial transform %d:", j); vp[j].tr.PrintTransform();
+        printf(" Initial transform %d: ", i); vp[i].tr.TPrint();
+        printf(" Initial transform %d: ", j); vp[j].tr.TPrint();
         // transform jth image's bounding box to ith image coords, just for fun
         Point bb1(0.0,0.0); Point bb2(vp[j].w, vp[j].h);
 	vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
@@ -715,7 +715,7 @@ if( ns > 0 ) {
     }
 for(int j=1; j<vp.size(); j++) {
     vp[j].tr.CopyIn( &x[(j-1)*6] );
-    InvertTrans(vp[j].Inverse, vp[j].tr);
+    vp[j].Inverse.InverseOf( vp[j].tr );
     }
 //fclose(feq);
 //
@@ -1110,8 +1110,8 @@ else {
 	exit( 42 );
 	}
     printf("OK, will open '%s' on layer %d\n\n", vp[bp].fname.c_str(), vp[bp].z);
-    vp[i].tr.WriteTransform( stdout, "First  " );
-    vp[bp].tr.WriteTransform( stdout, "Second " );
+    vp[i].tr.TPrint(  stdout, "First  " );
+    vp[bp].tr.TPrint( stdout, "Second " );
     strcpy(fname2, vp[bp].fname.c_str());
     }
 
@@ -1121,7 +1121,7 @@ sort(below.begin(), below.end());
 for(int j=0; j<above.size(); j++) {
     printf("Above: z=%d, overlap=%f\n", above[j].z, above[j].overlap);
     above[j].raster = Raster8FromTif(above[j].fname.c_str(), above[j].w, above[j].h, flog);
-    InvertTrans(above[j].Inverse, above[j].tr);
+    above[j].Inverse.InverseOf( above[j].tr );
     }
 if( above.size() > 1 ) {
     printf("--------- Aligning image above ------\n");
@@ -1133,7 +1133,7 @@ if( above.size() > 1 ) {
 for(int j=0; j<below.size(); j++) {
     printf("Below: z=%d, overlap=%f\n", below[j].z, below[j].overlap);
     below[j].raster = Raster8FromTif(below[j].fname.c_str(), below[j].w, below[j].h, flog);
-    InvertTrans(below[j].Inverse, below[j].tr);
+    below[j].Inverse.InverseOf( below[j].tr );
     }
 if( below.size() > 1 ) {
     printf("--------- Aligning image below ------\n");
@@ -1307,8 +1307,8 @@ if (invert)  {
         }
     int oxmin = BIG, oxmax = -BIG, oymin = BIG, oymax = -BIG;
     // copy each chunk to the output, using the relationship to bc
-    TForm inv_big;
-    InvertTrans(inv_big, cr[bc].trans);  // find the inverse of the biggest region transform
+    TAffine inv_big;
+    inv_big.InverseOf( cr[bc].trans );
     printf(
     "Inverse transform is %9.4f %9.4f %10.2f\n"
     "                     %9.4f %9.4f %10.2f\n",
@@ -1341,8 +1341,7 @@ if (invert)  {
 	int ox = cr[k].dx - cr[bc].dx;   // the offsets
 	int oy = cr[k].dy - cr[bc].dy;
         printf("Copy chunk %d with offset [%d,%d]\n", k, ox, oy);
-        TForm tf;
-        MultiplyTrans(tf, inv_big, cr[k].trans);
+        TAffine tf = inv_big * cr[k].trans;
         printf(
         "True transform is %9.4f %9.4f %10.2f\n"
         "                  %9.4f %9.4f %10.2f\n",

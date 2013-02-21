@@ -37,7 +37,7 @@ _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp File.cpp \
 	TrakEM2_UTL.cpp CTileSet.cpp ImageIO.cpp \
 	Maths.cpp Correlation.cpp CPoint.cpp \
-	Geometry.cpp CTForm.cpp Scape.cpp \
+	Geometry.cpp TAffine.cpp Scape.cpp \
 	CThmScan.cpp Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \

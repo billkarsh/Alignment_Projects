@@ -6,7 +6,7 @@
 #include	"FoldMask.h"
 
 #include	"CPixPair.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -14,12 +14,12 @@
 /* --------------------------------------------------------------- */
 
 bool ApproximateMatch_NoCR(
-	vector<TForm>	&guesses,
+	vector<TAffine>	&guesses,
 	const PixPair	&px,
 	FILE*			flog );
 
 bool ApproximateMatch(
-	vector<TForm>		&guesses,
+	vector<TAffine>		&guesses,
 	const PixPair		&px,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,

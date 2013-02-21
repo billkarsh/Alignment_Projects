@@ -169,7 +169,7 @@ static void Bounds(
 		if( itr < 0 )
 			continue;
 
-		TForm			T( &X[itr * 6] );
+		TAffine			T( &X[itr * 6] );
 		vector<Point>	pts( 4 );
 
 		pts[0] = Point( Boxes[itr].xmin, Boxes[itr].ymin );
@@ -226,7 +226,7 @@ static void Bounds(
 		if( itr < 0 )
 			continue;
 
-		TForm			T( &X[itr * 6] );
+		TAffine			T( &X[itr * 6] );
 		vector<Point>	pts( 4 );
 		double			xmid = 0.0, ymid = 0.0;
 

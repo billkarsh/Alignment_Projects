@@ -18,7 +18,7 @@ class CGBL_Thumbs {
 
 private:
 	typedef struct {
-		vector<TForm>	Tdfm,
+		vector<TAffine>	Tdfm,
 						Tab;
 		double			SCALE,
 						XSCALE,
@@ -40,7 +40,7 @@ public:
 	} DriverArgs;
 
 	typedef struct {
-		TForm	Tdfm;
+		TAffine	Tdfm;
 		double	XYCONF,
 				NBMXHT,
 				HFANGDN,
@@ -63,7 +63,7 @@ private:
 
 public:
 	DriverArgs		arg;
-	TForm			Tab;	// start thumbs here
+	TAffine			Tab;	// start thumbs here
 	MatchParams		mch;
 	CntxtDep		ctx;
 	string			idb;

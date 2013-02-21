@@ -1,7 +1,7 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<math.h>
 
@@ -73,7 +73,7 @@
 /* --------------------------------------------------------------- */
 
 // pos a enlarges
-void TForm::NUSetScl( double a )
+void TAffine::NUSetScl( double a )
 {
 	t[0] = a; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = a; t[5] = 0;
@@ -81,7 +81,7 @@ void TForm::NUSetScl( double a )
 
 
 // pos a enlarges
-void TForm::NUSetXScl( double a )
+void TAffine::NUSetXScl( double a )
 {
 	t[0] = a; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = 1; t[5] = 0;
@@ -89,7 +89,7 @@ void TForm::NUSetXScl( double a )
 
 
 // pos a enlarges
-void TForm::NUSetYScl( double a )
+void TAffine::NUSetYScl( double a )
 {
 	t[0] = 1; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = a; t[5] = 0;
@@ -97,7 +97,7 @@ void TForm::NUSetYScl( double a )
 
 
 // pos a tips right
-void TForm::NUSetXSkw( double a )
+void TAffine::NUSetXSkw( double a )
 {
 	t[0] = 1; t[1] = a; t[2] = 0;
 	t[3] = 0; t[4] = 1; t[5] = 0;
@@ -105,7 +105,7 @@ void TForm::NUSetXSkw( double a )
 
 
 // pos a tips up
-void TForm::NUSetYSkw( double a )
+void TAffine::NUSetYSkw( double a )
 {
 	t[0] = 1; t[1] = 0; t[2] = 0;
 	t[3] = a; t[4] = 1; t[5] = 0;
@@ -113,7 +113,7 @@ void TForm::NUSetYSkw( double a )
 
 
 // pos r rotates CW
-void TForm::NUSetRot( double r )
+void TAffine::NUSetRot( double r )
 {
 	double	c = cos( r ), s = sin( r );
 
@@ -122,14 +122,14 @@ void TForm::NUSetRot( double r )
 }
 
 
-void TForm::NUSelect( int sel, double a )
+void TAffine::NUSelect( int sel, double a )
 {
 	switch( sel ) {
-		case tfnuXScl:	NUSetXScl( a );	break;
-		case tfnuYScl:	NUSetYScl( a );	break;
-		case tfnuXSkw:	NUSetXSkw( a );	break;
-		case tfnuYSkw:	NUSetYSkw( a );	break;
-		case tfnuRot:	NUSetRot( a );	break;
+		case tafnuXScl:	NUSetXScl( a );	break;
+		case tafnuYScl:	NUSetYScl( a );	break;
+		case tafnuXSkw:	NUSetXSkw( a );	break;
+		case tafnuYSkw:	NUSetYSkw( a );	break;
+		case tafnuRot:	NUSetRot( a );	break;
 		default:		NUSetScl( a );	break;
 	}
 }
@@ -141,14 +141,14 @@ void TForm::NUSelect( int sel, double a )
 // Conventionalized compounding of deformations.
 // Tdfm = Scale.(Yskew.Xskew)
 //
-void TForm::ComposeDfm(
+void TAffine::ComposeDfm(
 	double	scl,
 	double	xscl,
 	double	yscl,
 	double	xskw,
 	double	yskw )
 {
-	TForm	S, Y, X, YX;
+	TAffine	S, Y, X;
 
 	X.NUSetXSkw( xskw );
 	Y.NUSetYSkw( yskw );
@@ -156,8 +156,110 @@ void TForm::ComposeDfm(
 	S.t[0] = xscl*scl; S.t[1] = 0;        S.t[2] = 0;
 	S.t[3] = 0;        S.t[4] = yscl*scl; S.t[5] = 0;
 
-	MultiplyTrans( YX, Y, X );
-	MultiplyTrans( *this, S, YX );
+	*this = S * (Y * X);
+}
+
+/* --------------------------------------------------------------- */
+/* SetCWRot ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Set a transform that performs a CW rotation of deg degrees
+// about the given pivot point (remember +deg is CW).
+//
+// That is, A' = piv + R(A-piv) = R(A) + piv - R(piv).
+//
+void TAffine::SetCWRot( double deg, const Point &pivot )
+{
+	Point	Prot = pivot;
+
+	NUSetRot( deg*PI/180 );
+	Apply_R_Part( Prot );
+	AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
+}
+
+/* --------------------------------------------------------------- */
+/* FromAToB ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Compute TAffine [atob = binv*a] from global TForms a, b.
+//
+void TAffine::FromAToB( const TAffine &a, const TAffine &b )
+{
+	TAffine	binv;
+
+	binv.InverseOf( b );
+	*this = binv * a;
+}
+
+/* --------------------------------------------------------------- */
+/* InverseOf ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void TAffine::InverseOf( const TAffine &a )
+{
+	double	det = a.t[0]*a.t[4] - a.t[1]*a.t[3];
+
+// simple inverse of matrix part
+	t[0] =  a.t[4]/det;
+	t[1] = -a.t[1]/det;
+	t[3] = -a.t[3]/det;
+	t[4] =  a.t[0]/det;
+
+// apply inverse to translation and negate
+	t[2] = -(t[0]*a.t[2] + t[1]*a.t[5]);
+	t[5] = -(t[3]*a.t[2] + t[4]*a.t[5]);
+}
+
+/* --------------------------------------------------------------- */
+/* oprator_* ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+TAffine TAffine::operator * ( const TAffine& rhs ) const
+{
+	TAffine	r;
+
+	r.t[0] = this->t[0]*rhs.t[0]+this->t[1]*rhs.t[3];
+	r.t[1] = this->t[0]*rhs.t[1]+this->t[1]*rhs.t[4];
+	r.t[2] = this->t[0]*rhs.t[2]+this->t[1]*rhs.t[5]+this->t[2];
+	r.t[3] = this->t[3]*rhs.t[0]+this->t[4]*rhs.t[3];
+	r.t[4] = this->t[3]*rhs.t[1]+this->t[4]*rhs.t[4];
+	r.t[5] = this->t[3]*rhs.t[2]+this->t[4]*rhs.t[5]+this->t[5];
+
+	return r;
+}
+
+/* --------------------------------------------------------------- */
+/* ScanTrackEM2 -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void TAffine::ScanTrackEM2( const char *s )
+{
+	sscanf( s, "matrix(%lf,%lf,%lf,%lf,%lf,%lf",
+		&t[0], &t[3], &t[1], &t[4], &t[2], &t[5] );
+}
+
+/* --------------------------------------------------------------- */
+/* TPrint -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void TAffine::TPrint( FILE *f, const char *s ) const
+{
+	if( !f )
+		f = stdout;
+
+	fprintf( f, "%s%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
+		(s ? s : ""), t[0], t[1], t[2], t[3], t[4], t[5] );
+}
+
+/* --------------------------------------------------------------- */
+/* TPrintAsParam ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void TAffine::TPrintAsParam( FILE *f, bool newline ) const
+{
+	fprintf( f, " -TRA=%.4f,%.4f,%.2f,%.4f,%.4f,%.2f%c",
+		t[0], t[1], t[2], t[3], t[4], t[5],
+		(newline ? '\n' : ' ') );
 }
 
 /* --------------------------------------------------------------- */
@@ -168,7 +270,7 @@ void TForm::ComposeDfm(
 //
 // Method follows Geometry::AreaOfPolygon().
 //
-double TForm::EffArea() const
+double TAffine::EffArea() const
 {
 	vector<Point>	v;
 
@@ -193,168 +295,7 @@ double TForm::EffArea() const
 }
 
 /* --------------------------------------------------------------- */
-/* Transform ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void TForm::Transform( Point &p ) const
-{
-	double	x = p.x*t[0] + p.y*t[1] + t[2];
-	double	y = p.x*t[3] + p.y*t[4] + t[5];
-
-	p.x = x;
-	p.y = y;
-}
-
-
-void TForm::Transform( vector<Point> &v ) const
-{
-	int		N = v.size();
-
-	for( int i = 0; i < N; ++i )
-		Transform( v[i] );
-}
-
-/* --------------------------------------------------------------- */
-/* Apply_R_Part -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// If transform T(p) is represented as R(p) + V,
-// then here we apply R(p) without V.
-//
-void TForm::Apply_R_Part( Point &p ) const
-{
-	double	x = p.x*t[0] + p.y*t[1];
-	double	y = p.x*t[3] + p.y*t[4];
-
-	p.x = x;
-	p.y = y;
-}
-
-
-void TForm::Apply_R_Part( vector<Point> &v ) const
-{
-	int		N = v.size();
-
-	for( int i = 0; i < N; ++i )
-		Apply_R_Part( v[i] );
-}
-
-/* --------------------------------------------------------------- */
-/* ScanTrackEM2 -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void TForm::ScanTrackEM2( const char *s )
-{
-	sscanf( s, "matrix(%lf,%lf,%lf,%lf,%lf,%lf",
-		&t[0], &t[3], &t[1], &t[4], &t[2], &t[5] );
-}
-
-/* --------------------------------------------------------------- */
-/* WriteTransform ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-void TForm::WriteTransform( FILE *f, const char *s ) const
-{
-	fprintf( f,
-	"%s %9.4f %9.4f %10.2f\n"
-	"%s %9.4f %9.4f %10.2f\n",
-	s, t[0], t[1], t[2],
-	s, t[3], t[4], t[5] );
-}
-
-/* --------------------------------------------------------------- */
-/* PrintTransform ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-void TForm::PrintTransform( FILE *f ) const
-{
-	if( !f )
-		f = stdout;
-
-	fprintf( f, "%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
-		t[0], t[1], t[2], t[3], t[4], t[5] );
-}
-
-/* --------------------------------------------------------------- */
-/* PrintTransformAsParam ----------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void TForm::PrintTransformAsParam( FILE *f, bool newline ) const
-{
-	fprintf( f, " -TRA=%.4f,%.4f,%.2f,%.4f,%.4f,%.2f%c",
-		t[0], t[1], t[2], t[3], t[4], t[5],
-		(newline ? '\n' : ' ') );
-}
-
-/* --------------------------------------------------------------- */
-/* InvertTrans --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void InvertTrans( TForm &inv, const TForm &t )
-{
-	double	det = t.t[0]*t.t[4] - t.t[1]*t.t[3];
-
-// simple inverse of matrix part
-	inv.t[0] =  t.t[4]/det;
-	inv.t[1] = -t.t[1]/det;
-	inv.t[3] = -t.t[3]/det;
-	inv.t[4] =  t.t[0]/det;
-
-// apply inverse to translation and negate
-	inv.t[2] = -(inv.t[0]*t.t[2] + inv.t[1]*t.t[5]);
-	inv.t[5] = -(inv.t[3]*t.t[2] + inv.t[4]*t.t[5]);
-}
-
-/* --------------------------------------------------------------- */
-/* MultiplyTrans ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Compute r = a*b
-//
-void MultiplyTrans( TForm &r, const TForm &a, const TForm &b )
-{
-	r.t[0] = a.t[0]*b.t[0]+a.t[1]*b.t[3];
-	r.t[1] = a.t[0]*b.t[1]+a.t[1]*b.t[4];
-	r.t[2] = a.t[0]*b.t[2]+a.t[1]*b.t[5]+a.t[2];
-	r.t[3] = a.t[3]*b.t[0]+a.t[4]*b.t[3];
-	r.t[4] = a.t[3]*b.t[1]+a.t[4]*b.t[4];
-	r.t[5] = a.t[3]*b.t[2]+a.t[4]*b.t[5]+a.t[5];
-}
-
-/* --------------------------------------------------------------- */
-/* AToBTrans ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Compute TForm [atob = binv*a] from global TForms a, b.
-//
-void AToBTrans( TForm &atob, const TForm &a, const TForm &b )
-{
-	TForm	binv;
-
-	InvertTrans( binv, b );
-	MultiplyTrans( atob, binv, a );
-}
-
-/* --------------------------------------------------------------- */
-/* CreateCWRotation ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Create a transform that performs a CW rotation of deg degrees
-// about the given pivot point (remember +deg is CW).
-//
-// That is, A' = piv + R(A-piv) = R(A) + piv - R(piv).
-//
-void CreateCWRot( TForm &R, double deg, const Point &pivot )
-{
-	Point	Prot = pivot;
-
-	R.NUSetRot( deg*PI/180 );
-	R.Apply_R_Part( Prot );
-	R.AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
-}
-
-/* --------------------------------------------------------------- */
-/* RadiansFromAffine --------------------------------------------- */
+/* GetRadians ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // A general affine may include (ignoring reflection here),
@@ -366,13 +307,13 @@ void CreateCWRot( TForm &R, double deg, const Point &pivot )
 // Method (adapted from "Graphics Gems IV", section III.4,
 // by Ken Shoemake).
 //
-// From TForm's matrix-part P = R( a ), iteratively compute
+// From TAffine's matrix-part P = R( a ), iteratively compute
 // N = (P + Trp(Inv(P)) / 2, until max element-wise change
 // in (N - P) is tiny.
 //
-double RadiansFromAffine( const TForm &a )
+double TAffine::GetRadians() const
 {
-	double	P[4] = {a.t[0], a.t[1], a.t[3], a.t[4]};
+	double	P[4] = {t[0], t[1], t[3], t[4]};
 
 	for( int iter = 0; iter < 100; ++iter ) {
 
@@ -407,7 +348,54 @@ double RadiansFromAffine( const TForm &a )
 
 // fall back on standard crude estimator
 
-	return atan2( a.t[3], a.t[0] );
+	return atan2( t[3], t[0] );
+}
+
+/* --------------------------------------------------------------- */
+/* Transform ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void TAffine::Transform( Point &p ) const
+{
+	double	x = p.x*t[0] + p.y*t[1] + t[2];
+	double	y = p.x*t[3] + p.y*t[4] + t[5];
+
+	p.x = x;
+	p.y = y;
+}
+
+
+void TAffine::Transform( vector<Point> &v ) const
+{
+	int		N = v.size();
+
+	for( int i = 0; i < N; ++i )
+		Transform( v[i] );
+}
+
+/* --------------------------------------------------------------- */
+/* Apply_R_Part -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// If transform T(p) is represented as R(p) + V,
+// then here we apply R(p) without V.
+//
+void TAffine::Apply_R_Part( Point &p ) const
+{
+	double	x = p.x*t[0] + p.y*t[1];
+	double	y = p.x*t[3] + p.y*t[4];
+
+	p.x = x;
+	p.y = y;
+}
+
+
+void TAffine::Apply_R_Part( vector<Point> &v ) const
+{
+	int		N = v.size();
+
+	for( int i = 0; i < N; ++i )
+		Apply_R_Part( v[i] );
 }
 
 

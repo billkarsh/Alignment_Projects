@@ -50,8 +50,8 @@
 static void CalcTransforms(
 	uint16*			&rmap,
 	int				&Ntrans,
-	TForm*			&tfs,
-	TForm*			&ifs,
+	TAffine*		&tfs,
+	TAffine*		&ifs,
 	const PixPair	&px )
 {
 	char		sfile[256];
@@ -118,8 +118,8 @@ static void CalcTransforms(
 /* Convert tform arrays to objects */
 /* ------------------------------- */
 
-	tfs = new TForm[Ntrans];
-	ifs = new TForm[Ntrans];
+	tfs = new TAffine[Ntrans];
+	ifs = new TAffine[Ntrans];
 
 	if( GBL.mch.WTT ) {
 
@@ -144,10 +144,10 @@ static void CalcTransforms(
 
 		// now convert to our format
 		tfs[i].FromMatlab();
-		InvertTrans( ifs[i], tfs[i] );
+		ifs[i].InverseOf( tfs[i] );
 
-		printf( "main: Transform %3d:", i );
-		tfs[i].PrintTransform();
+		printf( "main: Transform %3d: ", i );
+		tfs[i].TPrint();
 	}
 
 	printf( "\n" );
@@ -163,34 +163,33 @@ static void CalcTransforms(
 /* Decomp -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Decomp( const TForm &T, const char *label )
+static void Decomp( const TAffine &T, const char *label )
 {
-	printf( "main: %s:", label );
-	T.PrintTransform();
+	printf( "main: %s: ", label );
+	T.TPrint();
 
-	double	r = RadiansFromAffine( T );
-	TForm	R, D;
+	double	r = T.GetRadians();
+	TAffine	R, D;
 
 	R.NUSetRot( -r );
-	MultiplyTrans( D, R, T );
+	D = R * T;
 
-	printf( "main: Degrees: %g\n", r*180/PI );
-	printf( "main: Residue:" );
-	D.PrintTransform();
+	printf(           "main: Degrees: %g\n", r*180/PI );
+	D.TPrint( stdout, "main: Residue: " );
 
 	printf( "\n" );
 }
 
 /* --------------------------------------------------------------- */
-/* ReportAveTForm ------------------------------------------------ */
+/* ReportAveTAffine ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void ReportAveTForm( int Ntrans, const TForm* tfs )
+static void ReportAveTAffine( int Ntrans, const TAffine* tfs )
 {
 	if( !Ntrans )
 		return;
 
-	TForm	I, T = tfs[0];
+	TAffine	I, T = tfs[0];
 
 	if( Ntrans > 1 ) {
 
@@ -207,7 +206,7 @@ static void ReportAveTForm( int Ntrans, const TForm* tfs )
 	T.t[2] = T.t[5] = 0.0;
 
 	Decomp( T, "Average" );
-	InvertTrans( I, T );
+	I.InverseOf( T );
 	Decomp( I, "Inverse" );
 }
 
@@ -230,11 +229,11 @@ int main( int argc, char* argv[] )
 /* Get images */
 /* ---------- */
 
-	PixPair	px;
-	uint16*	rmap	= NULL;
-	TForm*	tfs		= NULL;
-	TForm*	ifs		= NULL;
-	int		Ntrans	= 0;
+	PixPair		px;
+	uint16*		rmap	= NULL;
+	TAffine*	tfs		= NULL;
+	TAffine*	ifs		= NULL;
+	int			Ntrans	= 0;
 
 	if( !px.Load(
 			GBL.A.t2i.path.c_str(),
@@ -290,7 +289,7 @@ int main( int argc, char* argv[] )
 
 	CalcTransforms( rmap, Ntrans, tfs, ifs, px );
 
-	ReportAveTForm( Ntrans, tfs );
+	ReportAveTAffine( Ntrans, tfs );
 
 /* ----------- */
 /* Diagnostics */

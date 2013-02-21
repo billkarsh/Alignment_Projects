@@ -5,7 +5,7 @@
 
 #include	"GenDefs.h"
 #include	"CPixPair.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -16,13 +16,13 @@ void ABOverlay(
 	const PixPair	&px,
 	const uint16*	rmap,
 	int				Ntrans,
-	const TForm*	tfs,
-	const TForm*	ifs );
+	const TAffine*	tfs,
+	const TAffine*	ifs );
 
 void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
-	const TForm*	tfs,
+	const TAffine*	tfs,
 	bool			heatmap );
 
 

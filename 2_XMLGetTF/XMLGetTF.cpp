@@ -1,12 +1,12 @@
 //
-// Get TFormTable in given z range.
+// Get TAffineTable in given z range.
 //
 
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -133,23 +133,23 @@ int CArgs_xml::IDFromPatch( TiXmlElement* p )
 }
 
 /* --------------------------------------------------------------- */
-/* GetSortedTForms ----------------------------------------------- */
+/* GetSortedTAffines --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 class TS {
 // Use for sorting TForms
 public:
-	TForm	T;
+	TAffine	T;
 	int		id;
 public:
-	TS( int _i, TForm &_T )	{id=_i; T=_T;};
+	TS( int _i, TAffine &_T )	{id=_i; T=_T;};
 
 	bool operator < (const TS &rhs) const
 		{return id < rhs.id;};
 };
 
 
-static void GetSortedTForms(
+static void GetSortedTAffines(
 	vector<TS>		&ts,
 	TiXmlElement*	layer )
 {
@@ -157,7 +157,7 @@ static void GetSortedTForms(
 
 	for( ; p; p = p->NextSiblingElement() ) {
 
-		TForm	T;
+		TAffine	T;
 		int		id = gArgs.IDFromPatch( p );
 
 		T.ScanTrackEM2( p->Attribute( "transform" ) );
@@ -168,10 +168,10 @@ static void GetSortedTForms(
 }
 
 /* --------------------------------------------------------------- */
-/* PrintTForms --------------------------------------------------- */
+/* PrintTAffines ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void PrintTForms( FILE *f, const vector<TS> &ts, int z )
+static void PrintTAffines( FILE *f, const vector<TS> &ts, int z )
 {
 	int	nt = ts.size();
 
@@ -220,8 +220,8 @@ static void GetTF()
 
 		vector<TS>	ts;
 
-		GetSortedTForms( ts, layer );
-		PrintTForms( f, ts, z );
+		GetSortedTAffines( ts, layer );
+		PrintTAffines( f, ts, z );
 	}
 
 	fclose( f );

@@ -4,7 +4,7 @@
 
 #include	"Cmdline.h"
 #include	"File.h"
-#include	"CLens.h"
+#include	"CAffineLens.h"
 #include	"Debug.h"
 
 
@@ -81,7 +81,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
 
 			if( 6 == vD.size() )
-				_arg.Tdfm.push_back( TForm( &vD[0] ) );
+				_arg.Tdfm.push_back( TAffine( &vD[0] ) );
 			else {
 				printf(
 				"main: WARNING: Bad format in -Tdfm [%s].\n",
@@ -91,7 +91,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgList( vD, "-Tab=", argv[i] ) ) {
 
 			if( 6 == vD.size() )
-				_arg.Tab.push_back( TForm( &vD[0] ) );
+				_arg.Tab.push_back( TAffine( &vD[0] ) );
 			else {
 				printf(
 				"main: WARNING: Bad format in -Tab [%s].\n",
@@ -241,7 +241,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 		if( mch.PXLENS && A.layer != B.layer ) {
 
-			CLens	LN;
+			CAffineLens	LN;
 
 			if( !LN.ReadIDB( idb ) )
 				return false;
@@ -250,11 +250,10 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 			LN.UpdateTFormLHS( Tab, B.t2i.path.c_str(), false );
 		}
 
-		printf( "Tab= " );
-		Tab.PrintTransform();
+		Tab.TPrint( stdout, "Tab= " );
 	}
 	else
-		AToBTrans( Tab, A.t2i.T, B.t2i.T );
+		Tab.FromAToB( A.t2i.T, B.t2i.T );
 
 	int	altTdfm = false;
 
@@ -295,16 +294,15 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 
 	if( !altTdfm && cDfmFromTab ) {
 
-		TForm	R;
-		R.NUSetRot( -RadiansFromAffine( Tab ) );
+		TAffine	R;
+		R.NUSetRot( -Tab.GetRadians() );
 
 		ctx.Tdfm = Tab;
 		ctx.Tdfm.SetXY( 0, 0 );
-		MultiplyTrans( ctx.Tdfm, R, TForm( ctx.Tdfm ) );
+		ctx.Tdfm = R * ctx.Tdfm;
 	}
 
-	printf( "Tdfm=" );
-	ctx.Tdfm.PrintTransform();
+	ctx.Tdfm.TPrint( stdout, "Tdfm=" );
 
 	if( _arg.FLD ) {
 		ctx.FLD = _arg.FLD;

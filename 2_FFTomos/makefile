@@ -29,7 +29,7 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp \
-	ImageIO.cpp Maths.cpp CTForm.cpp
+	ImageIO.cpp Maths.cpp TAffine.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

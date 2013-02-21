@@ -2,7 +2,7 @@
 
 #include	"Geometry.h"
 #include	"Maths.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -244,7 +244,7 @@ int TightestBBox( DBox &B, const vector<Point> &pts )
 			continue;
 
 		vector<Point>	P = *ppointset;
-		TForm			T;
+		TAffine			T;
 		DBox			box;
 		double			area;
 

@@ -53,10 +53,10 @@ public:
 	char					*bname;		// boundary-map filename
 	uint16					*spmap;
 	vector<int>				SPmapping;  // tells what original SP numbers are mapped to
-	vector<TForm>			tf;			// image to global space, one for each patch (0 unused)
-	vector<TForm>			inv;		// inverse transform
-	vector<vector<TForm> >	sectors;	// forward transform for each sector of each patch
-	vector<vector<TForm> >	sinvs;		// sector inverses
+	vector<TAffine>			tf;			// image to global space, one for each patch (0 unused)
+	vector<TAffine>			inv;		// inverse transform
+	vector<vector<TAffine> >sectors;	// forward transform for each sector of each patch
+	vector<vector<TAffine> >sinvs;		// sector inverses
 	vector<uint8>			FoldmapRenumber;
 };
 
@@ -136,26 +136,14 @@ return lnums[k];
 }
 
 /* --------------------------------------------------------------- */
-/* PrintTransform ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static void PrintTransform( FILE *of, const TForm &tr )
-{
-	fprintf( of,
-	"%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n",
-	tr.t[0], tr.t[1], tr.t[2],
-	tr.t[3], tr.t[4], tr.t[5] );
-}
-
-/* --------------------------------------------------------------- */
 /* PrintTransAndInv ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void PrintTransAndInv( FILE *of, const TForm &tr )
+static void PrintTransAndInv( FILE *of, const TAffine &tr )
 {
-	TForm	in;
+	TAffine	in;
 
-	InvertTrans( in, tr );
+	in.InverseOf( tr );
 
 	fprintf( of,
 	"Fwd:%11.8f %11.8f %10.4f   %11.8f %11.8f %10.4f\n",
@@ -193,7 +181,7 @@ static void GlobalBounds(
 
 			for( int k = 1; k < nt; ++k ) {
 
-				const TForm&	T = images[i].tf[k];
+				const TAffine&	T = images[i].tf[k];
 
 				if( !T.det() )
 					continue;
@@ -278,13 +266,13 @@ static void OffsetCoords(
 
 		for( int k = 1; k < nt; ++k ) {
 
-			TForm&	T = images[i].tf[k];
+			TAffine&	T = images[i].tf[k];
 
 			if( !T.det() )
 				continue;
 
 			T.AddXY( xfl, yfl );
-			InvertTrans( images[i].inv[k], T );
+			images[i].inv[k].InverseOf( T );
 		}
 	}
 
@@ -297,7 +285,7 @@ static void OffsetCoords(
 
 		for( int k = 1; k < nt; ++k ) {
 
-			const TForm&	T = images[i].tf[k];
+			const TAffine&	T = images[i].tf[k];
 
 			if( !T.det() )
 				continue;
@@ -1005,7 +993,7 @@ for(int i=0; i<w*h; i++)
 static bool RuleOutIntersection(
 	uint32			w,
 	uint32			h,
-	vector<TForm>	&tfs,
+	vector<TAffine>	&tfs,
 	int				xmin,
 	int				ymin,
 	int				xmax,
@@ -1021,7 +1009,7 @@ corners.push_back(Point(0.0, h-1));
 vector<Point> all;
 printf("xmin %d, ymin %d, xmax %d, ymax %d, w %d, h %d\n", xmin, ymin, xmax, ymax, w, h);
 for(int j=1; j<tfs.size(); j++) {  // patches start at 1
-    PrintTransform(stdout, tfs[j]);
+    tfs[j].TPrint();
     for(int i=0; i < corners.size(); i++) {
         Point p = corners[i];
         tfs[j].Transform( p );
@@ -2101,7 +2089,7 @@ if( strstr(name, "annotations-synapse") != NULL ) {
         //             // No longer needed since we compress patches and foldmaps on input
         if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0 )
             continue;
-        TForm t;
+        TAffine t;
         if( !Warp )  // just one transform per image
             t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
@@ -2170,7 +2158,7 @@ if( strstr(name, "annotations-bookmarks") != NULL ) {
         //             // No longer needed since we compress patches and foldmaps on input
         if( patch == 0 )  // || patch >= images[i].tf.size() || images[i].tf[patch].det() == 0.0)
             continue;
-        TForm	t;
+        TAffine	t;
 	if( !Warp )  // just one transform per image
 	    t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
@@ -2419,7 +2407,7 @@ CLineScan		*ls = new CLineScan;
 				exit( 42 );
 			}
 
-			TForm	tf( a, b, c/scale, d, e, f/scale );
+			TAffine	tf( a, b, c/scale, d, e, f/scale );
 			char	*fname = strtok( name, " ':" );
 
 			//printf("File '%s'\n", fname);
@@ -2445,7 +2433,7 @@ CLineScan		*ls = new CLineScan;
 			if( images[k].tf.size() <= patch ) {
 
 				// initialize to an illegal transform
-				images[k].tf.resize( patch+1, TForm(0,0,0,0,0,0) );
+				images[k].tf.resize( patch+1, TAffine(0,0,0,0,0,0) );
 				images[k].inv.resize( patch+1 );
 			}
 
@@ -2996,9 +2984,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 		int image = relevant_images[from-1];  // actual image number
 		int patch = Triples[k].patch;
 		//int sector = Triples[k].sector;     // not used since no sectors yet
-		TForm t = images[image].inv[patch];  // transform from global to image
+		TAffine t = images[image].inv[patch];  // transform from global to image
 		fprintf(ftxt, "TRANS %d %d ", k, from-1);
-		PrintTransform(ftxt, t);
+		t.TPrint( ftxt );
 		}
 	    fclose(ftxt);
 	    }
@@ -3281,14 +3269,14 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // to each original triangle.
     for(int m=0; m<relevant_images.size(); m++) {
         int i = relevant_images[m];
-        vector<TForm> empty;
+        vector<TAffine> empty;
         images[i].sectors.push_back(empty);  // since there is no patch 0
         images[i].sinvs  .push_back(empty);
 	for(int j=1; j<images[i].tf.size(); j++) {
-	    vector<TForm> ltfs(N);  // an N element vector of transforms
-	    vector<TForm> invs(N);  // and the inverses to these
+	    vector<TAffine> ltfs(N);  // an N element vector of transforms
+	    vector<TAffine> invs(N);  // and the inverses to these
             printf("Image %d, patch %d\n", i, j);
-            PrintTransform(stdout, images[i].tf[j]);
+            images[i].tf[j].TPrint();
 	    for(int k=0; k<N; k++) {
                 // original points (in local coords, vtx,  are):
                 int i0 = N;
@@ -3296,25 +3284,25 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 int i2 = (k+1)%N;
 		// Now, find a transformation that maps ORIG into the new cpts
 		// first, create a transform that maps a unit right triangle to the original pts
-                TForm o(vtx[i1].x-vtx[i0].x, vtx[i2].x-vtx[i0].x, vtx[i0].x,
+                TAffine o(vtx[i1].x-vtx[i0].x, vtx[i2].x-vtx[i0].x, vtx[i0].x,
                  vtx[i1].y-vtx[i0].y, vtx[i2].y-vtx[i0].y, vtx[i0].y);
 
 		// and the final points, in global space are
 		int n0 = images[i].FirstGlobalPoint + (j-1)*(N+1);
                 i0 += n0; i1 += n0; i2 += n0;
                 // now one that maps the a unit right triangle to the desired final points
-                TForm c(NewG[i1].x-NewG[i0].x, NewG[i2].x-NewG[i0].x, NewG[i0].x,
+                TAffine c(NewG[i1].x-NewG[i0].x, NewG[i2].x-NewG[i0].x, NewG[i0].x,
                  NewG[i1].y-NewG[i0].y, NewG[i2].y-NewG[i0].y, NewG[i0].y);
                  // now, to get from the original to the final, apply o^-1, then c;
-                TForm oi,t;
-                InvertTrans(oi, o);
-	        MultiplyTrans(t, c, oi);
-                PrintTransform(stdout, t);
+                TAffine oi, t;
+                oi.InverseOf( o );
+                t = c * oi;
+                t.TPrint();
                 ltfs[k] = t;
-                InvertTrans(invs[k],t);
+                invs[k].InverseOf( t );
 		}
-            images[i].sectors.push_back(ltfs);
-            images[i].sinvs  .push_back(invs);
+            images[i].sectors.push_back( ltfs );
+            images[i].sinvs  .push_back( invs );
 	    }
 	}
 
@@ -3386,8 +3374,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
                 if( ix == 8557 && iy == 431 ) {
                     printf("Point %f %f in image %s\n", pts[j].x, pts[j].y, images[i].rname);
 		    printf("Maps to pixel %d %d, image %d patch %d sector %d\n", ix, iy, i, patch, sector);
-                    printf("Transform is"); PrintTransform(stdout, images[i].sectors[patch][sector]);
-                    printf(" Inverse  is"); PrintTransform(stdout, images[i].  sinvs[patch][sector]);
+                    images[i].sectors[patch][sector].TPrint( stdout, "Transform is " );
+                    images[i].  sinvs[patch][sector].TPrint( stdout, " Inverse  is " );
 		    }
                 if( ix < 0 || ix >= nx || iy < 0 || iy >= ny )
 		    continue;  // outside the image
@@ -3611,9 +3599,9 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         int image = relevant_images[from-1];  // actual image number
         int patch = Triples[k].patch;
         int sector = Triples[k].sector;
-	TForm t = images[image].sinvs[patch][sector];  // transform from global to image
+	TAffine t = images[image].sinvs[patch][sector];  // transform from global to image
         fprintf(ftxt, "TRANS %d %d ", k, from-1);
-        PrintTransform(ftxt, t);
+        t.TPrint( ftxt );
         }
     fclose(ftxt);
 

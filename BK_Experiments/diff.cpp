@@ -4,7 +4,7 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Correlation.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 #include	"Timer.h"
 #include	"CTemplate.h"
 #include	"CPicBase.h"
@@ -44,7 +44,7 @@ typedef struct {
 
 
 typedef struct {
-	TForm	T;
+	TAffine	T;
 	double	X, Y,
 			R, A;
 } CorRec;
@@ -263,7 +263,7 @@ static void MakeThumbs(
 
 static void RotatePoints(
 	vector<Point>	&pts,
-	TForm			&T,
+	TAffine			&T,
 	double			theta )
 {
 	T.NUSetRot( theta*PI/180.0 );

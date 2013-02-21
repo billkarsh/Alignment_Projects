@@ -831,7 +831,7 @@ void BlockSet::OrientLayer( int is0, int isN )
 
 // Rotate layer upright and translate to (0,0)
 
-	TForm	R;
+	TAffine	R;
 	DBox	B;
 	int		deg = TightestBBox( B, C );
 
@@ -839,9 +839,9 @@ void BlockSet::OrientLayer( int is0, int isN )
 
 	for( int i = is0; i < isN; ++i ) {
 
-		TForm&	T = TS.vtil[i].T;
+		TAffine&	T = TS.vtil[i].T;
 
-		MultiplyTrans( T, R, TForm( T ) );
+		T = R * T;
 		T.AddXY( -B.L, -B.B );
 	}
 

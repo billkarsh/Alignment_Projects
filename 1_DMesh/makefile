@@ -36,8 +36,8 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp PipeFiles.cpp \
-	CLens.cpp ImageIO.cpp FoldMask.cpp Maths.cpp \
-	Correlation.cpp CPoint.cpp Geometry.cpp CTForm.cpp \
+	CAffineLens.cpp ImageIO.cpp FoldMask.cpp Maths.cpp \
+	Correlation.cpp CPoint.cpp Geometry.cpp TAffine.cpp \
 	CPixPair.cpp CThmScan.cpp Metrics.cpp Inspect.cpp \
 	Timer.cpp Memory.cpp Debug.cpp
 

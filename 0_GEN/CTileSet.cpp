@@ -519,7 +519,7 @@ void CTileSet::ReadClixFile( vector<TSClix> &clk, const char *path )
 //                         | c |
 //                         | d |
 //
-TForm CTileSet::RigidFromClix( const TSClix &clk )
+TAffine CTileSet::RigidFromClix( const TSClix &clk )
 {
 // Create system of normal equations
 
@@ -548,7 +548,7 @@ TForm CTileSet::RigidFromClix( const TSClix &clk )
 
 // Return
 
-	return TForm( X[0], -X[1], X[2], X[1], X[0], X[3] );
+	return TAffine( X[0], -X[1], X[2], X[1], X[0], X[3] );
 }
 
 /* --------------------------------------------------------------- */
@@ -560,7 +560,7 @@ TForm CTileSet::RigidFromClix( const TSClix &clk )
 //		a Ax  -  b Ay  +  c  =  Bx
 //		d Ax  +  e Ay  +  f  =  By
 //
-TForm CTileSet::AffineFromClix( const TSClix &clk )
+TAffine CTileSet::AffineFromClix( const TSClix &clk )
 {
 	int	np = clk.A.size();
 
@@ -592,7 +592,7 @@ TForm CTileSet::AffineFromClix( const TSClix &clk )
 
 // Return
 
-	return TForm( &X[0] );
+	return TAffine( &X[0] );
 }
 
 /* --------------------------------------------------------------- */
@@ -640,15 +640,15 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 	}
 
 // Each click affects all layers from clk[i].Az through zmax.
-// Assign TForm vT[k] for each possible layer in range [zmin, zmax].
+// Assign TAffine vT[k] for each possible layer in range [zmin, zmax].
 // The vT[k] accumulate effects of sequential click transforms.
 
 	int				nz = zmax - zmin + 1;
-	vector<TForm>	vT( nz );
+	vector<TAffine>	vT( nz );
 
 	for( int i = cmin; i <= cmax; ++i ) {
 
-		TForm	R;
+		TAffine	R;
 
 		if( tfType == tsClixAffine )
 			R = AffineFromClix( clk[i] );
@@ -656,7 +656,7 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 			R = RigidFromClix( clk[i] );
 
 		for( int k = clk[i].Az - zmin; k < nz; ++k )
-			MultiplyTrans( vT[k], R, TForm( vT[k] ) );
+			vT[k] = R * vT[k];
 	}
 
 // Walk actual layers and apply corresponding vT[k]
@@ -673,8 +673,9 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 
 			for( int i = is0; i < isN; ++i ) {
 
-				MultiplyTrans(
-				vtil[i].T, vT[z-zmin], TForm( vtil[i].T ) );
+				TAffine&	T = vtil[i].T;
+
+				T = vT[z-zmin] * T;
 			}
 		}
 
@@ -808,18 +809,18 @@ public:
 // about their common centroid so they can be assembled into
 // directed and ordered line segments for the area calculator.
 //
-double CTileSet::ABOlap( int a, int b, const TForm *Tab )
+double CTileSet::ABOlap( int a, int b, const TAffine *Tab )
 {
 // Quick proximity check
 
-	TForm	T;	// map a->b
+	TAffine	T;	// map a->b
 	Point	pb( gW/2, gH/2 ),
 			pa = pb;
 
 	if( Tab )
 		T = *Tab;
 	else
-		AToBTrans( T, vtil[a].T, vtil[b].T );
+		T.FromAToB( vtil[a].T, vtil[b].T );
 
 	T.Transform( pa );
 

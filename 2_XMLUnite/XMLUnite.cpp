@@ -9,7 +9,7 @@
 #include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -144,10 +144,10 @@ int CArgs_xml::IDFromPatch( TiXmlElement* p )
 }
 
 /* -------------------------------------------------------------- */
-/* GetThisTForm ------------------------------------------------- */
+/* GetThisTAffine ----------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-static bool GetThisTForm( TForm &T, TiXmlElement* layer, int id )
+static bool GetThisTAffine( TAffine &T, TiXmlElement* layer, int id )
 {
 	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
@@ -167,16 +167,16 @@ static bool GetThisTForm( TForm &T, TiXmlElement* layer, int id )
 /* UpdateTiles -------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-static void UpdateTiles( TiXmlElement* layer, const TForm& T )
+static void UpdateTiles( TiXmlElement* layer, const TAffine& T )
 {
 	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		TForm	told, tnew;
+		TAffine	told, tnew;
 
 		told.ScanTrackEM2( ptch->Attribute( "transform" ) );
-		MultiplyTrans( tnew, T, told );
+		tnew = T * told;
 		XMLSetTFVals( ptch, tnew.t );
 	}
 }
@@ -221,23 +221,23 @@ static void Unite()
 
 // get transform mapping T
 
-	TForm	T;
+	TAffine	T;
 
 	{
-		TForm	T1, T2i, T2;
+		TAffine	T1, T2i, T2;
 
-		if( !GetThisTForm( T1, layer1, gArgs.reftile ) ) {
+		if( !GetThisTAffine( T1, layer1, gArgs.reftile ) ) {
 			fprintf( flog, "Reference tile not found in file1.\n" );
 			exit( 42 );
 		}
 
-		if( !GetThisTForm( T2, layer2, gArgs.reftile ) ) {
+		if( !GetThisTAffine( T2, layer2, gArgs.reftile ) ) {
 			fprintf( flog, "Reference tile not found in file2.\n" );
 			exit( 42 );
 		}
 
-		InvertTrans( T2i, T2 );
-		MultiplyTrans( T, T1, T2i );
+		T2i.InverseOf( T2 );
+		T = T1 * T2i;
 	}
 
 // update and add

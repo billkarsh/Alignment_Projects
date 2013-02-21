@@ -4,7 +4,7 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<map>
 #include	<set>
@@ -81,7 +81,7 @@ typedef struct {
 
 typedef struct {
 // entry: TileToImage.txt
-	TForm	T;
+	TAffine	T;
 	int		tile;
 	string	path;
 } Til2Img;
@@ -94,7 +94,7 @@ typedef struct {
 
 typedef struct {
 // entry: ThmPair.txt
-	TForm	T;
+	TAffine	T;
 	double	A, R;
 	int		atl, btl,
 			acr, bcr,
@@ -182,14 +182,14 @@ void WriteThmPair(
 
 bool ZIDFromFMPath( int &z, int &id, const char *path );
 
-void LoadTFormTbl_AllZ(
-	map<MZID,TForm>	&Tmap,
-	set<int>		&Zset,
-	const char		*path,
-	FILE			*flog = NULL );
+void LoadTAffineTbl_AllZ(
+	map<MZID,TAffine>	&Tmap,
+	set<int>			&Zset,
+	const char			*path,
+	FILE				*flog = NULL );
 
-void LoadTFormTbl_ThisZ(
-	map<MZIDR,TForm>	&Tmap,
+void LoadTAffineTbl_ThisZ(
+	map<MZIDR,TAffine>	&Tmap,
 	int					z,
 	const char			*path,
 	FILE				*flog = NULL );

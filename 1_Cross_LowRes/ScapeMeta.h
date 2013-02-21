@@ -1,7 +1,7 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -21,7 +21,7 @@ public:
 class CLog {
 public:
 	CScapeMeta	M, A, B;
-	TForm		T;
+	TAffine		T;
 };
 
 /* --------------------------------------------------------------- */

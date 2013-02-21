@@ -35,7 +35,7 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	File.cpp ImageIO.cpp Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp CTForm.cpp CPicBase.cpp \
+	CPoint.cpp Geometry.cpp TAffine.cpp CPicBase.cpp \
 	LinEqu.cpp Debug.cpp
 
 SOURCES_GEN :=  \

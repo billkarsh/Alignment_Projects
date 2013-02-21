@@ -3,17 +3,17 @@
 #pragma once
 
 
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
 /* Class --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CLens {
+class CAffineLens {
 
 private:
-	TForm	Tf[4],
+	TAffine	Tf[4],
 			Ti[4];
 	FILE	*flog;
 
@@ -23,10 +23,10 @@ public:
 
 	int  CamID( const char *name );
 	void UpdateDoublesRHS( double *D, const char *name, bool inv );
-	void UpdateTFormRHS( TForm &T, const char *name, bool inv );
-	void UpdateTFormLHS( TForm &T, const char *name, bool inv );
+	void UpdateTFormRHS( TAffine &T, const char *name, bool inv );
+	void UpdateTFormLHS( TAffine &T, const char *name, bool inv );
 
-	const TForm& GetTf( const char *name ) {return Tf[CamID(name)];};
+	const TAffine& GetTf( const char *name ) {return Tf[CamID(name)];};
 };
 
 

@@ -2,7 +2,7 @@
 
 #include	"File.h"
 #include	"ImageIO.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 // structure for unmapping a global image
@@ -20,7 +20,7 @@ struct orig_image {
 struct one_tform {
   public:
     int image_id;  // which image
-    TForm tr;      // maps from global space to individual image
+    TAffine tr;      // maps from global space to individual image
   };
 
 
@@ -84,7 +84,7 @@ FILE *fp = FileOpenOrDie( noa[2], "r" );
 			}
 			one_tform o;
 			o.image_id = image_no;
-			o.tr = TForm(a,b,c,d,e,f);
+			o.tr = TAffine(a,b,c,d,e,f);
 			tforms.push_back(o);
 		}
 		else {
@@ -129,7 +129,7 @@ for(int i=0; i<images.size(); i++) {
                 if( x == 8557 && y == 431 ) {  // just for debugging
                     printf("X and Y in original image: %d %d.  Pixel value is %d\n", x, y, t);
                     printf("Image id is %d. Transformation is", tforms[t].image_id);
-		    tforms[t].tr.PrintTransform();
+		    tforms[t].tr.TPrint();
                     printf("Point in image: x=%f y=%f\n", pt.x, pt.y);
 		    }
 		// This should be within the image, but double check
@@ -141,7 +141,7 @@ for(int i=0; i<images.size(); i++) {
 		else {
                     printf("X and Y in original image: %d %d.  Pixel value is %d\n", x, y, t);
                     printf("Image id is %d. Transformation is", tforms[t].image_id);
-		    tforms[t].tr.PrintTransform();
+		    tforms[t].tr.TPrint();
                     printf("Point out of image: x=%f y=%f\n", pt.x, pt.y);
                     //return 42;
 		    }

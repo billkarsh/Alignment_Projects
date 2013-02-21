@@ -23,7 +23,7 @@
 // See notes in ApproximateMatch.cpp.
 //
 bool ApproximateMatch_NoCR(
-	vector<TForm>	&guesses,
+	vector<TAffine>	&guesses,
 	const PixPair	&px,
 	FILE*			flog )
 {

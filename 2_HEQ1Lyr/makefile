@@ -35,7 +35,7 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp TrakEM2_UTL.cpp \
-	ImageIO.cpp Maths.cpp CTForm.cpp \
+	ImageIO.cpp Maths.cpp TAffine.cpp \
 	Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \

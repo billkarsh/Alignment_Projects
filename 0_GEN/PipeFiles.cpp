@@ -303,7 +303,7 @@ bool IDBTil2Img(
 
 	if( forcepath ) {
 		t2i.tile	= tile;
-		t2i.T		= TForm( 1,0,0,0,1,0 );
+		t2i.T		= TAffine( 1,0,0,0,1,0 );
 		t2i.path	= forcepath;
 		return true;
 	}
@@ -839,17 +839,17 @@ bool ZIDFromFMPath( int &z, int &id, const char *path )
 }
 
 /* --------------------------------------------------------------- */
-/* LoadTFormTbl_AllZ --------------------------------------------- */
+/* LoadTAffineTbl_AllZ ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// From an LSQ-style TFormTable file, fill out a table of
-// TForms[mapped by (z,id)] and a table of all unique z-values.
+// From an LSQ-style TAffineTable file, fill out a table of
+// TAffine[mapped by (z,id)] and a table of all unique z-values.
 //
-void LoadTFormTbl_AllZ(
-	map<MZID,TForm>	&Tmap,
-	set<int>		&Zset,
-	const char		*path,
-	FILE			*flog )
+void LoadTAffineTbl_AllZ(
+	map<MZID,TAffine>	&Tmap,
+	set<int>			&Zset,
+	const char			*path,
+	FILE				*flog )
 {
 	FILE		*f	= FileOpenOrDie( path, "r", flog );
 	CLineScan	LS;
@@ -860,7 +860,7 @@ void LoadTFormTbl_AllZ(
 			break;
 
 		MZID	zid;
-		TForm	T;
+		TAffine	T;
 		int		rgn;
 
 		sscanf( LS.line, "%d\t%d\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
@@ -880,11 +880,11 @@ void LoadTFormTbl_AllZ(
 }
 
 /* --------------------------------------------------------------- */
-/* LoadTFormTbl_ThisZ -------------------------------------------- */
+/* LoadTAffineTbl_ThisZ ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void LoadTFormTbl_ThisZ(
-	map<MZIDR,TForm>	&Tmap,
+void LoadTAffineTbl_ThisZ(
+	map<MZIDR,TAffine>	&Tmap,
 	int					z,
 	const char			*path,
 	FILE				*flog )
@@ -898,7 +898,7 @@ void LoadTFormTbl_ThisZ(
 			break;
 
 		MZIDR	zir;
-		TForm	T;
+		TAffine	T;
 
 		zir.z = atoi( LS.line );
 

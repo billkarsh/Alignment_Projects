@@ -25,7 +25,7 @@
 #include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -184,27 +184,27 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 /* --------------- */
 
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
-	TForm			TR;
+	TAffine			TR;
 
-	CreateCWRot( TR, degcw, Point( gArgs.x/2, gArgs.y/2 ) );
+	TR.SetCWRot( degcw, Point( gArgs.x/2, gArgs.y/2 ) );
 
 	for( ; p; p = p->NextSiblingElement() ) {
 
-		TForm	T0, T;
+		TAffine	T0, T;
 
 		T0.ScanTrackEM2( p->Attribute( "transform" ) );
-		MultiplyTrans( T, T0, TR );
+		T = T0 * TR;
 		XMLSetTFVals( p, T.t );
 	}
 }
 
 /* --------------------------------------------------------------- */
-/* GetTheTwoTForms ----------------------------------------------- */
+/* GetTheTwoTAffines --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static bool GetTheTwoTForms(
-	TForm			&T1,
-	TForm			&T2,
+static bool GetTheTwoTAffines(
+	TAffine			&T1,
+	TAffine			&T2,
 	TiXmlElement*	layer )
 {
 	TiXmlElement*	p		= layer->FirstChildElement( "t2_patch" );
@@ -248,7 +248,7 @@ static void Report()
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		TForm	T1, T2;
+		TAffine	T1, T2;
 		int		z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
@@ -257,7 +257,7 @@ static void Report()
 		if( z < gArgs.zmin )
 			continue;
 
-		if( !GetTheTwoTForms( T1, T2, layer ) ) {
+		if( !GetTheTwoTAffines( T1, T2, layer ) ) {
 			fprintf( flog, "%d\tMissing ref tile\n", z );
 			continue;
 		}
@@ -268,7 +268,7 @@ static void Report()
 		base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
 		base = 180/PI * atan( base );
 
-		tile = RadiansFromAffine( T1 ) + RadiansFromAffine( T2 );
+		tile = T1.GetRadians() + T2.GetRadians();
 		tile = 180/PI * tile / 2;
 
 		cw = -(base + tile);
@@ -302,7 +302,7 @@ static void RotateAuto()
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		TForm	T1, T2;
+		TAffine	T1, T2;
 		int		z = atoi( layer->Attribute( "z" ) );
 
 		if( z > gArgs.zmax )
@@ -311,7 +311,7 @@ static void RotateAuto()
 		if( z < gArgs.zmin )
 			continue;
 
-		if( !GetTheTwoTForms( T1, T2, layer ) ) {
+		if( !GetTheTwoTAffines( T1, T2, layer ) ) {
 			fprintf( flog, "%d\tMissing ref tile\n", z );
 			continue;
 		}
@@ -321,7 +321,7 @@ static void RotateAuto()
 		base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
 		base = 180/PI * atan( base );
 
-		tile = RadiansFromAffine( T1 ) + RadiansFromAffine( T2 );
+		tile = T1.GetRadians() + T2.GetRadians();
 		tile = 180/PI * tile / 2;
 
 		cw = -(base + tile);

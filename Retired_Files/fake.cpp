@@ -2,7 +2,7 @@
 
 #include	"File.h"
 #include	"Maths.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<math.h>
 
@@ -63,7 +63,7 @@ const double TILE_OFF = 10.0;          // how far off from perfect tiling
 const double BS_ANGLE = 0.2;           // angle between sections
 
 
-vector<TForm> tfs;
+vector<TAffine> tfs;
 NormalDev n(0.0, 1.0, 17);  // create a generator of normally distributed random numbers
 for(int z=0; z<nz; z++) {
     double theta =  z == 0 ? 0.0 : BS_ANGLE*n.dev(); // first layer at angle 0 by definition
@@ -80,20 +80,20 @@ for(int z=0; z<nz; z++) {
 		}
             double x1 = c*x0 - s*y0;
             double y1 = s*x0 + c*y0;
-            TForm t(c, -s, x1, s, c, y1);
+            TAffine t(c, -s, x1, s, c, y1);
             tfs.push_back(t);
 	    }
         }
     }
-vector<TForm> inv(tfs.size());  // create an array of inverse transforms
+vector<TAffine> inv(tfs.size());  // create an array of inverse transforms
 // also print out the right answer, so we can check our work
 FILE	*fp = FileOpenOrDie( "correct", "w" );
 
 for(int k=0; k<tfs.size(); k++) {
-    tfs[k].PrintTransform();
-    tfs[k].PrintTransform( fp );
-    InvertTrans( inv[k], tfs[k] );
-    inv[k].PrintTransform();
+    tfs[k].TPrint();
+    tfs[k].TPrint( fp );
+    inv[k].InverseOf( tfs[k] );
+    inv[k].TPrint();
     }
 fclose(fp);
 
@@ -185,7 +185,7 @@ fclose(fp);
 for(int i=0; i<tfs.size(); i++) {
     if( uses[i] <= 3 ) {
 	printf("Transform %d is used %d times\n", i, uses[i]);
-        tfs[i].PrintTransform();
+        tfs[i].TPrint();
         }
     }
 double C = N_inter_plane;  // three points can be taken out exactly by the fit.

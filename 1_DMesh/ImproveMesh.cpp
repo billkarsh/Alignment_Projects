@@ -297,12 +297,12 @@ static bool CheckAreas(
 /* --------------------------------------------------------------- */
 
 static void TransformsAndCenters(
-	vector<TForm>			&transforms,
+	vector<TAffine>			&transforms,
 	vector<Point>			&centers,
 	const vector<triangle>	&tri,
 	const vector<Point>		&orig,
 	const vector<Point>		&cpts,
-	const TForm				&tr_guess,
+	const TAffine			&tr_guess,
 	FILE*					flog )
 {
 	fprintf( flog, "\n---- Transforms ----\n" );
@@ -322,14 +322,14 @@ static void TransformsAndCenters(
 		// Begin with a transform mapping a unit right triangle
 		// { (0,0), (1,0), (0,1) } in abstract global space to
 		// the respective orig vertices { o0, o1, o2 }. To see
-		// how simple this really is, just apply the TForm (o)
+		// how simple this really is, just apply the TAffine (o)
 		// that we define below to each of the global vertices.
 
 		const Point&	o0 = orig[i0],
 						o1 = orig[i1],
 						o2 = orig[i2];
 
-		TForm	o(	o1.x - o0.x, o2.x - o0.x, o0.x,
+		TAffine	o(	o1.x - o0.x, o2.x - o0.x, o0.x,
 					o1.y - o0.y, o2.y - o0.y, o0.y );
 
 		// And make a like mapping from global space to (cpts)
@@ -338,17 +338,17 @@ static void TransformsAndCenters(
 						c1 = cpts[i1],
 						c2 = cpts[i2];
 
-		TForm	c(	c1.x - c0.x, c2.x - c0.x, c0.x,
+		TAffine	c(	c1.x - c0.x, c2.x - c0.x, c0.x,
 					c1.y - c0.y, c2.y - c0.y, c0.y );
 
 		// Now make transform t = c * o-inv from orig to cpts
 
-		TForm	t, oi;
+		TAffine	t, oi;
 
-		InvertTrans( oi, o );
-		MultiplyTrans( t, c, oi );
+		oi.InverseOf( o );
+		t = c * oi;
 
-		t.PrintTransform( flog );
+		t.TPrint( flog );
 
 		// Sanity check the "angular" change
 
@@ -395,7 +395,7 @@ static void TransformsAndCenters(
 // describe		- descriptive string for logs
 //
 double ImproveMesh(
-	vector<TForm>			&transforms,
+	vector<TAffine>			&transforms,
 	vector<Point>			&centers,
 	vector<triangle>		&tri,
 	const vector<vertex>	&ctl,
@@ -404,7 +404,7 @@ double ImproveMesh(
 	const vector<double>	&bimg,
 	int						w,
 	int						h,
-	const TForm				&tr_guess,
+	const TAffine			&tr_guess,
 	double					threshold,
 	FILE					*flog,
 	const char				*describe )

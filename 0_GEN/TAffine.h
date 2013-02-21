@@ -13,40 +13,41 @@
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-enum TFNearUnityConsts {
+enum TAffineNearUnityConsts {
 // near unity transform selectors
-	tfnuScl		= 0,
-	tfnuXScl	= 1,
-	tfnuYScl	= 2,
-	tfnuXSkw	= 3,
-	tfnuYSkw	= 4,
-	tfnuRot		= 5
+	tafnuScl	= 0,
+	tafnuXScl	= 1,
+	tafnuYScl	= 2,
+	tafnuXSkw	= 3,
+	tafnuYSkw	= 4,
+	tafnuRot	= 5
 };
 
 /* --------------------------------------------------------------- */
-/* class TForm --------------------------------------------------- */
+/* class TAffine ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class TForm {
+class TAffine {
 
 public:
 	double	t[6];
 
 public:
-	TForm()
+	TAffine()
 		{NUSetOne();};
 
-	TForm( const TForm &rhs )
+	TAffine( const TAffine &rhs )
 		{CopyIn( rhs );};
 
-	TForm( const double *src )
+	TAffine( const double *src )
 		{CopyIn( src );};
 
-	TForm( double a, double b, double c, double d, double e, double f )
+	TAffine( double a, double b, double c,
+			 double d, double e, double f )
 		{t[0]=a; t[1]=b; t[2]=c;
 		 t[3]=d; t[4]=e; t[5]=f;};
 
-	void CopyIn( const TForm &src )
+	void CopyIn( const TAffine &src )
 		{for( int i = 0; i < 6; ++i ) t[i] = src.t[i];};
 
 	void CopyIn( const double *src )
@@ -94,29 +95,27 @@ public:
 		double	xskw,
 		double	yskw );
 
+	void SetCWRot( double deg, const Point &pivot );
+
+	void FromAToB( const TAffine &a, const TAffine &b );
+
+	void InverseOf( const TAffine &a );
+
+	TAffine operator * ( const TAffine& rhs ) const;
+
+	void ScanTrackEM2( const char *s );
+
+	void TPrint( FILE *f = NULL, const char *s = NULL ) const;
+	void TPrintAsParam( FILE *f, bool newline = false ) const;
+
 	double EffArea() const;
+	double GetRadians() const;
 
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;
 
 	void Apply_R_Part( Point &p ) const;
 	void Apply_R_Part( vector<Point> &v ) const;
-
-	void ScanTrackEM2( const char *s );
-
-	void WriteTransform( FILE *f, const char *s ) const;
-	void PrintTransform( FILE *f = NULL ) const;
-	void PrintTransformAsParam( FILE *f, bool newline = false ) const;
 };
-
-/* --------------------------------------------------------------- */
-/* Functions ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void InvertTrans( TForm &inv, const TForm &t );
-void MultiplyTrans( TForm &r, const TForm &a, const TForm &b );
-void AToBTrans( TForm &atob, const TForm &a, const TForm &b );
-void CreateCWRot( TForm &R, double deg, const Point &pivot );
-double RadiansFromAffine( const TForm &a );
 
 

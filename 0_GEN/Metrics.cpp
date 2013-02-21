@@ -5,7 +5,7 @@
 #include	"Maths.h"
 #include	"Correlation.h"
 #include	"Geometry.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<math.h>
 #include	<string.h>
@@ -81,7 +81,7 @@ static const vector<Point>* SmallestFootprint(
 		return &pts;
 	else {
 
-		TForm	T;
+		TAffine	T;
 
 		T.NUSetRot( deg*PI/180 );
 		T.Apply_R_Part( newpts = pts );

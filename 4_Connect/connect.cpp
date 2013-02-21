@@ -279,7 +279,7 @@ for(;;) {
 	    }
         Picture p;
         p.fname = strtok(fname," ':\n");
-        p.tr = TForm(a,b,c,d,e,f);
+        p.tr = TAffine(a,b,c,d,e,f);
         ps.push_back(p);
 	}
    if( strncmp(LS.line,"IMAGESIZE",9) == 0 ) {

@@ -85,8 +85,8 @@ static void ReportCenters(
 
 		map.transforms[i].Transform( cb );
 
-		fprintf( f, "Center %f %f :", ca.x, ca.y );
-		map.transforms[i].PrintTransform( f );
+		fprintf( f, "Center %f %f: ", ca.x, ca.y );
+		map.transforms[i].TPrint( f );
 
 		fprintf( f,
 		"Mapping region %d xy= %f %f to region %d xy= %f %f\n",
@@ -101,7 +101,7 @@ static void ReportCenters(
 /* --------------------------------------------------------------- */
 
 static void WriteTrackEMTriangles(
-	vector<TForm>			&T,
+	vector<TAffine>			&T,
 	const vector<triangle>	&tri,
 	const vector<vertex>	&ctl,
 	FILE					*f )
@@ -155,7 +155,7 @@ void RegionToRegionMap(
 	const PixPair		&px,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,
-	TForm				tr_guess,
+	TAffine				tr_guess,
 	FILE				*flog,
 	FILE				*ftri )
 {
@@ -271,7 +271,7 @@ void RegionToRegionMap(
 /* Run the mesh improver on it */
 /* --------------------------- */
 
-	vector<TForm>	transforms;
+	vector<TAffine>	transforms;
 	vector<Point>	centers;
 	double			corr;
 
@@ -288,14 +288,14 @@ void RegionToRegionMap(
 		return;
 	else {
 
-		TForm	inv;
-		InvertTrans( inv, transforms[0] );
+		TAffine	inv;
+		inv.InverseOf( transforms[0] );
 
-		fprintf( flog, "Best affine transform: " );
-		transforms[0].PrintTransform( flog );
+		transforms[0].TPrint(
+			flog, "Best affine transform: " );
 
-		fprintf( flog, "    Inverse transform: " );
-		inv.PrintTransform( flog );
+		inv.TPrint(
+			flog, "    Inverse transform: " );
 
 		tr_guess = transforms[0];
 	}

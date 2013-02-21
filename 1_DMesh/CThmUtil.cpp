@@ -15,7 +15,7 @@
 /* Echo ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool CThmUtil::Echo( vector<TForm> &guesses )
+bool CThmUtil::Echo( vector<TAffine> &guesses )
 {
 	guesses.push_back( Tab );
 	return true;
@@ -25,7 +25,7 @@ bool CThmUtil::Echo( vector<TForm> &guesses )
 /* FromLog ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool CThmUtil::FromLog( vector<TForm> &guesses )
+bool CThmUtil::FromLog( vector<TAffine> &guesses )
 {
 	ThmPair	tpr;
 	int		ok;
@@ -47,14 +47,14 @@ bool CThmUtil::FromLog( vector<TForm> &guesses )
 
 // Rotate Tab to reflect starting ang0 (degrees).
 //
-static void RotateTab( TForm &Tab, const TForm &Tdfm, double ang0 )
+static void RotateTab( TAffine &Tab, const TAffine &Tdfm, double ang0 )
 {
-	TForm	R;
+	TAffine	R;
 	double	Vx = Tab.t[2],
 			Vy = Tab.t[5];
 
 	R.NUSetRot( ang0 * PI/180.0 );
-	MultiplyTrans( Tab, R, Tdfm );
+	Tab = R * Tdfm;
 	Tab.SetXY( Vx, Vy );
 }
 
@@ -83,7 +83,7 @@ static void RotateTab( TForm &Tab, const TForm &Tdfm, double ang0 )
 // above applies. However, if nprior is >= 4, then ang0 is set
 // to the median of those angles.
 //
-int CThmUtil::SetStartingAngle( const TForm &Tdfm, double CTR )
+int CThmUtil::SetStartingAngle( const TAffine &Tdfm, double CTR )
 {
 	vector<ThmPair>	tpr;
 	int				ntpr, nprior = 0;
@@ -95,7 +95,7 @@ int CThmUtil::SetStartingAngle( const TForm &Tdfm, double CTR )
 		if( CTR != 999.0 )
 			ang0 = CTR;
 		else
-			ang0 = 180.0/PI * RadiansFromAffine( Tab );
+			ang0 = 180.0/PI * Tab.GetRadians();
 
 		nprior = 1;
 		goto adjust_olap;
@@ -127,7 +127,7 @@ int CThmUtil::SetStartingAngle( const TForm &Tdfm, double CTR )
 		if( CTR != 999.0 )
 			ang0 = CTR;
 		else
-			ang0 = 180.0/PI * RadiansFromAffine( Tab );
+			ang0 = 180.0/PI * Tab.GetRadians();
 	}
 
 // Force tiny ang0 to zero
@@ -678,7 +678,7 @@ static void SQD(
 	double			&prd,
 	int				&N,
 	const PixPair	&px,
-	const TForm		&T )
+	const TAffine	&T )
 {
 	sqd	= 0.0;
 	prd	= 0.0;
@@ -719,7 +719,7 @@ static void SQD(
 }
 
 
-void CThmUtil::RecordSumSqDif( const TForm &T )
+void CThmUtil::RecordSumSqDif( const TAffine &T )
 {
 	CMutex	M;
 	char	name[256];
@@ -770,8 +770,7 @@ void CThmUtil::FullScaleReportToLog( CorRec &best )
 	fprintf( flog, "Approx: Returning A=%f, R=%f, X=%f, Y=%f\n",
 	best.A, best.R, best.T.t[2], best.T.t[5] );
 
-	fprintf( flog, "Approx: Best transform " );
-	best.T.PrintTransform( flog );
+	best.T.TPrint( flog, "Approx: Best transform " );
 }
 
 /* --------------------------------------------------------------- */
@@ -783,19 +782,17 @@ void CThmUtil::FullScaleReportToLog( CorRec &best )
 // Iff LIMXY != 0 and iff using an angle sweep mode, then
 // return false if the difference exceeds LIMXY.
 //
-bool CThmUtil::Check_LIMXY( const TForm &Tbest )
+bool CThmUtil::Check_LIMXY( const TAffine &Tbest )
 {
-	TForm	Tinv, I;
+	TAffine	I;
 
 // Always report
 
-	fprintf( flog, "Approx: Orig transform " );
-	Tab.PrintTransform( flog );
+	Tab.TPrint( flog, "Approx: Orig transform " );
 
-	InvertTrans( Tinv, Tab );
-	MultiplyTrans( I, Tinv, Tbest );
-	fprintf( flog, "Approx: Idnt transform " );
-	I.PrintTransform( flog );
+	I.InverseOf( Tab );
+	I = I * Tbest;
+	I  .TPrint( flog, "Approx: Idnt transform " );
 
 	double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 

@@ -14,7 +14,7 @@
 #include	"TrakEM2_UTL.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 #include	"Timer.h"
 
 
@@ -30,7 +30,7 @@ class Picture {
 
 public:
 	string	fname;
-	TForm	T;
+	TAffine	T;
 
 public:
 	Picture( const TiXmlElement* ptch );

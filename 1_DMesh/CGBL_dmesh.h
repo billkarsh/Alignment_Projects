@@ -18,7 +18,7 @@ class CGBL_dmesh {
 
 private:
 	typedef struct {
-		vector<TForm>	Tdfm,
+		vector<TAffine>	Tdfm,
 						Tab;
 		double			SCALE,
 						XSCALE,
@@ -43,7 +43,7 @@ public:
 	} DriverArgs;
 
 	typedef struct {
-		TForm	Tdfm;
+		TAffine	Tdfm;
 		double	XYCONF,
 				NBMXHT,
 				HFANGDN,
@@ -70,8 +70,8 @@ private:
 
 public:
 	DriverArgs		arg;
-	TForm			Tab;	// start thumbs here
-	vector<TForm>	Tmsh;	// bypass thumbs, start mesh here
+	TAffine			Tab;	// start thumbs here
+	vector<TAffine>	Tmsh;	// bypass thumbs, start mesh here
 	vector<Point>	XYexp;	// command line expected XY
 	MatchParams		mch;
 	CntxtDep		ctx;

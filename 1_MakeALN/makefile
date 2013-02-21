@@ -24,7 +24,7 @@ SOURCES_MYPROJ := \
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp PipeFiles.cpp \
 	CTileSet.cpp Maths.cpp Geometry.cpp CPoint.cpp \
-	CTForm.cpp
+	TAffine.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

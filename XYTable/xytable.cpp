@@ -1,10 +1,10 @@
 //
-// Read CTFormTable.txt file and create table of pairwise XY-offsets.
+// Read TAffineTable.txt file and create table of pairwise XY-offsets.
 //
 
 #include	"Cmdline.h"
 #include	"File.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<math.h>
 
@@ -21,7 +21,7 @@ class Entry {
 
 public:
 	int		z, id;
-	TForm	T;
+	TAffine	T;
 };
 
 
@@ -155,9 +155,9 @@ static void Record()
 
 			const Entry&	ej = A.vE[j];
 
-			TForm	ab;
+			TAffine	ab;
 
-			AToBTrans( ab, ei.T, ej.T );
+			ab.FromAToB( ei.T, ej.T );
 
 			if( fabs( ab.t[2] ) > 4096 ||
 				fabs( ab.t[5] ) > 4096 ) {

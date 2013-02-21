@@ -124,10 +124,10 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* LoadTForms ---------------------------------------------------- */
+/* LoadTAffines -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void LoadTForms( vector<TForm> &vT )
+static void LoadTAffines( vector<TAffine> &vT )
 {
 	XML_TKEM		xml( gArgs.xml_lowres, flog );
 	TiXmlElement*	layer	= xml.GetFirstLayer();
@@ -142,10 +142,10 @@ static void LoadTForms( vector<TForm> &vT )
 }
 
 /* --------------------------------------------------------------- */
-/* UpdateTForms -------------------------------------------------- */
+/* UpdateTAffines ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void UpdateTForms()
+static void UpdateTAffines()
 {
 // Get log data
 
@@ -157,43 +157,43 @@ static void UpdateTForms()
 
 // Get scaled-down image -> image TForms
 
-	vector<TForm>	vTs( nL );
+	vector<TAffine>	vTs( nL );
 
-	LoadTForms( vTs );
+	LoadTAffines( vTs );
 
 // Build whole montage TForms
 
-	vector<TForm>	vTm( nL );
+	vector<TAffine>	vTm( nL );
 
 	for( int ia = 1; ia < nL; ++ia ) {
 
 		const CScapeMeta	&Ma = vL[ia].M;
 		const CScapeMeta	&M0 = vL[0].M;
-		TForm				R0i, Ra, t, s;
+		TAffine				R0i, Ra, t, s;
 
 		// A-montage -> A-oriented
 		Ra.NUSetRot( Ma.deg*PI/180 );
 
 		// A-oriented -> A-image (like Scape.cpp)
 		s.NUSetScl( 1.0/Ma.scl );
-		MultiplyTrans( t, s, Ra );
+		t = s * Ra;
 		t.AddXY( -Ma.x0, -Ma.y0 );
 
 		// A-image -> 0-image
-		MultiplyTrans( t, vTs[ia], TForm( t ) );
+		t = vTs[ia] * t;
 
 		// 0-image -> 0-image oriented
-		InvertTrans( R0i, vTs[0] );
-		MultiplyTrans( t, R0i, TForm( t ) );
+		R0i.InverseOf( vTs[0] );
+		t = R0i * t;
 
 		// 0-image oriented -> 0-oriented (reverse Scape.cpp)
 		t.AddXY( M0.x0, M0.y0 );
 		s.NUSetScl( M0.scl );
-		MultiplyTrans( t, s, TForm( t ) );
+		t = s * t;
 
 		// 0-oriented -> 0-montage
 		R0i.NUSetRot( -M0.deg*PI/180 );
-		MultiplyTrans( vTm[ia], R0i, t );
+		vTm[ia] = R0i * t;
 	}
 
 // Apply
@@ -204,7 +204,7 @@ static void UpdateTForms()
 
 	while( isN != -1 ) {
 
-		// find TForm for this z
+		// find TAffine for this z
 
 		int	z = TS.vtil[is0].z, ib;
 
@@ -219,8 +219,8 @@ static void UpdateTForms()
 		if( ib < nL ) {
 
 			for( int i = is0; i < isN; ++i ) {
-				TForm	&T = TS.vtil[i].T;
-				MultiplyTrans( T, vTm[ib], TForm( T ) );
+				TAffine	&T = TS.vtil[i].T;
+				T = vTm[ib] * T;
 			}
 		}
 
@@ -260,7 +260,7 @@ int main( int argc, char* argv[] )
 /* Update TForms */
 /* ------------- */
 
-	UpdateTForms();
+	UpdateTAffines();
 
 	TS.WriteTrakEM2_EZ( "HiRes.xml",
 		gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );

@@ -3,7 +3,7 @@
 #pragma once
 
 
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<string>
 using namespace std;
@@ -15,5 +15,5 @@ public:
 	string			fname;		// name of image mapped to
 	string			mname;		// name of mapping file
 	vector<Point>	centers;	// centers of sub-maps
-	vector<TForm>	transforms;	// transform for each portion
+	vector<TAffine>	transforms;	// transform for each portion
 };

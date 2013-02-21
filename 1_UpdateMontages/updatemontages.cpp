@@ -1,5 +1,5 @@
 //
-// Use montage/TFormTable files from given working alignment dir
+// Use montage/TAffineTable files from given working alignment dir
 // to update given xml file, keeping layer orientation same.
 //
 
@@ -147,19 +147,19 @@ int CArgs_xml::IDFromPatch( TiXmlElement* p )
 /* GetTable ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static bool GetTable( map<MZIDR,TForm> &M, int z )
+static bool GetTable( map<MZIDR,TAffine> &M, int z )
 {
 	char	file[2048];
 
-	sprintf( file, "%s/%d/montage/TFormTable.txt",
+	sprintf( file, "%s/%d/montage/TAffineTable.txt",
 		gArgs.tempdir, z );
 
 	if( !DskExists( file ) ) {
-		fprintf( flog, "Layer %d: No TFormTable.\n", z );
+		fprintf( flog, "Layer %d: No TAffineTable.\n", z );
 		return false;
 	}
 
-	LoadTFormTbl_ThisZ( M, z, file, flog );
+	LoadTAffineTbl_ThisZ( M, z, file, flog );
 	return true;
 }
 
@@ -168,10 +168,10 @@ static bool GetTable( map<MZIDR,TForm> &M, int z )
 /* --------------------------------------------------------------- */
 
 static bool CalcTupdt(
-	TForm				&Tupdt,
+	TAffine				&Tupdt,
 	TiXmlElement*		layer,
 	int					z,
-	map<MZIDR,TForm>	&M )
+	map<MZIDR,TAffine>	&M )
 {
 	MZIDR			key;
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
@@ -183,22 +183,21 @@ static bool CalcTupdt(
 
 		key.id = gArgs.IDFromPatch( p );
 
-		map<MZIDR,TForm>::iterator	it = M.find( key );
+		map<MZIDR,TAffine>::iterator	it = M.find( key );
 
 		if( it != M.end() ) {
 
-			TForm	T0, TR;
+			TAffine	T0, TR;
 
 			// get previous Transform
 			T0.ScanTrackEM2( p->Attribute( "transform" ) );
 
 			// set delta rotation part of Tupdt
 			Tupdt.NUSetRot(
-				RadiansFromAffine( T0 ) -
-				RadiansFromAffine( it->second ) );
+				T0.GetRadians() - it->second.GetRadians() );
 
 			// set delta translation part of Tupdt
-			MultiplyTrans( TR, Tupdt, it->second );
+			TR = Tupdt * it->second;
 			Tupdt.SetXY(
 				T0.t[2] - TR.t[2],
 				T0.t[5] - TR.t[5] );
@@ -218,8 +217,8 @@ static bool CalcTupdt(
 static void Apply(
 	TiXmlElement*		layer,
 	int					z,
-	const TForm			&Tupdt,
-	map<MZIDR,TForm>	&M )
+	const TAffine		&Tupdt,
+	map<MZIDR,TAffine>	&M )
 {
 	MZIDR			key;
 	TiXmlElement*	next;
@@ -234,13 +233,11 @@ static void Apply(
 
 		key.id = gArgs.IDFromPatch( p );
 
-		map<MZIDR,TForm>::iterator	it = M.find( key );
+		map<MZIDR,TAffine>::iterator	it = M.find( key );
 
 		if( it != M.end() ) {
 
-			TForm	T;
-
-			MultiplyTrans( T, Tupdt, it->second );
+			TAffine	T = Tupdt * it->second;
 			XMLSetTFVals( p, T.t );
 		}
 		else {
@@ -256,8 +253,8 @@ static void Apply(
 
 static void DoLayer( TiXmlElement* layer, int z )
 {
-	map<MZIDR,TForm>	M;
-	TForm				Tupdt;
+	map<MZIDR,TAffine>	M;
+	TAffine				Tupdt;
 
 	if( GetTable( M, z ) && CalcTupdt( Tupdt, layer, z, M ) )
 		Apply( layer, z, Tupdt, M );

@@ -5,7 +5,7 @@
 #include	"Maths.h"
 #include	"Correlation.h"
 #include	"Geometry.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 #include	"Draw.h"
 
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
         vector<double> spv;  // source pixel values
         ValuesFromImageAndPoints(spv, raster, w, Plist);
         Normalize(spv);
-        TForm t( 1, 0, dx, 0, 1, dy );
+        TAffine t( 1, 0, dx, 0, 1, dy );
 
         // Now try to find a transform with a good match.
         for(double step=1; step > 0.05; ) {
@@ -66,12 +66,12 @@ int main(int argc, char* argv[])
 	    printf(" %f %f %f %f %f %f: correlation %f\n",
              t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5], start);
             double best_so_far = start;
-            TForm tbest;  // best transform found
+            TAffine tbest;  // best transform found
             int bdir = -1;  // flag to tell what the best direction is
             for(int dir=0; dir < 8; dir++) {
 		double sx = step*cos(dir/8.0*2*PI);
 		double sy = step*sin(dir/8.0*2*PI);
-                TForm t2( t );
+                TAffine t2( t );
                 t2.AddXY( sx, sy );
 		vector<Point> Tpoints = Plist;   //   Start with locs in source
 		t2.Transform( Tpoints );            // Transform to locations in target
@@ -91,9 +91,9 @@ int main(int argc, char* argv[])
 
             for(int rot = -1; rot<2; rot += 2) {  // try two rotations, too
 
-                TForm	t2, R;
-                CreateCWRot( R, rot * step, cog );
-                MultiplyTrans( t2, R, t );
+                TAffine	t2, R;
+                R.SetCWRot( rot * step, cog );
+                t2 = R * t;
 
 		vector<Point> Tpoints = Plist;   //   Start with locs in source
 		t2.Transform( Tpoints );            // Transform to locations in target

@@ -4,7 +4,7 @@
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 #include	"Timer.h"
 
 
@@ -152,13 +152,13 @@ int Ntrans = array_of_transforms.size()/6;
 
 
 // convert the double array back to an array of tforms.
-TForm* tfs = new TForm[Ntrans];
+TAffine* tfs = new TAffine[Ntrans];
 
 for(int i=0; i<Ntrans; i++) {
-    printf("Transform %3d:", i);
+    printf("Transform %3d: ", i);
     tfs[i].CopyIn( &array_of_transforms[i*6] );
     tfs[i].FromMatlab();
-    tfs[i].PrintTransform();
+    tfs[i].TPrint();
     printf("\n");
     }
 

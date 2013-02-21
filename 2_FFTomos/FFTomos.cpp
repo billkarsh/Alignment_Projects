@@ -9,7 +9,7 @@
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -53,7 +53,7 @@ static double	ffstd[4]	= {0,0,0,0};
 static int		fford[4]	= {0,0,0,0};
 static int		ffoff[4]	= {0,0,0,0};
 static int		useT[4]		= {0,0,0,0};
-static TForm	gT[4];
+static TAffine	gT[4];
 static uint32	gW = 0,	gH = 0;		// universal pic dims
 static int		gped = 0;
 
@@ -214,7 +214,7 @@ static void ReadParams()
 		// compute gT
 
 		if( useT[chan] = (toupper( cUse ) == 'T') )
-			gT[chan] = TForm( A );
+			gT[chan] = TAffine( A );
 	}
 
 	fprintf( flog, "\n" );
@@ -279,7 +279,7 @@ static void FFChannel( uint16* ras, int chan )
 /* --------------------------------------------------------------- */
 
 #if 0
-static void MagChannel( uint16* ras, const TForm &T )
+static void MagChannel( uint16* ras, const TAffine &T )
 {
 	int				np = gW * gH;
 	vector<double>	I( np, 0.0 );
@@ -299,13 +299,13 @@ static void MagChannel( uint16* ras, const TForm &T )
 }
 #endif
 
-static void MagChannel( uint16* ras, const TForm &T )
+static void MagChannel( uint16* ras, const TAffine &T )
 {
-	TForm			I;
+	TAffine			I;
 	int				np = gW * gH;
 	vector<uint16>	src( np );
 
-	InvertTrans( I, T );
+	I.InverseOf( T );
 	memcpy( &src[0], ras, np * sizeof(uint16) );
 
 	for( int i = 0; i < np; ++i ) {

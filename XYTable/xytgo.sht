@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# Read CTFormTable.txt file and create table of pairwise XY-offsets.
+# Read TAffineTable.txt file and create table of pairwise XY-offsets.
 #
 # > xytable <infile> -z=i
 #
 
-xytable /groups/apig/tomo/philtest_redo/temp/stack/TFormTable.txt -z=993
+xytable /groups/apig/tomo/philtest_redo/temp/stack/TAffineTable.txt -z=993
 
 

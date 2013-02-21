@@ -4,7 +4,7 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<vector>
 using namespace std;
@@ -34,7 +34,7 @@ typedef struct {
 } ThmRec;
 
 typedef struct {
-	TForm			T;
+	TAffine			T;
 	double			X, Y,
 					A, R;
 } CorRec;
@@ -52,7 +52,7 @@ class CThmScan {
 private:
 	T_NewAngProc	newAngProc;
 	FILE			*flog;
-	TForm			Tdfm,
+	TAffine			Tdfm,
 					Tptwk;
 	double			rthresh,
 					nbmaxht;
@@ -66,14 +66,14 @@ private:
 private:
 	void RotatePoints(
 		vector<Point>	&pts,
-		TForm			&T,
+		TAffine			&T,
 		double			rads );
 
 	double PTWApply1(
-		const TForm	&Ttry,
-		double		deg,
-		ThmRec		&thm,
-		bool		keep );
+		const TAffine	&Ttry,
+		double			deg,
+		ThmRec			&thm,
+		bool			keep );
 
 	double PTWSweep(
 		double	&rbest,
@@ -102,7 +102,7 @@ public:
 	void SetFlog( FILE* flog )
 		{this->flog = flog;};
 
-	void SetTdfm( const TForm &Tdfm )
+	void SetTdfm( const TAffine &Tdfm )
 		{this->Tdfm = Tdfm;};
 
 	void SetRThresh( double rthresh )

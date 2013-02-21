@@ -113,7 +113,7 @@
 // See notes in ApproximateMatch.cpp.
 //
 bool ApproximateMatch(
-	vector<TForm>		&guesses,
+	vector<TAffine>		&guesses,
 	const PixPair		&px,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,

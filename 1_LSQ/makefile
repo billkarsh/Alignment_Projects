@@ -35,8 +35,8 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	PipeFiles.cpp CLens.cpp TrakEM2_UTL.cpp \
-	ImageIO.cpp Maths.cpp CPoint.cpp CTForm.cpp \
+	PipeFiles.cpp CAffineLens.cpp TrakEM2_UTL.cpp \
+	ImageIO.cpp Maths.cpp CPoint.cpp TAffine.cpp \
 	LinEqu.cpp
 
 SOURCES_GEN :=  \

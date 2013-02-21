@@ -1,11 +1,11 @@
 #include	"Disk.h"
 #include	"File.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 typedef struct {
 // entry: TileToImage.txt
-	TForm	T;
+	TAffine	T;
 	int		tile;
 	string	path;
 } Til2Img;

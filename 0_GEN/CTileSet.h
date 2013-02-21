@@ -5,7 +5,7 @@
 
 #include	"GenDefs.h"
 #include	"CRegexID.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<string>
 using namespace std;
@@ -32,7 +32,7 @@ public:
 	int		z;		// z layer
 	int		id;		// inlayer id
 	int		ix;		// idx to aux data
-	TForm	T;		// local to global
+	TAffine	T;		// local to global
 
 public:
 	CUTile()	{ix = 0;};
@@ -102,8 +102,8 @@ public:
 	void GetLayerLimits( int &i0, int &iN );
 
 	void ReadClixFile( vector<TSClix> &clk, const char *path );
-	TForm RigidFromClix( const TSClix &clk );
-	TForm AffineFromClix( const TSClix &clk );
+	TAffine RigidFromClix( const TSClix &clk );
+	TAffine AffineFromClix( const TSClix &clk );
 	void ApplyClix( int tfType, const char *path );
 
 	void BoundsPlus1( DBox &B, int i );
@@ -113,7 +113,7 @@ public:
 
 	void LayerAssignR( int is0, int isN, const DBox &B );
 
-	double ABOlap( int a, int b, const TForm *Tab = NULL );
+	double ABOlap( int a, int b, const TAffine *Tab = NULL );
 
 	void WriteTrakEM2Layer(
 		FILE*	f,

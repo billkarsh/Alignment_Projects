@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Update transforms in given 'myxml' file using TFormTables in given
+# Update transforms in given 'myxml' file using TAffineTables in given
 # temp directory. Preserves montage-montage orientation. Output file
 # named 'myxml_v2.xml'.
 #

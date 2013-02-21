@@ -1,6 +1,6 @@
 
 
-#include	"CLens.h"
+#include	"CAffineLens.h"
 #include	"GenDefs.h"
 #include	"File.h"
 
@@ -13,7 +13,7 @@
 /* ReadFile ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-bool CLens::ReadFile( const char *path, FILE* flog )
+bool CAffineLens::ReadFile( const char *path, FILE* flog )
 {
 	this->flog = flog;
 
@@ -35,7 +35,7 @@ bool CLens::ReadFile( const char *path, FILE* flog )
 
 	while( LS.Get( f ) > 0 ) {
 
-		TForm	T;
+		TAffine	T;
 		int		cam;
 
 		if( 7 != sscanf( LS.line,
@@ -74,7 +74,7 @@ bool CLens::ReadFile( const char *path, FILE* flog )
 	for( int i = 0; i < 4; ++i ) {
 
 //		Tf[i].SetXY( 0, 0 );
-		InvertTrans( Ti[i], Tf[i] );
+		Ti[i].InverseOf( Tf[i] );
 	}
 
 	ok = true;
@@ -90,7 +90,7 @@ exit:
 /* ReadIDB ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool CLens::ReadIDB( const string &idb, FILE* flog )
+bool CAffineLens::ReadIDB( const string &idb, FILE* flog )
 {
 	char	path[2048];
 
@@ -103,7 +103,7 @@ bool CLens::ReadIDB( const string &idb, FILE* flog )
 /* CamID --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int CLens::CamID( const char *name )
+int CAffineLens::CamID( const char *name )
 {
 	const char	*s = FileNamePtr( name );
 
@@ -121,11 +121,13 @@ int CLens::CamID( const char *name )
 /* UpdateDoublesRHS ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CLens::UpdateDoublesRHS( double *D, const char *name, bool inv )
+void CAffineLens::UpdateDoublesRHS(
+	double		*D,
+	const char	*name,
+	bool		inv )
 {
-	TForm	T;
+	TAffine	T = TAffine( D ) * (inv ? Ti : Tf)[CamID( name )];
 
-	MultiplyTrans( T, TForm( D ), (inv ? Ti : Tf)[CamID( name )] );
 	T.CopyOut( D );
 }
 
@@ -133,18 +135,24 @@ void CLens::UpdateDoublesRHS( double *D, const char *name, bool inv )
 /* UpdateTFormRHS ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CLens::UpdateTFormRHS( TForm &T, const char *name, bool inv )
+void CAffineLens::UpdateTFormRHS(
+	TAffine		&T,
+	const char	*name,
+	bool		inv )
 {
-	MultiplyTrans( T, TForm( T ), (inv ? Ti : Tf)[CamID( name )] );
+	T = T * (inv ? Ti : Tf)[CamID( name )];
 }
 
 /* --------------------------------------------------------------- */
 /* UpdateTFormLHS ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CLens::UpdateTFormLHS( TForm &T, const char *name, bool inv )
+void CAffineLens::UpdateTFormLHS(
+	TAffine		&T,
+	const char	*name,
+	bool		inv )
 {
-	MultiplyTrans( T, (inv ? Ti : Tf)[CamID( name )], TForm( T ) );
+	T = (inv ? Ti : Tf)[CamID( name )] * T;
 }
 
 

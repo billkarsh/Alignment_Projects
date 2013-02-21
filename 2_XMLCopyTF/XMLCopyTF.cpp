@@ -1,5 +1,5 @@
 //
-// Copy tforms from file2=TFormTable.txt into file1=TrakEM2.xml.
+// Copy tforms from file2=TAffineTable.txt into file1=TrakEM2.xml.
 //
 
 #include	"Cmdline.h"
@@ -49,10 +49,10 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CArgs_xml		gArgs;
-static FILE*			flog = NULL;
-static map<MZID,TForm>	M;
-static set<int>			Z;
+static CArgs_xml			gArgs;
+static FILE*				flog = NULL;
+static map<MZID,TAffine>	M;
+static set<int>				Z;
 
 
 
@@ -153,7 +153,7 @@ static void CopyMatchingTF( TiXmlElement* layer, int z )
 
 		key.id = gArgs.IDFromPatch( p );
 
-		map<MZID,TForm>::iterator	it = M.find( key );
+		map<MZID,TAffine>::iterator	it = M.find( key );
 
 		if( it != M.end() )
 			XMLSetTFVals( p, it->second.t );
@@ -212,7 +212,7 @@ int main( int argc, char* argv[] )
 /* Load lists of TForms and affected Z's */
 /* ------------------------------------- */
 
-	LoadTFormTbl_AllZ( M, Z, gArgs.tblfile, flog );
+	LoadTAffineTbl_AllZ( M, Z, gArgs.tblfile, flog );
 
 /* ------------- */
 /* Write new xml */

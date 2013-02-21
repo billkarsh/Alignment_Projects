@@ -4,7 +4,7 @@
 
 
 #include	"Geometry.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -12,7 +12,7 @@
 /* --------------------------------------------------------------- */
 
 double ImproveMesh(
-	vector<TForm>			&transforms,
+	vector<TAffine>			&transforms,
 	vector<Point>			&centers,
 	vector<triangle>		&tri,
 	const vector<vertex>	&ctl,
@@ -21,7 +21,7 @@ double ImproveMesh(
 	const vector<double>	&bimg,
 	int						w,
 	int						h,
-	const TForm				&tr_guess,
+	const TAffine			&tr_guess,
 	double					threshold,
 	FILE					*flog,
 	const char				*describe );

@@ -32,7 +32,7 @@ for(int i=0; i<8; i++) {
 /* TryNewOptimizer ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void TryNewOptimizer(vector<Point> &plist, vector<double> &spv, vector<double> &image2, TForm &t, FILE *flog)
+static void TryNewOptimizer(vector<Point> &plist, vector<double> &spv, vector<double> &image2, TAffine &t, FILE *flog)
 {
 // compute the bounding box
 fprintf(of,"\n---------- Try new optimizer on %d points----------------\n", plist.size());
@@ -76,17 +76,17 @@ ImproveControlPts(cpts, lambda, spv, image2, 4096, flog, "new opt", 1.0);
 
 // Now, find a transformation that maps ORIG into the new cpts
 // first, create a transform that maps a unit right triangle to the original pts
-TForm o(orig[1].x-orig[0].x, orig[2].x-orig[0].x, orig[0].x,
+TAffine o(orig[1].x-orig[0].x, orig[2].x-orig[0].x, orig[0].x,
         orig[1].y-orig[0].y, orig[2].y-orig[0].y, orig[0].y);
 // now one that maps the final optimized control points to the unit right triangle
-TForm c(cpts[1].x-cpts[0].x, cpts[2].x-cpts[0].x, cpts[0].x,
+TAffine c(cpts[1].x-cpts[0].x, cpts[2].x-cpts[0].x, cpts[0].x,
         cpts[1].y-cpts[0].y, cpts[2].y-cpts[0].y, cpts[0].y);
 // now, to get from the original to the final, apply o^-1, then c;
-TForm oi;
-InvertTrans(oi, o);
-//TForm temp;
-MultiplyTrans(t, c, oi);
-PrintTransform(of, t);
+TAffine oi;
+oi.InverseOf( o );
+//TAffine temp;
+t = c * oi;
+t.TPrint( of );
 }
 
 /* --------------------------------------------------------------- */
@@ -99,12 +99,12 @@ PrintTransform(of, t);
 // the array image2.
 // returns the best correlation obtained.
 static double ImproveCorrelation(vector<Point> &Plist, vector<double> &spv, vector<double>image2,
- double dx, double dy, TForm &t, FILE *flog)
+ double dx, double dy, TAffine &t, FILE *flog)
 {
 fprintf(of,"Contains %d pixels\n", Plist.size() );
 Normalize(spv);
 if (dx != BIG)  // if dx == BIG, start improving from the transform we have
-    t = TForm(1.0, 0.0, dx, 0.0, 1.0, dy);  // otherwise, create a transform with just dx, dy
+    t = TAffine(1.0, 0.0, dx, 0.0, 1.0, dy);  // otherwise, create a transform with just dx, dy
 
 double best_so_far = 0.0;
 

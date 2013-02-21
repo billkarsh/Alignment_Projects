@@ -26,8 +26,8 @@ void ABOverlay(
 	const PixPair	&px,
 	const uint16*	rmap,
 	int				Ntrans,
-	const TForm*	tfs,
-	const TForm*	ifs )
+	const TAffine*	tfs,
+	const TAffine*	ifs )
 {
 	int		w		= px.wf,
 			h		= px.hf,
@@ -436,7 +436,7 @@ static void CorrView(
 void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
-	const TForm*	tfs,
+	const TAffine*	tfs,
 	bool			heatmap )
 {
 	FILE*	f;

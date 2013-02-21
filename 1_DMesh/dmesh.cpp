@@ -47,7 +47,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static bool RoughMatch(
-	vector<TForm>		&guesses,
+	vector<TAffine>		&guesses,
 	const PixPair		&px,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,
@@ -61,7 +61,7 @@ static bool RoughMatch(
 		// Call NoCR at most once. Possible states
 		// are {0=never called, 1=failed, 2=success}.
 
-		static vector<TForm>	T;
+		static vector<TAffine>	T;
 		static int				state = 0;
 
 		int	calledthistime = false;
@@ -75,8 +75,7 @@ static bool RoughMatch(
 
 			if( !calledthistime ) {
 				fprintf( flog, "\n---- Thumbnail matching ----\n" );
-				fprintf( flog, "Reuse Approx: Best transform " );
-				T[0].PrintTransform( flog );
+				T[0].TPrint( flog, "Reuse Approx: Best transform " );
 			}
 
 			guesses.push_back( T[0] );
@@ -100,7 +99,7 @@ static bool RoughMatch(
 
 // All checking done at scaled (downsampled) sizes.
 //
-static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
+static int CheckTransforms( const vector<TAffine> &vT, FILE* flog )
 {
 	int	nXY, nT = vT.size();
 
@@ -119,7 +118,7 @@ static int CheckTransforms( const vector<TForm> &vT, FILE* flog )
 
 		for( int i = 0; i < nT; ++i ) {
 
-			double	ang = RadiansFromAffine( vT[i] );
+			double	ang =  vT[i].GetRadians();
 
 			// handle atan() branch cuts
 
@@ -437,7 +436,7 @@ void PipelineDeformableMap(
 			// start list with user's transform arguments
 
 			CStatus			stat( Acr[i].id, Bcr[j].id );
-			vector<TForm>	guesses = GBL.Tmsh;
+			vector<TAffine>	guesses = GBL.Tmsh;
 
 			if( RoughMatch( guesses, px, Acr[i], Bcr[j], flog ) ) {
 

@@ -62,14 +62,13 @@ static double NewXFromParabola(
 
 void CThmScan::RotatePoints(
 	vector<Point>	&pts,
-	TForm			&T,
+	TAffine			&T,
 	double			rads )
 {
-	TForm	R, temp;
+	TAffine	R;
 
 	R.NUSetRot( rads );
-	MultiplyTrans( temp, Tdfm, Tptwk );
-	MultiplyTrans( T, R, temp );
+	T = R * (Tdfm * Tptwk);
 	T.Apply_R_Part( pts );
 }
 
@@ -81,15 +80,15 @@ void CThmScan::RotatePoints(
 // Make change to Tptwk permanent if keep = true.
 //
 double CThmScan::PTWApply1(
-	const TForm	&Ttry,
-	double		deg,
-	ThmRec		&thm,
-	bool		keep )
+	const TAffine	&Ttry,
+	double			deg,
+	ThmRec			&thm,
+	bool			keep )
 {
 	CorRec	C;
-	TForm	Tback = Tptwk;
+	TAffine	Tback = Tptwk;
 
-	MultiplyTrans( Tptwk, Ttry, Tback );
+	Tptwk = Ttry * Tptwk;
 	RFromAngle( C, deg, thm );
 
 	if( !keep )
@@ -121,13 +120,13 @@ double CThmScan::PTWSweep(
 
 	fprintf( flog, "PTWSweep %2d:", sel );
 
-	if( sel >= tfnuScl && sel <= tfnuYScl )
+	if( sel >= tafnuScl && sel <= tafnuYScl )
 		abase = 1.0;
 
 	for( int i = -nstep; i <= nstep; ++i ) {
 
 		double	R;
-		TForm	T;
+		TAffine	T;
 
 		T.NUSelect( sel, abase + i * astep );
 		R = PTWApply1( T, deg, thm, false );
@@ -164,7 +163,7 @@ double CThmScan::PTWInterp(
 	ThmRec	&thm )
 {
 	double	y0, y2, xnew;
-	TForm	T;
+	TAffine	T;
 
 	T.NUSelect( sel, x1 - d );
 	y0 = PTWApply1( T, deg, thm, false );
@@ -320,7 +319,7 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 	vector<int>	vsel( 5 );
 	vector<int>	vused( 5, 0 );
 
-	for( int i = tfnuScl; i <= tfnuYSkw; ++i )
+	for( int i = tafnuScl; i <= tafnuYSkw; ++i )
 		vsel[i] = i;
 
 // To decide which transform type to use, we will do a magnitude
@@ -374,11 +373,11 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 
 		if( rbest > bestR ) {
 
-			TForm	T;
+			TAffine	T;
 
 			fprintf( flog, "PTWUsing %2d\n", vsel[selbest] );
 			T.NUSelect( vsel[selbest], a );
-			MultiplyTrans( Tptwk, T, TForm( Tptwk ) );
+			Tptwk = T * Tptwk;
 			vused[selbest]	= 1;
 			bestR			= rbest;
 			anychange		= true;
@@ -389,8 +388,7 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 
 	StopTiming( flog, "Pretweaks", t0 );
 
-	fprintf( flog, "Approx: Pretweak " );
-	Tptwk.PrintTransform( flog );
+	Tptwk.TPrint( flog, "Approx: Pretweak " );
 
 	return anychange;
 }

@@ -6,7 +6,7 @@
 #include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<map>
 #include	<set>
@@ -56,7 +56,7 @@ public:
 
 static CArgs_xml		gArgs;
 static FILE*			flog = NULL;
-static map<int,TForm>	M;
+static map<int,TAffine>	M;
 static set<int>			Z;
 
 
@@ -151,16 +151,16 @@ int CArgs_xml::IDFromPatch( TiXmlElement* p )
 }
 
 /* --------------------------------------------------------------- */
-/* GetTForms ----------------------------------------------------- */
+/* GetTAffines --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void GetTForms( TiXmlElement* layer )
+static void GetTAffines( TiXmlElement* layer )
 {
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
 	for( ; p; p = p->NextSiblingElement() ) {
 
-		TForm	T;
+		TAffine	T;
 		int		id = gArgs.IDFromPatch( p );
 
 		T.ScanTrackEM2( p->Attribute( "transform" ) );
@@ -190,7 +190,7 @@ static void GetSrc()
 		int	z = atoi( layer->Attribute( "z" ) );
 
 		if( z == gArgs.zsrc ) {
-			GetTForms( layer );
+			GetTAffines( layer );
 			return;
 		}
 	}
@@ -211,7 +211,7 @@ static void UpdateTiles( TiXmlElement* layer )
 
 		int	id = gArgs.IDFromPatch( p );
 
-		map<int,TForm>::iterator	it = M.find( id );
+		map<int,TAffine>::iterator	it = M.find( id );
 
 		if( it != M.end() )
 			XMLSetTFVals( p, it->second.t );

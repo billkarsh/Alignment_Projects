@@ -3,7 +3,7 @@
 #include	"CPixPair.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
-#include	"CLens.h"
+#include	"CAffineLens.h"
 #include	"Correlation.h"
 #include	"Timer.h"
 
@@ -199,7 +199,7 @@ static bool HasTissue( const char *path )
 /* --------------------------------------------------------------- */
 
 static void Lens(
-	CLens			&LN,
+	CAffineLens		&LN,
 	vector<double>	&vout,
 	const char		*path,
 	uint8*			&ras,
@@ -215,7 +215,7 @@ static void Lens(
 
 // Transform into vout
 
-	TForm	T = LN.GetTf( path );
+	TAffine	T = LN.GetTf( path );
 	int		np = w * h;
 
 	vout.resize( np, 0.0 );
@@ -254,7 +254,7 @@ bool PixPair::Load(
 /* Prepare lens data */
 /* ----------------- */
 
-	CLens	LN;
+	CAffineLens	LN;
 
 	if( idb && !LN.ReadIDB( *idb ) )
 		return false;

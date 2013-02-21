@@ -299,7 +299,7 @@ void CSuperscape::OrientLayer()
 
 // Rotate layer upright and translate to (0,0)
 
-	TForm	R;
+	TAffine	R;
 
 	deg = TightestBBox( B, C );
 
@@ -317,9 +317,9 @@ void CSuperscape::OrientLayer()
 
 	for( int i = is0; i < isN; ++i ) {
 
-		TForm&	T = TS.vtil[i].T;
+		TAffine&	T = TS.vtil[i].T;
 
-		MultiplyTrans( T, R, TForm( T ) );
+		T = R * T;
 	}
 
 	Bxc = int((B.R + B.L)/2.0);
@@ -546,7 +546,7 @@ static void NewAngProc( double deg )
 // montages:
 //
 // Recapitulate total process...
-//	TForm	Rbi, Ra, t;
+//	TAffine	Rbi, Ra, t;
 //
 // Scale back up
 //	best.T.MulXY( gArgs.abscl );
@@ -562,14 +562,14 @@ static void NewAngProc( double deg )
 //	Ra.AddXY( -A.x0, -A.y0 );
 //
 // A-scape -> B-scape
-//	MultiplyTrans( t, best.T, Ra );
+//	t = best.T * Ra;
 //
 // B-scape -> B-oriented
 //	t.AddXY( B.x0, B.y0 );
 //
 // B-oriented -> B-montage
 //	Rbi.NUSetRot( -B.deg*PI/180 );
-//	MultiplyTrans( best.T, Rbi, t );
+//	best.T = Rbi * t;
 //
 static void ScapeStuff()
 {

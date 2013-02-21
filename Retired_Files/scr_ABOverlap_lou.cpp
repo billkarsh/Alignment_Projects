@@ -6,11 +6,9 @@
 //
 static double AontoBOverlap( const Picture &a, const Picture &b )
 {
-	TForm			T;	// map a->b
+	TAffine			T = b.inv * a.tr;	// map a->b
 	vector<Point>	corners( 4 );
 	int				w = a.w, h = a.h;
-
-	MultiplyTrans( T, b.inv, a.tr );
 
 	corners[0] = Point( 0.0, 0.0 );
 	corners[1] = Point( w-1, 0.0 );

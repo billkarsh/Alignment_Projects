@@ -98,11 +98,11 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* MakeTForms ---------------------------------------------------- */
+/* MakeTAffines -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void MakeTForms(
-	vector<TForm>		&vT,
+static void MakeTAffines(
+	vector<TAffine>		&vT,
 	const vector<CLog>	&vL )
 {
 	int	nL = vT.size();
@@ -112,7 +112,7 @@ static void MakeTForms(
 
 	for( int ia = 1; ia < nL; ++ia ) {
 
-		TForm	Taa;
+		TAffine	Taa;
 		int		ib = ia - 1;
 
 		// Begin by constructing Tba (image[a] -> image[b])
@@ -127,7 +127,7 @@ static void MakeTForms(
 		Taa.AddXY( -vL[ib].A.x0, -vL[ib].A.y0 );
 
 		// A strip -> B strip
-		MultiplyTrans( vT[ia], vL[ib].T, Taa );
+		vT[ia] = vL[ib].T * Taa;
 
 		// B strip -> B content
 		vT[ia].AddXY( vL[ib].B.x0, vL[ib].B.y0 );
@@ -140,7 +140,7 @@ static void MakeTForms(
 
 		// Now convert Tba to global transform T0a
 		// T0a = T01.T12...Tba.
-		MultiplyTrans( vT[ia], vT[ib], TForm( vT[ia] ) );
+		vT[ia] = vT[ib] * vT[ia];
 	}
 }
 
@@ -149,9 +149,9 @@ static void MakeTForms(
 /* --------------------------------------------------------------- */
 
 static void MakeBounds(
-	DBox				&B,
-	const vector<CLog>	&vL,
-	const vector<TForm>	&vT )
+	DBox					&B,
+	const vector<CLog>		&vL,
+	const vector<TAffine>	&vT )
 {
 	int	nL = vT.size();
 
@@ -184,10 +184,10 @@ static void MakeBounds(
 /* --------------------------------------------------------------- */
 
 static void WriteTrakEM2Layer(
-	FILE*		f,
-	int			&oid,
-	const CLog	&L,
-	const TForm	&T )
+	FILE*			f,
+	int				&oid,
+	const CLog		&L,
+	const TAffine	&T )
 {
 // Layer prologue
 
@@ -229,10 +229,10 @@ static void WriteTrakEM2Layer(
 /* --------------------------------------------------------------- */
 
 static void WriteTrakEM2(
-	const char			*path,
-	DBox				&B,
-	const vector<CLog>	&vL,
-	const vector<TForm>	&vT )
+	const char				*path,
+	DBox					&B,
+	const vector<CLog>		&vL,
+	const vector<TAffine>	&vT )
 {
 // Open file
 
@@ -296,9 +296,9 @@ static void BuildStack()
 
 // Make layer TForms
 
-	vector<TForm>	vT( nL );
+	vector<TAffine>	vT( nL );
 
-	MakeTForms( vT, vL );
+	MakeTAffines( vT, vL );
 
 // Calculate bounds
 

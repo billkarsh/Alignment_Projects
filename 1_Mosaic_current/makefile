@@ -36,7 +36,7 @@ SOURCES_UTL := \
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp PipeFiles.cpp \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp CTForm.cpp \
+	CPoint.cpp Geometry.cpp TAffine.cpp \
 	LinEqu.cpp Draw.cpp Memory.cpp Debug.cpp
 
 SOURCES_GEN :=  \

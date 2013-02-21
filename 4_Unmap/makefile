@@ -36,7 +36,7 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	File.cpp ImageIO.cpp Maths.cpp CTForm.cpp \
+	File.cpp ImageIO.cpp Maths.cpp TAffine.cpp \
 	Debug.cpp
 
 SOURCES_GEN :=  \

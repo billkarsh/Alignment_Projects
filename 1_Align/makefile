@@ -30,7 +30,7 @@ SOURCES_UTL := \
 _SRC_GEN_ := \
 	Disk.cpp File.cpp \
 	ImageIO.cpp Maths.cpp \
-	CTForm.cpp Timer.cpp Debug.cpp
+	TAffine.cpp Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

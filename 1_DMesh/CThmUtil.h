@@ -45,7 +45,7 @@ private:
 	FILE			*flog;
 
 public:
-	TForm	&Tab;
+	TAffine	&Tab;
 	double	ang0,
 			HFANGDN,
 			HFANGPR,
@@ -61,7 +61,7 @@ public:
 		const PicSpecs	&B,
 		int				bid,
 		const PixPair	&px,
-		TForm			&Tab,
+		TAffine			&Tab,
 		long			&OLAP2D,
 		FILE			*flog )
 		:
@@ -83,10 +83,10 @@ public:
 			this->MODE=MODE; this->LIMXY=LIMXY;
 		};
 
-	bool Echo( vector<TForm> &guesses );
-	bool FromLog( vector<TForm> &guesses );
+	bool Echo( vector<TAffine> &guesses );
+	bool FromLog( vector<TAffine> &guesses );
 
-	int SetStartingAngle( const TForm &Tdfm, double CTR );
+	int SetStartingAngle( const TAffine &Tdfm, double CTR );
 
 	void SubI_ThesePoints(
 		SubI					&S,
@@ -146,11 +146,11 @@ public:
 		Point		aO,
 		const Point	&bO );
 
-	void RecordSumSqDif( const TForm &T );
+	void RecordSumSqDif( const TAffine &T );
 
 	void FullScaleReportToLog( CorRec &best );
 
-	bool Check_LIMXY( const TForm &Tbest );
+	bool Check_LIMXY( const TAffine &Tbest );
 
 	void TabulateResult( const CorRec &best, int err );
 	bool Failure( const CorRec &best, int err );

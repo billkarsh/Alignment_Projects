@@ -4,7 +4,7 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<stdio.h>
 
@@ -26,8 +26,8 @@ public:
 	uint32	w, h;				// image dims
 	int		z;					// Z layer
 	int		scale;				// original/raster (1, 2, 4)
-	TForm	tr;					// transform this raster to target
-	TForm	Inverse;			// tr inverse
+	TAffine	tr;					// transform this raster to target
+	TAffine	Inverse;			// tr inverse
 	vector<CD>		fft_of_frame;	// FFT of the frame
 	vector<uint8>	DoG;			// Difference of Gaussians
 

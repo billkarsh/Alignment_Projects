@@ -10,7 +10,7 @@
 #include	"Cmdline.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 
 /* --------------------------------------------------------------- */
@@ -139,7 +139,7 @@ static void TrimTiles( TiXmlElement* layer )
 		pnext = ptch->NextSiblingElement();
 
 		vector<Point>	cnr( 4 );
-		TForm			T;
+		TAffine			T;
 		DBox			B;
 		int				w, h;
 

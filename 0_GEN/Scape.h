@@ -4,7 +4,7 @@
 
 
 #include	"GenDefs.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<string>
 using namespace std;
@@ -18,12 +18,12 @@ class ScpTile {
 
 public:
 	string	name;
-	TForm	t2g;	// tile to global
+	TAffine	t2g;	// tile to global
 
 public:
 	ScpTile()	{};
 
-	ScpTile( const string &_name, const TForm &_t2g )
+	ScpTile( const string &_name, const TAffine &_t2g )
 		{name = _name; t2g = _t2g;};
 };
 

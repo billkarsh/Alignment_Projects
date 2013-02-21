@@ -69,15 +69,15 @@ static void AdjustBounds(
 
 // propagate new dims
 
-	TForm	A, t;
+	TAffine	A;
 
 	A.NUSetScl( scale );
 
 	for( int i = 0; i < nt; ++i ) {
 
-		TForm	&T = vTile[i].t2g;
+		TAffine	&T = vTile[i].t2g;
 
-		MultiplyTrans( T, A, t = T );
+		T = A * T;
 		T.AddXY( -x0, -y0 );
 	}
 }
@@ -95,15 +95,15 @@ static void AdjustBounds(
 // the scape coords to exceed [0,ws); [0,hs).
 //
 static void ScanLims(
-	int			&x0,
-	int			&xL,
-	int			&y0,
-	int			&yL,
-	int			ws,
-	int			hs,
-	const TForm	&T,
-	int			wi,
-	int			hi )
+	int				&x0,
+	int				&xL,
+	int				&y0,
+	int				&yL,
+	int				ws,
+	int				hs,
+	const TAffine	&T,
+	int				wi,
+	int				hi )
 {
 	double	xmin, xmax, ymin, ymax;
 
@@ -229,7 +229,7 @@ static void Paint(
 
 	for( int i = 0; i < nt; ++i ) {
 
-		TForm	inv;
+		TAffine	inv;
 		int		x0, xL, y0, yL,
 				wL, hL,
 				wi, hi;
@@ -241,7 +241,7 @@ static void Paint(
 		wi = w;
 		hi = h;
 
-		InvertTrans( inv, vTile[i].t2g );
+		inv.InverseOf( vTile[i].t2g );
 
 		if( iscl > 1 ) {	// Scaling down
 
@@ -249,9 +249,9 @@ static void Paint(
 			Downsample( src, wi, hi, iscl );
 
 			// and point at the new pixels
-			TForm	A;
+			TAffine	A;
 			A.NUSetScl( 1.0/iscl );
-			MultiplyTrans( inv, A, TForm( inv ) );
+			inv = A * inv;
 		}
 
 		wL = wi - 1;

@@ -449,22 +449,22 @@ static void FindPairs(
 	vector<Pair>		&P,
 	const CSuperscape	&A,
 	const CSuperscape	&B,
-	const TForm			&Tm )
+	const TAffine		&Tm )
 {
 	int	na = A.vID.size();
 
 	for( int ka = 0; ka < na; ++ka ) {
 
-		TForm	Ta;
+		TAffine	Ta;
 		int		ia = A.vID[ka];
 
-		MultiplyTrans( Ta, Tm, TS.vtil[ia].T );
+		Ta = Tm * TS.vtil[ia].T;
 
 		for( int ib = B.is0; ib < B.isN; ++ib ) {
 
-			TForm	Tab;
+			TAffine	Tab;
 
-			AToBTrans( Tab, Ta, TS.vtil[ib].T );
+			Tab.FromAToB( Ta, TS.vtil[ib].T );
 
 			if( TS.ABOlap( ia, ib, &Tab ) >= 0.02 )
 				P.push_back( Pair( ia, ib ) );
@@ -481,7 +481,7 @@ static void FindPairs(
 //
 static void WriteMakeFile(
 	const vector<Pair>	&P,
-	const TForm			&Tm )
+	const TAffine		&Tm )
 {
 	FILE	*f;
 	int		np = P.size();
@@ -513,14 +513,14 @@ static void WriteMakeFile(
 
 		const CUTile&	A = TS.vtil[P[i].a];
 		const CUTile&	B = TS.vtil[P[i].b];
-		TForm			T;
+		TAffine			T;
 
 		fprintf( f,
 		"%d/%d.%d.map.tif:\n",
 		A.id, B.z, B.id );
 
-		MultiplyTrans( T, Tm, A.T );
-		AToBTrans( T, TForm( T ), B.T );
+		T = Tm * A.T;
+		T.FromAToB( T, B.T );
 
 		fprintf( f,
 		"\tptest %d/%d@%d/%d -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
@@ -630,19 +630,19 @@ static void ScapeStuff()
 
 // Build: montage -> montage transform
 
-	TForm	s, t;
+	TAffine	s, t;
 
 	// A montage -> A block image
 	s.NUSetScl( gArgs.inv_abscl );
 	s.AddXY( -A.x0, -A.y0 );
 
 	// A block image -> B block image
-	MultiplyTrans( t, best.T, s );
+	t = best.T * s;
 
 	// B block image -> B montage
 	t.AddXY( B.x0, B.y0 );
 	s.NUSetScl( gArgs.abscl );
-	MultiplyTrans( best.T, s, t );
+	best.T = s * t;
 
 // List pairs
 

@@ -9,7 +9,7 @@
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
-#include	"CLens.h"
+#include	"CAffineLens.h"
 #include	"LinEqu.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
@@ -1568,9 +1568,9 @@ static void SetUniteLayer(
 /* Load TForms for requested layer */
 /* ------------------------------- */
 
-	map<MZIDR,TForm>	M;
+	map<MZIDR,TAffine>	M;
 
-	LoadTFormTbl_ThisZ( M, gArgs.unite_layer, gArgs.tfm_file );
+	LoadTAffineTbl_ThisZ( M, gArgs.unite_layer, gArgs.tfm_file );
 
 /* ----------------------------- */
 /* Set each TForm in given layer */
@@ -1587,7 +1587,7 @@ static void SetUniteLayer(
 		if( R.z != gArgs.unite_layer || R.itr < 0 )
 			continue;
 
-		map<MZIDR,TForm>::iterator	it;
+		map<MZIDR,TAffine>::iterator	it;
 
 		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
 
@@ -2569,7 +2569,7 @@ static void IterateInliers(
 			/* Global space points and error */
 			/* ----------------------------- */
 
-			TForm	T1( &X[vRgn[C.r1].itr * 6] ),
+			TAffine	T1( &X[vRgn[C.r1].itr * 6] ),
 					T2( &X[vRgn[C.r2].itr * 6] );
 			Point	g1 = C.p1,
 					g2 = C.p2;
@@ -2645,8 +2645,8 @@ static void ApplyLens( vector<double> &X, bool inv )
 	if( !gArgs.lens )
 		return;
 
-	CLens	LN;
-	int		nr = vRgn.size();
+	CAffineLens	LN;
+	int			nr = vRgn.size();
 
 	if( !LN.ReadIDB( idb ) )
 		exit( 42 );
@@ -2689,7 +2689,7 @@ static void Bounds(
 	}
 	else {
 
-		TForm	T, R;
+		TAffine	T, R;
 
 		xmin =  BIGD;
 		xmax = -BIGD;
@@ -2697,7 +2697,7 @@ static void Bounds(
 		ymax = -BIGD;
 
 		if( gArgs.degcw )
-			CreateCWRot( R, gArgs.degcw, Point(0,0) );
+			R.SetCWRot( gArgs.degcw, Point(0,0) );
 
 		for( int i = 0; i < nr; ++i ) {
 
@@ -2706,10 +2706,10 @@ static void Bounds(
 			if( itr < 0 )
 				continue;
 
-			TForm			t( &X[itr * 6] );
+			TAffine			t( &X[itr * 6] );
 			vector<Point>	cnr( 4 );
 
-			MultiplyTrans( T, R, t );
+			T = R * t;
 			T.CopyOut( &X[itr * 6] );
 
 			cnr[0] = Point(  0.0, 0.0 );
@@ -2766,7 +2766,7 @@ static void Bounds(
 		if( itr < 0 )
 			continue;
 
-		TForm			T( &X[itr * 6] );
+		TAffine			T( &X[itr * 6] );
 		vector<Point>	cnr( 4 );
 		double			xmid = 0.0, ymid = 0.0;
 
@@ -2842,7 +2842,7 @@ static void WriteTransforms(
 {
 	printf( "---- Write transforms ----\n" );
 
-	FILE	*f   = FileOpenOrDie( "TFormTable.txt", "w" );
+	FILE	*f   = FileOpenOrDie( "TAffineTable.txt", "w" );
 	double	smin = 100.0,
 			smax = 0.0,
 			smag = 0.0;
@@ -3056,12 +3056,12 @@ static void WriteJython(
 
 // Return approximated fraction of a on b area overlap.
 //
-static double AontoBOverlap( TForm &a, TForm &b )
+static double AontoBOverlap( TAffine &a, TAffine &b )
 {
-	TForm			T;	// T = a->b
+	TAffine			T;	// T = a->b
 	vector<Point>	corners( 4 );
 
-	AToBTrans( T, a, b );
+	T.FromAToB( a, b );
 
 	corners[0] = Point(  0.0, 0.0 );
 	corners[1] = Point( gW-1, 0.0 );
@@ -3177,7 +3177,7 @@ static void NoCorrs(
 			/* OK, this was never a pair */
 			/* ------------------------- */
 
-			TForm	t1( &X[A.itr * 6] ),
+			TAffine	t1( &X[A.itr * 6] ),
 					t2( &X[B.itr * 6] );
 			double	olap = AontoBOverlap( t1, t2 );
 
@@ -3218,10 +3218,10 @@ static void NoCorrs(
 			// forward = t1 -> t2
 			// reverse = t2 -> t1
 
-			TForm	forward, reverse;
+			TAffine	forward, reverse;
 
-			AToBTrans( forward, t1, t2 );
-			InvertTrans( reverse, forward );
+			forward.FromAToB( t1, t2 );
+			reverse.InverseOf( forward );
 
 			/* ---------------------------------------- */
 			/* Instructions to redo A onto B (1 onto 2) */
@@ -3232,10 +3232,10 @@ static void NoCorrs(
 			"rm %d/%d.%d.*\n", A.z, A.id, B.z, B.id );
 
 			fprintf( fscr, "#Transform 1->2: " );
-			forward.PrintTransformAsParam( fscr, true );
+			forward.TPrintAsParam( fscr, true );
 
 			fprintf( fscr, "make -f make.up EXTRA='-F=../param.redo" );
-			forward.PrintTransformAsParam( fscr );
+			forward.TPrintAsParam( fscr );
 			fprintf( fscr, "'\n" );
 
 			fprintf( fscr, "cd ..\n" );
@@ -3249,10 +3249,10 @@ static void NoCorrs(
 			"rm %d/%d.%d.*\n", B.z, B.id, A.z, A.id );
 
 			fprintf( fscr, "#Transform 2->1: " );
-			reverse.PrintTransformAsParam( fscr, true );
+			reverse.TPrintAsParam( fscr, true );
 
 			fprintf( fscr, "make -f make.down EXTRA='-F=../param.redo" );
-			reverse.PrintTransformAsParam( fscr );
+			reverse.TPrintAsParam( fscr );
 			fprintf( fscr, "'\n" );
 
 			fprintf( fscr, "cd ..\n");
@@ -3324,7 +3324,7 @@ void EVL::Tabulate(
 			/* Global space points and error */
 			/* ----------------------------- */
 
-			TForm	T1( &X[vRgn[C.r1].itr * 6] ),
+			TAffine	T1( &X[vRgn[C.r1].itr * 6] ),
 					T2( &X[vRgn[C.r2].itr * 6] );
 			Point	&g1 = C.p1,
 					&g2 = C.p2;
@@ -3792,11 +3792,11 @@ void EVL::ViseEval1(
 				// to local point
 
 				VisErr	&V = ve[r[j]];
-				TForm	Inv, T( &X[vRgn[r[j]].itr * 6] );
+				TAffine	Inv, T( &X[vRgn[r[j]].itr * 6] );
 				Point	L = *p[j];
 				double	a, *s;
 
-				InvertTrans( Inv, T );
+				Inv.InverseOf( T );
 				Inv.Transform( L );
 
 				a = atan2( L.y-M.y, L.x-M.x ) * 180/PI;
@@ -3876,11 +3876,11 @@ void EVL::ViseEval2(
 				// to local point
 
 				VisErr	&V = ve[r[j]];
-				TForm	Inv, T( &X[vRgn[r[j]].itr * 6] );
+				TAffine	Inv, T( &X[vRgn[r[j]].itr * 6] );
 				Point	L = *p[j];
 				double	a, *s;
 
-				InvertTrans( Inv, T );
+				Inv.InverseOf( T );
 				Inv.Transform( L );
 
 				a = atan2( L.y-M.y, L.x-M.x ) * 180/PI;

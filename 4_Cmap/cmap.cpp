@@ -3,7 +3,7 @@
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
-#include	"CTForm.h"
+#include	"TAffine.h"
 
 #include	<stack>
 using namespace std;
@@ -24,7 +24,7 @@ static double THRESHOLD = 0.25;  // lowest correlation considered a match
 bool SomeArea(int sx, int sy, void *a)
     {return sx > 1 && sy > 1;}
 
-void ReadTransforms(const char *name, vector<TForm> &ts)
+void ReadTransforms(const char *name, vector<TAffine> &ts)
 {
 FILE	*ft = FileOpenOrDie( name, "r" );
 
@@ -32,12 +32,12 @@ for(;;) {
     double a,b,c,d,e,f;
     if( fscanf(ft, "%lf %lf %lf %lf %lf %lf", &a, &b, &c, &d, &e, &f) != 6 )
 	break;
-    TForm t(a,c,e,b,d,f);  // file is in matlab order
+    TAffine t(a,c,e,b,d,f);  // file is in matlab order
     ts.push_back(t);
     }
 printf("read %d transforms from file '%s'\n", ts.size(), name);
 //for(int i=0; i<ts.size(); i++)
-   //ts[i].PrintTransform();
+   //ts[i].TPrint();
 fclose(ft);
 }
 //Reads two map files amd transform lists.
@@ -100,7 +100,7 @@ if( w2 != w1 || h2 != h1 ) {
     }
 
 // Now read the two sets of transforms
-vector<TForm> at, bt;
+vector<TAffine> at, bt;
 sprintf(file_name, "%s/t.txt", argv[1]);
 ReadTransforms(file_name, at);
 sprintf(file_name, "%s/t.txt", argv[2]);

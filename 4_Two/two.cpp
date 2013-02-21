@@ -118,7 +118,7 @@ for(double step=10; step > 0.05; ) {
 return corr;
 }
 
-void TryNewOptimizer(vector<Point> &plist, vector<double> &spv, vector<double> &image2, TForm &t, FILE *flog)
+void TryNewOptimizer(vector<Point> &plist, vector<double> &spv, vector<double> &image2, TAffine &t, FILE *flog)
 {
 // compute the bounding box
 printf("\n---------- Try new optimizer on %d points----------------\n", plist.size());
@@ -162,17 +162,17 @@ ImproveControlPts(cpts, lambda, spv, image2, 4096, 4096, flog);
 
 // Now, find a transformation that maps ORIG into the new cpts
 // first, create a transform that maps a unit right triangle to the original pts
-TForm o(orig[1].x-orig[0].x, orig[2].x-orig[0].x, orig[0].x,
+TAffine o(orig[1].x-orig[0].x, orig[2].x-orig[0].x, orig[0].x,
         orig[1].y-orig[0].y, orig[2].y-orig[0].y, orig[0].y);
 // now one that maps the final optimized control points to the unit right triangle
-TForm c(cpts[1].x-cpts[0].x, cpts[2].x-cpts[0].x, cpts[0].x,
+TAffine c(cpts[1].x-cpts[0].x, cpts[2].x-cpts[0].x, cpts[0].x,
         cpts[1].y-cpts[0].y, cpts[2].y-cpts[0].y, cpts[0].y);
 // now, to get from the original to the final, apply o^-1, then c;
-TForm oi;
-InvertTrans(oi, o);
-//TForm temp;
-MultiplyTrans(t, c, oi);
-t.PrintTransform();
+TAffine oi;
+oi.InverseOf( o );
+//TAffine temp;
+t = c * oi;
+t.TPrint();
 }
 
 // Improve the correlation, if possible, by tweaking the transform.  pts are the points
@@ -181,12 +181,12 @@ t.PrintTransform();
 // the array image2.
 // returns the best correlation obtained.
 double ImproveCorrelation(vector<Point> &Plist, vector<double> &spv, vector<double>image2,
- double dx, double dy, TForm &t, FILE *flog)
+ double dx, double dy, TAffine &t, FILE *flog)
 {
 printf("Contains %d pixels\n", Plist.size() );
 Normalize(spv);
 if (dx != BIG)  // if dx == BIG, start improving from the transform we have
-    t = TForm(1.0, 0.0, dx, 0.0, 1.0, dy);  // otherwise, create a transform with just dx, dy
+    t = TAffine(1.0, 0.0, dx, 0.0, 1.0, dy);  // otherwise, create a transform with just dx, dy
 
 double best_so_far = 0.0;
 
@@ -215,14 +215,14 @@ for(double step=1; step > 0.05; ) {
     printf(" %f %f %f %f %f %f: correlation %f\n",
      t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5], start);
     best_so_far = start;
-    TForm tbest;  // best transform found
+    TAffine tbest;  // best transform found
     int bdir = -1;  // flag to tell what the best direction is
 
     for(int rot = -1; rot<2; rot += 2) {  // try two rotations
 
-    TForm	t2, R;
-    CreateCWRot( R, rot * step, cog );
-    MultiplyTrans( t2, R, t );
+    TAffine	t2, R;
+    R.SetCWRot( rot * step, cog );
+    t2 = R * t;
 
 	vector<Point> Tpoints = Plist;   //   Start with locs in source
 	t2.Transform( Tpoints );            // Transform to locations in target
@@ -242,7 +242,7 @@ for(double step=1; step > 0.05; ) {
     double best_rot = best_so_far;  // best result from rotations
     double prev;
     double nc = start;     // new correlation
-    TForm t2 = t;
+    TAffine t2 = t;
     do {
         prev = nc;
 	double norm = sqrt(dvx*dvx + dvy*dvy);
@@ -351,7 +351,7 @@ vp[i].tr.Transform( delta );        vp[i].tr.Transform( zero );
 vp[j].tr.t[2] += (delta.x - zero.x);
 vp[j].tr.t[5] += (delta.y - zero.y);
 printf("deltas in global image space %f %f\n", delta.x-zero.x, delta.y-zero.y);
-InvertTrans(vp[j].Inverse, vp[j].tr);  // Recompute j's inverse
+vp[j].Inverse.InverseOf( vp[j].tr );
 }
 
 // are two images neighbors?  .  If pass 2, just tell if they overlap by at last half in
@@ -545,7 +545,7 @@ double scale = i1.Dist( i2 ) / j1.Dist( j2 );
 double ai = atan2(i2.y-i1.y, i2.x-i1.x);
 double aj = atan2(j2.y-j1.y, j2.x-j1.x);
 printf("Scale %f, angle %f radians, distance %f\n", scale, ai-aj, i1.Dist( i2 ) );
-TForm tf(
+TAffine tf(
 	scale*cos(ai-aj),
 	scale*(-sin(ai-aj)),
 	0.0,
@@ -571,7 +571,7 @@ tf.Transform( p1 );
 tf.Transform( p2 );
 printf(" Closure data: corners map to (%f %f) (%f %f)\n", p1.x, p1.y, p2.x, p2.y);
 vp[j].tr = tf;
-InvertTrans(vp[j].Inverse, tf);
+vp[j].Inverse.InverseOf( tf );
 }
 
 // Point Pi in image i should align with point Pj in image j.  i < j.  Direction 'unconstrained'
@@ -825,8 +825,8 @@ vector<double> rhs;
 for(int i=0; i<vp.size(); i++) {
     for(int j=i+1; j<vp.size(); j++) {
 	printf("\nChecking %d to %d\n", i, j);
-        printf(" Initial transform %d:", i); vp[i].tr.PrintTransform();
-        printf(" Initial transform %d:", j); vp[j].tr.PrintTransform();
+        printf(" Initial transform %d: ", i); vp[i].tr.TPrint();
+        printf(" Initial transform %d: ", j); vp[j].tr.TPrint();
         // transform jth image's bounding box to ith image coords, just for fun
         Point bb1(0.0,0.0); Point bb2(vp[j].w, vp[j].h);
 	vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
@@ -894,8 +894,8 @@ if( ns > 0 ) {
     }
 for(int j=1; j<vp.size(); j++) {
     double scale = sqrt(pow(vp[j].tr.t[0], 2.0) + pow(vp[j].tr.t[1],2.0) );
-    double angle = RadiansFromAffine( vp[j].tr ) * 180.0/PI;
-    printf("Was %6.4f %7.3f: ", scale, angle); vp[j].tr.PrintTransform();
+    double angle = vp[j].tr.GetRadians() * 180.0/PI;
+    printf("Was %6.4f %7.3f: ", scale, angle); vp[j].tr.TPrint();
     if( TrOnly ) {
         vp[j].tr.t[2] = x[(j-1)*2];
         vp[j].tr.t[5] = x[(j-1)*2+1];
@@ -904,9 +904,9 @@ for(int j=1; j<vp.size(); j++) {
         vp[j].tr.CopyIn( &x[(j-1)*6] );
 	}
     scale = sqrt(pow(vp[j].tr.t[0], 2.0) + pow(vp[j].tr.t[1],2.0) );
-    angle = RadiansFromAffine( vp[j].tr ) * 180.0/PI;
-    printf(" is %7.4f %6.3f: ", scale, angle); vp[j].tr.PrintTransform();
-    InvertTrans(vp[j].Inverse, vp[j].tr);
+    angle = vp[j].tr.GetRadians() * 180.0/PI;
+    printf(" is %7.4f %6.3f: ", scale, angle); vp[j].tr.TPrint();
+    vp[j].Inverse.InverseOf( vp[j].tr );
     }
 //fclose(feq);
 //
@@ -952,7 +952,7 @@ fprintf(flog,"[%4.2f]", rms);
 // of tiles, and makes two images.  Returns number of valid pixels.
 // 'col' specifies color for monochrome image, or 'W' for white
 int CreateCompositeImage( int xmin, int ymin, int w2, int h2, vector<Picture> &vp,
- uint32 *bw, char col, uint32 *color, uint8 *map, vector<TForm> &tfs)
+ uint32 *bw, char col, uint32 *color, uint8 *map, vector<TAffine> &tfs)
 {
 int npixels2 = w2*h2;
 int nvpix = 0;
@@ -1096,7 +1096,7 @@ for( child; child; child=child->NextSiblingElement() ) {
         sscanf(tf,"%lf %lf %lf %lf %lf %lf", &a, &b, &d, &e, &c, &f);
         printf("%7.4f %8.4f %12.2f\n%7.4f %8.4f %12.2f\n", a,b,c,d,e,f);
         //printf("%7.4f %8.4f %12.2f\n%7.4f %8.4f %12.2f\n", a,b,c,d,e,f);
-        im.transforms.push_back( TForm(a, b, c, d, e, f) );
+        im.transforms.push_back( TAffine(a, b, c, d, e, f) );
 	}
     mapv.push_back(im);
     }
@@ -1616,7 +1616,7 @@ for(int i=0; i<subs.size(); i++) {
 	}
     }
 printf("OK, best correlation is sub-region %d, %d are close, correlation %f\n", best, cbest, tcor[best]);
-TForm tr_guess; // our best guess at the transform relating
+TAffine tr_guess; // our best guess at the transform relating
 if( tcor[best] > 0.25 ) {  // just guessing here
     vector<double> vals;                             // should make a routine
     for(int k=0; k<subs[best].pts.size(); k++) {
@@ -1626,7 +1626,7 @@ if( tcor[best] > 0.25 ) {  // just guessing here
 	}
     Normalize(vals);
     double c=ImproveCorrelation(subs[best].pts, vals, image2, subs[best].dx, subs[best].dy, tr_guess, flog);
-    printf("Best guess transform: "); tr_guess.PrintTransform();
+    tr_guess.TPrint( stdout, "Best guess transform: " );
 
     // now using the guess, keep only those points that map to the below image.  (this could be off
     // by 10 pixels or so, so we'll need to fix it later, but it's a good guess
@@ -1713,18 +1713,18 @@ if( tcor[best] > 0.25 ) {  // just guessing here
 	int i2 = tris[k].v[2];
 	// Now, find a transformation that maps ORIG into the new cpts
 	// first, create a transform that maps a unit right triangle to the original pts
-	TForm o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
+	TAffine o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
 	 orig[i1].y-orig[i0].y, orig[i2].y-orig[i0].y, orig[i0].y);
 	// now one that maps the final optimized control points to the unit right triangle
-	TForm c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
+	TAffine c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
 	 cpts[i1].y-cpts[i0].y, cpts[i2].y-cpts[i0].y, cpts[i0].y);
 	// now, to get from the original to the final, apply o^-1, then c;
-	TForm oi,t;
-	InvertTrans(oi, o);
-	//TForm temp;
-	MultiplyTrans(t, c, oi);
-	t.PrintTransform();
-	map1.transforms.push_back(t);
+	TAffine oi, t;
+	oi.InverseOf( o );
+	//TAffine temp;
+	t = c * oi;
+	t.TPrint();
+	map1.transforms.push_back( t );
 	double sumx = orig[i0].x + orig[i1].x + orig[i2].x;
 	double sumy = orig[i0].y + orig[i1].y + orig[i2].y;
 	map1.centers.push_back(Point(sumx/3.0, sumy/3.0));
@@ -1732,8 +1732,8 @@ if( tcor[best] > 0.25 ) {  // just guessing here
     }
 
 for(int i=0; i<map1.centers.size(); i++) {
-    printf(" center %f %f :", map1.centers[i].x, map1.centers[i].y);
-    map1.transforms[i].PrintTransform();
+    printf(" center %f %f: ", map1.centers[i].x, map1.centers[i].y);
+    map1.transforms[i].TPrint();
     }
 }
 
@@ -1962,14 +1962,14 @@ Picture p;
 p.dist_from_center = 0.0;  // prevent reference to undefined fields
 
 p.fname = argv[1];
-p.tr = TForm();  // make explicit 1<->1 transform; already true from initialization
+p.tr = TAffine();  // make explicit 1<->1 transform; already true from initialization
 below.push_back(p);
 
 p.fname = argv[2];
 double a,b,c,d,e,f;
 sscanf(argv[3],"%lf %lf %lf %lf %lf %lf", &a, &b, &d, &e, &c, &f);
-p.tr = TForm(a, b, c, d, e, f);
-p.tr.PrintTransform();
+p.tr = TAffine(a, b, c, d, e, f);
+p.tr.TPrint();
 above.push_back(p);
 
 // sort the higher layer vector by dist from center.  Read each of them in
@@ -1978,14 +1978,14 @@ sort(above.begin(), above.end());
 for(int j=0; j<above.size(); j++) {
     //printf("Above: z=%d, distance=%f\n", above[j].z, above[j].dist_from_center);
 	above[j].LoadOriginal( argv[2], flog, false );
-    InvertTrans(above[j].Inverse, above[j].tr);
+    above[j].Inverse.InverseOf( above[j].tr );
     }
 // same for the layer below
 sort(below.begin(), below.end());
 for(int j=0; j<below.size(); j++) {
     //printf("Below: z=%d, distance=%f\n", below[j].z, below[j].dist_from_center);
     below[j].LoadOriginal( argv[1], flog, false );
-    InvertTrans(below[j].Inverse, below[j].tr);
+    below[j].Inverse.InverseOf( below[j].tr );
     }
 if( above[0].w != below[0].w || above[0].h != below[0].h ) {
     printf("Different scales for input pictures\n");
@@ -2022,16 +2022,16 @@ Raster8ToTif8( "map.tif", fake, w, h );
 printf("Got %d mapping regions\n", Ntrans);
 
 // convert the double array back to an array of tforms.
-TForm* tfs = new TForm[Ntrans];
-TForm* ifs = new TForm[Ntrans];  // inverse of these transforms
+TAffine* tfs = new TAffine[Ntrans];
+TAffine* ifs = new TAffine[Ntrans];  // inverse of these transforms
 
 for(int i=0; i<Ntrans; i++) {
-    printf("Transform %3d:", i);
+    printf( "Transform %3d: ", i );
     tfs[i].CopyIn( array_of_transforms + i*6 );
     tfs[i].FromMatlab();
-    tfs[i].PrintTransform();
-    InvertTrans(ifs[i], tfs[i]);
-    printf("\n");
+    tfs[i].TPrint();
+    ifs[i].InverseOf( tfs[i] );
+    printf( "\n" );
     }
 
 
@@ -2388,7 +2388,7 @@ for(int j=0; j<cr.size(); j++) {
             }
         }
     printf("OK, best correlation is sub-region %d, %d are close, correlation %f\n", best, cbest, tcor[best]);
-    TForm tr_guess; // our best guess at the transform relating
+    TAffine tr_guess; // our best guess at the transform relating
     if( cbest >= 2 && tcor[best] > 0.25 ) {  // just guessing here.  Need two triangle match, better corr > 0.25
         vector<double> vals;                             // should make a routine
         for(int k=0; k<subs[best].pts.size(); k++) {
@@ -2398,7 +2398,7 @@ for(int j=0; j<cr.size(); j++) {
 	    }
 	Normalize(vals);
 	c=ImproveCorrelation(subs[best].pts, vals, image2, subs[best].dx, subs[best].dy, tr_guess, flog);
-        printf("Best guess transform: "); tr_guess.PrintTransform();
+        tr_guess.TPrint( stdout, "Best guess transform: " );
 
 	// now using the guess, keep only those points that map to the below image.  (this could be off
 	// by 10 pixels or so, so we'll need to fix it later, but it's a good guess
@@ -2481,18 +2481,18 @@ for(int j=0; j<cr.size(); j++) {
             int i2 = tris[k].v[2];
 	    // Now, find a transformation that maps ORIG into the new cpts
 	    // first, create a transform that maps a unit right triangle to the original pts
-	    TForm o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
+	    TAffine o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
 	     orig[i1].y-orig[i0].y, orig[i2].y-orig[i0].y, orig[i0].y);
 	    // now one that maps the final optimized control points to the unit right triangle
-	    TForm c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
+	    TAffine c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
 	     cpts[i1].y-cpts[i0].y, cpts[i2].y-cpts[i0].y, cpts[i0].y);
 	    // now, to get from the original to the final, apply o^-1, then c;
-	    TForm oi,t;
-	    InvertTrans(oi, o);
-	    //TForm temp;
-	    MultiplyTrans(t, c, oi);
-	    t.PrintTransform();
-            map1.transforms.push_back(t);
+	    TAffine oi, t;
+	    oi.InverseOf( o );
+	    //TAffine temp;
+	    t = c * oi;
+	    t.TPrint();
+            map1.transforms.push_back( t );
             double sumx = orig[i0].x + orig[i1].x + orig[i2].x;
             double sumy = orig[i0].y + orig[i1].y + orig[i2].y;
             map1.centers.push_back(Point(sumx/3.0, sumy/3.0));
@@ -2501,8 +2501,8 @@ for(int j=0; j<cr.size(); j++) {
     }
 
 for(int i=0; i<map1.centers.size(); i++) {
-    printf(" center %f %f :", map1.centers[i].x, map1.centers[i].y);
-    map1.transforms[i].PrintTransform();
+    printf(" center %f %f: ", map1.centers[i].x, map1.centers[i].y);
+    map1.transforms[i].TPrint();
     }
 
 // Read any existing mapping files
@@ -2546,7 +2546,7 @@ for(k=0; k<mapv.size(); k++) {
     fprintf(fm, " <entry overlap=\"%s\" map=\"%s\">\n", mapv[k].fname.c_str(), mapv[k].mname.c_str() );
     // write the transforms
     for(int j=0; j<mapv[k].transforms.size(); j++) {
-        TForm a = mapv[k].transforms[j];
+        TAffine a = mapv[k].transforms[j];
 	fprintf(fm, "  <map id=\"%d\" transform=\"%f %f %f %f %f %f\"/>\n",
          j+10, a.t[0], a.t[1], a.t[3], a.t[4], a.t[2]*sc, a.t[5]*sc);
 	}
@@ -2674,7 +2674,7 @@ exit(-1);  // temporary
 
 
 // here we align between layers
-TForm tr_guess; // on exit from the loop, this will be our best guess at the transform relating
+TAffine tr_guess; // on exit from the loop, this will be our best guess at the transform relating
                 // pixels in 'above' -> 'below'
 for(int j=0; j<below.size(); j++) {
     for(int k=0; k<above.size(); k++) {
@@ -2770,12 +2770,12 @@ for(int j=0; j<below.size(); j++) {
             above[k].tr.AddXY( cb.x - centera.x, cb.y - centera.y );
             // try this instead.   We have a better transformation tr, that maps B to A
             // so A^-1(B(pt)) = tr;
-            MultiplyTrans(above[k].tr, below[j].tr, tr_guess);
-	    InvertTrans(above[k].Inverse, above[k].tr);  // Recompute j's inverse
+            above[k].tr = below[j].tr * tr_guess;
+            above[k].Inverse.InverseOf( above[k].tr );
             }
 	}
     }
-printf("New and improved: "); above[0].tr.PrintTransform();
+above[0].tr.TPrint( stdout, "New and improved: " );
 
 // Now we have a rough alignment, close to exact at one spot (but not necessarily in the center).
 // Compute 5 spots and their best local transforms.
@@ -2885,19 +2885,19 @@ for(int j=0; j<below.size(); j++) {
 		double	dx, dy;
 		double	c = CorrPatchToImage( dx, dy, copy, vals, image2, 0, 0, 4000, true );
 		printf(" c = %f, deltas are %f %f\n", c, dx, dy);
-		TForm tr = tr_guess;
+		TAffine tr = tr_guess;
                 tr.t[2] += dx;
                 tr.t[5] += dy;
 		c=ImproveCorrelation(pts, vals, image2, double(BIG), double(BIG), tr, flog);   // BIG->use starting tr
                 if( above[k].scale > 1 ) { // improve further, if we can
-                    printf("--- Full res improve:"); tr.PrintTransform();
+                    tr.TPrint( stdout, "--- Full res improve: " );
                     int sc = above[k].scale;
                     Point nc(map1.centers[m].x*sc, map1.centers[m].y*sc);
 		    CircleFromRaster(above[k].original, above[k].w*sc, above[k].h*sc, nc, RADIUS*sc, pts, vals);
-                    TForm bigtr = tr;
+                    TAffine bigtr = tr;
                     bigtr.t[2] *= sc; bigtr.t[5] *= sc;  // scale up to full image
 		    c=ImproveCorrelation(pts, vals, image3, double(BIG), double(BIG), bigtr, flog);   // BIG->use starting tr
-                    printf("--- Full res result:"); bigtr.PrintTransform();
+                    bigtr.TPrint( stdout, "--- Full res result: " );
                     bigtr.t[2] /= sc; bigtr.t[5] /= sc;  // scale back to 2K size
                     tr = bigtr;
 		    }
@@ -2907,8 +2907,8 @@ for(int j=0; j<below.size(); j++) {
 	    // We have a better transformation tr, that map1 points in 'above' to points in 'below'
 	    // so B^-1(A(pt)) = tr;  so A = B*tr;
 	    // use the 0th transform since that's centered.
-	    MultiplyTrans(above[k].tr, below[j].tr, map1.transforms[0]);
-	    InvertTrans(above[k].Inverse, above[k].tr);  // Recompute j's inverse
+	    above[k].tr = below[j].tr * map1.transforms[0];
+	    above[k].Inverse.InverseOf( above[k].tr );
             }
 	}
     }
@@ -2990,7 +2990,7 @@ for(k=0; k<mapv.size(); k++) {
     fprintf(fm, " <entry overlap=\"%s\" map=\"%s\">\n", mapv[k].fname.c_str(), mapv[k].mname.c_str() );
     // write the transforms
     for(int j=0; j<mapv[k].transforms.size(); j++) {
-        TForm a = mapv[k].transforms[j];
+        TAffine a = mapv[k].transforms[j];
 	fprintf(fm, "  <map id=\"%d\" transform=\"%f %f %f %f %f %f\"/>\n",
          j+10, a.t[0], a.t[1], a.t[3], a.t[4], a.t[2], a.t[5]);
 	}
@@ -3027,9 +3027,8 @@ for(int k=0; k<npixels2; k++) {
 
 // for creating a composite image, we want each piece to map global to above (A^-1)
 for(int q=0; q<map1.centers.size(); q++) {
-    TForm temp;
-    MultiplyTrans(temp, below[0].tr, map1.transforms[q]); // map1 A to global
-    InvertTrans(map1.transforms[q], temp);
+    TAffine temp = below[0].tr * map1.transforms[q]; // map1 A to global
+    map1.transforms[q].InverseOf( temp );
     }
 
 ffmap empty;
@@ -3038,8 +3037,8 @@ nvpix = CreateCompositeImage(int(xmin), int(ymin), w2, h2, below, raster2, 'G', 
 // write the synthesised circles into the BLUE plane
 for(int j=0; j<map1.centers.size(); j++) {
     // map1.transforms[k] contains mapping global->above.  We need the inverse here
-    TForm temp;
-    InvertTrans(temp, map1.transforms[j]);
+    TAffine temp;
+    temp.InverseOf( map1.transforms[j] );
     for(int k=0; k<2*3.14159*RADIUS; k++) { // write points
 	double ang=double(k)/RADIUS;
         for(int r = RADIUS-1; r<=RADIUS+1; r++) {
