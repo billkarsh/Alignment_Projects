@@ -1,7 +1,7 @@
 
 
 #include	"GenDefs.h"
-#include	"TAffine.h"
+#include	"THmgphy.h"
 
 #include	<math.h>
 
@@ -41,31 +41,27 @@
 	2D transformations map a region (such as a whole image) from
 	local region coords to an abstract global coordinate space.
 
-	In our code, the 6 affine transform elements are interpreted
+	In our code, the 8 homography tform elements are interpreted
 	as follows:
 
-		x'   |t0  t1|   x     t2
-		   = |      | *    +
-		y'   |t3  t4|   y     t5
-
-	In Matlab, our 6 elements are filled by column into one array
-	as follows:
-
-		{t0, t3, t1, t4, t2, t5}.
+		u    |t0  t1  t2|    x
+		     |          |          x'     u / w
+		v  = |t3  t4  t5| *  y ;       =
+		     |          |          y'     v / w
+		w    |t6  t7   1|    1
 
 	In ImageJ (including TrakEM2) the elements in source code
-	are the following:
-
-		x'   |m00  m01|   x     m02
-		   = |        | *    +
-		y'   |m10  m11|   y     m12
+	are arranged by columns.
 
 	In a TrackEM2 XML file transform attributes are written
-	"matrix(m00,m10,m01,m11,m02,m12)".
+	"matrix(m00,m10,m20,m01,m11,m21,m02,m12)".
 
 	We use a standard order for compounding operations. Let
 	X=xskew, Y=yskew, S=scaling, P=pretweak, R=rot+trans.
 	Then, D = S(YX), and T = R(DP).
+
+	Homographies are a superset of the affines, and reduce
+	to affines when {t6 t7 t8} are {0 0 1}.
 */
 
 /* --------------------------------------------------------------- */
@@ -73,63 +69,69 @@
 /* --------------------------------------------------------------- */
 
 // pos a enlarges
-void TAffine::NUSetScl( double a )
+void THmgphy::NUSetScl( double a )
 {
 	t[0] = a; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = a; t[5] = 0;
+	Zero67();
 }
 
 
 // pos a enlarges
-void TAffine::NUSetXScl( double a )
+void THmgphy::NUSetXScl( double a )
 {
 	t[0] = a; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = 1; t[5] = 0;
+	Zero67();
 }
 
 
 // pos a enlarges
-void TAffine::NUSetYScl( double a )
+void THmgphy::NUSetYScl( double a )
 {
 	t[0] = 1; t[1] = 0; t[2] = 0;
 	t[3] = 0; t[4] = a; t[5] = 0;
+	Zero67();
 }
 
 
 // pos a tips right
-void TAffine::NUSetXSkw( double a )
+void THmgphy::NUSetXSkw( double a )
 {
 	t[0] = 1; t[1] = a; t[2] = 0;
 	t[3] = 0; t[4] = 1; t[5] = 0;
+	Zero67();
 }
 
 
 // pos a tips up
-void TAffine::NUSetYSkw( double a )
+void THmgphy::NUSetYSkw( double a )
 {
 	t[0] = 1; t[1] = 0; t[2] = 0;
 	t[3] = a; t[4] = 1; t[5] = 0;
+	Zero67();
 }
 
 
 // pos r rotates CW
-void TAffine::NUSetRot( double r )
+void THmgphy::NUSetRot( double r )
 {
 	double	c = cos( r ), s = sin( r );
 
 	t[0] = c; t[1] = -s; t[2] = 0;
 	t[3] = s; t[4] =  c; t[5] = 0;
+	Zero67();
 }
 
 
-void TAffine::NUSelect( int sel, double a )
+void THmgphy::NUSelect( int sel, double a )
 {
 	switch( sel ) {
-		case tafnuXScl:	NUSetXScl( a );	break;
-		case tafnuYScl:	NUSetYScl( a );	break;
-		case tafnuXSkw:	NUSetXSkw( a );	break;
-		case tafnuYSkw:	NUSetYSkw( a );	break;
-		case tafnuRot:	NUSetRot( a );	break;
+		case thgnuXScl:	NUSetXScl( a );	break;
+		case thgnuYScl:	NUSetYScl( a );	break;
+		case thgnuXSkw:	NUSetXSkw( a );	break;
+		case thgnuYSkw:	NUSetYSkw( a );	break;
+		case thgnuRot:	NUSetRot( a );	break;
 		default:		NUSetScl( a );	break;
 	}
 }
@@ -141,20 +143,21 @@ void TAffine::NUSelect( int sel, double a )
 // Conventionalized compounding of deformations.
 // Tdfm = Scale.(Yskew.Xskew)
 //
-void TAffine::ComposeDfm(
+void THmgphy::ComposeDfm(
 	double	scl,
 	double	xscl,
 	double	yscl,
 	double	xskw,
 	double	yskw )
 {
-	TAffine	S, Y, X;
+	THmgphy	S, Y, X;
 
 	X.NUSetXSkw( xskw );
 	Y.NUSetYSkw( yskw );
 
 	S.t[0] = xscl*scl; S.t[1] = 0;        S.t[2] = 0;
 	S.t[3] = 0;        S.t[4] = yscl*scl; S.t[5] = 0;
+	S.Zero67();
 
 	*this = S * (Y * X);
 }
@@ -168,24 +171,25 @@ void TAffine::ComposeDfm(
 //
 // That is, A' = piv + R(A-piv) = R(A) + piv - R(piv).
 //
-void TAffine::SetCWRot( double deg, const Point &pivot )
+void THmgphy::SetCWRot( double deg, const Point &pivot )
 {
 	Point	Prot = pivot;
 
 	NUSetRot( deg*PI/180 );
 	Apply_R_Part( Prot );
 	AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
+	Zero67();
 }
 
 /* --------------------------------------------------------------- */
 /* FromAToB ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Compute TAffine [atob = binv*a] from global TForms a, b.
+// Compute THmgphy [atob = binv*a] from global TForms a, b.
 //
-void TAffine::FromAToB( const TAffine &a, const TAffine &b )
+void THmgphy::FromAToB( const THmgphy &a, const THmgphy &b )
 {
-	TAffine	binv;
+	THmgphy	binv;
 
 	binv.InverseOf( b );
 	*this = binv * a;
@@ -195,19 +199,24 @@ void TAffine::FromAToB( const TAffine &a, const TAffine &b )
 /* InverseOf ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void TAffine::InverseOf( const TAffine &a )
+void THmgphy::InverseOf( const THmgphy &a )
 {
-	double	det = 1 / a.det();
+	double	t8;
 
-// simple inverse of matrix part
-	t[0] =  a.t[4]*det;
-	t[1] = -a.t[1]*det;
-	t[3] = -a.t[3]*det;
-	t[4] =  a.t[0]*det;
+	t[0] =  (a.t[4]        - a.t[5]*a.t[7]);
+	t[3] = -(a.t[3]        - a.t[5]*a.t[6]);
+	t[6] =  (a.t[3]*a.t[7] - a.t[4]*a.t[6]);
+	t[1] = -(a.t[1]        - a.t[2]*a.t[7]);
+	t[4] =  (a.t[0]        - a.t[2]*a.t[6]);
+	t[7] = -(a.t[0]*a.t[7] - a.t[1]*a.t[6]);
+	t[2] =  (a.t[1]*a.t[5] - a.t[2]*a.t[4]);
+	t[5] = -(a.t[0]*a.t[5] - a.t[2]*a.t[3]);
+	t8   =  (a.t[0]*a.t[4] - a.t[1]*a.t[3]);
 
-// apply inverse to translation and negate
-	t[2] = -(t[0]*a.t[2] + t[1]*a.t[5]);
-	t[5] = -(t[3]*a.t[2] + t[4]*a.t[5]);
+	t8 = 1 / t8;
+
+	for( int i = 0; i < 8; ++i )
+		t[i] *= t8;
 }
 
 /* --------------------------------------------------------------- */
@@ -217,16 +226,25 @@ void TAffine::InverseOf( const TAffine &a )
 #define	L(i)	this->t[i]
 #define	R(i)	rhs.t[i]
 
-TAffine TAffine::operator * ( const TAffine& rhs ) const
+THmgphy THmgphy::operator * ( const THmgphy& rhs ) const
 {
-	TAffine	r;
+	THmgphy	r;
+	double	t8;
 
-	r.t[0] = L(0)*R(0) + L(1)*R(3);
-	r.t[1] = L(0)*R(1) + L(1)*R(4);
+	r.t[0] = L(0)*R(0) + L(1)*R(3) + L(2)*R(6);
+	r.t[1] = L(0)*R(1) + L(1)*R(4) + L(2)*R(7);
 	r.t[2] = L(0)*R(2) + L(1)*R(5) + L(2);
-	r.t[3] = L(3)*R(0) + L(4)*R(3);
-	r.t[4] = L(3)*R(1) + L(4)*R(4);
+	r.t[3] = L(3)*R(0) + L(4)*R(3) + L(5)*R(6);
+	r.t[4] = L(3)*R(1) + L(4)*R(4) + L(5)*R(7);
 	r.t[5] = L(3)*R(2) + L(4)*R(5) + L(5);
+	r.t[6] = L(6)*R(0) + L(7)*R(3) +      R(6);
+	r.t[7] = L(6)*R(1) + L(7)*R(4) +      R(7);
+	t8     = L(6)*R(2) + L(7)*R(5) +         1;
+
+	t8 = 1 / t8;
+
+	for( int i = 0; i < 8; ++i )
+		r.t[i] *= t8;
 
 	return r;
 }
@@ -235,33 +253,36 @@ TAffine TAffine::operator * ( const TAffine& rhs ) const
 /* ScanTrackEM2 -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void TAffine::ScanTrackEM2( const char *s )
+void THmgphy::ScanTrackEM2( const char *s )
 {
-	sscanf( s, "matrix(%lf,%lf,%lf,%lf,%lf,%lf",
-		&t[0], &t[3], &t[1], &t[4], &t[2], &t[5] );
+	sscanf( s, "matrix(%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+		&t[0], &t[3], &t[6], &t[1], &t[4], &t[7], &t[2], &t[5] );
 }
 
 /* --------------------------------------------------------------- */
 /* TPrint -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void TAffine::TPrint( FILE *f, const char *s ) const
+void THmgphy::TPrint( FILE *f, const char *s ) const
 {
 	if( !f )
 		f = stdout;
 
-	fprintf( f, "%s%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
-		(s ? s : ""), t[0], t[1], t[2], t[3], t[4], t[5] );
+	fprintf( f, "%s%g %g %g  %g %g %g  %g %g\n",
+		(s ? s : ""),
+		t[0], t[1], t[2],
+		t[3], t[4], t[5],
+		t[6], t[7] );
 }
 
 /* --------------------------------------------------------------- */
 /* TPrintAsParam ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void TAffine::TPrintAsParam( FILE *f, bool newline ) const
+void THmgphy::TPrintAsParam( FILE *f, bool newline ) const
 {
-	fprintf( f, " -TRA=%.4f,%.4f,%.2f,%.4f,%.4f,%.2f%c",
-		t[0], t[1], t[2], t[3], t[4], t[5],
+	fprintf( f, " -TRH=%g,%g,%g,%g,%g,%g,%g,%g%c",
+		t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7],
 		(newline ? '\n' : ' ') );
 }
 
@@ -273,7 +294,7 @@ void TAffine::TPrintAsParam( FILE *f, bool newline ) const
 //
 // Method follows Geometry::AreaOfPolygon().
 //
-double TAffine::EffArea() const
+double THmgphy::EffArea() const
 {
 	vector<Point>	v;
 
@@ -294,7 +315,7 @@ double TAffine::EffArea() const
 		A += (a.x - b.x) * (a.y + b.y);
 	}
 
-	return A * 0.5;
+	return A / 2;
 }
 
 /* --------------------------------------------------------------- */
@@ -310,11 +331,11 @@ double TAffine::EffArea() const
 // Method (adapted from "Graphics Gems IV", section III.4,
 // by Ken Shoemake).
 //
-// From TAffine's matrix-part P = R( a ), iteratively compute
+// From THmgphy's matrix-part P = R( a ), iteratively compute
 // N = (P + Trp(Inv(P)) / 2, until max element-wise change
 // in (N - P) is tiny.
 //
-double TAffine::GetRadians() const
+double THmgphy::GetRadians() const
 {
 	double	P[4] = {t[0], t[1], t[3], t[4]};
 
@@ -358,17 +379,18 @@ double TAffine::GetRadians() const
 /* Transform ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void TAffine::Transform( Point &p ) const
+void THmgphy::Transform( Point &p ) const
 {
-	double	x = p.x*t[0] + p.y*t[1] + t[2];
-	double	y = p.x*t[3] + p.y*t[4] + t[5];
+	double	u = p.x*t[0] + p.y*t[1] + t[2];
+	double	v = p.x*t[3] + p.y*t[4] + t[5];
+	double	w = p.x*t[6] + p.y*t[7] + 1;
 
-	p.x = x;
-	p.y = y;
+	p.x = u / w;
+	p.y = v / w;
 }
 
 
-void TAffine::Transform( vector<Point> &v ) const
+void THmgphy::Transform( vector<Point> &v ) const
 {
 	int		N = v.size();
 
@@ -383,7 +405,7 @@ void TAffine::Transform( vector<Point> &v ) const
 // If transform T(p) is represented as R(p) + V,
 // then here we apply R(p) without V.
 //
-void TAffine::Apply_R_Part( Point &p ) const
+void THmgphy::Apply_R_Part( Point &p ) const
 {
 	double	x = p.x*t[0] + p.y*t[1];
 	double	y = p.x*t[3] + p.y*t[4];
@@ -393,7 +415,7 @@ void TAffine::Apply_R_Part( Point &p ) const
 }
 
 
-void TAffine::Apply_R_Part( vector<Point> &v ) const
+void THmgphy::Apply_R_Part( vector<Point> &v ) const
 {
 	int		N = v.size();
 

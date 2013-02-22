@@ -130,6 +130,8 @@ void PrintVectorAsMat( FILE* f, const vector<double> &v, int w );
 
 void Print3x3Matrix( FILE* f, const double a[3][3] );
 
+double Invert3x3Rowlist( double i[9], const double a[9] );
+
 double Invert3x3Matrix( double i[3][3], const double a[3][3] );
 double Invert4x4Matrix( double i[4][4], const double a[4][4] );
 
