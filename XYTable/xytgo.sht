@@ -5,6 +5,6 @@
 # > xytable <infile> -z=i
 #
 
-xytable /groups/apig/tomo/philtest_redo/temp/stack/TAffineTable.txt -z=993
+xytable TAffineTable.txt -z=19
 
 
