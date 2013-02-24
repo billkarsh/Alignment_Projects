@@ -19,7 +19,8 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	lsq.cpp
+	lsq.cpp lsq_DIR.cpp lsq_Types.cpp \
+	lsq_TryRigid.cpp lsq_CNX.cpp
 
 _SRC_XML_ := \
 	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
