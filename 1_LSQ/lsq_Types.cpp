@@ -9,10 +9,10 @@
 /* Globals ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-string				idb;
+string				idb;		// for name lookups
 vector<RGN>			vRgn;		// the regions
 map<CRPair,int>		r12Idx;		// idx from region-pair
-vector<Constraint>	vAllC;		// all POINT entries
+vector<Constraint>	vAllC;		// all Point-pairs
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
@@ -38,12 +38,12 @@ RGN::RGN( const char *key )
 }
 
 
-RGN::RGN( const char *path, const DIR *dir, int _id )
+RGN::RGN( const char *path, const DIR &dir, int _id )
 {
 	char	*s = strrchr( path, ':' );
 
 	s[-1]	= 0;
-	z		= dir->ZFromName( path );
+	z		= dir.ZFromName( path );
 	id		= _id;
 	rgn		= atoi( s + 1 );
 	itr		= -1;

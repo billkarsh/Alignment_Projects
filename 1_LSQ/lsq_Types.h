@@ -3,7 +3,7 @@
 #pragma once
 
 
-#include	"../1_LSQ/lsq_DIR.h"
+#include	"lsq_DIR.h"
 
 #include	"CPoint.h"
 
@@ -27,7 +27,7 @@ public:
 
 public:
 	RGN( const char *key );
-	RGN( const char *path, const DIR *dir, int _id );
+	RGN( const char *path, const DIR &dir, int _id );
 	RGN( const char *path, const char *key );
 
 	const char* GetName() const;
@@ -115,9 +115,9 @@ public:
 /* Globals ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-extern string				idb;
+extern string				idb;		// for name lookups
 extern vector<RGN>			vRgn;		// the regions
 extern map<CRPair,int>		r12Idx;		// idx from region-pair
-extern vector<Constraint>	vAllC;		// all POINT entries
+extern vector<Constraint>	vAllC;		// all Point-pairs
 
 

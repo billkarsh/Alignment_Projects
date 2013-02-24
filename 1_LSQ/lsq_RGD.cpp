@@ -1,7 +1,7 @@
 
 
 #include	"lsq_Types.h"
-#include	"lsq_TryRigid.h"
+#include	"lsq_RGD.h"
 
 #include	"LinEqu.h"
 
