@@ -4,6 +4,9 @@
 
 
 #include	"lsq_ReadPts.h"
+#include	"lsq_Rigid.h"
+#include	"lsq_Affine.h"
+#include	"lsq_Hmgphy.h"
 
 #include	"Cmdline.h"
 #include	"CRegexID.h"
@@ -52,7 +55,8 @@ public:
 	char	*pts_file,
 			*dir_file,
 			*tfm_file;
-	int		unite_layer,
+	int		model,				// model type {R,A,H}
+			unite_layer,
 			ref_layer,
 			max_pass,
 			xml_type,
@@ -77,6 +81,7 @@ public:
 		pts_file			= NULL;
 		dir_file			= NULL;
 		tfm_file			= NULL;
+		model				= 'A';
 		unite_layer			= -1;
 		ref_layer			= -1;
 		max_pass			= 1;
@@ -192,8 +197,9 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_lsq	gArgs;
-static FILE			*FOUT;		// outfile: 'simple'
-static int			gNTr = 0;	// Set by Set_itr_set_used
+static FILE			*FOUT;			// outfile: 'simple'
+static MDL			*M		= NULL;
+static int			gNTr	= 0;	// Set by Set_itr_set_used
 
 
 
@@ -225,7 +231,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 
 	for( int i = 1; i < argc; ++i ) {
 
-		char	*unite;
+		char	*instr;
 
 		if( argv[i][0] != '-' ) {
 
@@ -272,11 +278,31 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting trim amount to %f\n", trim );
 		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
 			printf( "Setting deg-cw to %f\n", degcw );
-		else if( GetArgStr( unite, "-unite=", argv[i] ) ) {
+		else if( GetArgStr( instr, "-model=", argv[i] ) ) {
+
+			model = toupper( instr[0] );
+
+			switch( model ) {
+				case 'R':
+					printf( "Setting model to rigid\n" );
+				break;
+				case 'A':
+					printf( "Setting model to affine\n" );
+				break;
+				case 'H':
+					printf( "Setting model to homography\n" );
+				break;
+				default:
+					printf( "Bad model [%s].\n", argv[i] );
+					exit( 42 );
+				break;
+			}
+		}
+		else if( GetArgStr( instr, "-unite=", argv[i] ) ) {
 
 			char	buf[2048];
 
-			sscanf( unite, "%d,%s", &unite_layer, buf );
+			sscanf( instr, "%d,%s", &unite_layer, buf );
 			tfm_file = strdup( buf );
 
 			printf( "Uniting: layer %d of '%s'.\n",
@@ -352,6 +378,7 @@ static int IDFromName( const char *name )
 /* SetPointPairs ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#if 0
 static void SetPointPairs(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
@@ -386,6 +413,7 @@ static void SetPointPairs(
 		AddConstraint( LHS, RHS, 6, i2, v, 0.0 );
 	}
 }
+#endif
 
 /* --------------------------------------------------------------- */
 /* SetIdentityTForm ---------------------------------------------- */
@@ -817,7 +845,8 @@ static void SolveSystem( vector<double> &X )
 /* Get rough solution */
 /* ------------------ */
 
-	SetPointPairs( LHS, RHS, scale );
+//	SetPointPairs( LHS, RHS, scale );
+	M->SetPointPairs( LHS, RHS, scale, gArgs.same_strength );
 
 	if( gArgs.unite_layer < 0 )
 		SetIdentityTForm( LHS, RHS );
@@ -3087,7 +3116,7 @@ int main( int argc, char **argv )
 // CNX: collect connection data
 // RGD: collect data to try rigid alignments
 
-	CNX	*cnx = new CNX( (gArgs.use_all ? 0 : 3) );
+	CNX	*cnx = new CNX;
 	RGD	*rgd = new RGD;
 
 	if( gArgs.strings ) {
@@ -3109,13 +3138,24 @@ int main( int argc, char **argv )
 
 	delete rgd;
 
+/* ------------ */
+/* Select model */
+/* ------------ */
+
+	switch( gArgs.model ) {
+		case 'R': M = new MRigid;  break;
+		case 'A': M = new MAffine; break;
+		case 'H': M = new MHmgphy; break;
+	}
+
 /* ------------------------------------------- */
 /* Decide which regions have valid connections */
 /* ------------------------------------------- */
 
 // Results mark the global RGN.itr fields
 
-	gNTr = cnx->SelectIncludedImages();
+	gNTr = cnx->SelectIncludedImages(
+			(gArgs.use_all ? 0 : M->MinLinks()) );
 
 	delete cnx;
 

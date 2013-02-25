@@ -18,7 +18,7 @@ using namespace std;
 class CNX {
 
 private:
-	const int	cnxMinLinks;
+	int	minLinks;
 
 	typedef struct {
 		vector<int>	linkto;	// which regions it connects to
@@ -35,10 +35,8 @@ private:
 	int  Set_itr_set_used( set<CRPair> &r12Bad, set<int> &ignore );
 
 public:
-	CNX( int minLinks ) : cnxMinLinks(minLinks) {};
-
 	void AddCorrespondence( int r1, int r2 );
-	int  SelectIncludedImages();
+	int  SelectIncludedImages( int _minLinks );
 };
 
 

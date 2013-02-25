@@ -12,13 +12,13 @@ using namespace std;
 /* ListWeakConnections ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Add to r12Bad those region pairs having fewer than cnxMinLinks
+// Add to r12Bad those region pairs having fewer than minLinks
 // corr. points between them. The real purpose here is to log
 // suspicious pairs for later human debugging.
 //
 void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 {
-	if( cnxMinLinks <= 0 )
+	if( minLinks <= 0 )
 		return;
 
 // Scan for weak pairs
@@ -34,7 +34,7 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 
 		for( int j = 0; j < np; ++j ) {
 
-			if( Ci.nlinks[j] < cnxMinLinks )
+			if( Ci.nlinks[j] < minLinks )
 				r12Bad.insert( CRPair( i, Ci.linkto[j] ) );
 		}
 	}
@@ -155,8 +155,8 @@ void CNX::MaxConnectedSet( set<int> &ignore )
 
 			for( int k = 0; k < nneib; ++k ) {
 
-				// require cnxMinLinks corr pts
-				if( Cj.nlinks[k] >= cnxMinLinks )
+				// require minLinks corr pts
+				if( Cj.nlinks[k] >= minLinks )
 					s.push( Cj.linkto[k] );
 			}
 		}
@@ -251,7 +251,7 @@ int CNX::Set_itr_set_used( set<CRPair> &r12Bad, set<int> &ignore )
 	"%d transforms to be determined, %d point correspondences.\n",
 	nTrans, nGoodC );
 
-	if( nTrans == 0 || nGoodC < cnxMinLinks ) {
+	if( nTrans == 0 || nGoodC < minLinks ) {
 		printf( "Too few transforms or constraints.\n" );
 		exit( 42 );
 	}
@@ -323,10 +323,12 @@ do_n2:
 //
 // Return valid transform count.
 //
-int CNX::SelectIncludedImages()
+int CNX::SelectIncludedImages( int _minLinks )
 {
 	set<CRPair>	r12Bad;		// suspicious region pairs
 	set<int>	ignore;		// unconnected regions
+
+	minLinks = _minLinks;
 
 	ListWeakConnections( r12Bad );
 	MaxConnectedSet( ignore );
