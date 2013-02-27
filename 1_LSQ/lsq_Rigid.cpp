@@ -1,7 +1,11 @@
 
 
 #include	"lsq_Rigid.h"
-#include	"lsq_Types.h"
+
+#include	"TAffine.h"
+#include	"File.h"
+
+#include	<math.h>
 
 
 /* --------------------------------------------------------------- */
@@ -47,7 +51,294 @@ void MRigid::SetPointPairs(
 		v[4] = -y2;
 
 		AddConstraint( LHS, RHS, 6, i2, v, 0.0 );
+
+
+
+//double	one = 1;
+//i1[0] = j;
+//AddConstraint( LHS, RHS, 1, i1, &one, one );
+//i1[0] = j+1;
+//AddConstraint( LHS, RHS, 1, i1, &one, 0 );
+//
+//
+//i1[0] = k;
+//AddConstraint( LHS, RHS, 1, i1, &one, one );
+//i1[0] = k+1;
+//AddConstraint( LHS, RHS, 1, i1, &one, 0 );
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* SetIdentityTForm ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Explicitly set some TForm to Identity.
+// @@@ Does it matter which one we use?
+//
+void MRigid::SetIdentityTForm(
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	int				itr )
+{
+	double	stiff	= 1.0;
+
+	double	one	= stiff;
+	int		j	= itr * NX;
+
+	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
+	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
+	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
+	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
+
+// Report which tile we set
+
+	int	nr = vRgn.size();
+
+	for( int k = 0; k < nr; ++k ) {
+
+		if( vRgn[k].itr == itr ) {
+
+			printf( "Ref region z=%d, id=%d\n",
+			vRgn[k].z, vRgn[k].id );
+			break;
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* SolveWithSquareness ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MRigid::SolveWithSquareness(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	int				nTr,
+	double			square_strength )
+{
+/* ----------------- */
+/* 1st pass solution */
+/* ----------------- */
+
+// We have enough info for first estimate of the global
+// transforms. We will need these to formulate further
+// constraints on the global shape and scale.
+
+	printf( "Solve with [rigid only].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+}
+
+/* --------------------------------------------------------------- */
+/* SolveWithUnitMag ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Effectively, we want to constrain the cosines and sines
+// so that c^2 + s^2 = 1. We can't make constraints that are
+// non-linear in the variables X[], but we can construct an
+// approximation using the {c,s = X[]} of the previous fit:
+// c*x + s*y = 1. To reduce sensitivity to the sizes of the
+// previous fit c,s, we normalize them by m = sqrt(c^2 + s^2).
+//
+void MRigid::SolveWithUnitMag(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	int				nTR,
+	double			scale_strength )
+{
+	double	stiff = scale_strength;
+
+	for( int i = 0; i < nTR; ++i ) {
+
+		int		j = i * NX;
+		double	c = X[j];
+		double	s = X[j+1];
+		double	m = sqrt( c*c + s*s );
+
+		// c*x/m + s*y/m = 1
+
+		double	V[2] = {c * stiff, s * stiff};
+		int		I[2] = {j, j+1};
+
+		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
+	}
+
+	printf( "Solve with [unit magnitude].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	printf( "\t\t\t\t" );
+	PrintMagnitude( X );
+}
+
+/* --------------------------------------------------------------- */
+/* RescaleAll ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MRigid::RescaleAll(
+	vector<double>	&X,
+	double			sc )
+{
+	int	nr	= vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		int	itr = vRgn[i].itr;
+
+		if( itr < 0 )
+			continue;
+
+		itr *= NX;
+
+		X[itr+2] *= sc;
+		X[itr+3] *= sc;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* RotateAll ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MRigid::RotateAll(
+	vector<double>	&X,
+	double			degcw )
+{
+	TAffine	T, R;
+	int		nr	= vRgn.size();
+
+	R.SetCWRot( degcw, Point(0,0) );
+
+	for( int i = 0; i < nr; ++i ) {
+
+		int	itr = vRgn[i].itr;
+
+		if( itr < 0 )
+			continue;
+
+		itr *= NX;
+
+		TAffine	t(
+			X[itr  ], -X[itr+1], X[itr+2],
+			X[itr+1],  X[itr  ], X[itr+3] );
+
+		T = R * t;
+
+		X[itr]		= T.t[0];
+		X[itr+1]	= T.t[3];
+		X[itr+2]	= T.t[2];
+		X[itr+3]	= T.t[5];
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* NewOriginAll -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MRigid::NewOriginAll(
+	vector<double>	&X,
+	double			xorg,
+	double			yorg )
+{
+	int	nr	= vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		int	itr = vRgn[i].itr;
+
+		if( itr < 0 )
+			continue;
+
+		itr *= NX;
+
+		X[itr+2] -= xorg;
+		X[itr+3] -= yorg;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTransforms ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MRigid::WriteTransforms(
+	const vector<zsort>		&zs,
+	const vector<double>	&X,
+	int						bstrings,
+	FILE					*FOUT )
+{
+	printf( "---- Write transforms ----\n" );
+
+	FILE	*f   = FileOpenOrDie( "TAffineTable.txt", "w" );
+	double	smin = 100.0,
+			smax = 0.0,
+			smag = 0.0;
+	int		nr   = vRgn.size(), nTr = 0;
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		if( I.itr < 0 )
+			continue;
+
+		int	j = I.itr * NX;
+
+		++nTr;
+
+		fprintf( f, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
+		I.z, I.id, I.rgn,
+		X[j  ], -X[j+1], X[j+2],
+		X[j+1],  X[j  ], X[j+3] );
+
+		if( !bstrings ) {
+
+			fprintf( FOUT, "TAFFINE %d.%d:%d %f %f %f %f %f %f\n",
+			I.z, I.id, I.rgn,
+			X[j  ], -X[j+1], X[j+2],
+			X[j+1],  X[j  ], X[j+3] );
+		}
+		else {
+			fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
+			I.GetName(), I.rgn,
+			X[j  ], -X[j+1], X[j+2],
+			X[j+1],  X[j  ], X[j+3] );
+		}
+
+		double	mag = sqrt( X[j]*X[j] - X[j+1]*X[j+1] );
+
+		smag += mag;
+		smin  = fmin( smin, mag );
+		smax  = fmax( smax, mag );
+	}
+
+	fclose( f );
+
+	printf(
+	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
+	smag/nTr, smin, smax, smax/smin );
+}
+
+/* --------------------------------------------------------------- */
+/* L2GPoint ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MRigid::L2GPoint(
+	Point			&p,
+	vector<double>	&X,
+	int				itr )
+{
+	int		j = itr * NX;
+	TAffine	T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
+	T.Transform( p );
+}
+
+
+void MRigid::L2GPoint(
+	vector<Point>	&p,
+	vector<double>	&X,
+	int				itr )
+{
+	int		j = itr * NX;
+	TAffine	T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
+	T.Transform( p );
 }
 
 

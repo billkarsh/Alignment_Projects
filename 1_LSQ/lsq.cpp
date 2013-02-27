@@ -375,85 +375,6 @@ static int IDFromName( const char *name )
 }
 
 /* --------------------------------------------------------------- */
-/* SetPointPairs ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-#if 0
-static void SetPointPairs(
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS,
-	double			sc )
-{
-	int	nc	= vAllC.size();
-
-	for( int i = 0; i < nc; ++i ) {
-
-		const Constraint &C = vAllC[i];
-
-		if( !C.used || !C.inlier )
-			continue;
-
-		double	fz =
-		(vRgn[C.r1].z == vRgn[C.r2].z ? gArgs.same_strength : 1);
-
-		double	x1 = C.p1.x * fz / sc,
-				y1 = C.p1.y * fz / sc,
-				x2 = C.p2.x * fz / sc,
-				y2 = C.p2.y * fz / sc;
-		int		j  = vRgn[C.r1].itr * 6,
-				k  = vRgn[C.r2].itr * 6;
-
-		// T1(p1) - T2(p2) = 0
-
-		double	v[6]  = {x1,  y1,   fz, -x2, -y2,  -fz};
-		int		i1[6] = {j,   j+1, j+2, k,   k+1,  k+2};
-		int		i2[6] = {j+3, j+4, j+5, k+3, k+4,  k+5};
-
-		AddConstraint( LHS, RHS, 6, i1, v, 0.0 );
-		AddConstraint( LHS, RHS, 6, i2, v, 0.0 );
-	}
-}
-#endif
-
-/* --------------------------------------------------------------- */
-/* SetIdentityTForm ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Explicitly set some TForm to Identity.
-// @@@ Does it matter which one we use?
-//
-static void SetIdentityTForm(
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS )
-{
-	double	stiff	= 1.0;
-
-	double	one	= stiff;
-	int		j	= (gNTr / 2) * 6;
-
-	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-
-// Report which tile we set
-
-	int	nr = vRgn.size();
-
-	for( int k = 0; k < nr; ++k ) {
-
-		if( vRgn[k].itr == gNTr / 2 ) {
-
-			printf( "Ref region z=%d, id=%d\n",
-			vRgn[k].z, vRgn[k].id );
-			break;
-		}
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* SetUniteLayer ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -524,55 +445,6 @@ static void PrintMagnitude( const vector<double> &X, int nvars )
 	}
 
 	fflush( stdout );
-}
-
-/* --------------------------------------------------------------- */
-/* SolveWithSquareness ------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void SolveWithSquareness(
-	vector<double>	&X,
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS )
-{
-/* -------------------------- */
-/* Add squareness constraints */
-/* -------------------------- */
-
-	double	stiff = gArgs.square_strength;
-
-	for( int i = 0; i < gNTr; ++i ) {
-
-		int	j = i * 6;
-
-		// equal cosines
-		{
-			double	V[2] = {stiff, -stiff};
-			int		I[2] = {j, j+4};
-
-			AddConstraint( LHS, RHS, 2, I, V, 0.0 );
-		}
-
-		// opposite sines
-		{
-			double	V[2] = {stiff, stiff};
-			int		I[2] = {j+1, j+3};
-
-			AddConstraint( LHS, RHS, 2, I, V, 0.0 );
-		}
-	}
-
-/* ----------------- */
-/* 1st pass solution */
-/* ----------------- */
-
-// We have enough info for first estimate of the global
-// transforms. We will need these to formulate further
-// constraints on the global shape and scale.
-
-	printf( "Solve with [transform squareness].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
-	PrintMagnitude( X, 6 );
 }
 
 /* --------------------------------------------------------------- */
@@ -778,109 +650,6 @@ static void SolveWithMontageSqr(
 	PrintMagnitude( X, 6 );
 }
 #endif
-
-/* --------------------------------------------------------------- */
-/* SolveWithUnitMag ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Effectively, we want to constrain the cosines and sines
-// so that c^2 + s^2 = 1. We can't make constraints that are
-// non-linear in the variables X[], but we can construct an
-// approximation using the {c,s = X[]} of the previous fit:
-// c*x + s*y = 1. To reduce sensitivity to the sizes of the
-// previous fit c,s, we normalize them by m = sqrt(c^2 + s^2).
-//
-static void SolveWithUnitMag(
-	vector<double>	&X,
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS )
-{
-	double	stiff = gArgs.scale_strength;
-
-	for( int i = 0; i < gNTr; ++i ) {
-
-		int		j = i * 6;
-		double	c = X[j];
-		double	s = X[j+3];
-		double	m = sqrt( c*c + s*s );
-
-		// c*x/m + s*y/m = 1
-
-		double	V[2] = {c * stiff, s * stiff};
-		int		I[2] = {j, j+3};
-
-		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
-	}
-
-	printf( "Solve with [unit magnitude].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
-	printf( "\t\t\t\t" );
-	PrintMagnitude( X, 6 );
-}
-
-/* --------------------------------------------------------------- */
-/* SolveSystem --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Build and solve system of linear equations.
-//
-// Note:
-// All translational variables are scaled down by 'scale' so they
-// are sized similarly to the sine/cosine variables. This is only
-// to stabilize solver algorithm. We undo the scaling on exit.
-//
-static void SolveSystem( vector<double> &X )
-{
-	double	scale	= 2 * max( gW, gH );
-	int		nvars	= gNTr * 6;
-
-	printf( "%d unknowns; %d constraints.\n", nvars, vAllC.size() );
-
-	vector<double> RHS( nvars, 0.0 );
-	vector<LHSCol> LHS( nvars );
-
-	X.resize( nvars );
-
-/* ------------------ */
-/* Get rough solution */
-/* ------------------ */
-
-//	SetPointPairs( LHS, RHS, scale );
-	M->SetPointPairs( LHS, RHS, scale, gArgs.same_strength );
-
-	if( gArgs.unite_layer < 0 )
-		SetIdentityTForm( LHS, RHS );
-	else
-		SetUniteLayer( LHS, RHS, scale );
-
-	SolveWithSquareness( X, LHS, RHS );
-
-/* ----------------------------------------- */
-/* Use solution to add torsional constraints */
-/* ----------------------------------------- */
-
-	if( gArgs.make_layer_square )
-		SolveWithMontageSqr( X, LHS, RHS );
-
-	SolveWithUnitMag( X, LHS, RHS );
-
-/* --------------------------- */
-/* Rescale translational terms */
-/* --------------------------- */
-
-	int	nr	= vRgn.size();
-
-	for( int i = 0; i < nr; ++i ) {
-
-		if( vRgn[i].itr >= 0 ) {
-
-			int j = vRgn[i].itr * 6;
-
-			X[j+2] *= scale;
-			X[j+5] *= scale;
-		}
-	}
-}
 
 /* --------------------------------------------------------------- */
 /* SolveSystemRigid ---------------------------------------------- */
@@ -1431,7 +1200,11 @@ static void IterateInliers(
 		/* Solve */
 		/* ----- */
 
-		SolveSystem( X );
+		M->SolveSystem( X, gNTr, gW, gH,
+			gArgs.same_strength,
+			gArgs.square_strength,
+			gArgs.scale_strength );
+
 //		SolveSystemRigid( X );
 
 		/* -------------------------- */
@@ -1441,8 +1214,14 @@ static void IterateInliers(
 		if( pass == 1 && gArgs.tfm_tol > 0.0 ) {
 
 			if( KillOulierTForms( X, zs ) ) {
+
 				printf( "\nPASS %d (Wild TFs Rmvd) >>>>>>>>\n", pass );
-				SolveSystem( X );
+
+				M->SolveSystem( X, gNTr, gW, gH,
+					gArgs.same_strength,
+					gArgs.square_strength,
+					gArgs.scale_strength );
+
 //				SolveSystemRigid( X );
 			}
 		}
@@ -1471,13 +1250,11 @@ static void IterateInliers(
 			/* Global space points and error */
 			/* ----------------------------- */
 
-			TAffine	T1( &X[vRgn[C.r1].itr * 6] ),
-					T2( &X[vRgn[C.r2].itr * 6] );
 			Point	g1 = C.p1,
 					g2 = C.p2;
 
-			T1.Transform( g1 );
-			T2.Transform( g2 );
+			M->L2GPoint( g1, X, vRgn[C.r1].itr );
+			M->L2GPoint( g2, X, vRgn[C.r2].itr );
 
 			double	err = g2.DistSqr( g1 );
 			bool	old = C.inlier;
@@ -1562,234 +1339,6 @@ static void ApplyLens( vector<double> &X, bool inv )
 
 		LN.UpdateDoublesRHS( &X[itr * 6], vRgn[i].GetName(), inv );
 	}
-}
-
-/* --------------------------------------------------------------- */
-/* Bounds -------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void Bounds(
-	double			&xbnd,
-	double			&ybnd,
-	vector<double>	&X )
-{
-	printf( "---- Global bounds ----\n" );
-
-// Transform each included regions's rectangle to global
-// space, including any global rotation (degcw) and find
-// bounds over whole set.
-
-	double	xmin, xmax, ymin, ymax;
-	int		nr = vRgn.size();
-
-	if( gArgs.lrbt.size() ) {
-
-		xmin = gArgs.lrbt[0];
-		xmax = gArgs.lrbt[1];
-		ymin = gArgs.lrbt[2];
-		ymax = gArgs.lrbt[3];
-	}
-	else {
-
-		TAffine	T, R;
-
-		xmin =  BIGD;
-		xmax = -BIGD;
-		ymin =  BIGD;
-		ymax = -BIGD;
-
-		if( gArgs.degcw )
-			R.SetCWRot( gArgs.degcw, Point(0,0) );
-
-		for( int i = 0; i < nr; ++i ) {
-
-			int	itr = vRgn[i].itr;
-
-			if( itr < 0 )
-				continue;
-
-			TAffine			t( &X[itr * 6] );
-			vector<Point>	cnr( 4 );
-
-			T = R * t;
-			T.CopyOut( &X[itr * 6] );
-
-			cnr[0] = Point(  0.0, 0.0 );
-			cnr[1] = Point( gW-1, 0.0 );
-			cnr[2] = Point( gW-1, gH-1 );
-			cnr[3] = Point(  0.0, gH-1 );
-
-			T.Transform( cnr );
-
-			for( int k = 0; k < 4; ++k ) {
-
-				xmin = fmin( xmin, cnr[k].x );
-				xmax = fmax( xmax, cnr[k].x );
-				ymin = fmin( ymin, cnr[k].y );
-				ymax = fmax( ymax, cnr[k].y );
-			}
-		}
-	}
-
-	printf( "Propagate bounds with option -lrbt=%f,%f,%f,%f\n\n",
-	xmin, xmax, ymin, ymax );
-
-// Translate all transforms to put global origin at ~(0,0).
-
-	for( int i = 0; i < nr; ++i ) {
-
-		int	j = vRgn[i].itr;
-
-		if( j >= 0 ) {
-			j		*= 6;
-			X[j+2]	-= xmin;
-			X[j+5]	-= ymin;
-		}
-	}
-
-	xmax = ceil( xmax - xmin + 1 );
-	ymax = ceil( ymax - ymin + 1 );
-	xmin = 0;
-	ymin = 0;
-
-// Open GNUPLOT files for debugging
-
-	FILE	*fEven		= FileOpenOrDie( "pf.even", "w" ),
-			*fOdd		= FileOpenOrDie( "pf.odd", "w" ),
-			*fLabEven	= FileOpenOrDie( "pf.labels.even", "w" ),
-			*fLabOdd	= FileOpenOrDie( "pf.labels.odd", "w" );
-
-// Write rects and labels
-
-	for( int i = 0; i < nr; ++i ) {
-
-		int	itr = vRgn[i].itr;
-
-		if( itr < 0 )
-			continue;
-
-		TAffine			T( &X[itr * 6] );
-		vector<Point>	cnr( 4 );
-		double			xmid = 0.0, ymid = 0.0;
-
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point(  0.0, gH-1 );
-
-		T.Transform( cnr );
-
-		for( int k = 0; k < 4; ++k ) {
-			xmid += cnr[k].x;
-			ymid += cnr[k].y;
-		}
-
-		xmid /= 4.0;
-		ymid /= 4.0;
-
-		// select even or odd reporting
-
-		FILE	*f, *flab;
-		int		color;
-
-		if( vRgn[i].z & 1 ) {
-			f		= fOdd;
-			flab	= fLabOdd;
-			color	= 1;
-		}
-		else {
-			f		= fEven;
-			flab	= fLabEven;
-			color	= 2;
-		}
-
-		// transformed rect
-
-		for( int k = 0; k < 5; ++k )
-			fprintf( f, "%f %f\n", cnr[k%4].x, cnr[k%4].y );
-
-		fprintf( f, "\n" );
-
-		// label
-
-		fprintf( flab, "set label \"%d:%d.%d \" at %f,%f tc lt %d\n",
-		vRgn[i].z, vRgn[i].id, vRgn[i].rgn, xmid, ymid, color );
-	}
-
-// Close files
-
-	fclose( fLabOdd );
-	fclose( fLabEven );
-	fclose( fOdd );
-	fclose( fEven );
-
-// Report
-
-	fprintf( FOUT, "BBOX %f %f %f %f\n", xmin, ymin, xmax, ymax );
-
-	printf( "Bounds of global image are x=[%f %f] y=[%f %f].\n\n",
-	xmin, xmax, ymin, ymax );
-
-	xbnd = xmax;
-	ybnd = ymax;
-}
-
-/* --------------------------------------------------------------- */
-/* WriteTransforms ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void WriteTransforms(
-	const vector<zsort>		&zs,
-	const vector<double>	&X )
-{
-	printf( "---- Write transforms ----\n" );
-
-	FILE	*f   = FileOpenOrDie( "TAffineTable.txt", "w" );
-	double	smin = 100.0,
-			smax = 0.0,
-			smag = 0.0;
-	int		nr   = vRgn.size();
-
-	for( int i = 0; i < nr; ++i ) {
-
-		const RGN&	I = vRgn[zs[i].i];
-
-		if( I.itr < 0 )
-			continue;
-
-		int	j = I.itr * 6;
-
-		fprintf( f, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
-		I.z, I.id, I.rgn,
-		X[j  ], X[j+1], X[j+2],
-		X[j+3], X[j+4], X[j+5] );
-
-		if( !gArgs.strings ) {
-
-			fprintf( FOUT, "TRANSFORM2 %d.%d:%d %f %f %f %f %f %f\n",
-			I.z, I.id, I.rgn,
-			X[j  ], X[j+1], X[j+2],
-			X[j+3], X[j+4], X[j+5] );
-		}
-		else {
-			fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
-			I.GetName(), I.rgn,
-			X[j  ], X[j+1], X[j+2],
-			X[j+3], X[j+4], X[j+5] );
-		}
-
-		double	mag = sqrt( X[j]*X[j+4] - X[j+1]*X[j+3] );
-
-		smag += mag;
-		smin  = fmin( smin, mag );
-		smax  = fmax( smax, mag );
-	}
-
-	fclose( f );
-
-	printf(
-	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
-	smag/gNTr, smin, smax, smax/smin );
 }
 
 /* --------------------------------------------------------------- */
@@ -3189,13 +2738,18 @@ int main( int argc, char **argv )
 
 	double	xbnd, ybnd;
 
-	Bounds( xbnd, ybnd, X );
+	M->Bounds( xbnd, ybnd, X,
+		gW, gH, gArgs.lrbt, gArgs.degcw, FOUT );
 
 /* ---------------- */
 /* Write transforms */
 /* ---------------- */
 
-	WriteTransforms( zs, X );
+	M->WriteTransforms( zs, X, gArgs.strings, FOUT );
+
+if( gArgs.model != 'A' )
+	exit( 0 );
+
 	WriteTrakEM( xbnd, ybnd, zs, X );
 	WriteJython( zs, X );
 

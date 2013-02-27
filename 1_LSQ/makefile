@@ -20,7 +20,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 
 SOURCES_MYPROJ := \
 	lsq.cpp lsq_Types.cpp lsq_ReadPts.cpp \
-	lsq_CNX.cpp lsq_RGD.cpp lsq_DIR.cpp \
+	lsq_CNX.cpp lsq_RGD.cpp lsq_DIR.cpp lsq_MDL.cpp \
 	lsq_Rigid.cpp lsq_Affine.cpp lsq_Hmgphy.cpp
 
 _SRC_XML_ := \
@@ -39,7 +39,7 @@ _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
 	PipeFiles.cpp CAffineLens.cpp TrakEM2_UTL.cpp \
 	ImageIO.cpp Maths.cpp CPoint.cpp TAffine.cpp \
-	LinEqu.cpp
+	THmgphy.cpp LinEqu.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

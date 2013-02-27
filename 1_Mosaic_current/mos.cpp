@@ -817,7 +817,7 @@ public:
 // IDBPATH /groups/tomo/EX2/imagedb
 // IMAGESIZE 1376 1040
 // BBOX 0.273737 0.750210 2855.407509 6533.489589
-// TRANSFORM2 0.17:1 \
+// TAFFINE 0.17:1 \
 //	0.995873 0.031339 1310.166353 -0.032305 0.996346 45.169905
 // MPOINTS 0 1581.204923 3755.906136 0 1573.213831 3755.796253
 // SPMAP2 0.17 /path/spmapname
@@ -884,7 +884,7 @@ static void ReadInput_NumTags(
 				y2.push_back( d/gArgs.scale );
 			}
 		}
-		else if( !strncmp( LS.line, "TRANSFORM2", 10 ) ) {
+		else if( !strncmp( LS.line, "TAFFINE", 10 ) ) {
 
 			double	a, b, c, d, e, f;
 			int		z, id, rgn;
@@ -893,7 +893,7 @@ static void ReadInput_NumTags(
 				"%d.%d:%d %lf %lf %lf %lf %lf %lf",
 				&z, &id, &rgn, &a, &b, &c, &d, &e, &f ) ) {
 
-				printf( "Bad TRANSFORM2 statement '%s'.", LS.line );
+				printf( "Bad TAFFINE statement '%s'.", LS.line );
 				exit( 42 );
 			}
 
