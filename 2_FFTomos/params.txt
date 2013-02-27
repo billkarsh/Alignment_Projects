@@ -1,5 +1,6 @@
 TIFpath=./TIF
 rick=rickfile.txt
+scale=1
 ped=0
 chan=0,useAff=T,Aff=[1 0 0 0 1 0],path/file0.tif
 chan=2,useAff=T,Aff=[1 0 0 0 1 0],path/file2.tif

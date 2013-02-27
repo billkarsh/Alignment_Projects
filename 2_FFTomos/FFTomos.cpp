@@ -45,17 +45,20 @@ public:
 static CArgs	gArgs;
 static FILE*	flog = NULL;
 static char		tifdir[2048],
-				ffdir[2048];
-static FILE*	frick = NULL;
+				ffdir[2048],
+				rick[2048];
+static double	gscale		= 1.0;
 static uint16*	ffras[4]	= {NULL,NULL,NULL,NULL};
 static double	ffave[4]	= {0,0,0,0};
 static double	ffstd[4]	= {0,0,0,0};
-static int		fford[4]	= {0,0,0,0};
-static int		ffoff[4]	= {0,0,0,0};
+static int		fford[4]	= {0,0,0,0};	// leg poly order
+static int		ffoff[4]	= {0,0,0,0};	// use vals <= mode+offset
+static int		ischn[4]	= {0,0,0,0};
 static int		useT[4]		= {0,0,0,0};
 static TAffine	gT[4];
-static uint32	gW = 0,	gH = 0;		// universal pic dims
-static int		gped = 0;
+static uint32	gW			= 0,
+				gH			= 0;	// universal pic dims
+static int		gped		= 0;
 
 
 
@@ -113,6 +116,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // Param file:
 // TIFpath=./TIF
 // rick=fullpath
+// scale=1
 // ped=0
 // chan=0,useAff=T,Aff=[1 0 0 0 1 0],fullpath
 // ... as many as used chans, up to 4
@@ -139,12 +143,17 @@ static void ReadParams()
 	strcpy( s + 1, "FF" );
 	DskCreateDir( ffdir, flog );
 
-// scan rick file name and open it
+// scan rick file name
 
-	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "rick=%s", buf ) )
+	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "rick=%s", rick ) )
 		exit( 42 );
-	fprintf( flog, "rick=%s\n", buf );
-	frick = FileOpenOrDie( buf, "r" );
+	fprintf( flog, "rick=%s\n", rick );
+
+// scale
+
+	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "scale=%lf", &gscale ) )
+		exit( 42 );
+	fprintf( flog, "scale=%g\n", gscale );
 
 // pedestal
 
@@ -176,6 +185,8 @@ static void ReadParams()
 		chan, cUse,
 		A[0], A[1], A[2], A[3], A[4], A[5],
 		buf );
+
+		ischn[chan] = true;
 
 		// determine FF method
 
@@ -278,27 +289,6 @@ static void FFChannel( uint16* ras, int chan )
 /* MagChannel ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#if 0
-static void MagChannel( uint16* ras, const TAffine &T )
-{
-	int				np = gW * gH;
-	vector<double>	I( np, 0.0 );
-
-	for( int i = 0; i < np; ++i ) {
-
-		int		y = i / gW,
-				x = i - gW * y;
-		Point	p( x, y );
-
-		T.Transform( p );
-		DistributePixel( p.x, p.y, ras[i], I, gW, gH );
-	}
-
-	for( int i = 0; i < np; ++i )
-		ras[i] = (uint16)I[i];
-}
-#endif
-
 static void MagChannel( uint16* ras, const TAffine &T )
 {
 	TAffine			I;
@@ -326,57 +316,107 @@ static void MagChannel( uint16* ras, const TAffine &T )
 }
 
 /* --------------------------------------------------------------- */
-/* ProcessRick --------------------------------------------------- */
+/* DoChannel ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void ProcessRick()
+static void DoChannel( FILE* fout, int &z, int chan )
 {
+	char	curwel[8] = {0};
+
+// Reopen rick file for each channel
+
+	FILE		*frick = FileOpenOrDie( rick, "r" );
 	CLineScan	LS;
-	int			chan, np = gW * gH;
+
+// For each line...
+// Get its image-name, x, y
+// Do pixel ops on that image and write it to FF folder
+// Output new full path to modified image
+// Output rescaled x, y and updated z
 
 	while( LS.Get( frick ) > 0 ) {
 
-		char	path[2048], name[256];
+		char	path[2048], name[64];
+		double	x, y;
+		int		lname;
 
-		// read an image name
+		// Get native line data
+		sscanf( LS.line, "%s%lf%lf", name, &x, &y );
 
-		sscanf( LS.line, "%s", name );
+		lname = strlen( name );
 
-		// get its channel
+		// Force channel name
+		name[lname - 5] = '0' + chan;
 
-		char	*s = strrchr( name, '_' );
-		chan = atoi( s + 1 );
+		// Get well tag length and test change
+		int	len = strchr( name, '_' ) - name;
 
-		// only interested in given channels
+		if( strncmp( curwel, name, len ) ) {
+			// changed
+			sprintf( curwel, "%.*s", len, name );
+			++z;
+		}
 
-		if( chan < 0 || chan > 3 )
-			continue;
-
-		// now read the image
-
+		// Read the image
 		sprintf( path, "%s/%s", tifdir, name );
 		uint16*	ras = Raster16FromTif16( path, gW, gH, flog );
 
-		if( !ras )
-			break;
+		if( !ras ) {
+			fprintf( flog, "Missing image=[%s]\n", path );
+			continue;
+		}
 
-		// flat-field the image
-
+		// Flat-field the image
 		FFChannel( ras, chan );
 
-		// apply TForm
-
+		// Apply TForm
 		if( useT[chan] )
 			MagChannel( ras, gT[chan] );
 
-		// write it out
-
-		sprintf( path, "%s/%.*s.FF.tif",
-			ffdir, strlen( name ) - 4, name );
+		// Write image file
+		sprintf( path, "%s/%.*s.FF.tif", ffdir, lname - 4, name );
 		Raster16ToTif16( path, ras, gW, gH, flog );
 
 		RasterFree( ras );
+
+		// Write output line
+		fprintf( fout, "%s\t%.2f\t%.2f\t%d\n",
+			path, x*  gscale, y * gscale, z );
 	}
+
+	fclose( frick );
+}
+
+/* --------------------------------------------------------------- */
+/* ChannelLoop --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// For ea channel specified in input file:
+// Write block of wells/tiles for that channel.
+//
+// Note that z values advance with changes in well name...
+//	and changes in channel.
+//
+static void ChannelLoop()
+{
+// Name and open the one output file. The original name
+// looks like "...TrackEM2_Chni.txt" and we will change
+// to "...TrackEM2_FFall.txt"
+
+	char	buf[2048];
+	sprintf( buf, "%.*sFFall.txt", strlen( rick ) - 8, rick );
+
+	FILE	*fout = FileOpenOrDie( buf, "w" );
+
+	int	z = -1;	// changes with chan/well
+
+	for( int chan = 0; chan < 4; ++chan ) {
+
+		if( ischn[chan] )
+			DoChannel( fout, z, chan );
+	}
+
+	fclose( fout );
 }
 
 /* --------------------------------------------------------------- */
@@ -389,10 +429,7 @@ int main( int argc, char* argv[] )
 
 	ReadParams();
 
-	ProcessRick();
-
-	if( frick )
-		fclose( frick );
+	ChannelLoop();
 
 	for( int i = 0; i < 4; ++i )
 		RasterFree( ffras[i] );
