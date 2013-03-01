@@ -21,6 +21,16 @@ protected:
 	MDL( int NT, int NX ) : NT(NT), NX(NX) {};
 	void PrintMagnitude( const vector<double> &X );
 
+	void NewAffine(
+		vector<double>	&X,
+		vector<LHSCol>	&LHS,
+		vector<double>	&RHS,
+		double			sc,
+		double			same_strength,
+		double			square_strength,
+		int				nTr,
+		int				itr );
+
 private:
 	virtual void SetPointPairs(
 		vector<LHSCol>	&LHS,

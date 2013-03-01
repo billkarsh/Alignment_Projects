@@ -28,6 +28,231 @@ void MDL::PrintMagnitude( const vector<double> &X )
 }
 
 /* --------------------------------------------------------------- */
+/* SolveXYOnly --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void SolveXYOnly(
+	vector<double>	&X,
+	int				nTr )
+{
+	int	nvars = nTr * 2;
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// SetPointPairs
+
+	int	nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		int	j  = vRgn[C.r1].itr * 2,
+			k  = vRgn[C.r2].itr * 2;
+
+		// T1(p1) - T2(p2) = 0
+
+		double	v[2]  = {  1,  -1};
+		int		i1[2] = {  j,   k},
+				i2[2] = {j+1, k+1};
+
+		AddConstraint( LHS, RHS, 2, i1, v, C.p2.x - C.p1.x );
+		AddConstraint( LHS, RHS, 2, i2, v, C.p2.y - C.p1.y );
+	}
+
+// SetIdentityTForm
+
+	double	one	= 1;
+	int		j	= nTr;
+
+	AddConstraint( LHS, RHS, 1, &j, &one, 0 );	j++;
+	AddConstraint( LHS, RHS, 1, &j, &one, 0 );
+
+// SolveWithSquareness
+
+	printf( "Solve with [translation only].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+}
+
+/* --------------------------------------------------------------- */
+/* XYToAffine ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void XYToAffine(
+	vector<double>	&X,
+	int				nTr )
+{
+	vector<double>	T;
+
+	SolveXYOnly( T, nTr );
+
+	X.resize( nTr * 6 );
+
+	for( int i = 0; i < nTr; ++i ) {
+
+		int	j = i * 6,
+			k = i * 2;
+
+		X[j  ] = 1;
+		X[j+1] = 0;
+		X[j+2] = T[k  ];
+		X[j+3] = 0;
+		X[j+4] = 1;
+		X[j+5] = T[k+1];
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* NewAffine ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MDL::NewAffine(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	double			sc,
+	double			same_strength,
+	double			square_strength,
+	int				nTr,
+	int				itr )
+{
+	SetPointPairs( LHS, RHS, sc, same_strength );
+	SetIdentityTForm( LHS, RHS, itr );
+
+// ------------------------------------------------------------
+// Set matrix elements to translation values for subset of tiles
+// ------------------------------------------------------------
+
+#if 0
+// set translations (scaled down)
+
+	vector<double>	T;
+	double			wt = 1;
+
+	SolveXYOnly( T, nTr );
+
+	int	nr = vRgn.size();
+
+	for( int ir = 0; ir < nr; ++ir ) {
+
+		const RGN&	R = vRgn[ir];
+		int			i = R.itr;
+
+		if( i < 0 )
+			continue;
+
+		int	col = R.id / 1000 - R.z * 1000;
+		int	row = R.id - (R.z * 1000 + col) * 1000;
+
+		if( col == 8 || col == 75 || row == 10 || row == 154 )
+			;
+		else
+			continue;
+
+		int	j;
+
+		j = i * NX + 2;
+		AddConstraint( LHS, RHS, 1, &j, &wt, T[i*2]*wt/sc );
+
+		j = i * NX + 5;
+		AddConstraint( LHS, RHS, 1, &j, &wt, T[i*2+1]*wt/sc );
+	}
+#endif
+
+// ------------------------------------------------------------
+// Just set matrix elements to translation values
+// ------------------------------------------------------------
+
+#if 1
+// set translations (scaled down)
+
+	vector<double>	T;
+	double			wt	= 0.01;
+
+	SolveXYOnly( T, nTr );
+
+	for( int i = 0; i < nTr; ++i ) {
+
+		int	j;
+
+		j = i * NX + 2;
+		AddConstraint( LHS, RHS, 1, &j, &wt, T[i*2]*wt/sc );
+
+		j = i * NX + 5;
+		AddConstraint( LHS, RHS, 1, &j, &wt, T[i*2+1]*wt/sc );
+	}
+#endif
+
+// ------------------------------------------------------------
+// Alternatively, set Aff(p) = Trans(p)
+// ------------------------------------------------------------
+
+#if 0
+// set translations (scaled down)
+
+	vector<double>	T;
+	double			wt = 0.1;
+	int				nc	= vAllC.size();
+
+	SolveXYOnly( T, nTr );
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		double	x1 = C.p1.x * wt / sc,
+				y1 = C.p1.y * wt / sc,
+				x2 = C.p2.x * wt / sc,
+				y2 = C.p2.y * wt / sc;
+		int		j  = vRgn[C.r1].itr,
+				k  = vRgn[C.r2].itr,
+				J  = j,
+				K  = k;
+
+		j *= NX;
+		k *= NX;
+		J *= 2;
+		K *= 2;
+
+		// A(p) = T(p)
+
+		double	v1[3] = { x1,  y1,  wt};
+		int		j1[3] = {  j, j+1, j+2},
+				j2[3] = {j+3, j+4, j+5};
+
+		AddConstraint( LHS, RHS, 3, j1, v1, T[J  ]*wt/sc + x1 );
+		AddConstraint( LHS, RHS, 3, j2, v1, T[J+1]*wt/sc + y1 );
+
+		double	v2[3] = { x2,  y2,  wt};
+		int		k1[3] = {  k, k+1, k+2},
+				k2[3] = {k+3, k+4, k+5};
+
+		AddConstraint( LHS, RHS, 3, k1, v2, T[K  ]*wt/sc + x2 );
+		AddConstraint( LHS, RHS, 3, k2, v2, T[K+1]*wt/sc + y2 );
+	}
+#endif
+
+// solve
+
+//	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -52,10 +277,16 @@ void MDL::SolveSystem(
 
 	printf( "%d unknowns; %d constraints.\n", nvars, vAllC.size() );
 
+//XYToAffine( X, nTr ); return;
+
 	vector<double> RHS( nvars, 0.0 );
 	vector<LHSCol> LHS( nvars );
 
 	X.resize( nvars );
+
+//NewAffine( X, LHS, RHS,
+//	scale, same_strength,
+//	square_strength, nTr, nTr/2 ); return;
 
 /* ------------------ */
 /* Get rough solution */
