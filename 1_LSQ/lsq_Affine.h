@@ -27,6 +27,13 @@ private:
 		vector<double>	&RHS,
 		int				itr );
 
+	void SetUniteLayer(
+		vector<LHSCol>	&LHS,
+		vector<double>	&RHS,
+		double			sc,
+		int				unite_layer,
+		const char		*tfm_file );
+
 	void SolveWithSquareness(
 		vector<double>	&X,
 		vector<LHSCol>	&LHS,

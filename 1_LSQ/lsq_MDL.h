@@ -53,6 +53,13 @@ private:
 		vector<double>	&RHS,
 		int				itr ) = 0;
 
+	virtual void SetUniteLayer(
+		vector<LHSCol>	&LHS,
+		vector<double>	&RHS,
+		double			sc,
+		int				unite_layer,
+		const char		*tfm_file ) = 0;
+
 	virtual void SolveWithSquareness(
 		vector<double>	&X,
 		vector<LHSCol>	&LHS,
@@ -90,7 +97,9 @@ public:
 		int				gH,
 		double			same_strength,
 		double			square_strength,
-		double			scale_strength );
+		double			scale_strength,
+		int				unite_layer,
+		const char		*tfm_file );
 
 	void Bounds(
 		double					&xbnd,

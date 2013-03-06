@@ -5,6 +5,7 @@
 
 #include	"GenDefs.h"
 #include	"TAffine.h"
+#include	"THmgphy.h"
 
 #include	<map>
 #include	<set>
@@ -190,6 +191,18 @@ void LoadTAffineTbl_AllZ(
 
 void LoadTAffineTbl_ThisZ(
 	map<MZIDR,TAffine>	&Tmap,
+	int					z,
+	const char			*path,
+	FILE				*flog = NULL );
+
+void LoadTHmgphyTbl_AllZ(
+	map<MZID,THmgphy>	&Tmap,
+	set<int>			&Zset,
+	const char			*path,
+	FILE				*flog = NULL );
+
+void LoadTHmgphyTbl_ThisZ(
+	map<MZIDR,THmgphy>	&Tmap,
 	int					z,
 	const char			*path,
 	FILE				*flog = NULL );

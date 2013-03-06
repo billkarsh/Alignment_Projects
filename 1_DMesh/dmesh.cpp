@@ -7,7 +7,6 @@
 
 #include	"Disk.h"
 #include	"ImageIO.h"
-#include	"THmgphy.h"
 #include	"LinEqu.h"
 
 

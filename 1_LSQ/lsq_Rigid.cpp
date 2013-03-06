@@ -2,7 +2,7 @@
 
 #include	"lsq_Rigid.h"
 
-#include	"TAffine.h"
+#include	"PipeFiles.h"
 #include	"File.h"
 
 #include	<math.h>
@@ -51,20 +51,6 @@ void MRigid::SetPointPairs(
 		v[4] = -y2;
 
 		AddConstraint( LHS, RHS, 6, i2, v, 0.0 );
-
-
-
-//double	one = 1;
-//i1[0] = j;
-//AddConstraint( LHS, RHS, 1, i1, &one, one );
-//i1[0] = j+1;
-//AddConstraint( LHS, RHS, 1, i1, &one, 0 );
-//
-//
-//i1[0] = k;
-//AddConstraint( LHS, RHS, 1, i1, &one, one );
-//i1[0] = k+1;
-//AddConstraint( LHS, RHS, 1, i1, &one, 0 );
 	}
 }
 
@@ -102,6 +88,61 @@ void MRigid::SetIdentityTForm(
 			vRgn[k].z, vRgn[k].id );
 			break;
 		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* SetUniteLayer ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Set one layer-full of TForms to those from a previous
+// solution output file gArgs.tfm_file.
+//
+void MRigid::SetUniteLayer(
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	double			sc,
+	int				unite_layer,
+	const char		*tfm_file )
+{
+/* ------------------------------- */
+/* Load TForms for requested layer */
+/* ------------------------------- */
+
+	map<MZIDR,TAffine>	M;
+
+	LoadTAffineTbl_ThisZ( M, unite_layer, tfm_file );
+
+/* ----------------------------- */
+/* Set each TForm in given layer */
+/* ----------------------------- */
+
+	double	stiff	= 10.0;
+
+	int	nr = vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	R = vRgn[i];
+
+		if( R.z != unite_layer || R.itr < 0 )
+			continue;
+
+		map<MZIDR,TAffine>::iterator	it;
+
+		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
+
+		if( it == M.end() )
+			continue;
+
+		double	one	= stiff,
+				*t	= it->second.t;
+		int		j	= R.itr * NX;
+
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[0] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[3] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[2] / sc );	j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[5] / sc );	j++;
 	}
 }
 

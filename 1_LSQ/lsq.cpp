@@ -375,61 +375,6 @@ static int IDFromName( const char *name )
 }
 
 /* --------------------------------------------------------------- */
-/* SetUniteLayer ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Set one layer-full of TForms to those from a previous
-// solution output file gArgs.tfm_file.
-//
-static void SetUniteLayer(
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS,
-	double			sc )
-{
-/* ------------------------------- */
-/* Load TForms for requested layer */
-/* ------------------------------- */
-
-	map<MZIDR,TAffine>	M;
-
-	LoadTAffineTbl_ThisZ( M, gArgs.unite_layer, gArgs.tfm_file );
-
-/* ----------------------------- */
-/* Set each TForm in given layer */
-/* ----------------------------- */
-
-	double	stiff	= 10.0;
-
-	int	nr = vRgn.size();
-
-	for( int i = 0; i < nr; ++i ) {
-
-		const RGN&	R = vRgn[i];
-
-		if( R.z != gArgs.unite_layer || R.itr < 0 )
-			continue;
-
-		map<MZIDR,TAffine>::iterator	it;
-
-		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
-
-		if( it == M.end() )
-			continue;
-
-		double	one	= stiff,
-				*t	= it->second.t;
-		int		j	= R.itr * 6;
-
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[0] );		j++;
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[1] );		j++;
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[2] / sc );	j++;
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[3] );		j++;
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[4] );		j++;
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[5] / sc );	j++;
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* PrintMagnitude ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1203,7 +1148,9 @@ static void IterateInliers(
 		M->SolveSystem( X, gNTr, gW, gH,
 			gArgs.same_strength,
 			gArgs.square_strength,
-			gArgs.scale_strength );
+			gArgs.scale_strength,
+			gArgs.unite_layer,
+			gArgs.tfm_file );
 
 //		SolveSystemRigid( X );
 
@@ -1220,7 +1167,9 @@ static void IterateInliers(
 				M->SolveSystem( X, gNTr, gW, gH,
 					gArgs.same_strength,
 					gArgs.square_strength,
-					gArgs.scale_strength );
+					gArgs.scale_strength,
+					gArgs.unite_layer,
+					gArgs.tfm_file );
 
 //				SolveSystemRigid( X );
 			}

@@ -2,7 +2,7 @@
 
 #include	"lsq_Hmgphy.h"
 
-#include	"THmgphy.h"
+#include	"PipeFiles.h"
 #include	"File.h"
 #include	"Maths.h"
 
@@ -92,6 +92,65 @@ void MHmgphy::SetIdentityTForm(
 			vRgn[k].z, vRgn[k].id );
 			break;
 		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* SetUniteLayer ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Set one layer-full of TForms to those from a previous
+// solution output file gArgs.tfm_file.
+//
+void MHmgphy::SetUniteLayer(
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	double			sc,
+	int				unite_layer,
+	const char		*tfm_file )
+{
+/* ------------------------------- */
+/* Load TForms for requested layer */
+/* ------------------------------- */
+
+	map<MZIDR,THmgphy>	M;
+
+	LoadTHmgphyTbl_ThisZ( M, unite_layer, tfm_file );
+
+/* ----------------------------- */
+/* Set each TForm in given layer */
+/* ----------------------------- */
+
+	double	stiff	= 10.0;
+
+	int	nr = vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	R = vRgn[i];
+
+		if( R.z != unite_layer || R.itr < 0 )
+			continue;
+
+		map<MZIDR,THmgphy>::iterator	it;
+
+		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
+
+		if( it == M.end() )
+			continue;
+
+		double	one	= stiff,
+				*t	= it->second.t;
+		int		j	= R.itr * NX;
+
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[0] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[1] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[2] / sc );	j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[3] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[4] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[5] / sc );	j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[6] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[7] );		j++;
 	}
 }
 

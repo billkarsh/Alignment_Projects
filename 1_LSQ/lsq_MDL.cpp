@@ -446,7 +446,9 @@ void MDL::SolveSystem(
 	int				gH,
 	double			same_strength,
 	double			square_strength,
-	double			scale_strength )
+	double			scale_strength,
+	int				unite_layer,
+	const char		*tfm_file )
 {
 	double	scale	= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -479,10 +481,10 @@ else if( NX == 8 ) {
 
 	SetPointPairs( LHS, RHS, scale, same_strength );
 
-//	if( gArgs.unite_layer < 0 )
+	if( unite_layer < 0 )
 		SetIdentityTForm( LHS, RHS, nTr / 2 );
-	//else
-	//	SetUniteLayer( LHS, RHS, scale );
+	else
+		SetUniteLayer( LHS, RHS, scale, unite_layer, tfm_file );
 
 	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
 
