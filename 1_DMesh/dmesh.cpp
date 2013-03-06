@@ -7,11 +7,15 @@
 
 #include	"Disk.h"
 #include	"ImageIO.h"
+#include	"THmgphy.h"
+#include	"LinEqu.h"
 
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+#define	FITPOINTS	0
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -28,6 +32,21 @@ public:
 public:
 	CStatus( int a, int b )	{argn=a; brgn=b; thmok=0; ntri=0;};
 };
+
+
+#if FITPOINTS
+
+class PPair {
+
+public:
+	Point	A, B;
+
+public:
+	PPair( const Point& pa, const Point& pb )
+	{A = pa; B = pb;};
+};
+
+#endif
 
 /* --------------------------------------------------------------- */
 /* Globals ------------------------------------------------------- */
@@ -237,6 +256,144 @@ static void UpscaleCoords( ffmap &maps, int scale )
 	}
 }
 
+
+#if FITPOINTS
+
+/* --------------------------------------------------------------- */
+/* FitAffine ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FitAffine(
+	const vector<PPair>	&pair,
+	FILE				*flog )
+{
+	int	np = pair.size();
+
+	if( np < 3 ) {
+		fprintf( flog,
+		"Pipe: Too few points to fit affine [%d].\n", np );
+		return;
+	}
+
+// Create system of normal equations
+
+	vector<double>	X( 6 );
+	vector<double>	RHS( 6, 0.0 );
+	vector<LHSCol>	LHS( 6 );
+	int				i1[3] = { 0, 1, 2 },
+					i2[3] = { 3, 4, 5 };
+
+	for( int i = 0; i < np; ++i ) {
+
+		const Point&	A = pair[i].A;
+		const Point&	B = pair[i].B;
+
+		double	v[3] = { A.x, A.y, 1.0 };
+
+		AddConstraint( LHS, RHS, 3, i1, v, B.x );
+		AddConstraint( LHS, RHS, 3, i2, v, B.y );
+	}
+
+// Solve
+
+	WriteSolveRead( X, LHS, RHS, true );
+
+	TAffine	T( &X[0] );
+
+// Report
+
+	T.TPrint( flog, "Pipe: FitAffine: " );
+
+// RMS error
+
+	double	E = 0;;
+
+	for( int i = 0; i < np; ++i ) {
+
+		Point	a = pair[i].A;
+
+		T.Transform( a );
+
+		double	err = a.DistSqr( pair[i].B );
+
+		E += err;
+	}
+
+	E /= np;
+	fprintf( flog, "Pipe: FitAffineRMSerr: %g\n", E );
+}
+
+/* --------------------------------------------------------------- */
+/* FitHmgphy ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FitHmgphy(
+	const vector<PPair>	&pair,
+	FILE				*flog )
+{
+	int	np = pair.size();
+
+	if( np < 4 ) {
+		fprintf( flog,
+		"Pipe: Too few points to fit homography [%d].\n", np );
+		return;
+	}
+
+// Create system of normal equations
+
+	vector<double>	X( 8 );
+	vector<double>	RHS( 8, 0.0 );
+	vector<LHSCol>	LHS( 8 );
+	int				i1[5] = { 0, 1, 2, 6, 7 },
+					i2[5] = { 3, 4, 5, 6, 7 };
+
+	for( int i = 0; i < np; ++i ) {
+
+		const Point&	A = pair[i].A;
+		const Point&	B = pair[i].B;
+
+		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+		AddConstraint( LHS, RHS, 5, i1, v, B.x );
+
+		v[3] = -A.x*B.y;
+		v[4] = -A.y*B.y;
+
+		AddConstraint( LHS, RHS, 5, i2, v, B.y );
+	}
+
+// Solve
+
+	WriteSolveRead( X, LHS, RHS, true );
+
+	THmgphy	T( &X[0] );
+
+// Report
+
+	T.TPrint( flog, "Pipe: FitHmgphy: " );
+
+// RMS error
+
+	double	E = 0;;
+
+	for( int i = 0; i < np; ++i ) {
+
+		Point	a = pair[i].A;
+
+		T.Transform( a );
+
+		double	err = a.DistSqr( pair[i].B );
+
+		E += err;
+	}
+
+	E = sqrt( E / np );
+
+	fprintf( flog, "Pipe: FitAHmgphyRMSerr: %g\n", E );
+}
+
+#endif
+
 /* --------------------------------------------------------------- */
 /* WritePOINTEntries --------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -273,7 +430,11 @@ static void WritePOINTEntries(
 
 		if( f ) {
 
-			int	nT = maps.transforms.size();
+#if FITPOINTS
+			vector<PPair>	pair;
+#endif
+
+			int				nT = maps.transforms.size();
 
 			for( int i = 0; i < nT; ++i ) {
 
@@ -345,7 +506,22 @@ static void WritePOINTEntries(
 				" %d.%d:%d %f %f\n",
 				GBL.A.layer, GBL.A.tile, ma, pa.x, pa.y,
 				GBL.B.layer, GBL.B.tile, mb, pb.x, pb.y );
+
+#if FITPOINTS
+				// Accumulate point pair
+
+				pair.push_back( PPair( pa, pb ) );
+#endif
 			}
+
+#if FITPOINTS
+			// Model transforms from point pairs
+
+			FitAffine( pair, flog );
+			FitHmgphy( pair, flog );
+#endif
+
+			// done
 
 			fflush( f );
 			fclose( f );
