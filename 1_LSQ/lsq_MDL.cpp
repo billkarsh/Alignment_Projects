@@ -112,6 +112,7 @@ static void XYToAffine(
 /* NewAffine ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#if 0
 void MDL::NewAffine(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
@@ -251,6 +252,181 @@ void MDL::NewAffine(
 
 	RescaleAll( X, sc );
 }
+#endif
+
+/* --------------------------------------------------------------- */
+/* NewAffine ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MDL::NewAffine(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	double			sc,
+	double			same_strength,
+	double			square_strength,
+	int				nTr,
+	int				itr )
+{
+// Get the pure translations T
+
+	vector<double>	T;
+	SolveXYOnly( T, nTr );
+
+// SetPointPairs: A(pi) = T(pj)
+
+sc = 1;
+
+	double	fz	= 1.0;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = T(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX,
+					k  = vRgn[C.r2].itr * 2;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2 = (C.p2.x + T[k  ]) * fz / sc,
+					y2 = (C.p2.y + T[k+1]) * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX,
+					k  = vRgn[C.r1].itr * 2;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2 = (C.p1.x + T[k  ]) * fz / sc,
+					y2 = (C.p1.y + T[k+1]) * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Set identity
+
+	SetIdentityTForm( LHS, RHS, itr );
+
+// Solve
+
+//	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
+/* NewHmgphy ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MDL::NewHmgphy(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS,
+	double			sc,
+	double			same_strength,
+	double			square_strength,
+	int				nTr,
+	int				itr )
+{
+// Get the pure translations T
+
+	vector<double>	T;
+	SolveXYOnly( T, nTr );
+
+// SetPointPairs: H(pi) = T(pj)
+
+sc = 1;
+
+	double	fz	= 1.0;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// H(p1) = T(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX,
+					k  = vRgn[C.r2].itr * 2;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2 = (C.p2.x + T[k  ]) / sc,
+					y2 = (C.p2.y + T[k+1]) / sc;
+
+			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
+			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
+					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
+
+			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
+
+			v[3] = -x1*y2;
+			v[4] = -y1*y2;
+
+			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
+		}
+
+		// H(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX,
+					k  = vRgn[C.r1].itr * 2;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2 = (C.p1.x + T[k  ]) / sc,
+					y2 = (C.p1.y + T[k+1]) / sc;
+
+			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
+			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
+					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
+
+			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
+
+			v[3] = -x1*y2;
+			v[4] = -y1*y2;
+
+			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
+		}
+	}
+
+// Set identity
+
+	SetIdentityTForm( LHS, RHS, itr );
+
+// Solve
+
+//	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
 
 /* --------------------------------------------------------------- */
 /* SolveSystem --------------------------------------------------- */
@@ -284,9 +460,18 @@ void MDL::SolveSystem(
 
 	X.resize( nvars );
 
-//NewAffine( X, LHS, RHS,
-//	scale, same_strength,
-//	square_strength, nTr, nTr/2 ); return;
+if( NX == 6 ) {
+	NewAffine( X, LHS, RHS,
+		scale, same_strength,
+		square_strength, nTr, nTr/2 );
+	return;
+}
+else if( NX == 8 ) {
+	NewHmgphy( X, LHS, RHS,
+		scale, same_strength,
+		square_strength, nTr, nTr/2 );
+	return;
+}
 
 /* ------------------ */
 /* Get rough solution */

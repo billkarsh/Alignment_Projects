@@ -54,6 +54,10 @@ private:
 		double			xorg,
 		double			yorg );
 
+	void WriteSideRatios(
+		const vector<zsort>		&zs,
+		const vector<double>	&X );
+
 	void WriteTransforms(
 		const vector<zsort>		&zs,
 		const vector<double>	&X,

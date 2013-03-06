@@ -4,6 +4,7 @@
 
 #include	"THmgphy.h"
 #include	"File.h"
+#include	"Maths.h"
 
 #include	<math.h>
 
@@ -265,6 +266,70 @@ void MHmgphy::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
+/* WriteSideRatios ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Experiment to guage trapezoidism by reporting the ratio of
+// each image's left vertical side over its right side.
+//
+void MHmgphy::WriteSideRatios(
+	const vector<zsort>		&zs,
+	const vector<double>	&X )
+{
+	FILE	*f	= FileOpenOrDie( "SideRatios.txt", "w" );
+	int		nr	= vRgn.size();
+	MeanStd	M[4];
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		if( I.itr < 0 )
+			continue;
+
+		int	j = I.itr * NX;
+
+		THmgphy		T( &X[j] );
+		Point		A, B;
+		double		d;
+		const char	*c, *n = FileNamePtr( I.GetName() );
+		int			cam = 0;
+
+		B = Point( 0, 2200 );
+		A = Point( 0, 0 );
+
+		T.Transform( A );
+		T.Transform( B );
+		d = B.Dist( A );
+
+		B = Point( 2200, 2200 );
+		A = Point( 2200, 0 );
+
+		T.Transform( A );
+		T.Transform( B );
+		d /= B.Dist( A );
+
+		if( c = strstr( n, "_cam" ) )
+			cam = atoi( c + 4 );
+
+		fprintf( f, "%d\t%g\n", cam, d );
+
+		M[cam].Element( d );
+	}
+
+	for( int i = 0; i < 4; ++i ) {
+
+		double	ave, std;
+
+		M[i].Stats( ave, std );
+
+		printf( "{cam,L/R,std}: {%d,%g,%g}\n", i, ave, std );
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteTransforms ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -327,6 +392,8 @@ void MHmgphy::WriteTransforms(
 	printf(
 	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
 	smag/nTr, smin, smax, smax/smin );
+
+	WriteSideRatios( zs, X );
 }
 
 /* --------------------------------------------------------------- */
