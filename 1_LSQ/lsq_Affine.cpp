@@ -2,6 +2,7 @@
 
 #include	"lsq_Affine.h"
 
+#include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
 #include	"File.h"
 
@@ -374,6 +375,128 @@ void MAffine::WriteTransforms(
 	printf(
 	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
 	smag/nTr, smin, smax, smax/smin );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTrakEM --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::WriteTrakEM(
+	double					xmax,
+	double					ymax,
+	const vector<zsort>		&zs,
+	const vector<double>	&X,
+	int						gW,
+	int						gH,
+	double					trim,
+	int						xml_type,
+	int						xml_min,
+	int						xml_max )
+{
+	FILE	*f = FileOpenOrDie( "MultLayAff.xml", "w" );
+
+	int	oid = 3;
+
+	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
+
+	TrakEM2WriteDTD( f );
+
+	fprintf( f, "<trakem2>\n" );
+
+	fprintf( f,
+	"\t<project\n"
+	"\t\tid=\"0\"\n"
+	"\t\ttitle=\"Project\"\n"
+	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t\tn_mipmap_threads=\"8\"\n"
+	"\t/>\n" );
+
+	fprintf( f,
+	"\t<t2_layer_set\n"
+	"\t\toid=\"%d\"\n"
+	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttitle=\"Top level\"\n"
+	"\t\tlayer_width=\"%.2f\"\n"
+	"\t\tlayer_height=\"%.2f\"\n"
+	"\t>\n",
+	oid++, xmax, ymax );
+
+	int	prev	= -1;	// will be previously written layer
+	int	offset	= int(2 * trim + 0.5);
+	int	nr		= vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		// changed layer
+		if( zs[i].z != prev ) {
+
+			if( prev != -1 )
+				fprintf( f, "\t\t</t2_layer>\n" );
+
+			fprintf( f,
+			"\t\t<t2_layer\n"
+			"\t\t\toid=\"%d\"\n"
+			"\t\t\tthickness=\"0\"\n"
+			"\t\t\tz=\"%d\"\n"
+			"\t\t>\n",
+			oid++, zs[i].z );
+
+			prev = zs[i].z;
+		}
+
+		// trim trailing quotes and '::'
+		// s = filename only
+		char		buf[2048];
+		strcpy( buf, I.GetName() );
+		char		*p = strtok( buf, " ':\n" );
+		const char	*s1 = FileNamePtr( p ),
+					*s2	= FileDotPtr( s1 );
+
+		// fix origin : undo trimming
+		int		j = I.itr * NX;
+		double	x = trim;
+		double	x_orig = X[j  ]*x + X[j+1]*x + X[j+2];
+		double	y_orig = X[j+3]*x + X[j+4]*x + X[j+5];
+
+		fprintf( f,
+		"\t\t\t<t2_patch\n"
+		"\t\t\t\toid=\"%d\"\n"
+		"\t\t\t\twidth=\"%d\"\n"
+		"\t\t\t\theight=\"%d\"\n"
+		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
+		"\t\t\t\ttitle=\"%.*s\"\n"
+		"\t\t\t\ttype=\"%d\"\n"
+		"\t\t\t\tfile_path=\"%s\"\n"
+		"\t\t\t\to_width=\"%d\"\n"
+		"\t\t\t\to_height=\"%d\"\n",
+		oid++, gW - offset, gH - offset,
+		X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
+		s2 - s1, s1, xml_type, p, gW - offset, gH - offset );
+
+		if( xml_min < xml_max ) {
+
+			fprintf( f,
+			"\t\t\t\tmin=\"%d\"\n"
+			"\t\t\t\tmax=\"%d\"\n"
+			"\t\t\t/>\n",
+			xml_min, xml_max );
+		}
+		else
+			fprintf( f, "\t\t\t/>\n" );
+	}
+
+	if( nr > 0 )
+		fprintf( f, "\t\t</t2_layer>\n" );
+
+	fprintf( f, "\t</t2_layer_set>\n" );
+	fprintf( f, "</trakem2>\n" );
+	fclose( f );
 }
 
 /* --------------------------------------------------------------- */

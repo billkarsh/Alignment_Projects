@@ -2,6 +2,7 @@
 
 #include	"lsq_Hmgphy.h"
 
+#include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
 #include	"File.h"
 #include	"Maths.h"
@@ -254,7 +255,11 @@ void MHmgphy::RescaleAll(
 	vector<double>	&X,
 	double			sc )
 {
-	int	nr	= vRgn.size();
+	THmgphy	D, U;
+	int		nr = vRgn.size();
+
+	U.NUSetScl( sc );
+	D.NUSetScl( 1/sc );
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -265,8 +270,11 @@ void MHmgphy::RescaleAll(
 
 		itr *= NX;
 
-		X[itr+2] *= sc;
-		X[itr+5] *= sc;
+		THmgphy	T( &X[itr] );
+
+		T = U * (T * D);
+
+		T.CopyOut( &X[itr] );
 	}
 }
 
@@ -308,7 +316,8 @@ void MHmgphy::NewOriginAll(
 	double			xorg,
 	double			yorg )
 {
-	int	nr	= vRgn.size();
+	THmgphy	M( 1,0,-xorg, 0,1,-yorg, 0,0 );
+	int		nr = vRgn.size();
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -319,8 +328,11 @@ void MHmgphy::NewOriginAll(
 
 		itr *= NX;
 
-		X[itr+2] -= xorg;
-		X[itr+5] -= yorg;
+		THmgphy	T( &X[itr] );
+
+		T = M * T;
+
+		T.CopyOut( &X[itr] );
 	}
 }
 
@@ -330,6 +342,9 @@ void MHmgphy::NewOriginAll(
 
 // Experiment to guage trapezoidism by reporting the ratio of
 // each image's left vertical side over its right side.
+//
+// A B
+// D C
 //
 void MHmgphy::WriteSideRatios(
 	const vector<zsort>		&zs,
@@ -349,29 +364,36 @@ void MHmgphy::WriteSideRatios(
 		int	j = I.itr * NX;
 
 		THmgphy		T( &X[j] );
-		Point		A, B;
+		Point		A( 0,    0 ), B( 2200,    0 ),
+					D( 0, 2200 ), C( 2200, 2200 );
 		double		d;
 		const char	*c, *n = FileNamePtr( I.GetName() );
 		int			cam = 0;
 
-		B = Point( 0, 2200 );
-		A = Point( 0, 0 );
-
 		T.Transform( A );
 		T.Transform( B );
-		d = B.Dist( A );
+		T.Transform( C );
+		T.Transform( D );
 
-		B = Point( 2200, 2200 );
-		A = Point( 2200, 0 );
+		d = D.Dist( A ) / C.Dist( B );
 
-		T.Transform( A );
-		T.Transform( B );
-		d /= B.Dist( A );
+		B.x -= A.x;
+		B.y -= A.y;
+		C.x -= A.x;
+		C.y -= A.y;
+		D.x -= A.x;
+		D.y -= A.y;
+		A.x  = 0;
+		A.y  = 0;
 
 		if( c = strstr( n, "_cam" ) )
 			cam = atoi( c + 4 );
 
-		fprintf( f, "%d\t%g\n", cam, d );
+		fprintf( f,
+		"%d\t%g\t%g\t%g"
+		"\t\t%g\t%g\t\t%g\t%g\t\t%g\t%g\t\t%g\t%g\n",
+		cam, d, X[j+6], X[j+7],
+		A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y );
 
 		M[cam].Element( d );
 	}
@@ -453,6 +475,169 @@ void MHmgphy::WriteTransforms(
 	smag/nTr, smin, smax, smax/smin );
 
 	WriteSideRatios( zs, X );
+}
+
+/* --------------------------------------------------------------- */
+/* TopLeft ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void TopLeft(
+	double			&top,
+	double			&left,
+	const THmgphy	&T,
+	int				gW,
+	int				gH,
+	double			trim )
+{
+	vector<Point>	cnr( 4 );
+
+	cnr[0] = Point(      trim,      trim );
+	cnr[1] = Point( gW-1-trim,      trim );
+	cnr[2] = Point( gW-1-trim, gH-1-trim );
+	cnr[3] = Point(      trim, gH-1-trim );
+
+	T.Transform( cnr );
+
+	top  = BIGD;
+	left = BIGD;
+
+	for( int k = 0; k < 4; ++k ) {
+
+		top  = fmin( top,  cnr[k].y );
+		left = fmin( left, cnr[k].x );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteTrakEM --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::WriteTrakEM(
+	double					xmax,
+	double					ymax,
+	const vector<zsort>		&zs,
+	const vector<double>	&X,
+	int						gW,
+	int						gH,
+	double					trim,
+	int						xml_type,
+	int						xml_min,
+	int						xml_max )
+{
+	FILE	*f = FileOpenOrDie( "MultLayHmgphy.xml", "w" );
+
+	int	oid = 3;
+
+	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
+
+	TrakEM2WriteDTD( f );
+
+	fprintf( f, "<trakem2>\n" );
+
+	fprintf( f,
+	"\t<project\n"
+	"\t\tid=\"0\"\n"
+	"\t\ttitle=\"Project\"\n"
+	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t\tn_mipmap_threads=\"8\"\n"
+	"\t/>\n" );
+
+	fprintf( f,
+	"\t<t2_layer_set\n"
+	"\t\toid=\"%d\"\n"
+	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttitle=\"Top level\"\n"
+	"\t\tlayer_width=\"%.2f\"\n"
+	"\t\tlayer_height=\"%.2f\"\n"
+	"\t>\n",
+	oid++, xmax, ymax );
+
+	int	prev	= -1;	// will be previously written layer
+	int	offset	= int(2 * trim + 0.5);
+	int	nr		= vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		// changed layer
+		if( zs[i].z != prev ) {
+
+			if( prev != -1 )
+				fprintf( f, "\t\t</t2_layer>\n" );
+
+			fprintf( f,
+			"\t\t<t2_layer\n"
+			"\t\t\toid=\"%d\"\n"
+			"\t\t\tthickness=\"0\"\n"
+			"\t\t\tz=\"%d\"\n"
+			"\t\t>\n",
+			oid++, zs[i].z );
+
+			prev = zs[i].z;
+		}
+
+		// trim trailing quotes and '::'
+		// s = filename only
+		char		buf[2048];
+		strcpy( buf, I.GetName() );
+		char		*p = strtok( buf, " ':\n" );
+		const char	*s1 = FileNamePtr( p ),
+					*s2	= FileDotPtr( s1 );
+
+		// fix origin : undo trimming
+		int		j = I.itr * NX;
+		THmgphy	T( &X[j] );
+		double	x_orig;
+		double	y_orig;
+
+		TopLeft( y_orig, x_orig, T, gW, gH, trim );
+
+		fprintf( f,
+		"\t\t\t<t2_patch\n"
+		"\t\t\t\toid=\"%d\"\n"
+		"\t\t\t\twidth=\"%d\"\n"
+		"\t\t\t\theight=\"%d\"\n"
+		"\t\t\t\ttransform=\"matrix(1,0,0,1,%f,%f)\"\n"
+		"\t\t\t\ttitle=\"%.*s\"\n"
+		"\t\t\t\ttype=\"%d\"\n"
+		"\t\t\t\tfile_path=\"%s\"\n"
+		"\t\t\t\to_width=\"%d\"\n"
+		"\t\t\t\to_height=\"%d\"\n",
+		oid++, gW - offset, gH - offset,
+		x_orig, y_orig,
+		s2 - s1, s1, xml_type, p, gW - offset, gH - offset );
+
+		if( xml_min < xml_max ) {
+
+			fprintf( f,
+			"\t\t\t\tmin=\"%d\"\n"
+			"\t\t\t\tmax=\"%d\"\n"
+			"\t\t\t>\n",
+			xml_min, xml_max );
+		}
+		else
+			fprintf( f, "\t\t\t>\n" );
+
+		fprintf( f,
+		"\t\t\t<ict_transform"
+		" class=\"lenscorrection.HomographyTransform\""
+		" data=\"%g %g %g %g %g %g %g %g 1\"/>\n"
+		"\t\t\t</t2_patch>\n",
+		X[j  ], X[j+1], X[j+2], X[j+3],
+		X[j+4], X[j+5], X[j+6], X[j+7] );
+	}
+
+	if( nr > 0 )
+		fprintf( f, "\t\t</t2_layer>\n" );
+
+	fprintf( f, "\t</t2_layer_set>\n" );
+	fprintf( f, "</trakem2>\n" );
+	fclose( f );
 }
 
 /* --------------------------------------------------------------- */

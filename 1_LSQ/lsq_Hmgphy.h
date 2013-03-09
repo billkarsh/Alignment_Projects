@@ -71,6 +71,18 @@ private:
 		int						bstrings,
 		FILE					*FOUT );
 
+	void WriteTrakEM(
+		double					xmax,
+		double					ymax,
+		const vector<zsort>		&zs,
+		const vector<double>	&X,
+		int						gW,
+		int						gH,
+		double					trim,
+		int						xml_type,
+		int						xml_min,
+		int						xml_max );
+
 	void L2GPoint(
 		Point			&p,
 		vector<double>	&X,
