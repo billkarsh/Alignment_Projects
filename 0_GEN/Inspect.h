@@ -6,11 +6,20 @@
 #include	"GenDefs.h"
 #include	"CPixPair.h"
 #include	"TAffine.h"
+#include	"THmgphy.h"
 
 
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+void YellowView(
+	const PixPair	&px,
+	const TAffine	&T );
+
+void YellowView(
+	const PixPair	&px,
+	const THmgphy	&T );
 
 void ABOverlay(
 	const PixPair	&px,

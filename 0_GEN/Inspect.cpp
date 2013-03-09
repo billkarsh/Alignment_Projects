@@ -11,6 +11,148 @@
 
 
 /* --------------------------------------------------------------- */
+/* YellowView ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void YellowView(
+	const PixPair	&px,
+	const TAffine	&T )
+{
+	int		w		= px.wf,
+			h		= px.hf,
+			npix	= w * h;
+	int		xmin	= -1000,			// overlay img limits...
+			xmax	= w + 1000,
+			ymin	= -1000,
+			ymax	= h + 1000;
+	int		w2		= xmax - xmin + 1,	// ...and its dims
+			h2		= ymax - ymin + 1,
+			npix2	= w2 * h2;
+
+	vector<uint32>			raster2( npix2, 0xFF000000 );
+	const vector<double>&	av = *px.avf_vfy;
+
+// A in green
+
+	for( int i = 0; i < npix; ++i ) {
+
+		int	ay	= i / w;
+		int	ax	= i - w * ay;
+		int	pix	= 127 + int(40 * av[i]);
+
+		if( pix < 0 )
+			pix = 0;
+		else if( pix > 255 )
+			pix = 255;
+
+		ax -= xmin;
+		ay -= ymin;
+
+		raster2[ax + w2*ay] |= (pix << 8);
+	}
+
+// B in red
+
+	for( int i = 0; i < npix2; ++i ) {
+
+		int		ry	= i / w2;
+		int		rx	= i - w2 * ry;
+		Point	p( rx + xmin, ry + ymin );
+
+		T.Transform( p );
+
+		if( p.x >= 0.0 && p.x < w-1 &&
+			p.y >= 0.0 && p.y < h-1 ) {
+
+			double	dpix =
+			SafeInterp( p.x, p.y, &(*px.bvf_vfy)[0], w, h );
+
+			int	pix	= 127 + int(40 * dpix);
+
+			if( pix < 0 )
+				pix = 0;
+			else if( pix > 255 )
+				pix = 255;
+
+			raster2[i] |= pix;
+		}
+	}
+
+	Raster32ToPngRGBA( "Ylw_Aff.png", &raster2[0], w2, h2 );
+}
+
+/* --------------------------------------------------------------- */
+/* YellowView ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void YellowView(
+	const PixPair	&px,
+	const THmgphy	&T )
+{
+	int		w		= px.wf,
+			h		= px.hf,
+			npix	= w * h;
+	int		xmin	= -1000,			// overlay img limits...
+			xmax	= w + 1000,
+			ymin	= -1000,
+			ymax	= h + 1000;
+	int		w2		= xmax - xmin + 1,	// ...and its dims
+			h2		= ymax - ymin + 1,
+			npix2	= w2 * h2;
+
+	vector<uint32>			raster2( npix2, 0xFF000000 );
+	const vector<double>&	av = *px.avf_vfy;
+
+// A in green
+
+	for( int i = 0; i < npix; ++i ) {
+
+		int	ay	= i / w;
+		int	ax	= i - w * ay;
+		int	pix	= 127 + int(40 * av[i]);
+
+		if( pix < 0 )
+			pix = 0;
+		else if( pix > 255 )
+			pix = 255;
+
+		ax -= xmin;
+		ay -= ymin;
+
+		raster2[ax + w2*ay] |= (pix << 8);
+	}
+
+// B in red
+
+	for( int i = 0; i < npix2; ++i ) {
+
+		int		ry	= i / w2;
+		int		rx	= i - w2 * ry;
+		Point	p( rx + xmin, ry + ymin );
+
+		T.Transform( p );
+
+		if( p.x >= 0.0 && p.x < w-1 &&
+			p.y >= 0.0 && p.y < h-1 ) {
+
+			double	dpix =
+			SafeInterp( p.x, p.y, &(*px.bvf_vfy)[0], w, h );
+
+			int	pix	= 127 + int(40 * dpix);
+
+			if( pix < 0 )
+				pix = 0;
+			else if( pix > 255 )
+				pix = 255;
+
+			raster2[i] |= pix;
+		}
+	}
+
+	Raster32ToPngRGBA( "Ylw_Hmg.png", &raster2[0], w2, h2 );
+}
+
+/* --------------------------------------------------------------- */
 /* ABOverlay ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

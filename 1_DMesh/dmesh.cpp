@@ -7,6 +7,7 @@
 
 #include	"Disk.h"
 #include	"ImageIO.h"
+#include	"Inspect.h"
 #include	"LinEqu.h"
 
 
@@ -263,6 +264,7 @@ static void UpscaleCoords( ffmap &maps, int scale )
 /* --------------------------------------------------------------- */
 
 static void FitAffine(
+	const PixPair		&px,
 	const vector<PPair>	&pair,
 	FILE				*flog )
 {
@@ -320,6 +322,10 @@ static void FitAffine(
 
 	E /= np;
 	fprintf( flog, "Pipe: FitAffineRMSerr: %g\n", E );
+
+// Paint
+
+	YellowView( px, T );
 }
 
 /* --------------------------------------------------------------- */
@@ -327,6 +333,7 @@ static void FitAffine(
 /* --------------------------------------------------------------- */
 
 static void FitHmgphy(
+	const PixPair		&px,
 	const vector<PPair>	&pair,
 	FILE				*flog )
 {
@@ -389,6 +396,10 @@ static void FitHmgphy(
 	E = sqrt( E / np );
 
 	fprintf( flog, "Pipe: FitAHmgphyRMSerr: %g\n", E );
+
+// Paint
+
+	YellowView( px, T );
 }
 
 #endif
@@ -400,6 +411,7 @@ static void FitHmgphy(
 // CPOINT2 entries are reported at full size.
 //
 static void WritePOINTEntries(
+	const PixPair	&px,
 	const ffmap		&maps,
 	const uint8*	fold_mask_a,
 	const uint8*	fold_mask_b,
@@ -516,8 +528,8 @@ static void WritePOINTEntries(
 #if FITPOINTS
 			// Model transforms from point pairs
 
-			FitAffine( pair, flog );
-			FitHmgphy( pair, flog );
+			FitAffine( px, pair, flog );
+			FitHmgphy( px, pair, flog );
 #endif
 
 			// done
@@ -692,7 +704,7 @@ void PipelineDeformableMap(
 
 		UpscaleCoords( maps, px.scl );
 
-		WritePOINTEntries( maps, fold_mask_a, fold_mask_b,
+		WritePOINTEntries( px, maps, fold_mask_a, fold_mask_b,
 			wf, hf, flog );
 
 		tr_array = (double*)malloc( Ntrans * 6 * sizeof(double) );
