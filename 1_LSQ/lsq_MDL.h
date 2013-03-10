@@ -19,65 +19,10 @@ protected:
 
 protected:
 	MDL( int NT, int NX ) : NT(NT), NX(NX) {};
+
 	void PrintMagnitude( const vector<double> &X );
 
-	void NewAffine(
-		vector<double>	&X,
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		double			sc,
-		double			same_strength,
-		double			square_strength,
-		int				nTr,
-		int				itr );
-
-	void NewHmgphy(
-		vector<double>	&X,
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		double			sc,
-		double			same_strength,
-		double			square_strength,
-		int				nTr,
-		int				itr );
-
 private:
-	virtual void SetPointPairs(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		double			sc,
-		double			same_strength ) = 0;
-
-	virtual void SetIdentityTForm(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				itr ) = 0;
-
-	virtual void SetUniteLayer(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		double			sc,
-		int				unite_layer,
-		const char		*tfm_file ) = 0;
-
-	virtual void SolveWithSquareness(
-		vector<double>	&X,
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				nTr,
-		double			square_strength ) = 0;
-
-	virtual void SolveWithUnitMag(
-		vector<double>	&X,
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				nTR,
-		double			scale_strength ) = 0;
-
-	virtual void RescaleAll(
-		vector<double>	&X,
-		double			sc ) = 0;
-
 	virtual void RotateAll(
 		vector<double>	&X,
 		double			degcw ) = 0;
@@ -90,7 +35,7 @@ private:
 public:
 	int MinLinks()	{return NX/2;};
 
-	void SolveSystem(
+	virtual void SolveSystem(
 		vector<double>	&X,
 		int				nTr,
 		int				gW,
@@ -99,7 +44,7 @@ public:
 		double			square_strength,
 		double			scale_strength,
 		int				unite_layer,
-		const char		*tfm_file );
+		const char		*tfm_file ) = 0;
 
 	void Bounds(
 		double					&xbnd,

@@ -20,8 +20,9 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 
 SOURCES_MYPROJ := \
 	lsq.cpp lsq_Types.cpp lsq_ReadPts.cpp \
-	lsq_CNX.cpp lsq_RGD.cpp lsq_DIR.cpp lsq_MDL.cpp \
-	lsq_Rigid.cpp lsq_Affine.cpp lsq_Hmgphy.cpp
+	lsq_CNX.cpp lsq_RGD.cpp lsq_DIR.cpp \
+	lsq_MDL.cpp lsq_Trans.cpp lsq_Rigid.cpp \
+	lsq_Affine.cpp lsq_Hmgphy.cpp
 
 _SRC_XML_ := \
 	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp

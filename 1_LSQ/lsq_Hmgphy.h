@@ -61,9 +61,47 @@ private:
 		double			xorg,
 		double			yorg );
 
+	void HmgphyEquTransWt(
+		vector<double>	&X,
+		int				nTr,
+		int				gW,
+		int				gH,
+		double			same_strength,
+		double			square_strength );
+
+	void HmgphyEquTrans(
+		vector<double>	&X,
+		int				nTr,
+		int				gW,
+		int				gH,
+		double			square_strength );
+
+	void SolveSystemStandard(
+		vector<double>	&X,
+		int				nTr,
+		int				gW,
+		int				gH,
+		double			same_strength,
+		double			square_strength,
+		double			scale_strength,
+		int				unite_layer,
+		const char		*tfm_file );
+
 	void WriteSideRatios(
 		const vector<zsort>		&zs,
 		const vector<double>	&X );
+
+public:
+	void SolveSystem(
+		vector<double>	&X,
+		int				nTr,
+		int				gW,
+		int				gH,
+		double			same_strength,
+		double			square_strength,
+		double			scale_strength,
+		int				unite_layer,
+		const char		*tfm_file );
 
 	void WriteTransforms(
 		const vector<zsort>		&zs,

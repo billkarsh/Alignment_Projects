@@ -1,5 +1,6 @@
 
 
+#include	"lsq_Trans.h"
 #include	"lsq_Hmgphy.h"
 
 #include	"TrakEM2_UTL.h"
@@ -39,7 +40,7 @@ void MHmgphy::SetPointPairs(
 		int		j  = vRgn[C.r1].itr * NX,
 				k  = vRgn[C.r2].itr * NX;
 
-		// T1(p1) - T2(p2) = 0
+		// H1(p1) - H2(p2) = 0
 
 		double	va[6] = { x1,  y1,  fz, -x2, -y2, -fz};
 		int		i1[6] = {  j, j+1, j+2,   k, k+1, k+2};
@@ -337,6 +338,261 @@ void MHmgphy::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
+/* HmgphyEquTransWt ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::HmgphyEquTransWt(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			same_strength,
+	double			square_strength )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Hmg: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Standard starting point
+
+	SetPointPairs( LHS, RHS, sc, same_strength );
+	SetIdentityTForm( LHS, RHS, nTr / 2 );
+
+// Get the pure translations T
+
+	MTrans			M;
+	vector<double>	T;
+	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, 0, NULL );
+
+// Relatively weighted H(pi) = T(pj)
+
+	double	fz	= 0.01;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// H(p1) = T(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX,
+					k  = vRgn[C.r2].itr * 2;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2 = (C.p2.x + T[k  ]) / sc,
+					y2 = (C.p2.y + T[k+1]) / sc;
+
+			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
+			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
+					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
+
+			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
+
+			v[3] = -x1*y2;
+			v[4] = -y1*y2;
+
+			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
+		}
+
+		// H(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX,
+					k  = vRgn[C.r1].itr * 2;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2 = (C.p1.x + T[k  ]) / sc,
+					y2 = (C.p1.y + T[k+1]) / sc;
+
+			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
+			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
+					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
+
+			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
+
+			v[3] = -x1*y2;
+			v[4] = -y1*y2;
+
+			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
+		}
+	}
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+	//SolveWithUnitMag( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
+/* HmgphyEquTrans ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::HmgphyEquTrans(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			square_strength )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Hmg: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Get the pure translations T
+
+	MTrans			M;
+	vector<double>	T;
+	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, 0, NULL );
+
+// SetPointPairs: H(pi) = T(pj)
+
+	double	fz	= 1.0;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// H(p1) = T(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX,
+					k  = vRgn[C.r2].itr * 2;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2 = (C.p2.x + T[k  ]) / sc,
+					y2 = (C.p2.y + T[k+1]) / sc;
+
+			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
+			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
+					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
+
+			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
+
+			v[3] = -x1*y2;
+			v[4] = -y1*y2;
+
+			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
+		}
+
+		// H(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX,
+					k  = vRgn[C.r1].itr * 2;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2 = (C.p1.x + T[k  ]) / sc,
+					y2 = (C.p1.y + T[k+1]) / sc;
+
+			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
+			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
+					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
+
+			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
+
+			v[3] = -x1*y2;
+			v[4] = -y1*y2;
+
+			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
+		}
+	}
+
+// Set identity
+
+	SetIdentityTForm( LHS, RHS, nTr / 2 );
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+	//SolveWithUnitMag( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
+/* SolveSystemStandard ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::SolveSystemStandard(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			same_strength,
+	double			square_strength,
+	double			scale_strength,
+	int				unite_layer,
+	const char		*tfm_file )
+{
+	double	scale	= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Hmg: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+/* ------------------ */
+/* Get rough solution */
+/* ------------------ */
+
+	SetPointPairs( LHS, RHS, scale, same_strength );
+
+	if( unite_layer < 0 )
+		SetIdentityTForm( LHS, RHS, nTr / 2 );
+	else
+		SetUniteLayer( LHS, RHS, scale, unite_layer, tfm_file );
+
+	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+
+/* ----------------------------------------- */
+/* Use solution to add torsional constraints */
+/* ----------------------------------------- */
+
+	//if( gArgs.make_layer_square )
+	//	SolveWithMontageSqr( X, LHS, RHS );
+
+	SolveWithUnitMag( X, LHS, RHS, nTr, scale_strength );
+
+/* --------------------------- */
+/* Rescale translational terms */
+/* --------------------------- */
+
+	RescaleAll( X, scale );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteSideRatios ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -408,6 +664,31 @@ void MHmgphy::WriteSideRatios(
 	}
 
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* SolveSystem --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::SolveSystem(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			same_strength,
+	double			square_strength,
+	double			scale_strength,
+	int				unite_layer,
+	const char		*tfm_file )
+{
+	//SolveSystemStandard( X, nTr, gW, gH,
+	//	same_strength, square_strength,
+	//	scale_strength, unite_layer, tfm_file );
+
+	HmgphyEquTrans( X, nTr, gW, gH, square_strength );
+
+	//HmgphyEquTransWt( X, nTr, gW, gH,
+	//	same_strength, square_strength );
 }
 
 /* --------------------------------------------------------------- */
@@ -545,7 +826,7 @@ void MHmgphy::WriteTrakEM(
 	fprintf( f,
 	"\t<t2_layer_set\n"
 	"\t\toid=\"%d\"\n"
-	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
 	"\t\ttitle=\"Top level\"\n"
 	"\t\tlayer_width=\"%.2f\"\n"
 	"\t\tlayer_height=\"%.2f\"\n"
@@ -625,7 +906,7 @@ void MHmgphy::WriteTrakEM(
 
 		fprintf( f,
 		"\t\t\t<ict_transform"
-		" class=\"lenscorrection.HomographyTransform\""
+		" class=\"mpicbg.trakem2.transform.HomographyModel2D\""
 		" data=\"%g %g %g %g %g %g %g %g 1\"/>\n"
 		"\t\t\t</t2_patch>\n",
 		X[j  ], X[j+1], X[j+2], X[j+3],

@@ -38,7 +38,7 @@ void MRigid::SetPointPairs(
 		int		j  = vRgn[C.r1].itr * NX,
 				k  = vRgn[C.r2].itr * NX;
 
-		// T1(p1) - T2(p2) = 0
+		// R1(p1) - R2(p2) = 0
 		//
 		// {X0,X1,X2,X3} = {c,s,x,y}
 
@@ -297,6 +297,68 @@ void MRigid::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
+/* SolveSystem --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Build and solve system of linear equations.
+//
+// Note:
+// All translational variables are scaled down by 'scale' so they
+// are sized similarly to the sine/cosine variables. This is only
+// to stabilize solver algorithm. We undo the scaling on exit.
+//
+void MRigid::SolveSystem(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			same_strength,
+	double			square_strength,
+	double			scale_strength,
+	int				unite_layer,
+	const char		*tfm_file )
+{
+	double	scale	= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Rgd: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+/* ------------------ */
+/* Get rough solution */
+/* ------------------ */
+
+	SetPointPairs( LHS, RHS, scale, same_strength );
+
+	if( unite_layer < 0 )
+		SetIdentityTForm( LHS, RHS, nTr / 2 );
+	else
+		SetUniteLayer( LHS, RHS, scale, unite_layer, tfm_file );
+
+	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+
+/* ----------------------------------------- */
+/* Use solution to add torsional constraints */
+/* ----------------------------------------- */
+
+	//if( gArgs.make_layer_square )
+	//	SolveWithMontageSqr( X, LHS, RHS );
+
+	SolveWithUnitMag( X, LHS, RHS, nTr, scale_strength );
+
+/* --------------------------- */
+/* Rescale translational terms */
+/* --------------------------- */
+
+	RescaleAll( X, scale );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteTransforms ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -395,7 +457,7 @@ void MRigid::WriteTrakEM(
 	fprintf( f,
 	"\t<t2_layer_set\n"
 	"\t\toid=\"%d\"\n"
-	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
 	"\t\ttitle=\"Top level\"\n"
 	"\t\tlayer_width=\"%.2f\"\n"
 	"\t\tlayer_height=\"%.2f\"\n"

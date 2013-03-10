@@ -4,6 +4,7 @@
 
 
 #include	"lsq_ReadPts.h"
+#include	"lsq_Trans.h"
 #include	"lsq_Rigid.h"
 #include	"lsq_Affine.h"
 #include	"lsq_Hmgphy.h"
@@ -55,7 +56,7 @@ public:
 	char	*pts_file,
 			*dir_file,
 			*tfm_file;
-	int		model,				// model type {R,A,H}
+	int		model,				// model type {T,R,A,H}
 			unite_layer,
 			ref_layer,
 			max_pass,
@@ -283,6 +284,9 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			model = toupper( instr[0] );
 
 			switch( model ) {
+				case 'T':
+					printf( "Setting model to translation\n" );
+				break;
 				case 'R':
 					printf( "Setting model to rigid\n" );
 				break;
@@ -1954,7 +1958,7 @@ static void ViseWriteXML(
 	fprintf( f,
 	"\t<t2_layer_set\n"
 	"\t\toid=\"%d\"\n"
-	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
 	"\t\ttitle=\"Top level\"\n"
 	"\t\tlayer_width=\"%.2f\"\n"
 	"\t\tlayer_height=\"%.2f\"\n"
@@ -2525,6 +2529,7 @@ int main( int argc, char **argv )
 /* ------------ */
 
 	switch( gArgs.model ) {
+		case 'T': M = new MTrans;  break;
 		case 'R': M = new MRigid;  break;
 		case 'A': M = new MAffine; break;
 		case 'H': M = new MHmgphy; break;

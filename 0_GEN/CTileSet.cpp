@@ -1105,7 +1105,7 @@ void CTileSet::WriteTrakEM2(
 	fprintf( f,
 	"\t<t2_layer_set\n"
 	"\t\toid=\"%d\"\n"
-	"\t\ttransform=\"matrix(1.0,0.0,0.0,1.0,0.0,0.0)\"\n"
+	"\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
 	"\t\ttitle=\"Top level\"\n"
 	"\t\tlayer_width=\"%.2f\"\n"
 	"\t\tlayer_height=\"%.2f\"\n"

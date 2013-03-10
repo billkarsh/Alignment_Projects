@@ -7,51 +7,15 @@
 
 
 /* --------------------------------------------------------------- */
-/* Rigid MDL ----------------------------------------------------- */
+/* Trans MDL ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class MRigid : public MDL {
+class MTrans : public MDL {
 
 public:
-	MRigid() : MDL( 6, 4 ) {};
+	MTrans() : MDL( 6, 2 ) {};
 
 private:
-	void SetPointPairs(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		double			sc,
-		double			same_strength );
-
-	void SetIdentityTForm(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				itr );
-
-	void SetUniteLayer(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		double			sc,
-		int				unite_layer,
-		const char		*tfm_file );
-
-	void SolveWithSquareness(
-		vector<double>	&X,
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				nTr,
-		double			square_strength );
-
-	void SolveWithUnitMag(
-		vector<double>	&X,
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				nTR,
-		double			scale_strength );
-
-	void RescaleAll(
-		vector<double>	&X,
-		double			sc );
-
 	void RotateAll(
 		vector<double>	&X,
 		double			degcw );
