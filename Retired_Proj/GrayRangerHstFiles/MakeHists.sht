@@ -1,4 +1,4 @@
 #!/bin/sh
 
-HistAll layer0_48_grn_rigid_montage.xml -zmin=0 -zmax=48 -chan=0
+HistAll layer0_48_grn_sim_montage.xml -zmin=0 -zmax=48 -chan=0
 

@@ -17,7 +17,7 @@ using namespace std;
 
 enum TSConst {
 // ApplyClix()::tfType
-	tsClixRigid		= 0,
+	tsClixSimilar	= 0,
 	tsClixAffine	= 1
 };
 
@@ -102,7 +102,7 @@ public:
 	void GetLayerLimits( int &i0, int &iN );
 
 	void ReadClixFile( vector<TSClix> &clk, const char *path );
-	TAffine RigidFromClix( const TSClix &clk );
+	TAffine SimilarityFromClix( const TSClix &clk );
 	TAffine AffineFromClix( const TSClix &clk );
 	void ApplyClix( int tfType, const char *path );
 

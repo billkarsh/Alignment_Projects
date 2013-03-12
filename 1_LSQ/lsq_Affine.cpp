@@ -348,7 +348,7 @@ void MAffine::AffineEquTransWt(
 
 	MTrans			M;
 	vector<double>	T;
-	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, 0, NULL );
+	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
 
 // Relatively weighted A(pi) = T(pj)
 
@@ -435,7 +435,7 @@ void MAffine::AffineEquTrans(
 
 	MTrans			M;
 	vector<double>	T;
-	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, 0, NULL );
+	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
 
 // SetPointPairs: A(pi) = T(pj)
 

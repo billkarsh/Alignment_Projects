@@ -1,7 +1,7 @@
 
 
 #include	"lsq_Types.h"
-#include	"lsq_RGD.h"
+#include	"lsq_SML.h"
 
 #include	"LinEqu.h"
 
@@ -12,7 +12,7 @@
 /* CanAlign ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Return RMS error from assuming that a rigid transformation
+// Return RMS error assuming that a similarity transformation
 // (rot + trans) takes points {p1} into corr. points {p2}:
 //
 //		a x  -  b y  +  c  =  x'
@@ -26,7 +26,7 @@
 //                           | c |
 //                           | d |
 //
-double RGD::CanAlign(
+double SML::CanAlign(
 	const vector<Point>	&p1,
 	const vector<Point>	&p2,
 	bool				print )
@@ -97,7 +97,7 @@ double RGD::CanAlign(
 
 // Add new pair of correspondence points to r12Pts table.
 //
-void RGD::AddPOINTPair(
+void SML::AddPOINTPair(
 	int			r1,
 	const Point	&p1,
 	int			r2,
@@ -133,15 +133,15 @@ void RGD::AddPOINTPair(
 /* --------------------------------------------------------------- */
 
 // For each pair of regions that we can (5 or more corr points)
-// solve for a rigid transform. If the rms error exceeds tol.
+// solve for a similarity transform. If the rms error exceeds tol.
 // write a nasty report.
 //
 // There are no other material consequences to this step.
 //
-void RGD::TestPairAlignments()
+void SML::TestPairAlignments()
 {
 	printf(
-	"---- Lyr.til:rgn pairs with rigid align err > 70 pix ----\n" );
+	"---- Lyr.til:rgn pairs with simlr align err > 70 pix ----\n" );
 
 	map<CRPair,int>::iterator	pi;	// iterator over pairs
 

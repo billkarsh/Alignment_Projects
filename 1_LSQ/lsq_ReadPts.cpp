@@ -56,7 +56,7 @@ static int FindOrAdd( map<MZIDR,int> &m, int &nr, const RGN &R )
 void ReadPts_StrTags(
 	FILE		*FOUT,
 	CNX			*cnx,
-	RGD			*rgd,
+	SML			*sml,
 	int			(*IDFromName)( const char *name ),
 	const char	*dirfile,
 	const char	*ptsfile )
@@ -104,7 +104,7 @@ void ReadPts_StrTags(
 			int r2 = FindOrAdd( mapRGN, nr, R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
-			rgd->AddPOINTPair( r1, p1, r2, p2 );
+			sml->AddPOINTPair( r1, p1, r2, p2 );
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}
@@ -130,7 +130,7 @@ void ReadPts_StrTags(
 			int r2 = FindOrAdd( mapRGN, nr, R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
-			rgd->AddPOINTPair( r1, p1, r2, p2 );
+			sml->AddPOINTPair( r1, p1, r2, p2 );
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}
@@ -200,16 +200,16 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 	n = FileNamePtr( R1.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
-//		if( col < 56 || col > 68 || row < 55 || row > 67 )
-		if( row > 2 || col > 2 )
+		if( col < 56 || col > 58 || row < 56 || row > 58 )
+//		if( row > 2 || col > 2 )
 			return true;
 	}
 
 	n = FileNamePtr( R2.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
-//		if( col < 56 || col > 68 || row < 55 || row > 67 )
-		if( row > 2 || col > 2 )
+		if( col < 56 || col > 58 || row < 56 || row > 58 )
+//		if( row > 2 || col > 2 )
 			return true;
 	}
 #endif
@@ -225,7 +225,7 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 void ReadPts_NumTags(
 	FILE		*FOUT,
 	CNX			*cnx,
-	RGD			*rgd,
+	SML			*sml,
 	const char	*ptsfile )
 {
 	printf( "---- Read pts ----\n" );
@@ -272,7 +272,7 @@ void ReadPts_NumTags(
 			int r2 = FindOrAdd( mapRGN, nr, R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
-			rgd->AddPOINTPair( r1, p1, r2, p2 );
+			sml->AddPOINTPair( r1, p1, r2, p2 );
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}

@@ -4,7 +4,7 @@
 
 
 #include	"lsq_CNX.h"
-#include	"lsq_RGD.h"
+#include	"lsq_SML.h"
 
 #include	"GenDefs.h"
 
@@ -19,7 +19,7 @@ using namespace std;
 void ReadPts_StrTags(
 	FILE		*FOUT,
 	CNX			*cnx,
-	RGD			*rgd,
+	SML			*sml,
 	int			(*IDFromName)( const char *name ),
 	const char	*dirfile,
 	const char	*ptsfile );
@@ -27,7 +27,7 @@ void ReadPts_StrTags(
 void ReadPts_NumTags(
 	FILE		*FOUT,
 	CNX			*cnx,
-	RGD			*rgd,
+	SML			*sml,
 	const char	*ptsfile );
 
 /* --------------------------------------------------------------- */

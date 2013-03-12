@@ -2,7 +2,7 @@
 // List missing HEQ files
 //
 // Usage:
-// > HEQVFY layer0_48_grn_rigid_montage.xml HEQ -zmin=2 -zmax=5
+// > HEQVFY layer0_48_grn_sim_montage.xml HEQ -zmin=2 -zmax=5
 //
 // The input xml file can either have native or tag-modified
 // file_paths. In either case, all we do here is call DskExists

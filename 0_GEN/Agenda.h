@@ -33,8 +33,7 @@ enhance larger features.
 - LSQ weight CPOINT by Q,R?
 - LSQ take list of user CPOINT with stiffness?
 - LSQ user points with long-range point matching!
-
-- Test if we can make stacks by rigid thumbs alone--enough CPOINT?
+- LSQ fit homography components on good data and force on user data.
 
 - Tell what is actual overlap from running script on xml result,
 but disable writing files.

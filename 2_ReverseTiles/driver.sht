@@ -1,4 +1,4 @@
 #!/bin/sh
 
-ReverseTiles layer0_48_grn_rigid_montage.xml
+ReverseTiles layer0_48_grn_sim_montage.xml
 

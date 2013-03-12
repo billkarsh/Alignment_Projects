@@ -10,7 +10,7 @@
 	matchparams.txt cases out most parameters to allow separate
 	treatment for same and cross layer.
 
-	Here we seek a composite transform: Trigid * Tdfm * Tpretwk.
+	Here we seek a composite transform: Tsim * Tdfm * Tpretwk.
 
 	File params PRETWEAK and TWEAKS determine whether Tpretwk
 	is different from unity. PRETWEAK enables small amounts of
@@ -25,9 +25,9 @@
 	line. All that is overridden if command line -Tdfm given.
 
 	The primary job of this function, though, is to seek a
-	refinement of the initial rigid term Tab. Several strategies
-	(modes) are available to accommodate user's assessment of
-	Tab initial accuracy.
+	refinement of the initial similarity term Tab. Several
+	strategies (modes) are available to accommodate user's
+	assessment of Tab initial accuracy.
 
 	MODE=N (small neighborhood search) is used when the Tab are
 	already roughly known from a prior alignment. Here, file param
@@ -102,7 +102,7 @@
 /* ApproximateMatch ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Seek transform A->B composed as: Trigid * Tdfm * Tpretwk.
+// Seek transform A->B composed as: Tsim * Tdfm * Tpretwk.
 //
 // Return true and add one entry to guesses if successful.
 //

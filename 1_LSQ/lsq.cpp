@@ -5,7 +5,7 @@
 
 #include	"lsq_ReadPts.h"
 #include	"lsq_Trans.h"
-#include	"lsq_Rigid.h"
+#include	"lsq_Simlr.h"
 #include	"lsq_Affine.h"
 #include	"lsq_Hmgphy.h"
 
@@ -56,7 +56,7 @@ public:
 	char	*pts_file,
 			*dir_file,
 			*tfm_file;
-	int		model,				// model type {T,R,A,H}
+	int		model,				// model type {T,S,A,H}
 			unite_layer,
 			ref_layer,
 			max_pass,
@@ -288,7 +288,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 					printf( "Setting model to translation\n" );
 				break;
 				case 'R':
-					printf( "Setting model to rigid\n" );
+					printf( "Setting model to similarity\n" );
 				break;
 				case 'A':
 					printf( "Setting model to affine\n" );
@@ -601,7 +601,7 @@ static void SolveWithMontageSqr(
 #endif
 
 /* --------------------------------------------------------------- */
-/* SolveSystemRigid ---------------------------------------------- */
+/* SolveSystemSim ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 // Like CanAlign, solve for 4-var transforms Y, but return 6-var
@@ -611,7 +611,7 @@ static void SolveWithMontageSqr(
 // is not as good as the full affine (as expected). This version is
 // retained only as an example.
 //
-static void SolveSystemRigid( vector<double> &X )
+static void SolveSystemSim( vector<double> &X )
 {
 	int	nvars	= gNTr * 4,
 		nc		= vAllC.size(),
@@ -686,7 +686,7 @@ static void SolveSystemRigid( vector<double> &X )
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	printf( "Solve with [rigid only].\n" );
+	printf( "Solve with [similarity only].\n" );
 	WriteSolveRead( Y, LHS, RHS, false );
 	PrintMagnitude( Y, 4 );
 
@@ -1156,7 +1156,7 @@ static void IterateInliers(
 			gArgs.unite_layer,
 			gArgs.tfm_file );
 
-//		SolveSystemRigid( X );
+//		SolveSystemSim( X );
 
 		/* -------------------------- */
 		/* Apply transform uniformity */
@@ -1175,7 +1175,7 @@ static void IterateInliers(
 					gArgs.unite_layer,
 					gArgs.tfm_file );
 
-//				SolveSystemRigid( X );
+//				SolveSystemSim( X );
 			}
 		}
 
@@ -2500,18 +2500,18 @@ int main( int argc, char **argv )
 /* --------------------- */
 
 // CNX: collect connection data
-// RGD: collect data to try rigid alignments
+// SML: collect data to try similarity alignments
 
 	CNX	*cnx = new CNX;
-	RGD	*rgd = new RGD;
+	SML	*sml = new SML;
 
 	if( gArgs.strings ) {
 
-		ReadPts_StrTags( FOUT, cnx, rgd,
+		ReadPts_StrTags( FOUT, cnx, sml,
 			IDFromName, gArgs.dir_file, gArgs.pts_file );
 	}
 	else
-		ReadPts_NumTags( FOUT, cnx, rgd, gArgs.pts_file );
+		ReadPts_NumTags( FOUT, cnx, sml, gArgs.pts_file );
 
 /* ------------------------- */
 /* Try aligning region pairs */
@@ -2520,9 +2520,9 @@ int main( int argc, char **argv )
 // This logs reports about suspicious pairs
 // but has no other impact on the real solver.
 
-	rgd->TestPairAlignments();
+	sml->TestPairAlignments();
 
-	delete rgd;
+	delete sml;
 
 /* ------------ */
 /* Select model */
@@ -2530,7 +2530,7 @@ int main( int argc, char **argv )
 
 	switch( gArgs.model ) {
 		case 'T': M = new MTrans;  break;
-		case 'R': M = new MRigid;  break;
+		case 'S': M = new MSimlr;  break;
 		case 'A': M = new MAffine; break;
 		case 'H': M = new MHmgphy; break;
 	}

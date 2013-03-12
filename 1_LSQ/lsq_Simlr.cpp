@@ -1,6 +1,6 @@
 
 
-#include	"lsq_Rigid.h"
+#include	"lsq_Simlr.h"
 
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
@@ -13,7 +13,7 @@
 /* SetPointPairs ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::SetPointPairs(
+void MSimlr::SetPointPairs(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	double			sc,
@@ -62,7 +62,7 @@ void MRigid::SetPointPairs(
 // Explicitly set some TForm to Identity.
 // @@@ Does it matter which one we use?
 //
-void MRigid::SetIdentityTForm(
+void MSimlr::SetIdentityTForm(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	int				itr )
@@ -99,7 +99,7 @@ void MRigid::SetIdentityTForm(
 // Set one layer-full of TForms to those from a previous
 // solution output file gArgs.tfm_file.
 //
-void MRigid::SetUniteLayer(
+void MSimlr::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	double			sc,
@@ -151,7 +151,7 @@ void MRigid::SetUniteLayer(
 /* SolveWithSquareness ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::SolveWithSquareness(
+void MSimlr::SolveWithSquareness(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
@@ -166,7 +166,7 @@ void MRigid::SolveWithSquareness(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	printf( "Solve with [rigid only].\n" );
+	printf( "Solve with [similarity only].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 }
@@ -182,7 +182,7 @@ void MRigid::SolveWithSquareness(
 // c*x + s*y = 1. To reduce sensitivity to the sizes of the
 // previous fit c,s, we normalize them by m = sqrt(c^2 + s^2).
 //
-void MRigid::SolveWithUnitMag(
+void MSimlr::SolveWithUnitMag(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
@@ -216,7 +216,7 @@ void MRigid::SolveWithUnitMag(
 /* RescaleAll ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::RescaleAll(
+void MSimlr::RescaleAll(
 	vector<double>	&X,
 	double			sc )
 {
@@ -240,7 +240,7 @@ void MRigid::RescaleAll(
 /* RotateAll ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::RotateAll(
+void MSimlr::RotateAll(
 	vector<double>	&X,
 	double			degcw )
 {
@@ -275,7 +275,7 @@ void MRigid::RotateAll(
 /* NewOriginAll -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::NewOriginAll(
+void MSimlr::NewOriginAll(
 	vector<double>	&X,
 	double			xorg,
 	double			yorg )
@@ -307,7 +307,7 @@ void MRigid::NewOriginAll(
 // are sized similarly to the sine/cosine variables. This is only
 // to stabilize solver algorithm. We undo the scaling on exit.
 //
-void MRigid::SolveSystem(
+void MSimlr::SolveSystem(
 	vector<double>	&X,
 	int				nTr,
 	int				gW,
@@ -362,7 +362,7 @@ void MRigid::SolveSystem(
 /* WriteTransforms ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::WriteTransforms(
+void MSimlr::WriteTransforms(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	int						bstrings,
@@ -424,7 +424,7 @@ void MRigid::WriteTransforms(
 /* WriteTrakEM --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MRigid::WriteTrakEM(
+void MSimlr::WriteTrakEM(
 	double					xmax,
 	double					ymax,
 	const vector<zsort>		&zs,
@@ -546,7 +546,7 @@ void MRigid::WriteTrakEM(
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void MRigid::L2GPoint(
+void MSimlr::L2GPoint(
 	Point			&p,
 	vector<double>	&X,
 	int				itr )
@@ -557,7 +557,7 @@ void MRigid::L2GPoint(
 }
 
 
-void MRigid::L2GPoint(
+void MSimlr::L2GPoint(
 	vector<Point>	&p,
 	vector<double>	&X,
 	int				itr )

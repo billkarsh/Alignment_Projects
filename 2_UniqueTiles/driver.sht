@@ -1,4 +1,4 @@
 #!/bin/sh
 
-UniqueTiles layer0_48_grn_rigid_montage.xml
+UniqueTiles layer0_48_grn_sim_montage.xml
 

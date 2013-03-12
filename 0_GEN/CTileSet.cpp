@@ -503,10 +503,10 @@ void CTileSet::ReadClixFile( vector<TSClix> &clk, const char *path )
 }
 
 /* --------------------------------------------------------------- */
-/* RigidFromClix ------------------------------------------------- */
+/* SimilarityFromClix -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return approximately rigid transform (rot + trans): T(A) = B:
+// Return approximate similarity transform (rot + trans): T(A) = B:
 //
 //		a Ax  -  b Ay  +  c  =  Bx
 //		b Ax  +  a Ay  +  d  =  By
@@ -519,7 +519,7 @@ void CTileSet::ReadClixFile( vector<TSClix> &clk, const char *path )
 //                         | c |
 //                         | d |
 //
-TAffine CTileSet::RigidFromClix( const TSClix &clk )
+TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 {
 // Create system of normal equations
 
@@ -565,7 +565,7 @@ TAffine CTileSet::AffineFromClix( const TSClix &clk )
 	int	np = clk.A.size();
 
 	if( np < 3 )
-		return RigidFromClix( clk );
+		return SimilarityFromClix( clk );
 
 // Create system of normal equations
 
@@ -653,7 +653,7 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 		if( tfType == tsClixAffine )
 			R = AffineFromClix( clk[i] );
 		else
-			R = RigidFromClix( clk[i] );
+			R = SimilarityFromClix( clk[i] );
 
 		for( int k = clk[i].Az - zmin; k < nz; ++k )
 			vT[k] = R * vT[k];
