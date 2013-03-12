@@ -61,6 +61,14 @@ private:
 		double			xorg,
 		double			yorg );
 
+	void HmgphyEquAffine(
+		vector<double>	&X,
+		int				nTr,
+		int				gW,
+		int				gH,
+		double			same_strength,
+		double			square_strength );
+
 	void HmgphyEquTransWt(
 		vector<double>	&X,
 		int				nTr,
