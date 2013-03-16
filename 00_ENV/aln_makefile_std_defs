@@ -19,22 +19,23 @@ space := $(empty) $(empty)
 # paths
 # =====
 
-PATH_TIF := /groups/apig/share/ClusterSupport/Libraries/TIFF
-PATH_TIF_INC := $(PATH_TIF)/include
-PATH_TIF_LIB := $(PATH_TIF)/lib
-PATH_PNG := /groups/apig/share/ClusterSupport/Libraries/PNG
-PATH_PNG_INC := $(PATH_PNG)/include
-PATH_PNG_LIB := $(PATH_PNG)/lib
-PATH_ZLB := /groups/apig/share/ClusterSupport/Libraries/ZLIB
-PATH_ZLB_INC := $(PATH_ZLB)/include
-PATH_ZLB_LIB := $(PATH_ZLB)/lib
-PATH_FFT := /groups/apig/share/ClusterSupport/Libraries/FFT
-PATH_FFT_INC := $(PATH_FFT)/include
-PATH_FFT_LIB := $(PATH_FFT)/lib
+PATH_TIF      := /groups/apig/share/ClusterSupport/Libraries/TIFF
+PATH_TIF_INC  := $(PATH_TIF)/include
+PATH_TIF_LIB  := $(PATH_TIF)/lib
+PATH_PNG      := /groups/apig/share/ClusterSupport/Libraries/PNG
+PATH_PNG_INC  := $(PATH_PNG)/include
+PATH_PNG_LIB  := $(PATH_PNG)/lib
+PATH_ZLB      := /groups/apig/share/ClusterSupport/Libraries/ZLIB
+PATH_ZLB_INC  := $(PATH_ZLB)/include
+PATH_ZLB_LIB  := $(PATH_ZLB)/lib
+PATH_FFT      := /groups/apig/share/ClusterSupport/Libraries/FFT
+PATH_FFT_INC  := $(PATH_FFT)/include
+PATH_FFT_LIB  := $(PATH_FFT)/lib
 
-PATH_XML := /groups/apig/tomo/Alignment_Projects/0_XML
-PATH_UTL := /groups/apig/tomo/Alignment_Projects/0_UTL
-PATH_GEN := /groups/apig/tomo/Alignment_Projects/0_GEN
+PATH_XML      := /groups/apig/tomo/Alignment_Projects/0_XML
+PATH_UTL      := /groups/apig/tomo/Alignment_Projects/0_UTL
+PATH_GEN      := /groups/apig/tomo/Alignment_Projects/0_GEN
+PATH_BK       := /groups/apig/tomo/Alignment_Projects/0_BK
 
 PATH_OUT := /groups/apig/tomo/lou_stuff/binaries
 

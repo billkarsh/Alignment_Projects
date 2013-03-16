@@ -10,6 +10,7 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"TAffine.h"
+#include	"CMask.h"
 
 
 /* --------------------------------------------------------------- */
@@ -43,9 +44,11 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs	gArgs;
+static CMask	Mask;
 static FILE*	flog = NULL;
 static char		tifdir[2048],
 				ffdir[2048],
+				mskdir[2048],
 				rick[2048];
 static double	gscale		= 1.0;
 static uint16*	ffras[4]	= {NULL,NULL,NULL,NULL};
@@ -58,7 +61,8 @@ static int		useT[4]		= {0,0,0,0};
 static TAffine	gT[4];
 static uint32	gW			= 0,
 				gH			= 0;	// universal pic dims
-static int		gped		= 0;
+static int		gped		= 0,
+				gmchn		= -1;
 
 
 
@@ -118,6 +122,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // rick=fullpath
 // scale=1
 // ped=0
+// mask=T,0,path/myparams.xml
 // chan=0,useAff=T,Aff=[1 0 0 0 1 0],fullpath
 // ... as many as used chans, up to 4
 //
@@ -160,6 +165,29 @@ static void ReadParams()
 	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "ped=%d", &gped ) )
 		exit( 42 );
 	fprintf( flog, "ped=%d\n", gped );
+
+// mask
+
+	char	cUse;
+
+	if( LS.Get( f ) <= 0 ||
+		3 != sscanf( LS.line, "mask=%c,%d,%s", &cUse, &gmchn, buf ) ) {
+
+		exit( 42 );
+	}
+	fprintf( flog, "mask=%c,%d,%s\n", cUse, gmchn, buf );
+
+	if( toupper( cUse ) == 'T' ) {
+
+		Mask.ReadParamFile( flog, buf );
+
+		strcpy( mskdir, tifdir );
+		char	*s = strrchr( mskdir, '/' );
+		strcpy( s + 1, "Mask" );
+		DskCreateDir( mskdir, flog );
+	}
+	else
+		gmchn = -1;
 
 // now for each channel directive
 
@@ -377,11 +405,71 @@ static void DoChannel( FILE* fout, int &z, int chan )
 		sprintf( path, "%s/%.*s.FF.tif", ffdir, lname - 4, name );
 		Raster16ToTif16( path, ras, gW, gH, flog );
 
-		RasterFree( ras );
-
 		// Write output line
 		fprintf( fout, "%s\t%.2f\t%.2f\t%d\n",
-			path, x*  gscale, y * gscale, z );
+			path, x * gscale, y * gscale, z );
+
+		// Make mask file
+		if( chan == gmchn ) {
+
+			sprintf( path, "%s/%.*s.Mask.tif",
+				mskdir, lname - 4, name );
+
+			Mask.MaskFromImage( path, ras, gW, gH );
+		}
+
+		RasterFree( ras );
+	}
+
+	fclose( frick );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteMaskLines ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void WriteMaskLines( FILE* fout, int &z, int chan )
+{
+	char	curwel[8] = {0};
+
+// Reopen rick file for mask channel
+
+	FILE		*frick = FileOpenOrDie( rick, "r" );
+	CLineScan	LS;
+
+// For each line...
+// Get its image-name, x, y
+// Output new full path to mask image
+// Output rescaled x, y and updated z
+
+	while( LS.Get( frick ) > 0 ) {
+
+		char	path[2048], name[64];
+		double	x, y;
+		int		lname;
+
+		// Get native line data
+		sscanf( LS.line, "%s%lf%lf", name, &x, &y );
+
+		lname = strlen( name );
+
+		// Force channel name
+		name[lname - 5] = '0' + chan;
+
+		// Get well tag length and test change
+		int	len = strchr( name, '_' ) - name;
+
+		if( strncmp( curwel, name, len ) ) {
+			// changed
+			sprintf( curwel, "%.*s", len, name );
+			++z;
+		}
+
+		// Write output line
+		sprintf( path, "%s/%.*s.Mask.tif", 	mskdir, lname - 4, name );
+
+		fprintf( fout, "%s\t%.2f\t%.2f\t%d\n",
+			path, x * gscale, y * gscale, z );
 	}
 
 	fclose( frick );
@@ -410,11 +498,18 @@ static void ChannelLoop()
 
 	int	z = -1;	// changes with chan/well
 
+// Write lines for the FF images
+
 	for( int chan = 0; chan < 4; ++chan ) {
 
 		if( ischn[chan] )
 			DoChannel( fout, z, chan );
 	}
+
+// Write lines at end for masks
+
+	if( gmchn >= 0 )
+		WriteMaskLines( fout, z, gmchn );
 
 	fclose( fout );
 }
