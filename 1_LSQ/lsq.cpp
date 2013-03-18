@@ -287,7 +287,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 				case 'T':
 					printf( "Setting model to translation\n" );
 				break;
-				case 'R':
+				case 'S':
 					printf( "Setting model to similarity\n" );
 				break;
 				case 'A':
