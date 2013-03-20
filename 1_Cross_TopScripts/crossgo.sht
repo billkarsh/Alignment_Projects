@@ -1,6 +1,23 @@
 #!/bin/sh
 
+# Write scripts governing cross layer alignment.
+# Creates folder mytemp/cross_wkspc
+#
+# > cross_topscripts myxml -d=temp0 -p=_Nex.mrc -zmin=0 -zmax=5
+#
+# Required -p= pattern describes the context around
+# the tile ID 'N' part of image names.
+#
+# Options:
+# -abwide=5		;strip width in tiles
+# -abscl=200	;size reduction factor
+# -ablgord=1	;Legendre poly max order
+# -absdev=42	;scape sdev size
+# -abcorr=0.20	;req. min corr
+# -xyconf=0.5	;neib radius = (1-conf)(blockwide)
+# -nf			;no foldmasks
+#
 
-cross_topscripts newmons.xml -d=temp0 -p=_idN -zmin=7 -zmax=119 -abwide=5 -abscl=200 -absdev=12 -abcorr=.20
+cross_topscripts newmons.xml -d=temp0 -p=_idN -zmin=7 -zmax=119 -abwide=5 -abscl=200 -ablgord=3 -absdev=42 -abcorr=.20 -nf
 
 

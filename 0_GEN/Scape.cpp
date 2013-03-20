@@ -188,14 +188,14 @@ static void Downsample( uint8 *ras, int &w, int &h, int iscl )
 
 // Force image mean to 127 and sd to sdnorm.
 //
-static void NormRas( uint8 *r, int w, int h, int sdnorm )
+static void NormRas( uint8 *r, int w, int h, int lgord, int sdnorm )
 {
 // flatfield & convert to doubles
 
 	int				n = w * h;
 	vector<double>	v;
 
-	LegPolyFlatten( v, r, w, h, 1 );
+	LegPolyFlatten( v, r, w, h, lgord );
 
 // rescale to mean=127, sd=sdnorm
 
@@ -222,6 +222,7 @@ static void Paint(
 	uint32					hs,
 	const vector<ScpTile>	&vTile,
 	int						iscl,
+	int						lgord,
 	int						sdnorm,
 	FILE*					flog )
 {
@@ -236,6 +237,9 @@ static void Paint(
 		uint32	w,  h;
 		uint8*	src = Raster8FromAny(
 						vTile[i].name.c_str(), w, h, flog );
+
+		if( sdnorm > 0 )
+			NormRas( src, w, h, lgord, sdnorm );
 
 		ScanLims( x0, xL, y0, yL, ws, hs, vTile[i].t2g, w, h );
 		wi = w;
@@ -256,9 +260,6 @@ static void Paint(
 
 		wL = wi - 1;
 		hL = hi - 1;
-
-		if( sdnorm > 0 )
-			NormRas( src, wi, hi, sdnorm );
 
 		for( int iy = y0; iy < yL; ++iy ) {
 
@@ -295,6 +296,7 @@ static void Paint(
 // scale	- for example, 0.25 reduces by 4X.
 // szmult	- scape dims made divisible by szmult.
 // bkval	- default scape value where no data.
+// lgord	- Legendre poly max order
 // sdnorm	- if > 0, image normalized to mean=127, sd=sdnorm.
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
@@ -310,6 +312,7 @@ uint8* Scape(
 	double			scale,
 	int				szmult,
 	int				bkval,
+	int				lgord,
 	int				sdnorm,
 	FILE*			flog )
 {
@@ -325,7 +328,7 @@ uint8* Scape(
 
 	if( scp ) {
 		memset( scp, bkval, ns );
-		Paint( scp, ws, hs, vTile, int(1/scale), sdnorm, flog );
+		Paint( scp, ws, hs, vTile, int(1/scale), lgord, sdnorm, flog );
 	}
 	else
 		fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );

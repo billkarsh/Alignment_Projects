@@ -55,13 +55,14 @@ class CArgs_alnmon {
 
 public:
 	double	abcorr,
-			xyconf;		// neib radius = (1-conf)(scapewide)
+			xyconf;		// neib radius = (1-conf)(blockwide)
 	char	xml_hires[2048];
 	char	*pat;
 	int		zmin,
 			zmax,
 			blksize,
 			abscl,
+			ablgord,
 			absdev;
 	bool	NoFolds;
 
@@ -76,7 +77,8 @@ public:
 		zmax			= 32768;
 		blksize			= 10;
 		abscl			= 200;
-		absdev			= 0;	// 12 useful for Davi EM
+		ablgord			= 1;	// 3  probably good for Davi EM
+		absdev			= 0;	// 42 useful for Davi EM
 		NoFolds			= false;
 	};
 
@@ -144,6 +146,8 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			;
+		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
+			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
@@ -201,9 +205,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
-		" cross_thisblock -p=%s -abscl=%d -absdev=%d -abcorr=%g"
-		" -xyconf=%g%s\n",
-		gArgs.pat, gArgs.abscl, gArgs.absdev, gArgs.abcorr,
+		" cross_thisblock -p=%s -abscl=%d -ablgord=%d"
+		" -absdev=%d -abcorr=%g -xyconf=%g%s\n",
+		gArgs.pat, gArgs.abscl, gArgs.ablgord,
+		gArgs.absdev, gArgs.abcorr,
 		gArgs.xyconf, (gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n\n" );

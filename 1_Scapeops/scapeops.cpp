@@ -11,13 +11,13 @@
 //
 //	-mb -zb=%d -mbscl=%d
 //
-//		[-mbsdev=%d]
+//		[-mblgord=%d] [-mbsdev=%d]
 //
 // If aligning strips...
 //
 //	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -abcorr=%lf
 //
-//		[-absdev=%d] [-abdbg] [-abctr=%lf]
+//		[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]
 //
 
 
@@ -119,6 +119,8 @@ public:
 			abwide,
 			mbscl,
 			abscl,
+			mblgord,
+			ablgord,
 			mbsdev,
 			absdev;
 	bool	ismb,
@@ -137,8 +139,10 @@ public:
 		abwide		= 5;
 		mbscl		= 200;
 		abscl		= 200;
-		mbsdev		= 0;	// 12 useful for Davi EM
-		absdev		= 0;	// 12 useful for Davi EM
+		mblgord		= 1;	// 3  probably good for Davi EM
+		ablgord		= 1;	// 3  probably good for Davi EM
+		mbsdev		= 0;	// 42 useful for Davi EM
+		absdev		= 0;	// 42 useful for Davi EM
 		ismb		= false;
 		isab		= false;
 		abdbg		= false;
@@ -229,6 +233,10 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			inv_abscl = 1.0/abscl;
+		else if( GetArg( &mblgord, "-mblgord=%d", argv[i] ) )
+			;
+		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
+			;
 		else if( GetArg( &mbsdev, "-mbsdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
@@ -344,7 +352,8 @@ bool CSuperscape::MakeWholeRaster()
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			1.0/gArgs.mbscl, 1, 0, gArgs.mbsdev, flog );
+			1.0/gArgs.mbscl, 1, 0,
+			gArgs.mblgord, gArgs.mbsdev, flog );
 
 	return (ras != NULL);
 }
@@ -380,7 +389,8 @@ bool CSuperscape::MakeRasV()
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
+			gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }
@@ -416,7 +426,8 @@ bool CSuperscape::MakeRasH()
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
+			gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }

@@ -120,9 +120,10 @@ public:
 	double	inv_abscl,
 			abcorr,
 			abctr,
-			xyconf;		// neib radius = (1-conf)(scapewide)
+			xyconf;		// neib radius = (1-conf)(blockwide)
 	char	*pat;
 	int		abscl,
+			ablgord,
 			absdev;
 	bool	abdbg,
 			NoFolds;
@@ -135,7 +136,8 @@ public:
 		xyconf		= 0.50;
 		pat			= "/N";
 		abscl		= 200;
-		absdev		= 0;	// 12 useful for Davi EM
+		ablgord		= 1;	// 3  probably good for Davi EM
+		absdev		= 0;	// 42 useful for Davi EM
 		abdbg		= false;
 		NoFolds		= false;
 
@@ -198,6 +200,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			inv_abscl = 1.0/abscl;
+		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
+			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
@@ -344,7 +348,8 @@ bool CSuperscape::MakeRasA()
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
+			gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }
@@ -370,7 +375,8 @@ bool CSuperscape::MakeRasB( const DBox &A )
 	}
 
 	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0, gArgs.absdev, flog );
+			gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev, flog );
 
 	return (ras != NULL);
 }

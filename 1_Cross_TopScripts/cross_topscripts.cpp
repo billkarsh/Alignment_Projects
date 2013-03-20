@@ -24,7 +24,8 @@
 class CArgs_cross {
 
 public:
-	double	abcorr;
+	double	abcorr,
+			xyconf;		// neib radius = (1-conf)(blockwide)
 	char	xmlfile[2048],
 			outdir[2048];
 	char	*pat;
@@ -32,19 +33,24 @@ public:
 			zmax,
 			abwide,
 			abscl,
+			ablgord,
 			absdev;
+	bool	NoFolds;
 
 public:
 	CArgs_cross()
 	{
 		abcorr		= 0.20;
+		xyconf		= 0.50;
 		xmlfile[0]	= 0;
 		pat			= "/N";
 		zmin		= 0;
 		zmax		= 32768;
 		abwide		= 5;
 		abscl		= 200;
-		absdev		= 0;	// 12 useful for Davi EM
+		ablgord		= 1;	// 3  probably good for Davi EM
+		absdev		= 0;	// 42 useful for Davi EM
+		NoFolds		= false;
 
 		strcpy( outdir, "NoSuch" ); // protect real dirs
 	};
@@ -115,10 +121,19 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			;
+		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
+			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
 			;
+		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
+
+			if( xyconf < 0.0 || xyconf > 1.0 )
+				xyconf = 0.5;
+		}
+		else if( IsArg( "-nf", argv[i] ) )
+			NoFolds = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -187,11 +202,12 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	sprintf( sopt,
 	"'%s' -p=%s"
-	" -mb -mbscl=%d"
-	" -ab -abwide=%d -abscl=%d -absdev=%d -abcorr=%g",
+	" -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
+	" -ab -abwide=%d -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g",
 	gArgs.xmlfile, gArgs.pat,
-	gArgs.abscl,
-	gArgs.abwide, gArgs.abscl, gArgs.absdev, gArgs.abcorr );
+	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.abwide, gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.abcorr );
 
 // open file
 
@@ -226,9 +242,11 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	fprintf( f,
 	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -p=%s -mb -mbscl=%d -zb=%d\n",
+	" scapeops '%s' -p=%s -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
+	" -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.xmlfile, gArgs.pat, gArgs.abscl, zlist[nz - 1] );
+	gArgs.xmlfile, gArgs.pat, gArgs.abscl,
+	gArgs.ablgord, gArgs.absdev, zlist[nz - 1] );
 
 	fprintf( f, "\n" );
 
@@ -302,10 +320,12 @@ static void WriteCarvego()
 	fprintf( f,
 	"cross_carveblocks"
 	" HiRes.xml -p=%s"
-	" -b=10 -abscl=%d -absdev=%d -abcorr=%g"
+	" -b=10 -abscl=%d -ablgord=%d -absdev=%d"
+	" -abcorr=%g -xyconf=%g%s"
 	" -zmin=%d -zmax=%d\n\n",
 	gArgs.pat,
-	gArgs.abscl, gArgs.absdev, gArgs.abcorr,
+	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.abcorr, gArgs.xyconf, (gArgs.NoFolds ? " -nf" : ""),
 	gArgs.zmin, gArgs.zmax );
 
 	fclose( f );
