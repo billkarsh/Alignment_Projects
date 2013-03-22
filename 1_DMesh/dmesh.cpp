@@ -24,11 +24,10 @@
 class CStatus {
 
 public:
-	int		argn,
-			brgn,
-			thmok,
-			ntri;
-	TAffine	T;
+	int	argn,
+		brgn,
+		thmok,
+		ntri;
 
 public:
 	CStatus( int a, int b )	{argn=a; brgn=b; thmok=0; ntri=0;};
@@ -111,192 +110,6 @@ static bool RoughMatch(
 	}
 	else
 		return ApproximateMatch( guesses, px, acr, bcr, flog );
-}
-
-/* --------------------------------------------------------------- */
-/* CheckTransforms ----------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// All checking done at scaled (downsampled) sizes.
-//
-static int CheckTransforms( const vector<TAffine> &vT, FILE* flog )
-{
-	int	nXY, nT = vT.size();
-
-	if( nT > 1 ) {
-
-		// compute value spread for each transform element
-
-		double			ang_min = PI;
-		double			ang_max = -PI;
-		vector<double>	pmax( 6, -1e30 );
-		vector<double>	pmin( 6,  1e30 );
-		vector<double>	pspan( 6 );
-		bool			extreme = false;
-
-		// collect maxima and minima
-
-		for( int i = 0; i < nT; ++i ) {
-
-			double	ang =  vT[i].GetRadians();
-
-			// handle atan() branch cuts
-
-			if( i > 0 ) {
-
-				if( ang > ang_max + PI )
-					ang = ang - 2.0*PI;
-				else if( ang < ang_min - PI )
-					ang = ang + 2.0*PI;
-			}
-
-			ang_min = fmin( ang_min, ang );
-			ang_max = fmax( ang_max, ang );
-
-			for( int j = 0; j < 6; ++j ) {
-				pmax[j] = max( pmax[j], vT[i].t[j] );
-				pmin[j] = min( pmin[j], vT[i].t[j] );
-			}
-		}
-
-		fprintf( flog,
-		"Pipe: Angle span: min, max, delta = %f %f %f\n",
-		ang_min, ang_max, ang_max - ang_min );
-
-		// now calculate spans
-
-		for( int j = 0; j < 6; ++j ) {
-
-			pspan[j] = pmax[j] - pmin[j];
-
-			if( j == 2 || j == 5 )	// translation
-				extreme |= pspan[j] > GBL.mch.LDC;
-			else					// rotation
-				extreme |= pspan[j] > GBL.mch.LDR;
-		}
-
-		// any extreme spans?
-
-		if( ang_max - ang_min > GBL.mch.LDA || extreme ) {
-
-			fprintf( flog,
-			"FAIL: Pipe: Triangles too different:"
-			" angles %f %f %f; LDA %f\n",
-			ang_min, ang_max, ang_max-ang_min, GBL.mch.LDA );
-
-			fprintf( flog,
-			"FAIL: Pipe: Triangles too different:"
-			" elements %f %f %f %f %f %f; LDR %f LDC %f\n",
-			pspan[0], pspan[1], pspan[2],
-			pspan[3], pspan[4], pspan[5],
-			GBL.mch.LDR, GBL.mch.LDC );
-
-			nT = 0;
-		}
-	}
-
-// Translations in bounds?
-
-	if( nT && (nXY = GBL.XYexp.size()) ) {
-
-		bool	allok = true;
-
-		for( int i = 0; i < nT; ++i ) {
-
-			bool	iok = false;
-
-			// iok true if ANY bound satisfied
-
-			for( int j = 0; j < nXY; ++j ) {
-
-				Point	p( vT[i].t[2], vT[i].t[5] );
-
-				iok |= p.Dist( GBL.XYexp[j] ) <= GBL.mch.DXY;
-			}
-
-			if( !iok ) {
-
-				fprintf( flog,
-				"Pipe: Transform translation (%f %f)"
-				" not on allowed list, tolerance %f\n",
-				vT[i].t[2], vT[i].t[5], GBL.mch.DXY );
-			}
-
-			allok &= iok;
-		}
-
-		if( !allok ) {
-
-			fprintf( flog,
-			"FAIL: Pipe: Transform not on allowed list.\n" );
-
-			nT = 0;
-		}
-	}
-
-	return nT;
-}
-
-/* --------------------------------------------------------------- */
-/* DifFromThm ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static int DifFromThm(
-	const vector<TAffine>	&vT,
-	const TAffine			&T0,
-	FILE*					flog )
-{
-// Average the final trans
-
-	TAffine	A	= vT[0];
-	int		nT	= vT.size();
-
-	if( nT > 1 ) {
-
-		for( int i = 1; i < nT; ++i ) {
-
-			for( int j = 0; j < 6; ++j )
-				A.t[j] += vT[i].t[j];
-		}
-
-		for( int j = 0; j < 6; ++j )
-			A.t[j] /= nT;
-	}
-
-// Differences
-
-	const int	f = 2;
-	double		LDR = f * GBL.mch.LDR,
-				LDC = f * GBL.mch.LDC;
-	double		D[6];
-
-	for( int i = 0; i < 6; ++i )
-		D[i] = fabs( A.t[i] - T0.t[i] );
-
-	fprintf( flog,
-	"Pipe: Mesh-Thm:%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f"
-	" %dx(LDR,LDC)=(%.2f,%.2f) -- ",
-	D[0], D[1], D[2], D[3], D[4], D[5],
-	f, LDR, LDC );
-
-// Check
-
-	for( int i = 0; i < 6; ++i ) {
-
-		if( i == 2 || i == 5 ) {
-			if( D[i] > LDC )
-				goto reject;
-		}
-		else if( D[i] > LDR )
-			goto reject;
-	}
-
-	fprintf( flog, "OK.\n" );
-	return false;
-
-reject:
-	fprintf( flog, "Reject.\n" );
-	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -482,6 +295,9 @@ static void WritePOINTEntries(
 	int				hf,
 	FILE*			flog )
 {
+	fprintf( flog,
+	"\n---- Tabulating point matches ----\n" );
+
 	CMutex	M;
 	char	name[256];
 	char	*sud;
@@ -703,7 +519,6 @@ void PipelineDeformableMap(
 
 					// Downscale coordinates
 					guesses[k].MulXY( 1.0 / px.scl );
-					stat.T = guesses[k];
 
 					RegionToRegionMap( maps, map_mask,
 						px, Acr[i], Bcr[j],
@@ -725,15 +540,24 @@ void PipelineDeformableMap(
 	//if( ftri )
 	//	fclose( ftri );
 
-/* ------------------------------------- */
-/* Report thumb and triangle raw results */
-/* ------------------------------------- */
+/* ------------ */
+/* Report total */
+/* ------------ */
+
+	Ntrans = maps.transforms.size();
+
+	fprintf( flog,
+	"Pipe: Returning %d total transforms.\n", Ntrans );
+
+/* ---------------- */
+/* Report by region */
+/* ---------------- */
 
 	fprintf( flog,
 	"\n---- Summary Region-region results ----\n" );
 
 	fprintf( flog,
-	"Pipe: Before sanity checks {Az t r Bz t r thmok ntri}\n" );
+	"Pipe: Table Headers {Az t r Bz t r thmok ntri}\n" );
 
 	int	nstat = vstat.size();
 
@@ -748,35 +572,9 @@ void PipelineDeformableMap(
 		S.thmok, S.ntri );
 	}
 
-	fprintf( flog, "\n" );
-
-/* -------------------- */
-/* Sanity check results */
-/* -------------------- */
-
-	if( maps.transforms.size() ) {
-
-		// @@@ IMPORTANT!!
-		// These checks do not currently observe the fact
-		// that the transform list covers multiple conn
-		// regions. Rather, the stat records should be
-		// used to loop over conn regions.
-
-		Ntrans = CheckTransforms( maps.transforms, flog );
-
-		if( Ntrans &&
-			DifFromThm( maps.transforms, vstat[0].T, flog ) ) {
-
-			Ntrans = 0;
-		}
-	}
-
-	fprintf( flog,
-	"Pipe: After sanity checks, returning %d transforms.\n", Ntrans );
-
-/* ------ */
-/* Report */
-/* ------ */
+/* ---------------- */
+/* Feature matches  */
+/* ---------------- */
 
 	if( Ntrans ) {
 
@@ -792,6 +590,8 @@ void PipelineDeformableMap(
 			maps.transforms[i].ToMatlab();
 			maps.transforms[i].CopyOut( tr_array + i*6 );
 		}
+
+		fprintf( flog, "\n" );
 	}
 	else
 		memset( map_mask, 0, wf * hf * sizeof(uint16) );

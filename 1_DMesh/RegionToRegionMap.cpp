@@ -66,34 +66,236 @@ static double Metric(
 }
 
 /* --------------------------------------------------------------- */
+/* SelfConsistent ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// All checking done at scaled (downsampled) sizes.
+//
+// Return non-zero if ok.
+//
+static int SelfConsistent( const vector<TAffine> &vT, FILE* flog )
+{
+	int	nT = vT.size();
+
+	if( nT <= 1 )
+		return nT;
+
+// Compute value spread for each transform element
+
+	double			ang_min = PI;
+	double			ang_max = -PI;
+	vector<double>	pmax( 6, -1e30 );
+	vector<double>	pmin( 6,  1e30 );
+	vector<double>	pspan( 6 );
+	bool			extreme = false;
+
+// Collect maxima and minima
+
+	for( int i = 0; i < nT; ++i ) {
+
+		double	ang =  vT[i].GetRadians();
+
+		// handle atan() branch cuts
+
+		if( i > 0 ) {
+
+			if( ang > ang_max + PI )
+				ang = ang - 2.0*PI;
+			else if( ang < ang_min - PI )
+				ang = ang + 2.0*PI;
+		}
+
+		ang_min = fmin( ang_min, ang );
+		ang_max = fmax( ang_max, ang );
+
+		for( int j = 0; j < 6; ++j ) {
+			pmax[j] = max( pmax[j], vT[i].t[j] );
+			pmin[j] = min( pmin[j], vT[i].t[j] );
+		}
+	}
+
+	fprintf( flog,
+	"\nAngle span: min, max, delta = %f %f %f\n",
+	ang_min, ang_max, ang_max - ang_min );
+
+// Calculate spans
+
+	for( int j = 0; j < 6; ++j ) {
+
+		pspan[j] = pmax[j] - pmin[j];
+
+		if( j == 2 || j == 5 )	// translation
+			extreme |= pspan[j] > GBL.mch.LDC;
+		else					// rotation
+			extreme |= pspan[j] > GBL.mch.LDR;
+	}
+
+// Any extreme spans?
+
+	if( ang_max - ang_min > GBL.mch.LDA || extreme ) {
+
+		fprintf( flog,
+		"FAIL: Triangles too different:"
+		" angles %f %f %f; LDA %f\n",
+		ang_min, ang_max, ang_max-ang_min, GBL.mch.LDA );
+
+		fprintf( flog,
+		"FAIL: Triangles too different:"
+		" elements %f %f %f %f %f %f; LDR %f LDC %f\n",
+		pspan[0], pspan[1], pspan[2],
+		pspan[3], pspan[4], pspan[5],
+		GBL.mch.LDR, GBL.mch.LDC );
+
+		nT = 0;
+	}
+
+	return nT;
+}
+
+/* --------------------------------------------------------------- */
+/* ThmbConsistent ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static int ThmbConsistent(
+	const vector<TAffine>	&vT,
+	const TAffine			&T0,
+	FILE*					flog )
+{
+// Average the final trans
+
+	TAffine	A	= vT[0];
+	int		nT	= vT.size();
+
+	if( nT > 1 ) {
+
+		for( int i = 1; i < nT; ++i ) {
+
+			for( int j = 0; j < 6; ++j )
+				A.t[j] += vT[i].t[j];
+		}
+
+		for( int j = 0; j < 6; ++j )
+			A.t[j] /= nT;
+	}
+
+// Differences
+
+	const int	f = 2;
+	double		LDR = f * GBL.mch.LDR,
+				LDC = f * GBL.mch.LDC;
+	double		D[6];
+
+	for( int i = 0; i < 6; ++i )
+		D[i] = fabs( A.t[i] - T0.t[i] );
+
+	fprintf( flog,
+	"Mesh-Thm:%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f"
+	" %dx(LDR,LDC)=(%.2f,%.2f) -- ",
+	D[0], D[1], D[2], D[3], D[4], D[5],
+	f, LDR, LDC );
+
+// Check
+
+	for( int i = 0; i < 6; ++i ) {
+
+		if( i == 2 || i == 5 ) {
+			if( D[i] > LDC )
+				goto reject;
+		}
+		else if( D[i] > LDR )
+			goto reject;
+	}
+
+	fprintf( flog, "OK.\n" );
+	return true;
+
+reject:
+	fprintf( flog, "Reject.\n" );
+	return false;
+}
+
+/* --------------------------------------------------------------- */
+/* UserConsistent ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static int UserConsistent( const vector<TAffine> &vT, FILE* flog )
+{
+// Translations in bounds?
+
+	int	nT = vT.size(), nXY = GBL.XYexp.size();
+
+	if( nT && nXY ) {
+
+		bool	allok = true;
+
+		for( int i = 0; i < nT; ++i ) {
+
+			bool	iok = false;
+
+			// iok true if ANY bound satisfied
+
+			for( int j = 0; j < nXY; ++j ) {
+
+				Point	p( vT[i].t[2], vT[i].t[5] );
+
+				iok |= p.Dist( GBL.XYexp[j] ) <= GBL.mch.DXY;
+			}
+
+			if( !iok ) {
+
+				fprintf( flog,
+				"Transform translation (%f %f)"
+				" not on allowed list, tolerance %f\n",
+				vT[i].t[2], vT[i].t[5], GBL.mch.DXY );
+			}
+
+			allok &= iok;
+		}
+
+		if( !allok ) {
+
+			fprintf( flog,
+			"FAIL: Transform not on allowed list.\n" );
+
+			nT = 0;
+		}
+	}
+
+	return nT;
+}
+
+/* --------------------------------------------------------------- */
 /* ReportCenters ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 static void ReportCenters(
-	const ffmap	&map,
-	int			ifirst,
-	int			a_id,
-	int			b_id,
-	FILE		*f )
+	const vector<TAffine>	&vT,
+	const vector<Point>		&centers,
+	int						napts,
+	int						a_id,
+	int						b_id,
+	FILE					*flog )
 {
-	int		nc = map.centers.size();
+	int	nc = centers.size();
 
-	for( int i = ifirst; i < nc; ++i ) {
+	fprintf( flog, "\nFinal remapping of %d points.\n", napts );
 
-		const Point&	ca = map.centers[i];
+	for( int i = 0; i < nc; ++i ) {
+
+		const Point&	ca = centers[i];
 		Point			cb = ca;
 
-		map.transforms[i].Transform( cb );
+		vT[i].Transform( cb );
 
-		fprintf( f, "Center %f %f: ", ca.x, ca.y );
-		map.transforms[i].TPrint( f );
+		fprintf( flog, "Center %f %f: ", ca.x, ca.y );
+		vT[i].TPrint( flog );
 
-		fprintf( f,
+		fprintf( flog,
 		"Mapping region %d xy= %f %f to region %d xy= %f %f\n",
 		a_id, ca.x, ca.y, b_id, cb.x, cb.y );
 	}
 
-	fprintf( f, "\n" );
+	fprintf( flog, "\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -101,12 +303,12 @@ static void ReportCenters(
 /* --------------------------------------------------------------- */
 
 static void WriteTrackEMTriangles(
-	vector<TAffine>			&T,
+	vector<TAffine>			&vT,
 	const vector<triangle>	&tri,
 	const vector<vertex>	&ctl,
-	FILE					*f )
+	FILE					*ftri )
 {
-	if( !f )
+	if( !ftri )
 		return;
 
 	int		ntri = tri.size();
@@ -122,14 +324,14 @@ static void WriteTrackEMTriangles(
 			p[k] = Point( v.x, v.y );
 		}
 
-		fprintf( f,
+		fprintf( ftri,
 		"%f %f %f %f %f %f       ",
 		p[0].x, p[0].y, p[1].x, p[1].y, p[2].x, p[2].y );
 
 		for( int k = 0; k < 3; ++k )
-			T[j].Transform( p[k] );
+			vT[j].Transform( p[k] );
 
-		fprintf( f,
+		fprintf( ftri,
 		"%f %f %f %f %f %f\n",
 		p[0].x, p[0].y, p[1].x, p[1].y, p[2].x, p[2].y );
 	}
@@ -159,12 +361,13 @@ void RegionToRegionMap(
 	FILE				*flog,
 	FILE				*ftri )
 {
-	int	w		= px.ws,
-		h		= px.hs,
-		sc		= px.scl,
-		npix	= w * h,
-		fullw	= px.wf,
-		napts	= acr.pts.size();
+	TAffine	T0		= tr_guess;
+	int		w		= px.ws,
+			h		= px.hs,
+			sc		= px.scl,
+			npix	= w * h,
+			fullw	= px.wf,
+			napts	= acr.pts.size();
 
 	fprintf( flog, "\n---- Starting detailed region mapping ----\n" );
 
@@ -600,9 +803,32 @@ quality_control:
 		return;
 	}
 
-/* ------------------------------------- */
-/* Success...assemble and report results */
-/* ------------------------------------- */
+/* ------------------ */
+/* Consistency checks */
+/* ------------------ */
+
+	if( !SelfConsistent( transforms, flog ) ||
+		!ThmbConsistent( transforms, T0, flog ) ||
+		!UserConsistent( transforms, flog ) ) {
+
+		return;
+	}
+
+/* ---------------------- */
+/* Success...make reports */
+/* ---------------------- */
+
+// Report centers in log
+
+	ReportCenters( transforms, centers, napts, acr.id, bcr.id, flog );
+
+// Print triangles {A} and Tr{A}, for trakEM
+
+	WriteTrackEMTriangles( transforms, tri, ctl, ftri );
+
+/* ------------------------------------ */
+/* Collect results into data structures */
+/* ------------------------------------ */
 
 // Append maps entries
 
@@ -616,15 +842,13 @@ quality_control:
 
 // Paint ids with points that map a -> b
 
-	fprintf( flog, "\nFinal remapping of %d points.\n", napts );
-
 	for( int k = 0; k < napts; ++k ) {
 
 		const Point&	ap = acr.pts[k];
 		Point			bp = ap;
 		int				t  = BestTriangle( tri, ctl, ap );
 
-		maps.transforms[next_id - 10 + t].Transform( bp );
+		transforms[t].Transform( bp );
 
 		if( bp.x >= 0 && bp.x < w &&
 			bp.y >= 0 && bp.y < h &&
@@ -640,14 +864,6 @@ quality_control:
 			}
 		}
 	}
-
-// Report centers in log
-
-	ReportCenters( maps, next_id - 10, acr.id, bcr.id, flog );
-
-// Print triangles {A} and Tr{A}, for trakEM
-
-	WriteTrackEMTriangles( transforms, tri, ctl, ftri );
 }
 
 
