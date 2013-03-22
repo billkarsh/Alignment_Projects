@@ -126,6 +126,12 @@ public:
 	void SetNewAngProc( T_NewAngProc proc )
 		{newAngProc = proc;};
 
+	void GetTptwk( TAffine &Tptwk )
+		{Tptwk = this->Tptwk;};
+
+	void SetTptwk( const TAffine &Tptwk )
+		{this->Tptwk = Tptwk;};
+
 	int GetErr()
 		{return err;};
 

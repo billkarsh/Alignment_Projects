@@ -131,8 +131,15 @@ double Normalize( vector<double> &v )
 
 	//printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
 
-	for( int i = 0; i < n; ++i )
+	for( int i = 0; i < n; ++i ) {
+
 		v[i] = (v[i] - avg) / std;
+
+		// Experiment to apply +/- 3 stdev cutoff
+		//
+		//if( v[i] < -3 || v[i] > 3 )
+		//	v[i] = 0;
+	}
 
 	return std;
 }

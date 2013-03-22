@@ -774,6 +774,27 @@ void CThmUtil::FullScaleReportToLog( CorRec &best )
 }
 
 /* --------------------------------------------------------------- */
+/* XYChange ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+double CThmUtil::XYChange(
+	CorRec			CR,
+	ThmRec			&thm,
+	const OlapRec	&olp )
+{
+	CR.X *= thm.scl;
+	CR.Y *= thm.scl;
+	IsectToImageCoords( CR, olp.a.O, olp.b.O );
+	CR.T.MulXY( px.scl );
+
+	TAffine	I;
+	I.InverseOf( Tab );
+	I = I * CR.T;
+
+	return sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
+}
+
+/* --------------------------------------------------------------- */
 /* Check_LIMXY --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -862,9 +883,45 @@ bool CThmUtil::Finish(
 	int				TWEAKS )
 {
 // Tweaks
+//
+// Post-tweaks always strive to improve correlation about the
+// current best solution, but correlation can be misleading in
+// areas with resin. In cases where we have some expectation of
+// what the right answer is (MODE == 'N') we require that the
+// result of tweaking further be closer to the expected result.
+// Otherwise we reject the tweaks and revert.
 
-	if( TWEAKS )
-		S.PostTweaks( best, thm );
+	if( TWEAKS ) {
+
+		if( A.layer != B.layer && MODE == 'N' ) {
+
+			CorRec	CR0 = best;
+			TAffine	Tptwk;
+			double	err, err0;
+
+			err0 = XYChange( best, thm, olp );
+			S.GetTptwk( Tptwk );
+
+			S.PostTweaks( best, thm );
+
+			err = XYChange( best, thm, olp );
+
+			fprintf( flog,
+			"Approx: Tweak effect on R: before %g after %g -- ",
+			err0, err );
+
+			if( err > err0 && err > 0.66 * LIMXY ) {
+				fprintf( flog, "revert.\n" );
+				S.SetTptwk( Tptwk );
+				best = CR0;
+return false;	// @@@ kill instead of revert
+			}
+			else
+				fprintf( flog, "keep.\n" );
+		}
+		else
+			S.PostTweaks( best, thm );
+	}
 
 // Undo thumb scaling
 

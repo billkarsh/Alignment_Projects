@@ -150,6 +150,11 @@ public:
 
 	void FullScaleReportToLog( CorRec &best );
 
+	double XYChange(
+		CorRec			CR,
+		ThmRec			&thm,
+		const OlapRec	&olp );
+
 	bool Check_LIMXY( const TAffine &Tbest );
 
 	void TabulateResult( const CorRec &best, int err );
