@@ -24,10 +24,11 @@
 class CStatus {
 
 public:
-	int	argn,
-		brgn,
-		thmok,
-		ntri;
+	int		argn,
+			brgn,
+			thmok,
+			ntri;
+	TAffine	T;
 
 public:
 	CStatus( int a, int b )	{argn=a; brgn=b; thmok=0; ntri=0;};
@@ -234,6 +235,68 @@ static int CheckTransforms( const vector<TAffine> &vT, FILE* flog )
 	}
 
 	return nT;
+}
+
+/* --------------------------------------------------------------- */
+/* DifFromThm ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static int DifFromThm(
+	const vector<TAffine>	&vT,
+	const TAffine			&T0,
+	FILE*					flog )
+{
+// Average the final trans
+
+	TAffine	A	= vT[0];
+	int		nT	= vT.size();
+
+	if( nT > 1 ) {
+
+		for( int i = 1; i < nT; ++i ) {
+
+			for( int j = 0; j < 6; ++j )
+				A.t[j] += vT[i].t[j];
+		}
+
+		for( int j = 0; j < 6; ++j )
+			A.t[j] /= nT;
+	}
+
+// Differences
+
+	const int	f = 2;
+	double		LDR = f * GBL.mch.LDR,
+				LDC = f * GBL.mch.LDC;
+	double		D[6];
+
+	for( int i = 0; i < 6; ++i )
+		D[i] = fabs( A.t[i] - T0.t[i] );
+
+	fprintf( flog,
+	"Pipe: Mesh-Thm:%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f"
+	" %dx(LDR,LDC)=(%.2f,%.2f) -- ",
+	D[0], D[1], D[2], D[3], D[4], D[5],
+	f, LDR, LDC );
+
+// Check
+
+	for( int i = 0; i < 6; ++i ) {
+
+		if( i == 2 || i == 5 ) {
+			if( D[i] > LDC )
+				goto reject;
+		}
+		else if( D[i] > LDR )
+			goto reject;
+	}
+
+	fprintf( flog, "OK.\n" );
+	return false;
+
+reject:
+	fprintf( flog, "Reject.\n" );
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -640,6 +703,7 @@ void PipelineDeformableMap(
 
 					// Downscale coordinates
 					guesses[k].MulXY( 1.0 / px.scl );
+					stat.T = guesses[k];
 
 					RegionToRegionMap( maps, map_mask,
 						px, Acr[i], Bcr[j],
@@ -690,8 +754,22 @@ void PipelineDeformableMap(
 /* Sanity check results */
 /* -------------------- */
 
-	if( maps.transforms.size() )
+	if( maps.transforms.size() ) {
+
+		// @@@ IMPORTANT!!
+		// These checks do not currently observe the fact
+		// that the transform list covers multiple conn
+		// regions. Rather, the stat records should be
+		// used to loop over conn regions.
+
 		Ntrans = CheckTransforms( maps.transforms, flog );
+
+		if( Ntrans &&
+			DifFromThm( maps.transforms, vstat[0].T, flog ) ) {
+
+			Ntrans = 0;
+		}
+	}
 
 	fprintf( flog,
 	"Pipe: After sanity checks, returning %d transforms.\n", Ntrans );
