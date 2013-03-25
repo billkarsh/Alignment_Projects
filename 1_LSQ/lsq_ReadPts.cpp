@@ -200,7 +200,7 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 	n = FileNamePtr( R1.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
-		if( col < 56 || col > 58 || row < 56 || row > 58 )
+		if( col < 33 || col > 39 || row < 85 || row > 91 )
 //		if( row > 2 || col > 2 )
 			return true;
 	}
@@ -208,10 +208,43 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 	n = FileNamePtr( R2.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
-		if( col < 56 || col > 58 || row < 56 || row > 58 )
+		if( col < 33 || col > 39 || row < 85 || row > 91 )
 //		if( row > 2 || col > 2 )
 			return true;
 	}
+#endif
+// ------------------------------------
+
+// ------------------------------------
+// reject corner-corner
+#if 0
+	if( R1.z != R2.z )
+		return false;
+
+	const char	*c, *n;
+	int			row1, col1, row2, col2, dr, dc;
+
+	n = FileNamePtr( R1.GetName() );
+	c = strstr( n, "col" );
+	sscanf( c, "col%d_row%d", &col1, &row1 );
+
+	n = FileNamePtr( R2.GetName() );
+	c = strstr( n, "col" );
+	sscanf( c, "col%d_row%d", &col2, &row2 );
+
+	if( row2 >= row1 )
+		dr = row2 - row1;
+	else
+		dr = row1 - row2;
+
+	if( col2 >= col1 )
+		dc = col2 - col1;
+	else
+		dc = col1 - col2;
+
+	if( dr*dc )
+		return true;
+
 #endif
 // ------------------------------------
 
