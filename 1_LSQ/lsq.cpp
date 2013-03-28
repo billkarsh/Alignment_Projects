@@ -1295,50 +1295,6 @@ static void ApplyLens( vector<double> &X, bool inv )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteJython --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void WriteJython(
-	const vector<zsort>		&zs,
-	const vector<double>	&X )
-{
-	FILE	*f = FileOpenOrDie( "JythonTransforms.txt", "w" );
-
-	fprintf( f, "transforms = {\n" );
-
-	int	nr = vRgn.size();
-
-	for( int i = 0, itrf = 0; i < nr; ++i ) {
-
-		const RGN&	I = vRgn[zs[i].i];
-
-		// skip unused tiles
-		if( I.itr < 0 )
-			continue;
-
-		++itrf;
-
-		// trim trailing quotes and '::'
-		char	buf[2048];
-		strcpy( buf, I.GetName() );
-		char	*p = strtok( buf, " ':\n" );
-
-		// fix origin : undo trimming
-		int		j = I.itr * 6;
-		double	x = gArgs.trim;
-		double	x_orig = X[j  ]*x + X[j+1]*x + X[j+2];
-		double	y_orig = X[j+3]*x + X[j+4]*x + X[j+5];
-
-		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f]%s\n",
-			p, X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
-			(itrf == gNTr ? "" : ",") );
-	}
-
-	fprintf( f, "}\n" );
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
 /* AontoBOverlap ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -2588,10 +2544,10 @@ int main( int argc, char **argv )
 	M->WriteTrakEM( xbnd, ybnd, zs, X, gW, gH, gArgs.trim,
 		gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
 
+	M->WriteJython( zs, X, gW, gH, gArgs.trim, gNTr );
+
 if( gArgs.model != 'A' )
 	exit( 0 );
-
-	WriteJython( zs, X );
 
 /* ---------------------------------- */
 /* Report any missing correspondences */
