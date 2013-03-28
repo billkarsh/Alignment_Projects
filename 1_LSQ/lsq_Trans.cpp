@@ -233,9 +233,8 @@ void MTrans::WriteTrakEM(
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
-		double	x = trim;
-		double	x_orig = x + X[j];
-		double	y_orig = x + X[j+1];
+		double	x_orig = trim + X[j];
+		double	y_orig = trim + X[j+1];
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"
@@ -269,6 +268,53 @@ void MTrans::WriteTrakEM(
 
 	fprintf( f, "\t</t2_layer_set>\n" );
 	fprintf( f, "</trakem2>\n" );
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteJython --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MTrans::WriteJython(
+	const vector<zsort>		&zs,
+	const vector<double>	&X,
+	int						gW,
+	int						gH,
+	double					trim,
+	int						Ntr )
+{
+	FILE	*f = FileOpenOrDie( "JythonTransforms.txt", "w" );
+
+	fprintf( f, "transforms = {\n" );
+
+	int	nr = vRgn.size();
+
+	for( int i = 0, itrf = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		++itrf;
+
+		// trim trailing quotes and '::'
+		char	buf[2048];
+		strcpy( buf, I.GetName() );
+		char	*p = strtok( buf, " ':\n" );
+
+		// fix origin : undo trimming
+		int		j = I.itr * NX;
+		double	x_orig = trim + X[j];
+		double	y_orig = trim + X[j+1];
+
+		fprintf( f, "\"%s\" : [1, 0, 0, 1, %f, %f]%s\n",
+			p, x_orig, y_orig,
+			(itrf == Ntr ? "" : ",") );
+	}
+
+	fprintf( f, "}\n" );
 	fclose( f );
 }
 

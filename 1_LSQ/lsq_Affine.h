@@ -117,6 +117,14 @@ public:
 		int						xml_min,
 		int						xml_max );
 
+	void WriteJython(
+		const vector<zsort>		&zs,
+		const vector<double>	&X,
+		int						gW,
+		int						gH,
+		double					trim,
+		int						Ntr );
+
 	void L2GPoint(
 		Point			&p,
 		vector<double>	&X,

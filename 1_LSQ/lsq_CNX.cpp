@@ -13,8 +13,7 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 // Add to r12Bad those region pairs having fewer than minLinks
-// corr. points between them. The real purpose here is to log
-// suspicious pairs for later human debugging.
+// corr. points between them.
 //
 void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 {

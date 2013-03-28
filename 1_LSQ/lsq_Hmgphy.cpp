@@ -1034,6 +1034,59 @@ void MHmgphy::WriteTrakEM(
 }
 
 /* --------------------------------------------------------------- */
+/* WriteJython --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::WriteJython(
+	const vector<zsort>		&zs,
+	const vector<double>	&X,
+	int						gW,
+	int						gH,
+	double					trim,
+	int						Ntr )
+{
+	FILE	*f = FileOpenOrDie( "JythonTransforms.txt", "w" );
+
+	fprintf( f, "transforms = {\n" );
+
+	int	nr = vRgn.size();
+
+	for( int i = 0, itrf = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		++itrf;
+
+		// trim trailing quotes and '::'
+		char	buf[2048];
+		strcpy( buf, I.GetName() );
+		char	*p = strtok( buf, " ':\n" );
+
+		// fix origin : undo trimming
+		int		j = I.itr * NX;
+		THmgphy	T( &X[j] );
+		double	x_orig;
+		double	y_orig;
+
+		TopLeft( y_orig, x_orig, T, gW, gH, trim );
+
+		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f, %f, %f]%s\n",
+			p,
+			X[j+0], X[j+3], X[j+6],
+			X[j+1], X[j+4], X[j+7],
+			x_orig, y_orig,
+			(itrf == Ntr ? "" : ",") );
+	}
+
+	fprintf( f, "}\n" );
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 

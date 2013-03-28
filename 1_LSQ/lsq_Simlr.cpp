@@ -503,9 +503,8 @@ void MSimlr::WriteTrakEM(
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
-		double	x = trim;
-		double	x_orig = X[j  ]*x - X[j+1]*x + X[j+2];
-		double	y_orig = X[j+1]*x + X[j  ]*x + X[j+3];
+		double	x_orig = X[j  ]*trim - X[j+1]*trim + X[j+2];
+		double	y_orig = X[j+1]*trim + X[j  ]*trim + X[j+3];
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"
@@ -539,6 +538,53 @@ void MSimlr::WriteTrakEM(
 
 	fprintf( f, "\t</t2_layer_set>\n" );
 	fprintf( f, "</trakem2>\n" );
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteJython --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MSimlr::WriteJython(
+	const vector<zsort>		&zs,
+	const vector<double>	&X,
+	int						gW,
+	int						gH,
+	double					trim,
+	int						Ntr )
+{
+	FILE	*f = FileOpenOrDie( "JythonTransforms.txt", "w" );
+
+	fprintf( f, "transforms = {\n" );
+
+	int	nr = vRgn.size();
+
+	for( int i = 0, itrf = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[zs[i].i];
+
+		// skip unused tiles
+		if( I.itr < 0 )
+			continue;
+
+		++itrf;
+
+		// trim trailing quotes and '::'
+		char	buf[2048];
+		strcpy( buf, I.GetName() );
+		char	*p = strtok( buf, " ':\n" );
+
+		// fix origin : undo trimming
+		int		j = I.itr * NX;
+		double	x_orig = X[j  ]*trim - X[j+1]*trim + X[j+2];
+		double	y_orig = X[j+1]*trim + X[j  ]*trim + X[j+3];
+
+		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f]%s\n",
+			p, X[j], -X[j+1], X[j+1], X[j], x_orig, y_orig,
+			(itrf == Ntr ? "" : ",") );
+	}
+
+	fprintf( f, "}\n" );
 	fclose( f );
 }
 

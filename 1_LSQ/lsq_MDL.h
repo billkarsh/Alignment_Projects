@@ -74,6 +74,14 @@ public:
 		int						xml_min,
 		int						xml_max ) = 0;
 
+	virtual void WriteJython(
+		const vector<zsort>		&zs,
+		const vector<double>	&X,
+		int						gW,
+		int						gH,
+		double					trim,
+		int						Ntr ) = 0;
+
 	virtual void L2GPoint(
 		Point			&p,
 		vector<double>	&X,
