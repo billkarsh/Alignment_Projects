@@ -15,7 +15,11 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	FITPOINTS	0
+#define	FITAFF		1
+#define	FITHMG		1
+#define	FITDRAW		0
+#define	FITTAB		1
+#define	FITPOINTS	(FITAFF || FITHMG)
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -133,15 +137,17 @@ static void UpscaleCoords( ffmap &maps, int scale )
 }
 
 
-#if FITPOINTS
-
 /* --------------------------------------------------------------- */
 /* FitAffine ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#if FITAFF
+
 static void FitAffine(
 	const PixPair		&px,
 	const vector<PPair>	&pair,
+	int					argn,
+	int					brgn,
 	FILE				*flog )
 {
 	int	np = pair.size();
@@ -181,6 +187,50 @@ static void FitAffine(
 
 	T.TPrint( flog, "Pipe: FitAffine: " );
 
+#if FITTAB
+	{
+		CMutex	M;
+		char	name[256];
+		char	*sud;
+
+		// set file type and layer
+
+		if( GBL.A.layer < GBL.B.layer )
+			sud = "up";
+		else if( GBL.A.layer == GBL.B.layer )
+			sud = "same";
+		else
+			sud = "down";
+
+		sprintf( name, "%s_%d_A", sud, GBL.A.layer );
+
+		if( M.Get( name ) ) {
+
+			sprintf( name, "aff.%s", sud );
+			FILE *f = fopen( name, "a" );
+
+			if( f ) {
+
+				// Write entry
+
+				fprintf( f,
+				"AFFINE"
+				" %d.%d:%d %d.%d:%d"
+				" %g %g %g %g %g %g\n",
+				GBL.A.layer, GBL.A.tile, argn,
+				GBL.B.layer, GBL.B.tile, brgn,
+				X[0], X[1], X[2],
+				X[3], X[4], X[5] );
+
+				fflush( f );
+				fclose( f );
+			}
+
+			M.Release();
+		}
+	}
+#endif
+
 // RMS error
 
 	double	E = 0;;
@@ -201,16 +251,24 @@ static void FitAffine(
 
 // Paint
 
+#if FITDRAW
 	YellowView( px, T );
+#endif
 }
+
+#endif
 
 /* --------------------------------------------------------------- */
 /* FitHmgphy ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#if FITHMG
+
 static void FitHmgphy(
 	const PixPair		&px,
 	const vector<PPair>	&pair,
+	int					argn,
+	int					brgn,
 	FILE				*flog )
 {
 	int	np = pair.size();
@@ -254,6 +312,51 @@ static void FitHmgphy(
 
 	T.TPrint( flog, "Pipe: FitHmgphy: " );
 
+#if FITTAB
+	{
+		CMutex	M;
+		char	name[256];
+		char	*sud;
+
+		// set file type and layer
+
+		if( GBL.A.layer < GBL.B.layer )
+			sud = "up";
+		else if( GBL.A.layer == GBL.B.layer )
+			sud = "same";
+		else
+			sud = "down";
+
+		sprintf( name, "%s_%d_H", sud, GBL.A.layer );
+
+		if( M.Get( name ) ) {
+
+			sprintf( name, "hmg.%s", sud );
+			FILE *f = fopen( name, "a" );
+
+			if( f ) {
+
+				// Write entry
+
+				fprintf( f,
+				"HMGPHY"
+				" %d.%d:%d %d.%d:%d"
+				" %g %g %g %g %g %g %g %g\n",
+				GBL.A.layer, GBL.A.tile, argn,
+				GBL.B.layer, GBL.B.tile, brgn,
+				X[0], X[1], X[2],
+				X[3], X[4], X[5],
+				X[6], X[7] );
+
+				fflush( f );
+				fclose( f );
+			}
+
+			M.Release();
+		}
+	}
+#endif
+
 // RMS error
 
 	double	E = 0;;
@@ -275,7 +378,9 @@ static void FitHmgphy(
 
 // Paint
 
+#if FITDRAW
 	YellowView( px, T );
+#endif
 }
 
 #endif
@@ -287,13 +392,14 @@ static void FitHmgphy(
 // CPOINT2 entries are reported at full size.
 //
 static void WritePOINTEntries(
-	const PixPair	&px,
-	const ffmap		&maps,
-	const uint8*	fold_mask_a,
-	const uint8*	fold_mask_b,
-	int				wf,
-	int				hf,
-	FILE*			flog )
+	const PixPair			&px,
+	const vector<CStatus>	&vstat,
+	const ffmap				&maps,
+	const uint8*			fold_mask_a,
+	const uint8*			fold_mask_b,
+	int						wf,
+	int						hf,
+	FILE*					flog )
 {
 	fprintf( flog,
 	"\n---- Tabulating point matches ----\n" );
@@ -320,96 +426,134 @@ static void WritePOINTEntries(
 
 		if( f ) {
 
+			int	nstat = vstat.size(), tr0 = 0;
+
+			for( int istat = 0; istat < nstat;
+				tr0 += vstat[istat++].ntri ) {
+
+				int	trlim = vstat[istat].ntri;
+
+				if( !trlim )
+					continue;
+
 #if FITPOINTS
-			vector<PPair>	pair;
+				vector<PPair>	pair;
 #endif
 
-			int				nT = maps.transforms.size();
+				trlim += tr0;
 
-			for( int i = 0; i < nT; ++i ) {
+				for( int itr = tr0; itr < trlim; ++itr ) {
 
-				Point	pa = maps.centers[i],
-						pb = pa;
-				int		ma, mb, ix, iy;
+					Point	pa = maps.centers[itr],
+							pb = pa;
+					int		ma, mb, ix, iy;
 
-				// Lookup for A-point
+					// Lookup for A-point
 
-				ix = int(pa.x);
-				iy = int(pa.y);
+					ix = int(pa.x);
+					iy = int(pa.y);
 
-				if( ix >= 0 && ix < wf && iy >= 0 && iy < hf ) {
+					if( ix >= 0 && ix < wf && iy >= 0 && iy < hf ) {
 
-					ma = fold_mask_a[ix + wf*iy];
+						ma = fold_mask_a[ix + wf*iy];
 
-					if( ma <= 0 ) {
+						if( ma <= 0 ) {
+
+							fprintf( flog,
+							"CPOINT2: A-centroid has bad mask value:"
+							" mask=%d @ (%d, %d).\n", ma, ix, iy );
+
+							continue;
+						}
+
+						if( ma != vstat[istat].argn ) {
+
+							fprintf( flog,
+							"CPOINT2: A-centroid not in stat block:"
+							" mask=%d, stat.argn=%d.\n",
+							ma, vstat[istat].argn );
+
+							continue;
+						}
+					}
+					else {
 
 						fprintf( flog,
-						"CPOINT2: A-centroid has bad mask value:"
-						" mask=%d @ (%d, %d).\n", ma, ix, iy );
+						"CPOINT2: A-centroid out of A-image bounds"
+						" (%d, %d).\n", ix, iy );
 
 						continue;
 					}
-				}
-				else {
 
-					fprintf( flog,
-					"CPOINT2: A-centroid out of A-image bounds"
-					" (%d, %d).\n", ix, iy );
+					// Lookup for B-point
 
-					continue;
-				}
+					maps.transforms[itr].Transform( pb );
 
-				// Lookup for B-point
+					ix = int(pb.x);
+					iy = int(pb.y);
 
-				maps.transforms[i].Transform( pb );
+					if( ix >= 0 && ix < wf && iy >= 0 && iy < hf ) {
 
-				ix = int(pb.x);
-				iy = int(pb.y);
+						mb = fold_mask_b[ix + wf*iy];
 
-				if( ix >= 0 && ix < wf && iy >= 0 && iy < hf ) {
+						if( mb <= 0 ) {
 
-					mb = fold_mask_b[ix + wf*iy];
+							fprintf( flog,
+							"CPOINT2: B-centroid has bad mask value:"
+							" mask=%d @ (%d, %d).\n", mb, ix, iy );
 
-					if( mb <= 0 ) {
+							continue;
+						}
+
+						if( mb != vstat[istat].brgn ) {
+
+							fprintf( flog,
+							"CPOINT2: B-centroid not in stat block:"
+							" mask=%d, stat.brgn=%d.\n",
+							mb, vstat[istat].brgn );
+
+							continue;
+						}
+					}
+					else {
 
 						fprintf( flog,
-						"CPOINT2: B-centroid has bad mask value:"
-						" mask=%d @ (%d, %d).\n", mb, ix, iy );
+						"CPOINT2: B-centroid out of B-image bounds"
+						" (%d, %d).\n", ix, iy );
 
 						continue;
 					}
-				}
-				else {
 
-					fprintf( flog,
-					"CPOINT2: B-centroid out of B-image bounds"
-					" (%d, %d).\n", ix, iy );
+					// Write entry
 
-					continue;
-				}
-
-				// Write entry
-
-				fprintf( f,
-				"CPOINT2"
-				" %d.%d:%d %f %f"
-				" %d.%d:%d %f %f\n",
-				GBL.A.layer, GBL.A.tile, ma, pa.x, pa.y,
-				GBL.B.layer, GBL.B.tile, mb, pb.x, pb.y );
+					fprintf( f,
+					"CPOINT2"
+					" %d.%d:%d %f %f"
+					" %d.%d:%d %f %f\n",
+					GBL.A.layer, GBL.A.tile, ma, pa.x, pa.y,
+					GBL.B.layer, GBL.B.tile, mb, pb.x, pb.y );
 
 #if FITPOINTS
-				// Accumulate point pair
+					// Accumulate point pair
 
-				pair.push_back( PPair( pa, pb ) );
+					pair.push_back( PPair( pa, pb ) );
+#endif
+				}
+
+				// Model transforms from point pairs
+
+#if FITAFF
+				FitAffine( px, pair,
+					vstat[istat].argn,
+					vstat[istat].brgn, flog );
+#endif
+
+#if FITHMG
+				FitHmgphy( px, pair,
+					vstat[istat].argn,
+					vstat[istat].brgn, flog );
 #endif
 			}
-
-#if FITPOINTS
-			// Model transforms from point pairs
-
-			FitAffine( px, pair, flog );
-			FitHmgphy( px, pair, flog );
-#endif
 
 			// done
 
@@ -580,8 +724,8 @@ void PipelineDeformableMap(
 
 		UpscaleCoords( maps, px.scl );
 
-		WritePOINTEntries( px, maps, fold_mask_a, fold_mask_b,
-			wf, hf, flog );
+		WritePOINTEntries( px, vstat, maps,
+			fold_mask_a, fold_mask_b, wf, hf, flog );
 
 		tr_array = (double*)malloc( Ntrans * 6 * sizeof(double) );
 

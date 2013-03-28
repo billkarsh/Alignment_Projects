@@ -219,8 +219,8 @@ void WriteSolveRead(
 
 		gethostname( buf, sizeof(buf) );
 
-		sprintf( tname, "/tmp/triples_%s_%d", buf, pid );
-		sprintf( rname, "/tmp/results_%s_%d", buf, pid );
+		sprintf( tname, "triples_%s_%d", buf, pid );
+		sprintf( rname, "results_%s_%d", buf, pid );
 	}
 	else {
 		strcpy( tname, "triples" );
