@@ -2,6 +2,7 @@
 
 #include	"lsq_CNX.h"
 
+#include	"GenDefs.h"
 #include	"File.h"
 
 #include	<stack>
@@ -37,6 +38,94 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 				r12Bad.insert( CRPair( i, Ci.linkto[j] ) );
 		}
 	}
+
+// Scan for wild angles in external transforms
+
+#if 0
+	// affines
+
+	int	na = vAllA.size();
+
+	for( int i = 0; i < na; ++i ) {
+
+		const ExtAffine&	A = vAllA[i];
+
+		if( vRgn[A.r1].z == vRgn[A.r2].z ) {
+
+			double	a = A.T.GetRadians() * 180/PI;
+
+			if( a < -1 || a > 1 ) {
+
+				r12Bad.insert( CRPair( A.r1, A.r2 ) );
+
+				{
+					CnxEntry&	Ci = cnxTbl[A.r1];
+					int			nt = Ci.linkto.size();
+
+					for( int j = 0; j < nt; ++j ) {
+
+						if( Ci.linkto[j] == A.r2 )
+							Ci.nlinks[j] = 0;
+					}
+				}
+
+				{
+					CnxEntry&	Ci = cnxTbl[A.r2];
+					int			nt = Ci.linkto.size();
+
+					for( int j = 0; j < nt; ++j ) {
+
+						if( Ci.linkto[j] == A.r1 )
+							Ci.nlinks[j] = 0;
+					}
+				}
+			}
+		}
+	}
+#endif
+
+#if 0
+	// homographies
+
+	int	nh = vAllH.size();
+
+	for( int i = 0; i < nh; ++i ) {
+
+		const ExtHmgphy&	H = vAllH[i];
+
+		if( vRgn[H.r1].z == vRgn[H.r2].z ) {
+
+			double	a = H.T.GetRadians() * 180/PI;
+
+			if( a < -1 || a > 1 ) {
+
+				r12Bad.insert( CRPair( H.r1, H.r2 ) );
+
+				{
+					CnxEntry&	Ci = cnxTbl[H.r1];
+					int			nt = Ci.linkto.size();
+
+					for( int j = 0; j < nt; ++j ) {
+
+						if( Ci.linkto[j] == H.r2 )
+							Ci.nlinks[j] = 0;
+					}
+				}
+
+				{
+					CnxEntry&	Ci = cnxTbl[H.r2];
+					int			nt = Ci.linkto.size();
+
+					for( int j = 0; j < nt; ++j ) {
+
+						if( Ci.linkto[j] == H.r1 )
+							Ci.nlinks[j] = 0;
+					}
+				}
+			}
+		}
+	}
+#endif
 
 // Print weak pairs
 
@@ -254,6 +343,79 @@ int CNX::Set_itr_set_used( set<CRPair> &r12Bad, set<int> &ignore )
 		printf( "Too few transforms or constraints.\n" );
 		exit( 42 );
 	}
+
+// AFFINE
+
+	int	nGoodA = 0, na = vAllA.size();
+
+	for( int i = 0; i < na; ++i ) {
+
+		int	r1 = vAllA[i].r1,
+			r2 = vAllA[i].r2;
+
+		vAllA[i].used = false;
+
+		//if( ignore.find( r1 ) != ignore.end() ||
+		//	ignore.find( r2 ) != ignore.end() ||
+		//	r12Bad.find( CRPair( r1, r2 ) ) != r12Bad.end() ) {
+
+		//	continue;
+		//}
+
+		//if( vRgn[r1].itr == -1 )
+		//	vRgn[r1].itr = nTrans++;
+
+		//if( vRgn[r2].itr == -1 )
+		//	vRgn[r2].itr = nTrans++;
+
+		if( vRgn[r1].itr != -1 && vRgn[r2].itr != -1 ) {
+			vAllA[i].used = true;
+			++nGoodA;
+		}
+	}
+
+	printf(
+	"%d transforms to be determined, %d pairwise affines.\n",
+	nTrans, nGoodA );
+
+// HMGPHY
+
+	int	nGoodH = 0, nh = vAllH.size();
+
+	for( int i = 0; i < nh; ++i ) {
+
+		int	r1 = vAllH[i].r1,
+			r2 = vAllH[i].r2;
+
+		vAllH[i].used = false;
+
+		//if( ignore.find( r1 ) != ignore.end() ||
+		//	ignore.find( r2 ) != ignore.end() ||
+		//	r12Bad.find( CRPair( r1, r2 ) ) != r12Bad.end() ) {
+
+		//	continue;
+		//}
+
+		//if( vRgn[r1].itr == -1 )
+		//	vRgn[r1].itr = nTrans++;
+
+		//if( vRgn[r2].itr == -1 )
+		//	vRgn[r2].itr = nTrans++;
+
+		if( vRgn[r1].itr != -1 && vRgn[r2].itr != -1 ) {
+			vAllH[i].used = true;
+			++nGoodH;
+		}
+	}
+
+	printf(
+	"%d transforms to be determined, %d pairwise homographies.\n",
+	nTrans, nGoodH );
+
+	//if( nTrans == 0 ) {
+	//	printf( "Too few transforms.\n" );
+	//	exit( 42 );
+	//}
 
 	printf( "\n" );
 

@@ -13,6 +13,8 @@ string				idb;		// for name lookups
 vector<RGN>			vRgn;		// the regions
 map<CRPair,int>		r12Idx;		// idx from region-pair
 vector<Constraint>	vAllC;		// all Point-pairs
+vector<ExtAffine>	vAllA;		// all pairwise affines
+vector<ExtHmgphy>	vAllH;		// all pairwise homographies
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
