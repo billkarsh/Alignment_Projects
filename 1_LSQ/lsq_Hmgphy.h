@@ -137,15 +137,20 @@ public:
 		double					trim,
 		int						Ntr );
 
-	void L2GPoint(
-		Point			&p,
-		vector<double>	&X,
-		int				itr );
+	void G2LPoint(
+		Point					&p,
+		const vector<double>	&X,
+		int						itr );
 
 	void L2GPoint(
-		vector<Point>	&p,
-		vector<double>	&X,
-		int				itr );
+		Point					&p,
+		const vector<double>	&X,
+		int						itr );
+
+	void L2GPoint(
+		vector<Point>			&p,
+		const vector<double>	&X,
+		int						itr );
 };
 
 

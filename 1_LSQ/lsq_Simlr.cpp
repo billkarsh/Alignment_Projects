@@ -406,7 +406,7 @@ void MSimlr::WriteTransforms(
 			X[j+1],  X[j  ], X[j+3] );
 		}
 
-		double	mag = sqrt( X[j]*X[j] - X[j+1]*X[j+1] );
+		double	mag = Magnitude( X, I.itr );
 
 		smag += mag;
 		smin  = fmin( smin, mag );
@@ -589,13 +589,28 @@ void MSimlr::WriteJython(
 }
 
 /* --------------------------------------------------------------- */
+/* G2LPoint ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MSimlr::G2LPoint(
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
+{
+	int		j = itr * NX;
+	TAffine	I, T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
+	I.InverseOf( T );
+	I.Transform( p );
+}
+
+/* --------------------------------------------------------------- */
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 void MSimlr::L2GPoint(
-	Point			&p,
-	vector<double>	&X,
-	int				itr )
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	int		j = itr * NX;
 	TAffine	T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
@@ -604,9 +619,9 @@ void MSimlr::L2GPoint(
 
 
 void MSimlr::L2GPoint(
-	vector<Point>	&p,
-	vector<double>	&X,
-	int				itr )
+	vector<Point>			&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	int		j = itr * NX;
 	TAffine	T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );

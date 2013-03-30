@@ -635,7 +635,7 @@ void MAffine::WriteTransforms(
 			X[j+3], X[j+4], X[j+5] );
 		}
 
-		double	mag = sqrt( X[j]*X[j+4] - X[j+1]*X[j+3] );
+		double	mag = Magnitude( X, I.itr );
 
 		smag += mag;
 		smin  = fmin( smin, mag );
@@ -818,13 +818,27 @@ void MAffine::WriteJython(
 }
 
 /* --------------------------------------------------------------- */
+/* G2LPoint ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MAffine::G2LPoint(
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
+{
+	TAffine	I, T( &X[itr * NX] );
+	I.InverseOf( T );
+	I.Transform( p );
+}
+
+/* --------------------------------------------------------------- */
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 void MAffine::L2GPoint(
-	Point			&p,
-	vector<double>	&X,
-	int				itr )
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	TAffine	T( &X[itr * NX] );
 	T.Transform( p );
@@ -832,9 +846,9 @@ void MAffine::L2GPoint(
 
 
 void MAffine::L2GPoint(
-	vector<Point>	&p,
-	vector<double>	&X,
-	int				itr )
+	vector<Point>			&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	TAffine	T( &X[itr * NX] );
 	T.Transform( p );

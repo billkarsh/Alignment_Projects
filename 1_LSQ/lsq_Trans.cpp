@@ -319,13 +319,27 @@ void MTrans::WriteJython(
 }
 
 /* --------------------------------------------------------------- */
+/* G2LPoint ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MTrans::G2LPoint(
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
+{
+	int	j = itr * NX;
+	p.x -= X[j];
+	p.y -= X[j+1];
+}
+
+/* --------------------------------------------------------------- */
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 void MTrans::L2GPoint(
-	Point			&p,
-	vector<double>	&X,
-	int				itr )
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	int	j = itr * NX;
 	p.x += X[j];
@@ -334,9 +348,9 @@ void MTrans::L2GPoint(
 
 
 void MTrans::L2GPoint(
-	vector<Point>	&p,
-	vector<double>	&X,
-	int				itr )
+	vector<Point>			&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	int	np = p.size(),
 		j  = itr * NX;

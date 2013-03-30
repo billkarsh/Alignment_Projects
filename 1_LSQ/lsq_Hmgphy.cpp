@@ -854,7 +854,7 @@ void MHmgphy::WriteTransforms(
 			X[j+6], X[j+7] );
 		}
 
-		double	mag = sqrt( X[j]*X[j+4] - X[j+1]*X[j+3] );
+		double	mag = Magnitude( X, I.itr );
 
 		smag += mag;
 		smin  = fmin( smin, mag );
@@ -1087,13 +1087,27 @@ void MHmgphy::WriteJython(
 }
 
 /* --------------------------------------------------------------- */
+/* G2LPoint ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MHmgphy::G2LPoint(
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
+{
+	THmgphy	I, T( &X[itr * NX] );
+	I.InverseOf( T );
+	I.Transform( p );
+}
+
+/* --------------------------------------------------------------- */
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 void MHmgphy::L2GPoint(
-	Point			&p,
-	vector<double>	&X,
-	int				itr )
+	Point					&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	THmgphy	T( &X[itr * NX] );
 	T.Transform( p );
@@ -1101,9 +1115,9 @@ void MHmgphy::L2GPoint(
 
 
 void MHmgphy::L2GPoint(
-	vector<Point>	&p,
-	vector<double>	&X,
-	int				itr )
+	vector<Point>			&p,
+	const vector<double>	&X,
+	int						itr )
 {
 	THmgphy	T( &X[itr * NX] );
 	T.Transform( p );

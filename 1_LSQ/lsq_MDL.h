@@ -20,6 +20,8 @@ protected:
 protected:
 	MDL( int NT, int NX ) : NT(NT), NX(NX) {};
 
+	double Magnitude( const vector<double> &X, int itr );
+
 	void PrintMagnitude( const vector<double> &X );
 
 private:
@@ -82,15 +84,24 @@ public:
 		double					trim,
 		int						Ntr ) = 0;
 
-	virtual void L2GPoint(
-		Point			&p,
-		vector<double>	&X,
-		int				itr ) = 0;
+	virtual void G2LPoint(
+		Point					&p,
+		const vector<double>	&X,
+		int						itr ) = 0;
 
 	virtual void L2GPoint(
-		vector<Point>	&p,
-		vector<double>	&X,
-		int				itr ) = 0;
+		Point					&p,
+		const vector<double>	&X,
+		int						itr ) = 0;
+
+	virtual void L2GPoint(
+		vector<Point>			&p,
+		const vector<double>	&X,
+		int						itr ) = 0;
+
+	virtual TAffine EqvAffine(
+		const vector<double>	&X,
+		int						itr );
 };
 
 

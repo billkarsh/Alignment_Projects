@@ -1294,6 +1294,13 @@ static void ApplyLens( vector<double> &X, bool inv )
 	}
 }
 
+#if 0
+
+// @@@ Not sure this diagnostic for missing solutions is that
+// informative. Also, it builds scripts for retries that are
+// no longer correct.
+//
+
 /* --------------------------------------------------------------- */
 /* AontoBOverlap ------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -1509,6 +1516,8 @@ static void NoCorrs(
 	printf( "%d NoCorr cases reported.\n\n", nreports );
 }
 
+#endif
+
 /* --------------------------------------------------------------- */
 /* Tabulate ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
@@ -1568,13 +1577,11 @@ void EVL::Tabulate(
 			/* Global space points and error */
 			/* ----------------------------- */
 
-			TAffine	T1( &X[vRgn[C.r1].itr * 6] ),
-					T2( &X[vRgn[C.r2].itr * 6] );
 			Point	&g1 = C.p1,
 					&g2 = C.p2;
 
-			T1.Transform( g1 );
-			T2.Transform( g2 );
+			M->L2GPoint( g1, X, vRgn[C.r1].itr );
+			M->L2GPoint( g2, X, vRgn[C.r2].itr );
 
 			err = g2.DistSqr( g1 );
 
@@ -1959,7 +1966,7 @@ static void ViseWriteXML(
 		else
 			sprintf( buf, "ve_z%d_id%d", I.z, I.id );
 
-		int		j = I.itr * 6;
+		TAffine	A = M->EqvAffine( X, I.itr );
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"
@@ -1976,7 +1983,7 @@ static void ViseWriteXML(
 		"\t\t\t\tmax=\"255\"\n"
 		"\t\t\t/>\n",
 		oid++, visePix, visePix,
-		sclx*X[j], scly*X[j+3], sclx*X[j+1], scly*X[j+4], X[j+2], X[j+5],
+		sclx*A.t[0], scly*A.t[3], sclx*A.t[1], scly*A.t[4], A.t[2], A.t[5],
 		buf, I.z, buf, visePix, visePix );
 	}
 
@@ -2003,11 +2010,11 @@ void EVL::ViseEval1(
 	vector<VisErr>			&ve,
 	const vector<double>	&X )
 {
-	Point	M( gW/2, gH/2 );	// local image center
+	Point	O( gW/2, gH/2 );	// local image center
 	int		ne = Epnt.size();
 	double	aTL, aTR;			// top-left, right angles
 
-	aTR = atan2( M.y, M.x ) * 180/PI;
+	aTR = atan2( O.y, O.x ) * 180/PI;
 	aTL = 180 - aTR;
 
 // zero all {L,R,B,T,D}
@@ -2036,14 +2043,12 @@ void EVL::ViseEval1(
 				// to local point
 
 				VisErr	&V = ve[r[j]];
-				TAffine	Inv, T( &X[vRgn[r[j]].itr * 6] );
 				Point	L = *p[j];
 				double	a, *s;
 
-				Inv.InverseOf( T );
-				Inv.Transform( L );
+				M->G2LPoint( L, X, vRgn[r[j]].itr );
 
-				a = atan2( L.y-M.y, L.x-M.x ) * 180/PI;
+				a = atan2( L.y-O.y, L.x-O.x ) * 180/PI;
 
 				// R (-aTR,aTR]
 				// T (aTR,aTL]
@@ -2090,11 +2095,11 @@ void EVL::ViseEval2(
 	vector<VisErr>			&ve,
 	const vector<double>	&X )
 {
-	Point	M( gW/2, gH/2 );	// local image center
+	Point	O( gW/2, gH/2 );	// local image center
 	int		ne = Epnt.size();
 	double	aTL, aTR;			// top-left, right angles
 
-	aTR = atan2( M.y, M.x ) * 180/PI;
+	aTR = atan2( O.y, O.x ) * 180/PI;
 	aTL = 180 - aTR;
 
 	for( int i = 0; i < ne; ++i ) {
@@ -2120,14 +2125,12 @@ void EVL::ViseEval2(
 				// to local point
 
 				VisErr	&V = ve[r[j]];
-				TAffine	Inv, T( &X[vRgn[r[j]].itr * 6] );
 				Point	L = *p[j];
 				double	a, *s;
 
-				Inv.InverseOf( T );
-				Inv.Transform( L );
+				M->G2LPoint( L, X, vRgn[r[j]].itr );
 
-				a = atan2( L.y-M.y, L.x-M.x ) * 180/PI;
+				a = atan2( L.y-O.y, L.x-O.x ) * 180/PI;
 
 				// R (-aTR,aTR]
 				// T (aTR,aTL]
@@ -2295,7 +2298,7 @@ static void VisePaintRect(
 // Build a set of error visualization images--
 //
 // visexml.xml is TrackEM2 file pointing at diagnostic images
-// in viseimg/. Each RGB image is 100x100 pixels. The central
+// in viseimg/. Each RGB image is visePix^2 pixels. The central
 // square in each image depicts down errors {red=none, green
 // brightness proportional to max error}. The sides of the open
 // box in each image are similarly scaled for in-plane errors.
@@ -2546,15 +2549,12 @@ int main( int argc, char **argv )
 
 	M->WriteJython( zs, X, gW, gH, gArgs.trim, gNTr );
 
-if( gArgs.model != 'A' )
-	exit( 0 );
-
 /* ---------------------------------- */
 /* Report any missing correspondences */
 /* ---------------------------------- */
 
 	ApplyLens( X, true );
-	NoCorrs( zs, X );
+//	NoCorrs( zs, X );
 
 /* ------------------------ */
 /* Assess and report errors */
