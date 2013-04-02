@@ -5,8 +5,7 @@
 
 #include	"lsq_DIR.h"
 
-#include	"TAffine.h"
-#include	"THmgphy.h"
+#include	"CPoint.h"
 
 
 /* --------------------------------------------------------------- */
@@ -108,46 +107,12 @@ public:
 			inlier;	// is this a RANSAC inlier or outlier?
 
 public:
-	Constraint( int rr1, Point pp1, int rr2, Point pp2 )
+	Constraint(
+		int				rr1,
+		const Point		&pp1,
+		int				rr2,
+		const Point		&pp2 )
 		{r1 = rr1; p1 = pp1; r2 = rr2; p2 = pp2;};
-};
-
-/* --------------------------------------------------------------- */
-/* ExtAffine ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Externally provided pairwise affine
-
-class ExtAffine {
-
-public:
-	TAffine	T;
-	int		r1, r2;	// indexes to the two regions
-	bool	used,	// is this constraint used?
-			inlier;	// is this a RANSAC inlier or outlier?
-
-public:
-	ExtAffine( int rr1, int rr2, const double *D )
-		{r1 = rr1; r2 = rr2; T = TAffine( D );};
-};
-
-/* --------------------------------------------------------------- */
-/* ExtHmgphy ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Externally provided pairwise homography
-
-class ExtHmgphy {
-
-public:
-	THmgphy	T;
-	int		r1, r2;	// indexes to the two regions
-	bool	used,	// is this constraint used?
-			inlier;	// is this a RANSAC inlier or outlier?
-
-public:
-	ExtHmgphy( int rr1, int rr2, const double *D )
-		{r1 = rr1; r2 = rr2; T = THmgphy( D );};
 };
 
 /* --------------------------------------------------------------- */
@@ -158,7 +123,5 @@ extern string				idb;		// for name lookups
 extern vector<RGN>			vRgn;		// the regions
 extern map<CRPair,int>		r12Idx;		// idx from region-pair
 extern vector<Constraint>	vAllC;		// all Point-pairs
-extern vector<ExtAffine>	vAllA;		// all pairwise affines
-extern vector<ExtHmgphy>	vAllH;		// all pairwise homographies
 
 

@@ -5,6 +5,7 @@
 
 #include	"lsq_Types.h"
 
+#include	"TAffine.h"
 #include	"LinEqu.h"
 
 

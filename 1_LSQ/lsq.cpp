@@ -4,10 +4,10 @@
 
 
 #include	"lsq_ReadPts.h"
-#include	"lsq_Trans.h"
-#include	"lsq_Simlr.h"
-#include	"lsq_Affine.h"
-#include	"lsq_Hmgphy.h"
+#include	"lsq_MTrans.h"
+#include	"lsq_MSimlr.h"
+#include	"lsq_MAffine.h"
+#include	"lsq_MHmgphy.h"
 
 #include	"Cmdline.h"
 #include	"CRegexID.h"

@@ -15,10 +15,10 @@
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	FITAFF		1
-#define	FITHMG		1
+#define	FITAFF		0
+#define	FITHMG		0
 #define	FITDRAW		0
-#define	FITTAB		1
+#define	FITTAB		0
 #define	FITPOINTS	(FITAFF || FITHMG)
 
 /* --------------------------------------------------------------- */

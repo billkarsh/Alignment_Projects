@@ -1,6 +1,7 @@
 
 
-#include	"lsq_Simlr.h"
+#include	"lsq_MTrans.h"
+#include	"lsq_MAffine.h"
 
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
@@ -13,7 +14,7 @@
 /* SetPointPairs ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::SetPointPairs(
+void MAffine::SetPointPairs(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	double			sc,
@@ -38,19 +39,13 @@ void MSimlr::SetPointPairs(
 		int		j  = vRgn[C.r1].itr * NX,
 				k  = vRgn[C.r2].itr * NX;
 
-		// R1(p1) - R2(p2) = 0
-		//
-		// {X0,X1,X2,X3} = {c,s,x,y}
+		// A1(p1) - A2(p2) = 0
 
-		double	v[6]  = { x1, -y1,  fz, -x2,  y2, -fz};
+		double	v[6]  = { x1,  y1,  fz, -x2, -y2, -fz};
 		int		i1[6] = {  j, j+1, j+2,   k, k+1, k+2};
-		int		i2[6] = {j+1,   j, j+3, k+1,   k, k+3};
+		int		i2[6] = {j+3, j+4, j+5, k+3, k+4, k+5};
 
 		AddConstraint( LHS, RHS, 6, i1, v, 0.0 );
-
-		v[1] =  y1;
-		v[4] = -y2;
-
 		AddConstraint( LHS, RHS, 6, i2, v, 0.0 );
 	}
 }
@@ -62,7 +57,7 @@ void MSimlr::SetPointPairs(
 // Explicitly set some TForm to Identity.
 // @@@ Does it matter which one we use?
 //
-void MSimlr::SetIdentityTForm(
+void MAffine::SetIdentityTForm(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	int				itr )
@@ -75,6 +70,8 @@ void MSimlr::SetIdentityTForm(
 	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
+	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
+	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
 
 // Report which tile we set
@@ -99,7 +96,7 @@ void MSimlr::SetIdentityTForm(
 // Set one layer-full of TForms to those from a previous
 // solution output file gArgs.tfm_file.
 //
-void MSimlr::SetUniteLayer(
+void MAffine::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	double			sc,
@@ -141,8 +138,10 @@ void MSimlr::SetUniteLayer(
 		int		j	= R.itr * NX;
 
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[0] );		j++;
-		AddConstraint( LHS, RHS, 1, &j, &one, one*t[3] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[1] );		j++;
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[2] / sc );	j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[3] );		j++;
+		AddConstraint( LHS, RHS, 1, &j, &one, one*t[4] );		j++;
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[5] / sc );	j++;
 	}
 }
@@ -151,13 +150,40 @@ void MSimlr::SetUniteLayer(
 /* SolveWithSquareness ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::SolveWithSquareness(
+void MAffine::SolveWithSquareness(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	int				nTr,
 	double			square_strength )
 {
+/* -------------------------- */
+/* Add squareness constraints */
+/* -------------------------- */
+
+	double	stiff = square_strength;
+
+	for( int i = 0; i < nTr; ++i ) {
+
+		int	j = i * NX;
+
+		// equal cosines
+		{
+			double	V[2] = {stiff, -stiff};
+			int		I[2] = {j, j+4};
+
+			AddConstraint( LHS, RHS, 2, I, V, 0.0 );
+		}
+
+		// opposite sines
+		{
+			double	V[2] = {stiff, stiff};
+			int		I[2] = {j+1, j+3};
+
+			AddConstraint( LHS, RHS, 2, I, V, 0.0 );
+		}
+	}
+
 /* ----------------- */
 /* 1st pass solution */
 /* ----------------- */
@@ -166,7 +192,7 @@ void MSimlr::SolveWithSquareness(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	printf( "Solve with [similarity only].\n" );
+	printf( "Solve with [transform squareness].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 }
@@ -182,7 +208,7 @@ void MSimlr::SolveWithSquareness(
 // c*x + s*y = 1. To reduce sensitivity to the sizes of the
 // previous fit c,s, we normalize them by m = sqrt(c^2 + s^2).
 //
-void MSimlr::SolveWithUnitMag(
+void MAffine::SolveWithUnitMag(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
@@ -195,13 +221,13 @@ void MSimlr::SolveWithUnitMag(
 
 		int		j = i * NX;
 		double	c = X[j];
-		double	s = X[j+1];
+		double	s = X[j+3];
 		double	m = sqrt( c*c + s*s );
 
 		// c*x/m + s*y/m = 1
 
 		double	V[2] = {c * stiff, s * stiff};
-		int		I[2] = {j, j+1};
+		int		I[2] = {j, j+3};
 
 		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
 	}
@@ -216,7 +242,7 @@ void MSimlr::SolveWithUnitMag(
 /* RescaleAll ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::RescaleAll(
+void MAffine::RescaleAll(
 	vector<double>	&X,
 	double			sc )
 {
@@ -232,7 +258,7 @@ void MSimlr::RescaleAll(
 		itr *= NX;
 
 		X[itr+2] *= sc;
-		X[itr+3] *= sc;
+		X[itr+5] *= sc;
 	}
 }
 
@@ -240,7 +266,7 @@ void MSimlr::RescaleAll(
 /* RotateAll ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::RotateAll(
+void MAffine::RotateAll(
 	vector<double>	&X,
 	double			degcw )
 {
@@ -258,16 +284,10 @@ void MSimlr::RotateAll(
 
 		itr *= NX;
 
-		TAffine	t(
-			X[itr  ], -X[itr+1], X[itr+2],
-			X[itr+1],  X[itr  ], X[itr+3] );
+		TAffine	t( &X[itr] );
 
 		T = R * t;
-
-		X[itr]		= T.t[0];
-		X[itr+1]	= T.t[3];
-		X[itr+2]	= T.t[2];
-		X[itr+3]	= T.t[5];
+		T.CopyOut( &X[itr] );
 	}
 }
 
@@ -275,7 +295,7 @@ void MSimlr::RotateAll(
 /* NewOriginAll -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::NewOriginAll(
+void MAffine::NewOriginAll(
 	vector<double>	&X,
 	double			xorg,
 	double			yorg )
@@ -292,12 +312,196 @@ void MSimlr::NewOriginAll(
 		itr *= NX;
 
 		X[itr+2] -= xorg;
-		X[itr+3] -= yorg;
+		X[itr+5] -= yorg;
 	}
 }
 
 /* --------------------------------------------------------------- */
-/* SolveSystem --------------------------------------------------- */
+/* AffineEquTransWt ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::AffineEquTransWt(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			same_strength,
+	double			square_strength )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Standard starting point
+
+	SetPointPairs( LHS, RHS, sc, same_strength );
+	SetIdentityTForm( LHS, RHS, nTr / 2 );
+
+// Get the pure translations T
+
+	MTrans			M;
+	vector<double>	T;
+	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
+
+// Relatively weighted A(pi) = T(pj)
+
+	double	fz	= 0.01;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = T(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX,
+					k  = vRgn[C.r2].itr * 2;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2 = (C.p2.x + T[k  ]) * fz / sc,
+					y2 = (C.p2.y + T[k+1]) * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX,
+					k  = vRgn[C.r1].itr * 2;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2 = (C.p1.x + T[k  ]) * fz / sc,
+					y2 = (C.p1.y + T[k+1]) * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+	//SolveWithUnitMag( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
+/* AffineEquTrans ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MAffine::AffineEquTrans(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			square_strength )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Get the pure translations T
+
+	MTrans			M;
+	vector<double>	T;
+	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
+
+// SetPointPairs: A(pi) = T(pj)
+
+	double	fz	= 1.0;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = T(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX,
+					k  = vRgn[C.r2].itr * 2;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2 = (C.p2.x + T[k  ]) * fz / sc,
+					y2 = (C.p2.y + T[k+1]) * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX,
+					k  = vRgn[C.r1].itr * 2;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2 = (C.p1.x + T[k  ]) * fz / sc,
+					y2 = (C.p1.y + T[k+1]) * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Set identity
+
+	SetIdentityTForm( LHS, RHS, nTr / 2 );
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+	//SolveWithUnitMag( X, LHS, RHS, nTr, square_strength );
+
+	printf( "Solve with [fixed translation].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
+/* SolveSystemStandard ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Build and solve system of linear equations.
@@ -307,7 +511,7 @@ void MSimlr::NewOriginAll(
 // are sized similarly to the sine/cosine variables. This is only
 // to stabilize solver algorithm. We undo the scaling on exit.
 //
-void MSimlr::SolveSystem(
+void MAffine::SolveSystemStandard(
 	vector<double>	&X,
 	int				nTr,
 	int				gW,
@@ -321,7 +525,7 @@ void MSimlr::SolveSystem(
 	double	scale	= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Rgd: %d unknowns; %d constraints.\n",
+	printf( "Aff: %d unknowns; %d constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );
@@ -359,10 +563,35 @@ void MSimlr::SolveSystem(
 }
 
 /* --------------------------------------------------------------- */
+/* SolveSystem --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::SolveSystem(
+	vector<double>	&X,
+	int				nTr,
+	int				gW,
+	int				gH,
+	double			same_strength,
+	double			square_strength,
+	double			scale_strength,
+	int				unite_layer,
+	const char		*tfm_file )
+{
+	//SolveSystemStandard( X, nTr, gW, gH,
+	//	same_strength, square_strength,
+	//	scale_strength, unite_layer, tfm_file );
+
+	//AffineEquTrans( X, nTr, gW, gH, square_strength );
+
+	AffineEquTransWt( X, nTr, gW, gH,
+		same_strength, square_strength );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteTransforms ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::WriteTransforms(
+void MAffine::WriteTransforms(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	int						bstrings,
@@ -389,21 +618,21 @@ void MSimlr::WriteTransforms(
 
 		fprintf( f, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
 		I.z, I.id, I.rgn,
-		X[j  ], -X[j+1], X[j+2],
-		X[j+1],  X[j  ], X[j+3] );
+		X[j  ], X[j+1], X[j+2],
+		X[j+3], X[j+4], X[j+5] );
 
 		if( !bstrings ) {
 
 			fprintf( FOUT, "TAFFINE %d.%d:%d %f %f %f %f %f %f\n",
 			I.z, I.id, I.rgn,
-			X[j  ], -X[j+1], X[j+2],
-			X[j+1],  X[j  ], X[j+3] );
+			X[j  ], X[j+1], X[j+2],
+			X[j+3], X[j+4], X[j+5] );
 		}
 		else {
 			fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
 			I.GetName(), I.rgn,
-			X[j  ], -X[j+1], X[j+2],
-			X[j+1],  X[j  ], X[j+3] );
+			X[j  ], X[j+1], X[j+2],
+			X[j+3], X[j+4], X[j+5] );
 		}
 
 		double	mag = Magnitude( X, I.itr );
@@ -424,7 +653,7 @@ void MSimlr::WriteTransforms(
 /* WriteTrakEM --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::WriteTrakEM(
+void MAffine::WriteTrakEM(
 	double					xmax,
 	double					ymax,
 	const vector<zsort>		&zs,
@@ -503,8 +732,8 @@ void MSimlr::WriteTrakEM(
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
-		double	x_orig = X[j  ]*trim - X[j+1]*trim + X[j+2];
-		double	y_orig = X[j+1]*trim + X[j  ]*trim + X[j+3];
+		double	x_orig = X[j  ]*trim + X[j+1]*trim + X[j+2];
+		double	y_orig = X[j+3]*trim + X[j+4]*trim + X[j+5];
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"
@@ -518,7 +747,7 @@ void MSimlr::WriteTrakEM(
 		"\t\t\t\to_width=\"%d\"\n"
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW - offset, gH - offset,
-		X[j], -X[j+1], X[j+1], X[j], x_orig, y_orig,
+		X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
 		s2 - s1, s1, xml_type, p, gW - offset, gH - offset );
 
 		if( xml_min < xml_max ) {
@@ -545,7 +774,7 @@ void MSimlr::WriteTrakEM(
 /* WriteJython --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::WriteJython(
+void MAffine::WriteJython(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	int						gW,
@@ -576,11 +805,11 @@ void MSimlr::WriteJython(
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
-		double	x_orig = X[j  ]*trim - X[j+1]*trim + X[j+2];
-		double	y_orig = X[j+1]*trim + X[j  ]*trim + X[j+3];
+		double	x_orig = X[j  ]*trim + X[j+1]*trim + X[j+2];
+		double	y_orig = X[j+3]*trim + X[j+4]*trim + X[j+5];
 
 		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f]%s\n",
-			p, X[j], -X[j+1], X[j+1], X[j], x_orig, y_orig,
+			p, X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
 			(itrf == Ntr ? "" : ",") );
 	}
 
@@ -592,13 +821,12 @@ void MSimlr::WriteJython(
 /* G2LPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void MSimlr::G2LPoint(
+void MAffine::G2LPoint(
 	Point					&p,
 	const vector<double>	&X,
 	int						itr )
 {
-	int		j = itr * NX;
-	TAffine	I, T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
+	TAffine	I, T( &X[itr * NX] );
 	I.InverseOf( T );
 	I.Transform( p );
 }
@@ -607,24 +835,22 @@ void MSimlr::G2LPoint(
 /* L2GPoint ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void MSimlr::L2GPoint(
+void MAffine::L2GPoint(
 	Point					&p,
 	const vector<double>	&X,
 	int						itr )
 {
-	int		j = itr * NX;
-	TAffine	T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
+	TAffine	T( &X[itr * NX] );
 	T.Transform( p );
 }
 
 
-void MSimlr::L2GPoint(
+void MAffine::L2GPoint(
 	vector<Point>			&p,
 	const vector<double>	&X,
 	int						itr )
 {
-	int		j = itr * NX;
-	TAffine	T( X[j], -X[j+1], X[j+2], X[j+1], X[j], X[j+3] );
+	TAffine	T( &X[itr * NX] );
 	T.Transform( p );
 }
 
