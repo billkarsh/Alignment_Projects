@@ -364,6 +364,13 @@ void MAffine::AffineEquTransWt( vector<double> &X, int nTr )
 
 	MTrans			M;
 	vector<double>	T;
+
+	M.SetModelParams( gW, gH,
+		same_strength,
+		square_strength,
+		scale_strength,
+		unite_layer, tfm_file );
+
 	M.SolveSystem( T, nTr );
 
 // Relatively weighted A(pi) = T(pj)
@@ -448,6 +455,13 @@ void MAffine::AffineEquTrans( vector<double> &X, int nTr )
 
 	MTrans			M;
 	vector<double>	T;
+
+	M.SetModelParams( gW, gH,
+		same_strength,
+		square_strength,
+		scale_strength,
+		unite_layer, tfm_file );
+
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: A(pi) = T(pj)

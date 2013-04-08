@@ -318,6 +318,13 @@ void MHmgphy::HmgphyEquAffine( vector<double> &X, int nTr )
 
 	MAffine			M;
 	vector<double>	A;
+
+	M.SetModelParams( gW, gH,
+		same_strength,
+		square_strength,
+		scale_strength,
+		unite_layer, tfm_file );
+
 	M.SolveSystem( A, nTr );
 
 // SetPointPairs: H(pi) = A(pj)
@@ -417,6 +424,13 @@ void MHmgphy::HmgphyEquTrans( vector<double> &X, int nTr )
 
 	MTrans			M;
 	vector<double>	T;
+
+	M.SetModelParams( gW, gH,
+		same_strength,
+		square_strength,
+		scale_strength,
+		unite_layer, tfm_file );
+
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: H(pi) = T(pj)
