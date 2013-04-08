@@ -63,9 +63,7 @@ void MHmgphy::SetIdentityTForm(
 void MHmgphy::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	double			sc,
-	int				unite_layer,
-	const char		*tfm_file )
+	double			sc )
 {
 /* ------------------------------- */
 /* Load TForms for requested layer */
@@ -202,120 +200,10 @@ void MHmgphy::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
-/* HmgphyEquHmgphy2 ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void MHmgphy::HmgphyEquHmgphy2(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength )
-{
-	double	sc		= 2 * max( gW, gH );
-	int		nvars	= nTr * NX;
-
-	printf( "Hmg: %d unknowns; %d constraints.\n",
-		nvars, vAllC.size() );
-
-	vector<double> RHS( nvars, 0.0 );
-	vector<LHSCol> LHS( nvars );
-
-	X.resize( nvars );
-
-// Get the Homographies A
-
-	vector<double>	A;
-	HmgphyEquHmgphy( A, nTr, gW, gH, same_strength, square_strength );
-
-// SetPointPairs: H(pi) = A(pj)
-
-	double	fz	= 1.0;
-	int		nc	= vAllC.size();
-
-	for( int i = 0; i < nc; ++i ) {
-
-		const Constraint &C = vAllC[i];
-
-		if( !C.used || !C.inlier )
-			continue;
-
-		// H(p1) = A(p2)
-		{
-			int		j  = vRgn[C.r1].itr * NX;
-			double	x1 = C.p1.x * fz / sc,
-					y1 = C.p1.y * fz / sc,
-					x2,
-					y2;
-			Point	g2 = C.p2;
-
-			L2GPoint( g2, A, vRgn[C.r2].itr );
-			x2 = g2.x / sc;
-			y2 = g2.y / sc;
-
-			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
-			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
-					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
-
-			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
-
-			v[3] = -x1*y2;
-			v[4] = -y1*y2;
-
-			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
-		}
-
-		// H(p2) = A(p1)
-		{
-			int		j  = vRgn[C.r2].itr * NX;
-			double	x1 = C.p2.x * fz / sc,
-					y1 = C.p2.y * fz / sc,
-					x2,
-					y2;
-			Point	g2 = C.p1;
-
-			L2GPoint( g2, A, vRgn[C.r1].itr );
-			x2 = g2.x / sc;
-			y2 = g2.y / sc;
-
-			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
-			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
-					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
-
-			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
-
-			v[3] = -x1*y2;
-			v[4] = -y1*y2;
-
-			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
-		}
-	}
-
-// Set identity
-
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
-
-// Solve
-
-	printf( "Solve with [2nd hmgphied points].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
-	PrintMagnitude( X );
-
-	RescaleAll( X, sc );
-}
-
-/* --------------------------------------------------------------- */
 /* HmgphyEquHmgphy ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MHmgphy::HmgphyEquHmgphy(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength )
+void MHmgphy::HmgphyEquHmgphy( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -331,7 +219,7 @@ void MHmgphy::HmgphyEquHmgphy(
 // Get the Homographies A
 
 	vector<double>	A;
-	HmgphyEquAffine( A, nTr, gW, gH, same_strength, square_strength );
+	HmgphyEquAffine( A, nTr );
 
 // SetPointPairs: H(pi) = A(pj)
 
@@ -402,7 +290,7 @@ void MHmgphy::HmgphyEquHmgphy(
 
 // Solve
 
-	printf( "Solve with [hmgphied points].\n" );
+	printf( "Solve [homographies from homographies].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
@@ -413,13 +301,7 @@ void MHmgphy::HmgphyEquHmgphy(
 /* HmgphyEquAffine ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MHmgphy::HmgphyEquAffine(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength )
+void MHmgphy::HmgphyEquAffine( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -436,7 +318,7 @@ void MHmgphy::HmgphyEquAffine(
 
 	MAffine			M;
 	vector<double>	A;
-	M.SolveSystem( A, nTr, gW, gH, same_strength, square_strength, 0, -1, NULL );
+	M.SolveSystem( A, nTr );
 
 // SetPointPairs: H(pi) = A(pj)
 
@@ -507,7 +389,7 @@ void MHmgphy::HmgphyEquAffine(
 
 // Solve
 
-	printf( "Solve with [affined points].\n" );
+	printf( "Solve [homographies from affines].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
@@ -518,12 +400,7 @@ void MHmgphy::HmgphyEquAffine(
 /* HmgphyEquTrans ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void MHmgphy::HmgphyEquTrans(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			square_strength )
+void MHmgphy::HmgphyEquTrans( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -540,7 +417,7 @@ void MHmgphy::HmgphyEquTrans(
 
 	MTrans			M;
 	vector<double>	T;
-	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
+	M.SolveSystem( T, nTr );
 
 // SetPointPairs: H(pi) = T(pj)
 
@@ -603,7 +480,7 @@ void MHmgphy::HmgphyEquTrans(
 
 // Solve
 
-	printf( "Solve with [fixed translation].\n" );
+	printf( "Solve [homographies from translations].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
@@ -688,27 +565,13 @@ void MHmgphy::WriteSideRatios(
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MHmgphy::SolveSystem(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength,
-	double			scale_strength,
-	int				unite_layer,
-	const char		*tfm_file )
+void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 {
-	//HmgphyEquTrans( X, nTr, gW, gH, square_strength );
+	//HmgphyEquTrans( X, nTr );
 
-	//HmgphyEquAffine( X, nTr, gW, gH,
-	//	same_strength, square_strength );
+	//HmgphyEquAffine( X, nTr );
 
-	HmgphyEquHmgphy( X, nTr, gW, gH,
-		same_strength, square_strength );
-
-	//HmgphyEquHmgphy2( X, nTr, gW, gH,
-	//	same_strength, square_strength );
+	HmgphyEquHmgphy( X, nTr );
 }
 
 /* --------------------------------------------------------------- */
@@ -818,8 +681,6 @@ void MHmgphy::WriteTrakEM(
 	double					ymax,
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						xml_type,
 	int						xml_min,
@@ -948,8 +809,6 @@ void MHmgphy::WriteTrakEM(
 void MHmgphy::WriteJython(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						Ntr )
 {

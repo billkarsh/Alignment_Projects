@@ -45,8 +45,6 @@ void MDL::Bounds(
 	double					&xbnd,
 	double					&ybnd,
 	vector<double>			&X,
-	int						gW,
-	int						gH,
 	const vector<double>	&lrbt,
 	double					degcw,
 	FILE					*FOUT )

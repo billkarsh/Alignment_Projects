@@ -46,16 +46,7 @@ void MTrans::NewOriginAll(
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MTrans::SolveSystem(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength,
-	double			scale_strength,
-	int				unite_layer,
-	const char		*tfm_file )
+void MTrans::SolveSystem( vector<double> &X, int nTr )
 {
 	int	nvars	= nTr * NX,
 		nc		= vAllC.size();
@@ -92,14 +83,14 @@ void MTrans::SolveSystem(
 // SetIdentityTForm
 
 	double	one	= 1;
-	int		j	= nTr;
+	int		j	= nTr;	// = nTr/2 * 2
 
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );	j++;
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );
 
-// SolveWithSquareness
+// SolveFromPoints
 
-	printf( "Solve with [translation only].\n" );
+	printf( "Solve [translations from points].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 }
 
@@ -159,8 +150,6 @@ void MTrans::WriteTrakEM(
 	double					ymax,
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						xml_type,
 	int						xml_min,
@@ -278,8 +267,6 @@ void MTrans::WriteTrakEM(
 void MTrans::WriteJython(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						Ntr )
 {

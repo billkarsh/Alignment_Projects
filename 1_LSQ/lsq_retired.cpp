@@ -35,7 +35,6 @@ public:
 /* --------------------------------------------------------------- */
 
 #if 0
-
 // Return true if name in user's 'include only these' list.
 //
 static bool IncludeThis( const char *name )
@@ -55,7 +54,6 @@ static bool IncludeThis( const char *name )
 
 	return false;
 }
-
 #endif
 
 /* --------------------------------------------------------------- */
@@ -63,7 +61,6 @@ static bool IncludeThis( const char *name )
 /* --------------------------------------------------------------- */
 
 #if 0
-
 // Return true if line with {name1, name2} should be ignored.
 //
 static bool IgnoreNames(
@@ -101,7 +98,6 @@ static bool IgnoreNames(
 
 	return !IncludeThis( name1 ) || !IncludeThis( name2 );
 }
-
 #endif
 
 /* --------------------------------------------------------------- */
@@ -109,7 +105,6 @@ static bool IgnoreNames(
 /* --------------------------------------------------------------- */
 
 #if 0
-
 // Lookup by number.
 // Very inefficient; could (should) keep tables both ways.
 //
@@ -126,7 +121,6 @@ static string LookupByNumber( map<string,int> &mapping, int k )
 	printf( "Looking for mapped string %d, not there?\n", k );
 	exit( 42 );
 }
-
 #endif
 
 /* --------------------------------------------------------------- */
@@ -134,7 +128,6 @@ static string LookupByNumber( map<string,int> &mapping, int k )
 /* --------------------------------------------------------------- */
 
 #if 0
-
 static void Bounds(
 	double			&xbnd,
 	double			&ybnd,
@@ -293,7 +286,228 @@ static void Bounds(
 	xbnd = xmax;
 	ybnd = ymax;
 }
+#endif
 
+/* --------------------------------------------------------------- */
+/* PrintMagnitude ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void PrintMagnitude( const vector<double> &X, int nvars )
+{
+	int	k = X.size() - nvars;
+
+	if( k >= 0 ) {
+
+		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
+
+		printf( "Final magnitude is %g\n", mag );
+	}
+
+	fflush( stdout );
+}
+
+/* --------------------------------------------------------------- */
+/* SolveWithMontageSqr ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Add some constraints so the left edge of the array
+// needs to be the same length as the right edge, and
+// repeat for top and bottom. Of course, this assumes
+// a symmetric montage.
+//
+#if 1
+static void SolveWithMontageSqr(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS )
+{
+	const int	MAXINT = 0x7FFFFFFF;
+
+	int	nr = vRgn.size();
+
+/* ------------ */
+/* Which layer? */
+/* ------------ */
+
+	if( gArgs.ref_layer < 0 ) {
+
+		gArgs.ref_layer = MAXINT;
+
+		for( int i = 0; i < nr; ++i ) {
+
+			if( vRgn[i].itr >= 0 ) {
+
+				gArgs.ref_layer =
+					min( gArgs.ref_layer, vRgn[i].z );
+			}
+		}
+
+		printf(
+		"\nNo reference layer specified,"
+		" using lowest layer %d\n", gArgs.ref_layer );
+	}
+
+/* ---------------------------------------- */
+/* Search for greatest outward translations */
+/* ---------------------------------------- */
+
+	double	vNW = -MAXINT,
+			vNE = -MAXINT,
+			vSE = -MAXINT,
+			vSW = -MAXINT;
+	int		iNW, iNE, iSE, iSW,
+			jNW, jNE, jSE, jSW;
+
+	for( int i = 0; i < nr; ++i ) {
+
+		if( vRgn[i].z != gArgs.ref_layer )
+			continue;
+
+		if( vRgn[i].itr < 0 )
+			continue;
+
+		double	v;
+		int		j = vRgn[i].itr * 6;
+
+		if( (v =  X[j+2] + X[j+5]) > vNE )
+			{iNE = i; jNE = j; vNE = v;}
+
+		if( (v =  X[j+2] - X[j+5]) > vSE )
+			{iSE = i; jSE = j; vSE = v;}
+
+		if( (v = -X[j+2] + X[j+5]) > vNW )
+			{iNW = i; jNW = j; vNW = v;}
+
+		if( (v = -X[j+2] - X[j+5]) > vSW )
+			{iSW = i; jSW = j; vSW = v;}
+	}
+
+	printf(
+	"Corner tiles are:"
+	" se %d (%f %f),"
+	" ne %d (%f %f),"
+	" nw %d (%f %f),"
+	" sw %d (%f %f).\n",
+	vRgn[iSE].id, X[jSE+2], X[jSE+5],
+	vRgn[iNE].id, X[jNE+2], X[jNE+5],
+	vRgn[iNW].id, X[jNW+2], X[jNW+5],
+	vRgn[iSW].id, X[jSW+2], X[jSW+5] );
+
+/* ------------------------------------------- */
+/* Use these corner tiles to impose squareness */
+/* ------------------------------------------- */
+
+	double	stiff = gArgs.square_strength;
+
+// Top = bottom (DX = DX)
+
+	{
+		double	V[4] = {stiff, -stiff, -stiff, stiff};
+		int		I[4] = {jSE+2,  jSW+2,  jNE+2, jNW+2};
+
+		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
+	}
+
+// Left = right (DY = DY)
+
+	{
+		double	V[4] = {stiff, -stiff, -stiff, stiff};
+		int		I[4] = {jSE+5,  jSW+5,  jNE+5, jNW+5};
+
+		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
+	}
+
+/* --------------- */
+/* Update solution */
+/* --------------- */
+
+	printf( "Solve [affines with montage squareness].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X, 6 );
+}
+#endif
+
+#if 0
+// Experiment to simply hardcode which tiles to use as corners.
+// In practice, though, looks like this constraint causes montage
+// to buckle if there really is a natural warp like a banana shape,
+// so not recommended.
+//
+static void SolveWithMontageSqr(
+	vector<double>	&X,
+	vector<LHSCol>	&LHS,
+	vector<double>	&RHS )
+{
+	int	nr = vRgn.size();
+
+/* ------------------------ */
+/* Assign hand-picked tiles */
+/* ------------------------ */
+
+	int	jNW, jNE, jSE, jSW, nass = 0;
+
+	for( int i = 0; i < nr && nass < 4; ++i ) {
+
+		if( vRgn[i].itr < 0 )
+			continue;
+
+		int id = vRgn[i].id;
+
+		if( id == 19001000 ) {
+			jNW = i;
+			++nass;
+		}
+		else if( id == 19069000 ) {
+			jNE = i;
+			++nass;
+		}
+		else if( id == 19001149 ) {
+			jSW = i;
+			++nass;
+		}
+		else if( id == 19069149 ) {
+			jSE = i;
+			++nass;
+		}
+	}
+
+	if( nass != 4 ) {
+		printf( "***   ***   *** Missing squareness corner.\n" );
+		return;
+	}
+
+/* ------------------------------------------- */
+/* Use these corner tiles to impose squareness */
+/* ------------------------------------------- */
+
+	double	stiff = gArgs.square_strength;
+
+// Top = bottom (DX = DX)
+
+	{
+		double	V[4] = {stiff, -stiff, -stiff, stiff};
+		int		I[4] = {jSE+2,  jSW+2,  jNE+2, jNW+2};
+
+		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
+	}
+
+// Left = right (DY = DY)
+
+	{
+		double	V[4] = {stiff, -stiff, -stiff, stiff};
+		int		I[4] = {jSE+5,  jSW+5,  jNE+5, jNW+5};
+
+		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
+	}
+
+/* --------------- */
+/* Update solution */
+/* --------------- */
+
+	printf( "Solve [affines with montage squareness].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X, 6 );
+}
 #endif
 
 

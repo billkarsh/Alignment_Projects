@@ -24,9 +24,7 @@ private:
 	void SetUniteLayer(
 		vector<LHSCol>	&LHS,
 		vector<double>	&RHS,
-		double			sc,
-		int				unite_layer,
-		const char		*tfm_file );
+		double			sc );
 
 	void RescaleAll(
 		vector<double>	&X,
@@ -41,52 +39,18 @@ private:
 		double			xorg,
 		double			yorg );
 
-	void HmgphyEquHmgphy2(
-		vector<double>	&X,
-		int				nTr,
-		int				gW,
-		int				gH,
-		double			same_strength,
-		double			square_strength );
+	void HmgphyEquHmgphy( vector<double> &X, int nTr );
 
-	void HmgphyEquHmgphy(
-		vector<double>	&X,
-		int				nTr,
-		int				gW,
-		int				gH,
-		double			same_strength,
-		double			square_strength );
+	void HmgphyEquAffine( vector<double> &X, int nTr );
 
-	void HmgphyEquAffine(
-		vector<double>	&X,
-		int				nTr,
-		int				gW,
-		int				gH,
-		double			same_strength,
-		double			square_strength );
-
-	void HmgphyEquTrans(
-		vector<double>	&X,
-		int				nTr,
-		int				gW,
-		int				gH,
-		double			square_strength );
+	void HmgphyEquTrans( vector<double> &X, int nTr );
 
 	void WriteSideRatios(
 		const vector<zsort>		&zs,
 		const vector<double>	&X );
 
 public:
-	void SolveSystem(
-		vector<double>	&X,
-		int				nTr,
-		int				gW,
-		int				gH,
-		double			same_strength,
-		double			square_strength,
-		double			scale_strength,
-		int				unite_layer,
-		const char		*tfm_file );
+	void SolveSystem( vector<double> &X, int nTr );
 
 	void WriteTransforms(
 		const vector<zsort>		&zs,
@@ -99,8 +63,6 @@ public:
 		double					ymax,
 		const vector<zsort>		&zs,
 		const vector<double>	&X,
-		int						gW,
-		int						gH,
 		double					trim,
 		int						xml_type,
 		int						xml_min,
@@ -109,8 +71,6 @@ public:
 	void WriteJython(
 		const vector<zsort>		&zs,
 		const vector<double>	&X,
-		int						gW,
-		int						gH,
 		double					trim,
 		int						Ntr );
 

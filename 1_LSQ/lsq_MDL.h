@@ -18,6 +18,14 @@ class MDL {
 protected:
 	const int	NT, NX;
 
+	const char	*tfm_file;
+	double		same_strength,
+				square_strength,
+				scale_strength;
+	int			gW, gH,
+				unite_layer,
+				mdlreserved;
+
 protected:
 	MDL( int NT, int NX ) : NT(NT), NX(NX) {};
 
@@ -38,23 +46,30 @@ private:
 public:
 	int MinLinks()	{return NX/2;};
 
-	virtual void SolveSystem(
-		vector<double>	&X,
-		int				nTr,
-		int				gW,
-		int				gH,
-		double			same_strength,
-		double			square_strength,
-		double			scale_strength,
-		int				unite_layer,
-		const char		*tfm_file ) = 0;
+	void SetModelParams(
+		int			gW,
+		int			gH,
+		double		same_strength,
+		double		square_strength,
+		double		scale_strength,
+		int			unite_layer,
+		const char	*tfm_file )
+		{
+			this->tfm_file			= tfm_file;
+			this->same_strength		= same_strength;
+			this->square_strength	= square_strength;
+			this->scale_strength	= scale_strength;
+			this->gW				= gW;
+			this->gH				= gH;
+			this->unite_layer		= unite_layer;
+		};
+
+	virtual void SolveSystem( vector<double> &X, int nTr ) = 0;
 
 	void Bounds(
 		double					&xbnd,
 		double					&ybnd,
 		vector<double>			&X,
-		int						gW,
-		int						gH,
 		const vector<double>	&lrbt,
 		double					degcw,
 		FILE					*FOUT );
@@ -70,8 +85,6 @@ public:
 		double					ymax,
 		const vector<zsort>		&zs,
 		const vector<double>	&X,
-		int						gW,
-		int						gH,
 		double					trim,
 		int						xml_type,
 		int						xml_min,
@@ -80,8 +93,6 @@ public:
 	virtual void WriteJython(
 		const vector<zsort>		&zs,
 		const vector<double>	&X,
-		int						gW,
-		int						gH,
 		double					trim,
 		int						Ntr ) = 0;
 

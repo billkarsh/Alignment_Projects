@@ -16,8 +16,7 @@
 void MSimlr::SetPointPairs(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	double			sc,
-	double			same_strength )
+	double			sc )
 {
 	int	nc	= vAllC.size();
 
@@ -102,9 +101,7 @@ void MSimlr::SetIdentityTForm(
 void MSimlr::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	double			sc,
-	int				unite_layer,
-	const char		*tfm_file )
+	double			sc )
 {
 /* ------------------------------- */
 /* Load TForms for requested layer */
@@ -148,15 +145,14 @@ void MSimlr::SetUniteLayer(
 }
 
 /* --------------------------------------------------------------- */
-/* SolveWithSquareness ------------------------------------------- */
+/* SolveFromPoints ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MSimlr::SolveWithSquareness(
+void MSimlr::SolveFromPoints(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	int				nTr,
-	double			square_strength )
+	int				nTr )
 {
 /* ----------------- */
 /* 1st pass solution */
@@ -166,7 +162,7 @@ void MSimlr::SolveWithSquareness(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	printf( "Solve with [similarity only].\n" );
+	printf( "Solve [similarities from points].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 }
@@ -186,8 +182,7 @@ void MSimlr::SolveWithUnitMag(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	int				nTR,
-	double			scale_strength )
+	int				nTR )
 {
 	double	stiff = scale_strength;
 
@@ -206,7 +201,7 @@ void MSimlr::SolveWithUnitMag(
 		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
 	}
 
-	printf( "Solve with [unit magnitude].\n" );
+	printf( "Solve [similarities with unit magnitude].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( X );
@@ -307,16 +302,7 @@ void MSimlr::NewOriginAll(
 // are sized similarly to the sine/cosine variables. This is only
 // to stabilize solver algorithm. We undo the scaling on exit.
 //
-void MSimlr::SolveSystem(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength,
-	double			scale_strength,
-	int				unite_layer,
-	const char		*tfm_file )
+void MSimlr::SolveSystem( vector<double> &X, int nTr )
 {
 	double	scale	= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -333,23 +319,20 @@ void MSimlr::SolveSystem(
 /* Get rough solution */
 /* ------------------ */
 
-	SetPointPairs( LHS, RHS, scale, same_strength );
+	SetPointPairs( LHS, RHS, scale );
 
 	if( unite_layer < 0 )
 		SetIdentityTForm( LHS, RHS, nTr / 2 );
 	else
-		SetUniteLayer( LHS, RHS, scale, unite_layer, tfm_file );
+		SetUniteLayer( LHS, RHS, scale );
 
-	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+	SolveFromPoints( X, LHS, RHS, nTr );
 
 /* ----------------------------------------- */
 /* Use solution to add torsional constraints */
 /* ----------------------------------------- */
 
-	//if( gArgs.make_layer_square )
-	//	SolveWithMontageSqr( X, LHS, RHS );
-
-	SolveWithUnitMag( X, LHS, RHS, nTr, scale_strength );
+	SolveWithUnitMag( X, LHS, RHS, nTr );
 
 /* --------------------------- */
 /* Rescale translational terms */
@@ -429,8 +412,6 @@ void MSimlr::WriteTrakEM(
 	double					ymax,
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						xml_type,
 	int						xml_min,
@@ -548,8 +529,6 @@ void MSimlr::WriteTrakEM(
 void MSimlr::WriteJython(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						Ntr )
 {

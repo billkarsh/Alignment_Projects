@@ -66,8 +66,8 @@ public:
 			viserr;				// 0, or, error scale
 	bool	strings,
 			lens,
-			make_layer_square,
-			use_all;			// align even if #pts < 3/tile
+			use_all,			// align even if #pts < 3/tile
+			reserved;
 
 public:
 	CArgs_lsq()
@@ -92,7 +92,6 @@ public:
 		viserr				= 0;
 		strings				= false;
 		lens				= false;
-		make_layer_square	= false;
 		use_all				= false;
 	};
 
@@ -328,10 +327,6 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			strings = true;
 		else if( IsArg( "-lens", argv[i] ) )
 			lens = true;
-		else if( IsArg( "-mls", argv[i] ) ) {
-			make_layer_square = true;
-			printf( "Making reference layer square.\n" );
-		}
 		else if( IsArg( "-all", argv[i] ) ) {
 			use_all = true;
 			printf( "Using all correspondences.\n" );
@@ -376,495 +371,6 @@ int CArgs_lsq::TileIDFromName( const char *name )
 static int IDFromName( const char *name )
 {
 	return gArgs.TileIDFromName( name );
-}
-
-/* --------------------------------------------------------------- */
-/* PrintMagnitude ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static void PrintMagnitude( const vector<double> &X, int nvars )
-{
-	int	k = X.size() - nvars;
-
-	if( k >= 0 ) {
-
-		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
-
-		printf( "Final magnitude is %g\n", mag );
-	}
-
-	fflush( stdout );
-}
-
-/* --------------------------------------------------------------- */
-/* SolveWithMontageSqr ------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Add some constraints so the left edge of the array
-// needs to be the same length as the right edge, and
-// repeat for top and bottom. Of course, this assumes
-// a symmetric montage.
-//
-#if 1
-static void SolveWithMontageSqr(
-	vector<double>	&X,
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS )
-{
-	const int	MAXINT = 0x7FFFFFFF;
-
-	int	nr = vRgn.size();
-
-/* ------------ */
-/* Which layer? */
-/* ------------ */
-
-	if( gArgs.ref_layer < 0 ) {
-
-		gArgs.ref_layer = MAXINT;
-
-		for( int i = 0; i < nr; ++i ) {
-
-			if( vRgn[i].itr >= 0 ) {
-
-				gArgs.ref_layer =
-					min( gArgs.ref_layer, vRgn[i].z );
-			}
-		}
-
-		printf(
-		"\nNo reference layer specified,"
-		" using lowest layer %d\n", gArgs.ref_layer );
-	}
-
-/* ---------------------------------------- */
-/* Search for greatest outward translations */
-/* ---------------------------------------- */
-
-	double	vNW = -MAXINT,
-			vNE = -MAXINT,
-			vSE = -MAXINT,
-			vSW = -MAXINT;
-	int		iNW, iNE, iSE, iSW,
-			jNW, jNE, jSE, jSW;
-
-	for( int i = 0; i < nr; ++i ) {
-
-		if( vRgn[i].z != gArgs.ref_layer )
-			continue;
-
-		if( vRgn[i].itr < 0 )
-			continue;
-
-		double	v;
-		int		j = vRgn[i].itr * 6;
-
-		if( (v =  X[j+2] + X[j+5]) > vNE )
-			{iNE = i; jNE = j; vNE = v;}
-
-		if( (v =  X[j+2] - X[j+5]) > vSE )
-			{iSE = i; jSE = j; vSE = v;}
-
-		if( (v = -X[j+2] + X[j+5]) > vNW )
-			{iNW = i; jNW = j; vNW = v;}
-
-		if( (v = -X[j+2] - X[j+5]) > vSW )
-			{iSW = i; jSW = j; vSW = v;}
-	}
-
-	printf(
-	"Corner tiles are:"
-	" se %d (%f %f),"
-	" ne %d (%f %f),"
-	" nw %d (%f %f),"
-	" sw %d (%f %f).\n",
-	vRgn[iSE].id, X[jSE+2], X[jSE+5],
-	vRgn[iNE].id, X[jNE+2], X[jNE+5],
-	vRgn[iNW].id, X[jNW+2], X[jNW+5],
-	vRgn[iSW].id, X[jSW+2], X[jSW+5] );
-
-/* ------------------------------------------- */
-/* Use these corner tiles to impose squareness */
-/* ------------------------------------------- */
-
-	double	stiff = gArgs.square_strength;
-
-// Top = bottom (DX = DX)
-
-	{
-		double	V[4] = {stiff, -stiff, -stiff, stiff};
-		int		I[4] = {jSE+2,  jSW+2,  jNE+2, jNW+2};
-
-		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
-	}
-
-// Left = right (DY = DY)
-
-	{
-		double	V[4] = {stiff, -stiff, -stiff, stiff};
-		int		I[4] = {jSE+5,  jSW+5,  jNE+5, jNW+5};
-
-		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
-	}
-
-/* --------------- */
-/* Update solution */
-/* --------------- */
-
-	printf( "Solve with [montage squareness].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
-	PrintMagnitude( X, 6 );
-}
-#endif
-
-#if 0
-// Experiment to simply hardcode which tiles to use as corners.
-// In practice, though, looks like this constraint causes montage
-// to buckle if there really is a natural warp like a banana shape,
-// so not recommended.
-//
-static void SolveWithMontageSqr(
-	vector<double>	&X,
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS )
-{
-	int	nr = vRgn.size();
-
-/* ------------------------ */
-/* Assign hand-picked tiles */
-/* ------------------------ */
-
-	int	jNW, jNE, jSE, jSW, nass = 0;
-
-	for( int i = 0; i < nr && nass < 4; ++i ) {
-
-		if( vRgn[i].itr < 0 )
-			continue;
-
-		int id = vRgn[i].id;
-
-		if( id == 19001000 ) {
-			jNW = i;
-			++nass;
-		}
-		else if( id == 19069000 ) {
-			jNE = i;
-			++nass;
-		}
-		else if( id == 19001149 ) {
-			jSW = i;
-			++nass;
-		}
-		else if( id == 19069149 ) {
-			jSE = i;
-			++nass;
-		}
-	}
-
-	if( nass != 4 ) {
-		printf( "***   ***   *** Missing squareness corner.\n" );
-		return;
-	}
-
-/* ------------------------------------------- */
-/* Use these corner tiles to impose squareness */
-/* ------------------------------------------- */
-
-	double	stiff = gArgs.square_strength;
-
-// Top = bottom (DX = DX)
-
-	{
-		double	V[4] = {stiff, -stiff, -stiff, stiff};
-		int		I[4] = {jSE+2,  jSW+2,  jNE+2, jNW+2};
-
-		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
-	}
-
-// Left = right (DY = DY)
-
-	{
-		double	V[4] = {stiff, -stiff, -stiff, stiff};
-		int		I[4] = {jSE+5,  jSW+5,  jNE+5, jNW+5};
-
-		AddConstraint( LHS, RHS, 4, I, V, 0.0 );
-	}
-
-/* --------------- */
-/* Update solution */
-/* --------------- */
-
-	printf( "Solve with [montage squareness].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
-	PrintMagnitude( X, 6 );
-}
-#endif
-
-/* --------------------------------------------------------------- */
-/* SolveSystemSim ------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-// Like CanAlign, solve for 4-var transforms Y, but return 6-var
-// transforms X to caller.
-//
-// Although this version functions correctly, cross-layer matching
-// is not as good as the full affine (as expected). This version is
-// retained only as an example.
-//
-static void SolveSystemSim( vector<double> &X )
-{
-	int	nvars	= gNTr * 4,
-		nc		= vAllC.size(),
-		nr		= vRgn.size();
-
-	printf( "%d unknowns; %d constraints.\n", nvars, nc );
-
-	vector<double> Y( nvars );
-	vector<double> RHS( nvars, 0.0 );
-	vector<LHSCol> LHS( nvars );
-
-/* ------------------------- */
-/* Add point-pair transforms */
-/* ------------------------- */
-
-// All translational variables are scaled down by 'scale' so they
-// are sized similarly to the sine/cosine variables. This is only
-// to stabilize solver algorithm. We undo the scaling on exit.
-
-	double	scale = 2 * max( gW, gH );
-
-	for( int i = 0; i < nc; ++i ) {
-
-		const Constraint &C = vAllC[i];
-
-		if( !C.used || !C.inlier )
-			continue;
-
-		double	x1 = C.p1.x / scale,
-				y1 = C.p1.y / scale,
-				x2 = C.p2.x / scale,
-				y2 = C.p2.y / scale;
-		int		j  = vRgn[C.r1].itr * 4,
-				k  = vRgn[C.r2].itr * 4;
-
-		// T1(p1) - T2(p2) = 0
-
-		double	v[6]  = {x1,  -y1, 1.0, -x2,  y2, -1.0};
-		int		i1[6] = {j,   j+1, j+2, k,   k+1,  k+2};
-		int		i2[6] = {j+1,   j, j+3, k+1,   k,  k+3};
-
-		AddConstraint( LHS, RHS, 6, i1, v, 0.0 );
-
-		v[1] = y1;
-		v[4] = -y2;
-
-		AddConstraint( LHS, RHS, 6, i2, v, 0.0 );
-	}
-
-/* ------------------------------- */
-/* Make one the identity transform */
-/* ------------------------------- */
-
-// Explicitly set each element of some transform.
-// @@@ Does it matter which one we use?
-
-	double	stiff	= 1.0;
-
-	double	one	= stiff;
-	int		j	= (gNTr / 2) * 4;
-
-	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-
-/* ----------------- */
-/* 1st pass solution */
-/* ----------------- */
-
-// We have enough info for first estimate of the global
-// transforms. We will need these to formulate further
-// constraints on the global shape and scale.
-
-	printf( "Solve with [similarity only].\n" );
-	WriteSolveRead( Y, LHS, RHS, false );
-	PrintMagnitude( Y, 4 );
-
-/* ------------------- */
-/* Make montage square */
-/* ------------------- */
-
-// Add some constraints so the left edge of the array
-// needs to be the same length as the right edge, and
-// repeat for top and bottom.
-
-	const int	MAXINT = 0x7FFFFFFF;
-
-	if( gArgs.make_layer_square ) {
-
-		/* ------------ */
-		/* Which layer? */
-		/* ------------ */
-
-		if( gArgs.ref_layer < 0 ) {
-
-			gArgs.ref_layer = MAXINT;
-
-			for( int i = 0; i < nr; ++i ) {
-
-				if( vRgn[i].itr >= 0 ) {
-
-					gArgs.ref_layer =
-						min( gArgs.ref_layer, vRgn[i].z );
-				}
-			}
-
-			printf(
-			"\nNo reference layer specified,"
-			" using lowest layer %d\n", gArgs.ref_layer );
-		}
-
-		/* ---------------------------------------- */
-		/* Search for greatest outward translations */
-		/* ---------------------------------------- */
-
-		double	vNW = -MAXINT,
-				vNE = -MAXINT,
-				vSE = -MAXINT,
-				vSW = -MAXINT;
-		int		iNW, iNE, iSE, iSW,
-				jNW, jNE, jSE, jSW;
-
-		for( int i = 0; i < nr; ++i ) {
-
-			if( vRgn[i].z != gArgs.ref_layer )
-				continue;
-
-			if( vRgn[i].itr < 0 )
-				continue;
-
-			double	v;
-			int		j = vRgn[i].itr * 4;
-
-			if( (v =  Y[j+2] + Y[j+3]) > vNE )
-				{iNE = i; jNE = j; vNE = v;}
-
-			if( (v =  Y[j+2] - Y[j+3]) > vSE )
-				{iSE = i; jSE = j; vSE = v;}
-
-			if( (v = -Y[j+2] + Y[j+3]) > vNW )
-				{iNW = i; jNW = j; vNW = v;}
-
-			if( (v = -Y[j+2] - Y[j+3]) > vSW )
-				{iSW = i; jSW = j; vSW = v;}
-		}
-
-		printf(
-		"Corner tiles are:"
-		" se %d (%f %f),"
-		" ne %d (%f %f),"
-		" nw %d (%f %f),"
-		" sw %d (%f %f).\n",
-		vRgn[iSE].id, Y[jSE+2], Y[jSE+3],
-		vRgn[iNE].id, Y[jNE+2], Y[jNE+3],
-		vRgn[iNW].id, Y[jNW+2], Y[jNW+3],
-		vRgn[iSW].id, Y[jSW+2], Y[jSW+3] );
-
-		/* ------------------------------------------- */
-		/* Use these corner tiles to impose squareness */
-		/* ------------------------------------------- */
-
-		stiff = gArgs.square_strength;
-
-		// Top = bottom (DX = DX)
-		{
-			double	V[4] = {stiff, -stiff, -stiff, stiff};
-			int		I[4] = {jSE+2,  jSW+2,  jNE+2, jNW+2};
-
-			AddConstraint( LHS, RHS, 4, I, V, 0.0 );
-		}
-
-		// Left = right (DY = DY)
-		{
-			double	V[4] = {stiff, -stiff, -stiff, stiff};
-			int		I[4] = {jSE+3,  jSW+3,  jNE+3, jNW+3};
-
-			AddConstraint( LHS, RHS, 4, I, V, 0.0 );
-		}
-
-		// Update solution
-
-		printf( "Solve with [montage squareness].\n" );
-		WriteSolveRead( Y, LHS, RHS, false );
-		PrintMagnitude( Y, 4 );
-	}
-
-/* ------------------- */
-/* Make unit magnitude */
-/* ------------------- */
-
-// Effectively, we want to constrain the cosines and sines
-// so that c^2 + s^2 = 1. We can't make constraints that are
-// non-linear in the variables Y[], but we can construct an
-// approximation using the {c,s = Y[]} of the previous fit:
-// c*x + s*y = 1. To reduce sensitivity to the sizes of the
-// previous fit c,s, we normalize them by m = sqrt(c^2 + s^2).
-
-	stiff = gArgs.scale_strength;
-
-	for( int i = 0; i < gNTr; ++i ) {
-
-		int		j = i * 4;
-		double	c = Y[j];
-		double	s = Y[j+1];
-		double	m = sqrt( c*c + s*s );
-
-		// c*x/m + s*y/m = 1
-
-		double	V[2] = {c * stiff, s * stiff};
-		int		I[2] = {j, j+1};
-
-		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
-	}
-
-	printf( "Solve with [unit magnitude].\n" );
-	WriteSolveRead( Y, LHS, RHS, false );
-	printf( "\t\t\t\t" );
-	PrintMagnitude( Y, 4 );
-
-/* --------------------------- */
-/* Rescale translational terms */
-/* --------------------------- */
-
-	for( int i = 0; i < nr; ++i ) {
-
-		if( vRgn[i].itr >= 0 ) {
-
-			int j = vRgn[i].itr * 4;
-
-			Y[j+2] *= scale;
-			Y[j+3] *= scale;
-		}
-	}
-
-/* ---------------------------- */
-/* Return expanded 6-var copies */
-/* ---------------------------- */
-
-	X.resize( gNTr * 6 );
-
-	for( int i = 0; i < gNTr; ++i ) {
-
-		double	*dst = &X[i * 6],
-				*src = &Y[i * 4];
-
-		dst[0] = src[0];
-		dst[4] = src[0];
-		dst[1] = -src[1];
-		dst[3] = src[1];
-		dst[2] = src[2];
-		dst[5] = src[3];
-	}
 }
 
 /* --------------------------------------------------------------- */
@@ -1149,14 +655,7 @@ static void IterateInliers(
 		/* Solve */
 		/* ----- */
 
-		M->SolveSystem( X, gNTr, gW, gH,
-			gArgs.same_strength,
-			gArgs.square_strength,
-			gArgs.scale_strength,
-			gArgs.unite_layer,
-			gArgs.tfm_file );
-
-//		SolveSystemSim( X );
+		M->SolveSystem( X, gNTr );
 
 		/* -------------------------- */
 		/* Apply transform uniformity */
@@ -1168,14 +667,7 @@ static void IterateInliers(
 
 				printf( "\nPASS %d (Wild TFs Rmvd) >>>>>>>>\n", pass );
 
-				M->SolveSystem( X, gNTr, gW, gH,
-					gArgs.same_strength,
-					gArgs.square_strength,
-					gArgs.scale_strength,
-					gArgs.unite_layer,
-					gArgs.tfm_file );
-
-//				SolveSystemSim( X );
+				M->SolveSystem( X, gNTr );
 			}
 		}
 
@@ -1407,7 +899,12 @@ static void NoCorrs(
 		/* ...Against each region j in same or next layer */
 		/* ---------------------------------------------- */
 
-		for( int j = i+1; j < nr && zs[j].z <= z1+1; ++j ) {
+// zs[j].z <= z1+1 tests same,down,up; older practice
+//		for( int j = i+1; j < nr && zs[j].z <= z1+1; ++j ) {
+
+// zs[j].z <= z1 tests same and down, as per current practice
+
+		for( int j = i+1; j < nr && zs[j].z <= z1; ++j ) {
 
 			int i2 = zs[j].i;
 
@@ -2526,6 +2023,13 @@ int main( int argc, char **argv )
 
 	vector<double>	X;
 
+	M->SetModelParams(
+		gW, gH,
+		gArgs.same_strength,
+		gArgs.square_strength,
+		gArgs.scale_strength,
+		gArgs.unite_layer, gArgs.tfm_file );
+
 	IterateInliers( X, zs );
 	ApplyLens( X, false );
 
@@ -2536,7 +2040,7 @@ int main( int argc, char **argv )
 	double	xbnd, ybnd;
 
 	M->Bounds( xbnd, ybnd, X,
-		gW, gH, gArgs.lrbt, gArgs.degcw, FOUT );
+		gArgs.lrbt, gArgs.degcw, FOUT );
 
 /* ---------------- */
 /* Write transforms */
@@ -2544,10 +2048,10 @@ int main( int argc, char **argv )
 
 	M->WriteTransforms( zs, X, gArgs.strings, FOUT );
 
-	M->WriteTrakEM( xbnd, ybnd, zs, X, gW, gH, gArgs.trim,
+	M->WriteTrakEM( xbnd, ybnd, zs, X, gArgs.trim,
 		gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
 
-	M->WriteJython( zs, X, gW, gH, gArgs.trim, gNTr );
+	M->WriteJython( zs, X, gArgs.trim, gNTr );
 
 /* ---------------------------------- */
 /* Report any missing correspondences */

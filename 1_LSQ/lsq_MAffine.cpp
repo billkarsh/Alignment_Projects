@@ -17,8 +17,7 @@
 void MAffine::SetPointPairs(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	double			sc,
-	double			same_strength )
+	double			sc )
 {
 	int	nc	= vAllC.size();
 
@@ -99,9 +98,7 @@ void MAffine::SetIdentityTForm(
 void MAffine::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	double			sc,
-	int				unite_layer,
-	const char		*tfm_file )
+	double			sc )
 {
 /* ------------------------------- */
 /* Load TForms for requested layer */
@@ -154,8 +151,7 @@ void MAffine::SolveWithSquareness(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	int				nTr,
-	double			square_strength )
+	int				nTr )
 {
 /* -------------------------- */
 /* Add squareness constraints */
@@ -192,7 +188,7 @@ void MAffine::SolveWithSquareness(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	printf( "Solve with [transform squareness].\n" );
+	printf( "Solve [affines with transform squareness].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 }
@@ -212,8 +208,7 @@ void MAffine::SolveWithUnitMag(
 	vector<double>	&X,
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
-	int				nTR,
-	double			scale_strength )
+	int				nTR )
 {
 	double	stiff = scale_strength;
 
@@ -232,7 +227,7 @@ void MAffine::SolveWithUnitMag(
 		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
 	}
 
-	printf( "Solve with [unit magnitude].\n" );
+	printf( "Solve [affines with unit magnitude].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( X );
@@ -317,16 +312,37 @@ void MAffine::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
+/* DeviantAffines ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MAffine::DeviantAffines(
+	const vector<double>	&T,
+	const vector<double>	&X )
+{
+	int	nr = vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[i];
+
+		if( I.itr < 0 )
+			continue;
+
+		const double	*J = &T[I.itr * 2],
+						*K = &X[I.itr * NX];
+		double			dx = J[0] - K[2],
+						dy = J[1] - K[5];
+
+		if( (dx = sqrt( dx*dx + dy*dy  )) > 200 )
+			printf( "Dev: %d/%d dr= %d\n", I.z, I.id, int(dx) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* AffineEquTransWt ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MAffine::AffineEquTransWt(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength )
+void MAffine::AffineEquTransWt( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -341,14 +357,14 @@ void MAffine::AffineEquTransWt(
 
 // Standard starting point
 
-	SetPointPairs( LHS, RHS, sc, same_strength );
+	SetPointPairs( LHS, RHS, sc );
 	SetIdentityTForm( LHS, RHS, nTr / 2 );
 
 // Get the pure translations T
 
 	MTrans			M;
 	vector<double>	T;
-	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
+	M.SolveSystem( T, nTr );
 
 // Relatively weighted A(pi) = T(pj)
 
@@ -399,26 +415,23 @@ void MAffine::AffineEquTransWt(
 
 // Solve
 
-	//SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
-	//SolveWithUnitMag( X, LHS, RHS, nTr, square_strength );
+	//SolveWithSquareness( X, LHS, RHS, nTr );
+	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	printf( "Solve with [fixed translation].\n" );
+	printf( "Solve [affines from translations].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
+
+	DeviantAffines( T, X );
 }
 
 /* --------------------------------------------------------------- */
 /* AffineEquTrans ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void MAffine::AffineEquTrans(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			square_strength )
+void MAffine::AffineEquTrans( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -435,7 +448,7 @@ void MAffine::AffineEquTrans(
 
 	MTrans			M;
 	vector<double>	T;
-	M.SolveSystem( T, nTr, 0, 0, 0, 0, 0, -1, NULL );
+	M.SolveSystem( T, nTr );
 
 // SetPointPairs: A(pi) = T(pj)
 
@@ -490,10 +503,10 @@ void MAffine::AffineEquTrans(
 
 // Solve
 
-	//SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
-	//SolveWithUnitMag( X, LHS, RHS, nTr, square_strength );
+	//SolveWithSquareness( X, LHS, RHS, nTr );
+	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	printf( "Solve with [fixed translation].\n" );
+	printf( "Solve [affines from translations].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
@@ -511,16 +524,7 @@ void MAffine::AffineEquTrans(
 // are sized similarly to the sine/cosine variables. This is only
 // to stabilize solver algorithm. We undo the scaling on exit.
 //
-void MAffine::SolveSystemStandard(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength,
-	double			scale_strength,
-	int				unite_layer,
-	const char		*tfm_file )
+void MAffine::SolveSystemStandard( vector<double> &X, int nTr )
 {
 	double	scale	= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -537,23 +541,20 @@ void MAffine::SolveSystemStandard(
 /* Get rough solution */
 /* ------------------ */
 
-	SetPointPairs( LHS, RHS, scale, same_strength );
+	SetPointPairs( LHS, RHS, scale );
 
 	if( unite_layer < 0 )
 		SetIdentityTForm( LHS, RHS, nTr / 2 );
 	else
-		SetUniteLayer( LHS, RHS, scale, unite_layer, tfm_file );
+		SetUniteLayer( LHS, RHS, scale );
 
-	SolveWithSquareness( X, LHS, RHS, nTr, square_strength );
+	SolveWithSquareness( X, LHS, RHS, nTr );
 
 /* ----------------------------------------- */
 /* Use solution to add torsional constraints */
 /* ----------------------------------------- */
 
-	//if( gArgs.make_layer_square )
-	//	SolveWithMontageSqr( X, LHS, RHS );
-
-	SolveWithUnitMag( X, LHS, RHS, nTr, scale_strength );
+	SolveWithUnitMag( X, LHS, RHS, nTr );
 
 /* --------------------------- */
 /* Rescale translational terms */
@@ -566,25 +567,13 @@ void MAffine::SolveSystemStandard(
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MAffine::SolveSystem(
-	vector<double>	&X,
-	int				nTr,
-	int				gW,
-	int				gH,
-	double			same_strength,
-	double			square_strength,
-	double			scale_strength,
-	int				unite_layer,
-	const char		*tfm_file )
+void MAffine::SolveSystem( vector<double> &X, int nTr )
 {
-	//SolveSystemStandard( X, nTr, gW, gH,
-	//	same_strength, square_strength,
-	//	scale_strength, unite_layer, tfm_file );
+	//SolveSystemStandard( X, nTr );
 
-	//AffineEquTrans( X, nTr, gW, gH, square_strength );
+	//AffineEquTrans( X, nTr );
 
-	AffineEquTransWt( X, nTr, gW, gH,
-		same_strength, square_strength );
+	AffineEquTransWt( X, nTr );
 }
 
 /* --------------------------------------------------------------- */
@@ -658,8 +647,6 @@ void MAffine::WriteTrakEM(
 	double					ymax,
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						xml_type,
 	int						xml_min,
@@ -777,8 +764,6 @@ void MAffine::WriteTrakEM(
 void MAffine::WriteJython(
 	const vector<zsort>		&zs,
 	const vector<double>	&X,
-	int						gW,
-	int						gH,
 	double					trim,
 	int						Ntr )
 {
