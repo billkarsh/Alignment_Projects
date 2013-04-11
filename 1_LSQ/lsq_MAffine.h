@@ -60,9 +60,9 @@ private:
 		const vector<double>	&T,
 		const vector<double>	&X );
 
-	void AffineEquTransWt( vector<double> &X, int nTr );
+	void AffineFromTransWt( vector<double> &X, int nTr );
 
-	void AffineEquTrans( vector<double> &X, int nTr );
+	void AffineFromTrans( vector<double> &X, int nTr );
 
 	void SolveSystemStandard( vector<double> &X, int nTr );
 

@@ -315,6 +315,10 @@ void MAffine::NewOriginAll(
 /* DeviantAffines ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+// Experiment to see how much translation terms of each affine
+// have moved from the trans-only starting values. We just list
+// all tiles with dev > XXX, but do nothing with that for now.
+//
 void MAffine::DeviantAffines(
 	const vector<double>	&T,
 	const vector<double>	&X )
@@ -339,10 +343,10 @@ void MAffine::DeviantAffines(
 }
 
 /* --------------------------------------------------------------- */
-/* AffineEquTransWt ---------------------------------------------- */
+/* AffineFromTransWt --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MAffine::AffineEquTransWt( vector<double> &X, int nTr )
+void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -435,10 +439,10 @@ void MAffine::AffineEquTransWt( vector<double> &X, int nTr )
 }
 
 /* --------------------------------------------------------------- */
-/* AffineEquTrans ------------------------------------------------ */
+/* AffineFromTrans ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MAffine::AffineEquTrans( vector<double> &X, int nTr )
+void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -585,9 +589,9 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 {
 	//SolveSystemStandard( X, nTr );
 
-	//AffineEquTrans( X, nTr );
+	//AffineFromTrans( X, nTr );
 
-	AffineEquTransWt( X, nTr );
+	AffineFromTransWt( X, nTr );
 }
 
 /* --------------------------------------------------------------- */

@@ -39,11 +39,29 @@ private:
 		double			xorg,
 		double			yorg );
 
-	void HmgphyEquHmgphy( vector<double> &X, int nTr );
+	void AveHTerms(
+		double					g[4],
+		double					h[4],
+		const vector<double>	&X );
 
-	void HmgphyEquAffine( vector<double> &X, int nTr );
+	void MedHTerms(
+		double					g[4],
+		double					h[4],
+		const vector<double>	&X );
 
-	void HmgphyEquTrans( vector<double> &X, int nTr );
+	void ForceHTerms(
+		vector<LHSCol>	&LHS,
+		vector<double>	&RHS,
+		const double	g[4],
+		const double	h[4] );
+
+	void HmgphyFromHmgphy2( vector<double> &X, int nTr );
+
+	void HmgphyFromHmgphy( vector<double> &X, int nTr );
+
+	void HmgphyFromAffine( vector<double> &X, int nTr );
+
+	void HmgphyFromTrans( vector<double> &X, int nTr );
 
 	void WriteSideRatios(
 		const vector<zsort>		&zs,
