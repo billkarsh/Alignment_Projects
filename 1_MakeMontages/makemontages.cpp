@@ -257,7 +257,7 @@ static void _WriteRunlsqFile( const char *path )
 		L += sprintf( xprms + L, "-xmlmax=%d ", gArgs.xml_max );
 
 	fprintf( f,
-	"lsq pts.all -scale=.1 -square=.1 %s> lsq.txt\n\n", xprms );
+	"lsq pts.all -scale=.1 -square=.1 %s$1 > lsq.txt\n\n", xprms );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -523,7 +523,7 @@ static void WriteMontage1File()
 	fprintf( f, "mv pts.all montage\n\n" );
 
 	fprintf( f, "cd montage\n" );
-	fprintf( f, "./runlsq.sht\n\n" );
+	fprintf( f, "./runlsq.sht \"\"\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -678,7 +678,7 @@ static void WriteFinishFile()
 
 	fprintf( f, "./combine.sht %d %d\n", gArgs.zmin, gArgs.zmax );
 	fprintf( f, "cd stack\n" );
-	fprintf( f, "./runlsq.sht\n\n" );
+	fprintf( f, "./runlsq.sht \"\"\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );

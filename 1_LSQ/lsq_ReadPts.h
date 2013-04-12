@@ -28,7 +28,8 @@ void ReadPts_NumTags(
 	FILE		*FOUT,
 	CNX			*cnx,
 	SML			*sml,
-	const char	*ptsfile );
+	const char	*ptsfile,
+	int			davinocorn );
 
 /* --------------------------------------------------------------- */
 /* Globals ------------------------------------------------------- */

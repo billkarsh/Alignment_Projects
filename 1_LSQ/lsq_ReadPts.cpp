@@ -173,6 +173,44 @@ void ReadPts_StrTags(
 }
 
 /* --------------------------------------------------------------- */
+/* IsDaviCorner -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return true to reject corner-corner matches.
+//
+static bool IsDaviCorner( const RGN &R1, const RGN &R2 )
+{
+	if( R1.z != R2.z )
+		return false;
+
+	const char	*c, *n;
+	int			row1, col1, row2, col2, dr, dc;
+
+	n = FileNamePtr( R1.GetName() );
+	c = strstr( n, "col" );
+	sscanf( c, "col%d_row%d", &col1, &row1 );
+
+	n = FileNamePtr( R2.GetName() );
+	c = strstr( n, "col" );
+	sscanf( c, "col%d_row%d", &col2, &row2 );
+
+	if( row2 >= row1 )
+		dr = row2 - row1;
+	else
+		dr = row1 - row2;
+
+	if( col2 >= col1 )
+		dc = col2 - col1;
+	else
+		dc = col1 - col2;
+
+	if( dr*dc )
+		return true;
+
+	return false;
+}
+
+/* --------------------------------------------------------------- */
 /* RejectPair ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -225,39 +263,6 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 #endif
 // ------------------------------------
 
-// ------------------------------------
-// reject corner-corner
-#if 1
-	if( R1.z != R2.z )
-		return false;
-
-	const char	*c, *n;
-	int			row1, col1, row2, col2, dr, dc;
-
-	n = FileNamePtr( R1.GetName() );
-	c = strstr( n, "col" );
-	sscanf( c, "col%d_row%d", &col1, &row1 );
-
-	n = FileNamePtr( R2.GetName() );
-	c = strstr( n, "col" );
-	sscanf( c, "col%d_row%d", &col2, &row2 );
-
-	if( row2 >= row1 )
-		dr = row2 - row1;
-	else
-		dr = row1 - row2;
-
-	if( col2 >= col1 )
-		dc = col2 - col1;
-	else
-		dc = col1 - col2;
-
-	if( dr*dc )
-		return true;
-
-#endif
-// ------------------------------------
-
 	return false;
 }
 
@@ -269,7 +274,8 @@ void ReadPts_NumTags(
 	FILE		*FOUT,
 	CNX			*cnx,
 	SML			*sml,
-	const char	*ptsfile )
+	const char	*ptsfile,
+	int			davinocorn )
 {
 	printf( "---- Read pts ----\n" );
 
@@ -307,6 +313,9 @@ void ReadPts_NumTags(
 
 			RGN	R1( key1 );
 			RGN	R2( key2 );
+
+			if( davinocorn && IsDaviCorner( R1, R2 ) )
+				continue;
 
 			if( RejectPair( R1, R2 ) )
 				continue;

@@ -67,7 +67,7 @@ public:
 	bool	strings,
 			lens,
 			use_all,			// align even if #pts < 3/tile
-			reserved;
+			davinocorn;			// no davi bock same lyr corners
 
 public:
 	CArgs_lsq()
@@ -93,6 +93,7 @@ public:
 		strings				= false;
 		lens				= false;
 		use_all				= false;
+		davinocorn			= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -330,6 +331,10 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 		else if( IsArg( "-all", argv[i] ) ) {
 			use_all = true;
 			printf( "Using all correspondences.\n" );
+		}
+		else if( IsArg( "-davinc", argv[i] ) ) {
+			davinocorn = true;
+			printf( "Davi no same layer corners.\n" );
 		}
 		else if( GetArgStr( pat, "-p=", argv[i] ) ) {
 			re_id.Set( pat );
@@ -1967,7 +1972,8 @@ int main( int argc, char **argv )
 			IDFromName, gArgs.dir_file, gArgs.pts_file );
 	}
 	else
-		ReadPts_NumTags( FOUT, cnx, sml, gArgs.pts_file );
+		ReadPts_NumTags( FOUT, cnx, sml, gArgs.pts_file,
+			gArgs.davinocorn );
 
 /* ------------------------- */
 /* Try aligning region pairs */
