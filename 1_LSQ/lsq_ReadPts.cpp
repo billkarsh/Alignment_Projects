@@ -184,7 +184,7 @@ static bool IsDaviCorner( const RGN &R1, const RGN &R2 )
 		return false;
 
 	const char	*c, *n;
-	int			row1, col1, row2, col2, dr, dc;
+	int			row1, col1, row2, col2;
 
 	n = FileNamePtr( R1.GetName() );
 	c = strstr( n, "col" );
@@ -194,20 +194,7 @@ static bool IsDaviCorner( const RGN &R1, const RGN &R2 )
 	c = strstr( n, "col" );
 	sscanf( c, "col%d_row%d", &col2, &row2 );
 
-	if( row2 >= row1 )
-		dr = row2 - row1;
-	else
-		dr = row1 - row2;
-
-	if( col2 >= col1 )
-		dc = col2 - col1;
-	else
-		dc = col1 - col2;
-
-	if( dr*dc )
-		return true;
-
-	return false;
+	return ((row2 - row1) * (col2 - col1) != 0);
 }
 
 /* --------------------------------------------------------------- */

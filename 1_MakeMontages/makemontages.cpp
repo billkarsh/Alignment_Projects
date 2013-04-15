@@ -99,7 +99,8 @@ public:
 			xml_max;
 	bool	lens,
 			NoFolds,
-			NoDirs;
+			NoDirs,
+			davinocorn;
 
 public:
 	CArgs_scr()
@@ -116,6 +117,7 @@ public:
 		lens		= false;
 		NoFolds		= false;
 		NoDirs		= false;
+		davinocorn	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -196,6 +198,8 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
 			NoDirs = true;
+		else if( IsArg( "-davinc", argv[i] ) )
+			davinocorn = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -885,7 +889,7 @@ void BlockSet::PartitionJobs( int is0, int isN )
 	for( int a = is0; a < isN; ++a ) {
 
 		Point	pa( W2, H2 );
-		int		ix, iy;
+		int		ix, iy, rowa, cola;
 
 		TS.vtil[a].T.Transform( pa );
 
@@ -903,7 +907,29 @@ void BlockSet::PartitionJobs( int is0, int isN )
 		else if( iy >= ky )
 			iy = ky - 1;
 
+		if( gArgs.davinocorn ) {
+
+			const char	*c, *n;
+
+			n = FileNamePtr( TS.vtil[a].name.c_str() );
+			c = strstr( n, "col" );
+			sscanf( c, "col%d_row%d", &cola, &rowa );
+		}
+
 		for( int b = a + 1; b < isN; ++b ) {
+
+			if( gArgs.davinocorn ) {
+
+				const char	*c, *n;
+				int			rowb, colb;
+
+				n = FileNamePtr( TS.vtil[b].name.c_str() );
+				c = strstr( n, "col" );
+				sscanf( c, "col%d_row%d", &colb, &rowb );
+
+				if( (rowb - rowa) * (colb - cola) != 0 )
+					continue;
+			}
 
 			if( TS.ABOlap( a, b ) > gArgs.minareafrac )
 				K[ix + kx*iy].P.push_back( Pair( a, b ) );

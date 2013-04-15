@@ -12,6 +12,7 @@
 # -lens				;use lens file
 # -nf				;no foldmasks
 # -nd				;no tile directories
+# -davinc			;no davi bock same lyr corners
 # -xmltype=0
 # -xmlmin=0
 # -xmlmax=0
