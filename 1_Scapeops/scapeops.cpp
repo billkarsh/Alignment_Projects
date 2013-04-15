@@ -646,7 +646,7 @@ static void ScapeStuff()
 	}
 	else {
 
-		S.DenovoBestAngle( best, 0, 175, 5, thm );
+		S.DenovoBestAngle( best, 0, 180, 5, thm );
 
 		best.T.Apply_R_Part( A.Opts );
 

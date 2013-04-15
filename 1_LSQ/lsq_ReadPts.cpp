@@ -226,26 +226,26 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
 //		if( col < 33 || col > 39 || row < 85 || row > 91 )
-//		if( col < 42-10 || col > 42+10 || row < 19-10 || row > 19+10 )
+		if( col < 25-4 || col > 25+4 || row < 19-4 || row > 19+4 )
 //		if( row > 2 || col > 2 )
-//			return true;
-
-		if( col == 44 && row == 19 )
-//		if( col == 48 && row == 16 )
 			return true;
+
+//		if( col == 44 && row == 19 )
+//		if( col == 48 && row == 16 )
+//			return true;
 	}
 
 	n = FileNamePtr( R2.GetName() );
 	if( c = strstr( n, "col" ) ) {
 		sscanf( c, "col%d_row%d", &col, &row );
 //		if( col < 33 || col > 39 || row < 85 || row > 91 )
-//		if( col < 42-10 || col > 42+10 || row < 19-10 || row > 19+10 )
+		if( col < 25-4 || col > 25+4 || row < 19-4 || row > 19+4 )
 //		if( row > 2 || col > 2 )
-//			return true;
-
-		if( col == 44 && row == 19 )
-//		if( col == 48 && row == 16 )
 			return true;
+
+//		if( col == 44 && row == 19 )
+//		if( col == 48 && row == 16 )
+//			return true;
 	}
 #endif
 // ------------------------------------
