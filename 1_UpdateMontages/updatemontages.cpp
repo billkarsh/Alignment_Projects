@@ -1,6 +1,12 @@
 //
 // Use montage/TAffineTable files from given working alignment dir
-// to update given xml file, keeping layer orientation same.
+// to update given xml file.
+//
+// Default is to keep layer orientation same as xml file,
+// effectively just improving the accuracy of the xml file.
+//
+// However, -force option replaces xml transforms with the
+// lsq montage solutions.
 //
 
 #include	"Cmdline.h"
@@ -36,6 +42,7 @@ public:
 			*tempdir;
 	int		zmin,
 			zmax;
+	bool	force;
 
 public:
 	CArgs_xml()
@@ -44,6 +51,7 @@ public:
 		tempdir	= NULL;
 		zmin	= 0;
 		zmax	= 32768;
+		force	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -113,6 +121,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
+		else if( IsArg( "-force", argv[i] ) )
+			force = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -248,6 +258,39 @@ static void Apply(
 }
 
 /* --------------------------------------------------------------- */
+/* Force --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Force(
+	TiXmlElement*		layer,
+	int					z,
+	map<MZIDR,TAffine>	&M )
+{
+	MZIDR			key;
+	TiXmlElement*	next;
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+
+	key.z	= z;
+	key.rgn	= 1;
+
+	for( ; p; p = next ) {
+
+		next = p->NextSiblingElement();
+
+		key.id = gArgs.IDFromPatch( p );
+
+		map<MZIDR,TAffine>::iterator	it = M.find( key );
+
+		if( it != M.end() )
+			XMLSetTFVals( p, (it->second).t );
+		else {
+			layer->RemoveChild( p );
+			fprintf( flog, "Layer %d: Tile %d dropped.\n", z, key.id );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* DoLayer ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -258,6 +301,18 @@ static void DoLayer( TiXmlElement* layer, int z )
 
 	if( GetTable( M, z ) && CalcTupdt( Tupdt, layer, z, M ) )
 		Apply( layer, z, Tupdt, M );
+}
+
+/* --------------------------------------------------------------- */
+/* DoLayerForce -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void DoLayerForce( TiXmlElement* layer, int z )
+{
+	map<MZIDR,TAffine>	M;
+
+	if( GetTable( M, z ) )
+		Force( layer, z, M );
 }
 
 /* --------------------------------------------------------------- */
@@ -287,7 +342,10 @@ static void Update()
 		if( z < gArgs.zmin )
 			continue;
 
-		DoLayer( layer, z );
+		if( gArgs.force )
+			DoLayerForce( layer, z );
+		else
+			DoLayer( layer, z );
 	}
 
 /* ---- */

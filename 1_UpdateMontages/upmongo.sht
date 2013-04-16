@@ -10,7 +10,8 @@
 # the tile ID 'N' part of image names.
 #
 # Options:
-# -zmin=i -zmax=j restricts layer range
+# -zmin=i -zmax=j	;restricts layer range
+# -force			;overwrite TForms with lsq solutions
 #
 
 updatemontages PreClicks.xml temp0 -zmin=7 -zmax=119 -p=_idN
