@@ -282,7 +282,7 @@ static void Force(
 		map<MZIDR,TAffine>::iterator	it = M.find( key );
 
 		if( it != M.end() )
-			XMLSetTFVals( p, (it->second).t );
+			XMLSetTFVals( p, it->second.t );
 		else {
 			layer->RemoveChild( p );
 			fprintf( flog, "Layer %d: Tile %d dropped.\n", z, key.id );

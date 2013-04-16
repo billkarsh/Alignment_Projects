@@ -362,7 +362,6 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 // Standard starting point
 
 	SetPointPairs( LHS, RHS, sc );
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
 
 // Get the pure translations T
 
@@ -514,10 +513,6 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 			AddConstraint( LHS, RHS, 3, i2, v, y2 );
 		}
 	}
-
-// Set identity
-
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
 
 // Solve
 

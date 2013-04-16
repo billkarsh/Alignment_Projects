@@ -16,11 +16,6 @@ public:
 	MHmgphy() : MDL( 8, 8 ) {};
 
 private:
-	void SetIdentityTForm(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		int				itr );
-
 	void SetUniteLayer(
 		vector<LHSCol>	&LHS,
 		vector<double>	&RHS,

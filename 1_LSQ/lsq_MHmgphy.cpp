@@ -13,47 +13,6 @@
 
 
 /* --------------------------------------------------------------- */
-/* SetIdentityTForm ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Explicitly set some TForm to Identity.
-// @@@ Does it matter which one we use?
-//
-void MHmgphy::SetIdentityTForm(
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS,
-	int				itr )
-{
-	double	stiff	= 1.0;
-
-	double	one	= stiff;
-	int		j	= itr * NX;
-
-	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
-
-// Report which tile we set
-
-	int	nr = vRgn.size();
-
-	for( int k = 0; k < nr; ++k ) {
-
-		if( vRgn[k].itr == itr ) {
-
-			printf( "Ref region z=%d, id=%d\n",
-			vRgn[k].z, vRgn[k].id );
-			break;
-		}
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* SetUniteLayer ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -424,10 +383,6 @@ void MHmgphy::HmgphyFromHmgphy2( vector<double> &X, int nTr )
 		}
 	}
 
-// Set identity
-
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
-
 // Solve
 
 	printf( "Solve [homographies from homographies].\n" );
@@ -521,10 +476,6 @@ void MHmgphy::HmgphyFromHmgphy( vector<double> &X, int nTr )
 			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
 		}
 	}
-
-// Set identity
-
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
 
 // Solve
 
@@ -628,10 +579,6 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 		}
 	}
 
-// Set identity
-
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
-
 // Solve
 
 	printf( "Solve [homographies from affines].\n" );
@@ -725,10 +672,6 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
 		}
 	}
-
-// Set identity
-
-	SetIdentityTForm( LHS, RHS, nTr / 2 );
 
 // Solve
 
