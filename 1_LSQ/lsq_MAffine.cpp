@@ -428,13 +428,191 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	printf( "Solve [affines from translations].\n" );
+	printf( "Solve [affines from wt translations].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
 
 	DeviantAffines( T, X );
+}
+
+/* --------------------------------------------------------------- */
+/* AffineFromAffine2 --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::AffineFromAffine2( vector<double> &X, int nTr )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Get the Affines A
+
+	vector<double>	A;
+	AffineFromAffine( A, nTr );
+
+// SetPointPairs: A(pi) = A(pj)
+
+	double	fz	= 1.0;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = A(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2,
+					y2;
+			Point	g2 = C.p2;
+
+			L2GPoint( g2, A, vRgn[C.r2].itr );
+			x2 = g2.x * fz / sc;
+			y2 = g2.y * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2,
+					y2;
+			Point	g2 = C.p1;
+
+			L2GPoint( g2, A, vRgn[C.r1].itr );
+			x2 = g2.x * fz / sc;
+			y2 = g2.y * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr );
+	//SolveWithUnitMag( X, LHS, RHS, nTr );
+
+	printf( "Solve [affines from affines * 2].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+}
+
+/* --------------------------------------------------------------- */
+/* AffineFromAffine ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::AffineFromAffine( vector<double> &X, int nTr )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Get the Affines A
+
+	vector<double>	A;
+	AffineFromTrans( A, nTr );
+
+// SetPointPairs: A(pi) = A(pj)
+
+	double	fz	= 1.0;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = A(p2)
+		{
+			int		j  = vRgn[C.r1].itr * NX;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2,
+					y2;
+			Point	g2 = C.p2;
+
+			L2GPoint( g2, A, vRgn[C.r2].itr );
+			x2 = g2.x * fz / sc;
+			y2 = g2.y * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		{
+			int		j  = vRgn[C.r2].itr * NX;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2,
+					y2;
+			Point	g2 = C.p1;
+
+			L2GPoint( g2, A, vRgn[C.r1].itr );
+			x2 = g2.x * fz / sc;
+			y2 = g2.y * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr );
+	//SolveWithUnitMag( X, LHS, RHS, nTr );
+
+	printf( "Solve [affines from affines].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
 }
 
 /* --------------------------------------------------------------- */
@@ -585,6 +763,10 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 	//SolveSystemStandard( X, nTr );
 
 	//AffineFromTrans( X, nTr );
+
+	//AffineFromAffine( X, nTr );
+
+	//AffineFromAffine2( X, nTr );
 
 	AffineFromTransWt( X, nTr );
 }

@@ -385,7 +385,7 @@ void MHmgphy::HmgphyFromHmgphy2( vector<double> &X, int nTr )
 
 // Solve
 
-	printf( "Solve [homographies from homographies].\n" );
+	printf( "Solve [homographies from homographies * 2].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
