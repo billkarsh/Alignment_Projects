@@ -842,11 +842,11 @@ bool ZIDFromFMPath( int &z, int &id, const char *path )
 /* LoadTAffineTbl_AllZ ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// From an LSQ-style TAffineTable file, fill out a table of
-// TAffine[mapped by (z,id)] and a table of all unique z-values.
+// From an LSQ-style TAffineTable file, fill out a map (z,id,rgn)
+// of TAffine and a set of all unique z-values.
 //
 void LoadTAffineTbl_AllZ(
-	map<MZID,TAffine>	&Tmap,
+	map<MZIDR,TAffine>	&Tmap,
 	set<int>			&Zset,
 	const char			*path,
 	FILE				*flog )
@@ -859,22 +859,17 @@ void LoadTAffineTbl_AllZ(
 		if( LS.Get( f ) <= 0 )
 			break;
 
-		MZID	zid;
+		MZIDR	zir;
 		TAffine	T;
-		int		rgn;
 
 		sscanf( LS.line, "%d\t%d\t%d"
 		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
-		&zid.z, &zid.id, &rgn,
+		&zir.z, &zir.id, &zir.rgn,
 		&T.t[0], &T.t[1], &T.t[2],
 		&T.t[3], &T.t[4], &T.t[5] );
 
-		if( rgn != 1 )
-			continue;
-
-		Zset.insert( zid.z );
-
-		Tmap[zid] = T;
+		Zset.insert( zir.z );
+		Tmap[zir] = T;
 	}
 
 	fclose( f );
@@ -925,11 +920,11 @@ void LoadTAffineTbl_ThisZ(
 /* LoadTHmgphyTbl_AllZ ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// From an LSQ-style THmgphyTable file, fill out a table of
-// THmgphy[mapped by (z,id)] and a table of all unique z-values.
+// From an LSQ-style THmgphyTable file, fill out a map (z,id,rgn)
+// of TAffine and a set of all unique z-values.
 //
 void LoadTHmgphyTbl_AllZ(
-	map<MZID,THmgphy>	&Tmap,
+	map<MZIDR,THmgphy>	&Tmap,
 	set<int>			&Zset,
 	const char			*path,
 	FILE				*flog )
@@ -942,22 +937,17 @@ void LoadTHmgphyTbl_AllZ(
 		if( LS.Get( f ) <= 0 )
 			break;
 
-		MZID	zid;
+		MZIDR	zir;
 		THmgphy	T;
-		int		rgn;
 
 		sscanf( LS.line, "%d\t%d\t%d"
 		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
-		&zid.z, &zid.id, &rgn,
+		&zir.z, &zir.id, &zir.rgn,
 		&T.t[0], &T.t[1], &T.t[2], &T.t[3],
 		&T.t[4], &T.t[5], &T.t[6], &T.t[7] );
 
-		if( rgn != 1 )
-			continue;
-
-		Zset.insert( zid.z );
-
-		Tmap[zid] = T;
+		Zset.insert( zir.z );
+		Tmap[zir] = T;
 	}
 
 	fclose( f );

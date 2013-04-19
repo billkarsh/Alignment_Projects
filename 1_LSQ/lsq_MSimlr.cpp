@@ -96,7 +96,7 @@ void MSimlr::SetIdentityTForm(
 /* --------------------------------------------------------------- */
 
 // Set one layer-full of TForms to those from a previous
-// solution output file gArgs.tfm_file.
+// solution output file gArgs.unt_file.
 //
 void MSimlr::SetUniteLayer(
 	vector<LHSCol>	&LHS,
@@ -109,7 +109,7 @@ void MSimlr::SetUniteLayer(
 
 	map<MZIDR,TAffine>	M;
 
-	LoadTAffineTbl_ThisZ( M, unite_layer, tfm_file );
+	LoadTAffineTbl_ThisZ( M, unite_layer, unt_file );
 
 /* ----------------------------- */
 /* Set each TForm in given layer */

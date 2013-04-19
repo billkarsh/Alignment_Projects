@@ -56,9 +56,17 @@ private:
 		double			xorg,
 		double			yorg );
 
-	void DeviantAffines(
+	void DevFromTrans(
 		const vector<double>	&T,
 		const vector<double>	&X );
+
+	void DevFromPrior(
+		const vector<double>	&A,
+		const vector<double>	&X );
+
+	void LoadAffTable( vector<double> &X, int nTr );
+
+	void AffineFromFile( vector<double> &X, int nTr );
 
 	void AffineFromTransWt( vector<double> &X, int nTr );
 

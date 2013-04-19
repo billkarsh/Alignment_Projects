@@ -18,7 +18,8 @@ class MDL {
 protected:
 	const int	NT, NX;
 
-	const char	*tfm_file;
+	const char	*unt_file,
+				*priorafftbl;
 	double		same_strength,
 				square_strength,
 				scale_strength;
@@ -53,9 +54,11 @@ public:
 		double		square_strength,
 		double		scale_strength,
 		int			unite_layer,
-		const char	*tfm_file )
+		const char	*unt_file,
+		const char	*priorafftbl )
 		{
-			this->tfm_file			= tfm_file;
+			this->unt_file			= unt_file;
+			this->priorafftbl		= priorafftbl;
 			this->same_strength		= same_strength;
 			this->square_strength	= square_strength;
 			this->scale_strength	= scale_strength;

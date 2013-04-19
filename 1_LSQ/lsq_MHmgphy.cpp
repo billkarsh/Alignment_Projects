@@ -17,20 +17,27 @@
 /* --------------------------------------------------------------- */
 
 // Set one layer-full of TForms to those from a previous
-// solution output file gArgs.tfm_file.
+// solution output file gArgs.unt_file.
 //
 void MHmgphy::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	double			sc )
 {
+/* --------- */
+/* Once only */
+/* --------- */
+
+	if( unite_layer < 0 )
+		return;
+
 /* ------------------------------- */
 /* Load TForms for requested layer */
 /* ------------------------------- */
 
 	map<MZIDR,THmgphy>	M;
 
-	LoadTHmgphyTbl_ThisZ( M, unite_layer, tfm_file );
+	LoadTHmgphyTbl_ThisZ( M, unite_layer, unt_file );
 
 /* ----------------------------- */
 /* Set each TForm in given layer */
@@ -67,6 +74,12 @@ void MHmgphy::SetUniteLayer(
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[6] );		j++;
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[7] );		j++;
 	}
+
+/* --------- */
+/* Once only */
+/* --------- */
+
+	unite_layer = -1;
 }
 
 /* --------------------------------------------------------------- */
@@ -512,7 +525,7 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 		same_strength,
 		square_strength,
 		scale_strength,
-		unite_layer, tfm_file );
+		-1, NULL, priorafftbl );
 
 	M.SolveSystem( A, nTr );
 
@@ -610,12 +623,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH,
-		same_strength,
-		square_strength,
-		scale_strength,
-		unite_layer, tfm_file );
-
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, NULL, NULL );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: H(pi) = T(pj)

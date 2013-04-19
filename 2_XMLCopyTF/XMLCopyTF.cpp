@@ -51,7 +51,7 @@ public:
 
 static CArgs_xml			gArgs;
 static FILE*				flog = NULL;
-static map<MZID,TAffine>	M;
+static map<MZIDR,TAffine>	M;
 static set<int>				Z;
 
 
@@ -141,11 +141,12 @@ int CArgs_xml::IDFromPatch( TiXmlElement* p )
 
 static void CopyMatchingTF( TiXmlElement* layer, int z )
 {
-	MZID			key;
+	MZIDR			key;
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 	TiXmlElement*	next;
 
-	key.z = z;
+	key.z	= z;
+	key.rgn	= 1;
 
 	for( ; p; p = next ) {
 
@@ -153,7 +154,7 @@ static void CopyMatchingTF( TiXmlElement* layer, int z )
 
 		key.id = gArgs.IDFromPatch( p );
 
-		map<MZID,TAffine>::iterator	it = M.find( key );
+		map<MZIDR,TAffine>::iterator	it = M.find( key );
 
 		if( it != M.end() )
 			XMLSetTFVals( p, it->second.t );

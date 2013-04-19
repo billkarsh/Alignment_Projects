@@ -184,7 +184,7 @@ void WriteThmPair(
 bool ZIDFromFMPath( int &z, int &id, const char *path );
 
 void LoadTAffineTbl_AllZ(
-	map<MZID,TAffine>	&Tmap,
+	map<MZIDR,TAffine>	&Tmap,
 	set<int>			&Zset,
 	const char			*path,
 	FILE				*flog = NULL );
@@ -196,7 +196,7 @@ void LoadTAffineTbl_ThisZ(
 	FILE				*flog = NULL );
 
 void LoadTHmgphyTbl_AllZ(
-	map<MZID,THmgphy>	&Tmap,
+	map<MZIDR,THmgphy>	&Tmap,
 	set<int>			&Zset,
 	const char			*path,
 	FILE				*flog = NULL );

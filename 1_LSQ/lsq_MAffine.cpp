@@ -73,6 +73,10 @@ void MAffine::SetIdentityTForm(
 	AddConstraint( LHS, RHS, 1, &j, &one, one );	j++;
 	AddConstraint( LHS, RHS, 1, &j, &one, 0 );		j++;
 
+// Don't do this with unite layer
+
+	unite_layer = -1;
+
 // Report which tile we set
 
 	int	nr = vRgn.size();
@@ -93,20 +97,27 @@ void MAffine::SetIdentityTForm(
 /* --------------------------------------------------------------- */
 
 // Set one layer-full of TForms to those from a previous
-// solution output file gArgs.tfm_file.
+// solution output file gArgs.unt_file.
 //
 void MAffine::SetUniteLayer(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
 	double			sc )
 {
+/* --------- */
+/* Once only */
+/* --------- */
+
+	if( unite_layer < 0 )
+		return;
+
 /* ------------------------------- */
 /* Load TForms for requested layer */
 /* ------------------------------- */
 
 	map<MZIDR,TAffine>	M;
 
-	LoadTAffineTbl_ThisZ( M, unite_layer, tfm_file );
+	LoadTAffineTbl_ThisZ( M, unite_layer, unt_file );
 
 /* ----------------------------- */
 /* Set each TForm in given layer */
@@ -141,6 +152,12 @@ void MAffine::SetUniteLayer(
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[4] );		j++;
 		AddConstraint( LHS, RHS, 1, &j, &one, one*t[5] / sc );	j++;
 	}
+
+/* --------- */
+/* Once only */
+/* --------- */
+
+	unite_layer = -1;
 }
 
 /* --------------------------------------------------------------- */
@@ -312,14 +329,14 @@ void MAffine::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
-/* DeviantAffines ------------------------------------------------ */
+/* DevFromTrans -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Experiment to see how much translation terms of each affine
 // have moved from the trans-only starting values. We just list
 // all tiles with dev > XXX, but do nothing with that for now.
 //
-void MAffine::DeviantAffines(
+void MAffine::DevFromTrans(
 	const vector<double>	&T,
 	const vector<double>	&X )
 {
@@ -337,9 +354,192 @@ void MAffine::DeviantAffines(
 		double			dx = J[0] - K[2],
 						dy = J[1] - K[5];
 
-		if( (dx = sqrt( dx*dx + dy*dy  )) > 200 )
-			printf( "Dev: %d/%d dr= %d\n", I.z, I.id, int(dx) );
+		if( (dx = sqrt( dx*dx + dy*dy  )) > 200 ) {
+			printf( "Dev: %d.%d:%d dr= %d\n",
+			I.z, I.id, I.rgn, int(dx) );
+		}
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* DevFromPrior -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Experiment to see how much translation terms of each affine
+// have moved from their prior starting values. We just list
+// all tiles with dev > XXX, but do nothing with that for now.
+//
+void MAffine::DevFromPrior(
+	const vector<double>	&A,
+	const vector<double>	&X )
+{
+	int	nr = vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	I = vRgn[i];
+
+		if( I.itr < 0 )
+			continue;
+
+		const double	*J = &A[I.itr * NX],
+						*K = &X[I.itr * NX];
+		double			dx = J[2] - K[2],
+						dy = J[5] - K[5];
+
+		if( (dx = sqrt( dx*dx + dy*dy  )) > 200 ) {
+			printf( "Dev: %d.%d:%d dr= %d\n",
+			I.z, I.id, I.rgn, int(dx) );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* LoadAffTable -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::LoadAffTable( vector<double> &X, int nTr )
+{
+	X.resize( nTr * NX );
+
+// Load and map table
+
+	printf( "Aff: Loading existing table.\n" );
+
+	map<MZIDR,TAffine>	M;
+	set<int>			Z;
+
+	LoadTAffineTbl_AllZ( M, Z, priorafftbl );
+
+// Fill into X
+
+	printf( "Aff: Mapping prior solutions.\n" );
+
+	int	nr = vRgn.size(), nmapped = 0;
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	R = vRgn[i];
+
+		if( R.itr < 0 )
+			continue;
+
+		map<MZIDR,TAffine>::iterator	it;
+
+		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
+
+		if( it != M.end() ) {
+
+			memcpy( &X[R.itr*NX], it->second.t, NX*sizeof(double) );
+			++nmapped;
+		}
+		else {
+			// mark as no solution
+			X[R.itr * NX] = 999.0;
+			printf( "No prior for %d.%d:%d\n", R.z, R.id, R.rgn );
+		}
+	}
+
+// Done
+
+	printf( "Aff: Mapped %d affines.\n\n", nmapped );
+	fflush( stdout );
+}
+
+/* --------------------------------------------------------------- */
+/* AffineFromFile ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MAffine::AffineFromFile( vector<double> &X, int nTr )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Standard starting point
+
+	SetPointPairs( LHS, RHS, sc );
+
+// Load the Affines A
+
+	vector<double>	A;
+	LoadAffTable( A, nTr );
+
+// Relatively weighted: A(pi) = A(pj)
+
+	double	fz	= 0.01;
+	int		nc	= vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = A(p2)
+		if( A[vRgn[C.r2].itr * NX] != 999.0 ) {
+
+			int		j  = vRgn[C.r1].itr * NX;
+			double	x1 = C.p1.x * fz / sc,
+					y1 = C.p1.y * fz / sc,
+					x2,
+					y2;
+			Point	g2 = C.p2;
+
+			L2GPoint( g2, A, vRgn[C.r2].itr );
+			x2 = g2.x * fz / sc;
+			y2 = g2.y * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		if( A[vRgn[C.r1].itr * NX] != 999.0 ) {
+
+			int		j  = vRgn[C.r2].itr * NX;
+			double	x1 = C.p2.x * fz / sc,
+					y1 = C.p2.y * fz / sc,
+					x2,
+					y2;
+			Point	g2 = C.p1;
+
+			L2GPoint( g2, A, vRgn[C.r1].itr );
+			x2 = g2.x * fz / sc;
+			y2 = g2.y * fz / sc;
+
+			double	v[3]	= {  x1,  y1,  fz };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Solve
+
+	printf( "Solve [affines from affine file].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+
+	DevFromPrior( A, X );
+
+	fflush( stdout );
 }
 
 /* --------------------------------------------------------------- */
@@ -368,12 +568,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH,
-		same_strength,
-		square_strength,
-		scale_strength,
-		unite_layer, tfm_file );
-
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, NULL, NULL );
 	M.SolveSystem( T, nTr );
 
 // Relatively weighted A(pi) = T(pj)
@@ -434,7 +629,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 
 	RescaleAll( X, sc );
 
-	DeviantAffines( T, X );
+	DevFromTrans( T, X );
 }
 
 /* --------------------------------------------------------------- */
@@ -637,12 +832,7 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH,
-		same_strength,
-		square_strength,
-		scale_strength,
-		unite_layer, tfm_file );
-
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, NULL, NULL );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: A(pi) = T(pj)
@@ -760,15 +950,23 @@ void MAffine::SolveSystemStandard( vector<double> &X, int nTr )
 
 void MAffine::SolveSystem( vector<double> &X, int nTr )
 {
-	//SolveSystemStandard( X, nTr );
+#if 0
 
-	//AffineFromTrans( X, nTr );
+	SolveSystemStandard( X, nTr );
 
-	//AffineFromAffine( X, nTr );
+#else
 
-	//AffineFromAffine2( X, nTr );
+	if( priorafftbl )
+		AffineFromFile( X, nTr );
+	else {
 
-	AffineFromTransWt( X, nTr );
+		//AffineFromTrans( X, nTr );
+		//AffineFromAffine( X, nTr );
+		//AffineFromAffine2( X, nTr );
+
+		AffineFromTransWt( X, nTr );
+	}
+#endif
 }
 
 /* --------------------------------------------------------------- */

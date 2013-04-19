@@ -55,7 +55,8 @@ public:
 			degcw;				// rotate clockwise degrees
 	char	*pts_file,
 			*dir_file,
-			*tfm_file;
+			*unt_file,
+			*priorafftbl;		// start affine model from these
 	int		model,				// model type {T,S,A,H}
 			unite_layer,
 			ref_layer,
@@ -81,7 +82,8 @@ public:
 		degcw				= 0.0;
 		pts_file			= NULL;
 		dir_file			= NULL;
-		tfm_file			= NULL;
+		unt_file			= NULL;
+		priorafftbl			= NULL;
 		model				= 'A';
 		unite_layer			= -1;
 		ref_layer			= -1;
@@ -307,10 +309,15 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			char	buf[2048];
 
 			sscanf( instr, "%d,%s", &unite_layer, buf );
-			tfm_file = strdup( buf );
+			unt_file = strdup( buf );
 
 			printf( "Uniting: layer %d of '%s'.\n",
-			unite_layer, tfm_file );
+			unite_layer, unt_file );
+		}
+		else if( GetArgStr( instr, "-prior=", argv[i] ) ) {
+
+			priorafftbl = strdup( instr );
+			printf( "Prior solutions: '%s'.\n", priorafftbl );
 		}
 		else if( GetArg( &ref_layer, "-refz=%d", argv[i] ) )
 			printf( "Reference layer %d\n", ref_layer );
@@ -2034,7 +2041,9 @@ int main( int argc, char **argv )
 		gArgs.same_strength,
 		gArgs.square_strength,
 		gArgs.scale_strength,
-		gArgs.unite_layer, gArgs.tfm_file );
+		gArgs.unite_layer,
+		gArgs.unt_file,
+		gArgs.priorafftbl );
 
 	IterateInliers( X, zs );
 	ApplyLens( X, false );
