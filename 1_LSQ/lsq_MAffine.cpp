@@ -952,6 +952,11 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 {
 #if 0
 
+// This older method works fine for small montages, especially
+// if small in the y-dimension, but there will be some banana
+// curvature visible. The newer scaffold method remains more
+// square at any size, so is preferred.
+
 	SolveSystemStandard( X, nTr );
 
 #else
