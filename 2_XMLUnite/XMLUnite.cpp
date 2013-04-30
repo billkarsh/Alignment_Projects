@@ -37,14 +37,18 @@ public:
 			*infile2;
 	int		zolap,
 			reftile;
+	bool	adoptZ,
+			reserved;
 
 public:
 	CArgs_xml()
 	{
-		infile1	= NULL;
-		infile2	= NULL;
-		zolap	= 1;
-		reftile	= 0;
+		infile1		= NULL;
+		infile2		= NULL;
+		zolap		= 1;
+		reftile		= 0;
+		adoptZ		= false;
+		reserved	= 0;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -113,6 +117,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &reftile, "-ref=%d", argv[i] ) )
 			;
+		else if( IsArg( "-adoptZ", argv[i] ) )
+			adoptZ = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -246,7 +252,9 @@ static void Unite()
 
 	do {
 
-		layer2->SetAttribute( "z", ++z );
+		if( !gArgs.adoptZ )
+			layer2->SetAttribute( "z", ++z );
+
 		nextoid = SetOID( layer2, nextoid );
 		UpdateTiles( layer2, T );
 
