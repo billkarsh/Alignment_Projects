@@ -22,7 +22,8 @@ protected:
 				*priorafftbl;
 	double		same_strength,
 				square_strength,
-				scale_strength;
+				scale_strength,
+				scaf_strength;
 	int			gW, gH,
 				unite_layer,
 				mdlreserved;
@@ -53,6 +54,7 @@ public:
 		double		same_strength,
 		double		square_strength,
 		double		scale_strength,
+		double		scaf_strength,
 		int			unite_layer,
 		const char	*unt_file,
 		const char	*priorafftbl )
@@ -62,6 +64,7 @@ public:
 			this->same_strength		= same_strength;
 			this->square_strength	= square_strength;
 			this->scale_strength	= scale_strength;
+			this->scaf_strength		= scaf_strength;
 			this->gW				= gW;
 			this->gH				= gH;
 			this->unite_layer		= unite_layer;

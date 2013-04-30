@@ -474,8 +474,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 
 // Relatively weighted: A(pi) = A(pj)
 
-	double	fz	= 0.01;
-	int		nc	= vAllC.size();
+	int	nc = vAllC.size();
 
 	for( int i = 0; i < nc; ++i ) {
 
@@ -488,17 +487,17 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 		if( A[vRgn[C.r2].itr * NX] != 999.0 ) {
 
 			int		j  = vRgn[C.r1].itr * NX;
-			double	x1 = C.p1.x * fz / sc,
-					y1 = C.p1.y * fz / sc,
+			double	x1 = C.p1.x * scaf_strength / sc,
+					y1 = C.p1.y * scaf_strength / sc,
 					x2,
 					y2;
 			Point	g2 = C.p2;
 
 			L2GPoint( g2, A, vRgn[C.r2].itr );
-			x2 = g2.x * fz / sc;
-			y2 = g2.y * fz / sc;
+			x2 = g2.x * scaf_strength / sc;
+			y2 = g2.y * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  fz };
+			double	v[3]	= {  x1,  y1,  scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -510,17 +509,17 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 		if( A[vRgn[C.r1].itr * NX] != 999.0 ) {
 
 			int		j  = vRgn[C.r2].itr * NX;
-			double	x1 = C.p2.x * fz / sc,
-					y1 = C.p2.y * fz / sc,
+			double	x1 = C.p2.x * scaf_strength / sc,
+					y1 = C.p2.y * scaf_strength / sc,
 					x2,
 					y2;
 			Point	g2 = C.p1;
 
 			L2GPoint( g2, A, vRgn[C.r1].itr );
-			x2 = g2.x * fz / sc;
-			y2 = g2.y * fz / sc;
+			x2 = g2.x * scaf_strength / sc;
+			y2 = g2.y * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  fz };
+			double	v[3]	= {  x1,  y1,  scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -568,13 +567,12 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, NULL, NULL );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL );
 	M.SolveSystem( T, nTr );
 
 // Relatively weighted A(pi) = T(pj)
 
-	double	fz	= 0.01;
-	int		nc	= vAllC.size();
+	int	nc = vAllC.size();
 
 	for( int i = 0; i < nc; ++i ) {
 
@@ -587,12 +585,12 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 		{
 			int		j  = vRgn[C.r1].itr * NX,
 					k  = vRgn[C.r2].itr * 2;
-			double	x1 = C.p1.x * fz / sc,
-					y1 = C.p1.y * fz / sc,
-					x2 = (C.p2.x + T[k  ]) * fz / sc,
-					y2 = (C.p2.y + T[k+1]) * fz / sc;
+			double	x1 = C.p1.x * scaf_strength / sc,
+					y1 = C.p1.y * scaf_strength / sc,
+					x2 = (C.p2.x + T[k  ]) * scaf_strength / sc,
+					y2 = (C.p2.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  fz };
+			double	v[3]	= {  x1,  y1,  scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -604,12 +602,12 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 		{
 			int		j  = vRgn[C.r2].itr * NX,
 					k  = vRgn[C.r1].itr * 2;
-			double	x1 = C.p2.x * fz / sc,
-					y1 = C.p2.y * fz / sc,
-					x2 = (C.p1.x + T[k  ]) * fz / sc,
-					y2 = (C.p1.y + T[k+1]) * fz / sc;
+			double	x1 = C.p2.x * scaf_strength / sc,
+					y1 = C.p2.y * scaf_strength / sc,
+					x2 = (C.p1.x + T[k  ]) * scaf_strength / sc,
+					y2 = (C.p1.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  fz };
+			double	v[3]	= {  x1,  y1,  scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -832,13 +830,12 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, NULL, NULL );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: A(pi) = T(pj)
 
-	double	fz	= 1.0;
-	int		nc	= vAllC.size();
+	int	nc = vAllC.size();
 
 	for( int i = 0; i < nc; ++i ) {
 
@@ -851,12 +848,12 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 		{
 			int		j  = vRgn[C.r1].itr * NX,
 					k  = vRgn[C.r2].itr * 2;
-			double	x1 = C.p1.x * fz / sc,
-					y1 = C.p1.y * fz / sc,
-					x2 = (C.p2.x + T[k  ]) * fz / sc,
-					y2 = (C.p2.y + T[k+1]) * fz / sc;
+			double	x1 = C.p1.x * scaf_strength / sc,
+					y1 = C.p1.y * scaf_strength / sc,
+					x2 = (C.p2.x + T[k  ]) * scaf_strength / sc,
+					y2 = (C.p2.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  fz };
+			double	v[3]	= {  x1,  y1,  scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -868,12 +865,12 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 		{
 			int		j  = vRgn[C.r2].itr * NX,
 					k  = vRgn[C.r1].itr * 2;
-			double	x1 = C.p2.x * fz / sc,
-					y1 = C.p2.y * fz / sc,
-					x2 = (C.p1.x + T[k  ]) * fz / sc,
-					y2 = (C.p1.y + T[k+1]) * fz / sc;
+			double	x1 = C.p2.x * scaf_strength / sc,
+					y1 = C.p2.y * scaf_strength / sc,
+					x2 = (C.p1.x + T[k  ]) * scaf_strength / sc,
+					y2 = (C.p1.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  fz };
+			double	v[3]	= {  x1,  y1,  scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 

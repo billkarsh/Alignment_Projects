@@ -49,6 +49,7 @@ public:
 	double	same_strength,
 			square_strength,
 			scale_strength,
+			scaf_strength,
 			tfm_tol,			// transform uniformity tol
 			thresh,				// outlier if worse than this
 			trim,				// trim this off XML images
@@ -76,6 +77,7 @@ public:
 		same_strength		= 1.0;
 		square_strength		= 0.1;
 		scale_strength		= 0.1;
+		scaf_strength		= 0.01;
 		tfm_tol				= -1.0;
 		thresh				= 700.0;
 		trim				= 0.0;
@@ -273,6 +275,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Setting square strength to %f\n", square_strength );
 		else if( GetArg( &scale_strength, "-scale=%lf", argv[i] ) )
 			printf( "Setting scale strength to %f\n", scale_strength );
+		else if( GetArg( &scaf_strength, "-scaf=%lf", argv[i] ) )
+			printf( "Setting scaffold strength to %f\n", scaf_strength );
 		else if( GetArg( &tfm_tol, "-tformtol=%lf", argv[i] ) )
 			printf( "Setting tform uniformity to %f\n", tfm_tol );
 		else if( GetArg( &thresh, "-threshold=%lf", argv[i] ) )
@@ -2041,6 +2045,7 @@ int main( int argc, char **argv )
 		gArgs.same_strength,
 		gArgs.square_strength,
 		gArgs.scale_strength,
+		gArgs.scaf_strength,
 		gArgs.unite_layer,
 		gArgs.unt_file,
 		gArgs.priorafftbl );
