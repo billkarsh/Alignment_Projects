@@ -497,7 +497,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 			x2 = g2.x * scaf_strength / sc;
 			y2 = g2.y * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  scaf_strength };
+			double	v[3]	= {  x1,  y1, scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -519,7 +519,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 			x2 = g2.x * scaf_strength / sc;
 			y2 = g2.y * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  scaf_strength };
+			double	v[3]	= {  x1,  y1, scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -536,7 +536,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 
 	RescaleAll( X, sc );
 
-	DevFromPrior( A, X );
+//	DevFromPrior( A, X );
 
 	fflush( stdout );
 }
@@ -590,7 +590,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 					x2 = (C.p2.x + T[k  ]) * scaf_strength / sc,
 					y2 = (C.p2.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  scaf_strength };
+			double	v[3]	= {  x1,  y1, scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -607,7 +607,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 					x2 = (C.p1.x + T[k  ]) * scaf_strength / sc,
 					y2 = (C.p1.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  scaf_strength };
+			double	v[3]	= {  x1,  y1, scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -853,7 +853,7 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 					x2 = (C.p2.x + T[k  ]) * scaf_strength / sc,
 					y2 = (C.p2.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  scaf_strength };
+			double	v[3]	= {  x1,  y1, scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 
@@ -870,7 +870,7 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 					x2 = (C.p1.x + T[k  ]) * scaf_strength / sc,
 					y2 = (C.p1.y + T[k+1]) * scaf_strength / sc;
 
-			double	v[3]	= {  x1,  y1,  scaf_strength };
+			double	v[3]	= {  x1,  y1, scaf_strength };
 			int		i1[3]	= {   j, j+1, j+2 },
 					i2[3]	= { j+3, j+4, j+5 };
 

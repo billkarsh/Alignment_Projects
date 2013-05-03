@@ -284,12 +284,37 @@ static void WriteTrakEM2(
 /* BuildStack ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static void Tabulate( const vector<CLog> &vL, int nL )
+{
+	FILE	*f = FileOpenOrDie( "striptable.txt", "w" );
+
+	fprintf( f, "lyr\tA\tt0\tt1\tX\tt3\tt4\tY\n" );
+
+	--nL;
+
+	for( int ib = 0; ib < nL; ++ib ) {
+
+		const TAffine	&T = vL[ib].T;
+
+		fprintf( f, "%d\t%g\t"
+		"%g\t%g\t%g\t%g\t%g\t%g\n",
+		vL[ib].A.z, T.GetRadians() * 180/PI,
+		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5] );
+	}
+
+	fclose( f );
+	exit(42);
+}
+
+
 static void BuildStack()
 {
 // Get log data
 
 	vector<CLog>	vL;
 	int				nL = ReadLogs( vL, gArgs.zmin, gArgs.zmax );
+
+	//Tabulate( vL, nL );
 
 	if( !nL )
 		return;
