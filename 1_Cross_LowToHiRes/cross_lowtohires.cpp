@@ -155,7 +155,7 @@ static void UpdateTAffines()
 	if( !nL )
 		return;
 
-// Get scaled-down image -> image TForms
+// Get scaled-down image -> 0-image TForms
 
 	vector<TAffine>	vTs( nL );
 
