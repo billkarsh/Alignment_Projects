@@ -198,16 +198,10 @@ double CThmScan::PeakHunt( CorRec &best, double hlfwid, ThmRec &thm )
 			B0	= best;
 	double	L	= best.A - hlfwid,
 			R	= best.A + hlfwid,
-			M, lr, rr;
+			M;
 	int		k	= 1;
 
 	clock_t	t0 = StartTiming();
-
-	RFromAngle( C, L, thm );
-	lr = C.R;
-
-	RFromAngle( C, R, thm );
-	rr = C.R;
 
 	RFromAngle( best, M = (L+R)/2.0, thm );
 
@@ -221,29 +215,23 @@ double CThmScan::PeakHunt( CorRec &best, double hlfwid, ThmRec &thm )
 		RFromAngle( C, a = (L+M)/2.0, thm );
 
 		if( C.R >= best.R ) {
-			rr		= best.R;
 			R		= M;
 			best	= C;
 			M		= a;
 		}
-		else {
-			lr		= C.R;
+		else
 			L		= a;
-		}
 
 		// move right back
 		RFromAngle( C, a = (M+R)/2.0, thm );
 
 		if( C.R >= best.R ) {
-			rr		= best.R;
 			L		= M;
 			best	= C;
 			M		= a;
 		}
-		else {
-			rr		= C.R;
+		else
 			R		= a;
-		}
 	}
 
 	if( B0.R > best.R )
@@ -689,7 +677,7 @@ bool CThmScan::UsePriorAngles(
 
 	if( AngleScanWithTweaks( best, ang0, hfangpr, 0.1, thm )
 			< rthresh ||
-		PeakHunt( best, 0.3, thm )
+		PeakHunt( best, 0.1 * 1.5, thm )
 			< rthresh ) {
 
 		fprintf( flog,
@@ -716,9 +704,9 @@ bool CThmScan::DenovoBestAngle(
 {
 	if( AngleScanWithTweaks( best, ang0, hfangdn, step, thm )
 			< rthresh ||
-		AngleScanSel( best, best.A, step * 2.0, step * 0.2, thm )
+		AngleScanSel( best, best.A, step * 2.0, step * 0.05, thm )
 			< rthresh ||
-		PeakHunt( best, 0.3, thm )
+		PeakHunt( best, step * 0.05 * 1.5, thm )
 			< rthresh ) {
 
 		fprintf( flog,
