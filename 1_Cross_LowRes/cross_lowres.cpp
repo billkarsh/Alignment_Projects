@@ -26,12 +26,14 @@ class CArgs_alnmon {
 public:
 	int		zmin,
 			zmax;
+	bool	table;
 
 public:
 	CArgs_alnmon()
 	{
 		zmin	= 0;
 		zmax	= 32768;
+		table	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -87,6 +89,8 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
+		else if( IsArg( "-table", argv[i] ) )
+			table = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -281,9 +285,11 @@ static void WriteTrakEM2(
 }
 
 /* --------------------------------------------------------------- */
-/* BuildStack ---------------------------------------------------- */
+/* Tabulate ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+// Debugging aid: Readout strip transforms.
+//
 static void Tabulate( const vector<CLog> &vL, int nL )
 {
 	FILE	*f = FileOpenOrDie( "striptable.txt", "w" );
@@ -306,6 +312,9 @@ static void Tabulate( const vector<CLog> &vL, int nL )
 	exit(42);
 }
 
+/* --------------------------------------------------------------- */
+/* BuildStack ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
 
 static void BuildStack()
 {
@@ -314,7 +323,8 @@ static void BuildStack()
 	vector<CLog>	vL;
 	int				nL = ReadLogs( vL, gArgs.zmin, gArgs.zmax );
 
-	//Tabulate( vL, nL );
+	if( gArgs.table )
+		Tabulate( vL, nL );
 
 	if( !nL )
 		return;
