@@ -2,6 +2,7 @@
 // Get TAffineTable in given z range.
 //
 
+#include	"GenDefs.h"
 #include	"Cmdline.h"
 #include	"CRegexID.h"
 #include	"File.h"
@@ -32,6 +33,7 @@ private:
 public:
 	char	*infile;
 	int		zmin, zmax;
+	bool	layers;
 
 public:
 	CArgs_xml()
@@ -39,6 +41,7 @@ public:
 		infile	= NULL;
 		zmin	= 0;
 		zmax	= 32768;
+		layers	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -102,6 +105,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
+		else if( IsArg( "-layers", argv[i] ) )
+			layers = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -168,6 +173,86 @@ static void GetSortedTAffines(
 }
 
 /* --------------------------------------------------------------- */
+/* GetWholeLayerTF ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void GetWholeLayerTF()
+{
+/* ---- */
+/* Open */
+/* ---- */
+
+	XML_TKEM		xml( gArgs.infile, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
+
+/* --- */
+/* Get */
+/* --- */
+
+	char		buf[256];
+	const char	*st = FileNamePtr( gArgs.infile );
+
+	sprintf( buf, "%.*s_LayerTF.txt", strlen( st ) - 4, st );
+
+	FILE	*f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "Z\tA\tdA\td0\tT0\tT1\tX\tT3\tT4\tY\n" );
+
+	double	zave0 = 999, zaveprev = 0;
+
+	for( ; layer; layer = layer->NextSiblingElement() ) {
+
+		int	z = atoi( layer->Attribute( "z" ) );
+
+		if( z > gArgs.zmax )
+			break;
+
+		if( z < gArgs.zmin )
+			continue;
+
+		vector<TS>	ts;
+		double		t[6] = {0,0,0,0,0,0}, zave;
+
+		GetSortedTAffines( ts, layer );
+
+		int	nt = ts.size();
+
+		for( int i = 0; i < nt; ++i ) {
+
+			const TAffine &T = ts[i].T;
+
+			t[0] += T.t[0];
+			t[1] += T.t[1];
+			t[2] += T.t[2];
+			t[3] += T.t[3];
+			t[4] += T.t[4];
+			t[5] += T.t[5];
+		}
+
+		t[0] /= nt;
+		t[1] /= nt;
+		t[2] /= nt;
+		t[3] /= nt;
+		t[4] /= nt;
+		t[5] /= nt;
+
+		zave = TAffine( t ).GetRadians() * 180/PI;
+
+		if( zave0 == 999 )
+			zave0 = zave;
+
+		fprintf( f, "%d\t%g\t%g\t%g"
+		"\t%g\t%g\t%g\t%g\t%g\t%g\n",
+		z, zave, zave - zaveprev, zave - zave0,
+		t[0], t[1], t[2], t[3], t[4], t[5] );
+
+		zaveprev = zave;
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
 /* PrintTAffines ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -185,10 +270,10 @@ static void PrintTAffines( FILE *f, const vector<TS> &ts, int z )
 }
 
 /* --------------------------------------------------------------- */
-/* GetTF --------------------------------------------------------- */
+/* GetEachTileTF ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void GetTF()
+static void GetEachTileTF()
 {
 /* ---- */
 /* Open */
@@ -243,7 +328,10 @@ int main( int argc, char* argv[] )
 /* Process */
 /* ------- */
 
-	GetTF();
+	if( gArgs.layers )
+		GetWholeLayerTF();
+	else
+		GetEachTileTF();
 
 /* ---- */
 /* Done */
