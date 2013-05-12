@@ -198,7 +198,7 @@ static void GetWholeLayerTF()
 
 	fprintf( f, "Z\tA\tdA\td0\tT0\tT1\tX\tT3\tT4\tY\n" );
 
-	double	zave0 = 999, zaveprev = 0;
+	double	zave0 = 999, zaveprev = 999;
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
 
@@ -211,7 +211,7 @@ static void GetWholeLayerTF()
 			continue;
 
 		vector<TS>	ts;
-		double		t[6] = {0,0,0,0,0,0}, zave;
+		double		t[6] = {0,0,0,0,0,0}, zave, dz;
 
 		GetSortedTAffines( ts, layer );
 
@@ -238,15 +238,23 @@ static void GetWholeLayerTF()
 
 		zave = TAffine( t ).GetRadians() * 180/PI;
 
-		if( zave0 == 999 )
-			zave0 = zave;
+		if( zave0 == 999 ) {
+			zave0		= zave;
+			zaveprev	= zave;
+		}
+
+		dz			= zave - zaveprev;
+		zaveprev	= zave;
+
+		if( dz < -180 )
+			dz += 360;
+		else if( dz > 180 )
+			dz -= 360;
 
 		fprintf( f, "%d\t%g\t%g\t%g"
 		"\t%g\t%g\t%g\t%g\t%g\t%g\n",
-		z, zave, zave - zaveprev, zave - zave0,
+		z, zave, dz, zave - zave0,
 		t[0], t[1], t[2], t[3], t[4], t[5] );
-
-		zaveprev = zave;
 	}
 
 	fclose( f );
