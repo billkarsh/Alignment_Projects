@@ -346,7 +346,6 @@ void MSimlr::SolveSystem( vector<double> &X, int nTr )
 /* --------------------------------------------------------------- */
 
 void MSimlr::WriteTransforms(
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	int						bstrings,
 	FILE					*FOUT )
@@ -361,7 +360,7 @@ void MSimlr::WriteTransforms(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		if( I.itr < 0 )
 			continue;
@@ -410,7 +409,6 @@ void MSimlr::WriteTransforms(
 void MSimlr::WriteTrakEM(
 	double					xmax,
 	double					ymax,
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	double					trim,
 	int						xml_type,
@@ -451,14 +449,14 @@ void MSimlr::WriteTrakEM(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )
 			continue;
 
 		// changed layer
-		if( zs[i].z != prev ) {
+		if( (*zs)[i].z != prev ) {
 
 			if( prev != -1 )
 				fprintf( f, "\t\t</t2_layer>\n" );
@@ -469,9 +467,9 @@ void MSimlr::WriteTrakEM(
 			"\t\t\tthickness=\"0\"\n"
 			"\t\t\tz=\"%d\"\n"
 			"\t\t>\n",
-			oid++, zs[i].z );
+			oid++, (*zs)[i].z );
 
-			prev = zs[i].z;
+			prev = (*zs)[i].z;
 		}
 
 		// trim trailing quotes and '::'
@@ -527,7 +525,6 @@ void MSimlr::WriteTrakEM(
 /* --------------------------------------------------------------- */
 
 void MSimlr::WriteJython(
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	double					trim,
 	int						Ntr )
@@ -540,7 +537,7 @@ void MSimlr::WriteJython(
 
 	for( int i = 0, itrf = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )

@@ -526,7 +526,8 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 		square_strength,
 		scale_strength,
 		scaf_strength,
-		-1, NULL, priorafftbl );
+		-1, NULL,
+		priorafftbl, zs );
 
 	M.SolveSystem( A, nTr );
 
@@ -624,7 +625,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL, zs );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: H(pi) = T(pj)
@@ -701,9 +702,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 // A B
 // D C
 //
-void MHmgphy::WriteSideRatios(
-	const vector<zsort>		&zs,
-	const vector<double>	&X )
+void MHmgphy::WriteSideRatios( const vector<double> &X )
 {
 	FILE	*f	= FileOpenOrDie( "SideRatios.txt", "w" );
 	int		nr	= vRgn.size();
@@ -711,7 +710,7 @@ void MHmgphy::WriteSideRatios(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		if( I.itr < 0 )
 			continue;
@@ -785,7 +784,6 @@ void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 /* --------------------------------------------------------------- */
 
 void MHmgphy::WriteTransforms(
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	int						bstrings,
 	FILE					*FOUT )
@@ -800,7 +798,7 @@ void MHmgphy::WriteTransforms(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		if( I.itr < 0 )
 			continue;
@@ -844,7 +842,7 @@ void MHmgphy::WriteTransforms(
 	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
 	smag/nTr, smin, smax, smax/smin );
 
-	WriteSideRatios( zs, X );
+	WriteSideRatios( X );
 }
 
 /* --------------------------------------------------------------- */
@@ -885,7 +883,6 @@ static void TopLeft(
 void MHmgphy::WriteTrakEM(
 	double					xmax,
 	double					ymax,
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	double					trim,
 	int						xml_type,
@@ -926,14 +923,14 @@ void MHmgphy::WriteTrakEM(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )
 			continue;
 
 		// changed layer
-		if( zs[i].z != prev ) {
+		if( (*zs)[i].z != prev ) {
 
 			if( prev != -1 )
 				fprintf( f, "\t\t</t2_layer>\n" );
@@ -944,9 +941,9 @@ void MHmgphy::WriteTrakEM(
 			"\t\t\tthickness=\"0\"\n"
 			"\t\t\tz=\"%d\"\n"
 			"\t\t>\n",
-			oid++, zs[i].z );
+			oid++, (*zs)[i].z );
 
-			prev = zs[i].z;
+			prev = (*zs)[i].z;
 		}
 
 		// trim trailing quotes and '::'
@@ -1013,7 +1010,6 @@ void MHmgphy::WriteTrakEM(
 /* --------------------------------------------------------------- */
 
 void MHmgphy::WriteJython(
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	double					trim,
 	int						Ntr )
@@ -1026,7 +1022,7 @@ void MHmgphy::WriteJython(
 
 	for( int i = 0, itrf = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )

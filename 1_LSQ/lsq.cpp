@@ -2048,7 +2048,8 @@ int main( int argc, char **argv )
 		gArgs.scaf_strength,
 		gArgs.unite_layer,
 		gArgs.unt_file,
-		gArgs.priorafftbl );
+		gArgs.priorafftbl,
+		&zs );
 
 	IterateInliers( X, zs );
 	ApplyLens( X, false );
@@ -2066,12 +2067,12 @@ int main( int argc, char **argv )
 /* Write transforms */
 /* ---------------- */
 
-	M->WriteTransforms( zs, X, gArgs.strings, FOUT );
+	M->WriteTransforms( X, gArgs.strings, FOUT );
 
-	M->WriteTrakEM( xbnd, ybnd, zs, X, gArgs.trim,
+	M->WriteTrakEM( xbnd, ybnd, X, gArgs.trim,
 		gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
 
-	M->WriteJython( zs, X, gArgs.trim, gNTr );
+	M->WriteJython( X, gArgs.trim, gNTr );
 
 /* ---------------------------------- */
 /* Report any missing correspondences */

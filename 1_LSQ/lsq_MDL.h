@@ -18,6 +18,8 @@ class MDL {
 protected:
 	const int	NT, NX;
 
+	const vector<zsort>	*zs;
+
 	const char	*unt_file,
 				*priorafftbl;
 	double		same_strength,
@@ -49,16 +51,18 @@ public:
 	int MinLinks()	{return NX/2;};
 
 	void SetModelParams(
-		int			gW,
-		int			gH,
-		double		same_strength,
-		double		square_strength,
-		double		scale_strength,
-		double		scaf_strength,
-		int			unite_layer,
-		const char	*unt_file,
-		const char	*priorafftbl )
+		int					gW,
+		int					gH,
+		double				same_strength,
+		double				square_strength,
+		double				scale_strength,
+		double				scaf_strength,
+		int					unite_layer,
+		const char			*unt_file,
+		const char			*priorafftbl,
+		const vector<zsort> *zs )
 		{
+			this->zs				= zs;
 			this->unt_file			= unt_file;
 			this->priorafftbl		= priorafftbl;
 			this->same_strength		= same_strength;
@@ -81,7 +85,6 @@ public:
 		FILE					*FOUT );
 
 	virtual void WriteTransforms(
-		const vector<zsort>		&zs,
 		const vector<double>	&X,
 		int						bstrings,
 		FILE					*FOUT ) = 0;
@@ -89,7 +92,6 @@ public:
 	virtual void WriteTrakEM(
 		double					xmax,
 		double					ymax,
-		const vector<zsort>		&zs,
 		const vector<double>	&X,
 		double					trim,
 		int						xml_type,
@@ -97,7 +99,6 @@ public:
 		int						xml_max ) = 0;
 
 	virtual void WriteJython(
-		const vector<zsort>		&zs,
 		const vector<double>	&X,
 		double					trim,
 		int						Ntr ) = 0;

@@ -29,7 +29,6 @@ public:
 	void SolveSystem( vector<double> &X, int nTr );
 
 	void WriteTransforms(
-		const vector<zsort>		&zs,
 		const vector<double>	&X,
 		int						bstrings,
 		FILE					*FOUT );
@@ -37,7 +36,6 @@ public:
 	void WriteTrakEM(
 		double					xmax,
 		double					ymax,
-		const vector<zsort>		&zs,
 		const vector<double>	&X,
 		double					trim,
 		int						xml_type,
@@ -45,7 +43,6 @@ public:
 		int						xml_max );
 
 	void WriteJython(
-		const vector<zsort>		&zs,
 		const vector<double>	&X,
 		double					trim,
 		int						Ntr );

@@ -567,7 +567,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL, zs );
 	M.SolveSystem( T, nTr );
 
 // Relatively weighted A(pi) = T(pj)
@@ -830,7 +830,7 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL, zs );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: A(pi) = T(pj)
@@ -976,7 +976,6 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 /* --------------------------------------------------------------- */
 
 void MAffine::WriteTransforms(
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	int						bstrings,
 	FILE					*FOUT )
@@ -991,7 +990,7 @@ void MAffine::WriteTransforms(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		if( I.itr < 0 )
 			continue;
@@ -1040,7 +1039,6 @@ void MAffine::WriteTransforms(
 void MAffine::WriteTrakEM(
 	double					xmax,
 	double					ymax,
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	double					trim,
 	int						xml_type,
@@ -1081,14 +1079,14 @@ void MAffine::WriteTrakEM(
 
 	for( int i = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )
 			continue;
 
 		// changed layer
-		if( zs[i].z != prev ) {
+		if( (*zs)[i].z != prev ) {
 
 			if( prev != -1 )
 				fprintf( f, "\t\t</t2_layer>\n" );
@@ -1099,9 +1097,9 @@ void MAffine::WriteTrakEM(
 			"\t\t\tthickness=\"0\"\n"
 			"\t\t\tz=\"%d\"\n"
 			"\t\t>\n",
-			oid++, zs[i].z );
+			oid++, (*zs)[i].z );
 
-			prev = zs[i].z;
+			prev = (*zs)[i].z;
 		}
 
 		// trim trailing quotes and '::'
@@ -1157,7 +1155,6 @@ void MAffine::WriteTrakEM(
 /* --------------------------------------------------------------- */
 
 void MAffine::WriteJython(
-	const vector<zsort>		&zs,
 	const vector<double>	&X,
 	double					trim,
 	int						Ntr )
@@ -1170,7 +1167,7 @@ void MAffine::WriteJython(
 
 	for( int i = 0, itrf = 0; i < nr; ++i ) {
 
-		const RGN&	I = vRgn[zs[i].i];
+		const RGN&	I = vRgn[(*zs)[i].i];
 
 		// skip unused tiles
 		if( I.itr < 0 )
