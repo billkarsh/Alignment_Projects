@@ -834,6 +834,11 @@ void MHmgphy::WriteTransforms(
 		smag += mag;
 		smin  = fmin( smin, mag );
 		smax  = fmax( smax, mag );
+
+		if( mag < 0.9 )
+			printf( "Low mag %f @ %d.%d:%d\n", mag, I.z, I.id, I.rgn );
+		else if( mag > 1.1 )
+			printf( "Hi  mag %f @ %d.%d:%d\n", mag, I.z, I.id, I.rgn );
 	}
 
 	fclose( f );

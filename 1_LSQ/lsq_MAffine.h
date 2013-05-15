@@ -64,9 +64,20 @@ private:
 		const vector<double>	&A,
 		const vector<double>	&X );
 
-	void LoadAffTable( vector<double> &X, int nTr );
+	void LoadAffTable(
+		vector<double>	&X,
+		int				&z0,
+		int				&nz,
+		int				nTr );
+
+	void UntwistScaffold(
+		vector<double>	&X,
+		int				z0,
+		int				nz );
 
 	void AffineFromFile( vector<double> &X, int nTr );
+
+	void AffineFromFile2( vector<double> &X, int nTr );
 
 	void AffineFromTransWt( vector<double> &X, int nTr );
 

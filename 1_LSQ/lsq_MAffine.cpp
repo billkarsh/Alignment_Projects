@@ -398,11 +398,19 @@ void MAffine::DevFromPrior(
 /* LoadAffTable -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MAffine::LoadAffTable( vector<double> &X, int nTr )
+// z0 and nz resp. get first layer and num layers in scaffold.
+//
+void MAffine::LoadAffTable(
+	vector<double>	&X,
+	int				&z0,
+	int				&nz,
+	int				nTr )
 {
 	X.resize( nTr * NX );
+	z0	= -1;
+	nz	= 0;
 
-// Load and map table
+// Load table
 
 	printf( "Aff: Loading existing table.\n" );
 
@@ -410,6 +418,19 @@ void MAffine::LoadAffTable( vector<double> &X, int nTr )
 	set<int>			Z;
 
 	LoadTAffineTbl_AllZ( M, Z, priorafftbl );
+
+// Data range
+
+	if( !Z.size() ) {
+		printf( "Aff: No layers in scaffold.\n" );
+		exit( 42 );
+	}
+
+	z0 = *Z.begin();
+	nz = *Z.rbegin();
+
+	printf( "Aff: Z range [%d %d].\n", z0, nz );
+	nz = nz - z0 + 1;
 
 // Fill into X
 
@@ -447,6 +468,172 @@ void MAffine::LoadAffTable( vector<double> &X, int nTr )
 }
 
 /* --------------------------------------------------------------- */
+/* UntwistScaffold ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class RgdSums {
+
+public:
+	double	Xa, Ya, Xb, Yb, XaXb, YaYb, XaYb, YaXb;
+	int		za, zb, N;
+};
+
+
+// The standard way to obtain an external scaffold for use with
+// the -prior option is to use XMLGetTF on HiRes.xml; the result
+// of aligning low-res strips from very good montages. However,
+// better angle calculations can be made later, after the down
+// correspondence points are formed. Adjustments are calculated
+// here as rigid transforms T{theta, kx, ky) from layer a to b.
+//
+// Let c=cos(theta), s=sin(theta), Sum over all point-pairs:
+//
+// E = Sum[Xb - cXa + sYa - kx]^2 + [Yb - sXa - cYa - ky]^2
+//
+// The params u = {theta,kx,ky) are determined by dE/du = 0.
+// If we use notation [arg] => Sum[argi] over point-pairs,
+//
+// kx = ([Xb] - c[Xa] + s[Ya]) / N
+// ky = ([Yb] - s[Xa] - c[Ya]) / N
+//
+//				[YaXb] - [XaYb] + ([Xa][Yb] - [Ya][Xb]) / N
+// tan(theta) = --------------------------------------------
+//				([Xa][Xb] + [Ya][Yb]) / N - [XaXb] - [YaYb]
+//
+void MAffine::UntwistScaffold(
+	vector<double>	&X,
+	int				z0,
+	int				nz )
+{
+/* ------------------------------------------ */
+/* Size sum vector for all layers in scaffold */
+/* ------------------------------------------ */
+
+	if( nz < 2 )
+		return;
+
+	vector<RgdSums>	vS( nz );
+
+	memset( &vS[0], 0, nz*sizeof(RgdSums) );
+
+/* ---------------------------- */
+/* Do sums over all point pairs */
+/* ---------------------------- */
+
+	int	nc = vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		const RGN	&Ra = vRgn[C.r1],
+					&Rb = vRgn[C.r2];
+
+		if( Ra.z == Rb.z )
+			continue;
+
+		if( X[Ra.itr * NX] == 999.0 )
+			continue;
+
+		if( X[Rb.itr * NX] == 999.0 )
+			continue;
+
+		Point	pa = C.p1,
+				pb = C.p2;
+
+		L2GPoint( pa, X, Ra.itr );
+		L2GPoint( pb, X, Rb.itr );
+
+		RgdSums	&S = vS[Ra.z - z0];
+
+		S.Xa += pa.x;
+		S.Ya += pa.y;
+		S.Xb += pb.x;
+		S.Yb += pb.y;
+
+		S.XaXb += pa.x * pb.x;
+		S.YaYb += pa.y * pb.y;
+		S.XaYb += pa.x * pb.y;
+		S.YaXb += pa.y * pb.x;
+
+		S.za = Ra.z;
+		S.zb = Rb.z;
+		++S.N;
+	}
+
+/* --------------------------------------- */
+/* Map cumulative rigids by affected layer */
+/* --------------------------------------- */
+
+	map<int,TAffine>	M;
+	TAffine				Tprev;	// identity tform to start
+
+	for( int i = 1; i < nz; ++i ) {
+
+		RgdSums	&S = vS[i];
+
+		if( S.N < 2 )
+			continue;
+
+		double
+		theta = atan(
+			(S.YaXb - S.XaYb + (S.Xa*S.Yb - S.Ya*S.Xb)/S.N) /
+			((S.Xa*S.Xb + S.Ya*S.Yb)/S.N - S.XaXb - S.YaYb)
+		),
+		c  = cos( theta ),
+		s  = sin( theta ),
+		kx = (S.Xb - c*S.Xa + s*S.Ya) / S.N,
+		ky = (S.Yb - s*S.Xa - c*S.Ya) / S.N;
+
+		TAffine	T( c, -s, kx, s, c, ky );
+
+		// propagate up the stack
+		T = T * Tprev;
+		Tprev = T;
+
+		M[S.za] = T;
+	}
+
+/* ----- */
+/* Apply */
+/* ----- */
+
+	TAffine	Tcache;
+	int		zcache = -1, nr = vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		const RGN&	R = vRgn[(*zs)[i].i];
+
+		if( R.itr < 0 )
+			continue;
+
+		if( X[R.itr * NX] == 999.0 )
+			continue;
+
+		TAffine	T( &X[R.itr * NX] );
+
+		if( R.z != zcache ) {
+
+			zcache = R.z;
+
+			map<int,TAffine>::iterator	it = M.find( zcache );
+
+			if( it != M.end() )
+				Tcache = it->second;
+			else
+				Tcache.NUSetOne();
+		}
+
+		T = Tcache * T;
+		T.CopyOut( &X[R.itr * NX] );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* AffineFromFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -470,7 +657,10 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 // Load the Affines A
 
 	vector<double>	A;
-	LoadAffTable( A, nTr );
+	int				z0, nz;
+
+	LoadAffTable( A, z0, nz, nTr );
+	UntwistScaffold( A, z0, nz );
 
 // Relatively weighted: A(pi) = A(pj)
 
@@ -530,7 +720,112 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 
 // Solve
 
+	//SolveWithSquareness( X, LHS, RHS, nTr );
+	//SolveWithUnitMag( X, LHS, RHS, nTr );
+
 	printf( "Solve [affines from affine file].\n" );
+	WriteSolveRead( X, LHS, RHS, false );
+	PrintMagnitude( X );
+
+	RescaleAll( X, sc );
+
+//	DevFromPrior( A, X );
+
+	fflush( stdout );
+}
+
+/* --------------------------------------------------------------- */
+/* AffineFromFile2 ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::AffineFromFile2( vector<double> &X, int nTr )
+{
+	double	sc		= 2 * max( gW, gH );
+	int		nvars	= nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	vector<double> RHS( nvars, 0.0 );
+	vector<LHSCol> LHS( nvars );
+
+	X.resize( nvars );
+
+// Standard starting point
+
+	SetPointPairs( LHS, RHS, sc );
+
+// Get the Affines A
+
+	vector<double>	A;
+	int				z0 = (*zs).begin()->z,
+					nz = (*zs).rbegin()->z - z0 + 1;
+
+	AffineFromFile( A, nTr );
+	UntwistScaffold( A, z0, nz );
+
+// Relatively weighted: A(pi) = A(pj)
+
+	int	nc = vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		// A(p1) = A(p2)
+		if( A[vRgn[C.r2].itr * NX] != 999.0 ) {
+
+			int		j  = vRgn[C.r1].itr * NX;
+			double	x1 = C.p1.x * scaf_strength / sc,
+					y1 = C.p1.y * scaf_strength / sc,
+					x2,
+					y2;
+			Point	g2 = C.p2;
+
+			L2GPoint( g2, A, vRgn[C.r2].itr );
+			x2 = g2.x * scaf_strength / sc;
+			y2 = g2.y * scaf_strength / sc;
+
+			double	v[3]	= {  x1,  y1, scaf_strength };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+
+		// A(p2) = T(p1)
+		if( A[vRgn[C.r1].itr * NX] != 999.0 ) {
+
+			int		j  = vRgn[C.r2].itr * NX;
+			double	x1 = C.p2.x * scaf_strength / sc,
+					y1 = C.p2.y * scaf_strength / sc,
+					x2,
+					y2;
+			Point	g2 = C.p1;
+
+			L2GPoint( g2, A, vRgn[C.r1].itr );
+			x2 = g2.x * scaf_strength / sc;
+			y2 = g2.y * scaf_strength / sc;
+
+			double	v[3]	= {  x1,  y1, scaf_strength };
+			int		i1[3]	= {   j, j+1, j+2 },
+					i2[3]	= { j+3, j+4, j+5 };
+
+			AddConstraint( LHS, RHS, 3, i1, v, x2 );
+			AddConstraint( LHS, RHS, 3, i2, v, y2 );
+		}
+	}
+
+// Solve
+
+	//SolveWithSquareness( X, LHS, RHS, nTr );
+	//SolveWithUnitMag( X, LHS, RHS, nTr );
+
+	printf( "Solve [affines from affine file * 2].\n" );
 	WriteSolveRead( X, LHS, RHS, false );
 	PrintMagnitude( X );
 
@@ -959,7 +1254,8 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 #else
 
 	if( priorafftbl )
-		AffineFromFile( X, nTr );
+//		AffineFromFile( X, nTr );
+		AffineFromFile2( X, nTr );
 	else {
 
 		//AffineFromTrans( X, nTr );
@@ -1023,6 +1319,11 @@ void MAffine::WriteTransforms(
 		smag += mag;
 		smin  = fmin( smin, mag );
 		smax  = fmax( smax, mag );
+
+		if( mag < 0.9 )
+			printf( "Low mag %f @ %d.%d:%d\n", mag, I.z, I.id, I.rgn );
+		else if( mag > 1.1 )
+			printf( "Hi  mag %f @ %d.%d:%d\n", mag, I.z, I.id, I.rgn );
 	}
 
 	fclose( f );
