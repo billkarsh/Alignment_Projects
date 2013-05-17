@@ -48,7 +48,7 @@ private:
 		double			yorg ) = 0;
 
 public:
-	int MinLinks()	{return NX/2;};
+	int MinPairs()	{return NX/2;};
 
 	void SetModelParams(
 		int					gW,

@@ -13,12 +13,12 @@ using namespace std;
 /* ListWeakConnections ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Add to r12Bad those region pairs having fewer than minLinks
-// corr. points between them.
+// Add to r12Bad those region pairs having < minPrsPerLink
+// corr. point pairs between them.
 //
 void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 {
-	if( minLinks <= 0 )
+	if( minPrsPerLink <= 0 )
 		return;
 
 // Scan for weak pairs
@@ -30,11 +30,11 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 	for( int i = 0; i < nct; ++i ) {
 
 		const CnxEntry&	Ci = cnxTbl[i];
-		int				np = Ci.nlinks.size();
+		int				np = Ci.npairs.size();
 
 		for( int j = 0; j < np; ++j ) {
 
-			if( Ci.nlinks[j] < minLinks )
+			if( Ci.npairs[j] < minPrsPerLink )
 				r12Bad.insert( CRPair( i, Ci.linkto[j] ) );
 		}
 	}
@@ -66,6 +66,35 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 	}
 
 	printf( "\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* IsWeakLink ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool CNX::IsWeakLink( int irgn )
+{
+	const vector<int>	&linkto = cnxTbl[irgn].linkto;
+
+	int	z		= vRgn[irgn].z,
+		nneib	= linkto.size(),
+		nsame	= 0;
+
+	for( int i = 0; i < nneib; ++i ) {
+
+		if( vRgn[linkto[i]].z == z )
+			++nsame;
+	}
+
+	if( nsame < minLinks ) {
+
+		printf( "CNX: Weak link %d.%d:%d\n",
+		z, vRgn[irgn].id, vRgn[irgn].rgn );
+
+		return true;
+	}
+
+	return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -101,6 +130,9 @@ void CNX::MaxConnectedSet( set<int> &ignore )
 		/* ----------------- */
 
 		if( cnxTbl[i].seed >= 0 )
+			continue;
+
+		if( IsWeakLink( i ) )
 			continue;
 
 		/* -------------- */
@@ -155,9 +187,12 @@ void CNX::MaxConnectedSet( set<int> &ignore )
 
 			for( int k = 0; k < nneib; ++k ) {
 
-				// require minLinks corr pts
-				if( Cj.nlinks[k] >= minLinks )
-					s.push( Cj.linkto[k] );
+				// require minPrsPerLink corr pts
+				if( Cj.npairs[k] >= minPrsPerLink ) {
+
+					if( !IsWeakLink( Cj.linkto[k] ) )
+						s.push( Cj.linkto[k] );
+				}
 			}
 		}
 
@@ -251,7 +286,7 @@ int CNX::Set_itr_set_used( set<CRPair> &r12Bad, set<int> &ignore )
 	"%d transforms to be determined, %d point correspondences.\n",
 	nTrans, nGoodC );
 
-	if( nTrans == 0 || nGoodC < minLinks ) {
+	if( nTrans == 0 || nGoodC < minPrsPerLink ) {
 		printf( "Too few transforms or constraints.\n" );
 		exit( 42 );
 	}
@@ -288,13 +323,13 @@ void CNX::AddCorrespondence( int r1, int r2 )
 	for( j = 0; j < n; ++j ) {
 
 		if( C1.linkto[j] == r2 ) {
-			++C1.nlinks[j];
+			++C1.npairs[j];
 			goto do_n2;
 		}
 	}
 
 	C1.linkto.push_back( r2 );
-	C1.nlinks.push_back( 1 );
+	C1.npairs.push_back( 1 );
 
 // Counts for r2
 
@@ -304,13 +339,13 @@ do_n2:
 	for( j = 0; j < n; ++j ) {
 
 		if( C2.linkto[j] == r1 ) {
-			++C2.nlinks[j];
+			++C2.npairs[j];
 			return;
 		}
 	}
 
 	C2.linkto.push_back( r1 );
-	C2.nlinks.push_back( 1 );
+	C2.npairs.push_back( 1 );
 }
 
 /* --------------------------------------------------------------- */
@@ -323,12 +358,13 @@ do_n2:
 //
 // Return valid transform count.
 //
-int CNX::SelectIncludedImages( int _minLinks )
+int CNX::SelectIncludedImages( int _minLinks, int _minPrsPerLink )
 {
 	set<CRPair>	r12Bad;		// suspicious region pairs
 	set<int>	ignore;		// unconnected regions
 
-	minLinks = _minLinks;
+	minLinks		= _minLinks;
+	minPrsPerLink	= _minPrsPerLink;
 
 	ListWeakConnections( r12Bad );
 	MaxConnectedSet( ignore );

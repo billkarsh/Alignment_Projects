@@ -18,11 +18,12 @@ using namespace std;
 class CNX {
 
 private:
-	int	minLinks;
+	int	minLinks,
+		minPrsPerLink;
 
 	typedef struct {
 		vector<int>	linkto;	// which regions it connects to
-		vector<int>	nlinks;	// # points in that connection
+		vector<int>	npairs;	// # points in that connection
 		int			seed;	// starting entry of conn graph
 	} CnxEntry;
 
@@ -31,12 +32,13 @@ private:
 
 private:
 	void ListWeakConnections( set<CRPair> &r12Bad );
+	bool IsWeakLink( int irgn );
 	void MaxConnectedSet( set<int> &ignore );
 	int  Set_itr_set_used( set<CRPair> &r12Bad, set<int> &ignore );
 
 public:
 	void AddCorrespondence( int r1, int r2 );
-	int  SelectIncludedImages( int _minLinks );
+	int  SelectIncludedImages( int _minLinks, int _minPrsPerLink );
 };
 
 

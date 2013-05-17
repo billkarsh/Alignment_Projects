@@ -59,6 +59,7 @@ public:
 			*unt_file,
 			*priorafftbl;		// start affine model from these
 	int		model,				// model type {T,S,A,H}
+			minMtgLinks,		// min connected neib/tile in montage
 			unite_layer,
 			ref_layer,
 			max_pass,
@@ -87,6 +88,7 @@ public:
 		unt_file			= NULL;
 		priorafftbl			= NULL;
 		model				= 'A';
+		minMtgLinks			= 1;
 		unite_layer			= -1;
 		ref_layer			= -1;
 		max_pass			= 1;
@@ -323,6 +325,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			priorafftbl = strdup( instr );
 			printf( "Prior solutions: '%s'.\n", priorafftbl );
 		}
+		else if( GetArg( &minMtgLinks, "-minmtglinks=%d", argv[i] ) )
+			printf( "Minimum montage neib/tile %d\n", minMtgLinks );
 		else if( GetArg( &ref_layer, "-refz=%d", argv[i] ) )
 			printf( "Reference layer %d\n", ref_layer );
 		else if( GetArg( &max_pass, "-pass=%d", argv[i] ) )
@@ -2015,7 +2019,8 @@ int main( int argc, char **argv )
 // Results mark the global RGN.itr fields
 
 	gNTr = cnx->SelectIncludedImages(
-			(gArgs.use_all ? 0 : M->MinLinks()) );
+			gArgs.minMtgLinks,
+			(gArgs.use_all ? 0 : M->MinPairs()) );
 
 	delete cnx;
 
