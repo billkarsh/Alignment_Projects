@@ -1,0 +1,5 @@
+#!/bin/sh
+
+qlogin -l new=true,interactive=true -pe batch $1
+
+
