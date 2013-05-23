@@ -394,8 +394,11 @@ static void WriteDSubNFile( int njobs )
 
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
-	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\t\tcd $jb\n\n" );
+	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
+	fprintf( f, "\t\t\tthen\n" );
+	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\t\tfi\n\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n\n" );
 
@@ -483,7 +486,7 @@ static void WriteReportFiles()
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tfor jb in $(ls -d $lyr/* | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
-	fprintf( f, "\t\t\tif [ ! -e $jb/pts.down ]\n" );
+	fprintf( f, "\t\t\tif [ -e $jb/make.down -a ! -e $jb/pts.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
 	fprintf( f, "\t\t\t\techo \"$jb\" >> DownNopts.txt\n" );
 	fprintf( f, "\t\t\tfi\n" );
