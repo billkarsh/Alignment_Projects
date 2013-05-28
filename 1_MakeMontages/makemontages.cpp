@@ -692,6 +692,26 @@ static void WriteFinishFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteSFinishFile ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteSFinishFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/sfinish.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n\n" );
+
+	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish\n\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* CreateLayerDir ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1153,6 +1173,7 @@ int main( int argc, char* argv[] )
 	WriteReportMonsFile();
 	WriteCombineFile();
 	WriteFinishFile();
+	WriteSFinishFile();
 
 	ForEachLayer();
 

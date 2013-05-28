@@ -19,6 +19,7 @@
 #include	"LinEqu.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
+#include	"Memory.h"
 
 #include	<math.h>
 
@@ -2099,6 +2100,7 @@ int main( int argc, char **argv )
 /* ---- */
 
 	fclose( FOUT );
+	VMStats( stdout );
 
 	return 0;
 }

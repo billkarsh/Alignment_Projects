@@ -40,7 +40,7 @@ _SRC_GEN_ := \
 	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
 	PipeFiles.cpp CAffineLens.cpp TrakEM2_UTL.cpp \
 	ImageIO.cpp Maths.cpp CPoint.cpp TAffine.cpp \
-	THmgphy.cpp LinEqu.cpp
+	THmgphy.cpp LinEqu.cpp Memory.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
