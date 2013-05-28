@@ -705,7 +705,7 @@ static void WriteSFinishFile()
 
 	fprintf( f, "#!/bin/sh\n\n" );
 
-	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish\n\n" );
+	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht\n\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
