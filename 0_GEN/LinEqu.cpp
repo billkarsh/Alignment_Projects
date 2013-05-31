@@ -227,7 +227,12 @@ void WriteSolveRead(
 		strcpy( rname, "results" );
 	}
 
-// Open file
+// Delete any previous results file
+
+	sprintf( buf, "rm -f %s", rname );
+	system( buf );
+
+// Open triples file
 
 	FILE	*f	= FileOpenOrDie( tname, "w" );
 	int		nnz	= 0;	// number of non-zero terms
