@@ -3776,7 +3776,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Solve the system
     vector<double> X(2*nvs);
     fflush(stdout);
-    WriteSolveRead( X, norm_mat, RHS, !gArgs.debug );
+    WriteSolveRead( X, norm_mat, RHS, "A-mos", 1, !gArgs.debug );
     PrintMagnitude( X );
     fflush(stdout);
 

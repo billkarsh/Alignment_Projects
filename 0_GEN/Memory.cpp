@@ -21,11 +21,16 @@
 //
 void VMStats( FILE *flog )
 {
+	char			host[128];
 	struct rusage	usage;
+	int				pid = getpid();
 
+	gethostname( host, sizeof(host) );
 	getrusage( RUSAGE_SELF, &usage );
 
 	fprintf( flog, "\n---- Memory ----\n" );
+	fprintf( flog, "Host name: %s\n", host );
+	fprintf( flog, "PID:       %d\n", pid );
 	fprintf( flog, "User time:   %5d seconds.\n", usage.ru_utime );
 	fprintf( flog, "System time: %5d seconds.\n", usage.ru_stime );
 
@@ -34,7 +39,7 @@ void VMStats( FILE *flog )
 	LS.bufsize	= 1024;
 	LS.line		= (char*)malloc( LS.bufsize );
 
-	sprintf( LS.line, "/proc/%d/status", getpid() );
+	sprintf( LS.line, "/proc/%d/status", pid );
 
 	FILE	*f = fopen( LS.line, "r" );
 
@@ -48,6 +53,8 @@ void VMStats( FILE *flog )
 
 		fclose( f );
 	}
+
+	fprintf( flog, "\n" );
 }
 
 

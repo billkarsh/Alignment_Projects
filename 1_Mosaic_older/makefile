@@ -31,7 +31,7 @@ _SRC_GEN_ := \
 	File.cpp \
 	ImageIO.cpp Maths.cpp Correlation.cpp \
 	CPoint.cpp Geometry.cpp TAffine.cpp \
-	LinEqu.cpp Draw.cpp Debug.cpp
+	LinEqu.cpp Memory.cpp Draw.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

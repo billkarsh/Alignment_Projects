@@ -90,8 +90,7 @@ void MTrans::SolveSystem( vector<double> &X, int nTr )
 
 // SolveFromPoints
 
-	printf( "Solve [translations from points].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "T-FromPts", 1, false );
 }
 
 /* --------------------------------------------------------------- */

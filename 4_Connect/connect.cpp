@@ -87,7 +87,7 @@ for(int i=0; i<p1.size(); i++) {
     AddConstraint(LHS, RHS, 3, i2     ,v2, p2[i].y);   // 0.0 is the right hand side of the constraint
     }
 vector<double> X(4);
-WriteSolveRead( X, LHS, RHS, false );
+WriteSolveRead( X, LHS, RHS, "S-CanAlgn", 1, false );
 PrintMagnitude( X );
 if( print ) {
     double mag = sqrt(X[0]*X[0] + X[1]*X[1]);
@@ -656,7 +656,7 @@ for(int i=0; i<nt; i++) {
     }
 
 vector<double> X(nvars);
-WriteSolveRead( X, LHS, RHS, false );
+WriteSolveRead( X, LHS, RHS, "A-Square", 1, false );
 PrintMagnitude( X );
 
 // add some constraints so the left edge of the array needs to be the same as the right edge,
@@ -697,7 +697,7 @@ int indice2[4] = {sebest+5, swbest+5, nebest+5, nwbest+5};
 AddConstraint(LHS, RHS, 4, indice2, va, 0.0);
 }
 
-WriteSolveRead( X, LHS, RHS, false );
+WriteSolveRead( X, LHS, RHS, "A-Stiff", 1, false );
 PrintMagnitude( X );
 
 // Now add the new constraints to preserve the angle, but push the magnitude to 1
@@ -711,7 +711,7 @@ for(int i=0; i<nt; i++) {
     double va[2] = {a/m*scale_stiff, b/m*scale_stiff};
     AddConstraint(LHS, RHS, 2, ind, va, scale_stiff);
     }
-WriteSolveRead( X, LHS, RHS, false );
+WriteSolveRead( X, LHS, RHS, "A-Unimag", 1, false );
 PrintMagnitude( X );
 
 //rescale the constant terms back to pixel space

@@ -51,7 +51,7 @@ double SML::CanAlign(
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "SML-Test", 1, false );
 
 	if( print ) {
 

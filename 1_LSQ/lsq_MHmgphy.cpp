@@ -398,8 +398,7 @@ void MHmgphy::HmgphyFromHmgphy2( vector<double> &X, int nTr )
 
 // Solve
 
-	printf( "Solve [homographies from homographies * 2].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromH2", 1, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -492,8 +491,7 @@ void MHmgphy::HmgphyFromHmgphy( vector<double> &X, int nTr )
 
 // Solve
 
-	printf( "Solve [homographies from homographies].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromH", 1, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -596,8 +594,7 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 
 // Solve
 
-	printf( "Solve [homographies from affines].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromA", 1, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -685,8 +682,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 
 // Solve
 
-	printf( "Solve [homographies from translations].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromT", 1, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );

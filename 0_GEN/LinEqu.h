@@ -38,6 +38,8 @@ void WriteSolveRead(
 	vector<double>			&X,
 	const vector<LHSCol>	&LHS,
 	const vector<double>	&RHS,
+	const char				*jobtag,
+	int						nproc,
 	bool					uniqueNames );
 
 

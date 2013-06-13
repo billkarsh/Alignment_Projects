@@ -162,8 +162,7 @@ void MSimlr::SolveFromPoints(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	printf( "Solve [similarities from points].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "S-FromPts", 1, false );
 	PrintMagnitude( X );
 }
 
@@ -201,8 +200,7 @@ void MSimlr::SolveWithUnitMag(
 		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
 	}
 
-	printf( "Solve [similarities with unit magnitude].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "S-Unimag", 1, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( X );
 }

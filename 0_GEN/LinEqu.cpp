@@ -1,9 +1,11 @@
 
 
+#include	"Disk.h"
 #include	"File.h"
 #include	"LinEqu.h"
 
 #include	"Maths.h"
+#include	"Memory.h"
 
 
 
@@ -179,7 +181,7 @@ void AddConstraint(
 
 // This is a general solver for a system of linear equations of
 // the form A.X = B, where A is the LHS (NxN) matrix, and the B
-// are the RHS (Nx1) constants.
+// are the RHS (Nx1) constants. This is a blocking call.
 //
 // If N (# of unknowns) is 4 this is solved by simple matrix
 // inversion using routines in this source file.
@@ -188,17 +190,25 @@ void AddConstraint(
 // to external program 'SuperLUSymSolve' and the results are
 // read back in from the disk file 'results'.
 //
+// If nproc == 1 we use single threaded SuperLUSymSolve; the
+// system call will block until completion. Otherwise, we call
+// SuperLUSymSolveMPI and wait for it to create semaphore file
+// 'slu_signal'.
+//
+
 void WriteSolveRead(
 	vector<double>			&X,
 	const vector<LHSCol>	&LHS,
 	const vector<double>	&RHS,
+	const char				*jobtag,
+	int						nproc,
 	bool					uniqueNames )
 {
 	int	nvars = RHS.size();
 
-/* --------------------------------- */
-/* Handle at least this special case */
-/* --------------------------------- */
+/* -------------- */
+/* Exactly 4 vars */
+/* -------------- */
 
 	if( nvars == 4 ) {
 		SolveExplicit4x4( X, LHS, RHS );
@@ -211,7 +221,7 @@ void WriteSolveRead(
 
 // Name files
 
-	char	tname[2048], rname[2048], buf[2048];
+	char	iname[2048], oname[2048], buf[2048];
 
 	if( uniqueNames ) {
 
@@ -219,22 +229,22 @@ void WriteSolveRead(
 
 		gethostname( buf, sizeof(buf) );
 
-		sprintf( tname, "triples_%s_%d", buf, pid );
-		sprintf( rname, "results_%s_%d", buf, pid );
+		sprintf( iname, "triples_%s_%d", buf, pid );
+		sprintf( oname, "results_%s_%d", buf, pid );
 	}
 	else {
-		strcpy( tname, "triples" );
-		strcpy( rname, "results" );
+		strcpy( iname, "triples" );
+		strcpy( oname, "results" );
 	}
 
 // Delete any previous results file
 
-	sprintf( buf, "rm -f %s", rname );
+	sprintf( buf, "rm -f %s", oname );
 	system( buf );
 
 // Open triples file
 
-	FILE	*f	= FileOpenOrDie( tname, "w" );
+	FILE	*f	= FileOpenOrDie( iname, "w" );
 	int		nnz	= 0;	// number of non-zero terms
 
 // Header
@@ -275,20 +285,47 @@ void WriteSolveRead(
 /* Solve */
 /* ----- */
 
-	printf( "\n[[ Invoke solver ]]\n" );
+	printf( "\n[[ Invoke solver: %s ]]\n", jobtag );
+	VMStats( stdout );
 	fflush( stdout );
 
-	sprintf( buf, "SuperLUSymSolve -t -o=%s <%s", rname, tname );
-	system( buf );
+	if( nproc == 1 ) {
 
-	fflush( stdout );
+		sprintf( buf, "SuperLUSymSolve -t -o=%s <%s", oname, iname );
+		system( buf );
+	}
+	else {
+
+		// remove signal file
+		system( "rm -f slu_signal" );
+
+		// submit mpi job
+		sprintf( buf,
+		"qsub -l new=true -N %s -cwd -V -b y"
+		" -pe impi %d 'mpirun -np %d SuperLUSymSolveMPI"
+		" -r=1 -c=%d -t -j=%s -o=%s -i=%s'",
+		jobtag, nproc, nproc, nproc, jobtag, oname, iname );
+		system( buf );
+
+		// await completion
+		for(;;) {
+
+			if( DskExists( "slu_signal" ) )
+				break;
+
+			sleep( 2 );
+		}
+	}
+
+	VMStats( stdout );
 	printf( "[[ Exit solver ]]\n\n" );
+	fflush( stdout );
 
 /* ------------ */
 /* Read results */
 /* ------------ */
 
-	f = FileOpenOrDie( rname, "r" );
+	f = FileOpenOrDie( oname, "r" );
 
 	for( int i = 0; i < nvars; ++i )
 		fscanf( f, "%lf", &X[i] );

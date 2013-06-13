@@ -179,7 +179,7 @@ static void FitAffine(
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, true );
+	WriteSolveRead( X, LHS, RHS, "A-FromMsh", 1, true );
 
 	TAffine	T( &X[0] );
 
@@ -304,7 +304,7 @@ static void FitHmgphy(
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, true );
+	WriteSolveRead( X, LHS, RHS, "H-FromMsh", 1, true );
 
 	THmgphy	T( &X[0] );
 

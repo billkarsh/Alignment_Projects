@@ -421,8 +421,7 @@ static void SolveWithMontageSqr(
 /* Update solution */
 /* --------------- */
 
-	printf( "Solve [affines with montage squareness].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "A-Square", 1, false );
 	PrintMagnitude( X, 6 );
 }
 #endif
@@ -504,8 +503,7 @@ static void SolveWithMontageSqr(
 /* Update solution */
 /* --------------- */
 
-	printf( "Solve [affines with montage squareness].\n" );
-	WriteSolveRead( X, LHS, RHS, false );
+	WriteSolveRead( X, LHS, RHS, "A-Square", 1, false );
 	PrintMagnitude( X, 6 );
 }
 #endif
