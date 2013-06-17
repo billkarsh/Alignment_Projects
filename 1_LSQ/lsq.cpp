@@ -63,6 +63,7 @@ public:
 			minMtgLinks,		// min connected neib/tile in montage
 			unite_layer,
 			ref_layer,
+			nproc,
 			max_pass,
 			xml_type,
 			xml_min,
@@ -92,6 +93,7 @@ public:
 		minMtgLinks			= 1;
 		unite_layer			= -1;
 		ref_layer			= -1;
+		nproc				= 1;
 		max_pass			= 1;
 		xml_type			= 0;
 		xml_min				= 0;
@@ -330,6 +332,8 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 			printf( "Minimum montage neib/tile %d\n", minMtgLinks );
 		else if( GetArg( &ref_layer, "-refz=%d", argv[i] ) )
 			printf( "Reference layer %d\n", ref_layer );
+		else if( GetArg( &nproc, "-nproc=%d", argv[i] ) )
+			printf( "Processors %d\n", nproc );
 		else if( GetArg( &max_pass, "-pass=%d", argv[i] ) )
 			printf( "Setting maximum passes to %d\n", max_pass );
 		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
@@ -2052,6 +2056,7 @@ int main( int argc, char **argv )
 		gArgs.square_strength,
 		gArgs.scale_strength,
 		gArgs.scaf_strength,
+		gArgs.nproc,
 		gArgs.unite_layer,
 		gArgs.unt_file,
 		gArgs.priorafftbl,

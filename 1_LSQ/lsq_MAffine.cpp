@@ -858,7 +858,8 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL, zs );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1,
+		nproc, -1, NULL, NULL, zs );
 	M.SolveSystem( T, nTr );
 
 // Relatively weighted A(pi) = T(pj)
@@ -1118,7 +1119,8 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL, zs );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1,
+		nproc, -1, NULL, NULL, zs );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: A(pi) = T(pj)

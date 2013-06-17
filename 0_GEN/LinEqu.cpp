@@ -301,8 +301,9 @@ void WriteSolveRead(
 
 		// submit mpi job
 		sprintf( buf,
-		"qsub -l new=true -N %s -cwd -V -b y"
-		" -pe impi %d 'mpirun -np %d SuperLUSymSolveMPI"
+		"qsub -l new=true -N %s -cwd -V -b y -pe impi %d"
+		" 'mpirun -np %d"
+		" SuperLUSymSolveMPI"
 		" -r=1 -c=%d -t -j=%s -o=%s -i=%s'",
 		jobtag, nproc, nproc, nproc, jobtag, oname, iname );
 		system( buf );

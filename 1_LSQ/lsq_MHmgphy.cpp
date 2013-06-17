@@ -524,6 +524,7 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 		square_strength,
 		scale_strength,
 		scaf_strength,
+		nproc,
 		-1, NULL,
 		priorafftbl, zs );
 
@@ -622,7 +623,8 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 	MTrans			M;
 	vector<double>	T;
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1, -1, NULL, NULL, zs );
+	M.SetModelParams( gW, gH, -1, -1, -1, -1,
+		nproc, -1, NULL, NULL, zs );
 	M.SolveSystem( T, nTr );
 
 // SetPointPairs: H(pi) = T(pj)

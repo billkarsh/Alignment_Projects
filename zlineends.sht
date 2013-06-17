@@ -9,7 +9,7 @@
 
 if [ "$1" = "-f" ]
 then
-	for ifile in $(grep -rl $'\r' $2*)
+	for ifile in $(grep -rl $'\r' $2)
 	do
 		sed -i 's|\r||g' $ifile
 	done

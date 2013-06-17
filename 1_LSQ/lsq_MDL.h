@@ -28,7 +28,7 @@ protected:
 				scaf_strength;
 	int			gW, gH,
 				unite_layer,
-				mdlreserved;
+				nproc;
 
 protected:
 	MDL( int NT, int NX ) : NT(NT), NX(NX) {};
@@ -57,6 +57,7 @@ public:
 		double				square_strength,
 		double				scale_strength,
 		double				scaf_strength,
+		int					nproc,
 		int					unite_layer,
 		const char			*unt_file,
 		const char			*priorafftbl,
@@ -72,6 +73,7 @@ public:
 			this->gW				= gW;
 			this->gH				= gH;
 			this->unite_layer		= unite_layer;
+			this->nproc				= nproc;
 		};
 
 	virtual void SolveSystem( vector<double> &X, int nTr ) = 0;
