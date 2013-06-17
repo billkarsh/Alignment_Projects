@@ -630,7 +630,8 @@ static bool KillOulierTForms(
 
 static void IterateInliers(
 	vector<double>		&X,
-	const vector<zsort>	&zs )
+	const vector<zsort>	&zs,
+	int					nignored )
 {
 	printf( "---- Iterative solver ----\n" );
 
@@ -781,8 +782,8 @@ static void IterateInliers(
 		lastrms, lastin, lastout, flag );
 	}
 
-	printf( "\nFINAL RMS %.2f MAXIN %.2f MAXOUT %.2f\n\n",
-	lastrms, lastin, lastout );
+	printf( "\nFINAL RMS %.2f MAXIN %.2f MAXOUT %.2f IGNORED %d\n\n",
+	lastrms, lastin, lastout, nignored );
 }
 
 /* --------------------------------------------------------------- */
@@ -2023,8 +2024,10 @@ int main( int argc, char **argv )
 
 // Results mark the global RGN.itr fields
 
+	int	nignored;
+
 	gNTr = cnx->SelectIncludedImages(
-			gArgs.minMtgLinks,
+			nignored, gArgs.minMtgLinks,
 			(gArgs.use_all ? 0 : M->MinPairs()) );
 
 	delete cnx;
@@ -2062,7 +2065,7 @@ int main( int argc, char **argv )
 		gArgs.priorafftbl,
 		&zs );
 
-	IterateInliers( X, zs );
+	IterateInliers( X, zs, nignored );
 	ApplyLens( X, false );
 
 /* ------------------ */

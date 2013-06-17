@@ -33,12 +33,16 @@ private:
 private:
 	void ListWeakConnections( set<CRPair> &r12Bad );
 	bool IsWeakLink( int irgn );
-	void MaxConnectedSet( set<int> &ignore );
+	int  MaxConnectedSet( set<int> &ignore );
 	int  Set_itr_set_used( set<CRPair> &r12Bad, set<int> &ignore );
 
 public:
 	void AddCorrespondence( int r1, int r2 );
-	int  SelectIncludedImages( int _minLinks, int _minPrsPerLink );
+
+	int  SelectIncludedImages(
+		int		&nignored,
+		int		_minLinks,
+		int		_minPrsPerLink );
 };
 
 

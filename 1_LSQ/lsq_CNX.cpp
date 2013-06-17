@@ -104,7 +104,9 @@ bool CNX::IsWeakLink( int irgn )
 // Find the longest interconnected set of regions, and
 // fill list (ignore) with those that do not belong.
 //
-void CNX::MaxConnectedSet( set<int> &ignore )
+// Return number of ignored regions.
+//
+int CNX::MaxConnectedSet( set<int> &ignore )
 {
 	printf( "---- Find maximum set ----\n" );
 
@@ -238,6 +240,8 @@ void CNX::MaxConnectedSet( set<int> &ignore )
 	}
 
 	printf( "\n" );
+
+	return ignore.size();
 }
 
 /* --------------------------------------------------------------- */
@@ -358,7 +362,10 @@ do_n2:
 //
 // Return valid transform count.
 //
-int CNX::SelectIncludedImages( int _minLinks, int _minPrsPerLink )
+int CNX::SelectIncludedImages(
+	int		&nignored,
+	int		_minLinks,
+	int		_minPrsPerLink )
 {
 	set<CRPair>	r12Bad;		// suspicious region pairs
 	set<int>	ignore;		// unconnected regions
@@ -367,7 +374,8 @@ int CNX::SelectIncludedImages( int _minLinks, int _minPrsPerLink )
 	minPrsPerLink	= _minPrsPerLink;
 
 	ListWeakConnections( r12Bad );
-	MaxConnectedSet( ignore );
+	nignored = MaxConnectedSet( ignore );
+
 	return Set_itr_set_used( r12Bad, ignore );
 }
 
