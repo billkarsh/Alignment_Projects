@@ -439,6 +439,17 @@ int CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
 //
 // If i0 or iN are out of bounds, both are set to -1.
 //
+// Usage illustration:
+// -------------------
+// int	is0, isN;
+//
+// TS.GetLayerLimits( is0 = 0, isN );
+//
+// while( isN != -1 ) {
+//	/* do something */
+//	TS.GetLayerLimits( is0 = isN, isN );
+// }
+//
 void CTileSet::GetLayerLimits( int &i0, int &iN )
 {
 	int	nt = vtil.size();
@@ -453,6 +464,47 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 		int	Z = vtil[i0].z;
 
 		for( iN = i0 + 1; iN < nt && vtil[iN].z == Z; ++iN )
+			;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* GetLayerLimitsR ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// This variant is for walking the layers in reverse order.
+//
+// Tiles must already be sorted by z (subsort doesn't matter).
+//
+// Given starting index iN, which is one beyond a desired tile
+// range, that is, [i0,iN) exclusive, walk backwards and set i0
+// accordingly.
+//
+// If i0 or iN are out of bounds, both are set to -1.
+//
+// Usage illustration:
+// -------------------
+// int	is0, isN;
+//
+// TS.GetLayerLimitsR( is0, isN = TS.vtil.size() );
+//
+// while( is0 != -1 ) {
+//	/* do something */
+//	TS.GetLayerLimitsR( is0, isN = is0 );
+// }
+//
+void CTileSet::GetLayerLimitsR( int &i0, int &iN )
+{
+	if( iN <= 0 ) {
+
+		i0 = -1;
+		iN = -1;
+	}
+	else {
+
+		int	Z = vtil[i0 = iN - 1].z;
+
+		for( ; i0 > 0 && vtil[i0 - 1].z == Z; --i0 )
 			;
 	}
 }

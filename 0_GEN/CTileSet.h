@@ -100,6 +100,7 @@ public:
 	int  GetOrder_id( vector<int> &order, int is0, int isN );
 
 	void GetLayerLimits( int &i0, int &iN );
+	void GetLayerLimitsR( int &i0, int &iN );
 
 	void ReadClixFile( vector<TSClix> &clk, const char *path );
 	TAffine SimilarityFromClix( const TSClix &clk );
