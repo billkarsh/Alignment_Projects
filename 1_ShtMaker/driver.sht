@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# shtmaker < infile > outfile
+
+shtmaker < submos.sht > xxx.txt
+
