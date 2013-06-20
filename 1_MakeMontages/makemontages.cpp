@@ -231,8 +231,8 @@ static void CreateTopDir()
 	DskCreateDir( name, flog );
 
 // create mosaic subdir
-	sprintf( name, "%s/mosaic", gArgs.outdir );
-	DskCreateDir( name, flog );
+	//sprintf( name, "%s/mosaic", gArgs.outdir );
+	//DskCreateDir( name, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -242,8 +242,6 @@ static void CreateTopDir()
 static void _WriteRunlsqFile( const char *path )
 {
 	FILE	*f = FileOpenOrDie( path, "w", flog );
-
-	fprintf( f, "#!/bin/sh\n\n" );
 
 	char	xprms[256] = "";
 	int		L = 0;
@@ -260,8 +258,46 @@ static void _WriteRunlsqFile( const char *path )
 	if( gArgs.xml_max != -999 )
 		L += sprintf( xprms + L, "-xmlmax=%d ", gArgs.xml_max );
 
-	fprintf( f,
-	"lsq pts.all -scale=.1 -square=.1 %s$1 > lsq.txt\n\n", xprms );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Assign each tile (or each subregion if tiles divided by folds)\n" );
+	fprintf( f, "# a transform (default is affine) that best describes the mapping of\n" );
+	fprintf( f, "# correspondence points from local images to the shared global system.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > lsq pts,all [options] > lsq.txt\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -model=A\t\t\t;{T=translat,S=simlty,A=affine,H=homography}\n" );
+	fprintf( f, "# -minmtglinks=1\t;min montage neibs/tile\n" );
+	fprintf( f, "# -all\t\t\t\t;override min pts/tile-pair\n" );
+	fprintf( f, "# -davinc\t\t\t;no davi bock same lyr corners\n" );
+	fprintf( f, "# -same=1.0\t\t\t;wt same lyr vs cross layer\n" );
+	fprintf( f, "# -scale=0.1\t\t;wt for unit magnitude constraint\n" );
+	fprintf( f, "# -square=0.1\t\t;wt for equal magnitude cosines,sines constraint\n" );
+	fprintf( f, "# -scaf=0.01\t\t;wt for external scaffold solution\n" );
+	fprintf( f, "# -tformtol=0.2\t\t;max dev of Tform rot-elems from median\n" );
+	fprintf( f, "# -threshold=700.0\t;max inlier error\n" );
+	fprintf( f, "# -pass=1\t\t\t;num ransac passes\n" );
+	fprintf( f, "# -degcw=0.0\t\t;rotate clockwise degrees (for appearance)\n" );
+	fprintf( f, "# -lrbt=a,b,c,d\t\t;forced BBOX, default natural\n" );
+	fprintf( f, "# -unite=2,path\t\t;unite blocks using this layer of this TFormTable\n" );
+	fprintf( f, "# -prior=path\t\t;start affine model with this TFormTable\n" );
+	fprintf( f, "# -nproc=1\t\t\t;num processors to use\n" );
+	fprintf( f, "# -viserr=10\t\t;create color coded error stack; yellow value\n" );
+	fprintf( f, "# -xmltype=0\t\t;ImagePlus type code\n" );
+	fprintf( f, "# -xmlmin=0\t\t\t;intensity scale\n" );
+	fprintf( f, "# -xmlmax=0\t\t\t;intensity scale\n" );
+	fprintf( f, "# -strings\t\t\t;using old-style path-labeled data items\n" );
+	fprintf( f, "# -p=/N\t\t\t\t;tilename id pattern (for -strings)\n" );
+	fprintf( f, "# -trim=0.0\t\t\t;extra margin around each tile\n" );
+	fprintf( f, "# -refz=0\t\t\t;deprecated\n" );
+	fprintf( f, "# -lens\t\t\t\t;apply external affine software lens\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "lsq pts.all -scale=.1 -square=.1 %s$1 > lsq.txt\n",
+	xprms );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -287,31 +323,57 @@ static void WriteSubmosFile()
 	sprintf( buf, "%s/mosaic/submos.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "export MRC_TRIM=12\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Heal montage seams and update superpixel data.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > mos <simple-file> <xmin,ymin,xsize,ysize> <zmin,zmax> [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Default sizing is 0,0,-1,-1 meaning natural size.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -d\t\t\t\t;debug\n" );
+	fprintf( f, "# -strings\t\t\t;simple-file data labeled by path strings\n" );
+	fprintf( f, "# -warp\t\t\t\t;heal seams\n" );
+	fprintf( f, "# -nf\t\t\t\t;no folds\n" );
+	fprintf( f, "# -a\t\t\t\t;annotate\n" );
+	fprintf( f, "# -tiles\t\t\t;make raveler tiles\n" );
+	fprintf( f, "# -noflat\t\t\t;no flat image ('before')\n" );
+	fprintf( f, "# -nomap\t\t\t;no map image (where data from)\n" );
+	fprintf( f, "# -matlab\t\t\t;matlab/closeness order\n" );
+	fprintf( f, "# -drn\t\t\t\t;don't renumber superpixels\n" );
+	fprintf( f, "# -dms=0.01\t\t\t;don't move strength\n" );
+	fprintf( f, "# -fold_dir=path\t;prepended fm location, default=CWD\n" );
+	fprintf( f, "# -region_dir=path\t;results go here, default=CWD\n" );
+	fprintf( f, "# -gray_dir=path\t;gray images go here, default=CWD\n" );
+	fprintf( f, "# -grey_dir=path\t;gray images go here, default=CWD\n" );
+	fprintf( f, "# -sp_dir=path\t\t;superpixel maps go here, default=CWD\n" );
+	fprintf( f, "# -inv_dir=path\t\t;inverse maps go here, default=CWD\n" );
+	fprintf( f, "# -rav_dir=path\t\t;raveler tiles go here, default=CWD\n" );
+	fprintf( f, "# -bmap_dir=path\t;boundary maps go here, default=CWD\n" );
+	fprintf( f, "# -s=1\t\t\t\t;scale down by this integer\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-
-	fprintf( f,
-	"\t\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8"
-	" \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s"
-	" > mos_$lyr.txt\"\n",
+	fprintf( f, "\t\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8 \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s > mos_$lyr.txt\"\n",
 	(gArgs.NoFolds ? " -nf" : "") );
-
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -329,34 +391,44 @@ static void WriteSSubNFile( int njobs )
 	sprintf( buf, "%s/ssub%d.sht", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "export MRC_TRIM=12\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For layer range, submit all make.same and use the make option -j <n>\n" );
+	fprintf( f, "# to set number of concurrent jobs.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./ssub%d.sht <zmin> [zmax]\n",
+	njobs );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n\n" );
-
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n", njobs );
+	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n",
+	njobs );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tdone\n\n" );
-
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -374,37 +446,49 @@ static void WriteDSubNFile( int njobs )
 	sprintf( buf, "%s/dsub%d.sht", gArgs.outdir, njobs );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "export MRC_TRIM=12\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For layer range, submit all make.down and use the make option -j <n>\n" );
+	fprintf( f, "# to set number of concurrent jobs.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./dsub%d.sht <zmin> [zmax]\n",
+	njobs );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n\n" );
-
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
-	fprintf( f, "\t\t\tcd $jb\n\n" );
+	fprintf( f, "\t\t\tcd $jb\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j %d EXTRA='\"\"'\n", njobs );
-	fprintf( f, "\t\t\tfi\n\n" );
+	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j -j %d EXTRA='\"\"'\n",
+	njobs );
+	fprintf( f, "\t\t\tfi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tdone\n\n" );
-
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -424,22 +508,31 @@ static void WriteReportFiles()
 	sprintf( buf, "%s/sreport.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For montages in layer range...\n" );
+	fprintf( f, "# Tabulate sizes of all cluster stderr logs for quick view of faults.\n" );
+	fprintf( f, "# Tabulate sizes of all 'pts.same' files for consistency checking.\n" );
+	fprintf( f, "# Tabulate subblocks for which there were no points.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./sreport.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
-	fprintf( f, "ls -l */S*/qS*.e* > SameErrs.txt\n\n" );
-
-	fprintf( f, "ls -l */S*/pts.same > SamePts.txt\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "ls -l */S*/qS*.e* > SameErrs.txt\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "ls -l */S*/pts.same > SamePts.txt\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "rm -f SameNopts.txt\n" );
-	fprintf( f, "touch SameNopts.txt\n\n" );
-
+	fprintf( f, "touch SameNopts.txt\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
@@ -453,7 +546,8 @@ static void WriteReportFiles()
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -463,22 +557,31 @@ static void WriteReportFiles()
 	sprintf( buf, "%s/dreport.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For down data in layer range...\n" );
+	fprintf( f, "# Tabulate sizes of all cluster stderr logs for quick view of faults.\n" );
+	fprintf( f, "# Tabulate sizes of all 'pts.down' files for consistency checking.\n" );
+	fprintf( f, "# Tabulate subblocks for which there were no points.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./dreport.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
-	fprintf( f, "ls -l */D*/qD*.e* > DownErrs.txt\n\n" );
-
-	fprintf( f, "ls -l */D*/pts.down > DownPts.txt\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "ls -l */D*/qD*.e* > DownErrs.txt\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "ls -l */D*/pts.down > DownPts.txt\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "rm -f DownNopts.txt\n" );
-	fprintf( f, "touch DownNopts.txt\n\n" );
-
+	fprintf( f, "touch DownNopts.txt\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
@@ -492,7 +595,8 @@ static void WriteReportFiles()
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -510,27 +614,35 @@ static void WriteMontage1File()
 	sprintf( buf, "%s/montage1.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "cd $1\n\n" );
-
-	fprintf( f, "rm -f pts.all\n\n" );
-
-	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
-	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < ../imageparams.txt)\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For given layer, gather all point pair files into montage/pts.all,\n" );
+	fprintf( f, "# cd there, run lsq solver.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./montage1.sht <z>\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cd $1\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "rm -f pts.all\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
+	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < ../imageparams.txt)\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "cp ../imageparams.txt pts.all\n" );
-	fprintf( f, "cat $idb/$1/fm.same >> pts.all\n\n" );
-
+	fprintf( f, "cat $idb/$1/fm.same >> pts.all\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\tcat $jb/pts.same >> pts.all\n" );
-	fprintf( f, "done\n\n" );
-
-	fprintf( f, "mv pts.all montage\n\n" );
-
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "mv pts.all montage\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "cd montage\n" );
-	fprintf( f, "./runlsq.sht \"\"\n\n" );
+	fprintf( f, "./runlsq.sht \"\"\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -548,27 +660,31 @@ static void WriteSubmonFile()
 	sprintf( buf, "%s/submon.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For each layer in range, gather points, cd to layer's montage dir,\n" );
+	fprintf( f, "# run lsq there.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./submon.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-
-	fprintf( f,
-	"\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8"
-	" \"./montage1.sht $lyr\"\n" );
-
+	fprintf( f, "\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8 \"./montage1.sht $lyr\"\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -586,17 +702,24 @@ static void WriteReportMonsFile()
 	sprintf( buf, "%s/sumymons.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For layer range, gather list of 'FINAL' lines from lsq.txt files\n" );
+	fprintf( f, "# for individual montages. Report these in MonSumy.txt.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./sumymons.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
-	fprintf( f, "rm -rf MonSumy.txt\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "rm -rf MonSumy.txt\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\tlog=$lyr/montage/lsq.txt\n" );
@@ -604,7 +727,8 @@ static void WriteReportMonsFile()
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\techo Z $lyr `grep -e \"FINAL*\" $log` >> MonSumy.txt\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -622,48 +746,52 @@ static void WriteCombineFile()
 	sprintf( buf, "%s/combine.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "# Gather point pair files into stack/pts.all\n" );
-	fprintf( f, "#\n\n" );
-
-	fprintf( f, "rm -f pts.all\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Gather all point pair files into stack/pts.all\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./combine.sht <zmin> <zmax>\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "rm -f pts.all\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "#get line 1, subst 'IDBPATH=xxx' with 'xxx'\n" );
-	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < imageparams.txt)\n\n" );
-
-	fprintf( f, "cp imageparams.txt pts.all\n\n" );
-
+	fprintf( f, "idb=$(sed -n -e 's|IDBPATH \\(.*\\)|\\1|' -e '1p' < imageparams.txt)\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cp imageparams.txt pts.all\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $2)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\tcat $idb/$lyr/fm.same >> pts.all\n" );
-	fprintf( f, "done\n\n" );
-
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $2)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n\n" );
-
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcat $jb/pts.same >> ../pts.all\n" );
-	fprintf( f, "\t\tdone\n\n" );
-
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tif (($lyr != $1))\n" );
 	fprintf( f, "\t\tthen\n" );
 	fprintf( f, "\t\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\t\tdo\n" );
 	fprintf( f, "\t\t\t\tcat $jb/pts.down >> ../pts.all\n" );
 	fprintf( f, "\t\t\tdone\n" );
-	fprintf( f, "\t\tfi\n\n" );
-
+	fprintf( f, "\t\tfi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
-
-	fprintf( f, "mv pts.all stack\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "mv pts.all stack\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -681,11 +809,19 @@ static void WriteFinishFile()
 	sprintf( buf, "%s/finish.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "./combine.sht %d %d\n", gArgs.zmin, gArgs.zmax );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Gather all points to stack folder, cd there, run lsq solver.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# ./finish.sht\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "./combine.sht %d %d\n",
+	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "cd stack\n" );
-	fprintf( f, "./runlsq.sht \"\"\n\n" );
+	fprintf( f, "./runlsq.sht \"\"\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -703,9 +839,16 @@ static void WriteSFinishFile()
 	sprintf( buf, "%s/sfinish.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Run finish.sht script on its own cluster node.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./sfinish.sht\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -1161,7 +1304,7 @@ int main( int argc, char* argv[] )
 	CreateTopDir();
 
 	WriteRunlsqFile();
-	WriteSubmosFile();
+	//WriteSubmosFile();
 
 	WriteSSubNFile( 4 );
 	WriteSSubNFile( 8 );

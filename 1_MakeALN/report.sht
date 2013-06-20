@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Purpose:
+# Tabulate sizes of all cluster stderr logs for quick view of faults.
+# Tabulate sizes of all 'pts.{same,down}' files for consistency checking.
+#
+# > ./report.sht
+
+
+ls -l */S0_0/qS0_0-*.e* > SameErrs.txt
+ls -l */D0_0/qD0_0-*.e* > DownErrs.txt
+
+ls -l */S0_0/pts.same > SamePts.txt
+ls -l */D0_0/pts.down > DownPts.txt
+

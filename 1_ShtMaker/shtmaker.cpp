@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
 	while( getline( &line, &size, stdin ) > 0 ) {
 
-		printf( "fprintf( f, \"" );
+		printf( "\tfprintf( f, \"" );
 
 		char	*s = line, c;
 
@@ -35,6 +35,10 @@ int main(int argc, char **argv)
 
 				case '"':
 					printf( "\\\"" );
+				break;
+
+				case '\\':
+					printf( "\\\\" );
 				break;
 
 				case '%':

@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# Purpose:
+# Heal montage seams and update superpixel data.
+#
+# > mos <simple-file> <xmin,ymin,xsize,ysize> <zmin,zmax> [options]
+#
+# Default sizing is 0,0,-1,-1 meaning natural size.
+#
+# Options:
+# -d				;debug
+# -strings			;simple-file data labeled by path strings
+# -warp				;heal seams
+# -nf				;no folds
+# -a				;annotate
+# -tiles			;make raveler tiles
+# -noflat			;no flat image ('before')
+# -nomap			;no map image (where data from)
+# -matlab			;matlab/closeness order
+# -drn				;don't renumber superpixels
+# -dms=0.01			;don't move strength
+# -fold_dir=path	;prepended fm location, default=CWD
+# -region_dir=path	;results go here, default=CWD
+# -gray_dir=path	;gray images go here, default=CWD
+# -grey_dir=path	;gray images go here, default=CWD
+# -sp_dir=path		;superpixel maps go here, default=CWD
+# -inv_dir=path		;inverse maps go here, default=CWD
+# -rav_dir=path		;raveler tiles go here, default=CWD
+# -bmap_dir=path	;boundary maps go here, default=CWD
+# -s=1				;scale down by this integer
+
+
+export MRC_TRIM=12
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+for lyr in $(seq $1 $last)
+do
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		qsub -N mos-$lyr -cwd -V -b y -pe batch 8 "mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp -nf > mos_$lyr.txt"
+	fi
+done
+

@@ -1,22 +1,23 @@
 #!/bin/sh
 
+# Purpose:
 # Make workspace 'temp' for 'myidb'...
 # Makes everything except matchparams.txt file.
 #
 # > makemontages myidb -d=temp -zmin=0 -zmax=5
 #
 # Options:
-# -b=8				;subblock 1D size <in tiles>
-# -minareafrac=0.02	;same and cross req. area olap frac
-# -exe=ptestalt		;exe other than 'ptest'
-# -lens				;use lens file
-# -nf				;no foldmasks
-# -nd				;no tile directories
-# -davinc			;no davi bock same lyr corners
-# -xmltype=0
-# -xmlmin=0
-# -xmlmax=0
-#
+# -b=8					;subblock 1D size <in tiles>
+# -minareafrac=0.02		;same and cross req. area olap frac
+# -exe=ptestalt			;exe other than 'ptest'
+# -lens					;use lens file
+# -nf					;no foldmasks
+# -nd					;no tile directories
+# -davinc				;no davi bock same lyr corners
+# -xmltype=0			;ImagePlus type code
+# -xmlmin=0				;intensity scale
+# -xmlmax=0				;intensity scale
+
 
 wrk=temp0
 

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Purpose:
 # Make workspace 'temp' for 'myidb'...
 # Makes everything except matchparams.txt file.
 #
@@ -11,10 +12,10 @@
 # -exe=ptestalt			;exe other than 'ptest'
 # -nf					;no foldmasks
 # -nd					;no tile directories
-# -xmltype=0
-# -xmlmin=0
-# -xmlmax=0
-#
+# -xmltype=0			;ImagePlus type code
+# -xmlmin=0				;intensity scale
+# -xmlmax=0				;intensity scale
+
 
 wrk=temp0
 

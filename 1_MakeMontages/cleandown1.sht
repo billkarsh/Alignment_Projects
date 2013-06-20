@@ -1,6 +1,9 @@
 #!/bin/sh
 
-# Reset all down data for layer $1
+# Purpose:
+# Clean all down data for layer $1.
+#
+# > ./cleandown1.sht <z>
 
 
 if (($# == 0))

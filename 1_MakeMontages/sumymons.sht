@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Purpose:
+# For layer range, gather list of 'FINAL' lines from lsq.txt files
+# for individual montages. Report these in MonSumy.txt.
+#
+# > ./sumymons.sht <zmin> [zmax]
+
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+rm -rf MonSumy.txt
+
+for lyr in $(seq $1 $last)
+do
+	log=$lyr/montage/lsq.txt
+	if [ -f "$log" ]
+	then
+		echo Z $lyr `grep -e "FINAL*" $log` >> MonSumy.txt
+	fi
+done
+

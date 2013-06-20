@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Purpose:
+# Gather all points to stack folder, cd there, run lsq solver.
+#
+# ./finish.sht
+
+
+./combine.sht 879 879
+cd stack
+./runlsq.sht ""
+

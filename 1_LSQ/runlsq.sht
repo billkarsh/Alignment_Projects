@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# Purpose:
+# Assign each tile (or each subregion if tiles divided by folds)
+# a transform (default is affine) that best describes the mapping of
+# correspondence points from local images to the shared global system.
+#
+# > lsq pts,all [options] > lsq.txt
+#
+# Options:
+# -model=A			;{T=translat,S=simlty,A=affine,H=homography}
+# -minmtglinks=1	;min montage neibs/tile
+# -all				;override min pts/tile-pair
+# -davinc			;no davi bock same lyr corners
+# -same=1.0			;wt same lyr vs cross layer
+# -scale=0.1		;wt for unit magnitude constraint
+# -square=0.1		;wt for equal magnitude cosines,sines constraint
+# -scaf=0.01		;wt for external scaffold solution
+# -tformtol=0.2		;max dev of Tform rot-elems from median
+# -threshold=700.0	;max inlier error
+# -pass=1			;num ransac passes
+# -degcw=0.0		;rotate clockwise degrees (for appearance)
+# -lrbt=a,b,c,d		;forced BBOX, default natural
+# -unite=2,path		;unite blocks using this layer of this TFormTable
+# -prior=path		;start affine model with this TFormTable
+# -nproc=1			;num processors to use
+# -viserr=10		;create color coded error stack; yellow value
+# -xmltype=0		;ImagePlus type code
+# -xmlmin=0			;intensity scale
+# -xmlmax=0			;intensity scale
+# -strings			;using old-style path-labeled data items
+# -p=/N				;tilename id pattern (for -strings)
+# -trim=0.0			;extra margin around each tile
+# -refz=0			;deprecated
+# -lens				;apply external affine software lens
+
+
+lsq pts.all -scale=.1 -square=.1 $1 > lsq.txt
+

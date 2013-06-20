@@ -241,26 +241,34 @@ static void WriteSubfmFile()
 	sprintf( buf, "%s/subfm.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "export MRC_TRIM=12\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For layer range, generate foldmasks for images.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./subfm.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tqsub -N lou-f-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tqsub -N makefm-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='\"\"'\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -278,9 +286,17 @@ static void WriteReportFile()
 	sprintf( buf, "%s/report_fm.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "ls -l */lou-f*.e* > FmErrs.txt\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For layer range, tabulate sizes of all cluster stderr logs\n" );
+	fprintf( f, "# from foldmask generation jobs.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./report_fm.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "ls -l */makefm*.e* > FmErrs.txt\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );

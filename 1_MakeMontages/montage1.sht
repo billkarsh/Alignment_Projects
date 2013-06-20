@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Purpose:
+# For given layer, gather all point pair files into montage/pts.all,
+# cd there, run lsq solver.
+#
+# > ./montage1.sht <z>
+
+
+cd $1
+
+rm -f pts.all
+
+# get line 1, subst 'IDBPATH=xxx' with 'xxx'
+idb=$(sed -n -e 's|IDBPATH \(.*\)|\1|' -e '1p' < ../imageparams.txt)
+
+cp ../imageparams.txt pts.all
+cat $idb/$1/fm.same >> pts.all
+
+for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+do
+	cat $jb/pts.same >> pts.all
+done
+
+mv pts.all montage
+
+cd montage
+./runlsq.sht ""
+

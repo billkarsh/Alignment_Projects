@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Purpose:
+# For down data in layer range...
+# Tabulate sizes of all cluster stderr logs for quick view of faults.
+# Tabulate sizes of all 'pts.down' files for consistency checking.
+# Tabulate subblocks for which there were no points.
+#
+# > ./dreport.sht <zmin> [zmax]
+
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+ls -l */D*/qD*.e* > DownErrs.txt
+
+ls -l */D*/pts.down > DownPts.txt
+
+rm -f DownNopts.txt
+touch DownNopts.txt
+
+for lyr in $(seq $1 $last)
+do
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		for jb in $(ls -d $lyr/* | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		do
+			if [ -e $jb/make.down -a ! -e $jb/pts.down ]
+			then
+				echo "$jb" >> DownNopts.txt
+			fi
+		done
+	fi
+done
+

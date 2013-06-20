@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Purpose:
+# Copy binaries from apig shared space to local binaries folder.
+#
+# > ./getsharedbins.sht
+
 
 cp /groups/apig/share/ClusterSupport/bins/SuperLUSymSolve /groups/apig/tomo/lou_stuff/binaries
 cp /groups/apig/share/ClusterSupport/bins/SuperLUSymSolveMPI /groups/apig/tomo/lou_stuff/binaries

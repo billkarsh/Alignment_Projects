@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# Purpose:
+# Gather all point pair files into stack/pts.all
+#
+# > ./combine.sht <zmin> <zmax>
+
+
+rm -f pts.all
+
+#get line 1, subst 'IDBPATH=xxx' with 'xxx'
+idb=$(sed -n -e 's|IDBPATH \(.*\)|\1|' -e '1p' < imageparams.txt)
+
+cp imageparams.txt pts.all
+
+for lyr in $(seq $1 $2)
+do
+	cat $idb/$lyr/fm.same >> pts.all
+done
+
+for lyr in $(seq $1 $2)
+do
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		cd $lyr
+
+		for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+		do
+			cat $jb/pts.same >> ../pts.all
+		done
+
+		if (($lyr != $1))
+		then
+			for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+			do
+				cat $jb/pts.down >> ../pts.all
+			done
+		fi
+
+		cd ..
+	fi
+done
+
+mv pts.all stack
+

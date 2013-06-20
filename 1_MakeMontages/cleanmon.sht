@@ -1,6 +1,9 @@
 #!/bin/sh
 
-# Reset all data for montage at layer $1
+# Purpose:
+# Clean all data for montage at layer $1.
+#
+# > ./cleanmon.sht <z>
 
 
 if (($# == 0))
@@ -33,5 +36,4 @@ cd ..
 
 #restore saved lsq script
 mv ~~runlsq.sht $1/montage/runlsq.sht
-
 

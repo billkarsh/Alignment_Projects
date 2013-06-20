@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Purpose:
+# For layer range, tabulate sizes of all cluster stderr logs
+# from foldmask generation jobs.
+#
+# > ./report_fm.sht <zmin> [zmax]
+
+
+ls -l */makefm*.e* > FmErrs.txt
+

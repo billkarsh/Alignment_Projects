@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Purpose:
+# In layer range, clean temporary lsq files.
+#
+# > ./cleanlsq.sht <zmin> [zmax]
+
 
 if (($# == 1))
 then

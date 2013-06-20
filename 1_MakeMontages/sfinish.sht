@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Purpose:
+# Run finish.sht script on its own cluster node.
+#
+# > ./sfinish.sht
+
+
+qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht
+

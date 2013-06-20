@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Purpose:
 # Make image database 'idb' from 'myxml' file...
 # Makes everything.
 #
@@ -9,18 +10,17 @@
 # the tile ID 'N' part of image names.
 #
 # Options:
-# -simple interpret input as Rick file
-# -zmin=i -zmax=j restricts layer range
-# -nf no foldmasks
-# -lens=AffineLensFile.txt
-# -k=MyClicksfile.txt
-# -xmltype=0
-# -xmlmin=0
-# -xmlmax=0
-#
+# -simple					;interpret input as Rick file
+# -zmin=i -zmax=j			;restricts layer range
+# -nf						;no foldmasks
+# -lens=AffineLensFile.txt	;external affine software lens
+# -k=MyClicksfile.txt		;align with manual landmarks
+# -xmltype=0				;ImagePlus type code
+# -xmlmin=0					;intensity scale
+# -xmlmax=0					;intensity scale
+
 
 export MRC_TRIM=12
 
 makeidb Z7-119.txt -d=idb0 -simple -nf -p=_idN -zmin=7 -zmax=119
-
 

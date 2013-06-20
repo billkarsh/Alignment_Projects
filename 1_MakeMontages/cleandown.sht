@@ -1,6 +1,9 @@
 #!/bin/sh
 
-# Reset all down data for layer $1
+# Purpose:
+# In layer range, clean all down data.
+#
+# > ./cleandown.sht <zmin> [zmax]
 
 
 if (($# == 1))
