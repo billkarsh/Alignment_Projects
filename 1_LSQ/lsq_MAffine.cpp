@@ -205,7 +205,7 @@ void MAffine::SolveWithSquareness(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	WriteSolveRead( X, LHS, RHS, "A-Square", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-Square", nproc, false );
 	PrintMagnitude( X );
 }
 
@@ -243,7 +243,7 @@ void MAffine::SolveWithUnitMag(
 		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
 	}
 
-	WriteSolveRead( X, LHS, RHS, "A-Unimag", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-Unimag", nproc, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( X );
 }
@@ -721,7 +721,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromFile", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-FromFile", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -822,7 +822,7 @@ void MAffine::AffineFromFile2( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromFile2", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-FromFile2", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -913,7 +913,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-WtT", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-WtT", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -1003,7 +1003,7 @@ void MAffine::AffineFromAffine2( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromA2", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-FromA2", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -1091,7 +1091,7 @@ void MAffine::AffineFromAffine( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromA", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-FromA", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -1174,7 +1174,7 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromT", 1, false );
+	WriteSolveRead( X, LHS, RHS, "A-FromT", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );

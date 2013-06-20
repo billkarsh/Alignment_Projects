@@ -398,7 +398,7 @@ void MHmgphy::HmgphyFromHmgphy2( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromH2", 1, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromH2", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -491,7 +491,7 @@ void MHmgphy::HmgphyFromHmgphy( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromH", 1, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromH", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -595,7 +595,7 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromA", 1, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromA", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -684,7 +684,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromT", 1, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromT", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );

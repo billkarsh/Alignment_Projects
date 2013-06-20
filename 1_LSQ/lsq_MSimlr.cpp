@@ -162,7 +162,7 @@ void MSimlr::SolveFromPoints(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	WriteSolveRead( X, LHS, RHS, "S-FromPts", 1, false );
+	WriteSolveRead( X, LHS, RHS, "S-FromPts", nproc, false );
 	PrintMagnitude( X );
 }
 
@@ -200,7 +200,7 @@ void MSimlr::SolveWithUnitMag(
 		AddConstraint( LHS, RHS, 2, I, V, m * stiff );
 	}
 
-	WriteSolveRead( X, LHS, RHS, "S-Unimag", 1, false );
+	WriteSolveRead( X, LHS, RHS, "S-Unimag", nproc, false );
 	printf( "\t\t\t\t" );
 	PrintMagnitude( X );
 }
