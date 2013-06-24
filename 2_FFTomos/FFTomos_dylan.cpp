@@ -130,7 +130,7 @@ static void ReadParams()
 
 // name the FF folder
 
-	sprintf( ffdir, "%s/FF/", tifdir );
+	sprintf( ffdir, "%s/FF_c2/", tifdir );
 	fprintf( flog, "FFpath=%s\n", ffdir );
 
 // scan rick file name
