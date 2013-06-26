@@ -742,7 +742,7 @@ quality_control:
 	string	reason;
 
 	if( yell < GBL.mch.FYL ) {
-		sprintf( buf, "-Yellow=%g < FYL=%g- ", yell, GBL.mch.FYL );
+		sprintf( buf, " [Yellow=%g < FYL=%g]", yell, GBL.mch.FYL );
 		reason += buf;
 	}
 
@@ -756,20 +756,20 @@ quality_control:
 
 		if( score > GBL.mch.EMT ) {
 			sprintf( buf,
-			"-Weighted EMM=%g > EMT=%g- ", score, GBL.mch.EMT );
+			" [Weighted EMM=%g > EMT=%g]", score, GBL.mch.EMT );
 			reason += buf;
 		}
 
 		if( dfm > GBL.mch.EMT*1.10 ) {
 			sprintf( buf,
-			"-EMM=%g > %g = (EMT=%g * 1.10)- ",
+			" [EMM=%g > %g = (EMT=%g * 1.10)]",
 			dfm, GBL.mch.EMT*1.10, GBL.mch.EMT );
 			reason += buf;
 		}
 
 		//if( score > dfm*1.1 && score > GBL.mch.EMT/2.0 ) {
-		//	reason +=	"-not great EMM, and Weighted EMM"
-		//				" is higher by more than 10%- ";
+		//	reason +=	" [not great EMM, and Weighted EMM"
+		//				" is higher by more than 10%]";
 		//}
 	}
 	else {	// use older Fourier metric
@@ -781,16 +781,16 @@ quality_control:
 		sum_pts, corr, dfm, score, corr+dfm, yell );
 
 		if( dfm < GBL.mch.FFM )
-			reason += "-Final Fourier too low- ";
+			reason += " [Final Fourier too low]";
 
 		if( sum_pts < 400000 && score < GBL.mch.FFM )
-			reason += "-Small region and weighted metric < dfm- ";
+			reason += " [Small region and weighted metric < dfm]";
 
 		if( score < 0.75*dfm )
-			reason += "-Weighted less than 0.75 of dfm- ";
+			reason += " [Weighted less than 0.75 of dfm]";
 
 		if( corr+dfm < GBL.mch.CPD )
-			reason += "-Sum of corr+dfm too low- ";
+			reason += " [Sum of corr+dfm too low]";
 	}
 
 // Failed if any reason cited
@@ -798,7 +798,7 @@ quality_control:
 	if( reason.length() ) {
 
 		fprintf( flog,
-		"FAIL: Overall rejected: %s.\n", reason.c_str() );
+		"FAIL: Overall rejected:%s.\n", reason.c_str() );
 
 		return;
 	}
