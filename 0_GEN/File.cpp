@@ -2,6 +2,7 @@
 
 #include	"File.h"
 
+#include	<ctype.h>
 #include	<errno.h>
 #include	<string.h>
 
@@ -91,6 +92,27 @@ char* FileCloneNamePart( const char *path )
 	sprintf( buf, "%.*s", dot - name, name );
 
 	return strdup( buf );
+}
+
+/* --------------------------------------------------------------- */
+/* FileExtIsXML -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool FileExtIsXML( const char *path )
+{
+	bool	isxml	= false;
+	char	*dot	= strrchr( path, '.' );
+
+	if( dot
+		&& strlen( path ) - (++dot - path) == 3
+		&& toupper( *dot++ ) == 'X'
+		&& toupper( *dot++ ) == 'M'
+		&& toupper( *dot++ ) == 'L' ) {
+
+		isxml = true;
+	}
+
+	return isxml;
 }
 
 

@@ -205,11 +205,12 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
-		" cross_thisblock -p=%s -abscl=%d -ablgord=%d"
-		" -absdev=%d -abcorr=%g -xyconf=%g%s\n",
-		gArgs.pat, gArgs.abscl, gArgs.ablgord,
-		gArgs.absdev, gArgs.abcorr,
-		gArgs.xyconf, (gArgs.NoFolds ? " -nf" : "") );
+		" cross_thisblock -p=%s%s"
+		" -abscl=%d -ablgord=%d"
+		" -absdev=%d -abcorr=%g -xyconf=%g\n",
+		gArgs.pat, (gArgs.NoFolds ? " -nf" : ""),
+		gArgs.abscl, gArgs.ablgord,
+		gArgs.absdev, gArgs.abcorr, gArgs.xyconf );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n\n" );
 

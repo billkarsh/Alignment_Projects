@@ -2,17 +2,17 @@
 
 # Purpose:
 # Make workspace 'temp' for 'myidb'...
-# Makes everything except matchparams.txt file.
+# Makes everything except prms/matchparams.txt file.
 #
 # > makemontages myidb -d=temp -zmin=0 -zmax=5
 #
 # Options:
+# -nf					;no foldmasks
+# -nd					;no tile directories
 # -b=8					;subblock 1D size <in tiles>
 # -minareafrac=0.02		;same and cross req. area olap frac
 # -exe=ptestalt			;exe other than 'ptest'
 # -lens					;use lens file
-# -nf					;no foldmasks
-# -nd					;no tile directories
 # -davinc				;no davi bock same lyr corners
 # -xmltype=0			;ImagePlus type code
 # -xmlmin=0				;intensity scale
@@ -24,5 +24,4 @@ wrk=temp0
 makemontages idb0 -d=$wrk -zmin=7 -zmax=119 -nf -nd -b=8
 
 cp prms/* $wrk
-
 

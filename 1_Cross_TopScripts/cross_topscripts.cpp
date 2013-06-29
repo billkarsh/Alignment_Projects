@@ -319,14 +319,13 @@ static void WriteCarvego()
 
 	fprintf( f,
 	"cross_carveblocks"
-	" HiRes.xml -p=%s"
+	" HiRes.xml -p=%s -zmin=%d -zmax=%d%s"
 	" -b=10 -abscl=%d -ablgord=%d -absdev=%d"
-	" -abcorr=%g -xyconf=%g%s"
-	" -zmin=%d -zmax=%d\n\n",
-	gArgs.pat,
+	" -abcorr=%g -xyconf=%g\n\n",
+	gArgs.pat, gArgs.zmin, gArgs.zmax,
+	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
-	gArgs.abcorr, gArgs.xyconf, (gArgs.NoFolds ? " -nf" : ""),
-	gArgs.zmin, gArgs.zmax );
+	gArgs.abcorr, gArgs.xyconf );
 
 	fclose( f );
 	FileScriptPerms( path );

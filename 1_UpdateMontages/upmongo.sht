@@ -14,6 +14,10 @@
 # -force			;overwrite TForms with lsq solutions
 #
 
-updatemontages PreClicks.xml temp0 -zmin=7 -zmax=119 -p=_idN
 
+inname=PreClicks
+
+updatemontages $inname.xml temp0 -p=_idN -zmin=7 -zmax=119
+
+mv $inname"_v2.xml" "newmons.xml"
 

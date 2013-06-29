@@ -80,4 +80,6 @@ const char* FileNamePtr( const char *path );
 const char* FileDotPtr( const char *path );
 char* FileCloneNamePart( const char *path );
 
+bool FileExtIsXML( const char *path );
+
 

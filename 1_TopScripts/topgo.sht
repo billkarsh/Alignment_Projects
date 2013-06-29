@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Purpose:
+# Create (in CWD) top-level scripts for running alignment.
+# Makes everything except prms/matchparams.txt file.
+#
+# > topscripts input_file -p=_idN -zmin=i -zmax=j
+#
+# Required -p= pattern describes the context around
+# the tile ID 'N' part of image names.
+#
+# ImagePlus type codes used in xml files:
+#	AUTO		= -1
+#	GRAY8		= 0
+#	GRAY16		= 1
+#	GRAY32		= 2
+#	COLOR_256	= 3
+#	COLOR_RGB	= 4
+#
+# Options:
+# -nf				;no foldmasks
+# -xmltype=0		;ImagePlus type code
+# -xmlmin=0			;intensity scale
+# -xmlmax=0			;intensity scale
+
+
+export MRC_TRIM=12
+
+topscripts myfile.txt -p=_idN -zmin=0 -zmax=100 -nf
+

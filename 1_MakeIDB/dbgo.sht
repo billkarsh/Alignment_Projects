@@ -10,7 +10,6 @@
 # the tile ID 'N' part of image names.
 #
 # Options:
-# -simple					;interpret input as Rick file
 # -zmin=i -zmax=j			;restricts layer range
 # -nf						;no foldmasks
 # -lens=AffineLensFile.txt	;external affine software lens
@@ -22,5 +21,5 @@
 
 export MRC_TRIM=12
 
-makeidb Z7-119.txt -d=idb0 -simple -nf -p=_idN -zmin=7 -zmax=119
+makeidb Z7-119.txt -d=idb0 -p=_idN -zmin=7 -zmax=119 -nf
 

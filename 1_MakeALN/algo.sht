@@ -7,11 +7,11 @@
 # > makealn myidb -d=temp -zmin=0 -zmax=5
 #
 # Options:
+# -nf					;no foldmasks
+# -nd					;no tile directories
 # -minareafrac=0.02		;same and cross req. area olap frac
 # -downradiuspix=4096	;0, or, sloppy match radius for downs
 # -exe=ptestalt			;exe other than 'ptest'
-# -nf					;no foldmasks
-# -nd					;no tile directories
 # -xmltype=0			;ImagePlus type code
 # -xmlmin=0				;intensity scale
 # -xmlmax=0				;intensity scale
@@ -22,5 +22,4 @@ wrk=temp0
 makealn idb0 -d=$wrk -zmin=7 -zmax=119 -nf -nd
 
 cp prms/* $wrk
-
 

@@ -42,7 +42,6 @@ public:
 	int		zmin,
 			zmax;
 	bool	Connect,		// just connect two layers
-			Simple,
 			NoFolds,
 			NoDirs;
 
@@ -55,7 +54,6 @@ public:
 		zmin		= 0;
 		zmax		= 32768;
 		Connect		= false;
-		Simple		= false;
 		NoFolds		= false;
 		NoDirs		= false;
 	};
@@ -123,8 +121,6 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			Connect = true;
 		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
-		else if( IsArg( "-simple", argv[i] ) )
-			Simple = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )
@@ -879,7 +875,9 @@ int main( int argc, char* argv[] )
 /* Read source file */
 /* ---------------- */
 
-	if( gArgs.Simple )
+	int		isrickfile = !FileExtIsXML( gArgs.infile );
+
+	if( isrickfile )
 		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
 	else
 		TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
@@ -889,7 +887,7 @@ int main( int argc, char* argv[] )
 	if( !TS.vtil.size() )
 		goto exit;
 
-	if( gArgs.Simple )
+	if( isrickfile )
 		TS.SetTileDimsFromImageFile();
 
 	TS.GetTileDims( gW, gH );

@@ -1,5 +1,5 @@
 //
-// makeidb reads either a Leginon (simple) file or TrakEM2 xml
+// makeidb reads either a 'Rick' txt file or TrakEM2 xml
 // file and creates an 'image database' with this structure:
 //
 //	folder 'idbname'		// top folder
@@ -75,8 +75,7 @@ public:
 			xml_type,
 			xml_min,
 			xml_max;
-	bool	Simple,
-			NoFolds;
+	bool	NoFolds;
 
 public:
 	cArgs_idb()
@@ -91,7 +90,6 @@ public:
 		xml_type	= 0;
 		xml_min		= 0;
 		xml_max		= 0;
-		Simple		= false;
 		NoFolds		= false;
 	};
 
@@ -165,8 +163,6 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
 			;
-		else if( IsArg( "-simple", argv[i] ) )
-			Simple = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else {
@@ -628,7 +624,9 @@ int main( int argc, char* argv[] )
 /* Read source file */
 /* ---------------- */
 
-	if( gArgs.Simple )
+	int		isrickfile = !FileExtIsXML( gArgs.infile );
+
+	if( isrickfile )
 		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
 	else
 		TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
@@ -638,7 +636,7 @@ int main( int argc, char* argv[] )
 	if( !TS.vtil.size() )
 		goto exit;
 
-	if( gArgs.Simple )
+	if( isrickfile )
 		TS.SetTileDimsFromImageFile();
 
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
@@ -649,7 +647,7 @@ int main( int argc, char* argv[] )
 /* Diagnostics */
 /* ----------- */
 
-	if( gArgs.Simple ) {
+	if( isrickfile ) {
 
 		TS.WriteTrakEM2_EZ( "PreClicks.xml",
 			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );

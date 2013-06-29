@@ -8,7 +8,7 @@ DIRS := 1_Align 1_Clean_ThmPairs 1_CpyFMs \
 		1_Mosaic_current 1_MRCSD1Lyr 1_Ptestx \
 		1_RemoveRefTiles 1_Scapeops 1_Script \
 		1_ShtMaker 1_Thumbs 1_Tiny \
-		1_UpdateMontages 1_ViewSD
+		1_TopScripts 1_UpdateMontages 1_ViewSD
 
 all:
 	cd ..; \
