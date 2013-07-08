@@ -3,6 +3,7 @@
 # Concatenate Rick files for individual dirs into one big file
 #
 
+
 dir=/groups/bock/bocklab/eric/forbill/cutout1
 
 for i in $(seq 0 60)
@@ -13,5 +14,4 @@ do
 		cat $f >> layout.txt
 	fi
 done
-
 

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Purpose:
+# Using same tag and Z-range as for HEQLayers, update corresponding XML
+# to point to the new images.
+#
+# > HEQXML <xml-file> <tag> [options]
+#
+# Required:
+# tag				;text string like HEQ that labels output folder and tifs.
+#
+# Options:
+# -zmin=i -zmax=j	;restricts layer range
+
+
+HEQXML Z7-119.txt HEQ -zmin=7 -zmax=119
+

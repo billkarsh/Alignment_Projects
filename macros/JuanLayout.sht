@@ -2,6 +2,7 @@
 
 # Build rick file for juan
 
+
 rm layout.txt
 
 for i in $(seq 0 99)
@@ -12,5 +13,4 @@ do
 done
 
 rm temp.txt
-
 

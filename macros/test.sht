@@ -49,11 +49,11 @@
 # echo no
 # fi
 
+
 if [ "$1" != "" ]
 then
 echo is arg
 else
 echo no arg
 fi
-
 

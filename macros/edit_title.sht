@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 # This script edits the title tags in TrakEM2 xml files,
 # to change from one channel specifier to another. The
 # image names are expected to look like B7_15_channel,
@@ -42,5 +41,4 @@ fi
 
 # Do substitutions on all lines
 sed 's|title="\(.*_[0-9]\{1,\}_\)'$old'|title="\1'$new'|' < $1 > $v2
-
 

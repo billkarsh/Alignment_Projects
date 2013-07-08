@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Purpose:
+# Create script 'make.scales.sht' to submit GraRan1Lyr jobs.
+#
+# > GrayRanger <xml-file> -zmin=i -zmax=j <-chn=chn> <-pct-pct> [options].
+#
+# Required:
+# -chn=0			;for example, scale channel 0
+# -pct=85.0			;for example, use 85% of forground range.
+#
+# Options:
+# -lrbt=0,0,-1,-1	;calculate average intensity in this ROI
+
+
+GrayRanger layer0_48_grn_sim_montage.xml -zmin=2 -zmax=2 -chn=0 -pct=50.0
+

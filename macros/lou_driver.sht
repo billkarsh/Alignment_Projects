@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 export MRC_TRIM=12
 
 cd lou_example
@@ -20,3 +21,4 @@ cp /groups/apig/tomo/lou_stuff/report.sht .
 cp /groups/apig/tomo/lou_stuff/runlsq.sht stack/
 
 ./subfm.sht 0 2
+

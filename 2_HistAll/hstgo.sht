@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Purpose:
+# Create 'HST' directory and script 'HST/make.hst.sht' to submit Hist1 jobs.
+#
+# > HistAll <xml-file> -zmin=i -zmax=j <-chan=,,>.
+#
+# Required:
+# -chan=1,3			;e.g., write histogram files for channels 1 and 3.
+#
+# Options:
+# none
+
+
+HistAll layer0_48_grn_sim_montage.xml -zmin=2 -zmax=2 -chan=1,2
+

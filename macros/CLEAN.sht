@@ -3,6 +3,7 @@
 # Clean work files from older Lou-style temp structure
 #
 
+
 rm lou-*
 rm *.log
 rm *.tif
@@ -13,5 +14,4 @@ rm registered.*
 rm qual.*
 rm ./*/*map*
 rm ./*/*tf*
-
 

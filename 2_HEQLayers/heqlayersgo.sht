@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Purpose:
+# Create script 'make.heq.sht' to submit HEQ1Lyr jobs.
+#
+# > HEQLayers <xml-file> <tag> -zmin=i -zmax=j <-pct=pct> [options].
+#
+# Required:
+# tag				;text string like HEQ that labels output folder and tifs.
+# -pct=85.0			;for example, use 85% of forground range.
+#
+# Options:
+# -lrbt=0,0,-1,-1	;calculate average intensity in this ROI
+
+
+HEQLayers layer0_48_grn_sim_montage.xml HEQ -zmin=0 -zmax=48 -pct=99.5
+

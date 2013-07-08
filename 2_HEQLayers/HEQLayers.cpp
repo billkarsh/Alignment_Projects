@@ -186,7 +186,8 @@ static void WriteScript( vector<int> &zlist )
 
 	int		nz = zlist.size();
 
-	fprintf( f, "#!/bin/sh\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
 
 	for( int iz = 0; iz < nz; ++iz ) {
 
@@ -199,10 +200,7 @@ static void WriteScript( vector<int> &zlist )
 	fprintf( f, "\n" );
 
 	fclose( f );
-
-// make executable
-
-	chmod( "make.heq.sht", S_IRWXU | S_IRWXG | S_IRWXO );
+	FileScriptPerms( "make.heq.sht" );
 }
 
 /* --------------------------------------------------------------- */

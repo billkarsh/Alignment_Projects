@@ -92,7 +92,7 @@ void CArgs_hsta::SetCmdLine( int argc, char* argv[] )
 // parse command line args
 
 	if( argc < 3 ) {
-		printf( "Usage: HistAll <xml-file> -chan=,, [options].\n" );
+		printf( "Usage: HistAll <xml-file> -chan=,,.\n" );
 		exit( 42 );
 	}
 
@@ -212,7 +212,8 @@ static void WriteScript( const vector<Picture> &vp )
 	int		np = vp.size(),
 			nc = gArgs.chn.size();
 
-	fprintf( f, "#!/bin/sh\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
 
 	for( int ip = 0; ip < np; ++ip ) {
 
@@ -233,10 +234,7 @@ static void WriteScript( const vector<Picture> &vp )
 	fprintf( f, "\n" );
 
 	fclose( f );
-
-// make executable
-
-	chmod( "HST/make.hst.sht", S_IRWXU | S_IRWXG | S_IRWXO );
+	FileScriptPerms( "HST/make.hst.sht" );
 }
 
 /* --------------------------------------------------------------- */

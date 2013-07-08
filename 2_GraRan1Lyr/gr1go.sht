@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Purpose:
+# Write entry in outfile GRScales.txt having scale min,max for this layer.
+#
+# > GraRan1Lyr <xml-file> -z=i <-chn=chn> <-pct-pct> [options].
+#
+# Required:
+# -chn=0			;for example, scale channel 0
+# -pct=85.0			;for example, use 85% of forground range.
+#
+# Options:
+# -lrbt=0,0,-1,-1	;calculate average intensity in this ROI
+
+
+GraRan1Lyr layer0_48_grn_sim_montage.xml -z=2 -chn=0 -pct=50.0
+

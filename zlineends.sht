@@ -22,4 +22,3 @@ else
 	grep -rl $'\r' *
 fi
 
-

@@ -1,5 +1,14 @@
 #!/bin/sh
 
+# Purpose:
+# Write binary histogram file for one 16-bit image.
+#
+# > Hist1 <img-file> <hst-file>.
+#
+# Options:
+# none
+
+
 mkdir HST
 cd HST
 

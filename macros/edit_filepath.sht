@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 # This script edits the file_path tags in TrakEM2 xml files.
 # It does simple substitutions at the start of the paths.
 #
@@ -63,5 +62,4 @@ fi
 
 # Do substitutions on all lines
 sed 's|file_path="'$old'|file_path="'$new'|' < $1 > $v2
-
 

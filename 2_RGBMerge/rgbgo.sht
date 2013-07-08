@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Purpose:
+# Create script 'make.merge.sht' to submit RGB1Lyr jobs.
+#
+# > RGBMerge <xml-file> <tag> -zmin=i -zmax=j <-[R,G,B]=i,pct> [options].
+#
+# Required:
+# tag				;text string like RGB that labels output folder and tifs.
+# -R=0,85.0			;for example, color channel-0 red using 85% of forground range.
+#
+# Options:
+# -spanRGB=LLL		;three-char string like LTT specifies scaling by {L=whole layer, T=ea. tile}
+# -lrbt=0,0,-1,-1	;calculate average intensity in this ROI
+
+
+RGBMerge layer0_48_grn_sim_montage.xml RGB -zmin=0 -zmax=48 -R=1,99.5 -G=0,99.5 -B=2,99.5
+

@@ -70,7 +70,7 @@ void CArgs_hist1::SetCmdLine( int argc, char* argv[] )
 // parse command line args
 
 	if( argc < 3 ) {
-		printf( "Usage: Hist1 <img-file> <hst_file> [options].\n" );
+		printf( "Usage: Hist1 <img-file> <hst_file>.\n" );
 		exit( 42 );
 	}
 

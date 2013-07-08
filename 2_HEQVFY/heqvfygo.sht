@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Purpose:
+# List missing HEQ files.
+#
+# The input XML file can have either native or tag-modified file-paths.
+# In either case, we call DskExists for each image. We do not check
+# correctness of the XML file itself.
+#
+# > HEQVFY <xml-file> <tag> [options]
+#
+# Required:
+# tag				;text string like HEQ that labels output folder and tifs.
+#
+# Options:
+# -p=_N_			;pattern describes context around tile ID 'N' in img name
+# -zmin=i -zmax=j	;restricts layer range
+
+
+HEQVFY Z7-119.txt HEQ -zmin=7 -zmax=119
+
