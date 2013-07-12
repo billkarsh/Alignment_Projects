@@ -172,335 +172,12 @@ void MHmgphy::NewOriginAll(
 }
 
 /* --------------------------------------------------------------- */
-/* AveHTerms ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void MHmgphy::AveHTerms(
-	double					g[4],
-	double					h[4],
-	const vector<double>	&X )
-{
-	int		nr		= vRgn.size(),
-			nt[4]	= {0,0,0,0};
-
-	for( int i = 0; i < 4; ++i ) {
-		g[i] = 0;
-		h[i] = 0;
-	}
-
-	for( int i = 0; i < nr; ++i ) {
-
-		int	itr = vRgn[i].itr;
-
-		if( itr < 0 )
-			continue;
-
-		itr *= NX;
-
-		const char	*c, *n = FileNamePtr( vRgn[i].GetName() );
-		int			cam = 0;
-
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
-
-		g[cam] += X[itr+6];
-		h[cam] += X[itr+7];
-		++nt[cam];
-	}
-
-	for( int i = 0; i < 4; ++i ) {
-
-		if( nt[i] ) {
-			g[i] /= nt[i];
-			h[i] /= nt[i];
-		}
-
-		printf( "Cam,G,H: %d\t%g\t%g\n", i, g[i], h[i] );
-	}
-}
-
-/* --------------------------------------------------------------- */
-/* MedHTerms ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void MHmgphy::MedHTerms(
-	double					g[4],
-	double					h[4],
-	const vector<double>	&X )
-{
-	int						nr = vRgn.size();
-	vector<vector<double> >	G( 4 ), H( 4 );
-
-	for( int i = 0; i < nr; ++i ) {
-
-		int	itr = vRgn[i].itr;
-
-		if( itr < 0 )
-			continue;
-
-		itr *= NX;
-
-		const char	*c, *n = FileNamePtr( vRgn[i].GetName() );
-		int			cam = 0;
-
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
-
-		G[cam].push_back( X[itr+6] );
-		H[cam].push_back( X[itr+7] );
-	}
-
-	for( int i = 0; i < 4; ++i ) {
-
-		g[i] = MedianVal( G[i] );
-		h[i] = MedianVal( H[i] );
-
-		printf( "Cam,G,H: %d\t%g\t%g\n", i, g[i], h[i] );
-	}
-}
-
-/* --------------------------------------------------------------- */
-/* ForceHTerms --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void MHmgphy::ForceHTerms(
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS,
-	const double	g[4],
-	const double	h[4] )
-{
-	double	wt	= 0.1;
-	int		nr = vRgn.size();
-
-	for( int i = 0; i < nr; ++i ) {
-
-		int	j = vRgn[i].itr;
-
-		if( j < 0 )
-			continue;
-
-		j *= NX;
-
-		const char	*c, *n = FileNamePtr( vRgn[i].GetName() );
-		int			cam = 0;
-
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
-
-		double	v[1]	= { wt };
-		int		i1[1]	= { j+6 },
-				i2[5]	= { j+7 };
-
-		AddConstraint( LHS, RHS, 1, i1, v, wt*g[cam] );
-		AddConstraint( LHS, RHS, 1, i2, v, wt*h[cam] );
-	}
-}
-
-/* --------------------------------------------------------------- */
-/* HmgphyFromHmgphy2 --------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Experiment to get homographies and either average or median
-// their (g,h) components (per camera). Then add constraints to
-// push all g,h to these values.
-//
-// Note median and average yield nearly same results on full
-// size montages (not so many outliers). Don't see improvement
-// in error distribution from this, slightly worse, but spread
-// in g,h params is only one tenth of standard spread.
-//
-void MHmgphy::HmgphyFromHmgphy2( vector<double> &X, int nTr )
-{
-	double	sc		= 2 * max( gW, gH );
-	int		nvars	= nTr * NX;
-
-	printf( "Hmg: %d unknowns; %d constraints.\n",
-		nvars, vAllC.size() );
-
-	vector<double> RHS( nvars, 0.0 );
-	vector<LHSCol> LHS( nvars );
-
-	X.resize( nvars );
-
-// Get the Homographies A
-
-	vector<double>	A;
-	double			g[4], h[4];
-
-	HmgphyFromAffine( A, nTr );
-
-	AveHTerms( g, h, A );
-	//MedHTerms( g, h, A );
-	ForceHTerms( LHS, RHS, g, h );
-
-// SetPointPairs: H(pi) = A(pj)
-
-	double	fz	= 1.0;
-	int		nc	= vAllC.size();
-
-	for( int i = 0; i < nc; ++i ) {
-
-		const Constraint &C = vAllC[i];
-
-		if( !C.used || !C.inlier )
-			continue;
-
-		// H(p1) = A(p2)
-		{
-			int		j  = vRgn[C.r1].itr * NX;
-			double	x1 = C.p1.x * fz / sc,
-					y1 = C.p1.y * fz / sc,
-					x2,
-					y2;
-			Point	g2 = C.p2;
-
-			L2GPoint( g2, A, vRgn[C.r2].itr );
-			x2 = g2.x / sc;
-			y2 = g2.y / sc;
-
-			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
-			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
-					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
-
-			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
-
-			v[3] = -x1*y2;
-			v[4] = -y1*y2;
-
-			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
-		}
-
-		// H(p2) = A(p1)
-		{
-			int		j  = vRgn[C.r2].itr * NX;
-			double	x1 = C.p2.x * fz / sc,
-					y1 = C.p2.y * fz / sc,
-					x2,
-					y2;
-			Point	g2 = C.p1;
-
-			L2GPoint( g2, A, vRgn[C.r1].itr );
-			x2 = g2.x / sc;
-			y2 = g2.y / sc;
-
-			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
-			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
-					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
-
-			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
-
-			v[3] = -x1*y2;
-			v[4] = -y1*y2;
-
-			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
-		}
-	}
-
-// Solve
-
-	WriteSolveRead( X, LHS, RHS, "H-FromH2", nproc, false );
-	PrintMagnitude( X );
-
-	RescaleAll( X, sc );
-}
-
-/* --------------------------------------------------------------- */
-/* HmgphyFromHmgphy ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void MHmgphy::HmgphyFromHmgphy( vector<double> &X, int nTr )
-{
-	double	sc		= 2 * max( gW, gH );
-	int		nvars	= nTr * NX;
-
-	printf( "Hmg: %d unknowns; %d constraints.\n",
-		nvars, vAllC.size() );
-
-	vector<double> RHS( nvars, 0.0 );
-	vector<LHSCol> LHS( nvars );
-
-	X.resize( nvars );
-
-// Get the Homographies A
-
-	vector<double>	A;
-	HmgphyFromAffine( A, nTr );
-
-// SetPointPairs: H(pi) = A(pj)
-
-	double	fz	= 1.0;
-	int		nc	= vAllC.size();
-
-	for( int i = 0; i < nc; ++i ) {
-
-		const Constraint &C = vAllC[i];
-
-		if( !C.used || !C.inlier )
-			continue;
-
-		// H(p1) = A(p2)
-		{
-			int		j  = vRgn[C.r1].itr * NX;
-			double	x1 = C.p1.x * fz / sc,
-					y1 = C.p1.y * fz / sc,
-					x2,
-					y2;
-			Point	g2 = C.p2;
-
-			L2GPoint( g2, A, vRgn[C.r2].itr );
-			x2 = g2.x / sc;
-			y2 = g2.y / sc;
-
-			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
-			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
-					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
-
-			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
-
-			v[3] = -x1*y2;
-			v[4] = -y1*y2;
-
-			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
-		}
-
-		// H(p2) = A(p1)
-		{
-			int		j  = vRgn[C.r2].itr * NX;
-			double	x1 = C.p2.x * fz / sc,
-					y1 = C.p2.y * fz / sc,
-					x2,
-					y2;
-			Point	g2 = C.p1;
-
-			L2GPoint( g2, A, vRgn[C.r1].itr );
-			x2 = g2.x / sc;
-			y2 = g2.y / sc;
-
-			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
-			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
-					i2[5]	= { j+3, j+4, j+5, j+6, j+7 };
-
-			AddConstraint( LHS, RHS, 5, i1, v, x2 * fz );
-
-			v[3] = -x1*y2;
-			v[4] = -y1*y2;
-
-			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
-		}
-	}
-
-// Solve
-
-	WriteSolveRead( X, LHS, RHS, "H-FromH", nproc, false );
-	PrintMagnitude( X );
-
-	RescaleAll( X, sc );
-}
-
-/* --------------------------------------------------------------- */
 /* HmgphyFromAffine ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Deriving homographies by approximating H(pi) = A(pj) is the
+// best way to create a set of simultaneous linear relations.
+//
 void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
@@ -513,6 +190,10 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 	vector<LHSCol> LHS( nvars );
 
 	X.resize( nvars );
+
+// Apply previous final results at highest level, once only
+
+	SetUniteLayer( LHS, RHS, sc );
 
 // Get the Affines A
 
@@ -602,10 +283,13 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 }
 
 /* --------------------------------------------------------------- */
-/* HmgphyFromTrans ----------------------------------------------- */
+/* HmgphyFromHmgphy ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
+// A second pass deriving better H from previous H is worthwhile.
+// More such passes gain nothing for the extra compute time.
+//
+void MHmgphy::HmgphyFromHmgphy( vector<double> &X, int nTr )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
@@ -618,16 +302,16 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 
 	X.resize( nvars );
 
-// Get the pure translations T
+// Apply previous final results at highest level, once only
 
-	MTrans			M;
-	vector<double>	T;
+	SetUniteLayer( LHS, RHS, sc );
 
-	M.SetModelParams( gW, gH, -1, -1, -1, -1,
-		nproc, -1, NULL, NULL, zs );
-	M.SolveSystem( T, nTr );
+// Get the Homographies A
 
-// SetPointPairs: H(pi) = T(pj)
+	vector<double>	A;
+	HmgphyFromAffine( A, nTr );
+
+// SetPointPairs: H(pi) = A(pj)
 
 	double	fz	= 1.0;
 	int		nc	= vAllC.size();
@@ -639,14 +323,18 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 		if( !C.used || !C.inlier )
 			continue;
 
-		// H(p1) = T(p2)
+		// H(p1) = A(p2)
 		{
-			int		j  = vRgn[C.r1].itr * NX,
-					k  = vRgn[C.r2].itr * 2;
+			int		j  = vRgn[C.r1].itr * NX;
 			double	x1 = C.p1.x * fz / sc,
 					y1 = C.p1.y * fz / sc,
-					x2 = (C.p2.x + T[k  ]) / sc,
-					y2 = (C.p2.y + T[k+1]) / sc;
+					x2,
+					y2;
+			Point	g2 = C.p2;
+
+			L2GPoint( g2, A, vRgn[C.r2].itr );
+			x2 = g2.x / sc;
+			y2 = g2.y / sc;
 
 			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
 			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
@@ -660,14 +348,18 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 			AddConstraint( LHS, RHS, 5, i2, v, y2 * fz );
 		}
 
-		// H(p2) = T(p1)
+		// H(p2) = A(p1)
 		{
-			int		j  = vRgn[C.r2].itr * NX,
-					k  = vRgn[C.r1].itr * 2;
+			int		j  = vRgn[C.r2].itr * NX;
 			double	x1 = C.p2.x * fz / sc,
 					y1 = C.p2.y * fz / sc,
-					x2 = (C.p1.x + T[k  ]) / sc,
-					y2 = (C.p1.y + T[k+1]) / sc;
+					x2,
+					y2;
+			Point	g2 = C.p1;
+
+			L2GPoint( g2, A, vRgn[C.r1].itr );
+			x2 = g2.x / sc;
+			y2 = g2.y / sc;
 
 			double	v[5]	= { x1, y1, fz, -x1*x2, -y1*x2 };
 			int		i1[5]	= {   j, j+1, j+2, j+6, j+7 },
@@ -684,7 +376,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromT", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "H-FromH", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -768,13 +460,7 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 
 void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 {
-	//HmgphyFromTrans( X, nTr );
-
-	//HmgphyFromAffine( X, nTr );
-
 	HmgphyFromHmgphy( X, nTr );
-
-	//HmgphyFromHmgphy2( X, nTr );
 }
 
 /* --------------------------------------------------------------- */

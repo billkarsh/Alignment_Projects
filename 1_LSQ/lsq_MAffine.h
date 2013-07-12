@@ -81,12 +81,6 @@ private:
 
 	void AffineFromTransWt( vector<double> &X, int nTr );
 
-	void AffineFromAffine2( vector<double> &X, int nTr );
-
-	void AffineFromAffine( vector<double> &X, int nTr );
-
-	void AffineFromTrans( vector<double> &X, int nTr );
-
 	void SolveSystemStandard( vector<double> &X, int nTr );
 
 public:

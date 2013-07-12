@@ -34,29 +34,9 @@ private:
 		double			xorg,
 		double			yorg );
 
-	void AveHTerms(
-		double					g[4],
-		double					h[4],
-		const vector<double>	&X );
-
-	void MedHTerms(
-		double					g[4],
-		double					h[4],
-		const vector<double>	&X );
-
-	void ForceHTerms(
-		vector<LHSCol>	&LHS,
-		vector<double>	&RHS,
-		const double	g[4],
-		const double	h[4] );
-
-	void HmgphyFromHmgphy2( vector<double> &X, int nTr );
-
-	void HmgphyFromHmgphy( vector<double> &X, int nTr );
-
 	void HmgphyFromAffine( vector<double> &X, int nTr );
 
-	void HmgphyFromTrans( vector<double> &X, int nTr );
+	void HmgphyFromHmgphy( vector<double> &X, int nTr );
 
 	void WriteSideRatios( const vector<double> &X );
 
