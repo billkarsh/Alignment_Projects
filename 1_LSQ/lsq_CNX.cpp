@@ -217,7 +217,7 @@ int CNX::MaxConnectedSet( set<int> &ignore )
 			break;
 	}
 
-	printf( "Maximum length %d of %d candidates.\n", bestLen, nct );
+	printf( "Maximum length %d of %d candidates.\n\n", bestLen, nct );
 
 /* -------------------------------- */
 /* Create and print the ignore list */
@@ -225,7 +225,7 @@ int CNX::MaxConnectedSet( set<int> &ignore )
 
 	if( bestLen < nct ) {
 
-		printf( "\nIgnoring:\n" );
+		FILE	*f = FileOpenOrDie( "ignored_tiles.txt", "w" );
 
 		for( int i = 0; i < nct; ++i ) {
 
@@ -234,12 +234,15 @@ int CNX::MaxConnectedSet( set<int> &ignore )
 				const RGN	&A = vRgn[i];
 
 				ignore.insert( i );
-				printf( "\t%d.%d:%d\n", A.z, A.id, A.rgn );
+				fprintf( f, "%d.%d:%d\n", A.z, A.id, A.rgn );
 			}
 		}
+
+		fclose( f );
 	}
 
-	printf( "\n" );
+	printf( "Ignoring %d tiles (see ignored_tiles.txt)\n\n",
+		ignore.size() );
 
 	return ignore.size();
 }

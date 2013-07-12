@@ -1020,7 +1020,8 @@ void MAffine::WriteTransforms(
 {
 	printf( "---- Write transforms ----\n" );
 
-	FILE	*f   = FileOpenOrDie( "TAffineTable.txt", "w" );
+	FILE	*ft  = FileOpenOrDie( "TAffineTable.txt", "w" ),
+			*fx  = FileOpenOrDie( "magnitude_outliers.txt", "w" );
 	double	smin = 100.0,
 			smax = 0.0,
 			smag = 0.0;
@@ -1037,7 +1038,7 @@ void MAffine::WriteTransforms(
 
 		++nTr;
 
-		fprintf( f, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
+		fprintf( ft, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
 		I.z, I.id, I.rgn,
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5] );
@@ -1062,13 +1063,18 @@ void MAffine::WriteTransforms(
 		smin  = fmin( smin, mag );
 		smax  = fmax( smax, mag );
 
-		if( mag < 0.9 )
-			printf( "Low mag %f @ %d.%d:%d\n", mag, I.z, I.id, I.rgn );
-		else if( mag > 1.1 )
-			printf( "Hi  mag %f @ %d.%d:%d\n", mag, I.z, I.id, I.rgn );
+		if( mag < 0.9 ) {
+			fprintf( fx, "Low mag %f @ %d.%d:%d\n",
+				mag, I.z, I.id, I.rgn );
+		}
+		else if( mag > 1.1 ) {
+			fprintf( fx, "Hi  mag %f @ %d.%d:%d\n",
+				mag, I.z, I.id, I.rgn );
+		}
 	}
 
-	fclose( f );
+	fclose( fx );
+	fclose( ft );
 
 	printf(
 	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
