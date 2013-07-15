@@ -37,13 +37,13 @@ void MHmgphy::SetUniteLayer(
 
 	map<MZIDR,THmgphy>	M;
 
-	LoadTHmgphyTbl_ThisZ( M, unite_layer, unt_file );
+	LoadTHmgphyTbl_RngZ( M, unite_layer, unite_layer, unt_file );
 
 /* ----------------------------- */
 /* Set each TForm in given layer */
 /* ----------------------------- */
 
-	double	stiff	= 10.0;
+	double	stiff	= 0.01;
 
 	int	nr = vRgn.size();
 

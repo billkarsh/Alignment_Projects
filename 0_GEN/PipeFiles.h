@@ -189,9 +189,10 @@ void LoadTAffineTbl_AllZ(
 	const char			*path,
 	FILE				*flog = NULL );
 
-void LoadTAffineTbl_ThisZ(
+void LoadTAffineTbl_RngZ(
 	map<MZIDR,TAffine>	&Tmap,
-	int					z,
+	int					zi,
+	int					zf,
 	const char			*path,
 	FILE				*flog = NULL );
 
@@ -201,9 +202,10 @@ void LoadTHmgphyTbl_AllZ(
 	const char			*path,
 	FILE				*flog = NULL );
 
-void LoadTHmgphyTbl_ThisZ(
+void LoadTHmgphyTbl_RngZ(
 	map<MZIDR,THmgphy>	&Tmap,
-	int					z,
+	int					zi,
+	int					zf,
 	const char			*path,
 	FILE				*flog = NULL );
 

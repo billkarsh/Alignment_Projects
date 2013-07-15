@@ -169,7 +169,7 @@ static bool GetTable( map<MZIDR,TAffine> &M, int z )
 		return false;
 	}
 
-	LoadTAffineTbl_ThisZ( M, z, file, flog );
+	LoadTAffineTbl_RngZ( M, z, z, file, flog );
 	return true;
 }
 

@@ -876,12 +876,15 @@ void LoadTAffineTbl_AllZ(
 }
 
 /* --------------------------------------------------------------- */
-/* LoadTAffineTbl_ThisZ ------------------------------------------ */
+/* LoadTAffineTbl_RngZ ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void LoadTAffineTbl_ThisZ(
+// Load entries in range [zi,zf] inclusive.
+//
+void LoadTAffineTbl_RngZ(
 	map<MZIDR,TAffine>	&Tmap,
-	int					z,
+	int					zi,
+	int					zf,
 	const char			*path,
 	FILE				*flog )
 {
@@ -898,10 +901,10 @@ void LoadTAffineTbl_ThisZ(
 
 		zir.z = atoi( LS.line );
 
-		if( zir.z < z )
+		if( zir.z < zi )
 			continue;
 
-		if( zir.z > z )
+		if( zir.z > zf )
 			break;
 
 		sscanf( LS.line, "%d\t%d\t%d"
@@ -954,12 +957,15 @@ void LoadTHmgphyTbl_AllZ(
 }
 
 /* --------------------------------------------------------------- */
-/* LoadTHmgphyTbl_ThisZ ------------------------------------------ */
+/* LoadTHmgphyTbl_RngZ ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void LoadTHmgphyTbl_ThisZ(
+// Load entries in range [zi,zf] inclusive.
+//
+void LoadTHmgphyTbl_RngZ(
 	map<MZIDR,THmgphy>	&Tmap,
-	int					z,
+	int					zi,
+	int					zf,
 	const char			*path,
 	FILE				*flog )
 {
@@ -976,10 +982,10 @@ void LoadTHmgphyTbl_ThisZ(
 
 		zir.z = atoi( LS.line );
 
-		if( zir.z < z )
+		if( zir.z < zi )
 			continue;
 
-		if( zir.z > z )
+		if( zir.z > zf )
 			break;
 
 		sscanf( LS.line, "%d\t%d\t%d"

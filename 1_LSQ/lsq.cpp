@@ -1996,12 +1996,26 @@ int main( int argc, char **argv )
 		ReadPts_NumTags( FOUT, cnx, sml, gArgs.pts_file,
 			gArgs.davinocorn );
 
+/* ----------------- */
+/* Sort regions by z */
+/* ----------------- */
+
+	int				nr = vRgn.size();
+	vector<zsort>	zs( nr );
+
+	for( int i = 0; i < nr; ++i )
+		zs[i] = zsort( vRgn[i], i );
+
+	sort( zs.begin(), zs.end() );
+
+	printf( "Z range [%d %d]\n\n", zs[0].z, zs[nr-1].z );
+
 /* ------------------------- */
 /* Try aligning region pairs */
 /* ------------------------- */
 
-// This logs reports about suspicious pairs
-// but has no other impact on the real solver.
+// This writes logs about suspicious pairs
+// but has no other impact on real solver.
 
 	sml->TestPairAlignments();
 
@@ -2031,18 +2045,6 @@ int main( int argc, char **argv )
 			(gArgs.use_all ? 0 : M->MinPairs()) );
 
 	delete cnx;
-
-/* ----------------- */
-/* Sort regions by z */
-/* ----------------- */
-
-	int				nr = vRgn.size();
-	vector<zsort>	zs( nr );
-
-	for( int i = 0; i < nr; ++i )
-		zs[i] = zsort( vRgn[i], i );
-
-	sort( zs.begin(), zs.end() );
 
 /* ----- */
 /* Solve */
