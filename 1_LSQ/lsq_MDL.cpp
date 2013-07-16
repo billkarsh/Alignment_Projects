@@ -185,7 +185,8 @@ void MDL::Bounds(
 
 // Report
 
-	fprintf( FOUT, "BBOX %f %f %f %f\n", xmin, ymin, xmax, ymax );
+	if( FOUT )
+		fprintf( FOUT, "BBOX %f %f %f %f\n", xmin, ymin, xmax, ymax );
 
 	printf( "Bounds of global image are x=[%f %f] y=[%f %f].\n\n",
 	xmin, xmax, ymin, ymax );

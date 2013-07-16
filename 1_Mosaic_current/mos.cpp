@@ -2196,6 +2196,7 @@ for(int k=0; k<relevant_images.size(); k++) {      // for each picture
     temp[k].num  = k;                              // where this name is in the relevant picture vector
     temp[k].name = images[i].GetRName();
     }
+IDBTil2ImgClear();
 sort(temp.begin(), temp.end(), NameSortFn);    // sort in decreasing order
 
 // OK, render in order

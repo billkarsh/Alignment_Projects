@@ -362,6 +362,8 @@ void ReadPts_NumTags(
 	fclose( f );
 
 	printf( "\n" );
+
+	IDBTil2ImgClear();
 }
 
 

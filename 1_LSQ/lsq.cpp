@@ -810,6 +810,8 @@ static void ApplyLens( vector<double> &X, bool inv )
 
 		LN.UpdateDoublesRHS( &X[itr * 6], vRgn[i].GetName(), inv );
 	}
+
+	IDBTil2ImgClear();
 }
 
 #if 0
@@ -1037,6 +1039,8 @@ static void NoCorrs(
 	fclose( fscr );
 
 	printf( "%d NoCorr cases reported.\n\n", nreports );
+
+	IDBTil2ImgClear();
 }
 
 #endif
@@ -1214,6 +1218,8 @@ void EVL::Tabulate(
 	}
 
 	printf( "\n" );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1358,6 +1364,8 @@ void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 
 	fclose( fbe );
 	fclose( fse );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1516,6 +1524,8 @@ static void ViseWriteXML(
 	fprintf( f, "\t</t2_layer_set>\n");
 	fprintf( f, "</trakem2>\n");
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1935,6 +1945,8 @@ void EVL::BuildVise(
 	}
 
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -2050,8 +2062,8 @@ int main( int argc, char **argv )
 /* Solve */
 /* ----- */
 
-// X are the global transform elements;
-// six packed doubles per valid region.
+// X are the packed global transform elements;
+// E.g. six doubles per valid region for affines.
 
 	vector<double>	X;
 

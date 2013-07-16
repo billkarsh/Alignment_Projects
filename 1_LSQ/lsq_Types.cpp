@@ -86,27 +86,15 @@ const char* RGN::GetName() const
 {
 	if( iname < 0 ) {
 
-		MZID					zid( z, id );
-		map<MZID,int>::iterator	it = rgnmname.find( zid );
-		int						k;
+		Til2Img	I;
 
-		if( it == rgnmname.end() ) {
+		if( !IDBTil2Img( I, idb, z, id ) )
+			I.path = "__noimg.jpg";
 
-			Til2Img	I;
-
-			if( !IDBTil2Img( I, idb, z, id ) )
-				I.path = "__noimg.jpg";
-
-			rgnmname[zid] = k = rgnvname.size();
-			rgnvname.push_back( I.path );
-		}
-		else
-			k = it->second;
-
-		*const_cast<int*>(&iname) = k;
+		return I.path.c_str();
 	}
-
-	return rgnvname[iname].c_str();
+	else
+		return rgnvname[iname].c_str();
 }
 
 

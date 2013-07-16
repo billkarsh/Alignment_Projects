@@ -3,6 +3,7 @@
 #include	"lsq_MTrans.h"
 
 #include	"TrakEM2_UTL.h"
+#include	"PipeFiles.h"
 #include	"File.h"
 
 
@@ -137,6 +138,8 @@ void MTrans::WriteTransforms(
 
 	printf(
 	"Average magnitude=1, min=1, max=1, max/min=1\n\n" );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -255,6 +258,8 @@ void MTrans::WriteTrakEM(
 	fprintf( f, "\t</t2_layer_set>\n" );
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -299,6 +304,8 @@ void MTrans::WriteJython(
 
 	fprintf( f, "}\n" );
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */

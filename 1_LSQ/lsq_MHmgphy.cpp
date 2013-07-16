@@ -452,6 +452,8 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 	}
 
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -538,6 +540,8 @@ void MHmgphy::WriteTransforms(
 	smag/nTr, smin, smax, smax/smin );
 
 	WriteSideRatios( X );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -698,6 +702,8 @@ void MHmgphy::WriteTrakEM(
 	fprintf( f, "\t</t2_layer_set>\n" );
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -748,6 +754,8 @@ void MHmgphy::WriteJython(
 
 	fprintf( f, "}\n" );
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */

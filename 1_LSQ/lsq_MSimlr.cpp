@@ -409,6 +409,8 @@ void MSimlr::WriteTransforms(
 	printf(
 	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
 	smag/nTr, smin, smax, smax/smin );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -527,6 +529,8 @@ void MSimlr::WriteTrakEM(
 	fprintf( f, "\t</t2_layer_set>\n" );
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -571,6 +575,8 @@ void MSimlr::WriteJython(
 
 	fprintf( f, "}\n" );
 	fclose( f );
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */

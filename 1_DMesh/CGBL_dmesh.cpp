@@ -250,8 +250,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	IDBReadImgParams( idb );
 
-	if( !IDBTil2Img( A.t2i, idb, A.layer, A.tile, _arg.ima ) ||
-		!IDBTil2Img( B.t2i, idb, B.layer, B.tile, _arg.imb ) ) {
+	if( !IDBTil2Img1( A.t2i, idb, A.layer, A.tile, _arg.ima ) ||
+		!IDBTil2Img1( B.t2i, idb, B.layer, B.tile, _arg.imb ) ) {
 
 		return false;
 	}

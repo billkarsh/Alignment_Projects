@@ -130,6 +130,16 @@ bool IDBTil2Img(
 	const char		*forcepath = NULL,
 	FILE			*flog = stdout );
 
+void IDBTil2ImgClear();
+
+bool IDBTil2Img1(
+	Til2Img			&t2i,
+	const string	&idb,
+	int				layer,
+	int				tile,
+	const char		*forcepath = NULL,
+	FILE			*flog = stdout );
+
 bool IDBTil2FM(
 	Til2FM			&t2f,
 	const string	&idb,

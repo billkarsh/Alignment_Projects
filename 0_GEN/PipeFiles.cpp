@@ -244,7 +244,10 @@ bool IDBAllTil2Img(
 
 	t2i.clear();
 
-	sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
+	if( idb.empty() )
+		sprintf( name, "../%d/TileToImage.txt", layer );
+	else
+		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
 
 	if( f = fopen( name, "r" ) ) {
 
@@ -289,9 +292,132 @@ exit:
 /* IDBTil2Img ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static map<int,Til2Img>	_t2im;
+static int				_t2iz;
+
+
+static bool _t2iLoadZ(
+	const string	&idb,
+	int				layer,
+	FILE			*flog )
+{
+	char	name[2048];
+	FILE	*f;
+	int		ok = false;
+
+	IDBTil2ImgClear();
+
+	if( idb.empty() )
+		sprintf( name, "../%d/TileToImage.txt", layer );
+	else
+		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
+
+	if( f = fopen( name, "r" ) ) {
+
+		CLineScan	LS;
+
+		if( LS.Get( f ) <= 0 ) {
+			fprintf( flog, "_t2iLoadZ: Empty file [%s].\n", name );
+			goto exit;
+		}
+
+		while( LS.Get( f ) > 0 ) {
+
+			Til2Img	E;
+			char	buf[2048];
+
+			sscanf( LS.line,
+			"%d\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf\t%[^\t\n]",
+			&E.tile,
+			&E.T.t[0], &E.T.t[1], &E.T.t[2],
+			&E.T.t[3], &E.T.t[4], &E.T.t[5],
+			buf );
+
+			E.path = buf;
+
+			_t2im[E.tile] = E;
+		}
+
+		_t2iz	= layer;
+		ok		= true;
+	}
+	else
+		fprintf( flog, "_t2iLoadZ: Can't open [%s].\n", name );
+
+exit:
+	if( f )
+		fclose( f );
+
+	return ok;
+}
+
+
 // Scan given IDBPATH/TileToImage file for this tile's data.
 //
+// Automatically caches data by layer. Call IDBTil2ImgClear
+// to explicitly recover that memory.
+//
 bool IDBTil2Img(
+	Til2Img			&t2i,
+	const string	&idb,
+	int				layer,
+	int				tile,
+	const char		*forcepath,
+	FILE			*flog )
+{
+// override provided
+
+	if( forcepath ) {
+		t2i.tile	= tile;
+		t2i.T		= TAffine( 1,0,0,0,1,0 );
+		t2i.path	= forcepath;
+		return true;
+	}
+
+// load cache
+
+	if( layer != _t2iz ) {
+
+		if( !_t2iLoadZ( idb, layer, flog ) )
+			return false;
+	}
+
+// read from cache
+
+	map<int,Til2Img>::iterator	it = _t2im.find( tile );
+
+	if( it == _t2im.end() ) {
+
+		fprintf( flog, "IDBTil2Img: No entry for [%d %d].\n",
+		layer, tile );
+		return false;
+	}
+	else
+		t2i = it->second;
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* IDBTil2ImgClear ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Release memory when done looking up names.
+//
+void IDBTil2ImgClear()
+{
+	_t2im.clear();
+	_t2iz = -1;
+}
+
+/* --------------------------------------------------------------- */
+/* IDBTil2Img1 --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Scan given IDBPATH/TileToImage file for this tile's data.
+//
+bool IDBTil2Img1(
 	Til2Img			&t2i,
 	const string	&idb,
 	int				layer,
@@ -324,7 +450,7 @@ bool IDBTil2Img(
 		CLineScan	LS;
 
 		if( LS.Get( f ) <= 0 ) {
-			fprintf( flog, "IDBTil2Img: Empty file [%s].\n", name );
+			fprintf( flog, "IDBTil2Img1: Empty file [%s].\n", name );
 			goto exit;
 		}
 
@@ -352,11 +478,11 @@ bool IDBTil2Img(
 			goto exit;
 		}
 
-		fprintf( flog, "IDBTil2Img: No entry for [%d %d].\n",
+		fprintf( flog, "IDBTil2Img1: No entry for [%d %d].\n",
 		layer, tile );
 	}
 	else
-		fprintf( flog, "IDBTil2Img: Can't open [%s].\n", name );
+		fprintf( flog, "IDBTil2Img1: Can't open [%s].\n", name );
 
 exit:
 	if( f )

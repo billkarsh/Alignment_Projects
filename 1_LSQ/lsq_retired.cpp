@@ -515,6 +515,49 @@ static void SolveWithMontageSqr(
 
 /* --------------------------------------------------------------- */
 /* --------------------------------------------------------------- */
+/* Bill's code --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+
+/* --------------------------------------------------------------- */
+/* RGN::GetName -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static vector<string>	rgnvname;	// tile names
+static map<MZID,int>	rgnmname;	// tile names
+
+
+const char* RGN::GetName() const
+{
+	if( iname < 0 ) {
+
+		MZID					zid( z, id );
+		map<MZID,int>::iterator	it = rgnmname.find( zid );
+		int						k;
+
+		if( it == rgnmname.end() ) {
+
+			Til2Img	I;
+
+			if( !IDBTil2Img1( I, idb, z, id ) )
+				I.path = "__noimg.jpg";
+
+			rgnmname[zid] = k = rgnvname.size();
+			rgnvname.push_back( I.path );
+		}
+		else
+			k = it->second;
+
+		*const_cast<int*>(&iname) = k;
+	}
+
+	return rgnvname[iname].c_str();
+}
+
+
+/* --------------------------------------------------------------- */
+/* --------------------------------------------------------------- */
 /* Bill's experimental constraints ------------------------------- */
 /* --------------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -936,6 +979,8 @@ void MHmgphy::AveHTerms(
 
 		printf( "Cam,G,H: %d\t%g\t%g\n", i, g[i], h[i] );
 	}
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -976,6 +1021,8 @@ void MHmgphy::MedHTerms(
 
 		printf( "Cam,G,H: %d\t%g\t%g\n", i, g[i], h[i] );
 	}
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1013,6 +1060,8 @@ void MHmgphy::ForceHTerms(
 		AddConstraint( LHS, RHS, 1, i1, v, wt*g[cam] );
 		AddConstraint( LHS, RHS, 1, i2, v, wt*h[cam] );
 	}
+
+	IDBTil2ImgClear();
 }
 
 /* --------------------------------------------------------------- */
