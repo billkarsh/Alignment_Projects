@@ -979,12 +979,17 @@ static void NoCorrs(
 
 			++nreports;
 
+			// A & B names may be from diff Z, hence,
+			// not both in same IDBTil2Img cache!!
+			char	Aname[2048];
+			strcpy( Aname, A.GetName() );
+
 			fprintf( flog, "No points in common -"
 			" Lyr.til:rgn %d.%d:%d - %d.%d:%d, overlap %.1f%%\n"
 			" - %s\n"
 			" - %s\n",
 			A.z, A.id, A.rgn, B.z, B.id, B.rgn, olap*100.0,
-			A.GetName(), B.GetName() );
+			Aname, B.GetName() );
 
 			/* ---------------- */
 			/* Report in NoCorr */
@@ -1338,13 +1343,18 @@ void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 
 		if( err >= bigpr ) {
 
+			// C.r1 & C.r2 names may be from diff Z, hence,
+			// not both in same IDBTil2Img cache!!
+			char	r1name[2048];
+			strcpy( r1name, vRgn[C.r1].GetName() );
+
 			printf( "%10.1f\t%4d\t%4d\t%4d\t%4d\t%4d\t%4d\n",
 			sqrt( err ),
 			z1, vRgn[C.r1].id, vRgn[C.r1].rgn,
 			z2, vRgn[C.r2].id, vRgn[C.r2].rgn );
 
 			printf( "%s\n%s\n",
-			vRgn[C.r1].GetName(), vRgn[C.r2].GetName() );
+			r1name, vRgn[C.r2].GetName() );
 		}
 
 		// and plot
@@ -2079,6 +2089,9 @@ int main( int argc, char **argv )
 		gArgs.priorafftbl,
 		&zs );
 
+//static_cast<MAffine*>(M)->UpdateScaffold( X, gNTr );
+//goto exit;
+
 	IterateInliers( X, zs, nignored );
 	ApplyLens( X, false );
 
@@ -2113,14 +2126,17 @@ int main( int argc, char **argv )
 /* Assess and report errors */
 /* ------------------------ */
 
-	EVL	evl;
+	{
+		EVL	evl;
 
-	evl.Evaluate( xbnd, ybnd, zs, X );
+		evl.Evaluate( xbnd, ybnd, zs, X );
+	}
 
 /* ---- */
 /* Done */
 /* ---- */
 
+exit:
 	fclose( FOUT );
 	VMStats( stdout );
 

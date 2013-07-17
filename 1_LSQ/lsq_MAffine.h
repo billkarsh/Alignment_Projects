@@ -86,6 +86,8 @@ private:
 public:
 	void SolveSystem( vector<double> &X, int nTr );
 
+	void UpdateScaffold( vector<double> &X, int nTr );
+
 	void WriteTransforms(
 		const vector<double>	&X,
 		int						bstrings,

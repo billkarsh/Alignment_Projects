@@ -356,7 +356,7 @@ exit:
 // Scan given IDBPATH/TileToImage file for this tile's data.
 //
 // Automatically caches data by layer. Call IDBTil2ImgClear
-// to explicitly recover that memory.
+// to explicitly recover that memory, but see notes there.
 //
 bool IDBTil2Img(
 	Til2Img			&t2i,
@@ -404,6 +404,10 @@ bool IDBTil2Img(
 /* --------------------------------------------------------------- */
 
 // Release memory when done looking up names.
+//
+// IMPORTANT: IDBTil2Img returns pointers into a cache and
+// this function clears the cache so be careful that all
+// references are retired first.
 //
 void IDBTil2ImgClear()
 {

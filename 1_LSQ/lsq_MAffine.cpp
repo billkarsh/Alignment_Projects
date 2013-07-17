@@ -123,7 +123,7 @@ void MAffine::SetUniteLayer(
 /* Set each TForm in given layer */
 /* ----------------------------- */
 
-	double	stiff	= 0.01;
+	double	stiff	= 0.001;
 
 	int	nr = vRgn.size();
 
@@ -662,7 +662,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 	int				z0, nz;
 
 	LoadAffTable( A, z0, nz, nTr );
-	UntwistScaffold( A, z0, nz );
+//	UntwistScaffold( A, z0, nz );
 
 // Relatively weighted: A(pi) = A(pj)
 
@@ -767,7 +767,7 @@ void MAffine::AffineFromFile2( vector<double> &X, int nTr )
 					nz = (*zs).rbegin()->z - z0 + 1;
 
 	AffineFromFile( A, nTr );
-	UntwistScaffold( A, z0, nz );
+//	UntwistScaffold( A, z0, nz );
 
 // Relatively weighted: A(pi) = A(pj)
 
@@ -1010,6 +1010,26 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 }
 
 /* --------------------------------------------------------------- */
+/* UpdateScaffold ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+void MAffine::UpdateScaffold( vector<double> &X, int nTr )
+{
+	int	z0, nz;
+
+	LoadAffTable( X, z0, nz, nTr );
+	UntwistScaffold( X, z0, nz );
+
+	double			xbnd, ybnd;
+	vector<double>	lrbt;
+
+	Bounds( xbnd, ybnd, X, lrbt, 0, NULL );
+	WriteTransforms( X, false, NULL );
+
+	WriteTrakEM( xbnd, ybnd, X, 0, 0, 0, 0 );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteTransforms ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1043,18 +1063,21 @@ void MAffine::WriteTransforms(
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5] );
 
-		if( !bstrings ) {
+		if( FOUT ) {
 
-			fprintf( FOUT, "TAFFINE %d.%d:%d %f %f %f %f %f %f\n",
-			I.z, I.id, I.rgn,
-			X[j  ], X[j+1], X[j+2],
-			X[j+3], X[j+4], X[j+5] );
-		}
-		else {
-			fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
-			I.GetName(), I.rgn,
-			X[j  ], X[j+1], X[j+2],
-			X[j+3], X[j+4], X[j+5] );
+			if( !bstrings ) {
+
+				fprintf( FOUT, "TAFFINE %d.%d:%d %f %f %f %f %f %f\n",
+				I.z, I.id, I.rgn,
+				X[j  ], X[j+1], X[j+2],
+				X[j+3], X[j+4], X[j+5] );
+			}
+			else {
+				fprintf( FOUT, "TRANSFORM '%s::%d' %f %f %f %f %f %f\n",
+				I.GetName(), I.rgn,
+				X[j  ], X[j+1], X[j+2],
+				X[j+3], X[j+4], X[j+5] );
+			}
 		}
 
 		double	mag = Magnitude( X, I.itr );
