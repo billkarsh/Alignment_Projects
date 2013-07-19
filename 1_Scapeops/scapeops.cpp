@@ -1,9 +1,7 @@
 //
 // scapeops
 //
-// Given file, id pattern:
-//
-// xmlfile -p=%s	# e.g. -p=_N_
+// Given xmlfile...
 //
 // Perform montage drawing and/or strip aligning as follows:
 //
@@ -112,8 +110,7 @@ public:
 	double	inv_abscl,
 			abcorr,
 			abctr;
-	char	*infile,
-			*pat;
+	char	*infile;
 	int		za,
 			zb,
 			abwide,
@@ -133,7 +130,6 @@ public:
 		abcorr		= 0.20;
 		abctr		= 0.0;
 		infile		= NULL;
-		pat			= "/N";
 		za			= -1;
 		zb			= -1;
 		abwide		= 5;
@@ -224,8 +220,6 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &za, "-za=%d", argv[i] ) )
 			;
 		else if( GetArg( &zb, "-zb=%d", argv[i] ) )
-			;
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
 			;
@@ -679,7 +673,6 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
-	TS.SetDecoderPat( gArgs.pat );
 
 /* ---------------- */
 /* Read source data */

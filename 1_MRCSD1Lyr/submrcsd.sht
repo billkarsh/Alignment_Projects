@@ -1,13 +1,14 @@
-#!/bin/csh
+#!/bin/sh
 
 #
-# Usage: submrcsd <file.xml> z1 z2
+# Usage: submrcsd.sht <file.xml> z1 z2
 #
+
 
 setenv MRC_TRIM 12
 
-foreach i (`seq $2 $3`)
+for i in $(seq $2 $3)
+do
 	qsub -N sd-$i -j y -o out.txt -cwd -V -b y "MRCSD1Lyr $1 -z=$i"
-end
-
+done
 

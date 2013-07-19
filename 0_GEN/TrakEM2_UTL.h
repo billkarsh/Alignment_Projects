@@ -32,6 +32,8 @@ public:
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+int IDFromPatch( TiXmlElement* ptch );
+
 void XMLSetTFVals( TiXmlElement* ptch, const double *t );
 
 int  NextOID( const TiXmlHandle hDoc );

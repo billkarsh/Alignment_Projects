@@ -4,20 +4,16 @@
 # temp directory. Preserves montage-montage orientation. Output file
 # named 'myxml_v2.xml'.
 #
-# > updatemontages myxml temp -p=_Nex.mrc
-#
-# Required -p= pattern describes the context around
-# the tile ID 'N' part of image names.
+# > updatemontages myxml temp
 #
 # Options:
 # -zmin=i -zmax=j	;restricts layer range
 # -force			;overwrite TForms with lsq solutions
-#
 
 
 inname=PreClicks
 
-updatemontages $inname.xml temp0 -p=_idN -zmin=7 -zmax=119
+updatemontages $inname.xml temp0 -zmin=7 -zmax=119
 
 mv $inname"_v2.xml" "newmons.xml"
 

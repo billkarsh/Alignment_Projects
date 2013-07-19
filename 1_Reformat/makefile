@@ -19,7 +19,7 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	XMLRotTiles.cpp
+	reformat.cpp
 
 _SRC_XML_ := \
 	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
@@ -28,7 +28,8 @@ SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp File.cpp TrakEM2_UTL.cpp TAffine.cpp
+	Cmdline.cpp CRegexID.cpp File.cpp PipeFiles.cpp \
+	TrakEM2_UTL.cpp TAffine.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -37,7 +38,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-XMLRotTiles:
+reformat:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \

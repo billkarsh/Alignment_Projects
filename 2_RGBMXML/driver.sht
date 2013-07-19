@@ -1,4 +1,17 @@
 #!/bin/sh
 
-RGBMXML layer0_48_grn_sim_montage.xml RGB -zmin=0 -zmax=48
+# Purpose:
+# Using same tag and Z-range as for RGBMerge, update corresponding XML
+# to point to the new images.
+#
+# > RGBMXML <xml-file> <tag> [options]
+#
+# Required:
+# tag				;text string like RGB that labels output folder and tifs.
+#
+# Options:
+# -zmin=i -zmax=j	;restricts layer range
+
+
+RGBMXML MultLayAff.xml RGB -zmin=0 -zmax=2
 

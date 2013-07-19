@@ -1497,15 +1497,15 @@ static void ViseWriteXML(
 			prev = zs[i].z;
 		}
 
-		char		buf[256];
+		char		name[256];
 		const char	*c, *n = FileNamePtr( I.GetName() );
 
 		if( c = strstr( n, "col" ) ) {
-			sprintf( buf, "ve_z%d_id%d_%.*s",
+			sprintf( name, "ve_z%d_id%d_%.*s",
 			I.z, I.id, strchr( c, '.' ) - c, c );
 		}
 		else
-			sprintf( buf, "ve_z%d_id%d", I.z, I.id );
+			sprintf( name, "ve_z%d_id%d", I.z, I.id );
 
 		TAffine	A = M->EqvAffine( X, I.itr );
 
@@ -1525,7 +1525,7 @@ static void ViseWriteXML(
 		"\t\t\t/>\n",
 		oid++, visePix, visePix,
 		sclx*A.t[0], scly*A.t[3], sclx*A.t[1], scly*A.t[4], A.t[2], A.t[5],
-		buf, I.z, buf, visePix, visePix );
+		name, I.z, name, visePix, visePix );
 	}
 
 	if( nr > 0 )

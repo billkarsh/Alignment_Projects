@@ -3,7 +3,6 @@
 //
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
@@ -23,12 +22,6 @@
 
 class CArgs_xml {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
-
 public:
 	char	*xmlfile,
 			*tblfile;
@@ -41,8 +34,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -81,10 +72,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_N_" );
-
 	if( argc < 3 ) {
 		printf(
 		"Usage: XMLCopyTF <xml-file> <tbl-file>.\n" );
@@ -103,36 +90,14 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				tblfile = argv[i];
 		}
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
 		}
 	}
 
-	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
+	fprintf( flog, "\n\n" );
 	fflush( flog );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* --------------------------------------------------------------- */
@@ -152,7 +117,7 @@ static void CopyMatchingTF( TiXmlElement* layer, int z )
 
 		next = p->NextSiblingElement();
 
-		key.id = gArgs.IDFromPatch( p );
+		key.id = IDFromPatch( p );
 
 		map<MZIDR,TAffine>::iterator	it = M.find( key );
 

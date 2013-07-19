@@ -106,24 +106,29 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* EditTitleAndPath ---------------------------------------------- */
+/* EditPath ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void EditTitleAndPath( TiXmlElement* ptch )
+// Change pattern
+// from: .../dir/name_0.tif			// e.g. chan #0
+// to:   .../dir_tag/name_tag.tif	// e.g. tag = RGB
+//
+static void EditPath( TiXmlElement* ptch )
 {
-	char	buf[2048];
+	char		buf[2048], name[128];
+	const char	*n = ptch->Attribute( "file_path" ),
+				*s = strrchr( n, '/' ),
+				*u = strrchr( s, '_' );
 
-// title first
+// get the '/name' part
 
-	sprintf( buf, "%s", ptch->Attribute( "title" ) );
-	sprintf( strrchr( buf, '_' ) + 1, "%s.tif", gArgs.tag );
-	ptch->SetAttribute( "title", buf );
+	sprintf( name, "%.*s", u - s, s );
 
-// now path
+// rebuild path
 
-	sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-	sprintf( strstr( buf, "Plate1_0" ) + 8, "/TIF_%s/%s",
-		gArgs.tag, ptch->Attribute( "title" ) );
+	sprintf( buf, "%.*s_%s%s_%s.tif", s - n, n,
+		gArgs.tag, name, gArgs.tag );
+
 	ptch->SetAttribute( "file_path", buf );
 }
 
@@ -137,7 +142,7 @@ static void UpdateTiles( TiXmlElement* layer )
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		EditTitleAndPath( ptch );
+		EditPath( ptch );
 		ptch->SetAttribute( "type", 4 );
 		ptch->SetAttribute( "min", 0 );
 		ptch->SetAttribute( "max", 255 );

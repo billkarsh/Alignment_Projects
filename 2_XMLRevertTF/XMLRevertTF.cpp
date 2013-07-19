@@ -3,7 +3,6 @@
 //
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"TAffine.h"
@@ -27,12 +26,6 @@ using namespace std;
 
 class CArgs_xml {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
-
 public:
 	char	*dstfile,
 			*srcfile;
@@ -46,8 +39,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -86,10 +77,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_N_" );
-
 	if( argc < 5 ) {
 		printf(
 		"Usage: XMLRevertTF <dst-file> <-dst=list>"
@@ -111,8 +98,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				srcfile = argv[i];
 		}
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else if( GetArgList( vi, "-dst=", argv[i] ) ) {
 
 			for( int i = 0; i < vi.size(); ++i )
@@ -126,28 +111,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
+	fprintf( flog, "\n\n" );
 	fflush( flog );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* --------------------------------------------------------------- */
@@ -161,7 +126,7 @@ static void GetTAffines( TiXmlElement* layer )
 	for( ; p; p = p->NextSiblingElement() ) {
 
 		TAffine	T;
-		int		id = gArgs.IDFromPatch( p );
+		int		id = IDFromPatch( p );
 
 		T.ScanTrackEM2( p->Attribute( "transform" ) );
 		M[id] = T;
@@ -209,7 +174,7 @@ static void UpdateTiles( TiXmlElement* layer )
 
 	for( ; p; p = p->NextSiblingElement() ) {
 
-		int	id = gArgs.IDFromPatch( p );
+		int	id = IDFromPatch( p );
 
 		map<int,TAffine>::iterator	it = M.find( id );
 

@@ -9,7 +9,9 @@
 //
 // Here, 'TIF' is the image folder name following 'Plate1_0'
 // and '2' is string for channel 2, but names like 'RGB103'
-// could be searched.
+// could be searched. More generally, channel names can be
+// anything between the final '_' and the final '.tif' like
+// '2.HEQ'.
 //
 // Can also use option -localproj as:
 // >XMLExists xxx.xml -localproj -zmin=0 -zmax=10
@@ -173,12 +175,14 @@ static bool IsDir( string &dir, TiXmlElement* ptch )
 
 static bool IsImg( string &s, TiXmlElement* ptch )
 {
-	char	til[256], buf[4096];
+	char	name[256], buf[4096];
 
-	sprintf( til, "%s", ptch->Attribute( "title" ) );
-	sprintf( strrchr( til, '_' ) + 1, "%s.tif", gArgs.chn );
+	sprintf( name, "%s",
+		FileNamePtr( ptch->Attribute( "file_path" ) ) );
 
-	sprintf( buf, "%s/%s", s.c_str(), til );
+	sprintf( strrchr( name, '_' ) + 1, "%s.tif", gArgs.chn );
+
+	sprintf( buf, "%s/%s", s.c_str(), name );
 	s = buf;
 
 	return DskBytes( buf ) > 0.0;

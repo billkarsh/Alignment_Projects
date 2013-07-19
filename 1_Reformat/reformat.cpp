@@ -1,12 +1,17 @@
 //
-// Using same tag and z range as for HEQLayers, update
-// the corresponding xml to point to the HEQ images.
+// Reformat either:
+// {-x=xml file, -r=Rick file, -d-idb}.
+//
+// New xml files have 'title' attributes like this:
+// "z.id:rgn" or,
+// "z.id:rgn_col.row.cam" (if data present).
 //
 
-
 #include	"Cmdline.h"
+#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
+#include	"PipeFiles.h"
 
 
 /* --------------------------------------------------------------- */
@@ -18,35 +23,42 @@
 /* --------------------------------------------------------------- */
 
 /* --------------------------------------------------------------- */
-/* CArgs_rgbm ---------------------------------------------------- */
+/* CArgs_xml ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CArgs_rgbm {
+class CArgs_xml {
+
+private:
+	// re_id used to extract tile id from image name.
+	// "/N" used for EM projects, "_N_" for APIG images,
+	// "_Nex.mrc" typical for Leginon files.
+	CRegexID	re_id;
 
 public:
-	char	dtag[32];
-	char	*infile,
-			*tag;
-	int		zmin, zmax,
-			ltag;
+	char	*inpath;
+	int		cmd,		// {'x','r','d'}
+			zmin,
+			zmax;
 
 public:
-	CArgs_rgbm()
+	CArgs_xml()
 	{
-		infile	= NULL;
-		tag		= NULL;
+		inpath	= NULL;
+		cmd		= 0;
 		zmin	= 0;
 		zmax	= 32768;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
+
+	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CArgs_rgbm	gArgs;
+static CArgs_xml	gArgs;
 static FILE*		flog = NULL;
 
 
@@ -58,11 +70,11 @@ static FILE*		flog = NULL;
 /* SetCmdLine ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
+void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "HEQXML.log", "w" );
+	flog = FileOpenOrDie( "Reformat.log", "w" );
 
 // log start time
 
@@ -76,9 +88,13 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
-usage:
-		printf( "Usage: HEQXML <xml-file> <tag> [options].\n" );
+	char	*pat;
+
+	re_id.Set( "_N_" );
+
+	if( argc < 6 ) {
+		printf(
+		"Usage: reformat path <-x,-r,-d> -p=_Nex.mrc -zmin=i -zmax=j.\n" );
 		exit( 42 );
 	}
 
@@ -87,95 +103,102 @@ usage:
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
-
-			if( !infile )
-				infile = argv[i];
-			else
-				tag = argv[i];
-		}
+		if( argv[i][0] != '-' )
+			inpath = argv[i];
+		else if( IsArg( "-x", argv[i] ) )
+			cmd = 'x';
+		else if( IsArg( "-r", argv[i] ) )
+			cmd = 'r';
+		else if( IsArg( "-d", argv[i] ) )
+			cmd = 'd';
+		else if( GetArgStr( pat, "-p=", argv[i] ) )
+			re_id.Set( pat );
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
 		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
+			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
 		}
 	}
 
-	if( tag )
-		ltag = sprintf( dtag, ".%s", tag );
-	else
-		goto usage;
+	fprintf( flog, "\n" );
 
-	fprintf( flog, "\n\n" );
+	re_id.Compile( flog );
+
 	fflush( flog );
 }
 
-/* --------------------------------------------------------------- */
-/* EditPath ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
+/* -------------------------------------------------------------- */
+/* IDFromPatch -------------------------------------------------- */
+/* -------------------------------------------------------------- */
 
-// Change pattern
-// from: .../dir/name.tif
-// to:   .../dir_tag/name.tag.tif
-//
-static void EditPath( TiXmlElement* ptch )
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
-	char		buf[2048], name[128];
-	const char	*n = ptch->Attribute( "file_path" ),
-				*s = strrchr( n, '/' ),
-				*e = FileDotPtr( s );
+	const char	*name = p->Attribute( "title" );
+	int			id;
 
-// get the '/name' part
+	if( !re_id.Decode( id, name ) ) {
+		fprintf( flog, "No tile-id found in '%s'.\n", name );
+		exit( 42 );
+	}
 
-	sprintf( name, "%.*s", e - s, s );
-
-// rebuild path
-
-	sprintf( buf, "%.*s_%s%s%s.tif", s - n, n,
-		gArgs.dtag+1, name, gArgs.dtag );
-
-	ptch->SetAttribute( "file_path", buf );
+	return id;
 }
 
 /* --------------------------------------------------------------- */
-/* UpdateTiles --------------------------------------------------- */
+/* UpdateXMLLayer ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void UpdateTiles( TiXmlElement* layer )
+static void UpdateXMLLayer( TiXmlElement* layer, int z )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+	for( ; p; p = p->NextSiblingElement() ) {
 
-		// edit attributes
-		EditPath( ptch );
-		ptch->SetAttribute( "type", 0 );
-		ptch->SetAttribute( "min", 0 );
-		ptch->SetAttribute( "max", 255 );
+		char	title[128];
+		int		id = gArgs.IDFromPatch( p );
+
+		const char	*c, *name = p->Attribute( "title" );
+
+		if( c = strstr( name, "col" ) ) {
+
+			int	col = -1, row = -1, cam = -1;
+			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+
+			sprintf( title, "%d.%d:1_%d.%d.%d",
+				z, id, col, row, cam );
+		}
+		else
+			sprintf( title, "%d.%d:1", z, id );
+
+		p->SetAttribute( "title", title );
 	}
 }
 
 /* --------------------------------------------------------------- */
-/* WriteXML ------------------------------------------------------ */
+/* UpdateXML ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteXML()
+static void UpdateXML()
 {
 /* ---- */
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
+	XML_TKEM		xml( gArgs.inpath, flog );
 	TiXmlElement*	layer	= xml.GetFirstLayer();
 
-/* ---------- */
-/* Fix layers */
-/* ---------- */
+/* -------------- */
+/* For each layer */
+/* -------------- */
 
 	for( ; layer; layer = layer->NextSiblingElement() ) {
+
+		/* ----------------- */
+		/* Layer-level stuff */
+		/* ----------------- */
 
 		int	z = atoi( layer->Attribute( "z" ) );
 
@@ -185,7 +208,7 @@ static void WriteXML()
 		if( z < gArgs.zmin )
 			continue;
 
-		UpdateTiles( layer );
+		UpdateXMLLayer( layer, z );
 	}
 
 /* ---- */
@@ -211,7 +234,12 @@ int main( int argc, char* argv[] )
 /* Write new xml */
 /* ------------- */
 
-	WriteXML();
+	switch( gArgs.cmd ) {
+
+		case 'x':
+			UpdateXML();
+		break;
+	}
 
 /* ---- */
 /* Done */

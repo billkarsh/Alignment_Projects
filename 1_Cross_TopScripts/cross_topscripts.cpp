@@ -28,7 +28,6 @@ public:
 			xyconf;		// neib radius = (1-conf)(blockwide)
 	char	xmlfile[2048],
 			outdir[2048];
-	char	*pat;
 	int		zmin,
 			zmax,
 			abwide,
@@ -43,7 +42,6 @@ public:
 		abcorr		= 0.20;
 		xyconf		= 0.50;
 		xmlfile[0]	= 0;
-		pat			= "/N";
 		zmin		= 0;
 		zmax		= 32768;
 		abwide		= 5;
@@ -111,8 +109,6 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			DskAbsPath( xmlfile, sizeof(xmlfile), argv[i], flog );
 		else if( GetArgStr( _outdir, "-d=", argv[i] ) )
 			DskAbsPath( outdir, sizeof(outdir), _outdir, flog );
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -201,10 +197,10 @@ static void WriteSubscapes( vector<int> &zlist )
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"'%s' -p=%s"
+	"'%s'"
 	" -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
 	" -ab -abwide=%d -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g",
-	gArgs.xmlfile, gArgs.pat,
+	gArgs.xmlfile,
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
 	gArgs.abwide, gArgs.abscl, gArgs.ablgord, gArgs.absdev,
 	gArgs.abcorr );
@@ -242,10 +238,10 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	fprintf( f,
 	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -p=%s -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
+	" scapeops '%s' -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
 	" -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.xmlfile, gArgs.pat, gArgs.abscl,
+	gArgs.xmlfile, gArgs.abscl,
 	gArgs.ablgord, gArgs.absdev, zlist[nz - 1] );
 
 	fprintf( f, "\n" );
@@ -295,9 +291,9 @@ static void WriteHiresgo()
 
 	fprintf( f,
 	"cross_lowtohires '%s' -lowres=LowRes.xml"
-	" -p=%s -zmin=%d -zmax=%d"
+	" -zmin=%d -zmax=%d"
 	" -xmltype=0 -xmlmin=0 -xmlmax=0\n\n",
-	gArgs.xmlfile, gArgs.pat, gArgs.zmin, gArgs.zmax );
+	gArgs.xmlfile, gArgs.zmin, gArgs.zmax );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -319,10 +315,10 @@ static void WriteCarvego()
 
 	fprintf( f,
 	"cross_carveblocks"
-	" HiRes.xml -p=%s -zmin=%d -zmax=%d%s"
+	" HiRes.xml -zmin=%d -zmax=%d%s"
 	" -b=10 -abscl=%d -ablgord=%d -absdev=%d"
 	" -abcorr=%g -xyconf=%g\n\n",
-	gArgs.pat, gArgs.zmin, gArgs.zmax,
+	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
 	gArgs.abcorr, gArgs.xyconf );

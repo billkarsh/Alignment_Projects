@@ -13,7 +13,6 @@
 # tag				;text string like HEQ that labels output folder and tifs.
 #
 # Options:
-# -p=_N_			;pattern describes context around tile ID 'N' in img name
 # -zmin=i -zmax=j	;restricts layer range
 
 

@@ -6,7 +6,6 @@
 //
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"TAffine.h"
@@ -25,12 +24,6 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
 
 public:
 	char	*infile1,
@@ -52,8 +45,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -90,10 +81,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_N_" );
-
 	if( argc < 3 ) {
 		printf( "Usage: XMLUnite <xml-file1> <xml-file2> [options].\n" );
 		exit( 42 );
@@ -111,8 +98,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				infile2 = argv[i];
 		}
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else if( GetArg( &zolap, "-olap=%d", argv[i] ) )
 			;
 		else if( GetArg( &reftile, "-ref=%d", argv[i] ) )
@@ -125,28 +110,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
+	fprintf( flog, "\n\n" );
 	fflush( flog );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* -------------------------------------------------------------- */
@@ -159,7 +124,7 @@ static bool GetThisTAffine( TAffine &T, TiXmlElement* layer, int id )
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		if( gArgs.IDFromPatch( ptch ) == id ) {
+		if( IDFromPatch( ptch ) == id ) {
 
 			T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 			return true;

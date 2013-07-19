@@ -10,7 +10,6 @@
 //
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
@@ -30,12 +29,6 @@
 
 class CArgs_heq {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
-
 public:
 	char	dtag[32],
 			utag[32];
@@ -54,8 +47,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -82,10 +73,6 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_N_" );
-
 	if( argc < 5 ) {
 usage:
 		printf( "Usage: HEQVFY <xml-file> <tag> -zmin=i -zmax=j.\n" );
@@ -108,8 +95,6 @@ usage:
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -126,31 +111,12 @@ usage:
 	else
 		goto usage;
 
-	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
+	fprintf( flog, "\n\n" );
 
 // header
 
 	fprintf( flog, "\n\nMissing HEQ---\nZ\tID\n" );
 	fflush( flog );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_heq::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* --------------------------------------------------------------- */
@@ -204,7 +170,7 @@ static void ListMissingTiles( TiXmlElement* layer, int z )
 	for( ; p; p = p->NextSiblingElement() ) {
 
 		char	buf[2048];
-		int		id = gArgs.IDFromPatch( p );
+		int		id = IDFromPatch( p );
 
 		if( !DskExists( OutName( buf, p ) ) )
 			fprintf( flog, "%d\t%d\n", z, id );

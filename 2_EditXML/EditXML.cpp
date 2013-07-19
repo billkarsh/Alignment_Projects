@@ -108,24 +108,16 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* EditTitleAndPath ---------------------------------------------- */
+/* EditPath ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void EditTitleAndPath( TiXmlElement* ptch )
+static void EditPath( TiXmlElement* ptch )
 {
 	char	buf[2048];
 	int		len;
 
-// title first
-
-	len = sprintf( buf, "%s", ptch->Attribute( "title" ) );
-	sprintf( buf + len - 5, "%d.tif", gArgs.chn );
-	ptch->SetAttribute( "title", buf );
-
-// now path
-
-	sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
-	strcpy( (char*)FileNamePtr( buf ), ptch->Attribute( "title" ) );
+	len = sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
+	buf[len - 5] = '0' + gArgs.chn;
 	ptch->SetAttribute( "file_path", buf );
 }
 
@@ -139,7 +131,7 @@ static void UpdateTiles( TiXmlElement* layer )
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		EditTitleAndPath( ptch );
+		EditPath( ptch );
 		ptch->SetAttribute( "type", 1 );
 		ptch->SetAttribute( "min", 200 );
 		ptch->SetAttribute( "max", 1000 );

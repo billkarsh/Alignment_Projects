@@ -7,7 +7,6 @@
 
 #include	"GenDefs.h"
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 
@@ -30,12 +29,6 @@ using namespace std;
 
 class CArgs_xml {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
-
 public:
 	char	*xmlfile,
 			*sdfile;
@@ -56,8 +49,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -86,10 +77,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_Nex.mrc" );
-
 	if( argc < 4 ) {
 		printf(
 		"Usage: ViewSD <xml-file> <sd-file> -sd= [options].\n" );
@@ -105,8 +92,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			else
 				sdfile = argv[i];
 		}
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -121,28 +106,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
+	fprintf( flog, "\n\n" );
 	fflush( flog );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* --------------------------------------------------------------- */
@@ -188,7 +153,7 @@ static void TrimTiles( FILE* fres, TiXmlElement* layer, int z )
 
 		nextT = p->NextSiblingElement();
 
-		key.id = gArgs.IDFromPatch( p );
+		key.id = IDFromPatch( p );
 
 		map<MZID,int>::iterator	it = M.find( key );
 

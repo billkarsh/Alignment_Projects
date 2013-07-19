@@ -29,8 +29,7 @@
 class CArgs_rgbm {
 
 public:
-	char	dtag[32],
-			utag[32];
+	char	dtag[32];
 	char	*infile,
 			*tag;
 	int		zmin, zmax,
@@ -110,13 +109,8 @@ usage:
 		}
 	}
 
-	if( tag ) {
-
+	if( tag )
 		ltag = sprintf( dtag, ".%s", tag );
-
-		utag[0] = '_';
-		strcpy( utag + 1, tag );
-	}
 	else
 		goto usage;
 
@@ -128,9 +122,13 @@ usage:
 /* EditPath ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+// Change pattern
+// from: .../dir_tag/name.tag.tif
+// to:   .../dir/name.tif
+//
 static void EditPath( TiXmlElement* ptch )
 {
-	char		buf[2048];
+	char		buf[2048], name[128];
 	const char	*n = ptch->Attribute( "file_path" );
 	char		*s = strrchr( n, '/' ),
 				*t;
@@ -138,16 +136,15 @@ static void EditPath( TiXmlElement* ptch )
 	if( !s || !(t = strstr( ++s, gArgs.dtag )) )
 		return;
 
-// fix title, chop off dtag
+// get the name part
 
-	sprintf( buf, "%.*s", t - s, s );
-	ptch->SetAttribute( "title", buf );
+	sprintf( name, "%.*s", t - s, s );
 
-// fix directory, chop off / and utag, then append title
+// fix directory: overwrite the '_tag' part with '/name.tif'
 
 	s -= 1 + gArgs.ltag;
 
-	sprintf( buf, "%.*s/%s.tif", s - n, n, ptch->Attribute( "title" ) );
+	sprintf( buf, "%.*s/%s.tif", s - n, n, name );
 	ptch->SetAttribute( "file_path", buf );
 }
 

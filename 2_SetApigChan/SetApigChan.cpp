@@ -109,17 +109,18 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* EditTag ------------------------------------------------------- */
+/* EditPath ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 // The channel part of path/A7_id_chn.xxx.tif is between
 // the first dot and the previous underscore.
 //
-static void EditTag( TiXmlElement* ptch, const char *tag )
+static void EditPath( TiXmlElement* ptch )
 {
 	char		buf[2048];
-	const char	*n = ptch->Attribute( tag );
-	const char	*d = strchr( n, '.' );
+	const char	*n = ptch->Attribute( "file_path" );
+	const char	*s = strrchr( n, '/' );
+	const char	*d = strchr( s, '.' );
 
 	if( !d )
 		d = n + strlen( n );
@@ -131,7 +132,7 @@ static void EditTag( TiXmlElement* ptch, const char *tag )
 
 	sprintf( buf, "%.*s_%s%s", u - n, n, gArgs.chn, d );
 
-	ptch->SetAttribute( tag, buf );
+	ptch->SetAttribute( "file_path", buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -142,11 +143,8 @@ static void UpdateTiles( TiXmlElement* layer )
 {
 	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
-
-		EditTag( ptch, "title" );
-		EditTag( ptch, "file_path" );
-	}
+	for( ; ptch; ptch = ptch->NextSiblingElement() )
+		EditPath( ptch );
 }
 
 /* --------------------------------------------------------------- */

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Purpose:
+# Undo effect of HEQXML, that is, revert tagged XML
+# to point to original untagged images.
+#
+# > HEQ2Normal <xml-file> <tag> [options]
+#
+# Required:
+# tag				;text string like HEQ that labels output folder and tifs.
+#
+# Options:
+# -zmin=i -zmax=j	;restricts layer range
+
+
+HEQ2Normal MultLayAff_HEQ.xml HEQ -zmin=0 -zmax=2
+

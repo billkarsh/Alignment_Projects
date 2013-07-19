@@ -57,7 +57,6 @@ public:
 	double	abcorr,
 			xyconf;		// neib radius = (1-conf)(blockwide)
 	char	xml_hires[2048];
-	char	*pat;
 	int		zmin,
 			zmax,
 			blksize,
@@ -72,7 +71,6 @@ public:
 		abcorr			= 0.20;
 		xyconf			= 0.50;
 		xml_hires[0]	= 0;
-		pat				= "/N";
 		zmin			= 0;
 		zmax			= 32768;
 		blksize			= 10;
@@ -136,8 +134,6 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			DskAbsPath( xml_hires, sizeof(xml_hires), argv[i], flog );
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -205,10 +201,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
 	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
-		" cross_thisblock -p=%s%s"
+		" cross_thisblock%s"
 		" -abscl=%d -ablgord=%d"
 		" -absdev=%d -abcorr=%g -xyconf=%g\n",
-		gArgs.pat, (gArgs.NoFolds ? " -nf" : ""),
+		(gArgs.NoFolds ? " -nf" : ""),
 		gArgs.abscl, gArgs.ablgord,
 		gArgs.absdev, gArgs.abcorr, gArgs.xyconf );
 	fprintf( f, "\t\t\tcd ..\n" );
@@ -597,7 +593,6 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
-	TS.SetDecoderPat( gArgs.pat );
 
 /* ------------- */
 /* Read src file */

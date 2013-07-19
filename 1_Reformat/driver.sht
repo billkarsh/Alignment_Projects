@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Purpose:
+# Reformat file system object:
+# {-x=xml file, -r=Rick file, -d-idb}.
+#
+# > reformat path <-x,-r,-d> -p=_Nex.mrc -zmin=i -zmax=j
+#
+# Required -p= pattern describes the context around
+# the tile ID 'N' part of image names.
+
+
+reformat MultLayAff.xml -x -p=_idN -zmin=0 -zmax=32768
+

@@ -13,5 +13,5 @@
 # -zmin=i -zmax=j	;restricts layer range
 
 
-HEQXML Z7-119.txt HEQ -zmin=7 -zmax=119
+HEQXML MultLayAff.xml HEQ -zmin=0 -zmax=2
 

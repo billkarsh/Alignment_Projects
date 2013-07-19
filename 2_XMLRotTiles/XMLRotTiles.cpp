@@ -2,7 +2,7 @@
 // Three modes of operation:
 //
 // (0)
-// XMLRotTiles file.xml -mode=0 -p=_N_ -id1=i -id2=j -zmin=z1 -zmax=z2
+// XMLRotTiles file.xml -mode=0 -id1=i -id2=j -zmin=z1 -zmax=z2
 // Using spec tiles (id1, id2) which are left-to-right across
 // horz line, define global layer angle, and, generate table:
 //
@@ -14,7 +14,7 @@
 // is dim (x,y).
 //
 // (2)
-// XMLRotTiles file.xml -mode=2 -p=_N_ -id1=i -id2=j -x=4096 -y=4096 \
+// XMLRotTiles file.xml -mode=2 -id1=i -id2=j -x=4096 -y=4096 \
 //	-zmin=z1 -zmax=z2 -tdeg=0
 // Using same calcs as mode (0), actually rotate the layer if delta
 // exceeds spec thresh tdeg. Each tile is dim (x,y).
@@ -22,7 +22,6 @@
 
 #include	"GenDefs.h"
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"TAffine.h"
@@ -41,12 +40,6 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
 
 public:
 	double		degcw, tdeg;
@@ -67,8 +60,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -105,10 +96,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_N_" );
-
 	if( argc < 4 ) {
 		printf( "Usage: XMLRotTiles <xml-file> -z=i -degcw=f\n" );
 		exit( 42 );
@@ -121,8 +108,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else if( GetArg( &mode, "-mode=%d", argv[i] ) )
 			;
 		else if( GetArg( &id1, "-id1=%d", argv[i] ) )
@@ -149,28 +134,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-	fprintf( flog, "\n" );
-
-	re_id.Compile( flog );
-
+	fprintf( flog, "\n\n" );
 	fflush( flog );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* --------------------------------------------------------------- */
@@ -212,7 +177,7 @@ static bool GetTheTwoTAffines(
 
 	for( ; ngot < 2 && p; p = p->NextSiblingElement() ) {
 
-		int	id = gArgs.IDFromPatch( p );
+		int	id = IDFromPatch( p );
 
 		if( id == gArgs.id1 ) {
 			T1.ScanTrackEM2( p->Attribute( "transform" ) );

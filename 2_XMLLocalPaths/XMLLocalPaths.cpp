@@ -101,9 +101,12 @@ static void UpdateLayer( TiXmlElement* layer )
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		char	buf[2048];
+		char	name[256], buf[2048];
 
-		sprintf( buf, "Images/Z%d/%s", z, ptch->Attribute( "title" ) );
+		sprintf( name, "%s",
+			FileNamePtr( ptch->Attribute( "file_path" ) ) );
+
+		sprintf( buf, "Images/Z%d/%s", z, name );
 		ptch->SetAttribute( "file_path", buf );
 	}
 }

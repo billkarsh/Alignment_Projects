@@ -168,14 +168,13 @@ void CArgs_xml::NewLayer( int z )
 int CArgs_xml::CopyImg( TiXmlElement* ptch )
 {
 	char	buf[4096];
+	const char	*p = ptch->Attribute( "file_path" ),
+				*n = FileNamePtr( p );
 
-	sprintf( buf, "cp %s %s/%s",
-		ptch->Attribute( "file_path" ),
-		curlyr, ptch->Attribute( "title" ) );
+	sprintf( buf, "cp %s %s/%s", p, curlyr, n );
 	system( buf );
 
-	sprintf( buf, "%s/%s",
-		curlyr, ptch->Attribute( "title" ) );
+	sprintf( buf, "%s/%s", curlyr, n );
 
 	return DskExists( buf );
 }
@@ -190,7 +189,7 @@ void CArgs_xml::SetRelPath( TiXmlElement* ptch )
 
 	sprintf( buf, "%s/%s",
 		strstr( curlyr, "Images/Z" ),
-		ptch->Attribute( "title" ) );
+		FileNamePtr( ptch->Attribute( "file_path" ) ) );
 
 	ptch->SetAttribute( "file_path", buf );
 }

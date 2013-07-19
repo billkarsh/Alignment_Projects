@@ -662,7 +662,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 	int				z0, nz;
 
 	LoadAffTable( A, z0, nz, nTr );
-//	UntwistScaffold( A, z0, nz );
+	UntwistScaffold( A, z0, nz );
 
 // Relatively weighted: A(pi) = A(pj)
 
@@ -767,7 +767,7 @@ void MAffine::AffineFromFile2( vector<double> &X, int nTr )
 					nz = (*zs).rbegin()->z - z0 + 1;
 
 	AffineFromFile( A, nTr );
-//	UntwistScaffold( A, z0, nz );
+	UntwistScaffold( A, z0, nz );
 
 // Relatively weighted: A(pi) = A(pj)
 
@@ -1177,12 +1177,21 @@ void MAffine::WriteTrakEM(
 		}
 
 		// trim trailing quotes and '::'
-		// s = filename only
-		char		buf[2048];
+		char		title[256], buf[2048];
 		strcpy( buf, I.GetName() );
 		char		*p = strtok( buf, " ':\n" );
-		const char	*s1 = FileNamePtr( p ),
-					*s2	= FileDotPtr( s1 );
+		const char	*c = strstr( p, "col" );
+
+		if( c ) {
+
+			int	col = -1, row = -1, cam = -1;
+			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+
+			sprintf( title, "%d.%d:1_%d.%d.%d",
+				I.z, I.id, col, row, cam );
+		}
+		else
+			sprintf( title, "%d.%d:1", I.z, I.id );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -1195,14 +1204,14 @@ void MAffine::WriteTrakEM(
 		"\t\t\t\twidth=\"%d\"\n"
 		"\t\t\t\theight=\"%d\"\n"
 		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
-		"\t\t\t\ttitle=\"%.*s\"\n"
+		"\t\t\t\ttitle=\"%s\"\n"
 		"\t\t\t\ttype=\"%d\"\n"
 		"\t\t\t\tfile_path=\"%s\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW - offset, gH - offset,
 		X[j], X[j+3], X[j+1], X[j+4], x_orig, y_orig,
-		s2 - s1, s1, xml_type, p, gW - offset, gH - offset );
+		title, xml_type, p, gW - offset, gH - offset );
 
 		if( xml_min < xml_max ) {
 

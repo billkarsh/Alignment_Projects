@@ -162,7 +162,7 @@ static TiXmlElement* XMLGetTiles(
 
 		til.name	= name;
 		til.z		= z;
-		til.id		= TS->DecodeID( name );
+		til.id		= IDFromPatch( ptch );
 		til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 
 		if( !RejectTile( til ) )
@@ -1067,12 +1067,6 @@ void CTileSet::WriteTrakEM2Layer(
 	for( int i = 0; i < isN; ++i ) {
 
 		const CUTile&	U = vtil[order[i]];
-		const char		*name, *n1, *n2;
-
-		// title from name
-		name	= U.name.c_str();
-		n1		= FileNamePtr( name );
-		n2		= FileDotPtr( n1 );
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"
@@ -1080,14 +1074,14 @@ void CTileSet::WriteTrakEM2Layer(
 		"\t\t\t\twidth=\"%d\"\n"
 		"\t\t\t\theight=\"%d\"\n"
 		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
-		"\t\t\t\ttitle=\"%.*s\"\n"
+		"\t\t\t\ttitle=\"%d.%d:1\"\n"
 		"\t\t\t\ttype=\"%d\"\n"
 		"\t\t\t\tfile_path=\"%s\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW, gH,
 		U.T.t[0], U.T.t[3], U.T.t[1], U.T.t[4], U.T.t[2], U.T.t[5],
-		n2 - n1, n1, xmltype, name, gW, gH );
+		U.z, U.id, xmltype, U.name.c_str(), gW, gH );
 
 		if( xmlmin < xmlmax ) {
 

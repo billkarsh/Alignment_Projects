@@ -1,5 +1,5 @@
 //
-// > MRCSD1Lyr file.xml -z=121 -p=_Nex.mrc
+// > MRCSD1Lyr file.xml -z=121
 //
 // Given xml file of 16-bit mrc images, create text file named
 // sd_zzz.txt, each line of which lists: z, tileID, image stddev.
@@ -8,7 +8,6 @@
 //
 
 #include	"Cmdline.h"
-#include	"CRegexID.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"mrc.h"
@@ -29,12 +28,6 @@
 
 class CArgs_xml {
 
-private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
-
 public:
 	char	*xmlfile;
 	int		z;
@@ -47,8 +40,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-
-	int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -71,10 +62,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // parse command line args
 
-	char	*pat;
-
-	re_id.Set( "_Nex.mrc" );
-
 	if( argc < 3 ) {
 		printf(
 		"Usage: MRCSD1Lyr <xml-file> -z= [options].\n" );
@@ -87,15 +74,11 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			xmlfile = argv[i];
 		else if( GetArg( &z, "-z=%d", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
 		}
 	}
-
-	re_id.Compile( stdout );
 
 // start log
 
@@ -103,23 +86,6 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 	sprintf( buf, "sd_%d.txt", z );
 	flog = FileOpenOrDie( buf, "w" );
-}
-
-/* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
-/* -------------------------------------------------------------- */
-
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
-{
-	const char	*name = p->Attribute( "title" );
-	int			id;
-
-	if( !re_id.Decode( id, name ) ) {
-		printf( "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
-
-	return id;
 }
 
 /* --------------------------------------------------------------- */
@@ -167,7 +133,7 @@ static void GetTileSDs( TiXmlElement* layer, int z )
 	for( ; p; p = p->NextSiblingElement() ) {
 
 		fprintf( flog, "%d\t%d\t%d\n",
-		z, gArgs.IDFromPatch( p ), GetSD( p ) );
+		z, IDFromPatch( p ), GetSD( p ) );
 	}
 }
 

@@ -26,8 +26,7 @@ class CArgs_alnmon {
 
 public:
 	char	*xml_orig,
-			*xml_lowres,
-			*pat;
+			*xml_lowres;
 	int		zmin,
 			zmax,
 			xml_type,
@@ -39,7 +38,6 @@ public:
 	{
 		xml_orig	= NULL;
 		xml_lowres	= "LowRes.xml";
-		pat			= "/N";
 		zmin		= 0;
 		zmax		= 32768;
 		xml_type	= 0;
@@ -100,8 +98,6 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 		if( argv[i][0] != '-' )
 			xml_orig = argv[i];
 		else if( GetArgStr( xml_lowres, "-lowres=", argv[i] ) )
-			;
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -241,7 +237,6 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
-	TS.SetDecoderPat( gArgs.pat );
 
 /* -------------- */
 /* Read dest file */

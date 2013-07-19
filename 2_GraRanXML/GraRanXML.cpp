@@ -138,21 +138,13 @@ static void ReadScales( vector<Scale> &vs )
 }
 
 /* --------------------------------------------------------------- */
-/* EditTitleAndPath ---------------------------------------------- */
+/* EditPath ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void EditTitleAndPath( TiXmlElement* ptch )
+static void EditPath( TiXmlElement* ptch )
 {
 	char	buf[2048];
 	int		len;
-
-// title first
-
-	len = sprintf( buf, "%s", ptch->Attribute( "title" ) );
-	buf[len - 5] = '0' + gArgs.chn;
-	ptch->SetAttribute( "title", buf );
-
-// now path
 
 	len = sprintf( buf, "%s", ptch->Attribute( "file_path" ) );
 	buf[len - 5] = '0' + gArgs.chn;
@@ -172,7 +164,7 @@ static void UpdateTiles(
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
 		if( gArgs.chn >= 0 )
-			EditTitleAndPath( ptch );
+			EditPath( ptch );
 
 		ptch->SetAttribute( "min", scl.smin );
 		ptch->SetAttribute( "max", scl.smax );

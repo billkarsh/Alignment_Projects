@@ -121,7 +121,6 @@ public:
 			abcorr,
 			abctr,
 			xyconf;		// neib radius = (1-conf)(blockwide)
-	char	*pat;
 	int		abscl,
 			ablgord,
 			absdev;
@@ -134,7 +133,6 @@ public:
 		abcorr		= 0.20;
 		abctr		= 0.0;
 		xyconf		= 0.50;
-		pat			= "/N";
 		abscl		= 200;
 		ablgord		= 1;	// 3  probably good for Davi EM
 		absdev		= 0;	// 42 useful for Davi EM
@@ -196,9 +194,7 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArgStr( pat, "-p=", argv[i] ) )
-			;
-		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
+		if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
 			inv_abscl = 1.0/abscl;
 		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
 			;
@@ -676,7 +672,6 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
-	TS.SetDecoderPat( gArgs.pat );
 
 /* --------------- */
 /* Read block data */

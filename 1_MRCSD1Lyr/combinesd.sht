@@ -1,9 +1,10 @@
-#!/bin/csh
+#!/bin/sh
 
 rm -f sdall.txt
 
-foreach i (`seq $1 $2`)
+for i in $(seq $1 $2)
+do
 	cat sd_$i.txt >> sdall.txt
-end
+done
 
 

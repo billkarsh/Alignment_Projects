@@ -240,22 +240,18 @@ static void Write_upmongo()
 	fprintf( f, "# temp directory. Preserves montage-montage orientation. Output file\n" );
 	fprintf( f, "# named 'myxml_v2.xml'.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > updatemontages myxml temp -p=_Nex.mrc\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Required -p= pattern describes the context around\n" );
-	fprintf( f, "# the tile ID 'N' part of image names.\n" );
+	fprintf( f, "# > updatemontages myxml temp\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -zmin=i -zmax=j\t;restricts layer range\n" );
 	fprintf( f, "# -force\t\t\t;overwrite TForms with lsq solutions\n" );
-	fprintf( f, "#\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "inname=%s\n",
 	inname );
 	fprintf( f, "\n" );
-	fprintf( f, "updatemontages $inname.xml temp0 -p=%s -zmin=%d -zmax=%d\n",
-	gArgs.pat, gArgs.zmin, gArgs.zmax );
+	fprintf( f, "updatemontages $inname.xml temp0 -zmin=%d -zmax=%d\n",
+	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 	fprintf( f, "mv $inname\"_v2.xml\" \"newmons.xml\"\n" );
 	fprintf( f, "\n" );
@@ -278,14 +274,11 @@ static void Write_crossgo()
 
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "# purpose:\n" );
+	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Write scripts governing cross layer alignment.\n" );
 	fprintf( f, "# Creates folder mytemp/cross_wkspc\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_topscripts myxml -d=temp0 -p=_Nex.mrc -zmin=0 -zmax=5\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Required -p= pattern describes the context around\n" );
-	fprintf( f, "# the tile ID 'N' part of image names.\n" );
+	fprintf( f, "# > cross_topscripts myxml -d=temp0 -zmin=0 -zmax=5\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t;no foldmasks\n" );
@@ -295,10 +288,10 @@ static void Write_crossgo()
 	fprintf( f, "# -absdev=42\t;scape sdev size\n" );
 	fprintf( f, "# -abcorr=0.20\t;req. min corr\n" );
 	fprintf( f, "# -xyconf=0.5\t;neib radius = (1-conf)(blockwide)\n" );
-	fprintf( f, "#\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -p=%s -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -abcorr=.20 -XYconf=0.5\n",
-	gArgs.pat, gArgs.zmin, gArgs.zmax,
+	fprintf( f, "\n" );
+	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -abcorr=.20 -XYconf=0.5\n",
+	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\n" );
 
