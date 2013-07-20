@@ -3,12 +3,21 @@
 // {-x=xml file, -r=Rick file, -d-idb}.
 //
 // New xml files have 'title' attributes like this:
-// "z.id:rgn" or,
+// "z.id:rgn", or,
 // "z.id:rgn_col.row.cam" (if data present).
+//
+// New Rick files have lines like this:
+// "z id 6_aff_val_by_row -999 -999 -999 path", or,
+// "z id 6_aff_val_by_row col row cam path" (if data present).
+//
+// New idb TileToImage lines look like this:
+// "id 6_aff_val_by_row -999 -999 -999 path", or,
+// "id 6_aff_val_by_row col row cam path" (if data present).
 //
 
 #include	"Cmdline.h"
 #include	"CRegexID.h"
+#include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
@@ -51,6 +60,7 @@ public:
 
 	void SetCmdLine( int argc, char* argv[] );
 
+	int IDFromName( const char *name );
 	int IDFromPatch( TiXmlElement* p );
 };
 
@@ -92,7 +102,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 	re_id.Set( "_N_" );
 
-	if( argc < 6 ) {
+	if( argc < 4 ) {
 		printf(
 		"Usage: reformat path <-x,-r,-d> -p=_Nex.mrc -zmin=i -zmax=j.\n" );
 		exit( 42 );
@@ -131,20 +141,28 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 }
 
 /* -------------------------------------------------------------- */
-/* IDFromPatch -------------------------------------------------- */
+/* IDFromName --------------------------------------------------- */
 /* -------------------------------------------------------------- */
 
-int CArgs_xml::IDFromPatch( TiXmlElement* p )
+int CArgs_xml::IDFromName( const char *name )
 {
-	const char	*name = p->Attribute( "title" );
-	int			id;
+	int	id;
 
-	if( !re_id.Decode( id, name ) ) {
+	if( !re_id.Decode( id, FileNamePtr( name ) ) ) {
 		fprintf( flog, "No tile-id found in '%s'.\n", name );
 		exit( 42 );
 	}
 
 	return id;
+}
+
+/* -------------------------------------------------------------- */
+/* IDFromPatch -------------------------------------------------- */
+/* -------------------------------------------------------------- */
+
+int CArgs_xml::IDFromPatch( TiXmlElement* p )
+{
+	return IDFromName( p->Attribute( "title" ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -160,9 +178,9 @@ static void UpdateXMLLayer( TiXmlElement* layer, int z )
 		char	title[128];
 		int		id = gArgs.IDFromPatch( p );
 
-		const char	*c, *name = p->Attribute( "title" );
+		const char	*c, *n = p->Attribute( "title" );
 
-		if( c = strstr( name, "col" ) ) {
+		if( c = strstr( n, "col" ) ) {
 
 			int	col = -1, row = -1, cam = -1;
 			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
@@ -219,6 +237,133 @@ static void UpdateXML()
 }
 
 /* --------------------------------------------------------------- */
+/* UpdateRick ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void UpdateRick()
+{
+	FILE	*in  = FileOpenOrDie( gArgs.inpath, "r" );
+
+// name and open out file: path/name.ext -> path/name_v2.ext
+
+	char	buf[2048];
+	int		len = sprintf( buf, "%s", gArgs.inpath ) - 4;
+	sprintf( buf + len, "_v2%s", gArgs.inpath + len );
+
+	FILE	*out = FileOpenOrDie( buf, "w" );
+
+// process line by line
+
+	for( ;; ) {
+
+		TAffine	T;
+		int		z, col = -999, row = -999, cam = -999;
+
+		if( fscanf( in, "%s%lf%lf%d",
+			buf, &T.t[2], &T.t[5], &z ) != 4 ) {
+
+			break;
+		}
+
+		const char *c, *n = FileNamePtr( buf );
+
+		if( c = strstr( n, "col" ) )
+			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+
+		fprintf( out, "%d\t%d"
+		"\t%f\t%f\t%f\t%f\t%f\t%f"
+		"\t%d\t%d\t%d\t%s\n",
+		z, gArgs.IDFromName( n ),
+		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+		col, row, cam, buf );
+	}
+
+	fclose( out );
+	fclose( in );
+}
+
+/* --------------------------------------------------------------- */
+/* UpdateIDB ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void UpdateIDB()
+{
+// loop over dirs
+
+	for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
+
+		// z exists?
+
+		char	buf[4096];
+		sprintf( buf, "%s/%d/TileToImage.txt", gArgs.inpath, z );
+
+		if( !DskExists( buf ) )
+			continue;
+
+		// open input and skip header
+
+		FILE		*in  = FileOpenOrDie( buf, "r" );
+		CLineScan	LS;
+
+		if( LS.Get( in ) <= 0 ) {
+			fprintf( flog, "UpdateIDB: Empty file [%s].\n", buf );
+			fclose( in );
+			continue;
+		}
+
+		// name and open out file: same.tmp
+
+		sprintf( buf, "%s/%d/TileToImage.tmp", gArgs.inpath, z );
+
+		FILE	*out = FileOpenOrDie( buf, "w" );
+
+		// write header
+
+		fprintf( out,
+		"Tile\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
+
+		// process line by line
+
+		while( LS.Get( in ) > 0 ) {
+
+			TAffine	T;
+			int		id, col = -999, row = -999, cam = -999;
+
+			sscanf( LS.line,
+			"%d\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf\t%[^\t\n]",
+			&id,
+			&T.t[0], &T.t[1], &T.t[2],
+			&T.t[3], &T.t[4], &T.t[5],
+			buf );
+
+			const char *c, *n = FileNamePtr( buf );
+
+			if( c = strstr( n, "col" ) )
+				sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+
+			fprintf( out, "%d"
+			"\t%f\t%f\t%f\t%f\t%f\t%f"
+			"\t%d\t%d\t%d\t%s\n",
+			id,
+			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+			col, row, cam, buf );
+		}
+
+		fclose( out );
+		fclose( in );
+
+		// replace file
+
+		sprintf( buf,
+		"mv %s/%d/TileToImage.tmp %s/%d/TileToImage.txt",
+		gArgs.inpath, z, gArgs.inpath, z );
+
+		system( buf );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -238,6 +383,14 @@ int main( int argc, char* argv[] )
 
 		case 'x':
 			UpdateXML();
+		break;
+
+		case 'r':
+			UpdateRick();
+		break;
+
+		case 'd':
+			UpdateIDB();
 		break;
 	}
 
