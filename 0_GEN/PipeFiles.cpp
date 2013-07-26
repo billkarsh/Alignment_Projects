@@ -5,6 +5,14 @@
 #include	"PipeFiles.h"
 
 
+/* --------------------------------------------------------------- */
+/* Statics ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static T2ICache	_C1,
+				_C2;
+
+
 
 
 
@@ -229,13 +237,101 @@ close:
 }
 
 /* --------------------------------------------------------------- */
-/* IDBAllTil2Img ------------------------------------------------- */
+/* IDBT2IGet1 ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool IDBAllTil2Img(
+// Fetch t2i clone for this z/id.
+//
+bool IDBT2IGet1(
+	Til2Img			&t2i,
+	const string	&idb,
+	int				z,
+	int				id,
+	const char		*forcepath,
+	FILE			*flog )
+{
+// override provided
+
+	if( forcepath ) {
+		t2i.id		= id;
+		t2i.T		= TAffine( 1,0,0,0,1,0 );
+		t2i.col		= -999;
+		t2i.row		= -999;
+		t2i.cam		= 0;
+		t2i.path	= forcepath;
+		return true;
+	}
+
+// from idb
+
+	char	name[2048];
+	FILE	*f;
+	int		ok = false;
+
+	if( idb.empty() )
+		sprintf( name, "../%d/TileToImage.txt", z );
+	else
+		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), z );
+
+	if( f = fopen( name, "r" ) ) {
+
+		CLineScan	LS;
+
+		if( LS.Get( f ) <= 0 ) {
+			fprintf( flog, "IDBT2IGet1: Empty file [%s].\n", name );
+			goto exit;
+		}
+
+		while( LS.Get( f ) > 0 ) {
+
+			char	buf[2048];
+
+			t2i.id = -1;
+
+			sscanf( LS.line, "%d", &t2i.id );
+
+			if( t2i.id != id )
+				continue;
+
+			sscanf( LS.line,
+			"%d"
+			"\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf"
+			"\t%d\t%d\t%d"
+			"\t%[^\t\n]",
+			&t2i.id,
+			&t2i.T.t[0], &t2i.T.t[1], &t2i.T.t[2],
+			&t2i.T.t[3], &t2i.T.t[4], &t2i.T.t[5],
+			&t2i.col, &t2i.row, &t2i.cam,
+			buf );
+
+			t2i.path	= buf;
+			ok			= true;
+			goto exit;
+		}
+
+		fprintf( flog, "IDBT2IGet1: No entry for [%d %d].\n", z, id );
+	}
+	else
+		fprintf( flog, "IDBT2IGet1: Can't open [%s].\n", name );
+
+exit:
+	if( f )
+		fclose( f );
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* IDBT2IGetAll -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Get vector of clones.
+//
+bool IDBT2IGetAll(
 	vector<Til2Img>	&t2i,
 	const string	&idb,
-	int				layer,
+	int				z,
 	FILE			*flog )
 {
 	char	name[2048];
@@ -245,16 +341,17 @@ bool IDBAllTil2Img(
 	t2i.clear();
 
 	if( idb.empty() )
-		sprintf( name, "../%d/TileToImage.txt", layer );
+		sprintf( name, "../%d/TileToImage.txt", z );
 	else
-		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
+		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), z );
 
 	if( f = fopen( name, "r" ) ) {
 
 		CLineScan	LS;
 
 		if( LS.Get( f ) <= 0 ) {
-			fprintf( flog, "IDBAllTil2Img: Empty file [%s].\n", name );
+			fprintf( flog,
+			"IDBT2IGetAll: Empty file [%s].\n", name );
 			goto exit;
 		}
 
@@ -264,11 +361,15 @@ bool IDBAllTil2Img(
 			char	buf[2048];
 
 			sscanf( LS.line,
-			"%d\t%lf\t%lf\t%lf"
-			"\t%lf\t%lf\t%lf\t%[^\t\n]",
-			&E.tile,
+			"%d"
+			"\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf"
+			"\t%d\t%d\t%d"
+			"\t%[^\t\n]",
+			&E.id,
 			&E.T.t[0], &E.T.t[1], &E.T.t[2],
 			&E.T.t[3], &E.T.t[4], &E.T.t[5],
+			&E.col, &E.row, &E.cam,
 			buf );
 
 			E.path = buf;
@@ -279,7 +380,7 @@ bool IDBAllTil2Img(
 		ok = true;
 	}
 	else
-		fprintf( flog, "IDBAllTil2Img: Can't open [%s].\n", name );
+		fprintf( flog, "IDBT2IGetAll: Can't open [%s].\n", name );
 
 exit:
 	if( f )
@@ -289,35 +390,32 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
-/* IDBTil2Img ---------------------------------------------------- */
+/* IDBT2ICacheLoad ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static map<int,Til2Img>	_t2im;
-static int				_t2iz;
-
-
-static bool _t2iLoadZ(
+bool IDBT2ICacheLoad(
+	T2ICache		&C,
 	const string	&idb,
-	int				layer,
+	int				z,
 	FILE			*flog )
 {
 	char	name[2048];
 	FILE	*f;
-	int		ok = false;
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear( C );
 
 	if( idb.empty() )
-		sprintf( name, "../%d/TileToImage.txt", layer );
+		sprintf( name, "../%d/TileToImage.txt", z );
 	else
-		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
+		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), z );
 
 	if( f = fopen( name, "r" ) ) {
 
 		CLineScan	LS;
 
 		if( LS.Get( f ) <= 0 ) {
-			fprintf( flog, "_t2iLoadZ: Empty file [%s].\n", name );
+			fprintf( flog,
+			"IDBT2ICacheLoad: Empty file [%s].\n", name );
 			goto exit;
 		}
 
@@ -327,172 +425,160 @@ static bool _t2iLoadZ(
 			char	buf[2048];
 
 			sscanf( LS.line,
-			"%d\t%lf\t%lf\t%lf"
-			"\t%lf\t%lf\t%lf\t%[^\t\n]",
-			&E.tile,
+			"%d"
+			"\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf"
+			"\t%d\t%d\t%d"
+			"\t%[^\t\n]",
+			&E.id,
 			&E.T.t[0], &E.T.t[1], &E.T.t[2],
 			&E.T.t[3], &E.T.t[4], &E.T.t[5],
+			&E.col, &E.row, &E.cam,
 			buf );
 
 			E.path = buf;
 
-			_t2im[E.tile] = E;
+			C.m[E.id] = E;
 		}
 
-		_t2iz	= layer;
-		ok		= true;
+		C.z = z;
 	}
 	else
-		fprintf( flog, "_t2iLoadZ: Can't open [%s].\n", name );
+		fprintf( flog, "IDBT2ICacheLoad: Can't open [%s].\n", name );
 
 exit:
 	if( f )
 		fclose( f );
 
-	return ok;
+	return (C.z >= 0);
 }
 
+/* --------------------------------------------------------------- */
+/* IDBT2ICacheClear ---------------------------------------------- */
+/* --------------------------------------------------------------- */
 
-// Scan given IDBPATH/TileToImage file for this tile's data.
+void IDBT2ICacheClear( T2ICache &C )
+{
+	C.m.clear();
+	C.z = -1;
+}
+
+/* --------------------------------------------------------------- */
+/* IDBT2ICacheClear ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void IDBT2ICacheClear()
+{
+	IDBT2ICacheClear( _C1 );
+	IDBT2ICacheClear( _C2 );
+}
+
+/* --------------------------------------------------------------- */
+/* IDBT2ICacheFetch ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Get pointer into cache.
 //
-// Automatically caches data by layer. Call IDBTil2ImgClear
-// to explicitly recover that memory, but see notes there.
-//
-bool IDBTil2Img(
-	Til2Img			&t2i,
-	const string	&idb,
-	int				layer,
-	int				tile,
-	const char		*forcepath,
+static bool IDBT2ICacheFetch(
+	const Til2Img*&	t2i,
+	T2ICache		&C,
+	int				z,
+	int				id,
 	FILE			*flog )
 {
-// override provided
+	map<int,Til2Img>::iterator	it = C.m.find( id );
 
-	if( forcepath ) {
-		t2i.tile	= tile;
-		t2i.T		= TAffine( 1,0,0,0,1,0 );
-		t2i.path	= forcepath;
-		return true;
-	}
+	if( it == C.m.end() ) {
 
-// load cache
+		fprintf( flog,
+		"IDBT2ICacheFetch: No entry for [%d %d].\n", z, id );
 
-	if( layer != _t2iz ) {
-
-		if( !_t2iLoadZ( idb, layer, flog ) )
-			return false;
-	}
-
-// read from cache
-
-	map<int,Til2Img>::iterator	it = _t2im.find( tile );
-
-	if( it == _t2im.end() ) {
-
-		fprintf( flog, "IDBTil2Img: No entry for [%d %d].\n",
-		layer, tile );
+		t2i = NULL;
 		return false;
 	}
 	else
-		t2i = it->second;
+		t2i = &it->second;
 
 	return true;
 }
 
 /* --------------------------------------------------------------- */
-/* IDBTil2ImgClear ----------------------------------------------- */
+/* IDBT2ICacheNGet1 ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Release memory when done looking up names.
+// Cache data for this z and get pointer to this tile.
 //
-// IMPORTANT: IDBTil2Img returns pointers into a cache and
-// this function clears the cache so be careful that all
-// references are retired first.
+// Call IDBT2ICacheClear() to explicitly recover
+// cache memory, but see notes there.
 //
-void IDBTil2ImgClear()
+bool IDBT2ICacheNGet1(
+	const Til2Img*&	t2i,
+	const string	&idb,
+	int				z,
+	int				id,
+	FILE			*flog )
 {
-	_t2im.clear();
-	_t2iz = -1;
+// load cache
+
+	if( z != _C1.z && !IDBT2ICacheLoad( _C1, idb, z, flog ) )
+		return false;
+
+// read from cache
+
+	return IDBT2ICacheFetch( t2i, _C1, z, id, flog );
 }
 
 /* --------------------------------------------------------------- */
-/* IDBTil2Img1 --------------------------------------------------- */
+/* IDBT2ICacheNGet2 ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Scan given IDBPATH/TileToImage file for this tile's data.
+// Cache data for up to two z's and get pointers to tile data.
 //
-bool IDBTil2Img1(
-	Til2Img			&t2i,
+// Call IDBT2ICacheClear() to explicitly recover
+// cache memory, but see notes there.
+//
+bool IDBT2ICacheNGet2(
+	const Til2Img*&	t2i1,
+	const Til2Img*&	t2i2,
 	const string	&idb,
-	int				layer,
-	int				tile,
-	const char		*forcepath,
+	int				z1,
+	int				id1,
+	int				z2,
+	int				id2,
 	FILE			*flog )
 {
-// override provided
+// assign/load caches
 
-	if( forcepath ) {
-		t2i.tile	= tile;
-		t2i.T		= TAffine( 1,0,0,0,1,0 );
-		t2i.path	= forcepath;
-		return true;
+	T2ICache	*p1 = &_C1, *p2;
+
+	if( z1 == z2 ) {
+
+		if( z1 == _C2.z )
+			p1 = &_C2;
+
+		p2 = p1;
+
+		if( z1 != p1->z && !IDBT2ICacheLoad( *p1, idb, z1, flog ) )
+			return false;
 	}
+	else {
 
-// standard way using idb
+		p2 = &_C2;
 
-	char	name[2048];
-	FILE	*f;
-	int		ok = false;
-
-	if( idb.empty() )
-		sprintf( name, "../%d/TileToImage.txt", layer );
-	else
-		sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), layer );
-
-	if( f = fopen( name, "r" ) ) {
-
-		CLineScan	LS;
-
-		if( LS.Get( f ) <= 0 ) {
-			fprintf( flog, "IDBTil2Img1: Empty file [%s].\n", name );
-			goto exit;
+		if( z1 == _C2.z || z2 == _C1.z ) {
+			p1 = &_C2;
+			p2 = &_C1;
 		}
 
-		while( LS.Get( f ) > 0 ) {
+		if( z1 != p1->z && !IDBT2ICacheLoad( *p1, idb, z1, flog ) )
+			return false;
 
-			char	buf[2048];
-
-			t2i.tile = -1;
-
-			sscanf( LS.line, "%d", &t2i.tile );
-
-			if( t2i.tile != tile )
-				continue;
-
-			sscanf( LS.line,
-			"%d\t%lf\t%lf\t%lf"
-			"\t%lf\t%lf\t%lf\t%[^\t\n]",
-			&t2i.tile,
-			&t2i.T.t[0], &t2i.T.t[1], &t2i.T.t[2],
-			&t2i.T.t[3], &t2i.T.t[4], &t2i.T.t[5],
-			buf );
-
-			t2i.path	= buf;
-			ok			= true;
-			goto exit;
-		}
-
-		fprintf( flog, "IDBTil2Img1: No entry for [%d %d].\n",
-		layer, tile );
+		if( z2 != p2->z && !IDBT2ICacheLoad( *p2, idb, z2, flog ) )
+			return false;
 	}
-	else
-		fprintf( flog, "IDBTil2Img1: Can't open [%s].\n", name );
 
-exit:
-	if( f )
-		fclose( f );
-
-	return ok;
+	return	IDBT2ICacheFetch( t2i1, *p1, z1, id1, flog ) &&
+			IDBT2ICacheFetch( t2i2, *p2, z2, id2, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -504,20 +590,20 @@ exit:
 bool IDBTil2FM(
 	Til2FM			&t2f,
 	const string	&idb,
-	int				layer,
-	int				tile,
+	int				z,
+	int				id,
 	FILE			*flog )
 {
 	char	name[2048];
 
-// old-style layer/tile dir hierarchy
+// old-style z/id dir hierarchy
 
 	if( idb.empty() ) {
 
 		int	len;
 
 		// try name as tif
-		len = sprintf( name, "../%d/%d/fm.tif", layer, tile );
+		len = sprintf( name, "../%d/%d/fm.tif", z, id );
 
 		if( !DskExists( name ) ) {
 			// assume png
@@ -526,8 +612,8 @@ bool IDBTil2FM(
 			name[len-1] = 'g';
 		}
 
-		t2f.tile	= tile;
 		t2f.path	= name;
+		t2f.id		= id;
 		return true;
 	}
 
@@ -536,7 +622,7 @@ bool IDBTil2FM(
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "%s/%d/TileToFM.txt", idb.c_str(), layer );
+	sprintf( name, "%s/%d/TileToFM.txt", idb.c_str(), z );
 
 	if( f = fopen( name, "r" ) ) {
 
@@ -551,21 +637,20 @@ bool IDBTil2FM(
 
 			char	buf[2048];
 
-			t2f.tile = -1;
+			t2f.id = -1;
 
-			sscanf( LS.line, "%d", &t2f.tile );
+			sscanf( LS.line, "%d", &t2f.id );
 
-			if( t2f.tile != tile )
+			if( t2f.id != id )
 				continue;
 
-			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, buf );
+			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.id, buf );
 			t2f.path	= buf;
 			ok			= true;
 			goto exit;
 		}
 
-		fprintf( flog, "IDBTil2FM: No entry for [%d %d].\n",
-		layer, tile );
+		fprintf( flog, "IDBTil2FM: No entry for [%d %d].\n", z, id );
 	}
 	else
 		fprintf( flog, "IDBTil2FM: Can't open [%s].\n", name );
@@ -590,19 +675,19 @@ exit:
 bool IDBTil2FMD(
 	Til2FM			&t2f,
 	const string	&idb,
-	int				layer,
-	int				tile )
+	int				z,
+	int				id )
 {
 	char	name[2048];
 
-// old-style layer/tile dir hierarchy
+// old-style z/id dir hierarchy
 
 	if( idb.empty() ) {
 
 		int	len;
 
 		// try name as tif
-		len = sprintf( name, "../%d/%d/fmd.tif", layer, tile );
+		len = sprintf( name, "../%d/%d/fmd.tif", z, id );
 
 		if( !DskExists( name ) ) {
 			// assume png
@@ -611,8 +696,8 @@ bool IDBTil2FMD(
 			name[len-1] = 'g';
 		}
 
-		t2f.tile	= tile;
 		t2f.path	= name;
+		t2f.id		= id;
 		return true;
 	}
 
@@ -621,7 +706,7 @@ bool IDBTil2FMD(
 	FILE	*f;
 	int		ok = false;
 
-	sprintf( name, "%s/%d/TileToFMD.txt", idb.c_str(), layer );
+	sprintf( name, "%s/%d/TileToFMD.txt", idb.c_str(), z );
 
 	if( f = fopen( name, "r" ) ) {
 
@@ -634,14 +719,14 @@ bool IDBTil2FMD(
 
 			char	buf[2048];
 
-			t2f.tile = -1;
+			t2f.id = -1;
 
-			sscanf( LS.line, "%d", &t2f.tile );
+			sscanf( LS.line, "%d", &t2f.id );
 
-			if( t2f.tile != tile )
+			if( t2f.id != id )
 				continue;
 
-			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.tile, buf );
+			sscanf( LS.line, "%d\t%[^\t\n]", &t2f.id, buf );
 			t2f.path	= buf;
 			ok			= true;
 			goto exit;
@@ -663,12 +748,23 @@ exit:
 //
 void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i )
 {
+	char	buf[128];
+
+	if( t2i.col != -999 ) {
+		sprintf( buf, " c.r.cam=[%d.%d.%d]",
+			t2i.col, t2i.row, t2i.cam );
+	}
+	else
+		buf[0] = 0;
+
 	fprintf( flog, "Til2Img entry: %c"
 	" T=[%7.4f %7.4f %8.2f %7.4f %7.4f %8.2f]"
+	"%s"
 	" path=[%s].\n",
 	cAB,
 	t2i.T.t[0], t2i.T.t[1], t2i.T.t[2],
 	t2i.T.t[3], t2i.T.t[4], t2i.T.t[5],
+	buf,
 	t2i.path.c_str() );
 }
 
@@ -919,12 +1015,12 @@ void WriteThmPair(
 /* --------------------------------------------------------------- */
 
 // Given path to a foldmask (or other) file located in the
-// standard working directory hierarchy:
+// Lou-style working directory hierarchy:
 //
 //	e.g. '/groups/.../temp/z/id/fm.tif'
 //	e.g. '../z/id/fm.png'
 //
-// attempt to extract the z and tile-id values.
+// attempt to extract the z and id values.
 //
 // Return true if success.
 //

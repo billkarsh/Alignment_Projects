@@ -67,7 +67,6 @@ public:
 	//
 	char	*infile,
 			*outdir,
-			*pat,
 			*lens,
 			*clk;
 	int		zmin,
@@ -82,7 +81,6 @@ public:
 	{
 		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
-		pat			= "/N";
 		lens		= NULL;
 		clk			= NULL;
 		zmin		= 0;
@@ -147,8 +145,6 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 			infile = argv[i];
 		else if( GetArgStr( outdir, "-d=", argv[i] ) )
 			;
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			;
 		else if( GetArgStr( lens, "-lens=", argv[i] ) )
 			;
 		else if( GetArgStr( clk, "-k=", argv[i] ) )
@@ -173,6 +169,34 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 	fprintf( flog, "\n" );
 	fflush( flog );
+}
+
+/* --------------------------------------------------------------- */
+/* Make_nmrc_paths ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Make_nmrc_paths()
+{
+// topdir gets the full path to the top directory
+
+	char	topdir[2048];
+
+	DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
+
+// fix all tiles
+
+	int	nt = TS.vtil.size();
+
+	for( int i = 0; i < nt; ++i ) {
+
+		CUTile&	U = TS.vtil[i];
+		char	path[2048];
+
+		sprintf( path, "%s/%d/nmrc_%d_%d.png",
+			topdir, U.z, U.z, U.id );
+
+		U.name = path;
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -314,72 +338,6 @@ static void CreateLayerDir( char *lyrdir, int L )
 }
 
 /* --------------------------------------------------------------- */
-/* Make_TileToImage ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Write TileToImage.txt for this layer.
-// Each row gives {tile, global-Tr, image path}.
-//
-static void Make_TileToImage( const char *lyrdir, int is0, int isN )
-{
-// Open file
-
-	char	name[2048];
-	FILE	*f;
-
-	sprintf( name, "%s/TileToImage.txt", lyrdir );
-
-	f = FileOpenOrDie( name, "w", flog );
-
-// Header
-
-	fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
-
-// Write sorted entries
-// Use given name, unless mrc images.
-
-	if( !ismrc ) {
-
-		// write the entries
-
-		for( int i = is0; i < isN; ++i ) {
-
-			const CUTile&	U = TS.vtil[i];
-			const double*	T = U.T.t;
-
-			fprintf( f,
-				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
-				U.id, T[0], T[1], T[2], T[3], T[4], T[5],
-				U.name.c_str() );
-		}
-	}
-	else {
-
-		// create nmrc dir
-
-		char	nmrcpath[2048];
-
-		sprintf( nmrcpath, "%s/%d/nmrc", gtopdir, TS.vtil[is0].z );
-		DskCreateDir( nmrcpath, flog );
-
-		// write the entries
-
-		for( int i = is0; i < isN; ++i ) {
-
-			const CUTile&	U = TS.vtil[i];
-			const double*	T = U.T.t;
-
-			fprintf( f,
-				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s/nmrc_%d_%d.png\n",
-				U.id, T[0], T[1], T[2], T[3], T[4], T[5],
-				nmrcpath, U.z, U.id );
-		}
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
 /* Make_TileToFM ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -405,7 +363,7 @@ static void Make_TileToFM(
 
 // Header
 
-	fprintf( f, "Tile\tPath\n" );
+	fprintf( f, "ID\tPath\n" );
 
 // Create fm dir
 
@@ -586,7 +544,7 @@ static void ForEachLayer()
 
 		CreateLayerDir( lyrdir, TS.vtil[is0].z );
 
-		Make_TileToImage( lyrdir, is0, isN );
+		TS.WriteTileToImage( gtopdir, false, ismrc, is0, isN );
 
 		if( gArgs.NoFolds ) {
 
@@ -618,7 +576,6 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
-	TS.SetDecoderPat( gArgs.pat );
 
 /* ---------------- */
 /* Read source file */
@@ -640,6 +597,9 @@ int main( int argc, char* argv[] )
 		TS.SetTileDimsFromImageFile();
 
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
+
+	if( ismrc )
+		Make_nmrc_paths();
 
 	TS.SortAll_z_id();
 

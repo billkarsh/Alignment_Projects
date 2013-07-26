@@ -4,10 +4,7 @@
 # Create (in CWD) top-level scripts for running alignment.
 # Makes everything except prms/matchparams.txt file.
 #
-# > topscripts input_file -p=_idN -zmin=i -zmax=j
-#
-# Required -p= pattern describes the context around
-# the tile ID 'N' part of image names.
+# > topscripts input_file -zmin=i -zmax=j
 #
 # ImagePlus type codes used in xml files:
 #	AUTO		= -1
@@ -26,5 +23,5 @@
 
 export MRC_TRIM=12
 
-topscripts myfile.txt -p=_idN -zmin=0 -zmax=100 -nf
+topscripts myfile.txt -zmin=0 -zmax=100 -nf
 

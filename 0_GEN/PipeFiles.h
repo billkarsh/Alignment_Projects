@@ -82,15 +82,26 @@ typedef struct {
 
 typedef struct {
 // entry: TileToImage.txt
-	TAffine	T;
-	int		tile;
 	string	path;
+	TAffine	T;
+	int		id,
+			col,
+			row,
+			cam;
 } Til2Img;
 
 typedef struct {
+// all t2i for this z
+	map<int,Til2Img>	m;
+	int					z;
+
+	void T2ICache() {z = -1;};
+} T2ICache;
+
+typedef struct {
 // entry: TileToFM(D).txt
-	int		tile;
 	string	path;
+	int		id;
 } Til2FM;
 
 typedef struct {
@@ -116,42 +127,58 @@ bool ReadMatchParams(
 
 void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
 
-bool IDBAllTil2Img(
+bool IDBT2IGet1(
+	Til2Img			&t2i,
+	const string	&idb,
+	int				z,
+	int				id,
+	const char		*forcepath = NULL,
+	FILE			*flog = stdout );
+
+bool IDBT2IGetAll(
 	vector<Til2Img>	&t2i,
 	const string	&idb,
-	int				layer,
+	int				z,
 	FILE			*flog = stdout );
 
-bool IDBTil2Img(
-	Til2Img			&t2i,
+bool IDBT2ICacheLoad(
+	T2ICache		&C,
 	const string	&idb,
-	int				layer,
-	int				tile,
-	const char		*forcepath = NULL,
+	int				z,
 	FILE			*flog = stdout );
 
-void IDBTil2ImgClear();
+void IDBT2ICacheClear( T2ICache &C );
+void IDBT2ICacheClear();
 
-bool IDBTil2Img1(
-	Til2Img			&t2i,
+bool IDBT2ICacheNGet1(
+	const Til2Img*&	t2i,
 	const string	&idb,
-	int				layer,
-	int				tile,
-	const char		*forcepath = NULL,
+	int				z,
+	int				id,
+	FILE			*flog = stdout );
+
+bool IDBT2ICacheNGet2(
+	const Til2Img*&	t2i1,
+	const Til2Img*&	t2i2,
+	const string	&idb,
+	int				z1,
+	int				id1,
+	int				z2,
+	int				id2,
 	FILE			*flog = stdout );
 
 bool IDBTil2FM(
 	Til2FM			&t2f,
 	const string	&idb,
-	int				layer,
-	int				tile,
+	int				z,
+	int				id,
 	FILE			*flog = stdout );
 
 bool IDBTil2FMD(
 	Til2FM			&t2f,
 	const string	&idb,
-	int				layer,
-	int				tile );
+	int				z,
+	int				id );
 
 void PrintTil2Img( FILE *flog, int cAB, const Til2Img &t2i );
 void PrintTil2FM( FILE *flog, int cAB, const Til2FM &t2f );

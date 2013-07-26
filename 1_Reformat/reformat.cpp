@@ -182,7 +182,7 @@ static void UpdateXMLLayer( TiXmlElement* layer, int z )
 
 		if( c = strstr( n, "col" ) ) {
 
-			int	col = -1, row = -1, cam = -1;
+			int	col = -1, row = -1, cam = 0;
 			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
 
 			sprintf( title, "%d.%d:1_%d.%d.%d",
@@ -257,7 +257,7 @@ static void UpdateRick()
 	for( ;; ) {
 
 		TAffine	T;
-		int		z, col = -999, row = -999, cam = -999;
+		int		z, col = -999, row = -999, cam = 0;
 
 		if( fscanf( in, "%s%lf%lf%d",
 			buf, &T.t[2], &T.t[5], &z ) != 4 ) {
@@ -320,14 +320,14 @@ static void UpdateIDB()
 		// write header
 
 		fprintf( out,
-		"Tile\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
+		"ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
 
 		// process line by line
 
 		while( LS.Get( in ) > 0 ) {
 
 			TAffine	T;
-			int		id, col = -999, row = -999, cam = -999;
+			int		id, col = -999, row = -999, cam = 0;
 
 			sscanf( LS.line,
 			"%d\t%lf\t%lf\t%lf"

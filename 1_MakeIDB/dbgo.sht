@@ -4,10 +4,7 @@
 # Make image database 'idb' from 'myxml' file...
 # Makes everything.
 #
-# > makeidb myxml -d=idb -p=_Nex.mrc
-#
-# Required -p= pattern describes the context around
-# the tile ID 'N' part of image names.
+# > makeidb myxml -d=idb
 #
 # Options:
 # -zmin=i -zmax=j			;restricts layer range
@@ -21,5 +18,5 @@
 
 export MRC_TRIM=12
 
-makeidb Z7-119.txt -d=idb0 -p=_idN -zmin=7 -zmax=119 -nf
+makeidb Z7-119.txt -d=idb0 -zmin=7 -zmax=119 -nf
 

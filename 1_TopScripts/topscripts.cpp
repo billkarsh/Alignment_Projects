@@ -23,8 +23,7 @@
 class CArgs_scr {
 
 public:
-	char	*infile,
-			*pat;
+	char	*infile;
 	int		zmin,
 			zmax,
 			xml_type,
@@ -36,7 +35,6 @@ public:
 	CArgs_scr()
 	{
 		infile		= NULL;
-		pat			= "_N_";
 		zmin		= 0;
 		zmax		= 32768;
 		xml_type	= 0;
@@ -85,7 +83,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: starthere <infile> -p=_idN -zmin=i -zmax=j"
+		"Usage: topscripts <infile> -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -97,8 +95,6 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -139,10 +135,7 @@ static void Write_dbgo()
 	fprintf( f, "# Make image database 'idb' from 'myxml' file...\n" );
 	fprintf( f, "# Makes everything.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > makeidb myxml -d=idb -p=_Nex.mrc\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Required -p= pattern describes the context around\n" );
-	fprintf( f, "# the tile ID 'N' part of image names.\n" );
+	fprintf( f, "# > makeidb myxml -d=idb\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -zmin=i -zmax=j\t\t\t;restricts layer range\n" );
@@ -156,9 +149,8 @@ static void Write_dbgo()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "makeidb %s -d=idb0 -p=%s -zmin=%d -zmax=%d%s%s\n",
-	gArgs.infile, gArgs.pat,
-	gArgs.zmin, gArgs.zmax,
+	fprintf( f, "makeidb %s -d=idb0 -zmin=%d -zmax=%d%s%s\n",
+	gArgs.infile, gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
 	fprintf( f, "\n" );
 
@@ -290,7 +282,7 @@ static void Write_crossgo()
 	fprintf( f, "# -xyconf=0.5\t;neib radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -abcorr=.20 -XYconf=0.5\n",
+	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -abcorr=.20 -xyconf=0.5\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\n" );
