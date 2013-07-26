@@ -47,6 +47,8 @@ public:
 		const char		*apath,
 		const char		*bpath,
 		const string	*idb,
+		int				acam,
+		int				bcam,
 		int				order,
 		int				bDoG,
 		int				r1,

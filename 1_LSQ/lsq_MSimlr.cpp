@@ -3,7 +3,6 @@
 #include	"lsq_MSimlr.h"
 
 #include	"TrakEM2_UTL.h"
-#include	"PipeFiles.h"
 #include	"File.h"
 
 #include	<math.h>
@@ -410,7 +409,7 @@ void MSimlr::WriteTransforms(
 	"Average magnitude=%f, min=%f, max=%f, max/min=%f\n\n",
 	smag/nTr, smin, smax, smax/smin );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -483,22 +482,9 @@ void MSimlr::WriteTrakEM(
 			prev = (*zs)[i].z;
 		}
 
-		// trim trailing quotes and '::'
-		char		title[256], buf[2048];
-		strcpy( buf, I.GetName() );
-		char		*p = strtok( buf, " ':\n" );
-		const char	*c = strstr( p, "col" );
-
-		if( c ) {
-
-			int	col = -1, row = -1, cam = -1;
-			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
-
-			sprintf( title, "%d.%d:1_%d.%d.%d",
-				I.z, I.id, col, row, cam );
-		}
-		else
-			sprintf( title, "%d.%d:1", I.z, I.id );
+		const char	*path;
+		char		title[128];
+		DisplayStrings( title, path, I );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -518,7 +504,7 @@ void MSimlr::WriteTrakEM(
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW - offset, gH - offset,
 		X[j], -X[j+1], X[j+1], X[j], x_orig, y_orig,
-		title, xml_type, p, gW - offset, gH - offset );
+		title, xml_type, path, gW - offset, gH - offset );
 
 		if( xml_min < xml_max ) {
 
@@ -539,7 +525,7 @@ void MSimlr::WriteTrakEM(
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -567,10 +553,8 @@ void MSimlr::WriteJython(
 
 		++itrf;
 
-		// trim trailing quotes and '::'
-		char	buf[2048];
-		strcpy( buf, I.GetName() );
-		char	*p = strtok( buf, " ':\n" );
+		const char	*path;
+		DisplayStrings( NULL, path, I );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -578,14 +562,14 @@ void MSimlr::WriteJython(
 		double	y_orig = X[j+1]*trim + X[j  ]*trim + X[j+3];
 
 		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f]%s\n",
-			p, X[j], -X[j+1], X[j+1], X[j], x_orig, y_orig,
+			path, X[j], -X[j+1], X[j+1], X[j], x_orig, y_orig,
 			(itrf == Ntr ? "" : ",") );
 	}
 
 	fprintf( f, "}\n" );
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */

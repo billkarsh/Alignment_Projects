@@ -28,9 +28,8 @@ SOURCES_XML := \
 	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp CRegexID.cpp Disk.cpp File.cpp \
-	PipeFiles.cpp TrakEM2_UTL.cpp CTileSet.cpp \
-	Geometry.cpp TAffine.cpp
+	Cmdline.cpp Disk.cpp File.cpp PipeFiles.cpp \
+	TrakEM2_UTL.cpp CTileSet.cpp Geometry.cpp TAffine.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

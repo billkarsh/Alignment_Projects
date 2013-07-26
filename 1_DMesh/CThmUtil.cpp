@@ -31,8 +31,8 @@ bool CThmUtil::FromLog( vector<TAffine> &guesses )
 	int		ok;
 
 	ok = ReadThmPair( tpr,
-			A.layer, A.tile, aid,
-			B.layer, B.tile, bid, flog )
+			A.z, A.id, acr,
+			B.z, B.id, bcr, flog )
 		&& !tpr.err;
 
 	if( ok )
@@ -103,7 +103,7 @@ int CThmUtil::SetStartingAngle( const TAffine &Tdfm, double CTR )
 
 // Handle mode Y: Try to get prior angles
 
-	if( ReadAllThmPair( tpr, A.layer, B.layer, flog )
+	if( ReadAllThmPair( tpr, A.z, B.z, flog )
 		&& (ntpr = tpr.size()) ) {
 
 		vector<double>	A;
@@ -138,7 +138,7 @@ int CThmUtil::SetStartingAngle( const TAffine &Tdfm, double CTR )
 // Adjust OLAP2D_XL
 
 adjust_olap:
-	if( A.layer != B.layer ) {
+	if( A.z != B.z ) {
 
 		double	a = ang0 * PI/180.0,
 				c = cos( a ),
@@ -597,9 +597,7 @@ void CThmUtil::DebugSweepKill( CThmScan &S, ThmRec thm )
 	//const double	hlfwid	= 1.0;
 	//const double	step	= 0.01;
 
-	S.DebugAngs( A.layer, A.tile, B.layer, B.tile,
-		center, hlfwid, step, thm );
-
+	S.DebugAngs( A.z, A.id, B.z, B.id, center, hlfwid, step, thm );
 	exit( 42 );
 }
 
@@ -724,11 +722,11 @@ void CThmUtil::RecordSumSqDif( const TAffine &T )
 	CMutex	M;
 	char	name[256];
 
-	sprintf( name, "sqd_%d_%d", A.layer, B.layer );
+	sprintf( name, "sqd_%d_%d", A.z, B.z );
 
 	if( M.Get( name ) ) {
 
-		sprintf( name, "SmSqDf_%d_@_%d.log", A.layer, B.layer );
+		sprintf( name, "SmSqDf_%d_@_%d.log", A.z, B.z );
 
 		FILE *f;
 		int  is;
@@ -750,7 +748,7 @@ void CThmUtil::RecordSumSqDif( const TAffine &T )
 			SQD( sqd, prd, N, px, T );
 
 			fprintf( f, "%d\t%d\t%f\t%f\t%d\t%f\t%f\n",
-				A.tile, B.tile, sqd, prd, N, sqd/N, prd/N );
+				A.id, B.id, sqd, prd, N, sqd/N, prd/N );
 			fflush( f );
 			fclose( f );
 		}
@@ -846,7 +844,7 @@ void CThmUtil::TabulateResult( const CorRec &best, int err )
 	tpr.R	= best.R;
 	tpr.err	= err;
 
-	WriteThmPair( tpr, A.layer, A.tile, aid, B.layer, B.tile, bid );
+	WriteThmPair( tpr, A.z, A.id, acr, B.z, B.id, bcr );
 }
 
 /* --------------------------------------------------------------- */
@@ -893,7 +891,7 @@ bool CThmUtil::Finish(
 
 	if( TWEAKS ) {
 
-		if( A.layer != B.layer && MODE == 'N' ) {
+		if( A.z != B.z && MODE == 'N' ) {
 
 			CorRec	CR0 = best;
 			TAffine	Tptwk;

@@ -231,7 +231,7 @@ static bool CheckAreas(
 
 		double	A0 = tri[k].Area( orig );
 
-		if( GBL.A.layer != GBL.B.layer ) {
+		if( GBL.A.z != GBL.B.z ) {
 
 			double	f = GBL.ctx.Tdfm.EffArea();
 

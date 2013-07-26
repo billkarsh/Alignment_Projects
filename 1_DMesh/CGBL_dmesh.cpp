@@ -59,11 +59,11 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.SingleFold		= false;
 	arg.Heatmap			= false;
 
-	A.layer	= 0;
-	A.tile	= 0;
+	A.z		= 0;
+	A.id	= 0;
 
-	B.layer	= 0;
-	B.tile	= 0;
+	B.z		= 0;
+	B.id	= 0;
 }
 
 /* --------------------------------------------------------------- */
@@ -167,8 +167,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	if( !key ||
 		(4 != sscanf( key, "%d/%d@%d/%d",
-				&A.layer, &A.tile,
-				&B.layer, &B.tile )) ) {
+				&A.z, &A.id,
+				&B.z, &B.id )) ) {
 
 		printf( "main: Usage: ptest <za/ia@zb/ib>.\n" );
 		return false;
@@ -176,7 +176,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Rename stdout using image labels
 
-	OpenPairLog( A.layer, A.tile, B.layer, B.tile );
+	OpenPairLog( A.z, A.id, B.z, B.id );
 
 	printf( "\n---- dmesh start ----\n" );
 
@@ -187,7 +187,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadMatchParams( mch, A.layer, B.layer ) )
+	if( !ReadMatchParams( mch, A.z, B.z ) )
 		return false;
 
 // Which file params to use according to (same,cross) layer
@@ -197,7 +197,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	ctx.FLD = mch.FLD;
 
-	if( A.layer == B.layer ) {
+	if( A.z == B.z ) {
 
 		cDfmFromTab	= mch.TAB2DFM_SL;
 
@@ -250,8 +250,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	IDBReadImgParams( idb );
 
-	if( !IDBTil2Img1( A.t2i, idb, A.layer, A.tile, _arg.ima ) ||
-		!IDBTil2Img1( B.t2i, idb, B.layer, B.tile, _arg.imb ) ) {
+	if( !IDBT2IGet1( A.t2i, idb, A.z, A.id, _arg.ima ) ||
+		!IDBT2IGet1( B.t2i, idb, B.z, B.id, _arg.imb ) ) {
 
 		return false;
 	}
@@ -276,15 +276,15 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 		// remove lens parts of Tab coming from cross_thisblock
 
-		if( mch.PXLENS && A.layer != B.layer ) {
+		if( mch.PXLENS && A.z != B.z ) {
 
 			CAffineLens	LN;
 
 			if( !LN.ReadIDB( idb ) )
 				return false;
 
-			LN.UpdateTFormRHS( Tab, A.t2i.path.c_str(), true );
-			LN.UpdateTFormLHS( Tab, B.t2i.path.c_str(), false );
+			LN.UpdateTFormRHS( Tab, A.t2i.cam, true );
+			LN.UpdateTFormLHS( Tab, B.t2i.cam, false );
 		}
 
 		Tab.TPrint( stdout, "Tab= " );
@@ -347,7 +347,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 	}
 
 	if( ctx.FLD == 'X' ) {
-		ctx.FLD = (GBL.A.layer == GBL.B.layer ? 'N' : 'Y');
+		ctx.FLD = (GBL.A.z == GBL.B.z ? 'N' : 'Y');
 		printf( "FLD=%c (was X)\n", ctx.FLD );
 	}
 

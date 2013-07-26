@@ -16,5 +16,5 @@
 # -xyconf=0.5	;neib radius = (1-conf)(blockwide)
 
 
-cross_topscripts newmons.xml -d=temp0 -zmin=7 -zmax=119 -nf -abwide=5 -abscl=200 -ablgord=3 -absdev=42 -abcorr=.20 -XYconf=0.5
+cross_topscripts newmons.xml -d=temp0 -zmin=7 -zmax=119 -nf -abwide=5 -abscl=200 -ablgord=3 -absdev=42 -abcorr=.20 -xyconf=0.5
 

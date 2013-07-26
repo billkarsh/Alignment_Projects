@@ -381,12 +381,12 @@ const char* image::GetRName()
 {
 	if( !rname ) {
 
-		Til2Img	I;
+		const Til2Img	*I;
 
-		if( !IDBTil2Img( I, idb, layer, tile ) )
+		if( !IDBT2ICacheNGet1( I, idb, layer, tile ) )
 			exit( 42 );
 
-		rname = strdup( I.path.c_str() );
+		rname = strdup( I->path.c_str() );
 	}
 
 	return rname;
@@ -2196,7 +2196,7 @@ for(int k=0; k<relevant_images.size(); k++) {      // for each picture
     temp[k].num  = k;                              // where this name is in the relevant picture vector
     temp[k].name = images[i].GetRName();
     }
-IDBTil2ImgClear();
+IDBT2ICacheClear();
 sort(temp.begin(), temp.end(), NameSortFn);    // sort in decreasing order
 
 // OK, render in order

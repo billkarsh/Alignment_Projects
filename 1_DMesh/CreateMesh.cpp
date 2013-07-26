@@ -1540,7 +1540,7 @@ int MeshCreateX(
 /* Reduce tri count while Atri > GBL.mch.MTA */
 /* ----------------------------------------- */
 
-	if( GBL.A.layer != GBL.B.layer ) {
+	if( GBL.A.z != GBL.B.z ) {
 
 		while( Nx*Ny > 1 && (Lx*Ly) / (Nx*Ny * 2) < GBL.mch.MTA ) {
 

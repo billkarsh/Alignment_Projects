@@ -37,6 +37,11 @@ protected:
 
 	void PrintMagnitude( const vector<double> &X );
 
+	void DisplayStrings(
+		char			*title,
+		const char*		&path,
+		const RGN		&I );
+
 private:
 	virtual void RotateAll(
 		vector<double>	&X,

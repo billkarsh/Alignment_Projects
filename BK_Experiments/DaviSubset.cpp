@@ -1,95 +1,42 @@
-#include	"Disk.h"
+
+
+#include	"PipeFiles.h"
 #include	"File.h"
-#include	"TAffine.h"
 
 
-typedef struct {
-// entry: TileToImage.txt
-	TAffine	T;
-	int		tile;
-	string	path;
-} Til2Img;
 
 
-static void ReadAll( vector<Til2Img> &t2i )
-{
-	char	name[2048];
-	FILE	*f;
-
-	t2i.clear();
-
-	sprintf( name,
-	"/groups/bock/home/bockd/bocklab/karsh/idb0/"
-	"0/TileToImage.txt" );
-
-	if( f = fopen( name, "r" ) ) {
-
-		CLineScan	LS;
-
-		if( LS.Get( f ) <= 0 )
-			goto exit;
-
-		while( LS.Get( f ) > 0 ) {
-
-			Til2Img	E;
-			char	buf[2048];
-
-			sscanf( LS.line,
-			"%d\t%lf\t%lf\t%lf"
-			"\t%lf\t%lf\t%lf\t%[^\t\n]",
-			&E.tile,
-			&E.T.t[0], &E.T.t[1], &E.T.t[2],
-			&E.T.t[3], &E.T.t[4], &E.T.t[5],
-			buf );
-
-			E.path = buf;
-
-			t2i.push_back( E );
-		}
-	}
-
-exit:
-	if( f )
-		fclose( f );
-}
-
-
-static void ColRow( int &col, int &row, const string &path )
-{
-	const char *c = path.c_str();
-	const char *s;
-
-	s = strstr( c, "col" );
-	col = atoi( s + 3 );
-	s = strstr( c, "row" );
-	row = atoi( s + 3 );
-}
 
 
 static void Run()
 {
 	vector<Til2Img>	t2i;
 
-	ReadAll( t2i );
+	IDBT2IGetAll( t2i,
+	string( "/groups/bock/home/bockd/bocklab/karsh/idb0" ), 0 );
 
 	FILE	*f = FileOpenOrDie( "TileToImage.txt", "w" );
 	int		nt = t2i.size();
 
-	fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
+	fprintf( f, "ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
 
 	for( int i = 0; i < nt; ++i ) {
 
-		int	col, row;
+		const Til2Img	&I = t2i[i];
 
-		ColRow( col, row, t2i[i].path );
+		if( I.col >= 38 && I.col <= 43 &&
+			I.row >= 86 && I.row <= 91 ) {
 
-		if( col >= 38 && col <= 43 && row >= 86 && row <= 91 ) {
 			fprintf( f,
-				"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
-				t2i[i].tile,
-				t2i[i].T.t[0], t2i[i].T.t[1], t2i[i].T.t[2],
-				t2i[i].T.t[3], t2i[i].T.t[4], t2i[i].T.t[5],
-				t2i[i].path.c_str() );
+				"%d"
+				"\t%f\t%f\t%f\t%f\t%f\t%f"
+				"\t%d\t%d\t%d"
+				"\t%s\n",
+				I.id,
+				I.T.t[0], I.T.t[1], I.T.t[2],
+				I.T.t[3], I.T.t[4], I.T.t[5],
+				I.col, I.row, I.cam,
+				I.path.c_str() );
 		}
 	}
 
@@ -103,3 +50,5 @@ int main( int argc, char **argv )
 
 	return 0;
 }
+
+

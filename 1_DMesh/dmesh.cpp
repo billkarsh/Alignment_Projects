@@ -195,14 +195,14 @@ static void FitAffine(
 
 		// set file type and layer
 
-		if( GBL.A.layer < GBL.B.layer )
+		if( GBL.A.z < GBL.B.z )
 			sud = "up";
-		else if( GBL.A.layer == GBL.B.layer )
+		else if( GBL.A.z == GBL.B.z )
 			sud = "same";
 		else
 			sud = "down";
 
-		sprintf( name, "%s_%d_A", sud, GBL.A.layer );
+		sprintf( name, "%s_%d_A", sud, GBL.A.z );
 
 		if( M.Get( name ) ) {
 
@@ -217,8 +217,8 @@ static void FitAffine(
 				"AFFINE"
 				" %d.%d:%d %d.%d:%d"
 				" %g %g %g %g %g %g\n",
-				GBL.A.layer, GBL.A.tile, argn,
-				GBL.B.layer, GBL.B.tile, brgn,
+				GBL.A.z, GBL.A.id, argn,
+				GBL.B.z, GBL.B.id, brgn,
 				X[0], X[1], X[2],
 				X[3], X[4], X[5] );
 
@@ -320,14 +320,14 @@ static void FitHmgphy(
 
 		// set file type and layer
 
-		if( GBL.A.layer < GBL.B.layer )
+		if( GBL.A.z < GBL.B.z )
 			sud = "up";
-		else if( GBL.A.layer == GBL.B.layer )
+		else if( GBL.A.z == GBL.B.z )
 			sud = "same";
 		else
 			sud = "down";
 
-		sprintf( name, "%s_%d_H", sud, GBL.A.layer );
+		sprintf( name, "%s_%d_H", sud, GBL.A.z );
 
 		if( M.Get( name ) ) {
 
@@ -342,8 +342,8 @@ static void FitHmgphy(
 				"HMGPHY"
 				" %d.%d:%d %d.%d:%d"
 				" %g %g %g %g %g %g %g %g\n",
-				GBL.A.layer, GBL.A.tile, argn,
-				GBL.B.layer, GBL.B.tile, brgn,
+				GBL.A.z, GBL.A.id, argn,
+				GBL.B.z, GBL.B.id, brgn,
 				X[0], X[1], X[2],
 				X[3], X[4], X[5],
 				X[6], X[7] );
@@ -410,14 +410,14 @@ static void WritePOINTEntries(
 
 // set pts file type and layer
 
-	if( GBL.A.layer < GBL.B.layer )
+	if( GBL.A.z < GBL.B.z )
 		sud = "up";
-	else if( GBL.A.layer == GBL.B.layer )
+	else if( GBL.A.z == GBL.B.z )
 		sud = "same";
 	else
 		sud = "down";
 
-	sprintf( name, "%s_%d", sud, GBL.A.layer );
+	sprintf( name, "%s_%d", sud, GBL.A.z );
 
 	if( M.Get( name ) ) {
 
@@ -530,8 +530,8 @@ static void WritePOINTEntries(
 					"CPOINT2"
 					" %d.%d:%d %f %f"
 					" %d.%d:%d %f %f\n",
-					GBL.A.layer, GBL.A.tile, ma, pa.x, pa.y,
-					GBL.B.layer, GBL.B.tile, mb, pb.x, pb.y );
+					GBL.A.z, GBL.A.id, ma, pa.x, pa.y,
+					GBL.B.z, GBL.B.id, mb, pb.x, pb.y );
 
 #if FITPOINTS
 					// Accumulate point pair
@@ -711,8 +711,8 @@ void PipelineDeformableMap(
 
 		fprintf( flog,
 		"FOUND: %5d %4d %3d  %5d %4d %3d %3d %3d\n",
-		GBL.A.layer, GBL.A.tile, S.argn,
-		GBL.B.layer, GBL.B.tile, S.brgn,
+		GBL.A.z, GBL.A.id, S.argn,
+		GBL.B.z, GBL.B.id, S.brgn,
 		S.thmok, S.ntri );
 	}
 

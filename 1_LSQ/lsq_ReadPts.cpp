@@ -3,7 +3,6 @@
 #include	"lsq_ReadPts.h"
 
 #include	"File.h"
-#include	"PipeFiles.h"
 
 
 /* --------------------------------------------------------------- */
@@ -183,18 +182,10 @@ static bool IsDaviCorner( const RGN &R1, const RGN &R2 )
 	if( R1.z != R2.z )
 		return false;
 
-	const char	*c, *n;
-	int			row1, col1, row2, col2;
+	const Til2Img	*m1, *m2;
+	RGN::GetMeta( &m1, &m2, R1, R2 );
 
-	n = FileNamePtr( R1.GetName() );
-	c = strstr( n, "col" );
-	sscanf( c, "col%d_row%d", &col1, &row1 );
-
-	n = FileNamePtr( R2.GetName() );
-	c = strstr( n, "col" );
-	sscanf( c, "col%d_row%d", &col2, &row2 );
-
-	return ((row2 - row1) * (col2 - col1) != 0);
+	return ((m2->row - m1->row) * (m2->col - m1->col) != 0);
 }
 
 /* --------------------------------------------------------------- */
@@ -219,12 +210,12 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 // ------------------------------------
 // accept only col/row subsection
 #if 0
-	const char	*c, *n;
-	int			row, col;
+	const Til2Img	*m1, *m2;
+	RGN::GetMeta( &m1, &m2, R1, R2 );
+	int		col = m1->col, row = m1->row;
 
-	n = FileNamePtr( R1.GetName() );
-	if( c = strstr( n, "col" ) ) {
-		sscanf( c, "col%d_row%d", &col, &row );
+	if( col != -999 ) {
+
 //		if( col < 33 || col > 39 || row < 85 || row > 91 )
 		if( col < 25-4 || col > 25+4 || row < 19-4 || row > 19+4 )
 //		if( row > 2 || col > 2 )
@@ -233,11 +224,10 @@ static bool RejectPair( const RGN &R1, const RGN &R2 )
 //		if( col == 44 && row == 19 )
 //		if( col == 48 && row == 16 )
 //			return true;
-	}
 
-	n = FileNamePtr( R2.GetName() );
-	if( c = strstr( n, "col" ) ) {
-		sscanf( c, "col%d_row%d", &col, &row );
+// repeat tests for R2
+		col = p2->col, row = p2->row;
+
 //		if( col < 33 || col > 39 || row < 85 || row > 91 )
 		if( col < 25-4 || col > 25+4 || row < 19-4 || row > 19+4 )
 //		if( row > 2 || col > 2 )
@@ -363,7 +353,7 @@ void ReadPts_NumTags(
 
 	printf( "\n" );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 

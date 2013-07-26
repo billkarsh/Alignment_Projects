@@ -5,7 +5,6 @@
 #include	"lsq_MHmgphy.h"
 
 #include	"TrakEM2_UTL.h"
-#include	"PipeFiles.h"
 #include	"File.h"
 #include	"Maths.h"
 
@@ -407,12 +406,13 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 
 		int	j = I.itr * NX;
 
-		THmgphy		T( &X[j] );
-		Point		A( 0,    0 ), B( 2200,    0 ),
-					D( 0, 2200 ), C( 2200, 2200 );
-		double		d;
-		const char	*c, *n = FileNamePtr( I.GetName() );
-		int			cam = 0;
+		const Til2Img	*m;
+		THmgphy			T( &X[j] );
+		Point			A( 0,    0 ), B( 2200,    0 ),
+						D( 0, 2200 ), C( 2200, 2200 );
+		double			d;
+
+		RGN::GetMeta( &m, NULL, I, I );
 
 		T.Transform( A );
 		T.Transform( B );
@@ -430,16 +430,13 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 		A.x  = 0;
 		A.y  = 0;
 
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
-
 		fprintf( f,
 		"%d\t%g\t%g\t%g"
 		"\t\t%g\t%g\t\t%g\t%g\t\t%g\t%g\t\t%g\t%g\n",
-		cam, d, X[j+6], X[j+7],
+		m->cam, d, X[j+6], X[j+7],
 		A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y );
 
-		M[cam].Element( d );
+		M[m->cam].Element( d );
 	}
 
 	for( int i = 0; i < 4; ++i ) {
@@ -453,7 +450,7 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -541,7 +538,7 @@ void MHmgphy::WriteTransforms(
 
 	WriteSideRatios( X );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -645,22 +642,9 @@ void MHmgphy::WriteTrakEM(
 			prev = (*zs)[i].z;
 		}
 
-		// trim trailing quotes and '::'
-		char		title[256], buf[2048];
-		strcpy( buf, I.GetName() );
-		char		*p = strtok( buf, " ':\n" );
-		const char	*c = strstr( p, "col" );
-
-		if( c ) {
-
-			int	col = -1, row = -1, cam = -1;
-			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
-
-			sprintf( title, "%d.%d:1_%d.%d.%d",
-				I.z, I.id, col, row, cam );
-		}
-		else
-			sprintf( title, "%d.%d:1", I.z, I.id );
+		const char	*path;
+		char		title[128];
+		DisplayStrings( title, path, I );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -683,7 +667,7 @@ void MHmgphy::WriteTrakEM(
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW - offset, gH - offset,
 		x_orig, y_orig,
-		title, xml_type, p, gW - offset, gH - offset );
+		title, xml_type, path, gW - offset, gH - offset );
 
 		if( xml_min < xml_max ) {
 
@@ -712,7 +696,7 @@ void MHmgphy::WriteTrakEM(
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -740,10 +724,8 @@ void MHmgphy::WriteJython(
 
 		++itrf;
 
-		// trim trailing quotes and '::'
-		char	buf[2048];
-		strcpy( buf, I.GetName() );
-		char	*p = strtok( buf, " ':\n" );
+		const char	*path;
+		DisplayStrings( NULL, path, I );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -754,7 +736,7 @@ void MHmgphy::WriteJython(
 		TopLeft( y_orig, x_orig, T, gW, gH, trim );
 
 		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f, %f, %f]%s\n",
-			p,
+			path,
 			X[j+0], X[j+3], X[j+6],
 			X[j+1], X[j+4], X[j+7],
 			x_orig, y_orig,
@@ -764,7 +746,7 @@ void MHmgphy::WriteJython(
 	fprintf( f, "}\n" );
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */

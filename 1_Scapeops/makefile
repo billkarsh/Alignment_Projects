@@ -34,11 +34,10 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	Cmdline.cpp CRegexID.cpp File.cpp \
-	TrakEM2_UTL.cpp CTileSet.cpp ImageIO.cpp \
-	Maths.cpp Correlation.cpp CPoint.cpp \
-	Geometry.cpp TAffine.cpp Scape.cpp \
-	CThmScan.cpp Timer.cpp Debug.cpp
+	Cmdline.cpp File.cpp TrakEM2_UTL.cpp CTileSet.cpp \
+	ImageIO.cpp Maths.cpp Correlation.cpp CPoint.cpp \
+	Geometry.cpp TAffine.cpp Scape.cpp CThmScan.cpp \
+	Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

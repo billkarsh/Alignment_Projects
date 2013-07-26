@@ -521,42 +521,6 @@ static void SolveWithMontageSqr(
 
 
 /* --------------------------------------------------------------- */
-/* RGN::GetName -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static vector<string>	rgnvname;	// tile names
-static map<MZID,int>	rgnmname;	// tile names
-
-
-const char* RGN::GetName() const
-{
-	if( iname < 0 ) {
-
-		MZID					zid( z, id );
-		map<MZID,int>::iterator	it = rgnmname.find( zid );
-		int						k;
-
-		if( it == rgnmname.end() ) {
-
-			Til2Img	I;
-
-			if( !IDBTil2Img1( I, idb, z, id ) )
-				I.path = "__noimg.jpg";
-
-			rgnmname[zid] = k = rgnvname.size();
-			rgnvname.push_back( I.path );
-		}
-		else
-			k = it->second;
-
-		*const_cast<int*>(&iname) = k;
-	}
-
-	return rgnvname[iname].c_str();
-}
-
-
-/* --------------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 /* Bill's experimental constraints ------------------------------- */
 /* --------------------------------------------------------------- */
@@ -959,15 +923,12 @@ void MHmgphy::AveHTerms(
 
 		itr *= NX;
 
-		const char	*c, *n = FileNamePtr( vRgn[i].GetName() );
-		int			cam = 0;
+		const Til2Img	*m;
+		RGN::GetMeta( &m, NULL, vRgn[i], vRgn[i] );
 
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
-
-		g[cam] += X[itr+6];
-		h[cam] += X[itr+7];
-		++nt[cam];
+		g[m->cam] += X[itr+6];
+		h[m->cam] += X[itr+7];
+		++nt[p->cam];
 	}
 
 	for( int i = 0; i < 4; ++i ) {
@@ -1004,14 +965,11 @@ void MHmgphy::MedHTerms(
 
 		itr *= NX;
 
-		const char	*c, *n = FileNamePtr( vRgn[i].GetName() );
-		int			cam = 0;
+		const Til2Img	*m;
+		RGN::GetMeta( &m, NULL, vRgn[i], vRgn[i] );
 
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
-
-		G[cam].push_back( X[itr+6] );
-		H[cam].push_back( X[itr+7] );
+		G[m->cam].push_back( X[itr+6] );
+		H[m->cam].push_back( X[itr+7] );
 	}
 
 	for( int i = 0; i < 4; ++i ) {
@@ -1047,18 +1005,15 @@ void MHmgphy::ForceHTerms(
 
 		j *= NX;
 
-		const char	*c, *n = FileNamePtr( vRgn[i].GetName() );
-		int			cam = 0;
-
-		if( c = strstr( n, "_cam" ) )
-			cam = atoi( c + 4 );
+		const Til2Img	*m;
+		RGN::GetMeta( &m, NULL, vRgn[i], vRgn[i] );
 
 		double	v[1]	= { wt };
 		int		i1[1]	= { j+6 },
 				i2[1]	= { j+7 };
 
-		AddConstraint( LHS, RHS, 1, i1, v, wt*g[cam] );
-		AddConstraint( LHS, RHS, 1, i2, v, wt*h[cam] );
+		AddConstraint( LHS, RHS, 1, i1, v, wt*g[m->cam] );
+		AddConstraint( LHS, RHS, 1, i2, v, wt*h[m->cam] );
 	}
 
 	IDBTil2ImgClear();

@@ -21,12 +21,11 @@ public:
 	bool ReadFile( const char *path, FILE* flog = stdout );
 	bool ReadIDB( const string &idb, FILE* flog = stdout );
 
-	int  CamID( const char *name );
-	void UpdateDoublesRHS( double *D, const char *name, bool inv );
-	void UpdateTFormRHS( TAffine &T, const char *name, bool inv );
-	void UpdateTFormLHS( TAffine &T, const char *name, bool inv );
+	void UpdateDoublesRHS( double *D, int cam, bool inv );
+	void UpdateTFormRHS( TAffine &T, int cam, bool inv );
+	void UpdateTFormLHS( TAffine &T, int cam, bool inv );
 
-	const TAffine& GetTf( const char *name ) {return Tf[CamID(name)];};
+	const TAffine& GetTf( int cam ) {return Tf[cam];};
 };
 
 

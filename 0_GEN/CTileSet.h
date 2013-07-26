@@ -4,7 +4,6 @@
 
 
 #include	"GenDefs.h"
-#include	"CRegexID.h"
 #include	"TAffine.h"
 
 #include	<string>
@@ -29,13 +28,16 @@ class CUTile {
 
 public:
 	string	name;
-	int		z;		// z layer
-	int		id;		// inlayer id
-	int		ix;		// idx to aux data
 	TAffine	T;		// local to global
+	int		z,		// z layer
+			id,		// inlayer id
+			col,	// grid col index
+			row,	// grid row index
+			cam,	// camera index
+			ix;		// idx to aux data
 
 public:
-	CUTile()	{ix = 0;};
+	CUTile()	{col=-999;row=-999;cam=0;ix = 0;};
 };
 
 
@@ -59,10 +61,6 @@ typedef struct TSClix {
 class CTileSet {
 
 private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID		re_id;
 	FILE*			flog;
 	int				gW, gH;	// each tile dims
 
@@ -76,9 +74,6 @@ public:
 
 	void SetLogFile( FILE* fout )
 		{flog = fout;};
-
-	void SetDecoderPat( const char *pat );
-	int	 DecodeID( const char *name );
 
 	void FillFromRickFile( const char *path, int zmin, int zmax );
 	void FillFromTrakEM2( const char *path, int zmin, int zmax );
@@ -138,7 +133,12 @@ public:
 		int			xmlmin,
 		int			xmlmax );
 
-	void WriteTileToImage( const string &idb, int is0, int isN );
+	void WriteTileToImage(
+		const char	*topdir,
+		bool		create_zdir,
+		bool		create_nmrcdir,
+		int			is0,
+		int			isN );
 };
 
 

@@ -38,6 +38,36 @@ void MDL::PrintMagnitude( const vector<double> &X )
 }
 
 /* --------------------------------------------------------------- */
+/* DisplayStrings ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// TrakEM2-style title buffer is optional.
+//
+// path is not a buffer, it's a char pointer!!
+//
+void MDL::DisplayStrings(
+	char			*title,
+	const char*		&path,
+	const RGN		&I )
+{
+	const Til2Img	*m;
+
+	RGN::GetMeta( &m, NULL, I, I );
+	path = m->path.c_str();
+
+	if( title ) {
+
+		if( m->col != -999 ) {
+
+			sprintf( title, "%d.%d:1_%d.%d.%d",
+				I.z, m->id, m->col, m->row, m->cam );
+		}
+		else
+			sprintf( title, "%d.%d:1", I.z, m->id );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Bounds -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

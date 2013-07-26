@@ -14,8 +14,8 @@
 /* --------------------------------------------------------------- */
 
 typedef struct {
-	int			layer,
-				tile;
+	int			z,
+				id;
 	Til2Img		t2i;
 	const char	*file;
 } PicSpecs;
@@ -39,7 +39,7 @@ class CThmUtil {
 
 private:
 	const PicSpecs	&A, &B;
-	const int		aid, bid;
+	const int		acr, bcr;
 	const PixPair	&px;
 	long			&OLAP2D;
 	FILE			*flog;
@@ -57,15 +57,15 @@ public:
 public:
 	CThmUtil(
 		const PicSpecs	&A,
-		int				aid,
+		int				acr,
 		const PicSpecs	&B,
-		int				bid,
+		int				bcr,
 		const PixPair	&px,
 		TAffine			&Tab,
 		long			&OLAP2D,
 		FILE			*flog )
 		:
-			A(A), B(B), aid(aid), bid(bid),
+			A(A), B(B), acr(acr), bcr(bcr),
 			px(px), Tab(Tab), OLAP2D(OLAP2D),
 			flog(flog), ang0(0.0)
 		{};

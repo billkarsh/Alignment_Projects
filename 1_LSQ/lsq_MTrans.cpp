@@ -3,7 +3,6 @@
 #include	"lsq_MTrans.h"
 
 #include	"TrakEM2_UTL.h"
-#include	"PipeFiles.h"
 #include	"File.h"
 
 
@@ -139,7 +138,7 @@ void MTrans::WriteTransforms(
 	printf(
 	"Average magnitude=1, min=1, max=1, max/min=1\n\n" );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -212,22 +211,9 @@ void MTrans::WriteTrakEM(
 			prev = (*zs)[i].z;
 		}
 
-		// trim trailing quotes and '::'
-		char		title[256], buf[2048];
-		strcpy( buf, I.GetName() );
-		char		*p = strtok( buf, " ':\n" );
-		const char	*c = strstr( p, "col" );
-
-		if( c ) {
-
-			int	col = -1, row = -1, cam = -1;
-			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
-
-			sprintf( title, "%d.%d:1_%d.%d.%d",
-				I.z, I.id, col, row, cam );
-		}
-		else
-			sprintf( title, "%d.%d:1", I.z, I.id );
+		const char	*path;
+		char		title[128];
+		DisplayStrings( title, path, I );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -247,7 +233,7 @@ void MTrans::WriteTrakEM(
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW - offset, gH - offset,
 		x_orig, y_orig,
-		title, xml_type, p, gW - offset, gH - offset );
+		title, xml_type, path, gW - offset, gH - offset );
 
 		if( xml_min < xml_max ) {
 
@@ -268,7 +254,7 @@ void MTrans::WriteTrakEM(
 	fprintf( f, "</trakem2>\n" );
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -296,10 +282,8 @@ void MTrans::WriteJython(
 
 		++itrf;
 
-		// trim trailing quotes and '::'
-		char	buf[2048];
-		strcpy( buf, I.GetName() );
-		char	*p = strtok( buf, " ':\n" );
+		const char	*path;
+		DisplayStrings( NULL, path, I );
 
 		// fix origin : undo trimming
 		int		j = I.itr * NX;
@@ -307,14 +291,14 @@ void MTrans::WriteJython(
 		double	y_orig = trim + X[j+1];
 
 		fprintf( f, "\"%s\" : [1, 0, 0, 1, %f, %f]%s\n",
-			p, x_orig, y_orig,
+			path, x_orig, y_orig,
 			(itrf == Ntr ? "" : ",") );
 	}
 
 	fprintf( f, "}\n" );
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */

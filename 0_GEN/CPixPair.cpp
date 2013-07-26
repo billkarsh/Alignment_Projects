@@ -199,13 +199,13 @@ static bool HasTissue( const char *path )
 /* --------------------------------------------------------------- */
 
 static void Lens(
-	CAffineLens		&LN,
 	vector<double>	&vout,
-	const char		*path,
+	CAffineLens		&LN,
 	uint8*			&ras,
 	int				w,
 	int				h,
-	int				order )
+	int				order,
+	int				cam )
 {
 // Flatten and release raster
 
@@ -215,7 +215,7 @@ static void Lens(
 
 // Transform into vout
 
-	TAffine	T = LN.GetTf( path );
+	TAffine	T = LN.GetTf( cam );
 	int		np = w * h;
 
 	vout.resize( np, 0.0 );
@@ -241,6 +241,8 @@ bool PixPair::Load(
 	const char		*apath,
 	const char		*bpath,
 	const string	*idb,
+	int				acam,
+	int				bcam,
 	int				order,
 	int				bDoG,
 	int				r1,
@@ -325,8 +327,8 @@ bool PixPair::Load(
 
 	if( idb ) {
 
-		Lens( LN, _avf, apath, aras, wf, hf, order );
-		Lens( LN, _bvf, bpath, bras, wf, hf, order );
+		Lens( _avf, LN, aras, wf, hf, order, acam );
+		Lens( _bvf, LN, bras, wf, hf, order, bcam );
 		//VectorDblToTif8( "LensA.tif", _avf, wf, hf );
 		//VectorDblToTif8( "LensB.tif", _bvf, wf, hf );
 	}

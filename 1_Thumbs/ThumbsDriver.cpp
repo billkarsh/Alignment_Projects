@@ -50,6 +50,7 @@ int main( int argc, char* argv[] )
 			GBL.A.t2i.path.c_str(),
 			GBL.B.t2i.path.c_str(),
 			(GBL.mch.PXLENS ? &GBL.idb : NULL),
+			GBL.A.t2i.cam, GBL.B.t2i.cam,
 			GBL.mch.PXBRO, GBL.mch.PXDOG,
 			GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
 			stdout, GBL.arg.Transpose ) ) {
@@ -86,13 +87,13 @@ int main( int argc, char* argv[] )
 
 		fold_mask_a =
 			GetFoldMask(
-				GBL.idb, GBL.A.layer, GBL.A.tile,
+				GBL.idb, GBL.A.z, GBL.A.id,
 				GBL.arg.fma, px.wf, px.hf,
 				false, GBL.arg.Transpose, GBL.arg.SingleFold );
 
 		fold_mask_b =
 			GetFoldMask(
-				GBL.idb, GBL.B.layer, GBL.B.tile,
+				GBL.idb, GBL.B.z, GBL.B.id,
 				GBL.arg.fmb, px.wf, px.hf,
 				false, GBL.arg.Transpose, GBL.arg.SingleFold );
 

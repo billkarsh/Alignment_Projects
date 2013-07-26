@@ -22,7 +22,7 @@ SOURCES_MYPROJ := \
 	DaviSubset.cpp
 
 _SRC_GEN_ := \
-	Disk.cpp File.cpp TAffine.cpp
+	File.cpp PipeFiles.cpp TAffine.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}

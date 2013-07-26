@@ -24,43 +24,6 @@ static TSAux	*_Aux;
 
 
 /* --------------------------------------------------------------- */
-/* SetDecoderPat ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void CTileSet::SetDecoderPat( const char *pat )
-{
-	re_id.Set( pat );
-	re_id.Compile( flog );
-}
-
-/* --------------------------------------------------------------- */
-/* DecodeID ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-int CTileSet::DecodeID( const char *name )
-{
-#if 0
-// (Temporary) hack for Davi with no id in filename
-
-	static int	stile=0;
-	return stile++;
-
-#else
-// Standard method to extract id from filename
-
-	const char	*s = FileNamePtr( name );
-	int			id;
-
-	if( !re_id.Decode( id, s ) ) {
-		fprintf( flog, "No tile-id found in [%s].\n", s );
-		exit( 42 );
-	}
-
-	return id;
-#endif
-}
-
-/* --------------------------------------------------------------- */
 /* RejectTile ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -73,12 +36,8 @@ static bool RejectTile( const CUTile &til )
 // ------------------------------------
 // accept only col/row subsection
 #if 0
-	const char	*c, *n;
-	int			row, col;
-
-	n = FileNamePtr( til.name.c_str() );
-	if( c = strstr( n, "col" ) ) {
-		sscanf( c, "col%d_row%d", &col, &row );
+	if( til.col != -999 ) {
+		int	col = til.col, row = til.row;
 //		if( col < 56 || col > 68 || row < 55 || row > 67 )
 		if( col < 33 || col > 55 || row < 73 || row > 103 )
 			return true;
@@ -93,8 +52,6 @@ static bool RejectTile( const CUTile &til )
 /* FillFromRickFile ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Needs previous call to SetDecoderPat().
-//
 void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 {
 	FILE	*fp = FileOpenOrDie( path, "r", flog );
@@ -107,15 +64,23 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 
 		CUTile	til;
 		char	name[2048];
-		double	x, y;
 		int		z;
 
 		/* ---------- */
 		/* Get a line */
 		/* ---------- */
 
-		if( fscanf( fp, "%s%lf%lf%d", name, &x, &y, &z ) != 4 )
+		if( fscanf( fp,
+			"%d%d%"
+			"lf%lf%lf%lf%lf%lf"
+			"%d%d%d%s",
+			&z, &til.id,
+			&til.T.t[0], &til.T.t[1], &til.T.t[2],
+			&til.T.t[3], &til.T.t[4], &til.T.t[5],
+			&til.col, &til.row, &til.cam, name ) != 12 ) {
+
 			break;
+		}
 
 		if( z > zmax )
 			continue;
@@ -129,8 +94,6 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 
 		til.name	= name;
 		til.z		= z;
-		til.id		= DecodeID( name );
-		til.T.SetXY( x, y );
 
 		if( !RejectTile( til ) )
 			vtil.push_back( til );
@@ -165,6 +128,21 @@ static TiXmlElement* XMLGetTiles(
 		til.id		= IDFromPatch( ptch );
 		til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 
+		// extract col, row, cam if present
+		{
+			int	rgn, col, row, cam;
+
+			if( 6 == sscanf( ptch->Attribute( "title" ),
+				"%d.%d:%d_%d.%d.%d",
+				&z, &til.id, &rgn,
+				&col, &row, &cam ) ) {
+
+				til.col = col;
+				til.row = row;
+				til.cam = cam;
+			}
+		}
+
 		if( !RejectTile( til ) )
 			TS->vtil.push_back( til );
 	}
@@ -176,8 +154,6 @@ static TiXmlElement* XMLGetTiles(
 /* FillFromTrakEM2 ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Needs previous call to SetDecoderPat().
-//
 // Automatically sets (gW,gH) from xml file.
 //
 void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
@@ -222,7 +198,7 @@ void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 
 		vector<Til2Img>	t2i;
 
-		if( IDBAllTil2Img( t2i, idb, z, flog ) ) {
+		if( IDBT2IGetAll( t2i, idb, z, flog ) ) {
 
 			int	nt = t2i.size();
 
@@ -232,9 +208,12 @@ void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 				CUTile			til;
 
 				til.name	= E.path;
-				til.z		= z;
-				til.id		= E.tile;
 				til.T		= E.T;
+				til.z		= z;
+				til.id		= E.id;
+				til.col		= E.col;
+				til.row		= E.row;
+				til.cam		= E.cam;
 
 				if( !RejectTile( til ) )
 					vtil.push_back( til );
@@ -1067,6 +1046,15 @@ void CTileSet::WriteTrakEM2Layer(
 	for( int i = 0; i < isN; ++i ) {
 
 		const CUTile&	U = vtil[order[i]];
+		char			title[128];
+
+		if( U.col != -999 ) {
+
+			sprintf( title, "%d.%d:1_%d.%d.%d",
+				U.z, U.id, U.col, U.row, U.cam );
+		}
+		else
+			sprintf( title, "%d.%d:1", U.z, U.id );
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"
@@ -1074,14 +1062,14 @@ void CTileSet::WriteTrakEM2Layer(
 		"\t\t\t\twidth=\"%d\"\n"
 		"\t\t\t\theight=\"%d\"\n"
 		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
-		"\t\t\t\ttitle=\"%d.%d:1\"\n"
+		"\t\t\t\ttitle=\"%s\"\n"
 		"\t\t\t\ttype=\"%d\"\n"
 		"\t\t\t\tfile_path=\"%s\"\n"
 		"\t\t\t\to_width=\"%d\"\n"
 		"\t\t\t\to_height=\"%d\"\n",
 		oid++, gW, gH,
 		U.T.t[0], U.T.t[3], U.T.t[1], U.T.t[4], U.T.t[2], U.T.t[5],
-		U.z, U.id, xmltype, U.name.c_str(), gW, gH );
+		title, xmltype, U.name.c_str(), gW, gH );
 
 		if( xmlmin < xmlmax ) {
 
@@ -1213,26 +1201,43 @@ void CTileSet::WriteTrakEM2_EZ(
 
 // Tiles must already be sorted by z (subsort doesn't matter).
 //
+// Optionally create subfolder: topdir/z.
+// Optionally create subfolder: topdir/z/nmrc.
+//
 // Write one TileToImage.txt file for given layer.
 //
-void CTileSet::WriteTileToImage( const string &idb, int is0, int isN )
+void CTileSet::WriteTileToImage(
+	const char	*topdir,
+	bool		create_zdir,
+	bool		create_nmrcdir,
+	int			is0,
+	int			isN )
 {
-// Open file
+// Manage dirs
 
-	char	name[2048];
+	char	path[2048];
 	FILE	*f;
 	int		len;
 
-	len = sprintf( name, "%s/%d", idb.c_str(), vtil[is0].z );
-	DskCreateDir( name, flog );
+	len = sprintf( path, "%s/%d", topdir, vtil[is0].z );
 
-	sprintf( name + len, "/TileToImage.txt" );
+	if( create_zdir )
+		DskCreateDir( path, flog );
 
-	f = FileOpenOrDie( name, "w", flog );
+	if( create_nmrcdir ) {
+
+		sprintf( path + len, "/nmrc" );
+		DskCreateDir( path, flog );
+	}
+
+// Open file
+
+	sprintf( path + len, "/TileToImage.txt" );
+	f = FileOpenOrDie( path, "w", flog );
 
 // Header
 
-	fprintf( f, "Tile\tT0\tT1\tX\tT3\tT4\tY\tPath\n" );
+	fprintf( f, "ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
 
 // Write sorted entries
 
@@ -1246,9 +1251,12 @@ void CTileSet::WriteTileToImage( const string &idb, int is0, int isN )
 		const double*	T = U.T.t;
 
 		fprintf( f,
-			"%d\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n",
-			U.id, T[0], T[1], T[2], T[3], T[4], T[5],
-			U.name.c_str() );
+			"%d"
+			"\t%f\t%f\t%f\t%f\t%f\t%f"
+			"\t%d\t%d\t%d\t%s\n",
+			U.id,
+			T[0], T[1], T[2], T[3], T[4], T[5],
+			U.col, U.row, U.cam, U.name.c_str() );
 	}
 
 	fclose( f );

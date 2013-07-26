@@ -5,6 +5,7 @@
 
 #include	"lsq_DIR.h"
 
+#include	"PipeFiles.h"
 #include	"CPoint.h"
 
 
@@ -31,6 +32,12 @@ public:
 	RGN( const char *path, const char *key );
 
 	const char* GetName() const;
+
+	static void GetMeta(
+		const Til2Img*	*t1,
+		const Til2Img*	*t2,
+		const RGN		&I1,
+		const RGN		&I2 );
 };
 
 /* --------------------------------------------------------------- */

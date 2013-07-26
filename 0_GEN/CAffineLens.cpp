@@ -100,33 +100,12 @@ bool CAffineLens::ReadIDB( const string &idb, FILE* flog )
 }
 
 /* --------------------------------------------------------------- */
-/* CamID --------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-int CAffineLens::CamID( const char *name )
-{
-	const char	*s = FileNamePtr( name );
-
-	if( !(s = strstr( s, "_cam" )) ) {
-
-		fprintf( flog,
-		"Lens::CamID Missing cam-id [%s].\n", name );
-		exit( 42 );
-	}
-
-	return atoi( s + 4 );
-}
-
-/* --------------------------------------------------------------- */
 /* UpdateDoublesRHS ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CAffineLens::UpdateDoublesRHS(
-	double		*D,
-	const char	*name,
-	bool		inv )
+void CAffineLens::UpdateDoublesRHS( double *D, int cam, bool inv )
 {
-	TAffine	T = TAffine( D ) * (inv ? Ti : Tf)[CamID( name )];
+	TAffine	T = TAffine( D ) * (inv ? Ti : Tf)[cam];
 
 	T.CopyOut( D );
 }
@@ -135,24 +114,18 @@ void CAffineLens::UpdateDoublesRHS(
 /* UpdateTFormRHS ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CAffineLens::UpdateTFormRHS(
-	TAffine		&T,
-	const char	*name,
-	bool		inv )
+void CAffineLens::UpdateTFormRHS( TAffine &T, int cam, bool inv )
 {
-	T = T * (inv ? Ti : Tf)[CamID( name )];
+	T = T * (inv ? Ti : Tf)[cam];
 }
 
 /* --------------------------------------------------------------- */
 /* UpdateTFormLHS ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void CAffineLens::UpdateTFormLHS(
-	TAffine		&T,
-	const char	*name,
-	bool		inv )
+void CAffineLens::UpdateTFormLHS( TAffine &T, int cam, bool inv )
 {
-	T = (inv ? Ti : Tf)[CamID( name )] * T;
+	T = (inv ? Ti : Tf)[cam] * T;
 }
 
 

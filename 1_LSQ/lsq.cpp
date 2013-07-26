@@ -14,7 +14,6 @@
 #include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
-#include	"PipeFiles.h"
 #include	"CAffineLens.h"
 #include	"LinEqu.h"
 #include	"ImageIO.h"
@@ -808,10 +807,13 @@ static void ApplyLens( vector<double> &X, bool inv )
 		if( itr < 0 )
 			continue;
 
-		LN.UpdateDoublesRHS( &X[itr * 6], vRgn[i].GetName(), inv );
+		const Til2Img	*m;
+		RGN::GetMeta( &m, NULL, vRgn[i], vRgn[i] );
+
+		LN.UpdateDoublesRHS( &X[itr * 6], m->cam, inv );
 	}
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 #if 0
@@ -979,17 +981,15 @@ static void NoCorrs(
 
 			++nreports;
 
-			// A & B names may be from diff Z, hence,
-			// not both in same IDBTil2Img cache!!
-			char	Aname[2048];
-			strcpy( Aname, A.GetName() );
+			const Til2Img	*ma, *mb;
+			RGN::GetMeta( &ma, &mb, A, B );
 
 			fprintf( flog, "No points in common -"
 			" Lyr.til:rgn %d.%d:%d - %d.%d:%d, overlap %.1f%%\n"
 			" - %s\n"
 			" - %s\n",
 			A.z, A.id, A.rgn, B.z, B.id, B.rgn, olap*100.0,
-			Aname, B.GetName() );
+			ma->path.c_str(), mb->path.c_str() );
 
 			/* ---------------- */
 			/* Report in NoCorr */
@@ -1045,7 +1045,7 @@ static void NoCorrs(
 
 	printf( "%d NoCorr cases reported.\n\n", nreports );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 #endif
@@ -1224,7 +1224,7 @@ void EVL::Tabulate(
 
 	printf( "\n" );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1343,18 +1343,16 @@ void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 
 		if( err >= bigpr ) {
 
-			// C.r1 & C.r2 names may be from diff Z, hence,
-			// not both in same IDBTil2Img cache!!
-			char	r1name[2048];
-			strcpy( r1name, vRgn[C.r1].GetName() );
+			const Til2Img	*m1, *m2;
+			RGN::GetMeta( &m1, &m2, vRgn[C.r1], vRgn[C.r2] );
 
 			printf( "%10.1f\t%4d\t%4d\t%4d\t%4d\t%4d\t%4d\n",
 			sqrt( err ),
-			z1, vRgn[C.r1].id, vRgn[C.r1].rgn,
-			z2, vRgn[C.r2].id, vRgn[C.r2].rgn );
+			z1, m1->id, vRgn[C.r1].rgn,
+			z2, m2->id, vRgn[C.r2].rgn );
 
 			printf( "%s\n%s\n",
-			r1name, vRgn[C.r2].GetName() );
+			m1->path.c_str(), m2->path.c_str() );
 		}
 
 		// and plot
@@ -1375,7 +1373,7 @@ void EVL::Print_be_and_se_files( const vector<zsort> &zs )
 	fclose( fbe );
 	fclose( fse );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1497,15 +1495,17 @@ static void ViseWriteXML(
 			prev = zs[i].z;
 		}
 
-		char		name[256];
-		const char	*c, *n = FileNamePtr( I.GetName() );
+		char			title[256];
+		const Til2Img	*m;
+		RGN::GetMeta( &m, NULL, I, I );
 
-		if( c = strstr( n, "col" ) ) {
-			sprintf( name, "ve_z%d_id%d_%.*s",
-			I.z, I.id, strchr( c, '.' ) - c, c );
+		if( m->col != -999 ) {
+
+			sprintf( title, "ve_%d-%d__%d-%d-%d",
+				I.z, I.id, m->col, m->row, m->cam );
 		}
 		else
-			sprintf( name, "ve_z%d_id%d", I.z, I.id );
+			sprintf( title, "ve_%d-%d", I.z, I.id );
 
 		TAffine	A = M->EqvAffine( X, I.itr );
 
@@ -1525,7 +1525,7 @@ static void ViseWriteXML(
 		"\t\t\t/>\n",
 		oid++, visePix, visePix,
 		sclx*A.t[0], scly*A.t[3], sclx*A.t[1], scly*A.t[4], A.t[2], A.t[5],
-		name, I.z, name, visePix, visePix );
+		title, I.z, title, visePix, visePix );
 	}
 
 	if( nr > 0 )
@@ -1535,7 +1535,7 @@ static void ViseWriteXML(
 	fprintf( f, "</trakem2>\n");
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1887,11 +1887,13 @@ void EVL::BuildVise(
 		vector<uint32>	RGB( visePix * visePix, 0xFFD0D0D0 );
 
 		const VisErr	&V = ve[zs[i].i];
-		const char		*c, *n = FileNamePtr( I.GetName() );
+		const Til2Img	*m;
 		int				col = 0, row = 0, cam = 0;
 
-		if( c = strstr( n, "col" ) )
-			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+		RGN::GetMeta( &m, NULL, I, I );
+
+		if( m->col != -999 )
+			col = m->col, row = m->row, cam = m->cam;
 
 		fprintf( f, "%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",
 		I.z, I.id, col, row, cam,
@@ -1942,12 +1944,12 @@ void EVL::BuildVise(
 		VisePaintRect( RGB, 0, lim, lim - twv/2, lim, .01 );
 
 		// store
-		if( c ) {
-			sprintf( buf, "viseimg/%d/ve_z%d_id%d_%.*s.png",
-			I.z, I.z, I.id, strchr( c, '.' ) - c, c );
+		if( m->col != -999 ) {
+			sprintf( buf, "viseimg/%d/ve_%d-%d__%d-%d-%d.png",
+			I.z, I.z, I.id, col, row, cam );
 		}
 		else {
-			sprintf( buf, "viseimg/%d/ve_z%d_id%d.png",
+			sprintf( buf, "viseimg/%d/ve_%d-%d.png",
 			I.z, I.z, I.id );
 		}
 
@@ -1956,7 +1958,7 @@ void EVL::BuildVise(
 
 	fclose( f );
 
-	IDBTil2ImgClear();
+	IDBT2ICacheClear();
 }
 
 /* --------------------------------------------------------------- */
