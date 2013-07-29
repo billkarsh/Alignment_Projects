@@ -1,6 +1,17 @@
 #!/bin/sh
 
-# Put this script into a Dx_y folder to debug block
+# Purpose:
+# Put this script into a Dx_y folder to debug block.
+#
+# Options:
+# -nf			;no foldmasks
+# -abscl=200	;integer scale reduction
+# -ablgord=1	;Legendre poly field-flat max int order
+# -absdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -abwid=5		;strips this many tiles wide on short axis
+# -abcorr=0.2	;required min corr for alignment
+# -addbg		;make diagnostic images and exit
+# -abctr=0		;debug at this a-to-b angle
 
 
 export MRC_TRIM=12

@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# Purpose:
+# First step in cross-layer alignment.
+#
+# > scapeops myxml -zb=%d [options]
+#
+# Scapeops does montage drawing and/or strip aligning as follows:
+#
+# If drawing a montage...
+#
+#	-mb -zb=%d -mbscl=%d
+#
+#		[-mblgord=%d] [-mbsdev=%d]
+#
+# If aligning strips...
+#
+#	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -abcorr=%lf
+#
+#		[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]
+#
+# Options:
+# -mb			;make montage for layer zb
+# -ab			;align layer za to zb
+# -za			;layer za used only with -ab option
+# -zb			;required layer zb
+# -mbscl=200	;integer scale reduction
+# -abscl=200	;integer scale reduction
+# -mblgord=1	;Legendre poly field-flat max int order
+# -ablgord=1	;Legendre poly field-flat max int order
+# -mbsdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -absdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -abwid=5		;strips this many tiles wide on short axis
+# -abcorr=0.2	;required min corr for alignment
+# -addbg		;make diagnostic images and exit
+# -abctr=0		;debug at this a-to-b angle
+
+
+# Create output subdirs
+mkdir -p strips
+mkdir -p montages
+mkdir -p scplogs
+
+# Submit layer pairs

@@ -239,7 +239,7 @@ static void CreateTopDir()
 /* WriteRunlsqFile ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void _WriteRunlsqFile( const char *path )
+static void _WriteRunlsqFile( const char *path, bool final )
 {
 	FILE	*f = FileOpenOrDie( path, "w", flog );
 
@@ -295,8 +295,16 @@ static void _WriteRunlsqFile( const char *path )
 	fprintf( f, "# -lens\t\t\t\t;apply external affine software lens\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "lsq pts.all -scale=.1 -square=.1 %s$1 > lsq.txt\n",
-	xprms );
+
+	if( final ) {
+		fprintf( f, "lsq pts.all -scale=.1 -square=.1 -nproc=1 -prior=../cross_wkspc/HiRes_TF.txt %s$1 > lsq.txt\n",
+		xprms );
+	}
+	else {
+		fprintf( f, "lsq pts.all -scale=.1 -square=.1 %s$1 > lsq.txt\n",
+		xprms );
+	}
+
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -308,7 +316,7 @@ static void WriteRunlsqFile()
 {
 	char	buf[2048];
 	sprintf( buf, "%s/stack/runlsq.sht", gArgs.outdir );
-	_WriteRunlsqFile( buf );
+	_WriteRunlsqFile( buf, true );
 }
 
 /* --------------------------------------------------------------- */
@@ -882,7 +890,7 @@ static void CreateLayerDir( char *lyrdir, int L )
 
 // Create montage script
 	sprintf( buf + len, "/runlsq.sht" );
-	_WriteRunlsqFile( buf );
+	_WriteRunlsqFile( buf, false );
 }
 
 /* --------------------------------------------------------------- */

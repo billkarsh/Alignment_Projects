@@ -55,7 +55,7 @@ class CArgs_alnmon {
 
 public:
 	double	abcorr,
-			xyconf;		// neib radius = (1-conf)(blockwide)
+			xyconf;		// search radius = (1-conf)(blockwide)
 	char	xml_hires[2048];
 	int		zmin,
 			zmax,
@@ -177,42 +177,58 @@ static void WriteSubblocksFile()
 	sprintf( buf, "subblocks.sht" );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "export MRC_TRIM=12\n\n" );
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Sixth step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > cross_thisblock [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Do one block alignment job, data read from 'blockdat.txt'.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -nf\t\t\t;no foldmasks\n" );
+	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
+	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -abwid=5\t\t;strips this many tiles wide on short axis\n" );
+	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
+	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
+	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
 	fprintf( f, "else\n" );
 	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n\n" );
-
-	fprintf( f, "cd ..\n\n" );
-
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cd ..\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n\n" );
-
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8"
-		" cross_thisblock%s"
-		" -abscl=%d -ablgord=%d"
-		" -absdev=%d -abcorr=%g -xyconf=%g\n",
-		(gArgs.NoFolds ? " -nf" : ""),
-		gArgs.abscl, gArgs.ablgord,
-		gArgs.absdev, gArgs.abcorr, gArgs.xyconf );
+	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g -xyconf=%g\n",
+	(gArgs.NoFolds ? " -nf" : ""),
+	gArgs.abscl, gArgs.ablgord,
+	gArgs.absdev, gArgs.abcorr, gArgs.xyconf );
 	fprintf( f, "\t\t\tcd ..\n" );
-	fprintf( f, "\t\tdone\n\n" );
-
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -232,9 +248,19 @@ static void WriteReportFiles()
 	sprintf( buf, "ereport.sht" );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "ls -l ../*/D*/xD*.e* > BlockErrs.txt\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Seventh step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Run this after subblocks completes to compile a table\n" );
+	fprintf( f, "# of block alignment stderr messages.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./ereport\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "ls -l ../*/D*/xD*.e* > BlockErrs.txt\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
@@ -244,9 +270,19 @@ static void WriteReportFiles()
 	sprintf( buf, "freport.sht" );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Seventh step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Run this after subblocks completes to compile a table\n" );
+	fprintf( f, "# of block alignment 'FAIL' messages.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./freport\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n" );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );

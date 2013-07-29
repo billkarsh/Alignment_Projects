@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Purpose:
+# Fifth step in cross-layer alignment.
+#
+# Carve each layer into blocks of size bxb tiles and create new script
+# 'subblocks.sht' to distribute block-block alignment jobs to cluster.
+#
+# > cross_carveblocks myxml -zmin=i -zmax=j [options]
+#
+# Options:
+# -b=10			;ea. block roughly bXb tiles in area
+# -nf			;no foldmasks
+# -abscl=200	;integer scale reduction
+# -ablgord=1	;Legendre poly field-flat max int order
+# -absdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -abcorr=0.2	;required min corr for alignment
+# -xyconf=0.5	;search radius = (1-conf)(blockwide)
+
+
+cross_carveblocks HiRes.xml -zmin=0 -zmax=2 -nf -b=10 -abscl=8 -ablgord=1 -absdev=42 -abcorr=0.2 -xyconf=0.5
+

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Purpose:
+# Second step in cross-layer alignment.
+#
+# Collects output from scapeops into 'LowRes.xml' stack
+# having one reduced scale montage per layer.
+#
+# You must subsequently view and edit LowRes.xml using TrakEM2.
+# Correct mistakes using 'Align with Manual Landmarks' feature
+# and then Save result with the same name.
+#
+# > cross_lowres -zmin=i -zmax=j
+#
+# Options:
+# -table		;write debugging striptable.txt and exit
+
+
+cross_lowres -zmin=0 -zmax=2
+

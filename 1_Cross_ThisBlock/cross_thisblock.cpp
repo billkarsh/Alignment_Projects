@@ -120,7 +120,7 @@ public:
 	double	inv_abscl,
 			abcorr,
 			abctr,
-			xyconf;		// neib radius = (1-conf)(blockwide)
+			xyconf;		// search radius = (1-conf)(blockwide)
 	int		abscl,
 			ablgord,
 			absdev;

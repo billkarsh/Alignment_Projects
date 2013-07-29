@@ -279,12 +279,15 @@ static void Write_crossgo()
 	fprintf( f, "# -ablgord=1\t;Legendre poly max order\n" );
 	fprintf( f, "# -absdev=42\t;scape sdev size\n" );
 	fprintf( f, "# -abcorr=0.20\t;req. min corr\n" );
-	fprintf( f, "# -xyconf=0.5\t;neib radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -xyconf=0.5\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -xmltype=0\t;ImagePlus type code\n" );
+	fprintf( f, "# -xmlmin=0\t\t;intensity scale\n" );
+	fprintf( f, "# -xmlmax=0\t\t;intensity scale\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -abcorr=.20 -xyconf=0.5\n",
+	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -abcorr=.20 -xyconf=0.5%s\n",
 	gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : "") );
+	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
 	fprintf( f, "\n" );
 
 	fclose( f );

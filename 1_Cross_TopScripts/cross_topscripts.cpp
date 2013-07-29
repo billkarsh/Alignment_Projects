@@ -25,7 +25,7 @@ class CArgs_cross {
 
 public:
 	double	abcorr,
-			xyconf;		// neib radius = (1-conf)(blockwide)
+			xyconf;		// search radius = (1-conf)(blockwide)
 	char	xmlfile[2048],
 			outdir[2048];
 	int		zmin,
@@ -33,7 +33,10 @@ public:
 			abwide,
 			abscl,
 			ablgord,
-			absdev;
+			absdev,
+			xml_type,
+			xml_min,
+			xml_max;
 	bool	NoFolds;
 
 public:
@@ -48,6 +51,9 @@ public:
 		abscl		= 200;
 		ablgord		= 1;	// 3  probably good for Davi EM
 		absdev		= 0;	// 42 useful for Davi EM
+		xml_type	= 0;
+		xml_min		= 0;
+		xml_max		= 0;
 		NoFolds		= false;
 
 		strcpy( outdir, "NoSuch" ); // protect real dirs
@@ -128,6 +134,12 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			if( xyconf < 0.0 || xyconf > 1.0 )
 				xyconf = 0.5;
 		}
+		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
+			;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else {
@@ -213,13 +225,52 @@ static void WriteSubscapes( vector<int> &zlist )
 	sprintf( path, "%s/subscapes.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
+// header
 
-// subdirs
-
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# First step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > scapeops myxml -zb=%d [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Scapeops does montage drawing and/or strip aligning as follows:\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# If drawing a montage...\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "#\t-mb -zb=%d -mbscl=%d\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "#\t\t[-mblgord=%d] [-mbsdev=%d]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# If aligning strips...\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "#\t-ab -za=%d -zb=%d -abwide=%d -abscl=%d -abcorr=%lf\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "#\t\t[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -mb\t\t\t;make montage for layer zb\n" );
+	fprintf( f, "# -ab\t\t\t;align layer za to zb\n" );
+	fprintf( f, "# -za\t\t\t;layer za used only with -ab option\n" );
+	fprintf( f, "# -zb\t\t\t;required layer zb\n" );
+	fprintf( f, "# -mbscl=200\t;integer scale reduction\n" );
+	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
+	fprintf( f, "# -mblgord=1\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -mbsdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -abwid=5\t\t;strips this many tiles wide on short axis\n" );
+	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
+	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
+	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Create output subdirs\n" );
 	fprintf( f, "mkdir -p strips\n" );
 	fprintf( f, "mkdir -p montages\n" );
-	fprintf( f, "mkdir -p scplogs\n\n" );
+	fprintf( f, "mkdir -p scplogs\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Submit layer pairs\n" );
 
 // write all but last layer
 
@@ -236,6 +287,9 @@ static void WriteSubscapes( vector<int> &zlist )
 
 // last layer
 
+	fprintf( f, "\n" );
+	fprintf( f, "# Just montage last layer\n" );
+
 	fprintf( f,
 	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
 	" scapeops '%s' -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
@@ -247,9 +301,6 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "\n" );
 
 	fclose( f );
-
-// make executable
-
 	FileScriptPerms( path );
 }
 
@@ -265,11 +316,27 @@ static void WriteLowresgo()
 	sprintf( path, "%s/lowresgo.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f,
-	"cross_lowres -zmin=%d -zmax=%d\n\n",
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Second step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Collects output from scapeops into 'LowRes.xml' stack\n" );
+	fprintf( f, "# having one reduced scale montage per layer.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# You must subsequently view and edit LowRes.xml using TrakEM2.\n" );
+	fprintf( f, "# Correct mistakes using 'Align with Manual Landmarks' feature\n" );
+	fprintf( f, "# and then Save result with the same name.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > cross_lowres -zmin=i -zmax=j\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -table\t\t;write debugging striptable.txt and exit\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cross_lowres -zmin=%d -zmax=%d\n",
 	gArgs.zmin, gArgs.zmax );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -287,13 +354,63 @@ static void WriteHiresgo()
 	sprintf( path, "%s/hiresgo.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Third step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Distribute the coarse layer-layer transforms from 'LowRes.xml'\n" );
+	fprintf( f, "# to the individual tiles in (usually) 'newmons.xml', the stack\n" );
+	fprintf( f, "# of precision single-layer montaging results. The new stack is\n" );
+	fprintf( f, "# named 'HiRes.xml'.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# The resulting coarsely aligned full resolution 'HiRes.xml'\n" );
+	fprintf( f, "# can serve as a scaffold in the final LSQ alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -lowres=LowRes.xml\t;alternate coarse alignment reference\n" );
+	fprintf( f, "# -xmltype=0\t\t\t;ImagePlus type code\n" );
+	fprintf( f, "# -xmlmin=0\t\t\t\t;intensity scale\n" );
+	fprintf( f, "# -xmlmax=0\t\t\t\t;intensity scale\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cross_lowtohires '%s' -zmin=%d -zmax=%d -xmltype=%d -xmlmin=%d -xmlmax=%d\n",
+	gArgs.xmlfile, gArgs.zmin, gArgs.zmax,
+	gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
+	fprintf( f, "\n" );
 
-	fprintf( f,
-	"cross_lowtohires '%s' -lowres=LowRes.xml"
-	" -zmin=%d -zmax=%d"
-	" -xmltype=0 -xmlmin=0 -xmlmax=0\n\n",
-	gArgs.xmlfile, gArgs.zmin, gArgs.zmax );
+	fclose( f );
+	FileScriptPerms( path );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteScafgo --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteScafgo()
+{
+	char	path[2048];
+	FILE	*f;
+
+	sprintf( path, "%s/scafgo.sht", gtopdir );
+	f = FileOpenOrDie( path, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Create file 'HiRes_TF.xml' of coarse affine transforms,\n" );
+	fprintf( f, "# one per tile, to be used as a scaffold in final LSQ runs.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > XMLGetTF HiRes.xml -zmin=i -zmax=j\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "XMLGetTF HiRes.xml -zmin=%d -zmax=%d\n",
+	gArgs.zmin, gArgs.zmax );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -311,17 +428,32 @@ static void WriteCarvego()
 	sprintf( path, "%s/carvego.sht", gtopdir );
 	f = FileOpenOrDie( path, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n\n" );
-
-	fprintf( f,
-	"cross_carveblocks"
-	" HiRes.xml -zmin=%d -zmax=%d%s"
-	" -b=10 -abscl=%d -ablgord=%d -absdev=%d"
-	" -abcorr=%g -xyconf=%g\n\n",
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Fifth step in cross-layer alignment.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Carve each layer into blocks of size bxb tiles and create new script\n" );
+	fprintf( f, "# 'subblocks.sht' to distribute block-block alignment jobs to cluster.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > cross_carveblocks myxml -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -b=10\t\t\t;ea. block roughly bXb tiles in area\n" );
+	fprintf( f, "# -nf\t\t\t;no foldmasks\n" );
+	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
+	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
+	fprintf( f, "# -xyconf=0.5\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g -xyconf=%g\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
 	gArgs.abcorr, gArgs.xyconf );
+	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( path );
@@ -359,6 +491,7 @@ int main( int argc, char* argv[] )
 	WriteSubscapes( zlist );
 	WriteLowresgo();
 	WriteHiresgo();
+	WriteScafgo();
 	WriteCarvego();
 
 /* ---- */

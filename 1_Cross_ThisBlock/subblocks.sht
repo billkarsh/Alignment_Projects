@@ -1,0 +1,49 @@
+#!/bin/sh
+
+# Purpose:
+# Sixth step in cross-layer alignment.
+#
+# > cross_thisblock [options]
+#
+# Do one block alignment job, data read from 'blockdat.txt'.
+#
+# Options:
+# -nf			;no foldmasks
+# -abscl=200	;integer scale reduction
+# -ablgord=1	;Legendre poly field-flat max int order
+# -absdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -abwid=5		;strips this many tiles wide on short axis
+# -abcorr=0.2	;required min corr for alignment
+# -addbg		;make diagnostic images and exit
+# -abctr=0		;debug at this a-to-b angle
+
+
+export MRC_TRIM=12
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+cd ..
+
+for lyr in $(seq $1 $last)
+do
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		cd $lyr
+
+		for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		do
+			cd $jb
+			qsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock -nf -abscl=8 -ablgord=1 -absdev=42 -abcorr=0.2 -xyconf=0.5
+			cd ..
+		done
+
+		cd ..
+	fi
+done
+

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Purpose:
+# Third step in cross-layer alignment.
+#
+# Distribute the coarse layer-layer transforms from 'LowRes.xml'
+# to the individual tiles in (usually) 'newmons.xml', the stack
+# of precision single-layer montaging results. The new stack is
+# named 'HiRes.xml'.
+#
+# The resulting coarsely aligned full resolution 'HiRes.xml'
+# can serve as a scaffold in the final LSQ alignment.
+#
+# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j
+#
+# Options:
+# -lowres=LowRes.xml	;alternate coarse alignment reference
+# -xmltype=0			;ImagePlus type code
+# -xmlmin=0				;intensity scale
+# -xmlmax=0				;intensity scale
+
+
+cross_lowtohires '/groups/apig/tomo/EX2/NEW/newmons.xml' -lowres=LowRes.xml -zmin=0 -zmax=2 -xmltype=0 -xmlmin=0 -xmlmax=0
+
