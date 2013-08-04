@@ -4,7 +4,7 @@
 # Create (in CWD) top-level scripts for running alignment.
 # Makes everything except prms/matchparams.txt file.
 #
-# > topscripts <mylayout.txt or myxml.xml> -zmin=i -zmax=j
+# > topscripts <mylayout.txt or myxml.xml> -idb=idbpath -zmin=i -zmax=j
 #
 # ImagePlus type codes used in xml files:
 #	AUTO		= -1
@@ -23,5 +23,5 @@
 
 export MRC_TRIM=12
 
-topscripts myfile.txt -zmin=0 -zmax=100 -nf
+topscripts myfile.txt -idb=idb0 -zmin=0 -zmax=100 -nf
 

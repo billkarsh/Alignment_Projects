@@ -4,7 +4,7 @@
 # Write scripts governing cross layer alignment.
 # Creates folder mytemp/cross_wkspc
 #
-# > cross_topscripts myxml -d=temp0 -zmin=0 -zmax=5
+# > cross_topscripts myxml -d=temp0 -zmin=i -zmax=j
 #
 # Options:
 # -nf			;no foldmasks

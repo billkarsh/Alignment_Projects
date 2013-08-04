@@ -23,6 +23,7 @@
 class CArgs_scr {
 
 public:
+	char	idb[2048];
 	char	*infile;
 	int		zmin,
 			zmax,
@@ -41,6 +42,8 @@ public:
 		xml_min		= 0;
 		xml_max		= 0;
 		NoFolds		= false;
+
+		strcpy( idb, "NoSuch" ); // protect real dirs
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -83,18 +86,22 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: topscripts <infile> -zmin=i -zmax=j"
+		"Usage: topscripts <infile> -idb=idbpath -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
 
 	for( int i = 1; i < argc; ++i ) {
 
+		char	*_dir;
+
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
+		else if( GetArgStr( _dir, "-idb=", argv[i] ) )
+			DskAbsPath( idb, sizeof(idb), _dir, flog );
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
@@ -135,11 +142,12 @@ static void Write_dbgo()
 	fprintf( f, "# Make image database 'idb' from 'myxml' file...\n" );
 	fprintf( f, "# Makes everything.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > makeidb myxml -d=idb\n" );
+	fprintf( f, "# > makeidb myxml -idb=idb\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -zmin=i -zmax=j\t\t\t;restricts layer range\n" );
 	fprintf( f, "# -nf\t\t\t\t\t\t;no foldmasks\n" );
+	fprintf( f, "# -crop=CropRectsFile.txt\t;{cam,x0,y0,dx,dy} for ea. cam\n" );
 	fprintf( f, "# -lens=AffineLensFile.txt\t;external affine software lens\n" );
 	fprintf( f, "# -k=MyClicksfile.txt\t\t;align with manual landmarks\n" );
 	fprintf( f, "# -xmltype=0\t\t\t\t;ImagePlus type code\n" );
@@ -149,8 +157,8 @@ static void Write_dbgo()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "makeidb %s -d=idb0 -zmin=%d -zmax=%d%s%s\n",
-	gArgs.infile, gArgs.zmin, gArgs.zmax,
+	fprintf( f, "makeidb %s -idb=%s -zmin=%d -zmax=%d%s%s\n",
+	gArgs.infile, gArgs.idb, gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
 	fprintf( f, "\n" );
 
@@ -176,7 +184,7 @@ static void Write_mongo()
 	fprintf( f, "# Make workspace 'temp' for 'myidb'...\n" );
 	fprintf( f, "# Makes everything except prms/matchparams.txt file.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > makemontages myidb -d=temp -zmin=0 -zmax=5\n" );
+	fprintf( f, "# > makemontages myidb -d=temp -zmin=i -zmax=j\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t\t\t;no foldmasks\n" );
@@ -193,8 +201,8 @@ static void Write_mongo()
 	fprintf( f, "\n" );
 	fprintf( f, "wrk=temp0\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "makemontages idb0 -d=$wrk -zmin=%d -zmax=%d%s -nd -b=8%s\n",
-	gArgs.zmin, gArgs.zmax,
+	fprintf( f, "makemontages %s -d=$wrk -zmin=%d -zmax=%d%s -nd -b=8%s\n",
+	gArgs.idb, gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
 	fprintf( f, "\n" );
 	fprintf( f, "cp prms/* $wrk\n" );
@@ -270,7 +278,7 @@ static void Write_crossgo()
 	fprintf( f, "# Write scripts governing cross layer alignment.\n" );
 	fprintf( f, "# Creates folder mytemp/cross_wkspc\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_topscripts myxml -d=temp0 -zmin=0 -zmax=5\n" );
+	fprintf( f, "# > cross_topscripts myxml -d=temp0 -zmin=i -zmax=j\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t;no foldmasks\n" );
