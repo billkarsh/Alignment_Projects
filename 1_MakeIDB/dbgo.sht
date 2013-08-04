@@ -4,11 +4,12 @@
 # Make image database 'idb' from 'myxml' file...
 # Makes everything.
 #
-# > makeidb myxml -d=idb
+# > makeidb myxml -idb=idb
 #
 # Options:
 # -zmin=i -zmax=j			;restricts layer range
 # -nf						;no foldmasks
+# -crop=CropRectsFile.txt	;{cam,x0,y0,dx,dy} for ea. cam
 # -lens=AffineLensFile.txt	;external affine software lens
 # -k=MyClicksfile.txt		;align with manual landmarks
 # -xmltype=0				;ImagePlus type code
@@ -18,5 +19,5 @@
 
 export MRC_TRIM=12
 
-makeidb Z7-119.txt -d=idb0 -zmin=7 -zmax=119 -nf
+makeidb Z7-119.txt -idb=idb0 -zmin=7 -zmax=119 -nf
 

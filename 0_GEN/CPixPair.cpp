@@ -235,14 +235,13 @@ static void Lens(
 /* PixPair::Load ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Send NULL idb parameter if not using lenses.
-//
 bool PixPair::Load(
 	const char		*apath,
 	const char		*bpath,
-	const string	*idb,
+	const string	&idb,
 	int				acam,
 	int				bcam,
+	bool			lens,
 	int				order,
 	int				bDoG,
 	int				r1,
@@ -251,15 +250,6 @@ bool PixPair::Load(
 	bool			transpose )
 {
 	printf( "\n---- Image loading ----\n" );
-
-/* ----------------- */
-/* Prepare lens data */
-/* ----------------- */
-
-	CAffineLens	LN;
-
-	if( idb && !LN.ReadIDB( *idb ) )
-		return false;
 
 /* ----------------------------- */
 /* Load and sanity check rasters */
@@ -325,7 +315,12 @@ bool PixPair::Load(
 	//exit( 1 );
 //-----------------------------------------------------------
 
-	if( idb ) {
+	if( lens ) {
+
+		CAffineLens	LN;
+
+		if( !LN.ReadIDB( idb ) )
+			return false;
 
 		Lens( _avf, LN, aras, wf, hf, order, acam );
 		Lens( _bvf, LN, bras, wf, hf, order, bcam );

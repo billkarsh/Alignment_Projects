@@ -4,7 +4,7 @@
 # Make workspace 'temp' for 'myidb'...
 # Makes everything except prms/matchparams.txt file.
 #
-# > makemontages myidb -d=temp -zmin=0 -zmax=5
+# > makemontages myidb -d=temp -zmin=i -zmax=j
 #
 # Options:
 # -nf					;no foldmasks

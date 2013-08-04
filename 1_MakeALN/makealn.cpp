@@ -1004,7 +1004,7 @@ int main( int argc, char* argv[] )
 	WriteRunlsqFile();
 	//WriteSubmosFile();
 
-	WriteSubNFile( 4 );
+	//WriteSubNFile( 4 );
 	WriteSubNFile( 8 );
 	WriteReportFile();
 	WriteCombineFile();
