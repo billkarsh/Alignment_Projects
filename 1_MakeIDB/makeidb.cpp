@@ -67,6 +67,7 @@ public:
 	//
 	char	*infile,
 			*outdir,
+			*crop,
 			*lens,
 			*clk;
 	int		zmin,
@@ -81,6 +82,7 @@ public:
 	{
 		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
+		crop		= NULL;
 		lens		= NULL;
 		clk			= NULL;
 		zmin		= 0;
@@ -143,7 +145,9 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( outdir, "-d=", argv[i] ) )
+		else if( GetArgStr( outdir, "-idb=", argv[i] ) )
+			;
+		else if( GetArgStr( crop, "-crop=", argv[i] ) )
 			;
 		else if( GetArgStr( lens, "-lens=", argv[i] ) )
 			;
@@ -234,6 +238,19 @@ static void WriteImageparamsFile()
 	fprintf( f, "IMAGESIZE %d %d\n", w, h );
 
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* CopyCropFile -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void CopyCropFile()
+{
+	if( gArgs.crop ) {
+		char	buf[2048];
+		sprintf( buf, "cp %s %s/crop.txt", gArgs.crop, gArgs.outdir );
+		system( buf );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -635,6 +652,7 @@ int main( int argc, char* argv[] )
 	CreateTopDir();
 
 	WriteImageparamsFile();
+	CopyCropFile();
 	CopyLensFile();
 
 	if( !gArgs.NoFolds || ismrc ) {
