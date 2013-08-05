@@ -35,8 +35,8 @@ SOURCES_UTL := \
 
 _SRC_GEN_ := \
 	Cmdline.cpp File.cpp TrakEM2_UTL.cpp CTileSet.cpp \
-	ImageIO.cpp Maths.cpp Correlation.cpp CPoint.cpp \
-	Geometry.cpp TAffine.cpp Scape.cpp CThmScan.cpp \
+	CTileSet_Scape.cpp ImageIO.cpp Maths.cpp Correlation.cpp \
+	CPoint.cpp Geometry.cpp TAffine.cpp CThmScan.cpp \
 	Timer.cpp Debug.cpp
 
 SOURCES_GEN :=  \

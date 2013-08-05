@@ -22,7 +22,6 @@
 #include	"Cmdline.h"
 #include	"File.h"
 #include	"CTileSet.h"
-#include	"Scape.h"
 #include	"CThmScan.h"
 #include	"Geometry.h"
 #include	"Maths.h"
@@ -336,18 +335,14 @@ void CSuperscape::OrientLayer()
 
 bool CSuperscape::MakeWholeRaster()
 {
-	vector<ScpTile>	S;
+	vector<int>	vid( isN - is0 );
 
-	for( int i = is0; i < isN; ++i ) {
+	for( int i = is0; i < isN; ++i )
+		vid[i - is0] = i;
 
-		const CUTile& U = TS.vtil[i];
-
-		S.push_back( ScpTile( U.name, U.T ) );
-	}
-
-	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			1.0/gArgs.mbscl, 1, 0,
-			gArgs.mblgord, gArgs.mbsdev, flog );
+	ras = TS.Scape( ws, hs, x0, y0,
+			vid, 1.0/gArgs.mbscl, 1, 0,
+			gArgs.mblgord, gArgs.mbsdev );
 
 	return (ras != NULL);
 }
@@ -360,8 +355,8 @@ bool CSuperscape::MakeRasV()
 {
 // Collect strip tiles
 
-	vector<ScpTile>	S;
-	int				w1, w2, h1, h2;
+	vector<int>	vid;
+	int			w1, w2, h1, h2;
 
 	w1 = (gArgs.abwide * gW)/2;
 	w2 = Bxc + w1;
@@ -378,13 +373,13 @@ bool CSuperscape::MakeRasV()
 		if( U.T.t[2] + gW > w1 && U.T.t[2] < w2 &&
 			U.T.t[5] + gH > h1 && U.T.t[5] < h2 ) {
 
-			S.push_back( ScpTile( U.name, U.T ) );
+			vid.push_back( i );
 		}
 	}
 
-	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev, flog );
+	ras = TS.Scape( ws, hs, x0, y0,
+			vid, gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev );
 
 	return (ras != NULL);
 }
@@ -397,8 +392,8 @@ bool CSuperscape::MakeRasH()
 {
 // Collect strip tiles
 
-	vector<ScpTile>	S;
-	int				w1, w2, h1, h2;
+	vector<int>	vid;
+	int			w1, w2, h1, h2;
 
 	w1 = int(Bxw * 0.45);
 	w2 = Bxc + w1;
@@ -415,13 +410,13 @@ bool CSuperscape::MakeRasH()
 		if( U.T.t[2] + gW > w1 && U.T.t[2] < w2 &&
 			U.T.t[5] + gH > h1 && U.T.t[5] < h2 ) {
 
-			S.push_back( ScpTile( U.name, U.T ) );
+			vid.push_back( i );
 		}
 	}
 
-	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev, flog );
+	ras = TS.Scape( ws, hs, x0, y0,
+			vid, gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev );
 
 	return (ras != NULL);
 }

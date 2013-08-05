@@ -1314,9 +1314,9 @@ int main( int argc, char* argv[] )
 	WriteRunlsqFile();
 	//WriteSubmosFile();
 
-	WriteSSubNFile( 4 );
+//	WriteSSubNFile( 4 );
 	WriteSSubNFile( 8 );
-	WriteDSubNFile( 4 );
+//	WriteDSubNFile( 4 );
 	WriteDSubNFile( 8 );
 	WriteReportFiles();
 	WriteMontage1File();

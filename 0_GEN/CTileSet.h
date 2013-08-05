@@ -139,6 +139,40 @@ public:
 		bool		create_nmrcdir,
 		int			is0,
 		int			isN );
+
+private:
+	void Scape_AdjustBounds(
+		uint32				&ws,
+		uint32				&hs,
+		double				&x0,
+		double				&y0,
+		vector<TAffine>		&vTadj,
+		const vector<int>	&vid,
+		double				scale,
+		int					szmult ) const;
+
+	void Scape_Paint(
+		uint8					*scp,
+		uint32					ws,
+		uint32					hs,
+		const vector<TAffine>	&vTadj,
+		const vector<int>		&vid,
+		int						iscl,
+		int						lgord,
+		int						sdnorm ) const;
+
+public:
+	uint8* Scape(
+		uint32				&ws,
+		uint32				&hs,
+		double				&x0,
+		double				&y0,
+		const vector<int>	&vid,
+		double				scale,
+		int					szmult,
+		int					bkval,
+		int					lgord,
+		int					sdnorm ) const;
 };
 
 

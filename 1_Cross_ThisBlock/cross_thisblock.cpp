@@ -6,7 +6,6 @@
 #include	"Cmdline.h"
 #include	"File.h"
 #include	"CTileSet.h"
-#include	"Scape.h"
 #include	"CThmScan.h"
 #include	"Geometry.h"
 #include	"Maths.h"
@@ -334,18 +333,14 @@ void CSuperscape::CalcBBox()
 
 bool CSuperscape::MakeRasA()
 {
-	vector<ScpTile>	S;
+	vector<int>	vid( gDat.ntil );
 
-	for( int i = 0; i < gDat.ntil; ++i ) {
+	for( int i = 0; i < gDat.ntil; ++i )
+		vid[i] = vID[i];
 
-		const CUTile& U = TS.vtil[vID[i]];
-
-		S.push_back( ScpTile( U.name, U.T ) );
-	}
-
-	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev, flog );
+	ras = TS.Scape( ws, hs, x0, y0,
+			vid, gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev );
 
 	return (ras != NULL);
 }
@@ -356,8 +351,8 @@ bool CSuperscape::MakeRasA()
 
 bool CSuperscape::MakeRasB( const DBox &A )
 {
-	vector<ScpTile>	S;
-	int				W2 = gW/2, H2 = gH/2;
+	vector<int>	vid;
+	int			W2 = gW/2, H2 = gH/2;
 
 	for( int i = is0; i < isN; ++i ) {
 
@@ -367,12 +362,12 @@ bool CSuperscape::MakeRasB( const DBox &A )
 		U.T.Transform( p );
 
 		if( p.x >= A.L && p.x <= A.R && p.y >= A.B && p.y <= A.T )
-			S.push_back( ScpTile( U.name, U.T ) );
+			vid.push_back( i );
 	}
 
-	ras = Scape( ws, hs, x0, y0, S, gW, gH,
-			gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev, flog );
+	ras = TS.Scape( ws, hs, x0, y0,
+			vid, gArgs.inv_abscl, 1, 0,
+			gArgs.ablgord, gArgs.absdev );
 
 	return (ras != NULL);
 }
