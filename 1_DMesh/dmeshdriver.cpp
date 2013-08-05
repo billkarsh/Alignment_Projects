@@ -75,15 +75,24 @@ static void CalcTransforms(
 
 	// Note that the foldmasks are always at full resolution.
 
-	fold_mask_a = GetFoldMask(
-					GBL.idb, GBL.A.z, GBL.A.id,
-					GBL.arg.fma, wf, hf, (GBL.ctx.FLD == 'N'),
-					GBL.arg.Transpose, GBL.arg.SingleFold );
+	{
+		CCropMask	CM, *pCM = &CM;
 
-	fold_mask_b = GetFoldMask(
-					GBL.idb, GBL.B.z, GBL.B.id,
-					GBL.arg.fmb, wf, hf, (GBL.ctx.FLD == 'N'),
-					GBL.arg.Transpose, GBL.arg.SingleFold );
+		if( !CM.ReadIDB( GBL.idb ) )
+			pCM = NULL;
+
+		fold_mask_a = GetFoldMask(
+						GBL.idb, GBL.A.z, GBL.A.id,
+						GBL.arg.fma, wf, hf, (GBL.ctx.FLD == 'N'),
+						GBL.arg.Transpose, GBL.arg.SingleFold,
+						pCM, GBL.A.t2i.cam );
+
+		fold_mask_b = GetFoldMask(
+						GBL.idb, GBL.B.z, GBL.B.id,
+						GBL.arg.fmb, wf, hf, (GBL.ctx.FLD == 'N'),
+						GBL.arg.Transpose, GBL.arg.SingleFold,
+						pCM, GBL.B.t2i.cam );
+	}
 
 /* ------------- */
 /* Call Pipeline */

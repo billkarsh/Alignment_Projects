@@ -44,14 +44,14 @@ uint8* GetFoldMask(
 	int				hf,
 	bool			nofile,
 	bool			transpose,
-	bool			force1rgn )
+	bool			force1rgn,
+	CCropMask		*CM,
+	int				cam )
 {
 	uint8*	mask;
+	int		np = wf * hf;
 
 	if( nofile ) {
-
-		int	np = wf * hf;
-
 		mask = (uint8*)RasterAlloc( np );
 		memset( mask, 1, np );
 	}
@@ -81,14 +81,35 @@ uint8* GetFoldMask(
 
 		if( force1rgn ) {
 
-			int	np = wf * hf;
-
 			for( int i = 0; i < np; ++i ) {
 
 				if( mask[i] )
 					mask[i] = 1;
 			}
 		}
+	}
+
+// optionally crop mask borders
+
+	if( CM && CM->IsFile( idb ) ) {
+
+		IBox	B;
+		CM->GetBox( B, cam );
+
+		for( int i = 0; i < np; ++i ) {
+
+			int	y = i / wf,
+				x = i - wf * y;
+
+			if( y < B.B || y >= B.T ||
+				x < B.L || x >= B.R ) {
+
+				mask[i] = 0;
+			}
+		}
+
+		printf( "Crop z %d id %d cam %d to x[%d %d) y[%d %d)\n",
+		lyr, tile, cam, B.L, B.R, B.B, B.T );
 	}
 
 	return mask;

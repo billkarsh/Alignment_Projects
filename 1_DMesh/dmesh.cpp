@@ -609,8 +609,9 @@ void PipelineDeformableMap(
 	fprintf( flog, "\n---- Connected regions ----\n" );
 
 	vector<ConnRegion>	Acr, Bcr;
+	CCropMask			CM;
 
-	if( GBL.ctx.FLD == 'N' ) {
+	if( GBL.ctx.FLD == 'N' && !CM.IsFile( GBL.idb ) ) {
 
 		fprintf( flog, "Forcing single connected region.\n" );
 

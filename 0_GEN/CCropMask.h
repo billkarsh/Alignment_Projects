@@ -15,29 +15,22 @@ using namespace std;
 /* Class --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CCropLoad {
+class CCropMask {
 
 private:
-	typedef struct {
-		int	x0, y0,
-			dx, dy;
-	} CBox;
-
-private:
-	CBox	B[4];
+	IBox	B[4];
 	FILE	*flog;
-	int		isfile;
+	int		isfile;	// unset if -1
 
 public:
+	CCropMask()	{isfile = -1;};
+
+	bool IsFile( const string &idb );
+
 	bool ReadIDB( const string &idb, FILE* flog = stdout );
 
-	uint8* Raster8(
-		const char*	name,
-		int			cam,
-		uint32		&w,
-		uint32		&h,
-		FILE*		flog = stdout,
-		bool		transpose = false );
+	bool GetBox( IBox &b, int cam )
+		{b=B[cam]; return isfile;};
 };
 
 

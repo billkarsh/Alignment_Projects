@@ -3,13 +3,8 @@
 #pragma once
 
 
-#include	"GenDefs.h"
 #include	"CPoint.h"
-
-#include	<stdio.h>
-
-#include	<string>
-using namespace std;
+#include	"CCropMask.h"
 
 
 /* --------------------------------------------------------------- */
@@ -43,7 +38,9 @@ uint8* GetFoldMask(
 	int				hf,
 	bool			nofile,
 	bool			transpose,
-	bool			force1rgn );
+	bool			force1rgn,
+	CCropMask		*CM,
+	int				cam );
 
 void SetWithinSectionBorders( uint8* foldMask, int wf, int hf );
 
