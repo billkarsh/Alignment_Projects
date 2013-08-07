@@ -5,7 +5,7 @@
 # a transform (default is affine) that best describes the mapping of
 # correspondence points from local images to the shared global system.
 #
-# > lsq pts,all [options] > lsq.txt
+# > lsq pts.all [options] > lsq.txt
 #
 # Options:
 # -model=A			;{T=translat,S=simlty,A=affine,H=homography}

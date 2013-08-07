@@ -219,7 +219,7 @@ static void _WriteRunlsqFile( const char *path )
 	fprintf( f, "# a transform (default is affine) that best describes the mapping of\n" );
 	fprintf( f, "# correspondence points from local images to the shared global system.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > lsq pts,all [options] > lsq.txt\n" );
+	fprintf( f, "# > lsq pts.all [options] > lsq.txt\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -model=A\t\t\t;{T=translat,S=simlty,A=affine,H=homography}\n" );
