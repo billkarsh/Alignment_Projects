@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Purpose:
+# Seventh step in cross-layer alignment.
+#
+# Run this after subblocks completes to compile tables
+# of block alignment errors, FAILs and make sizes.
+#
+# > ./breports.sht
+
+
+ls -l ../*/D*/xD*.e* > BlockErrs.txt
+
+ls -l ../*/D*/make.down > BlockMakes.txt
+
+grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt
+

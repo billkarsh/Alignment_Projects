@@ -245,7 +245,7 @@ static void WriteReportFiles()
 
 // errors
 
-	sprintf( buf, "ereport.sht" );
+	sprintf( buf, "breport.sht" );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -253,33 +253,15 @@ static void WriteReportFiles()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Seventh step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Run this after subblocks completes to compile a table\n" );
-	fprintf( f, "# of block alignment stderr messages.\n" );
+	fprintf( f, "# Run this after subblocks completes to compile tables\n" );
+	fprintf( f, "# of block alignment errors, FAILs and make sizes.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./ereport\n" );
+	fprintf( f, "# > ./breports.sht\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "ls -l ../*/D*/xD*.e* > BlockErrs.txt\n" );
 	fprintf( f, "\n" );
-
-	fclose( f );
-	FileScriptPerms( buf );
-
-// fails
-
-	sprintf( buf, "freport.sht" );
-	f = FileOpenOrDie( buf, "w", flog );
-
-	fprintf( f, "#!/bin/sh\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Seventh step in cross-layer alignment.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Run this after subblocks completes to compile a table\n" );
-	fprintf( f, "# of block alignment 'FAIL' messages.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# > ./freport\n" );
-	fprintf( f, "\n" );
+	fprintf( f, "ls -l ../*/D*/make.down > BlockMakes.txt\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n" );
 	fprintf( f, "\n" );
