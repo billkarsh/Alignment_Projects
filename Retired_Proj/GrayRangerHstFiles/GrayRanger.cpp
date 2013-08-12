@@ -5,6 +5,9 @@
 #include	"TrakEM2_UTL.h"
 #include	"Maths.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */

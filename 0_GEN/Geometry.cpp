@@ -4,6 +4,8 @@
 #include	"Maths.h"
 #include	"TAffine.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -66,7 +68,7 @@ double SegPointDist(
 
 // otherwise, dist is perpendicular component: |AxB|/|A|
 
-	return abs( x1*y2 - x2*y1 ) / sqrt( AdotA );
+	return abs( double(x1*y2 - x2*y1) ) / sqrt( AdotA );
 }
 
 /* --------------------------------------------------------------- */
@@ -1419,7 +1421,7 @@ double AreaOfTriangle(
 	const vertex	&v1,
 	const vertex	&v2 )
 {
-	return 0.5 * abs( CROSS( v0, v1, v2 ) );
+	return 0.5 * abs( (double)CROSS( v0, v1, v2 ) );
 }
 
 /* --------------------------------------------------------------- */

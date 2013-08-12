@@ -6,6 +6,8 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 
+#include	<string.h>
+
 #include	<set>
 using namespace std;
 

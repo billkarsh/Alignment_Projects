@@ -3,6 +3,8 @@
 #include	"ImageIO.h"
 #include	"Draw.h"
 
+#include	<string.h>
+
 
 
 

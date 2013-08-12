@@ -19,25 +19,38 @@ space := $(empty) $(empty)
 # paths
 # =====
 
-PATH_TIF      := /groups/apig/share/ClusterSupport/Libraries/TIFF
+# Edit these paths ----------------------------------------------
+#
+# My git alignment code repository lives here:
+PATH_SRCCODE  := /groups/apig/tomo/Alignment_Projects
+#
+# I want my alignment output binaries to live here:
+PATH_BIN      := /groups/apig/tomo/lou_stuff/binaries
+# ---------------------------------------------------------------
+
+# DO NOT EDIT: These paths are fixed or derived from yours ------
+#
+PATH_PUBLIC   := /groups/apig/share/ClusterSupport/Libraries
+
+PATH_TIF      := $(PATH_PUBLIC)/TIFF
 PATH_TIF_INC  := $(PATH_TIF)/include
 PATH_TIF_LIB  := $(PATH_TIF)/lib
-PATH_PNG      := /groups/apig/share/ClusterSupport/Libraries/PNG
+PATH_PNG      := $(PATH_PUBLIC)/PNG
 PATH_PNG_INC  := $(PATH_PNG)/include
 PATH_PNG_LIB  := $(PATH_PNG)/lib
-PATH_ZLB      := /groups/apig/share/ClusterSupport/Libraries/ZLIB
+PATH_ZLB      := $(PATH_PUBLIC)/ZLIB
 PATH_ZLB_INC  := $(PATH_ZLB)/include
 PATH_ZLB_LIB  := $(PATH_ZLB)/lib
-PATH_FFT      := /groups/apig/share/ClusterSupport/Libraries/FFT
+PATH_FFT      := $(PATH_PUBLIC)/FFT
 PATH_FFT_INC  := $(PATH_FFT)/include
 PATH_FFT_LIB  := $(PATH_FFT)/lib
 
-PATH_XML      := /groups/apig/tomo/Alignment_Projects/0_XML
-PATH_UTL      := /groups/apig/tomo/Alignment_Projects/0_UTL
-PATH_GEN      := /groups/apig/tomo/Alignment_Projects/0_GEN
-PATH_BK       := /groups/apig/tomo/Alignment_Projects/0_BK
+PATH_XML      := $(PATH_SRCCODE)/0_XML
+PATH_UTL      := $(PATH_SRCCODE)/0_UTL
+PATH_GEN      := $(PATH_SRCCODE)/0_GEN
+PATH_BK       := $(PATH_SRCCODE)/0_BK
 
-PATH_OUT := /groups/apig/tomo/lou_stuff/binaries
+PATH_OUT      := $(PATH_BIN)
 
 # =============
 # include paths

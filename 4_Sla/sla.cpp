@@ -12,6 +12,9 @@
 #include	"ls_svd.h"
 #include	"tinyxml.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 int OVERLAP = 75;  //expect about this much overlap, in pixels
 int RADIUS = 250;  // correction for alignment should be found within this distance

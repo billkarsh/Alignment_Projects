@@ -14,8 +14,13 @@
 #include	"Draw.h"
 #include	"Memory.h"
 
+#include	<string.h>
+
 #include	<sys/resource.h>
 #include	<sys/stat.h>
+
+#include	<algorithm>
+using namespace std;
 
 
 /* --------------------------------------------------------------- */

@@ -14,8 +14,13 @@
 #include	"Draw.h"
 #include	"Memory.h"
 
+#include	<string.h>
+
 #include	<sys/resource.h>
 #include	<sys/stat.h>
+
+#include	<algorithm>
+using namespace std;
 
 
 /* --------------------------------------------------------------- */
@@ -163,28 +168,28 @@ public:
 class CArgs_mos {
 
 public:
-	double	DontMoveStrength;
-	char	*infile,
-			*fold_dir,
-			*region_dir,
-			*gray_dir,
-			*sp_dir,
-			*inv_dir,
-			*rav_dir,
-			*bmap_dir;
-	int		scale,
-			x0, y0, xsize, ysize,
-			lspec1, lspec2;
-	bool	debug,
-			strings,
-			warp,
-			foldmasks,
-			annotate,
-			make_tiles,
-			make_flat,
-			make_map,
-			matlab_order,
-			renumberSuperPixels;
+	double		DontMoveStrength;
+	const char	*infile,
+				*fold_dir,
+				*region_dir,
+				*gray_dir,
+				*sp_dir,
+				*inv_dir,
+				*rav_dir,
+				*bmap_dir;
+	int			scale,
+				x0, y0, xsize, ysize,
+				lspec1, lspec2;
+	bool		debug,
+				strings,
+				warp,
+				foldmasks,
+				annotate,
+				make_tiles,
+				make_flat,
+				make_map,
+				matlab_order,
+				renumberSuperPixels;
 
 public:
 	CArgs_mos()

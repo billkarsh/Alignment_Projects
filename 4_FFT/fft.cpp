@@ -4,6 +4,8 @@
 
 #include	<fftw3.h>
 
+#include	<stdlib.h>
+
 
 
 

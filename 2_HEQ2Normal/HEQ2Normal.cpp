@@ -130,7 +130,7 @@ static void EditPath( TiXmlElement* ptch )
 {
 	char		buf[2048], name[128];
 	const char	*n = ptch->Attribute( "file_path" );
-	char		*s = strrchr( n, '/' ),
+	const char	*s = strrchr( n, '/' ),
 				*t;
 
 	if( !s || !(t = strstr( ++s, gArgs.dtag )) )

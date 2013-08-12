@@ -8,6 +8,9 @@
 #include	"TrakEM2_UTL.h"
 #include	"TAffine.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */

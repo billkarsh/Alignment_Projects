@@ -6,6 +6,8 @@
 #include	"Geometry.h"
 #include	"Debug.h"
 
+#include	<stdlib.h>
+
 
 
 

@@ -10,6 +10,9 @@
 #include	"Inspect.h"
 #include	"LinEqu.h"
 
+#include	<stdlib.h>
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -404,9 +407,9 @@ static void WritePOINTEntries(
 	fprintf( flog,
 	"\n---- Tabulating point matches ----\n" );
 
-	CMutex	M;
-	char	name[256];
-	char	*sud;
+	const char	*sud;
+	CMutex		M;
+	char		name[256];
 
 // set pts file type and layer
 

@@ -41,6 +41,8 @@
 #include	"File.h"
 #include	"CTileSet.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -65,17 +67,17 @@ public:
 	// COLOR_256	= 3
 	// COLOR_RGB	= 4
 	//
-	char	*infile,
-			*outdir,
-			*crop,
-			*lens,
-			*clk;
-	int		zmin,
-			zmax,
-			xml_type,
-			xml_min,
-			xml_max;
-	bool	NoFolds;
+	const char	*infile,
+				*outdir,
+				*crop,
+				*lens,
+				*clk;
+	int			zmin,
+				zmax,
+				xml_type,
+				xml_min,
+				xml_max;
+	bool		NoFolds;
 
 public:
 	cArgs_idb()

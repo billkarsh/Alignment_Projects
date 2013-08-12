@@ -25,13 +25,13 @@
 class CArgs_alnmon {
 
 public:
-	char	*xml_orig,
-			*xml_lowres;
-	int		zmin,
-			zmax,
-			xml_type,
-			xml_min,
-			xml_max;
+	const char	*xml_orig,
+				*xml_lowres;
+	int			zmin,
+				zmax,
+				xml_type,
+				xml_min,
+				xml_max;
 
 public:
 	CArgs_alnmon()

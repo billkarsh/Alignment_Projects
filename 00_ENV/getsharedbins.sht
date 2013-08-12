@@ -6,6 +6,11 @@
 # > ./getsharedbins.sht
 
 
-cp /groups/apig/share/ClusterSupport/bins/SuperLUSymSolve /groups/apig/tomo/lou_stuff/binaries
-cp /groups/apig/share/ClusterSupport/bins/SuperLUSymSolveMPI /groups/apig/tomo/lou_stuff/binaries
+# Edit this variable
+myDst=/groups/apig/tomo/lou_stuff/binaries
+
+publicSrc=/groups/apig/share/ClusterSupport/bins
+
+cp $publicSrc/SuperLUSymSolve $myDst
+cp $publicSrc/SuperLUSymSolveMPI $myDst
 

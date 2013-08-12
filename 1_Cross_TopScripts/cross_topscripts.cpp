@@ -106,7 +106,7 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 	for( int i = 1; i < argc; ++i ) {
 
-		char	*_outdir;
+		const char	*_outdir;
 
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );

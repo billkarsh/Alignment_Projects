@@ -10,6 +10,9 @@
 #include	"Maths.h"
 #include	"Geometry.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */

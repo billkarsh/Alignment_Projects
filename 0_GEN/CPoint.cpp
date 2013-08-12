@@ -3,6 +3,7 @@
 #include	"CPoint.h"
 
 #include	<math.h>
+#include	<stdio.h>
 
 
 

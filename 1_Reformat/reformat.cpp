@@ -98,7 +98,7 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	char	*pat;
+	const char	*pat;
 
 	re_id.Set( "_N_" );
 

@@ -40,9 +40,9 @@ private:
 			curlyr[2048];
 
 public:
-	char	*infile,
-			*dst;
-	int		zmin, zmax;
+	const char	*infile,
+				*dst;
+	int			zmin, zmax;
 
 public:
 	CArgs_xml()

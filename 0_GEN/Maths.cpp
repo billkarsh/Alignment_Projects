@@ -5,6 +5,9 @@
 #include	<math.h>
 #include	<string.h>
 
+#include	<algorithm>
+using namespace std;
+
 
 
 

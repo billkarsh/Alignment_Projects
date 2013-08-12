@@ -22,6 +22,8 @@
 #include	"CTileSet.h"
 #include	"Geometry.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -87,20 +89,20 @@ public:
 	// 0.020	Davi and new typical
 	// 0.0003	Davi older Harvard data
 	//
-	double	minareafrac;
-	string	idbpath;
-	char	*outdir,
-			*exenam;
-	int		zmin,
-			zmax,
-			blksize,
-			xml_type,
-			xml_min,
-			xml_max;
-	bool	lens,
-			NoFolds,
-			NoDirs,
-			davinocorn;
+	double		minareafrac;
+	string		idbpath;
+	const char	*outdir,
+				*exenam;
+	int			zmin,
+				zmax,
+				blksize,
+				xml_type,
+				xml_min,
+				xml_max;
+	bool		lens,
+				NoFolds,
+				NoDirs,
+				davinocorn;
 
 public:
 	CArgs_scr()

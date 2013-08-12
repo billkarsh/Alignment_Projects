@@ -7,6 +7,8 @@
 #include	"TAffine.h"
 #include	"Timer.h"
 
+#include	<string.h>
+
 
 // This program (and those that follow) assume all images are the same size;
 int gw = -1;

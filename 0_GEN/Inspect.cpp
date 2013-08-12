@@ -5,6 +5,9 @@
 #include	"Maths.h"
 #include	"Correlation.h"
 
+#include	<stdlib.h>
+#include	<string.h>
+
 
 
 

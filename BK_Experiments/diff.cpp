@@ -9,6 +9,8 @@
 #include	"CTemplate.h"
 #include	"CPicBase.h"
 
+#include	<string.h>
+
 
 typedef struct {
 	char			path[256], name[64];

@@ -7,6 +7,9 @@
 
 #include	"numerical_recipes.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 
 

@@ -3,6 +3,7 @@
 #include	"Cmdline.h"
 
 #include	<stdio.h>
+#include	<stdlib.h>
 #include	<string.h>
 
 
@@ -69,7 +70,7 @@ bool GetArg( void *v, const char *pat, const char *argv )
 //			;
 //	}
 //
-bool GetArgStr( char* &s, const char *pat, char *argv )
+bool GetArgStr( const char* &s, const char *pat, char *argv )
 {
 	int		len = strlen( pat );
 	bool	ok = false;

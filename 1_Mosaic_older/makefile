@@ -28,9 +28,8 @@ SOURCES_UTL := \
 	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
 
 _SRC_GEN_ := \
-	File.cpp \
-	ImageIO.cpp Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp TAffine.cpp \
+	Disk.cpp File.cpp ImageIO.cpp Maths.cpp \
+	Correlation.cpp CPoint.cpp Geometry.cpp TAffine.cpp \
 	LinEqu.cpp Memory.cpp Draw.cpp Debug.cpp
 
 SOURCES_GEN :=  \

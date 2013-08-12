@@ -1,18 +1,44 @@
 
-=========================
-Add Environment Variable
-=========================
+============================
+Fetching the code from git
+============================
 
-All the make files have an include statement:
-"include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs".
+Bill's source code lives in directory:
+/groups/apig/share/git-repos/Alignment_Projects.pub
 
-You have to copy the file:
-"00_ENV/aln_makefile_std_defs"
+Assuming git is installed and available (appears to be true
+within qlogin sessions but not on login nodes)...
 
-from your git folder to somewhere else so that git will not overwrite it. This is your private copy of the file. It contains full paths you should edit according to where your project folder lives. There are also paths into Lou's directory that should work for anyone at Janelia. I didn't need to get special permission or group membership to see these.
+(0) > mkdir my_local_bill_copy
+(1) > cd my_local_bill_copy
+(2) > git init
+(3) > git remote add billk /groups/apig/share/git-repos/Alignment_Projects.pub
+(4) > git fetch billk
+(5) > git checkout remotes/billk/master
 
-Finally, add an environment variable to your bash_profile like this:
+===============
+Set path data
+===============
+
+(0) Decide where you want build output bins to live; mkdir if needed. There are a lot of binaries, so having them in their own place makes it easy to clean everything by deleting that folder. You will need to update your bash_profile/PATH variable (see below).
+
+(1) Copy file 00_ENV/aln_makefile_std_defs to some directory of yours that is outside of the git folder, so updates to git will not overwrite your custom path data.
+
+(2) Edit your copy of aln_makefile_std_defs...
+(2a) Redefine PATH_SRCCODE to point to your copy of the source code.
+(2b) Redefine PATH_BIN to point to your choice from step (0).
+
+(3) All our make files have this include statement:
+"include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs"
+
+So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
 "export ALN_LOCAL_MAKE_PATH=/groups/~location_of_my_std_defs"
+
+(Example bash_profile edits below).
+
+(4) Edit 00_ENV/getsharedbins.sht...
+(4a) Redefine myDst to point to your choice from step (0).
+(4b) This file will also be overwritten by updates to git, so you might copy it out of the git folder, or just remember to edit it again as needed. I like having it with to the master make files 00_ENV/1_makeAll etc. to keep all the build scripts together.
 
 ====================
 Edit .bash_profile
@@ -30,8 +56,7 @@ export ALN_LOCAL_MAKE_PATH=/groups/apig/tomo
 # Set universal mrc image file margin
 export MRC_TRIM=12
 
-# Set our locally built binaries path
-# and append Lou's cluster-bins path
+# Append paths to needed binaries
 PATH=$PATH:$HOME/bin
 PATH=$PATH:/groups/apig/tomo/lou_stuff/binaries
 export PATH
@@ -43,3 +68,56 @@ export LD_LIBRARY_PATH
 #
 # End alignment definitions
 # ---------------------------------------------------------
+
+====================
+Edit .bashrc
+====================
+
+Compiles against the MPI libraries require symbol definitions.
+Here's our full bashrc file:
+
+# ---------------------------------------------------------
+# .bashrc
+
+# User specific aliases and functions
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+
+# Use Intel compiler for MPI
+if [ -f /usr/local/INTEL2013.sh ]; then
+     . /usr/local/INTEL2013.sh
+fi
+export I_MPI_DEBUG=0
+export I_MPI_RENDEZVOUS_RDMA_WRITE=1
+export I_MPI_DEVICE=rdssm:OpenIB-iwarp
+export I_MPI_FALLBACK_DEVICE=0
+export I_MPI_USE_DYNAMIC_CONNECTIONS=0
+# export I_MPI_OFA_USE_XRC=1 
+# export I_MPI_OFA_DYNAMIC_QPS=1
+
+#
+# End bashrc
+# ---------------------------------------------------------
+
+====================
+Build the code
+====================
+
+The core pipeline code is composed by projects labeled '1_XXX' while other handy utilities that you might/not be interested in are labeled '2_XXX'. Other stuff is mainly for Bill's development work. To build the core stuff:
+
+(1) > cd 00_ENV
+(2) > make -f 1_makeAll
+(3) > ./getsharedbins.sht
+
+======================
+Script type '.sht'
+======================
+
+Scripts generally use bash shell (.sh), but I choose to name my files (.sht) for 'bash text'. In my linux GUI (KDE) I have mapped double-clicks on (.sht) files to KEDIT.exe because I more often read and edit scripts than run them (so I can check what I'm about to do).
+
+
+

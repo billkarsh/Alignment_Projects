@@ -38,13 +38,13 @@
 class CArgs_rgbm {
 
 public:
-	IBox	roi;
-	double	pct[3];
-	char	*infile,
-			*tag,
-			*span;
-	int		zmin, zmax,
-			RGB[3];
+	IBox		roi;
+	double		pct[3];
+	const char	*infile,
+				*tag,
+				*span;
+	int			zmin, zmax,
+				RGB[3];
 
 public:
 	CArgs_rgbm()
@@ -215,9 +215,9 @@ static void WriteScript( vector<int> &zlist )
 {
 // compose common argument string
 
-	char	sopt[256];
-	char	*sRGB = "RGB";
-	int		pos = 0;
+	const char	*sRGB = "RGB";
+	char		sopt[256];
+	int			pos = 0;
 
 	for( int i = 0; i < 3; ++i ) {
 

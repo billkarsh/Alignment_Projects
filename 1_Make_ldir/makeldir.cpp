@@ -40,9 +40,9 @@ private:
 	regex_t	pat_compiled;
 
 public:
-	char	*infile,
-			*pat;
-	int		zmin, zmax;
+	const char	*infile,
+				*pat;
+	int			zmin, zmax;
 
 public:
 	CArgs_ldir()

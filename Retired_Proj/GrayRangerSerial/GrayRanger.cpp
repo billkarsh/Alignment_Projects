@@ -6,6 +6,9 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */

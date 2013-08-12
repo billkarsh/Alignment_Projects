@@ -21,6 +21,8 @@
 #include	"PipeFiles.h"
 #include	"CTileSet.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -54,18 +56,18 @@ public:
 	//
 	// downradiuspix = 0, or, sloppy match radius for downs
 	//
-	double	minareafrac;
-	string	idbpath;
-	char	*outdir,
-			*exenam;
-	int		downradiuspix,
-			zmin,
-			zmax,
-			xml_type,
-			xml_min,
-			xml_max;
-	bool	NoFolds,
-			NoDirs;
+	double		minareafrac;
+	string		idbpath;
+	const char	*outdir,
+				*exenam;
+	int			downradiuspix,
+				zmin,
+				zmax,
+				xml_type,
+				xml_min,
+				xml_max;
+	bool		NoFolds,
+				NoDirs;
 
 public:
 	CArgs_scr()

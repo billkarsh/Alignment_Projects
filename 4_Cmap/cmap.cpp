@@ -5,6 +5,8 @@
 #include	"Maths.h"
 #include	"TAffine.h"
 
+#include	<string.h>
+
 #include	<stack>
 using namespace std;
 

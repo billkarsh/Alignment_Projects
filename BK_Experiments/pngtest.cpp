@@ -1,4 +1,8 @@
+
+
 #include	"ImageIO.h"
+
+#include	<stdlib.h>
 
 
 
@@ -7,11 +11,11 @@
 
 int main( int argc, char **argv )
 {
-	char	*sin = "/groups/apig/tomo/EX2/TIF1/A1_2_2.tif";
-	uint16*	raster16;
-	uint8*	raster8;
-	uint32*	raster32;
-	uint32	w=0, h=0;
+	const char*	sin = "/groups/apig/tomo/EX2/TIF1/A1_2_2.tif";
+	uint16*		raster16;
+	uint8*		raster8;
+	uint32*		raster32;
+	uint32		w=0, h=0;
 
 	raster8 = Raster8FromTif( sin, w, h );
 	raster16 = (uint16*)malloc( w*h*sizeof(uint16) );

@@ -3,6 +3,7 @@
 
 
 #include	"LinEqu.h"
+#include	"Disk.h"
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"

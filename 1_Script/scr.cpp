@@ -6,6 +6,8 @@
 #include	"PipeFiles.h"
 #include	"CTileSet.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -36,13 +38,13 @@ public:
 class CArgs_scr {
 
 public:
-	char	*infile,
-			*outdir;
-	int		zmin,
-			zmax;
-	bool	Connect,		// just connect two layers
-			NoFolds,
-			NoDirs;
+	const char	*infile,
+				*outdir;
+	int			zmin,
+				zmax;
+	bool		Connect,		// just connect two layers
+				NoFolds,
+				NoDirs;
 
 public:
 	CArgs_scr()

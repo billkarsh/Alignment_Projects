@@ -6,6 +6,8 @@
 #include	"Cmdline.h"
 #include	"File.h"
 
+#include	<string.h>
+
 #include	<map>
 #include	<string>
 #include	<vector>

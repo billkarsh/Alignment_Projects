@@ -5,6 +5,9 @@
 #include	"Cmdline.h"
 #include	"File.h"
 
+#include	<string.h>
+#include	<time.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -21,8 +24,8 @@
 class CArgs_ldir {
 
 public:
-	char	*infile,
-			*outdir;
+	const char	*infile,
+				*outdir;
 
 public:
 	CArgs_ldir()

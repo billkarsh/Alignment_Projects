@@ -4,6 +4,8 @@
 #include	"ImageIO.h"
 #include	"TAffine.h"
 
+#include	<string.h>
+
 
 // structure for unmapping a global image
 

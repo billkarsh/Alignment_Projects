@@ -19,19 +19,19 @@
 class CArgs_tiny {
 
 public:
-	double	fmTOverride;
-	char	*infile,
-			*nmrc,
-			*fm,
-			*fmd;
-	int		Z,
-			ID,
-			D,
-			minarea;
-	bool	nomasks,
-			oneregion,
-			transpose,
-			dumphist;
+	double		fmTOverride;
+	const char	*infile,
+				*nmrc,
+				*fm,
+				*fmd;
+	int			Z,
+				ID,
+				D,
+				minarea;
+	bool		nomasks,
+				oneregion,
+				transpose,
+				dumphist;
 
 public:
 	CArgs_tiny()

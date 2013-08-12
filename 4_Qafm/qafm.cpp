@@ -2,6 +2,7 @@
 
 #include	"ImageIO.h"
 
+#include	<stdlib.h>
 #include	<string.h>
 
 

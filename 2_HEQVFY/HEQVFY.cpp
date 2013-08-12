@@ -133,7 +133,7 @@ usage:
 static char *OutName( char *buf, TiXmlElement* p )
 {
 	const char	*n = p->Attribute( "file_path" );
-	char		*s = strrchr( n, '/' );
+	const char	*s = strrchr( n, '/' );
 
 	if( strstr( s + 1, gArgs.dtag ) ) {
 
@@ -145,7 +145,7 @@ static char *OutName( char *buf, TiXmlElement* p )
 
 		// compose prospective name
 
-		char	*dot = strrchr( s, '.' );
+		const char	*dot = strrchr( s, '.' );
 
 		sprintf( buf,
 			"%.*s%s"	// path excl / + _HEQ

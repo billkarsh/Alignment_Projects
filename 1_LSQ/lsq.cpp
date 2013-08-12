@@ -22,6 +22,9 @@
 
 #include	<math.h>
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* CArgs_lsq ----------------------------------------------------- */
@@ -226,7 +229,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 	printf( "---- Read params ----\n" );
 
 	vector<int>	vi;
-	char		*pat;
+	const char	*pat;
 
 	re_id.Set( "/N" );
 
@@ -240,7 +243,7 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 
 	for( int i = 1; i < argc; ++i ) {
 
-		char	*instr;
+		const char	*instr;
 
 		if( argv[i][0] != '-' ) {
 

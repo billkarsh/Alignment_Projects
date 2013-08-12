@@ -12,6 +12,9 @@
 #include	"ls_svd.h"
 #include	"tinyxml.h"
 
+#include	<algorithm>
+using namespace std;
+
 
 bool TrOnly = false;      // Use translation only?
 

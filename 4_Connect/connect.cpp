@@ -7,10 +7,10 @@
 #include	<math.h>
 #include	<string.h>
 
+#include	<algorithm>
 #include	<map>
 #include	<stack>
 #include	<set>
-#include	<algorithm>
 using namespace std;
 
 
@@ -242,7 +242,7 @@ return 0;  // not found, return layer 0
 // returns the number part after the last '/' in the name
 int GetImageNumber(const char *name)
 {
-char *p = strrchr(name,'/');  // find the last '/'
+const char *p = strrchr(name,'/');  // find the last '/'
 if( p == NULL ) {
     printf("Odd - no slash in '%s'\n", name);
     exit( 42 );

@@ -100,8 +100,8 @@ char* FileCloneNamePart( const char *path )
 
 bool FileExtIsXML( const char *path )
 {
-	bool	isxml	= false;
-	char	*dot	= strrchr( path, '.' );
+	bool		isxml	= false;
+	const char	*dot	= strrchr( path, '.' );
 
 	if( dot
 		&& strlen( path ) - (++dot - path) == 3

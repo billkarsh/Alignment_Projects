@@ -59,12 +59,12 @@ Picture::Picture( const TiXmlElement* ptch )
 class CArgs_rgbm {
 
 public:
-	IBox	roi;
-	double	pct[3];
-	char	*infile,
-			*tag,
-			*span;
-	int		z, RGB[3];
+	IBox		roi;
+	double		pct[3];
+	const char	*infile,
+				*tag,
+				*span;
+	int			z, RGB[3];
 
 public:
 	CArgs_rgbm()
@@ -291,7 +291,8 @@ static bool InROI( const Picture &p )
 static char *ChanName( char *buf, const Picture &p, int chn )
 {
 	const char	*src = p.fname.c_str();
-	char		*plt, *s, *u;
+	const char	*s, *u;
+	char		*plt;
 
 	sprintf( buf, "%s", src );
 	plt	= strstr( buf, "Plate1_0" );
@@ -311,7 +312,8 @@ static char *ChanName( char *buf, const Picture &p, int chn )
 static char *RGBName( char *buf, const Picture &p )
 {
 	const char	*src = p.fname.c_str();
-	char		*plt, *s, *u;
+	const char	*s, *u;
+	char		*plt;
 
 	sprintf( buf, "%s", src );
 	plt	= strstr( buf, "Plate1_0" );

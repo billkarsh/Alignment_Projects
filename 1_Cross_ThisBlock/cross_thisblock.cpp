@@ -13,6 +13,8 @@
 #include	"Timer.h"
 #include	"Debug.h"
 
+#include	<string.h>
+
 #include	<set>
 using namespace std;
 

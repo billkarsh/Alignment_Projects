@@ -24,7 +24,7 @@ private:
 						XSCALE,
 						YSCALE,
 						SKEW;
-		char			*ima,	// override idb paths
+		const char		*ima,	// override idb paths
 						*imb;
 		int				FLD,
 						MODE;
@@ -32,14 +32,14 @@ private:
 
 public:
 	typedef struct {
-		double	CTR;
-		char	*fma,			// override idb paths
-				*fmb;
-		bool	Transpose,		// transpose all images
-				WithinSection,	// overlap within a section
-				Verbose,		// run inspect diagnostics
-				SingleFold,		// assign id=1 to all non-fold rgns
-				Heatmap;		// run CorrView
+		double		CTR;
+		const char	*fma,			// override idb paths
+					*fmb;
+		bool		Transpose,		// transpose all images
+					WithinSection,	// overlap within a section
+					Verbose,		// run inspect diagnostics
+					SingleFold,		// assign id=1 to all non-fold rgns
+					Heatmap;		// run CorrView
 	} DriverArgs;
 
 	typedef struct {

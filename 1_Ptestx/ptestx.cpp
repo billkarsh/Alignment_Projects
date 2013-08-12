@@ -33,6 +33,8 @@
 #include	"File.h"
 #include	"PipeFiles.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -120,8 +122,8 @@ usage:
 		exit( 42 );
 	}
 
-	char	*key, *_arg;
-	int		ok = true;
+	const char	*key, *_arg;
+	int			ok = true;
 
 	passon.push_back( argv[1] );	// key
 

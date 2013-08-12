@@ -7,6 +7,9 @@
 #include	"Disk.h"
 #include	"File.h"
 
+#include	<string.h>
+#include	<time.h>
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -93,7 +96,7 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	for( int i = 1; i < argc; ++i ) {
 
-		char	*_dir;
+		const char	*_dir;
 
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );

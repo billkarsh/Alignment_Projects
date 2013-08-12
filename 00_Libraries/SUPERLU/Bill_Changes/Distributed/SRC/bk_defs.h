@@ -1,0 +1,3 @@
+void VMStats( FILE *flog );
+
+

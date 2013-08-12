@@ -2,6 +2,9 @@
 
 #include	"lsq_Types.h"
 
+#include	<stdlib.h>
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* Globals ------------------------------------------------------- */
@@ -41,7 +44,7 @@ RGN::RGN( const char *key )
 
 RGN::RGN( const char *path, const DIR &dir, int _id )
 {
-	char	*s = strrchr( path, ':' );
+	char	*s = (char*)strrchr( path, ':' );
 
 	s[-1]	= 0;
 	z		= dir.ZFromName( path );
