@@ -107,6 +107,8 @@ export I_MPI_USE_DYNAMIC_CONNECTIONS=0
 Build the code
 ====================
 
+Good idea to build the code on the target machine. So if you will run on the cluster then log on to a cluster node and build there.
+
 The core pipeline code is composed by projects labeled '1_XXX' while other handy utilities that you might/not be interested in are labeled '2_XXX'. Other stuff is mainly for Bill's development work. To build the core stuff:
 
 (1) > cd 00_ENV
