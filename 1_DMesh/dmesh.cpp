@@ -75,6 +75,7 @@ public:
 static bool RoughMatch(
 	vector<TAffine>		&guesses,
 	const PixPair		&px,
+	CCropMask			&CM,
 	const ConnRegion	&acr,
 	const ConnRegion	&bcr,
 	FILE*				flog )
@@ -82,7 +83,7 @@ static bool RoughMatch(
 	if( guesses.size() > 0 )
 		return true;
 
-	if( GBL.ctx.FLD == 'N' ) {
+	if( GBL.ctx.FLD == 'N' && !CM.IsFile( GBL.idb ) ) {
 
 		// Call NoCR at most once. Possible states
 		// are {0=never called, 1=failed, 2=success}.
@@ -652,7 +653,8 @@ void PipelineDeformableMap(
 			CStatus			stat( Acr[i].id, Bcr[j].id );
 			vector<TAffine>	guesses = GBL.Tmsh;
 
-			if( RoughMatch( guesses, px, Acr[i], Bcr[j], flog ) ) {
+			if( RoughMatch( guesses,
+					px, CM, Acr[i], Bcr[j], flog ) ) {
 
 				stat.thmok = true;
 

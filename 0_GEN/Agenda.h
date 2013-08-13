@@ -54,6 +54,8 @@ Thumbs table, but this seems to have abated with new cluster.
 Conceptual Issues
 =================
 
+kart priority: 32, 31, 30, ?{38, 36, 34, 35}
+
 - Agenda_101612.pptx good vision of big plan.
 
 - CLEAN OUT OLD DATA {Bocklab, Tomo}.
@@ -65,12 +67,14 @@ Conceptual Issues
 - Probly. need to lsq the scaffold first, then use that for blocks.
 - Need way to draw montage foldmasks and assign to image-wise fm's.
 - Need to visualize the block results to look for block errors.
+- Bad block signs: ?{low R, low point cnt}?
 - Need blocks to connect to more distant layers.
 - Need study correlation drop-off with layer dZ.
 - Need scape painter to observe fm's (and cropping).
 - Need blocks to observe fm's.
 - Need ptest to take params about which rgns go with this Tab hint.
 - Need some documentation.
+- Need methods paper, at some point.
 
 - What is current status regarding tools for Davi to smooth intensity
 distributions among neighbor tiles?
