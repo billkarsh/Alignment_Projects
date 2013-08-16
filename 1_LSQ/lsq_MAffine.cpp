@@ -529,7 +529,7 @@ void MAffine::UntwistScaffold(
 		const RGN	&Ra = vRgn[C.r1],
 					&Rb = vRgn[C.r2];
 
-		if( Ra.z == Rb.z )
+		if( Ra.z != Rb.z + 1 )
 			continue;
 
 		if( X[Ra.itr * NX] == 999.0 )

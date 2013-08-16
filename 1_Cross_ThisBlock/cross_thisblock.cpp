@@ -5,6 +5,7 @@
 
 #include	"Cmdline.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"CTileSet.h"
 #include	"CThmScan.h"
 #include	"Geometry.h"
@@ -23,6 +24,11 @@ using namespace std;
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#define	kPairOlapLo		0.02
+#define	kTileAnchorLo	0.30
+#define	kTileAnchorHi	0.80
+#define	kBlockAnchorHi	0.90
+
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -34,10 +40,10 @@ using namespace std;
 class Pair {
 
 public:
-	int	a, b;
+	int	a, b, it;
 
 public:
-	Pair( int _a, int _b )	{a = _a; b = _b;};
+	Pair( int _a, int _b, int _it )	{a=_a; b=_b; it=_it;};
 };
 
 /* --------------------------------------------------------------- */
@@ -54,6 +60,7 @@ public:
 	uint8	*ras;		// scape pixels
 	uint32	ws, hs;		// scape dims
 	int		is0, isN;	// layer index range
+	int		clbl, rsvd;	// 'A' or 'B'
 
 public:
 	CSuperscape()
@@ -61,6 +68,9 @@ public:
 
 	virtual ~CSuperscape()
 		{KillRas();};
+
+	void SetLabel( int clbl )
+		{this->clbl = clbl;};
 
 	void KillRas()
 		{
@@ -70,29 +80,18 @@ public:
 			}
 		};
 
-	void DrawRas( const char *name )
-		{
-			if( ras )
-				Raster8ToPng8( name, ras, ws, hs );
-		};
-
-	bool Load( const char *name, FILE* flog )
-		{
-			x0	= y0 = 0.0;
-			ras	= Raster8FromAny( name, ws, hs, flog );
-			return (ras != NULL);
-		};
-
-	void FindLayerIndices( int z );
+	int  FindLayerIndices( int next_isN );
 	void vID_From_sID();
 	void CalcBBox();
 
 	bool MakeRasA();
 	bool MakeRasB( const DBox &A );
 
-	void WriteMeta( char clbl, int z, int scl );
+	void DrawRas();
+	bool Load( FILE* flog );
 
-	void MakePoints( vector<double> &v, vector<Point> &p );
+	bool MakePoints( vector<double> &v, vector<Point> &p );
+	void WriteMeta();
 };
 
 /* --------------------------------------------------------------- */
@@ -103,7 +102,7 @@ class CBlockDat {
 
 public:
 	char		xmlfile[2048];
-	int			za, zb;
+	int			za, zmin;
 	int			ntil;
 	set<int>	sID;
 
@@ -241,7 +240,7 @@ void CBlockDat::ReadFile()
 			item = 1;
 		}
 		else if( item == 1 ) {
-			sscanf( LS.line, "ZaZb=%d,%d", &za, &zb );
+			sscanf( LS.line, "ZaZmin=%d,%d", &za, &zmin );
 			item = 2;
 		}
 		else if( item == 2 ) {
@@ -268,21 +267,30 @@ void CBlockDat::ReadFile()
 /* FindLayerIndices ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CSuperscape::FindLayerIndices( int z )
+// Find is0 such that [is0,isN) is whole layer.
+//
+// Return is0.
+//
+int CSuperscape::FindLayerIndices( int next_isN )
 {
-	TS.GetLayerLimits( is0 = 0, isN );
-
-	while( isN != -1 && TS.vtil[is0].z != z )
-		TS.GetLayerLimits( is0 = isN, isN );
+	TS.GetLayerLimitsR( is0, isN = next_isN );
+	return is0;
 }
 
 /* --------------------------------------------------------------- */
 /* vID_From_sID -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// BlockDat.sID are actual tile-IDs, which are a robust way
+// to specify <which tiles> across programs.
+//
+// vID are TS.vtil[] index numbers (like is0) which are an
+// efficient way to walk TS data.
+//
 void CSuperscape::vID_From_sID()
 {
 	int	n = 0;
+
 	vID.resize( gDat.ntil );
 
 	for( int i = is0; i < isN; ++i ) {
@@ -335,13 +343,8 @@ void CSuperscape::CalcBBox()
 
 bool CSuperscape::MakeRasA()
 {
-	vector<int>	vid( gDat.ntil );
-
-	for( int i = 0; i < gDat.ntil; ++i )
-		vid[i] = vID[i];
-
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_abscl, 1, 0,
+			vID, gArgs.inv_abscl, 1, 0,
 			gArgs.ablgord, gArgs.absdev );
 
 	return (ras != NULL);
@@ -375,28 +378,43 @@ bool CSuperscape::MakeRasB( const DBox &A )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteMeta ----------------------------------------------------- */
+/* DrawRas ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CSuperscape::WriteMeta( char clbl, int z, int scl )
+void CSuperscape::DrawRas()
 {
-	fprintf( flog,
-	"*%c: z scl [ws,hs] [x0,y0]\n", clbl );
+	if( ras ) {
+		char	name[128];
+		sprintf( name, "Ras_%c_%d.png", clbl, TS.vtil[is0].z );
+		Raster8ToPng8( name, ras, ws, hs );
+	}
+}
 
-	fprintf( flog,
-	"%d %d [%d,%d] [%g,%g]\n",
-	z, scl, ws, hs, x0, y0 );
+/* --------------------------------------------------------------- */
+/* Load ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool CSuperscape::Load( FILE* flog )
+{
+	char	name[128];
+
+	sprintf( name, "Ras_%c_%d.png", clbl, TS.vtil[is0].z );
+	x0 = y0 = 0.0;
+
+	ras	= Raster8FromAny( name, ws, hs, flog );
+
+	return (ras != NULL);
 }
 
 /* --------------------------------------------------------------- */
 /* MakePoints ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
+bool CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 {
 // collect point and value lists
 
-	int		np = ws * hs;
+	int	np = ws * hs, ok = true;
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -411,8 +429,8 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 	}
 
 	if( !(np = p.size()) ) {
-		fprintf( flog, "FAIL: Block has no non-zero pixels.\n" );
-		exit( 42 );
+		ok = false;
+		goto exit;
 	}
 
 // get points origin and translate to zero
@@ -430,14 +448,31 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 
 // normalize values
 
-	double	sd = Normalize( v );
+	{
+		double	sd = Normalize( v );
 
-	if( !sd || !isfinite( sd ) ) {
-		fprintf( flog, "FAIL: Block has stdev: %f\n", sd );
-		exit( 42 );
+		if( !sd || !isfinite( sd ) )
+			ok = false;
 	}
 
+exit:
 	KillRas();
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* WriteMeta ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CSuperscape::WriteMeta()
+{
+	fprintf( flog,
+	"*%c: z scl [ws,hs] [x0,y0]\n", clbl );
+
+	fprintf( flog,
+	"%d %d [%d,%d] [%g,%g]\n",
+	TS.vtil[is0].z, gArgs.abscl, ws, hs, x0, y0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -445,135 +480,84 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 /* --------------------------------------------------------------- */
 
 static void FindPairs(
+	vector<double>		&Asum,
+	vector<TAffine>		&vT,
 	vector<Pair>		&P,
 	const CSuperscape	&A,
-	const CSuperscape	&B,
-	const TAffine		&Tm )
+	const CSuperscape	&B )
 {
-	int	na = A.vID.size();
+	int		it = vT.size() - 1;
+	TAffine	Tm = vT[it];
 
-	for( int ka = 0; ka < na; ++ka ) {
+	for( int ka = 0; ka < gDat.ntil; ++ka ) {
 
-		TAffine	Ta;
-		int		ia = A.vID[ka];
+		int	ia = A.vID[ka];
 
-		Ta = Tm * TS.vtil[ia].T;
+		if( Asum[ka] >= kTileAnchorHi )
+			continue;
+
+		TAffine Ta = Tm * TS.vtil[ia].T;
 
 		for( int ib = B.is0; ib < B.isN; ++ib ) {
 
 			TAffine	Tab;
-
 			Tab.FromAToB( Ta, TS.vtil[ib].T );
 
-			if( TS.ABOlap( ia, ib, &Tab ) >= 0.02 )
-				P.push_back( Pair( ia, ib ) );
+			double	area = TS.ABOlap( ia, ib, &Tab );
+
+			if( area >= kPairOlapLo ) {
+
+				P.push_back( Pair( ia, ib, it ) );
+				Asum[ka] += area;
+			}
 		}
 	}
 }
 
 /* --------------------------------------------------------------- */
-/* WriteMakeFile ------------------------------------------------- */
+/* ThisBZ -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Actually write the script to tell ptest to process the pairs
-// of images described by (P).
-//
-static void WriteMakeFile(
-	const vector<Pair>	&P,
-	const TAffine		&Tm )
-{
-	FILE	*f;
-	int		np = P.size();
-
-// open the file
-
-	f = FileOpenOrDie( "make.down", "w", flog );
-
-// write 'all' targets line
-
-	fprintf( f, "all: " );
-
-	for( int i = 0; i < np; ++i ) {
-
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
-
-		fprintf( f, "%d/%d.%d.map.tif ", A.id, B.z, B.id );
-	}
-
-	fprintf( f, "\n\n" );
-
-// Write each 'target: dependencies' line
-//		and each 'rule' line
-
-	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
-
-	for( int i = 0; i < np; ++i ) {
-
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
-		TAffine			T;
-
-		fprintf( f,
-		"%d/%d.%d.map.tif:\n",
-		A.id, B.z, B.id );
-
-		T = Tm * A.T;
-		T.FromAToB( T, B.T );
-
-		fprintf( f,
-		"\tptest %d/%d@%d/%d -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
-		A.z, A.id, B.z, B.id,
-		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
-		option_nf );
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
-/* ScapeStuff ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ScapeStuff()
+static void ThisBZ(
+	vector<double>		&Asum,
+	vector<TAffine>		&vT,
+	vector<Pair>		&P,
+	const CSuperscape	&A,
+	ThmRec				&thm,
+	int					&next_isN )
 {
 	clock_t		t0 = StartTiming();
-	CSuperscape	A, B;
-	ThmRec		thm;
+	CSuperscape	B;
 	CThmScan	S;
 	CorRec		best;
 
-	A.FindLayerIndices( gDat.za );
-	A.vID_From_sID();
-	A.CalcBBox();
-#if 1
-	A.MakeRasA();
-	A.DrawRas( "Aras.png" );
-#else
-	A.Load( "Aras.png", flog );
-#endif
-	t0 = StopTiming( flog, "MakeRasA", t0 );
+	fprintf( flog, "\n--- Start B layer ----\n" );
 
-	B.FindLayerIndices( gDat.zb );
-#if 1
-	if( !B.MakeRasB( A.B ) ) {
-		fprintf( flog, "FAIL: No B tiles in block.\n" );
+	B.SetLabel( 'B' );
+	next_isN = B.FindLayerIndices( next_isN );
+
+	if( next_isN == -1 ) {
+		fprintf( flog, "$$$ Exhausted B layers $$$\n" );
 		return;
 	}
-	B.DrawRas( "Bras.png" );
-#else
-	B.Load( "Bras.png", flog );
-#endif
+
+	if( !B.MakeRasB( A.B ) ) {
+		fprintf( flog, "No B tiles for z=%d.\n", TS.vtil[B.is0].z );
+		return;
+	}
+
+	B.DrawRas();
+
+	if( !B.MakePoints( thm.bv, thm.bp ) ) {
+		fprintf( flog, "No B points for z=%d.\n", TS.vtil[B.is0].z );
+		return;
+	}
+
+	B.WriteMeta();
 	t0 = StopTiming( flog, "MakeRasB", t0 );
 
-	A.MakePoints( thm.av, thm.ap );
-	A.WriteMeta( 'A', gDat.za, gArgs.abscl );
-
-	B.MakePoints( thm.bv, thm.bp );
-	B.WriteMeta( 'B', gDat.zb, gArgs.abscl );
-
 	thm.ftc.clear();
-	thm.reqArea	= int(0.02 * A.ws * A.hs);
+	thm.reqArea	= int(kPairOlapLo * A.ws * A.hs);
 	thm.olap1D	= 4;
 	thm.scl		= 1;
 
@@ -602,10 +586,12 @@ static void ScapeStuff()
 
 		if( S.DenovoBestAngle( best, 0, 4, .2, thm ) ) {
 
-			best.T.Apply_R_Part( A.Opts );
+			Point	Aorigin = A.Opts;
 
-			best.X += B.Opts.x - A.Opts.x;
-			best.Y += B.Opts.y - A.Opts.y;
+			best.T.Apply_R_Part( Aorigin );
+
+			best.X += B.Opts.x - Aorigin.x;
+			best.Y += B.Opts.y - Aorigin.y;
 
 			best.T.SetXY( best.X, best.Y );
 		}
@@ -643,15 +629,189 @@ static void ScapeStuff()
 	s.NUSetScl( gArgs.abscl );
 	best.T = s * t;
 
-// List pairs
+// Append to list
 
+	vT.push_back( best.T );
+
+// Accumulate pairs
+
+	FindPairs( Asum, vT, P, A, B );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteMakeFile ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Actually write the script to tell ptest to process the pairs
+// of images described by (P).
+//
+static void WriteMakeFile(
+	const vector<TAffine>	&vT,
+	const vector<Pair>		&P )
+{
+	FILE	*f;
+	int		np = P.size();
+
+	if( !np ) {
+		fprintf( flog, "FAIL: No tiles matched.\n" );
+		return;
+	}
+
+// open the file
+
+	f = FileOpenOrDie( "make.down", "w", flog );
+
+// write 'all' targets line
+
+	fprintf( f, "all: " );
+
+	for( int i = 0; i < np; ++i ) {
+
+		const CUTile&	A = TS.vtil[P[i].a];
+		const CUTile&	B = TS.vtil[P[i].b];
+
+		fprintf( f, "%d/%d.%d.map.tif ", A.id, B.z, B.id );
+	}
+
+	fprintf( f, "\n\n" );
+
+// Write each 'target: dependencies' line
+//		and each 'rule' line
+
+	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
+
+	for( int i = 0; i < np; ++i ) {
+
+		const CUTile&	A = TS.vtil[P[i].a];
+		const CUTile&	B = TS.vtil[P[i].b];
+		TAffine			T;
+
+		fprintf( f,
+		"%d/%d.%d.map.tif:\n",
+		A.id, B.z, B.id );
+
+		T = vT[P[i].it] * A.T;
+		T.FromAToB( T, B.T );
+
+		fprintf( f,
+		"\tptest %d/%d@%d/%d -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
+		A.z, A.id, B.z, B.id,
+		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+		option_nf );
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteThumbFiles ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteThumbFiles( const vector<Pair> &P )
+{
+	int	lastZ = -1, np = P.size();
+
+	for( int i = 0; i < np; ++i ) {
+
+		int	z = TS.vtil[P[i].b].z;
+
+		if( z != lastZ ) {
+
+			char	name[128];
+			sprintf( name, "ThmPair_%d_@_%d.txt", gDat.za, z );
+			FILE	*f = FileOpenOrDie( name, "w", flog );
+			WriteThmPairHdr( f );
+			fclose( f );
+
+			lastZ = z;
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* LayerLoop ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Here's the strategy:
+// We paint a scape for the whole A-block and match it to the
+// nearest whole B-block below, and then we pair off the tiles.
+//
+// An A-tile is paired to a B-tile if their overlap is >= 0.02.
+// Each A-tile keeps a running sum of these pairwise overlaps.
+// The summing of area is deliberately coarse: we just sum it
+// up over different B-tiles without worrying about orientation.
+// An A-tile is very well anchored if its area sum is > 0.80 and
+// is adequately anchored if sum > 0.30.
+//
+// Next we survey the results of the pair-ups by counting how many
+// A-tiles are adequately anchored. If the count is below 0.90 of
+// the total number of A-block tiles, we repeat the above process
+// by matching the A-block to the next lower B-block in the stack,
+// doing the tile-wise pairing, and accumulating overlap areas into
+// the existing A-tile sums.
+//
+// That is repeated until the block is adequately anchored
+// or we have already used the lowest allowed B-layer (zmin).
+//
+static void LayerLoop()
+{
+	clock_t			t0 = StartTiming();
+	vector<double>	Asum( gDat.ntil, 0.0 );
+	vector<TAffine>	vT;
 	vector<Pair>	P;
+	CSuperscape		A;
+	ThmRec			thm;
+	int				next_isN;
 
-	FindPairs( P, A, B, best.T );
+	fprintf( flog, "\n--- Start A layer ----\n" );
 
-// Write make file for block
+	A.SetLabel( 'A' );
+	next_isN = A.FindLayerIndices( TS.vtil.size() );
+	A.vID_From_sID();
+	A.CalcBBox();
+	A.MakeRasA();
+	A.DrawRas();
+	A.MakePoints( thm.av, thm.ap );
+	A.WriteMeta();
+	t0 = StopTiming( flog, "MakeRasA", t0 );
 
-	WriteMakeFile( P, best.T );
+	for(;;) {
+
+		// align B-block and pair tiles
+
+		int	psize = P.size();
+
+		ThisBZ( Asum, vT, P, A, thm, next_isN );
+
+		// any changes to survey?
+
+		if( next_isN == -1 )
+			break;
+
+		if( P.size() <= psize )
+			continue;
+
+		// survey the coverage
+
+		int	ngood = 0;
+
+		for( int i = 0; i < gDat.ntil; ++i ) {
+
+			if( Asum[i] >= kTileAnchorLo )
+				++ngood;
+		}
+
+		fprintf( flog, "Block coverage %.2f\n",
+			(double)ngood/gDat.ntil );
+
+		if( ngood >= kBlockAnchorHi * gDat.ntil )
+			break;
+	}
+
+	fprintf( flog, "\n--- Write Files ----\n" );
+
+	WriteMakeFile( vT, P );
+	WriteThumbFiles( P );
 }
 
 /* --------------------------------------------------------------- */
@@ -680,7 +840,7 @@ int main( int argc, char* argv[] )
 /* Read source data */
 /* ---------------- */
 
-	TS.FillFromTrakEM2( gDat.xmlfile, gDat.zb, gDat.za );
+	TS.FillFromTrakEM2( gDat.xmlfile, gDat.zmin, gDat.za );
 
 	fprintf( flog, "Got %d images.\n", TS.vtil.size() );
 
@@ -701,7 +861,7 @@ int main( int argc, char* argv[] )
 /* Stuff */
 /* ----- */
 
-	ScapeStuff();
+	LayerLoop();
 
 /* ---- */
 /* Done */

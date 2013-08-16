@@ -64,7 +64,8 @@ public:
 			blksize,
 			abscl,
 			ablgord,
-			absdev;
+			absdev,
+			maxDZ;
 	bool	NoFolds;
 
 public:
@@ -79,6 +80,7 @@ public:
 		abscl			= 200;
 		ablgord			= 1;	// 3  probably good for Davi EM
 		absdev			= 0;	// 42 useful for Davi EM
+		maxDZ			= 4;
 		NoFolds			= false;
 	};
 
@@ -155,6 +157,8 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			if( xyconf < 0.0 || xyconf > 1.0 )
 				xyconf = 0.5;
 		}
+		else if( GetArg( &maxDZ, "-maxDZ=%d", argv[i] ) )
+			;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else {
@@ -536,6 +540,17 @@ void BlockSet::CarveIntoBlocks( int is0, int isN )
 
 void BlockSet::WriteParams( int za, int zb )
 {
+// In simplest terms, the lowest B we should match to is
+// zmin = min( za - gArgs.maxDZ, gArgs.zmin ). Since zb is
+// usually just za-1, we could write that equivalently as
+// zmin = min( zb + 1 - gArgs.maxDZ, gArgs.zmin ). This
+// second form is preferred in cases where layers are missing
+// so that zb < za-1, but we still want to give cross_thisblock
+// several tries to get a good match (yes, even if we exceed
+// maxDZ to get those tries).
+
+	int zmin = min( zb + 1 - gArgs.maxDZ, gArgs.zmin );
+
 	for( int i = 0; i < nb; ++i ) {
 
 		int	nID;
@@ -546,17 +561,20 @@ void BlockSet::WriteParams( int za, int zb )
 			int		iy = i / kx,
 					ix = i - kx * iy;
 
-			// make Dx_y folder
+			// make Dx_y folder;
+			// cross_thisblock will make ThmPair files as needed
 			sprintf( path, "../%d", za );
-			CreateJobsDir( path, ix, iy, za, zb, flog );
+			CreateJobsDir( path, ix, iy, za, -1, flog );
 
 			// write params file
 			sprintf( path, "../%d/D%d_%d/blockdat.txt", za, ix, iy );
 			FILE	*f = FileOpenOrDie( path, "w", flog );
 
 			fprintf( f, "file=%s\n", gArgs.xml_hires );
-			fprintf( f, "ZaZb=%d,%d\n", za, zb );
 
+			fprintf( f, "ZaZmin=%d,%d\n", za, zmin );
+
+			// list actual tile-IDs (TS.vtil[].id)
 			fprintf( f, "nIDs=%d\n", nID );
 			for( int j = 0; j < nID; ++j )
 				fprintf( f, "%d\n", TS.vtil[K[i].vID[j]].id );

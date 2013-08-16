@@ -446,6 +446,7 @@ static void WriteCarvego()
 	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
 	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.5\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -maxDZ=4\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g -xyconf=%g\n",
