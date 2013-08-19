@@ -47,11 +47,9 @@ int main( int argc, char* argv[] )
 	PixPair	px;
 
 	if( !px.Load(
-			GBL.A.t2i.path.c_str(),
-			GBL.B.t2i.path.c_str(),
-			GBL.idb, GBL.mch.PXLENS,
-			GBL.A.t2i.cam, GBL.B.t2i.cam,
-			GBL.mch.PXBRO, GBL.mch.PXDOG,
+			GBL.A.t2i.path.c_str(), GBL.B.t2i.path.c_str(),
+			GBL.idb, GBL.A.t2i.cam, GBL.B.t2i.cam,
+			GBL.mch.PXLENS, GBL.mch.PXBRO, GBL.mch.PXDOG,
 			GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
 			stdout, GBL.arg.Transpose ) ) {
 
