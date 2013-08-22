@@ -13,7 +13,7 @@
 //
 // If aligning strips...
 //
-//	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -abcorr=%lf
+//	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -stpcorr=%lf
 //
 //		[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]
 //
@@ -109,7 +109,7 @@ class CArgs_scp {
 
 public:
 	double	inv_abscl,
-			abcorr,
+			stpcorr,
 			abctr;
 	char	*infile;
 	int		za,
@@ -128,7 +128,7 @@ public:
 public:
 	CArgs_scp()
 	{
-		abcorr		= 0.20;
+		stpcorr		= 0.02;
 		abctr		= 0.0;
 		infile		= NULL;
 		za			= -1;
@@ -236,7 +236,7 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
+		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
@@ -617,7 +617,7 @@ static void ScapeStuff()
 	thm.scl		= 1;
 
 	S.Initialize( flog, best );
-	S.SetRThresh( gArgs.abcorr );
+	S.SetRThresh( gArgs.stpcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
@@ -637,7 +637,7 @@ static void ScapeStuff()
 	}
 	else {
 
-		S.DenovoBestAngle( best, 0, 180, 5, thm );
+		S.DenovoBestAngle( best, 0, 180, 5, thm, true );
 
 		best.T.Apply_R_Part( A.Opts );
 

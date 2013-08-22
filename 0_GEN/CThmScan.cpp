@@ -703,7 +703,8 @@ bool CThmScan::DenovoBestAngle(
 	double	ang0,
 	double	hfangdn,
 	double	step,
-	ThmRec	&thm )
+	ThmRec	&thm,
+	bool	failmsg )
 {
 	if( AngleScanWithTweaks( best, ang0, hfangdn, step, thm )
 			< rthresh ||
@@ -712,9 +713,11 @@ bool CThmScan::DenovoBestAngle(
 		PeakHunt( best, step * 0.05 * 1.5, thm )
 			< rthresh ) {
 
-		fprintf( flog,
-		"FAIL: Approx: Denovo R=%g below thresh=%g\n",
-		best.R, rthresh );
+		if( failmsg ) {
+			fprintf( flog,
+			"FAIL: Approx: Denovo R=%g below thresh=%g\n",
+			best.R, rthresh );
+		}
 
 		err = errLowRDenov;
 		return false;

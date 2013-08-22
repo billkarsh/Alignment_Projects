@@ -629,7 +629,7 @@ bool CThmUtil::Sweep(
 		if( !S.UsePriorAngles( best, nPrior, ang0, HFANGPR, thm ) )
 			return Failure( best, S.GetErr() );
 	}
-	else if( !S.DenovoBestAngle( best, ang0, HFANGDN, 0.5, thm ) )
+	else if( !S.DenovoBestAngle( best, ang0, HFANGDN, 0.5, thm, true ) )
 		return Failure( best, S.GetErr() );
 
 	return true;

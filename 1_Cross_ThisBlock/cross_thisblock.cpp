@@ -54,7 +54,7 @@ class CSuperscape {
 
 public:
 	vector<int>	vID;
-	DBox	B;			// oriented bounding box
+	DBox	bb;			// oriented bounding box
 	Point	Opts;		// origin of aligned point list
 	double	x0, y0;		// scape corner in oriented system
 	uint8	*ras;		// scape pixels
@@ -85,7 +85,7 @@ public:
 	void CalcBBox();
 
 	bool MakeRasA();
-	bool MakeRasB( const DBox &A );
+	bool MakeRasB( const DBox &Abb );
 
 	void DrawRas();
 	bool Load( FILE* flog );
@@ -118,7 +118,7 @@ class CArgs_scp {
 
 public:
 	double	inv_abscl,
-			abcorr,
+			blkcorr,
 			abctr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	int		abscl,
@@ -130,7 +130,7 @@ public:
 public:
 	CArgs_scp()
 	{
-		abcorr		= 0.20;
+		blkcorr		= 0.10;
 		abctr		= 0.0;
 		xyconf		= 0.50;
 		abscl		= 200;
@@ -200,7 +200,7 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
+		else if( GetArg( &blkcorr, "-blkcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
@@ -311,10 +311,10 @@ void CSuperscape::vID_From_sID()
 
 void CSuperscape::CalcBBox()
 {
-	B.L =  BIGD;
-	B.R = -BIGD;
-	B.B =  BIGD;
-	B.T = -BIGD;
+	bb.L =  BIGD;
+	bb.R = -BIGD;
+	bb.B =  BIGD;
+	bb.T = -BIGD;
 
 	for( int i = 0; i < gDat.ntil; ++i ) {
 
@@ -329,10 +329,10 @@ void CSuperscape::CalcBBox()
 
 		for( int k = 0; k < 4; ++k ) {
 
-			B.L = fmin( B.L, cnr[k].x );
-			B.R = fmax( B.R, cnr[k].x );
-			B.B = fmin( B.B, cnr[k].y );
-			B.T = fmax( B.T, cnr[k].y );
+			bb.L = fmin( bb.L, cnr[k].x );
+			bb.R = fmax( bb.R, cnr[k].x );
+			bb.B = fmin( bb.B, cnr[k].y );
+			bb.T = fmax( bb.T, cnr[k].y );
 		}
 	}
 }
@@ -354,7 +354,7 @@ bool CSuperscape::MakeRasA()
 /* MakeRasB ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-bool CSuperscape::MakeRasB( const DBox &A )
+bool CSuperscape::MakeRasB( const DBox &Abb )
 {
 	vector<int>	vid;
 	int			W2 = gW/2, H2 = gH/2;
@@ -366,13 +366,32 @@ bool CSuperscape::MakeRasB( const DBox &A )
 		Point	p( W2, H2 );
 		U.T.Transform( p );
 
-		if( p.x >= A.L && p.x <= A.R && p.y >= A.B && p.y <= A.T )
+		if( p.x >= Abb.L && p.x <= Abb.R &&
+			p.y >= Abb.B && p.y <= Abb.T ) {
+
 			vid.push_back( i );
+		}
+	}
+
+	if( vid.size() < 0.05 * gDat.ntil ) {
+
+		fprintf( flog, "Low B tile count [%d] for z=%d.\n",
+		vid.size(), TS.vtil[is0].z );
+
+		return false;
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
 			vid, gArgs.inv_abscl, 1, 0,
 			gArgs.ablgord, gArgs.absdev );
+
+	if( !ras ) {
+
+		fprintf( flog, "Empty B scape for z=%d.\n",
+		TS.vtil[is0].z );
+
+		return false;
+	}
 
 	return (ras != NULL);
 }
@@ -435,10 +454,10 @@ bool CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 
 // get points origin and translate to zero
 
-	DBox	bb;
+	DBox	ptsbb;
 
-	BBoxFromPoints( bb, p );
-	Opts = Point( bb.L, bb.B );
+	BBoxFromPoints( ptsbb, p );
+	Opts = Point( ptsbb.L, ptsbb.B );
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -541,10 +560,8 @@ static void ThisBZ(
 		return;
 	}
 
-	if( !B.MakeRasB( A.B ) ) {
-		fprintf( flog, "No B tiles for z=%d.\n", TS.vtil[B.is0].z );
+	if( !B.MakeRasB( A.bb ) )
 		return;
-	}
 
 	B.DrawRas();
 
@@ -567,7 +584,7 @@ static void ThisBZ(
 		Ry	= int((1.0 - gArgs.xyconf) * A.hs);
 
 	S.Initialize( flog, best );
-	S.SetRThresh( gArgs.abcorr );
+	S.SetRThresh( gArgs.blkcorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
@@ -584,23 +601,22 @@ static void ThisBZ(
 
 		S.Pretweaks( 0, 0, thm );
 
-		if( S.DenovoBestAngle( best, 0, 4, .2, thm ) ) {
+		if( !S.DenovoBestAngle( best, 0, 4, .2, thm, false ) ) {
 
-			Point	Aorigin = A.Opts;
+			fprintf( flog, "Low corr [%g] for z=%d.\n",
+			best.R, TS.vtil[B.is0].z );
 
-			best.T.Apply_R_Part( Aorigin );
-
-			best.X += B.Opts.x - Aorigin.x;
-			best.Y += B.Opts.y - Aorigin.y;
-
-			best.T.SetXY( best.X, best.Y );
+			return;
 		}
-		else {
-			// return a block-block transform that
-			// converts to identity montage-montage
-			best.T.NUSetOne();
-			best.T.SetXY( A.x0 - B.x0, A.y0 - B.y0 );
-		}
+
+		Point	Aorigin = A.Opts;
+
+		best.T.Apply_R_Part( Aorigin );
+
+		best.X += B.Opts.x - Aorigin.x;
+		best.Y += B.Opts.y - Aorigin.y;
+
+		best.T.SetXY( best.X, best.Y );
 
 		fprintf( flog, "*T: [0,1,2,3,4,5] (block-block)\n" );
 		fprintf( flog, "[%g,%g,%g,%g,%g,%g]\n",
@@ -775,6 +791,8 @@ static void LayerLoop()
 	A.WriteMeta();
 	t0 = StopTiming( flog, "MakeRasA", t0 );
 
+	double	finalgood = 0.0;
+
 	for(;;) {
 
 		// align B-block and pair tiles
@@ -801,12 +819,15 @@ static void LayerLoop()
 				++ngood;
 		}
 
-		fprintf( flog, "Block coverage %.2f\n",
-			(double)ngood/gDat.ntil );
+		finalgood = (double)ngood / gDat.ntil;
 
-		if( ngood >= kBlockAnchorHi * gDat.ntil )
+		fprintf( flog, "Block coverage %.2f\n", finalgood );
+
+		if( finalgood >= kBlockAnchorHi )
 			break;
 	}
+
+	fprintf( flog, "Final coverage %.2f\n", finalgood );
 
 	fprintf( flog, "\n--- Write Files ----\n" );
 

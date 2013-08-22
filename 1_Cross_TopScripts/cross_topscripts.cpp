@@ -24,7 +24,8 @@
 class CArgs_cross {
 
 public:
-	double	abcorr,
+	double	stpcorr,
+			blkcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	char	xmlfile[2048],
 			outdir[2048];
@@ -42,7 +43,8 @@ public:
 public:
 	CArgs_cross()
 	{
-		abcorr		= 0.20;
+		stpcorr		= 0.02;
+		blkcorr		= 0.10;
 		xyconf		= 0.50;
 		xmlfile[0]	= 0;
 		zmin		= 0;
@@ -127,7 +129,9 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
+		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
+			;
+		else if( GetArg( &blkcorr, "-blkcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
 
@@ -211,11 +215,11 @@ static void WriteSubscapes( vector<int> &zlist )
 	sprintf( sopt,
 	"'%s'"
 	" -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
-	" -ab -abwide=%d -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g",
+	" -ab -abwide=%d -abscl=%d -ablgord=%d -absdev=%d -stpcorr=%g",
 	gArgs.xmlfile,
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
 	gArgs.abwide, gArgs.abscl, gArgs.ablgord, gArgs.absdev,
-	gArgs.abcorr );
+	gArgs.stpcorr );
 
 // open file
 
@@ -244,7 +248,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "#\n" );
 	fprintf( f, "# If aligning strips...\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t-ab -za=%d -zb=%d -abwide=%d -abscl=%d -abcorr=%lf\n" );
+	fprintf( f, "#\t-ab -za=%d -zb=%d -abwide=%d -abscl=%d -stpcorr=%lf\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "#\t\t[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]\n" );
 	fprintf( f, "#\n" );
@@ -260,7 +264,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# -mbsdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
 	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
 	fprintf( f, "# -abwid=5\t\t;strips this many tiles wide on short axis\n" );
-	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
+	fprintf( f, "# -stpcorr=0.02\t;required min corr for alignment\n" );
 	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
 	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
@@ -444,16 +448,16 @@ static void WriteCarvego()
 	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
 	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
 	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
+	fprintf( f, "# -blkcorr=0.1\t;required min corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.5\t;search radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "# -maxDZ=4\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g -xyconf=%g\n",
+	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -blkcorr=%g -xyconf=%g\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
-	gArgs.abcorr, gArgs.xyconf );
+	gArgs.blkcorr, gArgs.xyconf );
 	fprintf( f, "\n" );
 
 	fclose( f );

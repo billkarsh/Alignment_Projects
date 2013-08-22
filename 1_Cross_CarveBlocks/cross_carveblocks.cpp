@@ -56,7 +56,7 @@ public:
 class CArgs_alnmon {
 
 public:
-	double	abcorr,
+	double	blkcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	char	xml_hires[2048];
 	int		zmin,
@@ -71,7 +71,7 @@ public:
 public:
 	CArgs_alnmon()
 	{
-		abcorr			= 0.20;
+		blkcorr			= 0.10;
 		xyconf			= 0.50;
 		xml_hires[0]	= 0;
 		zmin			= 0;
@@ -80,7 +80,7 @@ public:
 		abscl			= 200;
 		ablgord			= 1;	// 3  probably good for Davi EM
 		absdev			= 0;	// 42 useful for Davi EM
-		maxDZ			= 4;
+		maxDZ			= 10;
 		NoFolds			= false;
 	};
 
@@ -150,7 +150,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &abcorr, "-abcorr=%lf", argv[i] ) )
+		else if( GetArg( &blkcorr, "-blkcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
 
@@ -198,7 +198,7 @@ static void WriteSubblocksFile()
 	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
 	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
 	fprintf( f, "# -abwid=5\t\t;strips this many tiles wide on short axis\n" );
-	fprintf( f, "# -abcorr=0.2\t;required min corr for alignment\n" );
+	fprintf( f, "# -blkcorr=0.1\t;required min corr for alignment\n" );
 	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
 	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
@@ -224,10 +224,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -abcorr=%g -xyconf=%g\n",
+	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -blkcorr=%g -xyconf=%g\n",
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.abscl, gArgs.ablgord,
-	gArgs.absdev, gArgs.abcorr, gArgs.xyconf );
+	gArgs.absdev, gArgs.blkcorr, gArgs.xyconf );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
@@ -270,6 +270,8 @@ static void WriteReportFiles()
 	fprintf( f, "ls -l ../*/D*/make.down > BlockMakes.txt\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "grep -e \"Final coverage\" ../*/D*/cross_thisblock.log > BlockCoverage.txt\n" );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -549,7 +551,7 @@ void BlockSet::WriteParams( int za, int zb )
 // several tries to get a good match (yes, even if we exceed
 // maxDZ to get those tries).
 
-	int zmin = min( zb + 1 - gArgs.maxDZ, gArgs.zmin );
+	int zmin = max( zb + 1 - gArgs.maxDZ, gArgs.zmin );
 
 	for( int i = 0; i < nb; ++i ) {
 

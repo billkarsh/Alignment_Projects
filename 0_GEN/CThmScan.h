@@ -189,7 +189,8 @@ public:
 		double	ang0,
 		double	hfangdn,
 		double	step,
-		ThmRec	&thm );
+		ThmRec	&thm,
+		bool	failmsg );
 
 	void PostTweaks( CorRec &best, ThmRec &thm );
 

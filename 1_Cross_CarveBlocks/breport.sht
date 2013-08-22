@@ -15,3 +15,5 @@ ls -l ../*/D*/make.down > BlockMakes.txt
 
 grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt
 
+grep -e "Final coverage" ../*/D*/cross_thisblock.log > BlockCoverage.txt
+

@@ -12,12 +12,13 @@
 # -abscl=200	;size reduction factor
 # -ablgord=1	;Legendre poly max order
 # -absdev=42	;scape sdev size
-# -abcorr=0.20	;req. min corr
+# -stpcorr=0.02	;req. min strip corr
+# -blkcorr=0.10	;req. min block corr
 # -xyconf=0.5	;search radius = (1-conf)(blockwide)
 # -xmltype=0	;ImagePlus type code
 # -xmlmin=0		;intensity scale
 # -xmlmax=0		;intensity scale
 
 
-cross_topscripts newmons.xml -d=temp0 -zmin=7 -zmax=119 -nf -abwide=5 -abscl=200 -ablgord=3 -absdev=42 -abcorr=.20 -xyconf=0.5
+cross_topscripts newmons.xml -d=temp0 -zmin=7 -zmax=119 -nf -abwide=5 -abscl=200 -ablgord=3 -absdev=42 -stpcorr=.02 -blkcorr=0.10 -xyconf=0.5
 

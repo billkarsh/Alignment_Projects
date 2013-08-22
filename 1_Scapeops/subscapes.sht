@@ -15,7 +15,7 @@
 #
 # If aligning strips...
 #
-#	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -abcorr=%lf
+#	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -stpcorr=%lf
 #
 #		[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]
 #
@@ -31,7 +31,7 @@
 # -mbsdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
 # -absdev=0		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
 # -abwid=5		;strips this many tiles wide on short axis
-# -abcorr=0.2	;required min corr for alignment
+# -stpcorr=0.02	;required min corr for alignment
 # -addbg		;make diagnostic images and exit
 # -abctr=0		;debug at this a-to-b angle
 

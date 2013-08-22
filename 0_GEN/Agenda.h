@@ -7,16 +7,14 @@ General Notes
 
 - Interactive: qlogin -l excl=true
 
+- Can only occupy 2500 slots at once. Can only have 20,000 jobs
+in the queue at once.
+
 - ABComposite shows (BLUE pix) there are missed pixels in mappings
 from A to B. This is an off by one error in some decision about
 what's the interior.
 
 - Fold masks are not yet generated appropriately for our images.
-
-- Correct order of operations should be:
-	1) Make montages (thumb + mesh) without foldmasks
-	2) Make foldmasks with global numbering
-	3) Make cross plane (thumb and mesh)
 
 - Script scr should read the overlap requirements from Thumbparams.
 
@@ -55,6 +53,7 @@ Conceptual Issues
 =================
 
 kart priority: 32, 31, 30, ?{38, 36, 34, 35}
+Best yet: 21.219 (8/19/13) kart 31
 
 - Agenda_101612.pptx good vision of big plan.
 
@@ -77,7 +76,7 @@ look more like:
 	- now do all the cross layer work
 
 - Need to visualize the block results to look for block errors.
-- Bad block signs: ?{low R, low point cnt}?
+- Bad block signs: ?{low R, low point cnt, some T consistency rule}?
 - Need blocks to connect to more distant layers.
 - Need study correlation drop-off with layer dZ.
 - Need scape painter to observe fm's (and cropping).
@@ -85,6 +84,7 @@ look more like:
 - Need ptest to take params about which rgns go with this Tab hint.
 - Need some documentation.
 - Need methods paper, at some point.
+- Need scipts to qsub in batches and stay within 20000 limit.
 
 - What is current status regarding tools for Davi to smooth intensity
 distributions among neighbor tiles?
