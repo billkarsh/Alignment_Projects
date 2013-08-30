@@ -16,6 +16,7 @@
 
 #include	<string.h>
 
+#include	<algorithm>
 #include	<set>
 using namespace std;
 
@@ -37,13 +38,27 @@ using namespace std;
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+class BlkZ {
+
+public:
+	TAffine	T;
+	double	R;
+	int		Z,
+			used;
+
+public:
+	BlkZ( TAffine t, double r, int z )	{T=t; R=r; Z=z; used=0;};
+};
+
 class Pair {
 
 public:
-	int	a, b, it;
+	double	area;
+	int		id, iz;
 
 public:
-	Pair( int _a, int _b, int _it )	{a=_a; b=_b; it=_it;};
+	Pair()							{};	// for resize()
+	Pair( double a, int b, int z )	{area=a; id=b; iz=z;};
 };
 
 /* --------------------------------------------------------------- */
@@ -118,24 +133,28 @@ class CArgs_scp {
 
 public:
 	double	inv_abscl,
-			blkcorr,
+			blkmincorr,
+			blknomcorr,
 			abctr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	int		abscl,
 			ablgord,
-			absdev;
+			absdev,
+			dbgz;
 	bool	abdbg,
 			NoFolds;
 
 public:
 	CArgs_scp()
 	{
-		blkcorr		= 0.10;
+		blkmincorr	= 0.10;
+		blknomcorr	= 0.40;
 		abctr		= 0.0;
 		xyconf		= 0.50;
 		abscl		= 200;
 		ablgord		= 1;	// 3  probably good for Davi EM
 		absdev		= 0;	// 42 useful for Davi EM
+		dbgz		= -1;
 		abdbg		= false;
 		NoFolds		= false;
 
@@ -200,7 +219,9 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &blkcorr, "-blkcorr=%lf", argv[i] ) )
+		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
+			;
+		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
@@ -209,6 +230,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			if( xyconf < 0.0 || xyconf > 1.0 )
 				xyconf = 0.5;
 		}
+		else if( GetArg( &dbgz, "-abdbg=%d", argv[i] ) )
+			abdbg = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else if( IsArg( "-nf", argv[i] ) )
@@ -435,6 +458,9 @@ bool CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 
 	int	np = ws * hs, ok = true;
 
+	v.clear();
+	p.clear();
+
 	for( int i = 0; i < np; ++i ) {
 
 		if( ras[i] ) {
@@ -499,36 +525,29 @@ void CSuperscape::WriteMeta()
 /* --------------------------------------------------------------- */
 
 static void FindPairs(
-	vector<double>		&Asum,
-	vector<TAffine>		&vT,
-	vector<Pair>		&P,
-	const CSuperscape	&A,
-	const CSuperscape	&B )
+	const vector<BlkZ>		&vZ,
+	vector<vector<Pair> >	&P,
+	const CSuperscape		&A,
+	const CSuperscape		&B )
 {
-	int		it = vT.size() - 1;
-	TAffine	Tm = vT[it];
+	int		iz = vZ.size() - 1;
+	TAffine	Tm = vZ[iz].T;
 
-	for( int ka = 0; ka < gDat.ntil; ++ka ) {
+	for( int ia = 0; ia < gDat.ntil; ++ia ) {
 
-		int	ia = A.vID[ka];
+		int				aid = A.vID[ia];
+		vector<Pair>	&p  = P[ia];
+		TAffine			Ta  = Tm * TS.vtil[aid].T;
 
-		if( Asum[ka] >= kTileAnchorHi )
-			continue;
-
-		TAffine Ta = Tm * TS.vtil[ia].T;
-
-		for( int ib = B.is0; ib < B.isN; ++ib ) {
+		for( int bid = B.is0; bid < B.isN; ++bid ) {
 
 			TAffine	Tab;
-			Tab.FromAToB( Ta, TS.vtil[ib].T );
+			Tab.FromAToB( Ta, TS.vtil[bid].T );
 
-			double	area = TS.ABOlap( ia, ib, &Tab );
+			double	area = TS.ABOlap( aid, bid, &Tab );
 
-			if( area >= kPairOlapLo ) {
-
-				P.push_back( Pair( ia, ib, it ) );
-				Asum[ka] += area;
-			}
+			if( area >= kPairOlapLo )
+				p.push_back( Pair( area, bid, iz ) );
 		}
 	}
 }
@@ -537,13 +556,14 @@ static void FindPairs(
 /* ThisBZ -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void ThisBZ(
-	vector<double>		&Asum,
-	vector<TAffine>		&vT,
-	vector<Pair>		&P,
-	const CSuperscape	&A,
-	ThmRec				&thm,
-	int					&next_isN )
+// Return true if changes made.
+//
+static bool ThisBZ(
+	vector<BlkZ>			&vZ,
+	vector<vector<Pair> >	&P,
+	const CSuperscape		&A,
+	ThmRec					&thm,
+	int						&next_isN )
 {
 	clock_t		t0 = StartTiming();
 	CSuperscape	B;
@@ -555,19 +575,24 @@ static void ThisBZ(
 	B.SetLabel( 'B' );
 	next_isN = B.FindLayerIndices( next_isN );
 
+	if( gArgs.abdbg ) {
+		while( next_isN != -1 && TS.vtil[B.is0].z != gArgs.dbgz )
+			next_isN = B.FindLayerIndices( next_isN );
+	}
+
 	if( next_isN == -1 ) {
 		fprintf( flog, "$$$ Exhausted B layers $$$\n" );
-		return;
+		return false;
 	}
 
 	if( !B.MakeRasB( A.bb ) )
-		return;
+		return false;
 
 	B.DrawRas();
 
 	if( !B.MakePoints( thm.bv, thm.bp ) ) {
 		fprintf( flog, "No B points for z=%d.\n", TS.vtil[B.is0].z );
-		return;
+		return false;
 	}
 
 	B.WriteMeta();
@@ -584,7 +609,7 @@ static void ThisBZ(
 		Ry	= int((1.0 - gArgs.xyconf) * A.hs);
 
 	S.Initialize( flog, best );
-	S.SetRThresh( gArgs.blkcorr );
+	S.SetRThresh( gArgs.blkmincorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
@@ -606,7 +631,7 @@ static void ThisBZ(
 			fprintf( flog, "Low corr [%g] for z=%d.\n",
 			best.R, TS.vtil[B.is0].z );
 
-			return;
+			return false;
 		}
 
 		Point	Aorigin = A.Opts;
@@ -627,7 +652,7 @@ static void ThisBZ(
 	t0 = StopTiming( flog, "Corr", t0 );
 
 	if( gArgs.abdbg )
-		return;
+		return false;
 
 // Build: montage -> montage transform
 
@@ -647,11 +672,143 @@ static void ThisBZ(
 
 // Append to list
 
-	vT.push_back( best.T );
+	vZ.push_back( BlkZ( best.T, best.R, TS.vtil[B.is0].z ) );
 
 // Accumulate pairs
 
-	FindPairs( Asum, vT, P, A, B );
+	FindPairs( vZ, P, A, B );
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* OrderByR ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static const vector<BlkZ>	*_vZ;
+
+static bool OrderByR( const Pair &I, const Pair &J )
+{
+	return ((*_vZ)[I.iz].R > (*_vZ)[J.iz].R);
+}
+
+/* --------------------------------------------------------------- */
+/* BlockCoverage ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// For each tile, see how much area we can get using only
+// the highest quality tissue (returned prime coverage),
+// and including the lower quality tissue (scdry filled in).
+//
+static double BlockCoverage(
+	double					&scdry,
+	const vector<BlkZ>		&vZ,
+	vector<vector<Pair> >	&P )
+{
+	double	prime = 0;
+
+	scdry	= 0;
+	_vZ		= &vZ;
+
+	for( int ia = 0; ia < gDat.ntil; ++ia ) {
+
+		vector<Pair>	&p = P[ia];
+		double			sum = 0.0;
+		int				iblast = -1, nb = p.size();
+
+		sort( p.begin(), p.end(), OrderByR );
+
+		// first use only best (prime)
+
+		for( int ib = 0; ib < nb; ++ib ) {
+
+			if( vZ[p[ib].iz].R >= gArgs.blknomcorr )
+				sum += p[iblast = ib].area;
+			else
+				break;
+		}
+
+		if( sum >= kTileAnchorLo ) {
+			++prime;
+			++scdry;
+		}
+		else {	// try adding lesser quality (scdry)
+
+			for( int ib = iblast + 1; ib < nb; ++ib )
+				sum += p[ib].area;
+
+			if( sum >= kTileAnchorLo )
+				++scdry;
+		}
+	}
+
+	scdry /= gDat.ntil;
+
+	return prime / gDat.ntil;
+}
+
+/* --------------------------------------------------------------- */
+/* ZSeen --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return the fraction of maximal layer range that we've seen.
+//
+static double ZSeen( const vector<BlkZ> &vZ )
+{
+	double	nseen = vZ.size();
+
+// do at least two
+	if( nseen < 2 )
+		return 0.0;
+
+// actual fraction
+	const vector<CUTile>	&vU = TS.vtil;
+
+	return (nseen / (vU[vU.size()-1].z - vU[0].z));
+}
+
+/* --------------------------------------------------------------- */
+/* KeepBest ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void KeepBest(
+	vector<BlkZ>			&vZ,
+	vector<vector<Pair> >	&P )
+{
+	for( int ia = 0; ia < gDat.ntil; ++ia ) {
+
+		vector<Pair>	&p = P[ia];
+		double			sum = 0.0;
+		int				nb = p.size(),
+						ng = 0;	// count good b-tiles
+
+		// cover tile with highest quality
+
+		do {
+
+			if( ng >= nb )
+				break;
+
+			int	curz = p[ng].iz;
+
+			for( int ib = ng; ib < nb; ++ib ) {
+
+				if( p[ib].iz != curz )
+					break;
+
+				sum += p[ib].area;
+				++ng;
+
+				vZ[curz].used = 1;
+			}
+
+		} while( sum < kTileAnchorHi );
+
+		// kill the rest
+
+		if( ng < nb )
+			p.resize( ng );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -662,13 +819,17 @@ static void ThisBZ(
 // of images described by (P).
 //
 static void WriteMakeFile(
-	const vector<TAffine>	&vT,
-	const vector<Pair>		&P )
+	const CSuperscape			&A,
+	const vector<BlkZ>			&vZ,
+	const vector<vector<Pair> >	&P )
 {
 	FILE	*f;
-	int		np = P.size();
+	int		nz = vZ.size(), nused = 0;
 
-	if( !np ) {
+	for( int i = 0; i < nz; ++i )
+		nused += vZ[i].used;
+
+	if( !nused ) {
 		fprintf( flog, "FAIL: No tiles matched.\n" );
 		return;
 	}
@@ -681,12 +842,18 @@ static void WriteMakeFile(
 
 	fprintf( f, "all: " );
 
-	for( int i = 0; i < np; ++i ) {
+	for( int ia = 0; ia < gDat.ntil; ++ia ) {
 
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
+		const CUTile&		a  = TS.vtil[A.vID[ia]];
+		const vector<Pair>	&p = P[ia];
+		int					nb = p.size();
 
-		fprintf( f, "%d/%d.%d.map.tif ", A.id, B.z, B.id );
+		for( int ib = 0; ib < nb; ++ib ) {
+
+			const CUTile&	b = TS.vtil[p[ib].id];
+
+			fprintf( f, "%d/%d.%d.map.tif ", a.id, b.z, b.id );
+		}
 	}
 
 	fprintf( f, "\n\n" );
@@ -696,24 +863,31 @@ static void WriteMakeFile(
 
 	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
 
-	for( int i = 0; i < np; ++i ) {
+	for( int ia = 0; ia < gDat.ntil; ++ia ) {
 
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
-		TAffine			T;
+		const CUTile&		a  = TS.vtil[A.vID[ia]];
+		const vector<Pair>	&p = P[ia];
+		int					nb = p.size();
 
-		fprintf( f,
-		"%d/%d.%d.map.tif:\n",
-		A.id, B.z, B.id );
+		for( int ib = 0; ib < nb; ++ib ) {
 
-		T = vT[P[i].it] * A.T;
-		T.FromAToB( T, B.T );
+			const CUTile&	b = TS.vtil[p[ib].id];
+			TAffine			T;
 
-		fprintf( f,
-		"\tptest %d/%d@%d/%d -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
-		A.z, A.id, B.z, B.id,
-		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
-		option_nf );
+			fprintf( f,
+			"%d/%d.%d.map.tif:\n",
+			a.id, b.z, b.id );
+
+			T = vZ[p[ib].iz].T * a.T;
+			T.FromAToB( T, b.T );
+
+			fprintf( f,
+			"\tptest %d/%d@%d/%d"
+			" -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
+			a.z, a.id, b.z, b.id,
+			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+			option_nf );
+		}
 	}
 
 	fclose( f );
@@ -723,24 +897,20 @@ static void WriteMakeFile(
 /* WriteThumbFiles ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteThumbFiles( const vector<Pair> &P )
+static void WriteThumbFiles( const vector<BlkZ> &vZ )
 {
-	int	lastZ = -1, np = P.size();
+	int	nz = vZ.size();
 
-	for( int i = 0; i < np; ++i ) {
+	for( int iz = 0; iz < nz; ++iz ) {
 
-		int	z = TS.vtil[P[i].b].z;
+		if( !vZ[iz].used )
+			continue;
 
-		if( z != lastZ ) {
-
-			char	name[128];
-			sprintf( name, "ThmPair_%d_@_%d.txt", gDat.za, z );
-			FILE	*f = FileOpenOrDie( name, "w", flog );
-			WriteThmPairHdr( f );
-			fclose( f );
-
-			lastZ = z;
-		}
+		char	name[128];
+		sprintf( name, "ThmPair_%d_@_%d.txt", gDat.za, vZ[iz].Z );
+		FILE	*f = FileOpenOrDie( name, "w", flog );
+		WriteThmPairHdr( f );
+		fclose( f );
 	}
 }
 
@@ -750,34 +920,62 @@ static void WriteThumbFiles( const vector<Pair> &P )
 
 // Here's the strategy:
 // We paint a scape for the whole A-block and match it to the
-// nearest whole B-block below, and then we pair off the tiles.
+// scape for the nearest whole B-block below. If the correlation
+// (R-block) is at least blkmincorr then we use this B-block and
+// pair off the tiles. Otherwise, the match is too uncertain and
+// we ignore this B-block. Remember that the block match transform
+// will set a search disc for the tile-tile jobs, and this will not
+// be questioned at the tile level. Therefore, we need to feed very
+// reliable block-block matches to the tile jobs.
 //
-// An A-tile is paired to a B-tile if their overlap is >= 0.02.
-// Each A-tile keeps a running sum of these pairwise overlaps.
-// The summing of area is deliberately coarse: we just sum it
-// up over different B-tiles without worrying about orientation.
-// An A-tile is very well anchored if its area sum is > 0.80 and
-// is adequately anchored if sum > 0.30.
+// To do tile pairing, for each A-tile we keep a list of 'pair'
+// records with these fields {
+// - id of B-tile that overlaps it (iff overlap >= 0.02).
+// - the fractional overlap area.
+// - link (iz) to data about this B-block, especially R-block.
+// }
 //
-// Next we survey the results of the pair-ups by counting how many
-// A-tiles are adequately anchored. If the count is below 0.90 of
-// the total number of A-block tiles, we repeat the above process
-// by matching the A-block to the next lower B-block in the stack,
-// doing the tile-wise pairing, and accumulating overlap areas into
-// the existing A-tile sums.
+// Next we determine if we have enough high quality data matched
+// to our A-tiles, or we need to examine the next B-block. We have
+// enough data if at least 0.90 of the A-tiles have good matches,
+// or if we have already used the lowest allowed B-layer (zmin).
 //
-// That is repeated until the block is adequately anchored
-// or we have already used the lowest allowed B-layer (zmin).
+// The test of good matches for an A-tile goes like this:
+// - Sort its pair records, descending R order.
+// - Sum the fractional areas of records with R >= blknomcorr.
+// - Call this A-tile matched if its sum is >= 0.30.
+// Summing is admittedly coarse, we just sum fractional overlap
+// areas without regard to orientation, and it's good enough for
+// a coverage assessment.
+//
+// There's an additional clause to stop looking at more B-blocks
+// a bit earlier, and this really comes into play if few of the
+// blocks in this region are as good as blknomcorr. Let's call
+// the coverage obtained using only great tissue (> blknomcorr)
+// 'prime coverage' and the coverage we can get from all blocks
+// done so far 'secondary coverage'. If we've already looked at
+// half of the prospective blocks and the secondary coverage is
+// already adequate (0.90 A-tiles matched) then let's give up.
+//
+// Once we've finished accumulating pair records, we proceed
+// with writing the make.down job files. We do one A-tile at
+// a time. Its list of pair records is already sorted by R. As
+// we walk the pair list we keep a running sum of area. If the
+// current area sum is < 0.80, we sum in all of the tiles with
+// the current iz index (all come from the same layer) and we
+// write jobs for those matches. If the sum is still below 0.80
+// coverage we repeat for the next set of tiles with a poorer
+// quality, and so on until coverage is >= 0.80 or the records
+// are exhausted.
 //
 static void LayerLoop()
 {
-	clock_t			t0 = StartTiming();
-	vector<double>	Asum( gDat.ntil, 0.0 );
-	vector<TAffine>	vT;
-	vector<Pair>	P;
-	CSuperscape		A;
-	ThmRec			thm;
-	int				next_isN;
+	clock_t					t0 = StartTiming();
+	vector<BlkZ>			vZ;
+	vector<vector<Pair> >	P( gDat.ntil );
+	CSuperscape				A;
+	ThmRec					thm;
+	int						next_isN;
 
 	fprintf( flog, "\n--- Start A layer ----\n" );
 
@@ -791,48 +989,48 @@ static void LayerLoop()
 	A.WriteMeta();
 	t0 = StopTiming( flog, "MakeRasA", t0 );
 
-	double	finalgood = 0.0;
+	double	prime = 0.0, scdry = 0.0;
 
 	for(;;) {
 
 		// align B-block and pair tiles
 
-		int	psize = P.size();
-
-		ThisBZ( Asum, vT, P, A, thm, next_isN );
+		int	changed = ThisBZ( vZ, P, A, thm, next_isN );
 
 		// any changes to survey?
+
+		if( gArgs.abdbg )
+			return;
 
 		if( next_isN == -1 )
 			break;
 
-		if( P.size() <= psize )
+		if( !changed )
 			continue;
 
 		// survey the coverage
 
-		int	ngood = 0;
+		prime = BlockCoverage( scdry, vZ, P );
 
-		for( int i = 0; i < gDat.ntil; ++i ) {
+		fprintf( flog, "Block coverage prime %.2f scdry %.2f  Z %d\n",
+		prime, scdry, vZ[vZ.size()-1].Z );
 
-			if( Asum[i] >= kTileAnchorLo )
-				++ngood;
-		}
+		if( (prime >= kBlockAnchorHi) ||
+			(scdry >= kBlockAnchorHi && ZSeen( vZ ) >= 0.50) ) {
 
-		finalgood = (double)ngood / gDat.ntil;
-
-		fprintf( flog, "Block coverage %.2f\n", finalgood );
-
-		if( finalgood >= kBlockAnchorHi )
 			break;
+		}
 	}
 
-	fprintf( flog, "Final coverage %.2f\n", finalgood );
+	fprintf( flog,
+	"Final coverage prime %.2f scdry %.2f ntiles %d\n",
+	prime, scdry, gDat.ntil );
 
 	fprintf( flog, "\n--- Write Files ----\n" );
 
-	WriteMakeFile( vT, P );
-	WriteThumbFiles( P );
+	KeepBest( vZ, P );
+	WriteMakeFile( A, vZ, P );
+	WriteThumbFiles( vZ );
 }
 
 /* --------------------------------------------------------------- */
@@ -856,6 +1054,14 @@ int main( int argc, char* argv[] )
 /* --------------- */
 
 	gDat.ReadFile();
+
+	if( gArgs.abdbg ) {
+
+		if( gArgs.dbgz == -1 )
+			gArgs.dbgz = gDat.za - 1;
+
+		gDat.zmin = gArgs.dbgz;
+	}
 
 /* ---------------- */
 /* Read source data */

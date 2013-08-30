@@ -25,7 +25,8 @@ class CArgs_cross {
 
 public:
 	double	stpcorr,
-			blkcorr,
+			blkmincorr,
+			blknomcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	char	xmlfile[2048],
 			outdir[2048];
@@ -44,7 +45,8 @@ public:
 	CArgs_cross()
 	{
 		stpcorr		= 0.02;
-		blkcorr		= 0.10;
+		blkmincorr	= 0.10;
+		blknomcorr	= 0.40;
 		xyconf		= 0.50;
 		xmlfile[0]	= 0;
 		zmin		= 0;
@@ -131,7 +133,9 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
 			;
-		else if( GetArg( &blkcorr, "-blkcorr=%lf", argv[i] ) )
+		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
+			;
+		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
 
@@ -443,21 +447,22 @@ static void WriteCarvego()
 	fprintf( f, "# > cross_carveblocks myxml -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -b=10\t\t\t;ea. block roughly bXb tiles in area\n" );
-	fprintf( f, "# -nf\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
-	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -blkcorr=0.1\t;required min corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.5\t;search radius = (1-conf)(blockwide)\n" );
-	fprintf( f, "# -maxDZ=4\t\t;layers still correlate at this z-index span\n" );
+	fprintf( f, "# -b=10\t\t\t\t;ea. block roughly bXb tiles in area\n" );
+	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
+	fprintf( f, "# -abscl=200\t\t;integer scale reduction\n" );
+	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -absdev=0\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -blkmincorr=0.10\t;required min corr for alignment\n" );
+	fprintf( f, "# -blknomcorr=0.40\t;nominal corr for alignment\n" );
+	fprintf( f, "# -xyconf=0.5\t\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -blkcorr=%g -xyconf=%g\n",
+	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
-	gArgs.blkcorr, gArgs.xyconf );
+	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
 	fprintf( f, "\n" );
 
 	fclose( f );

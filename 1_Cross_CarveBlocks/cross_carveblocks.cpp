@@ -56,7 +56,8 @@ public:
 class CArgs_alnmon {
 
 public:
-	double	blkcorr,
+	double	blkmincorr,
+			blknomcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	char	xml_hires[2048];
 	int		zmin,
@@ -71,7 +72,8 @@ public:
 public:
 	CArgs_alnmon()
 	{
-		blkcorr			= 0.10;
+		blkmincorr		= 0.10;
+		blknomcorr		= 0.40;
 		xyconf			= 0.50;
 		xml_hires[0]	= 0;
 		zmin			= 0;
@@ -150,7 +152,9 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
-		else if( GetArg( &blkcorr, "-blkcorr=%lf", argv[i] ) )
+		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
+			;
+		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
 
@@ -193,14 +197,17 @@ static void WriteSubblocksFile()
 	fprintf( f, "# Do one block alignment job, data read from 'blockdat.txt'.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -nf\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
-	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -abwid=5\t\t;strips this many tiles wide on short axis\n" );
-	fprintf( f, "# -blkcorr=0.1\t;required min corr for alignment\n" );
-	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
-	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
+	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
+	fprintf( f, "# -abscl=200\t\t;integer scale reduction\n" );
+	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -absdev=0\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -abwid=5\t\t\t;strips this many tiles wide on short axis\n" );
+	fprintf( f, "# -blkmincorr=0.10\t;required min corr for alignment\n" );
+	fprintf( f, "# -blknomcorr=0.40\t;nominal corr for alignment\n" );
+	fprintf( f, "# -xyconf=0.5\t\t;search radius = (1-xyconf)*blkwide\n" );
+	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z@Z-1)\n" );
+	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z@k)\n" );
+	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
@@ -224,10 +231,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -blkcorr=%g -xyconf=%g\n",
+	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
 	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.abscl, gArgs.ablgord,
-	gArgs.absdev, gArgs.blkcorr, gArgs.xyconf );
+	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );

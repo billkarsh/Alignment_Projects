@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# Purpose:
+# Count all 'Dx_y' dirs in layer range
+#
+# > ./countdowndirs.sht i j
+
+
+export MRC_TRIM=12
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+cd ..
+
+cnt=0
+
+for lyr in $(seq $1 $last)
+do
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		cd $lyr
+
+		for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		do
+			cnt=$(($cnt+1))
+		done
+
+		cd ..
+	fi
+done
+
+echo down dirs = $cnt
+
