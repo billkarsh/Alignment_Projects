@@ -285,20 +285,20 @@ static void Write_crossgo()
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abwide=5\t\t\t;strip width in tiles\n" );
-	fprintf( f, "# -abscl=200\t\t;size reduction factor\n" );
+	fprintf( f, "# -abwide=15\t\t;strip width in tiles\n" );
+	fprintf( f, "# -abscl=50\t\t\t;size reduction factor\n" );
 	fprintf( f, "# -ablgord=1\t\t;Legendre poly max order\n" );
-	fprintf( f, "# -absdev=0\t\t\t;scape sdev size\n" );
+	fprintf( f, "# -absdev=42\t\t;scape sdev size\n" );
 	fprintf( f, "# -stpcorr=0.02\t\t;req. min strip corr\n" );
-	fprintf( f, "# -blkmincorr=0.10\t;required min corr for alignment\n" );
+	fprintf( f, "# -blkmincorr=0.15\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.40\t;nominal corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.5\t\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "# -xmltype=0\t\t;ImagePlus type code\n" );
 	fprintf( f, "# -xmlmin=0\t\t\t;intensity scale\n" );
 	fprintf( f, "# -xmlmax=0\t\t\t;intensity scale\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=5 -abscl=200 -ablgord=1 -absdev=42 -stpcorr=0.02 -blkmincorr=0.1 -blknomcorr=0.4 -xyconf=0.5%s\n",
+	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -abwide=15 -abscl=50 -ablgord=1 -absdev=42 -stpcorr=0.02 -blkmincorr=0.15 -blknomcorr=0.40 -xyconf=0.75%s\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
 	fprintf( f, "\n" );

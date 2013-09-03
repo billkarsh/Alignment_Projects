@@ -45,16 +45,16 @@ public:
 	CArgs_cross()
 	{
 		stpcorr		= 0.02;
-		blkmincorr	= 0.10;
+		blkmincorr	= 0.15;
 		blknomcorr	= 0.40;
-		xyconf		= 0.50;
+		xyconf		= 0.75;
 		xmlfile[0]	= 0;
 		zmin		= 0;
 		zmax		= 32768;
-		abwide		= 5;
-		abscl		= 200;
-		ablgord		= 1;	// 3  probably good for Davi EM
-		absdev		= 0;	// 42 useful for Davi EM
+		abwide		= 15;
+		abscl		= 50;
+		ablgord		= 1;	// 1  probably good for Davi EM
+		absdev		= 42;	// 42 useful for Davi EM
 		xml_type	= 0;
 		xml_min		= 0;
 		xml_max		= 0;
@@ -261,13 +261,13 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# -ab\t\t\t;align layer za to zb\n" );
 	fprintf( f, "# -za\t\t\t;layer za used only with -ab option\n" );
 	fprintf( f, "# -zb\t\t\t;required layer zb\n" );
-	fprintf( f, "# -mbscl=200\t;integer scale reduction\n" );
-	fprintf( f, "# -abscl=200\t;integer scale reduction\n" );
+	fprintf( f, "# -mbscl=50\t\t;integer scale reduction\n" );
+	fprintf( f, "# -abscl=50\t\t;integer scale reduction\n" );
 	fprintf( f, "# -mblgord=1\t;Legendre poly field-flat max int order\n" );
 	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -mbsdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -absdev=0\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -abwid=5\t\t;strips this many tiles wide on short axis\n" );
+	fprintf( f, "# -mbsdev=42\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -absdev=42\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -abwide=15\t;strips this many tiles wide on short axis\n" );
 	fprintf( f, "# -stpcorr=0.02\t;required min corr for alignment\n" );
 	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
 	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
@@ -449,12 +449,12 @@ static void WriteCarvego()
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -b=10\t\t\t\t;ea. block roughly bXb tiles in area\n" );
 	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=200\t\t;integer scale reduction\n" );
+	fprintf( f, "# -abscl=50\t\t\t;integer scale reduction\n" );
 	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=0\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -blkmincorr=0.10\t;required min corr for alignment\n" );
+	fprintf( f, "# -absdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -blkmincorr=0.15\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.40\t;nominal corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.5\t\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );

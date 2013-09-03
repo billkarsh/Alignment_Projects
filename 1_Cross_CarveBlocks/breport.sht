@@ -17,3 +17,5 @@ grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt
 
 grep -e "Final coverage" ../*/D*/cross_thisblock.log > BlockCoverage.txt
 
+grep -e "PeakHunt: Best" ../*/D*/cross_thisblock.log > BlockTForms.txt
+

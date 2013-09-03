@@ -11,14 +11,14 @@
 # Options:
 # -b=10				;ea. block roughly bXb tiles in area
 # -nf				;no foldmasks
-# -abscl=200		;integer scale reduction
+# -abscl=50			;integer scale reduction
 # -ablgord=1		;Legendre poly field-flat max int order
-# -absdev=0			;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
-# -blkmincorr=0.10	;required min corr for alignment
+# -absdev=42		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -blkmincorr=0.15	;required min corr for alignment
 # -blknomcorr=0.40	;nominal corr for alignment
-# -xyconf=0.5		;search radius = (1-conf)(blockwide)
+# -xyconf=0.75		;search radius = (1-conf)(blockwide)
 # -maxDZ=10			;layers still correlate at this z-index span
 
 
-cross_carveblocks HiRes.xml -zmin=0 -zmax=2 -nf -b=10 -abscl=8 -ablgord=1 -absdev=42 -blkmincorr=0.1 -blknomcorr=0.4 -xyconf=0.5
+cross_carveblocks HiRes.xml -zmin=0 -zmax=2 -nf -b=10 -abscl=50 -ablgord=1 -absdev=42 -blkmincorr=0.15 -blknomcorr=0.40 -xyconf=0.75
 

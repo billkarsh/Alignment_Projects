@@ -147,13 +147,13 @@ public:
 public:
 	CArgs_scp()
 	{
-		blkmincorr	= 0.10;
+		blkmincorr	= 0.15;
 		blknomcorr	= 0.40;
 		abctr		= 0.0;
-		xyconf		= 0.50;
-		abscl		= 200;
-		ablgord		= 1;	// 3  probably good for Davi EM
-		absdev		= 0;	// 42 useful for Davi EM
+		xyconf		= 0.75;
+		abscl		= 50;
+		ablgord		= 1;	// 1  probably good for Davi EM
+		absdev		= 42;	// 42 useful for Davi EM
 		dbgz		= -1;
 		abdbg		= false;
 		NoFolds		= false;

@@ -72,16 +72,16 @@ public:
 public:
 	CArgs_alnmon()
 	{
-		blkmincorr		= 0.10;
+		blkmincorr		= 0.15;
 		blknomcorr		= 0.40;
-		xyconf			= 0.50;
+		xyconf			= 0.75;
 		xml_hires[0]	= 0;
 		zmin			= 0;
 		zmax			= 32768;
 		blksize			= 10;
-		abscl			= 200;
-		ablgord			= 1;	// 3  probably good for Davi EM
-		absdev			= 0;	// 42 useful for Davi EM
+		abscl			= 50;
+		ablgord			= 1;	// 1  probably good for Davi EM
+		absdev			= 42;	// 42 useful for Davi EM
 		maxDZ			= 10;
 		NoFolds			= false;
 	};
@@ -198,13 +198,12 @@ static void WriteSubblocksFile()
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=200\t\t;integer scale reduction\n" );
+	fprintf( f, "# -abscl=50\t\t\t;integer scale reduction\n" );
 	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=0\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -abwid=5\t\t\t;strips this many tiles wide on short axis\n" );
-	fprintf( f, "# -blkmincorr=0.10\t;required min corr for alignment\n" );
+	fprintf( f, "# -absdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -blkmincorr=0.15\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.40\t;nominal corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.5\t\t;search radius = (1-xyconf)*blkwide\n" );
+	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z@Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z@k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
@@ -248,6 +247,62 @@ static void WriteSubblocksFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteCountdowndirsFile ---------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteCountdowndirsFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "countdowndirs.sht" );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Count all 'Dx_y' dirs in layer range\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./countdowndirs.sht i j\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cd ..\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cnt=0\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\techo $lyr\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
+	fprintf( f, "\t\t\tcnt=$(($cnt+1))\n" );
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "echo down dirs = $cnt\n" );
+	fprintf( f, "\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteReportFiles ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -279,6 +334,8 @@ static void WriteReportFiles()
 	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "grep -e \"Final coverage\" ../*/D*/cross_thisblock.log > BlockCoverage.txt\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "grep -e \"PeakHunt: Best\" ../*/D*/cross_thisblock.log > BlockTForms.txt\n" );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -661,6 +718,7 @@ int main( int argc, char* argv[] )
 /* ------------- */
 
 	WriteSubblocksFile();
+	WriteCountdowndirsFile();
 	WriteReportFiles();
 
 /* ----- */

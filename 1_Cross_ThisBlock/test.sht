@@ -5,13 +5,12 @@
 #
 # Options:
 # -nf				;no foldmasks
-# -abscl=200		;integer scale reduction
+# -abscl=50			;integer scale reduction
 # -ablgord=1		;Legendre poly field-flat max int order
-# -absdev=0			;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
-# -abwid=5			;strips this many tiles wide on short axis
-# -blkmincorr=0.10	;required min corr for alignment
+# -absdev=42		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -blkmincorr=0.15	;required min corr for alignment
 # -blknomcorr=0.40	;nominal corr for alignment
-# -xyconf=0.5		;search radius = (1-xyconf)*blkwide
+# -xyconf=0.75		;search radius = (1-xyconf)*blkwide
 # -abdbg			;make diagnostic images and exit (Z@Z-1)
 # -abdbg=k			;make diagnostic images and exit (Z@k)
 # -abctr=0			;debug at this a-to-b angle
@@ -19,5 +18,5 @@
 
 export MRC_TRIM=12
 
-qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -nf -abscl=50 -absdev=42 -blkmincorr=0.1 -blknomcorr=0.4 -xyconf=0.5
+qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -nf -abscl=50 -absdev=42 -blkmincorr=0.15 -blknomcorr=0.40 -xyconf=0.75
 

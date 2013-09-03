@@ -53,11 +53,13 @@ Conceptual Issues
 =================
 
 Use #36, compare to sk sampl3
+Use #30, compare to Munley
 
 kart priority: 32, 31, 30, ?{36, 39, 38, 34, 35}
 Best yet: 21.219 (8/19/13) kart 31
 Ribtect3 42R3
 Valhalla Armadillo M
+Sparco SPK-5 L
 
 - Agenda_101612.pptx good vision of big plan.
 

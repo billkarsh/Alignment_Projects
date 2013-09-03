@@ -8,18 +8,18 @@
 #
 # Options:
 # -nf				;no foldmasks
-# -abwide=5			;strip width in tiles
-# -abscl=200		;size reduction factor
+# -abwide=15		;strip width in tiles
+# -abscl=50			;size reduction factor
 # -ablgord=1		;Legendre poly max order
-# -absdev=0			;scape sdev size
+# -absdev=42		;scape sdev size
 # -stpcorr=0.02		;req. min strip corr
-# -blkmincorr=0.10	;required min corr for alignment
+# -blkmincorr=0.15	;required min corr for alignment
 # -blknomcorr=0.40	;nominal corr for alignment
-# -xyconf=0.5		;search radius = (1-conf)(blockwide)
+# -xyconf=0.75		;search radius = (1-conf)(blockwide)
 # -xmltype=0		;ImagePlus type code
 # -xmlmin=0			;intensity scale
 # -xmlmax=0			;intensity scale
 
 
-cross_topscripts newmons.xml -d=temp0 -zmin=7 -zmax=119 -nf -abwide=5 -abscl=200 -ablgord=3 -absdev=42 -stpcorr=0.02 -blkmincorr=0.1 -blknomcorr=0.4 -xyconf=0.5
+cross_topscripts newmons.xml -d=temp0 -zmin=7 -zmax=119 -nf -abwide=15 -abscl=50 -ablgord=1 -absdev=42 -stpcorr=0.02 -blkmincorr=0.15 -blknomcorr=0.40 -xyconf=0.75
 
