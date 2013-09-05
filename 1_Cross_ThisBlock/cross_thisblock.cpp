@@ -147,8 +147,8 @@ public:
 public:
 	CArgs_scp()
 	{
-		blkmincorr	= 0.15;
-		blknomcorr	= 0.40;
+		blkmincorr	= 0.45;
+		blknomcorr	= 0.50;
 		abctr		= 0.0;
 		xyconf		= 0.75;
 		abscl		= 50;

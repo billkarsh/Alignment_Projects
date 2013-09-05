@@ -45,8 +45,8 @@ public:
 	CArgs_cross()
 	{
 		stpcorr		= 0.02;
-		blkmincorr	= 0.15;
-		blknomcorr	= 0.40;
+		blkmincorr	= 0.45;
+		blknomcorr	= 0.50;
 		xyconf		= 0.75;
 		xmlfile[0]	= 0;
 		zmin		= 0;
@@ -452,8 +452,8 @@ static void WriteCarvego()
 	fprintf( f, "# -abscl=50\t\t\t;integer scale reduction\n" );
 	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
 	fprintf( f, "# -absdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -blkmincorr=0.15\t;required min corr for alignment\n" );
-	fprintf( f, "# -blknomcorr=0.40\t;nominal corr for alignment\n" );
+	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
+	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
