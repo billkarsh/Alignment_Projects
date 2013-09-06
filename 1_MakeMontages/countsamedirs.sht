@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # Purpose:
-# Count all 'Dx_y' dirs in layer range
+# Count all 'Sx_y' dirs in layer range
 #
-# > ./countdowndirs.sht i j
+# > ./countsamedirs.sht i j
 
 
 export MRC_TRIM=12
@@ -15,8 +15,6 @@ else
 	last=$2
 fi
 
-cd ..
-
 cnt=0
 
 for lyr in $(seq $1 $last)
@@ -25,7 +23,7 @@ do
 	then
 		cd $lyr
 
-		for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
 		do
 			cnt=$(($cnt+1))
 		done

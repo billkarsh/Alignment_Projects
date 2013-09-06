@@ -323,7 +323,6 @@ static void WriteCountdowndirsFile()
 	fprintf( f, "\n" );
 	fprintf( f, "for lyr in $(seq $1 $last)\n" );
 	fprintf( f, "do\n" );
-	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
@@ -333,11 +332,10 @@ static void WriteCountdowndirsFile()
 	fprintf( f, "\t\t\tcnt=$(($cnt+1))\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
+	fprintf( f, "\t\techo z= $lyr  cum= $cnt\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "echo down dirs = $cnt\n" );
 	fprintf( f, "\n" );
 
 	fclose( f );

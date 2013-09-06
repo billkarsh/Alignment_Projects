@@ -390,6 +390,58 @@ static void WriteSubmosFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteCountsamedirsFile ---------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteCountsamedirsFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/countsamedirs.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Count all 'Sx_y' dirs in layer range\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./countsamedirs.sht i j\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cnt=0\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tcd $lyr\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
+	fprintf( f, "\t\tdo\n" );
+	fprintf( f, "\t\t\tcnt=$(($cnt+1))\n" );
+	fprintf( f, "\t\tdone\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\t\techo z= $lyr  cum= $cnt\n" );
+	fprintf( f, "\t\tcd ..\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteSSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1316,6 +1368,7 @@ int main( int argc, char* argv[] )
 	WriteRunlsqFile();
 	//WriteSubmosFile();
 
+	WriteCountsamedirsFile();
 //	WriteSSubNFile( 4 );
 	WriteSSubNFile( 8 );
 //	WriteDSubNFile( 4 );
