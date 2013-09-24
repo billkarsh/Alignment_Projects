@@ -161,7 +161,7 @@ void MSimlr::SolveFromPoints(
 // transforms. We will need these to formulate further
 // constraints on the global shape and scale.
 
-	WriteSolveRead( X, LHS, RHS, "S-FromPts", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "S-FrmPts", nproc, false );
 	PrintMagnitude( X );
 }
 

@@ -578,7 +578,7 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "S-FromClx", 1, true );
+	WriteSolveRead( X, LHS, RHS, "S-FrmClx", 1, true );
 
 // Return
 
@@ -622,7 +622,7 @@ TAffine CTileSet::AffineFromClix( const TSClix &clk )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "A-FromClx", 1, true );
+	WriteSolveRead( X, LHS, RHS, "A-FrmClx", 1, true );
 
 // Return
 

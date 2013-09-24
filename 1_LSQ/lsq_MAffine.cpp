@@ -724,7 +724,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromFile", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "A-FrmFil", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -829,7 +829,7 @@ void MAffine::AffineFromFile2( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromFile2", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "A-FrmFil2", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );

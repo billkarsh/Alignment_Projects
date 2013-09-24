@@ -617,7 +617,7 @@ void MAffine::AffineFromTrans( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromT", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "A-FrmT", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -708,7 +708,7 @@ void MAffine::AffineFromAffine( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromA", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "A-FrmA", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -798,7 +798,7 @@ void MAffine::AffineFromAffine2( vector<double> &X, int nTr )
 	//SolveWithSquareness( X, LHS, RHS, nTr );
 	//SolveWithUnitMag( X, LHS, RHS, nTr );
 
-	WriteSolveRead( X, LHS, RHS, "A-FromA2", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "A-FrmA2", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -891,7 +891,7 @@ void MHmgphy::HmgphyFromTrans( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromT", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "H-FrmT", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );
@@ -1121,7 +1121,7 @@ void MHmgphy::HmgphyFromHmgphy_ForceGH( vector<double> &X, int nTr )
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FromA", nproc, false );
+	WriteSolveRead( X, LHS, RHS, "H-FrmA", nproc, false );
 	PrintMagnitude( X );
 
 	RescaleAll( X, sc );

@@ -1,9 +1,9 @@
 
-==========================
-Project folder and input
-==========================
+====================
+Assemble materials
+====================
 
-To get started, we need to gather:
+To get started, we need to assemble:
 - Project folder, we'll call it DEMO in this tutorial.
 - Parameter folder and file.
 - Input data file.
@@ -59,49 +59,85 @@ Edit topgo.sht, especially to name input file and layer range:
 topscripts Z879-1088.txt -idb=idb0 -zmin=879 -zmax=1088 -nf
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-========================
-Finish workspace setup
-========================
+===================
+Begin processing
+===================
 
-# First script.
++++++
+topgo
++++++
+
 > ./topgo.sht
 
-# This creates several new sht scripts:
-# {crossgo, dbgo, mongo, upmongo}
-# To make montages alone, we only need:
-# {dbgo, mongo}.
+This creates several new sht scripts:
+- crossgo, dbgo, mongo, upmongo.
 
-# Convert the input Rick file to an image database.
-# Edit dbgo.sht as needed (probably need to add a
-# specification for a cropping file -crop=mycropfile).
+However, to make montages alone, we only need:
+- dbgo, mongo.
+
+++++
+dbgo
+++++
+
+Next we convert the input Rick file or XML into an image database. Edit dbgo.sht as needed (e.g. add cropping file option -crop=mycropfile).
+
 > ./dbgo.sht
 
-# Read makeidb.log file for any error messages.
+Read makeidb.log file for any error messages.
 
-# Edit mongo.sht to add '-davinc -minareafrac=0.01'
++++++
+mongo
++++++
+
+Mongo.sht examines the input tile positions and pairs up tiles that have sufficient overlap. Sublists of tile pairs are distributed into several 2D grid cells we call blocks, and these are labeled Sx_y. Mongo creates a subfolder for each block and writes a make file 'make.same' within each that lists tile pairs to match. Each cluster node gets at most two make files to process.
+
+Before running, edit mongo.sht to add options '-davinc -minareafrac=0.01'.
+
 > ./mongo.sht
 
-# Read makemontages.log file for any error messages.
+Read makemontages.log file for any error messages.
 
-# Mongo.sht examines the input tile positions and
-# pairs up tiles that have sufficient overlap. Lists
-# of tile pairs are distributed into several make files,
-# one make file per cluster job, one make file per block
-# Sx_y, (x,y) indexing the block's grid location. Mongo
-# also creates a hierarchy of layer/block subfolders
-# to receive cluster output.
+========================
+Submit make.same files
+========================
 
-=======================================
-Submit montage make files to cluster
-=======================================
+Enter the work folder created by mongo.
 
 > cd temp0
 
-# Run your layers of interest
-> ./ssub8.sht 879 1088
+Each layer is tiled by several blocks, and if there are many layers one could overfill the job submission queue. Get the cummulative count of blocks in a layer range, using:
 
-# This submits lists of jobs named by pattern 'qSx_y-z'
-# where (x,y) are block indices and z is the layer index.
+> countsamedirs.sht 879 1088
 
-# Periodically check for completion of all jobs
+If the number exceeds 20,000 then do subranges, like this:
+
+> ./ssub8.sht 879 988
+# ...wait for enough jobs to finish...
+> ./ssub8.sht 989 1088
+
+Enqueued jobs are named by pattern 'qSx_y-z' where (x,y) are block indices and z is the layer index.
+
+Periodically check for completion of all jobs.
+
 > qstat
+
+=====================
+Sanity check points
+=====================
+
+> ./sreport.sht 879 1088
+
+This creates three report files:
+- SameErrs.txt
+- SameNopts.txt
+- SamePts.txt
+
+SameErrs: Each line is the size (from ls command) of the stderr file for a make.same. These lines should all report zero file size. Note that when jobs are submitted via make files, a fatal error not only kills results for that pair of images, but further kills the whole make file. Errors of this type are quite significant.
+
+SameNopts: Each line is a block (z/Sx_y subdir) whose make file produced no points. This is a severe error usually caused by a bad path or a very bad parameter value. This report should be entirely empty, unless you know the sample is so bad in a region that getting no points there is rational.
+
+SamePts: Each line is a file size (from ls) of the pts.same file for a block. Since mongo does a good job of balancing the sizes of make files we expect good consistency for the number of points found in all parts of a montage, and even all parts of a volume. An outlier point count is suspicious.
+
+
+
+

@@ -287,7 +287,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	for( int iz = 1; iz < nz; ++iz ) {
 
 		fprintf( f,
-		"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
+		"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
 		" scapeops %s -za=%d -zb=%d\n",
 		zlist[iz - 1],
 		sopt, zlist[iz], zlist[iz - 1] );
@@ -299,7 +299,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# Just montage last layer\n" );
 
 	fprintf( f,
-	"qsub -N rd-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
+	"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
 	" scapeops '%s' -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
 	" -zb=%d\n",
 	zlist[nz - 1],
