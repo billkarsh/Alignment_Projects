@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Purpose:
+# Merge TAffineTable TForms and idb into new Bill file called TAffineTableEx.txt.
+#
+# > taffinetableex tablepath idbpath
+
+
+taffinetableex TAffineTable.txt ../../idb0
+
