@@ -30,7 +30,7 @@
 class CHst {
 
 public:
-	int	*all, *sam, *dwn;
+	long	*all, *sam, *dwn;
 
 public:
 	void GetFile( const char *name );
@@ -126,11 +126,11 @@ void CHst::GetFile( const char *name )
 	FILE		*f = FileOpenOrDie( name, "r" );
 	CLineScan	LS;
 	int			emax	= gArgs.lim * gArgs.div;
-	int			bytes	= (emax + 1)*sizeof(int);
+	int			bytes	= (emax + 1)*sizeof(long);
 
-	all = (int*)malloc( bytes );
-	sam = (int*)malloc( bytes );
-	dwn = (int*)malloc( bytes );
+	all = (long*)malloc( bytes );
+	sam = (long*)malloc( bytes );
+	dwn = (long*)malloc( bytes );
 
 	memset( all, 0, bytes );
 	memset( sam, 0, bytes );
@@ -186,14 +186,14 @@ static void Record()
 		if( gArgs.inB ) {
 
 			fprintf( flog,
-			"%.2f\t%d\t%d\t%d\t%d\t%d\t%d\n",
+			"%.2f\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
 			double(i + 1)/gArgs.div,
 			A.all[i], A.sam[i], A.dwn[i],
 			B.all[i], B.sam[i], B.dwn[i] );
 		}
 		else {
 			fprintf( flog,
-			"%.2f\t%d\t%d\t%d\n",
+			"%.2f\t%ld\t%ld\t%ld\n",
 			double(i + 1)/gArgs.div,
 			A.all[i], A.sam[i], A.dwn[i] );
 		}
