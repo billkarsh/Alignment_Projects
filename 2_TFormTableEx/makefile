@@ -19,11 +19,11 @@ SYMBOLS_MYPROJ := -DTIXML_USE_STL
 # =======
 
 SOURCES_MYPROJ := \
-	taffinetableex.cpp
+	tformtableex.cpp
 
 _SRC_GEN_ := \
 	Cmdline.cpp Disk.cpp File.cpp \
-	PipeFiles.cpp TAffine.cpp
+	PipeFiles.cpp TAffine.cpp THmgphy.cpp
 
 SOURCES_GEN :=  \
 	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
@@ -32,7 +32,7 @@ SOURCES_GEN :=  \
 # build
 # =====
 
-taffinetableex:
+tformtableex:
 	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
 $(OUTPUT) \
     \

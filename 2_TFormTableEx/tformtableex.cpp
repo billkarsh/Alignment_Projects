@@ -1,5 +1,6 @@
 //
-// Merge TAffineTable and idb into new Bill file.
+// Merge {TAffineTable or THmgphyTable}
+// and idb into new Bill file.
 //
 
 #include	"Cmdline.h"
@@ -25,12 +26,14 @@ class CArgs {
 public:
 	char	*inpath,
 			*idb;
+	double	degcw;
 
 public:
 	CArgs()
 	{
 		inpath	= NULL;
 		idb		= NULL;
+		degcw	= 0.0;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -56,7 +59,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "TAffineTable.log", "w" );
+	flog = FileOpenOrDie( "TFormTable.log", "w" );
 
 // log start time
 
@@ -72,7 +75,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 3 ) {
 		printf(
-		"Usage: taffinetable table idb\n" );
+		"Usage: tformtable table idb\n" );
 		exit( 42 );
 	}
 
@@ -88,6 +91,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			else
 				idb = argv[i];
 		}
+		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
+			;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -99,36 +104,93 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* Merge --------------------------------------------------------- */
+/* MergeH -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Merge()
+static void MergeH()
 {
 	FILE		*fi = FileOpenOrDie( gArgs.inpath, "r" );
-	FILE		*fo = FileOpenOrDie( "TAffineTableEx.txt", "w" );
+	FILE		*fo = FileOpenOrDie( "THmgphyTableEx.txt", "w" );
 	CLineScan	LS;
 	string		idb = gArgs.idb;
+	THmgphy		R;
+
+	if( gArgs.degcw )
+		R.NUSetRot( gArgs.degcw * PI/180.0 );
 
 	while( LS.Get( fi ) > 0 ) {
 
-		double	t[6];
+		THmgphy	T;
 		int		z, id, rgn;
 
 		sscanf( LS.line, "%d\t%d\t%d"
-		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 		&z, &id, &rgn,
-		&t[0], &t[1], &t[2], &t[3], &t[4], &t[5] );
+		&T.t[0], &T.t[1], &T.t[2],
+		&T.t[3], &T.t[4], &T.t[5],
+		&T.t[6], &T.t[7] );
 
 		const Til2Img	*t2i;
 
 		if( !IDBT2ICacheNGet1( t2i, idb, z, id, flog ) )
 			continue;
 
+		if( gArgs.degcw )
+			T = R * T;
+
+		fprintf( fo, "%d\t%d"
+		"\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f"
+		"\t%d\t%d\t%d\t%s\n",
+		z, id,
+		T.t[0], T.t[1], T.t[2],
+		T.t[3], T.t[4], T.t[5],
+		T.t[6], T.t[7],
+		t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
+	}
+
+	fclose( fo );
+	fclose( fi );
+}
+
+/* --------------------------------------------------------------- */
+/* MergeA -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void MergeA()
+{
+	FILE		*fi = FileOpenOrDie( gArgs.inpath, "r" );
+	FILE		*fo = FileOpenOrDie( "TAffineTableEx.txt", "w" );
+	CLineScan	LS;
+	string		idb = gArgs.idb;
+	TAffine		R;
+
+	if( gArgs.degcw )
+		R.NUSetRot( gArgs.degcw * PI/180.0 );
+
+	while( LS.Get( fi ) > 0 ) {
+
+		TAffine	T;
+		int		z, id, rgn;
+
+		sscanf( LS.line, "%d\t%d\t%d"
+		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		&z, &id, &rgn,
+		&T.t[0], &T.t[1], &T.t[2],
+		&T.t[3], &T.t[4], &T.t[5] );
+
+		const Til2Img	*t2i;
+
+		if( !IDBT2ICacheNGet1( t2i, idb, z, id, flog ) )
+			continue;
+
+		if( gArgs.degcw )
+			T = R * T;
+
 		fprintf( fo, "%d\t%d"
 		"\t%f\t%f\t%f\t%f\t%f\t%f"
 		"\t%d\t%d\t%d\t%s\n",
 		z, id,
-		t[0], t[1], t[2], t[3], t[4], t[5],
+		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
 		t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
 	}
 
@@ -152,7 +214,10 @@ int main( int argc, char* argv[] )
 /* Merge */
 /* ----- */
 
-	Merge();
+	if( FileNamePtr( gArgs.inpath )[1] == 'H' )
+		MergeH();
+	else
+		MergeA();
 
 /* ---- */
 /* Done */

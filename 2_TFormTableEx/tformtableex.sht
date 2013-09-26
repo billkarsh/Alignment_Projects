@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Purpose:
+# Merge TForms from either {TAffineTable or THmgphyTable}
+# and idb metadata into new Bill file called TxxxTableEx.txt.
+#
+# > tformtableex tablepath idbpath
+#
+# Options:
+# -degcw=0			;rotate CW degrees
+
+
+tformtableex TAffineTable.txt ../../idb0
+
