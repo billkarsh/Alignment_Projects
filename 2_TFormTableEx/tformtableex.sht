@@ -8,6 +8,8 @@
 #
 # Options:
 # -degcw=0			;rotate CW degrees
+# -width=0			;image width (required with degcw)
+# -height=0			;image height (required with degcw)
 
 
 tformtableex TAffineTable.txt ../../idb0

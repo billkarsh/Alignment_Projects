@@ -27,6 +27,7 @@ public:
 	char	*inpath,
 			*idb;
 	double	degcw;
+	int		w, h;
 
 public:
 	CArgs()
@@ -34,6 +35,8 @@ public:
 		inpath	= NULL;
 		idb		= NULL;
 		degcw	= 0.0;
+		w		= 0;
+		h		= 0;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -93,10 +96,19 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
 			;
+		else if( GetArg( &w, "-width=%d", argv[i] ) )
+			;
+		else if( GetArg( &h, "-height=%d", argv[i] ) )
+			;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
 		}
+	}
+
+	if( degcw && (w <= 0 || h <= 0) ) {
+		printf( "degcw option requires positive w & h.\n" );
+		exit( 42 );
 	}
 
 	fprintf( flog, "\n\n" );
@@ -107,6 +119,51 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 /* MergeH -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static void GetXYH(
+	double			&x0,
+	double			&y0,
+	const THmgphy	&R,
+	FILE			*fi )
+{
+	CLineScan	LS;
+
+	x0 = BIGD;
+	y0 = BIGD;
+
+	while( LS.Get( fi ) > 0 ) {
+
+		THmgphy	T;
+		int		z, id, rgn;
+
+		sscanf( LS.line, "%d\t%d\t%d"
+		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		&z, &id, &rgn,
+		&T.t[0], &T.t[1], &T.t[2],
+		&T.t[3], &T.t[4], &T.t[5],
+		&T.t[6], &T.t[7] );
+
+		T = R * T;
+
+		vector<Point>	cnr( 4 );
+
+		cnr[0] = Point(  0.0, 0.0 );
+		cnr[1] = Point( gArgs.w-1, 0.0 );
+		cnr[2] = Point( gArgs.w-1, gArgs.h-1 );
+		cnr[3] = Point(  0.0, gArgs.h-1 );
+
+		T.Transform( cnr );
+
+		for( int k = 0; k < 4; ++k ) {
+
+			x0 = fmin( x0, cnr[k].x );
+			y0 = fmin( y0, cnr[k].y );
+		}
+	}
+
+	fseek( fi, 0, SEEK_SET );
+}
+
+
 static void MergeH()
 {
 	FILE		*fi = FileOpenOrDie( gArgs.inpath, "r" );
@@ -114,9 +171,14 @@ static void MergeH()
 	CLineScan	LS;
 	string		idb = gArgs.idb;
 	THmgphy		R;
+	double		x0 = 0, y0 = 0;
 
-	if( gArgs.degcw )
+	if( gArgs.degcw ) {
 		R.NUSetRot( gArgs.degcw * PI/180.0 );
+		GetXYH( x0, y0, R, fi );
+	}
+
+	THmgphy	S( 1, 0, -x0, 0, 1, -y0, 0, 0 );
 
 	while( LS.Get( fi ) > 0 ) {
 
@@ -136,10 +198,10 @@ static void MergeH()
 			continue;
 
 		if( gArgs.degcw )
-			T = R * T;
+			T = S * (R * T);
 
 		fprintf( fo, "%d\t%d"
-		"\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f"
+		"\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g"
 		"\t%d\t%d\t%d\t%s\n",
 		z, id,
 		T.t[0], T.t[1], T.t[2],
@@ -156,6 +218,50 @@ static void MergeH()
 /* MergeA -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static void GetXYA(
+	double			&x0,
+	double			&y0,
+	const TAffine	&R,
+	FILE			*fi )
+{
+	CLineScan	LS;
+
+	x0 = BIGD;
+	y0 = BIGD;
+
+	while( LS.Get( fi ) > 0 ) {
+
+		TAffine	T;
+		int		z, id, rgn;
+
+		sscanf( LS.line, "%d\t%d\t%d"
+		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		&z, &id, &rgn,
+		&T.t[0], &T.t[1], &T.t[2],
+		&T.t[3], &T.t[4], &T.t[5] );
+
+		T = R * T;
+
+		vector<Point>	cnr( 4 );
+
+		cnr[0] = Point(  0.0, 0.0 );
+		cnr[1] = Point( gArgs.w-1, 0.0 );
+		cnr[2] = Point( gArgs.w-1, gArgs.h-1 );
+		cnr[3] = Point(  0.0, gArgs.h-1 );
+
+		T.Transform( cnr );
+
+		for( int k = 0; k < 4; ++k ) {
+
+			x0 = fmin( x0, cnr[k].x );
+			y0 = fmin( y0, cnr[k].y );
+		}
+	}
+
+	fseek( fi, 0, SEEK_SET );
+}
+
+
 static void MergeA()
 {
 	FILE		*fi = FileOpenOrDie( gArgs.inpath, "r" );
@@ -163,9 +269,12 @@ static void MergeA()
 	CLineScan	LS;
 	string		idb = gArgs.idb;
 	TAffine		R;
+	double		x0, y0;
 
-	if( gArgs.degcw )
+	if( gArgs.degcw ) {
 		R.NUSetRot( gArgs.degcw * PI/180.0 );
+		GetXYA( x0, y0, R, fi );
+	}
 
 	while( LS.Get( fi ) > 0 ) {
 
@@ -183,8 +292,11 @@ static void MergeA()
 		if( !IDBT2ICacheNGet1( t2i, idb, z, id, flog ) )
 			continue;
 
-		if( gArgs.degcw )
+		if( gArgs.degcw ) {
 			T = R * T;
+			T.t[2] -= x0;
+			T.t[5] -= y0;
+		}
 
 		fprintf( fo, "%d\t%d"
 		"\t%f\t%f\t%f\t%f\t%f\t%f"

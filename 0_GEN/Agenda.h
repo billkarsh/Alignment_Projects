@@ -55,7 +55,7 @@ Conceptual Issues
 Use #36, compare to sk sampl3
 Use #30, compare to Munley - no grip, 36 much better
 
-kart priority: 31, 36, 32, ?{39, 38, 34, 30, 33, 35}
+kart priority: 31, 36, 32, 38, ?{39, 34, 30, 33, 35}
 Best yet: 21.183 (9/9/13) kart 36
 Ribtect3 42R3
 Valhalla Armadillo M

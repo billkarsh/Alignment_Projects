@@ -491,7 +491,7 @@ void MHmgphy::WriteTransforms(
 
 		++nTr;
 
-		fprintf( ft, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
+		fprintf( ft, "%d\t%d\t%d\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
 		I.z, I.id, I.rgn,
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5],
@@ -499,14 +499,14 @@ void MHmgphy::WriteTransforms(
 
 		if( !bstrings ) {
 
-			fprintf( FOUT, "THMGPHY %d.%d:%d %f %f %f %f %f %f %f %f\n",
+			fprintf( FOUT, "THMGPHY %d.%d:%d %g %g %g %g %g %g %g %g\n",
 			I.z, I.id, I.rgn,
 			X[j  ], X[j+1], X[j+2],
 			X[j+3], X[j+4], X[j+5],
 			X[j+6], X[j+7] );
 		}
 		else {
-			fprintf( FOUT, "THMGPHY '%s::%d' %f %f %f %f %f %f %f %f\n",
+			fprintf( FOUT, "THMGPHY '%s::%d' %g %g %g %g %g %g %g %g\n",
 			I.GetName(), I.rgn,
 			X[j  ], X[j+1], X[j+2],
 			X[j+3], X[j+4], X[j+5],
@@ -735,7 +735,7 @@ void MHmgphy::WriteJython(
 
 		TopLeft( y_orig, x_orig, T, gW, gH, trim );
 
-		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f, %f, %f]%s\n",
+		fprintf( f, "\"%s\" : [%g, %g, %g, %g, %g, %g, %g, %g]%s\n",
 			path,
 			X[j+0], X[j+3], X[j+6],
 			X[j+1], X[j+4], X[j+7],
