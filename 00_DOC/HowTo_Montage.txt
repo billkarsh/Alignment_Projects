@@ -91,7 +91,8 @@ mongo
 
 Mongo.sht examines the input tile positions and pairs up tiles that have sufficient overlap. Sublists of tile pairs are distributed into several 2D grid cells we call blocks, and these are labeled Sx_y. Mongo creates a subfolder for each block and writes a make file 'make.same' within each that lists tile pairs to match. Each cluster node gets at most two make files to process.
 
-Before running, edit mongo.sht to add options '-davinc -minareafrac=0.01'.
+IMPORTANT:
+Before running Bock lab data, edit mongo.sht to add options '-davinc -minareafrac=0.01'.
 
 > ./mongo.sht
 
@@ -132,12 +133,53 @@ This creates three report files:
 - SameNopts.txt
 - SamePts.txt
 
-SameErrs: Each line is the size (from ls command) of the stderr file for a make.same. These lines should all report zero file size. Note that when jobs are submitted via make files, a fatal error not only kills results for that pair of images, but further kills the whole make file. Errors of this type are quite significant.
+SameErrs: Each line is the size (from ls command) of the stderr file for a block's make.same. These lines should all report zero file size. Note that when jobs are submitted via make files, a fatal error not only kills results for that pair of images, but further kills the whole make file. Errors of this type are quite significant.
 
 SameNopts: Each line is a block (z/Sx_y subdir) whose make file produced no points. This is a severe error usually caused by a bad path or a very bad parameter value. This report should be entirely empty, unless you know the sample is so bad in a region that getting no points there is rational.
 
 SamePts: Each line is a file size (from ls) of the pts.same file for a block. Since mongo does a good job of balancing the sizes of make files we expect good consistency for the number of points found in all parts of a montage, and even all parts of a volume. An outlier point count is suspicious.
 
+=============================
+Submit montage fitting jobs
+=============================
 
+Having made all the pts.same files which collect correspondence point pairs associated with each block, we can now sweep up all these and solve for the transforms that compose montages.
+
+> ./submon.sht 879 1088
+
+Enqueued jobs are named 'mon-z' where z is a layer index.
+
+Periodically check for completion of all jobs.
+
+> qstat
+
+==================
+Inspect results
+==================
+
+Each layer's montaging work is done within a folder 'temp0/z/montage' where z is a layer index.
+
+Each montage job gets a master log file called 'temp0/z/montage/lsq.txt' as well as other reports in the montage folder listing suspicious results.
+
+A quick summary report over all layers is obtained at the temp0 level using:
+
+> ./sumymons.sht 879 1088
+
+This creates 'MonSumy.txt' which shows for each layer's montage:
+- RMS error:	Should be < 5 for EM, < 1 for optical
+- Max error:	Usually not a strong indicator of problems
+- Ignored:		Count of tiles excluded by poor connectivity
+
+===============
+Fetch results
+===============
+
+Within each montage folder (temp0/z/montage) find key output files:
+- MultLayAff.xml	# TrakEM2 for this layer
+- TAffineTable.txt	# Table of affines labeled by {z,tile-id,rgn-id}.
+
+To get an expanded version of TAffineTable.txt that links these data to other meta-data from the idb, you can cp/edit/run the script found at ???/Alignment_Projects/2_TFormTableEx/tformtableex.sht.
+
+Currently this operates on one layer at a time.
 
 
