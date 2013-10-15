@@ -14,5 +14,5 @@ clean :
 	rm -f *.o
 
 $(appname) : .CHECK_GENLIB ${objs}
-	$(CC) $(CFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

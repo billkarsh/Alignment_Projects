@@ -1,74 +1,28 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
-
-# =====
-# paths
-# =====
-
-PATH_OUT := $(PATH_OUT)/compiletest
 
 # =======
 # defines
 # =======
 
-SYMBOLS_MYPROJ := -DTIXML_USE_STL -DTINYSTAT
+# -DTINYSTAT: Really lives in Maths.cpp, so we need to revisit this
+# when doing foldmasks for real.
+#
 
-# =======
-# sources
-# =======
+CFLAGS += -DTINYSTAT
 
-SOURCES_MYPROJ := \
-	two.cpp
+appname = two
 
-_SRC_XML_ := \
-	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+files =\
+ two.cpp
 
-SOURCES_XML := \
-	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
+objs = ${files:.cpp=.o}
 
-_SRC_UTL_ := \
-	jh6.cpp ls_svd.cpp \
-	numerical_recipes.cpp mrc.cpp
+all : $(appname)
 
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
+clean :
+	rm -f *.o
 
-_SRC_GEN_ := \
-	Disk.cpp File.cpp PipeFiles.cpp ImageIO.cpp \
-	FoldMask.cpp Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp TAffine.cpp CPicBase.cpp \
-	CTemplate.cpp CCorrImages.cpp Debug.cpp
-
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-two:
-	$(shell mkdir -p $(PATH_OUT)) \
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_XML) \
-    \
-$(SOURCES_UTL) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB .DEV_MKDIR ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(DEV_OUTPUT)
 

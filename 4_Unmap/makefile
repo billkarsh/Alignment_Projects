@@ -1,65 +1,20 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =====
-# paths
-# =====
+CFLAGS += -g
 
-PATH_OUT := $(PATH_OUT)/compiletest
+appname = unmap
 
-# =======
-# defines
-# =======
+files =\
+ unmap.cpp
 
-CFLAGS := -g	# degug (GDB)
+objs = ${files:.cpp=.o}
 
-SYMBOLS_MYPROJ :=
+all : $(appname)
 
-# =======
-# sources
-# =======
+clean :
+	rm -f *.o
 
-SOURCES_MYPROJ := \
-	unmap.cpp
-
-_SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
-
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
-
-_SRC_GEN_ := \
-	File.cpp ImageIO.cpp Maths.cpp TAffine.cpp \
-	Debug.cpp
-
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-unmap:
-	$(shell mkdir -p $(PATH_OUT)) \
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_UTL) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB .DEV_MKDIR ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(DEV_OUTPUT)
 

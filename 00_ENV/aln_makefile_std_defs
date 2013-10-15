@@ -154,15 +154,28 @@ OUTPUT = -o $(PATH_OUT)/$@
 .CHECK_ALL_LIBS : .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
 
 .CHECK_GENLIB :
-	@ (cd $(PATH_GEN) && $(MAKE);)
+	@ (cd $(PATH_GEN) && $(MAKE))
 
 .CHECK_UTLLIB :
-	@ (cd $(PATH_UTL) && $(MAKE);)
+	@ (cd $(PATH_UTL) && $(MAKE))
 
 .CHECK_TNYLIB :
-	@ (cd $(PATH_XML) && $(MAKE);)
+	@ (cd $(PATH_XML) && $(MAKE))
 
 .PHONY : .CHECK_ALL_LIBS .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
+
+# =================
+# development rules
+# =================
+
+DEV_PATH := $(PATH_OUT)/devtest
+
+DEV_OUTPUT = -o $(DEV_PATH)/$@
+
+.DEV_MKDIR :
+	@ (mkdir -p $(DEV_PATH))
+
+.PHONY : .DEV_MKDIR
 
 # =============================================
 # =============================================

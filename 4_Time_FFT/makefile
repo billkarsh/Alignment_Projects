@@ -1,48 +1,18 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =====
-# paths
-# =====
+appname = time_fft
 
-PATH_OUT := $(PATH_OUT)/compiletest
+files =\
+ time_fft.cpp
 
-# =======
-# defines
-# =======
+objs = ${files:.cpp=.o}
 
-SYMBOLS_MYPROJ :=
+all : $(appname)
 
-# =======
-# sources
-# =======
+clean :
+	rm -f *.o
 
-SOURCES_MYPROJ := \
-	time_fft.cpp
-
-# =====
-# build
-# =====
-
-time_fft:
-	$(shell mkdir -p $(PATH_OUT)) \
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(STATICLIBS_FFT) \
-    \
-$(OTHERLIBS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB .DEV_MKDIR ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(DEV_OUTPUT)
 

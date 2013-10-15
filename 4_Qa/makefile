@@ -1,63 +1,28 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
-
-# =====
-# paths
-# =====
-
-PATH_OUT := $(PATH_OUT)/compiletest
 
 # =======
 # defines
 # =======
 
-SYMBOLS_MYPROJ := -DTINYSTAT
+# -DTINYSTAT: Really lives in Maths.cpp, so we need to revisit this
+# when doing foldmasks for real.
+#
 
-# =======
-# sources
-# =======
+CFLAGS += -DTINYSTAT
 
-SOURCES_MYPROJ := \
-	qa.cpp
+appname = qa
 
-_SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
+files =\
+ qa.cpp
 
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
+objs = ${files:.cpp=.o}
 
-_SRC_GEN_ := \
-	File.cpp ImageIO.cpp Maths.cpp \
-	Correlation.cpp Geometry.cpp Debug.cpp
+all : $(appname)
 
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
+clean :
+	rm -f *.o
 
-# =====
-# build
-# =====
-
-qa:
-	$(shell mkdir -p $(PATH_OUT)) \
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_UTL) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB .DEV_MKDIR ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(DEV_OUTPUT)
 

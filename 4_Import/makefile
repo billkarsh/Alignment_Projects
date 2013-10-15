@@ -1,66 +1,28 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
-
-# =====
-# paths
-# =====
-
-PATH_OUT := $(PATH_OUT)/compiletest
 
 # =======
 # defines
 # =======
 
-CFLAGS := -g	# degug (GDB)
+# -DTINYSTAT: Really lives in Maths.cpp, so we need to revisit this
+# when doing foldmasks for real.
+#
 
-SYMBOLS_MYPROJ := -DTINYSTAT
+CFLAGS += -g -DTINYSTAT
 
-# =======
-# sources
-# =======
+appname = importMRC
 
-SOURCES_MYPROJ := \
-	importMRC.cpp
+files =\
+ importMRC.cpp
 
-_SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
+objs = ${files:.cpp=.o}
 
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
+all : $(appname)
 
-_SRC_GEN_ := \
-	File.cpp ImageIO.cpp Maths.cpp \
-	Correlation.cpp Geometry.cpp TAffine.cpp \
-	CPicBase.cpp Debug.cpp
+clean :
+	rm -f *.o
 
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-importMRC:
-	$(shell mkdir -p $(PATH_OUT)) \
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_UTL) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB .DEV_MKDIR ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(DEV_OUTPUT)
 

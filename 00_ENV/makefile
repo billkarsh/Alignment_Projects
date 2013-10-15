@@ -100,7 +100,7 @@ all2 : build_dirs
 all4 : xdirs = ${4dirs}
 all4 : build_dirs
 
-clean : xdirs = ${1dirs} ${2dirs}
+clean : xdirs = ${1dirs} ${2dirs} ${4dirs}
 clean : clean_dirs clean_libs
 
 build_dirs : .CHECK_ALL_LIBS
