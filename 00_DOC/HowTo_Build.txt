@@ -109,10 +109,17 @@ Build the code
 
 Good idea to build the code on the target machine. So if you will run on the cluster then log on to a cluster node and build there.
 
-The core pipeline code is composed by projects labeled '1_XXX' while other handy utilities that you might/not be interested in are labeled '2_XXX'. Other stuff is mainly for Bill's development work. To build the core stuff:
+The core pipeline code is composed by projects labeled '1_XXX' while other handy utilities that you might/not be interested in are labeled '2_XXX'. Other stuff is mainly for Bill's development work. Useful targets for the make command:
+
+> make all1		# build all 1_XXX
+> make all2		# build all 2_XXX
+> make 			# build 1_ & 2_ (same as 'make all')
+> make clean	# remove all {.o,.a} but keep .exe
+
+Standard way to make everything:
 
 (1) > cd 00_ENV
-(2) > make -f 1_makeAll
+(2) > make
 (3) > ./getsharedbins.sht
 
 ======================
