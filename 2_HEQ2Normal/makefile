@@ -1,55 +1,18 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =======
-# defines
-# =======
+appname = HEQ2Normal
 
-SYMBOLS_MYPROJ := -DTIXML_USE_STL
+files =\
+ HEQ2Normal.cpp
 
-# =======
-# sources
-# =======
+objs = ${files:.cpp=.o}
 
-SOURCES_MYPROJ := \
-	HEQ2Normal.cpp
+all : $(appname)
 
-_SRC_XML_ := \
-	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+clean :
+	rm -f *.o
 
-SOURCES_XML := \
-	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
-
-_SRC_GEN_ := \
-	Cmdline.cpp File.cpp TrakEM2_UTL.cpp
-
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-HEQ2Normal:
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_XML) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

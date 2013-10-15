@@ -1,4 +1,6 @@
 
+include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
+
 1dirs =\
  1_Align\
  1_Clean_ThmPairs\
@@ -86,19 +88,22 @@
  4_Unfold\
  4_Unmap
 
-all: xdirs = ${1dirs} ${2dirs}
-all: build_loop
+all : xdirs = ${1dirs} ${2dirs}
+all : build_dirs
 
-all1: xdirs = ${1dirs}
-all1: build_loop
+all1 : xdirs = ${1dirs}
+all1 : build_dirs
 
-all2: xdirs = ${2dirs}
-all2: build_loop
+all2 : xdirs = ${2dirs}
+all2 : build_dirs
 
-all4: xdirs = ${4dirs}
-all4: build_loop
+all4 : xdirs = ${4dirs}
+all4 : build_dirs
 
-build_loop:
+clean : xdirs = ${1dirs} ${2dirs}
+clean : clean_dirs clean_libs
+
+build_dirs : .CHECK_ALL_LIBS
 	@ \
 	cd ..; \
 	for i in $(xdirs); \
@@ -106,5 +111,21 @@ build_loop:
 		cd $$i && $(MAKE) && cd ..; \
 	done
 
+clean_dirs :
+	@ \
+	cd ..; \
+	for i in $(xdirs); \
+	do \
+		cd $$i && $(MAKE) clean && cd ..; \
+	done
 
+clean_libs:
+	@ \
+	cd ..; \
+	for i in 0_BK 0_GEN 0_UTL 0_XML; \
+	do \
+		cd $$i && $(MAKE) clean && cd ..; \
+	done
+
+.PHONY : build_dirs clean_dirs clean_libs
 

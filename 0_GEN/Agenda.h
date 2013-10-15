@@ -65,6 +65,10 @@ Sparco SPK-5 L
 
 - CLEAN OUT OLD DATA {Bocklab, Tomo}.
 
+- -DTINYSTAT in tiny foldmask project sets a flag for maths.cpp
+but that is compiled in separate archive. Need to revisit when
+do foldmasks.
+
 - Unknown how large a block SUperLU can do.
 - Unknown if SuperLU can work with more processors.
 - Unknown how SuperLU breaks, but it looks like MPI breaks.

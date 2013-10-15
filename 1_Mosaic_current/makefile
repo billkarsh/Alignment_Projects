@@ -1,66 +1,25 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =======
-# defines
-# =======
+#PATH_JSON := /groups/scheffer/home/schefferl/json/jsoncpp-src-0.5.0/include
+PATH_JSON := json-include
+CFLAGS    += -I$(PATH_JSON)
 
-SYMBOLS_MYPROJ :=
+appname = mos
 
-# =====
-# paths
-# =====
+files =\
+ mos.cpp\
+ json_reader.cpp\
+ json_writer.cpp\
+ json_value.cpp
 
-PATH_JSON := /groups/scheffer/home/schefferl/json/jsoncpp-src-0.5.0/include
+objs = ${files:.cpp=.o}
 
-# =======
-# sources
-# =======
+all : $(appname)
 
-SOURCES_MYPROJ := \
-	mos.cpp json_reader.cpp json_writer.cpp json_value.cpp
+clean :
+	rm -f *.o
 
-_SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
-
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
-
-_SRC_GEN_ := \
-	Cmdline.cpp Disk.cpp File.cpp PipeFiles.cpp \
-	ImageIO.cpp Maths.cpp Correlation.cpp \
-	CPoint.cpp Geometry.cpp TAffine.cpp \
-	LinEqu.cpp Draw.cpp Memory.cpp Debug.cpp
-
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-mos:
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
--I $(PATH_JSON) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_UTL) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

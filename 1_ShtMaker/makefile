@@ -1,39 +1,18 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =======
-# defines
-# =======
+appname = shtmaker
 
-SYMBOLS_MYPROJ :=
+files =\
+ shtmaker.cpp
 
-# =======
-# sources
-# =======
+objs = ${files:.cpp=.o}
 
-SOURCES_MYPROJ := \
-	shtmaker.cpp
+all : $(appname)
 
-# =====
-# build
-# =====
+clean :
+	rm -f *.o
 
-shtmaker:
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

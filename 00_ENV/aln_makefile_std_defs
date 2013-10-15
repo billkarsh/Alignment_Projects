@@ -45,9 +45,9 @@ PATH_FFT      := $(PATH_PUBLIC)/FFT
 PATH_FFT_INC  := $(PATH_FFT)/include
 PATH_FFT_LIB  := $(PATH_FFT)/lib
 
-PATH_XML      := $(PATH_SRCCODE)/0_XML
-PATH_UTL      := $(PATH_SRCCODE)/0_UTL
 PATH_GEN      := $(PATH_SRCCODE)/0_GEN
+PATH_UTL      := $(PATH_SRCCODE)/0_UTL
+PATH_XML      := $(PATH_SRCCODE)/0_XML
 PATH_BK       := $(PATH_SRCCODE)/0_BK
 
 PATH_OUT      := $(PATH_BIN)
@@ -56,7 +56,7 @@ PATH_OUT      := $(PATH_BIN)
 # include paths
 # =============
 
-INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_XML),$(PATH_UTL),$(PATH_GEN)} 
+INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$(PATH_UTL),$(PATH_XML)}
 
 # ============
 # object files
@@ -65,6 +65,10 @@ INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_XML),$
 # ===========================
 # archives (static libraries)
 # ===========================
+
+STATICLIBS_GEN := $(PATH_GEN)/genlib.a
+STATICLIBS_UTL := $(PATH_UTL)/utllib.a
+STATICLIBS_XML := $(PATH_XML)/xmllib.a
 
 STATICLIBS_TIF := $(PATH_TIF_LIB)/libtiff.a
 STATICLIBS_PNG := $(PATH_PNG_LIB)/libpng.a
@@ -90,7 +94,19 @@ OTHERLIBS_STD := -l{jpeg,m,c,rt}
 # Combine all standard libraries
 # ==============================
 
-LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_PNG) $(STATICLIBS_ZLB) $(STATICLIBS_FFT) $(OTHERLIBS_STD)
+# IMPORTANT:
+# Libraries must be listed such that those with greater dependency are first
+# and the more independent libraries are toward the tail of the list.
+
+LINKS_STD :=\
+ $(STATICLIBS_GEN)\
+ $(STATICLIBS_UTL)\
+ $(STATICLIBS_XML)\
+ $(STATICLIBS_TIF)\
+ $(STATICLIBS_PNG)\
+ $(STATICLIBS_ZLB)\
+ $(STATICLIBS_FFT)\
+ $(OTHERLIBS_STD)
 
 # ===========
 # g++ options
@@ -98,6 +114,8 @@ LINKS_STD := $(STATICLIBS_TIF) $(STATICLIBS_PNG) $(STATICLIBS_ZLB) $(STATICLIBS_
 
 CC := g++
 
+# -DXXX:				define symbol XXX
+# TIXML_USE_STL:		tinyxml uses std library
 # O3:					optimizer level 3 (max)
 
 # The following optimizations allow a developer to make classes with methods that
@@ -110,9 +128,41 @@ CC := g++
 # --gc-sections:		garbage-collect unreferenced input sections
 # --strip-all:			omit symbols from output (makes smaller exe)
 
-CFLAGS := -O3 -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,--strip-all
+CFLAGS := -DTIXML_USE_STL -O3 -fdata-sections -ffunction-sections
+
+LFLAGS := -Wl,--gc-sections -Wl,--strip-all
 
 OUTPUT = -o $(PATH_OUT)/$@
+
+# ==============
+# standard rules
+# ==============
+
+# Notes:
+# (1) Place '@' in front of a rule to silence echoing the rule in build log.
+#
+# (2) This include file is usually included at the top of a make file.
+# Hence, the targets defined here will be ahead of targets such as 'all'
+# in the make file that uses this include. The default target when make
+# is run with no named target is usually the first defined and we want
+# that to be 'all' instead of 'CHECK_TINYLIB'. We put a '.' in front
+# of a target name here to exclude it from the default target search.
+
+%.o : %.cpp
+	$(CC) $(CFLAGS) $(INCLUDES_STD) -c $< -o $@
+
+.CHECK_ALL_LIBS : .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
+
+.CHECK_GENLIB :
+	@ (cd $(PATH_GEN) && $(MAKE);)
+
+.CHECK_UTLLIB :
+	@ (cd $(PATH_UTL) && $(MAKE);)
+
+.CHECK_TNYLIB :
+	@ (cd $(PATH_XML) && $(MAKE);)
+
+.PHONY : .CHECK_ALL_LIBS .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
 
 # =============================================
 # =============================================

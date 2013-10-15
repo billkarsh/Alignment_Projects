@@ -1,57 +1,18 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =======
-# defines
-# =======
+appname = mos
 
-SYMBOLS_MYPROJ :=
+files =\
+ mos.cpp
 
-# =======
-# sources
-# =======
+objs = ${files:.cpp=.o}
 
-SOURCES_MYPROJ := \
-	mos.cpp
+all : $(appname)
 
-_SRC_UTL_ := \
-	numerical_recipes.cpp mrc.cpp
+clean :
+	rm -f *.o
 
-SOURCES_UTL := \
-	$(PATH_UTL)/{$(subst $(space),$(comma),$(_SRC_UTL_))}
-
-_SRC_GEN_ := \
-	Disk.cpp File.cpp ImageIO.cpp Maths.cpp \
-	Correlation.cpp CPoint.cpp Geometry.cpp TAffine.cpp \
-	LinEqu.cpp Memory.cpp Draw.cpp Debug.cpp
-
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-mos:
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_UTL) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

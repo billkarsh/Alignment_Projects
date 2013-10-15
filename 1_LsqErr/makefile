@@ -1,47 +1,18 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =======
-# defines
-# =======
+appname = lsqerr
 
-SYMBOLS_MYPROJ :=
+files =\
+ lsqerr.cpp
 
-# =======
-# sources
-# =======
+objs = ${files:.cpp=.o}
 
-SOURCES_MYPROJ := \
-	lsqerr.cpp
+all : $(appname)
 
-_SRC_GEN_ := \
-	Cmdline.cpp File.cpp
+clean :
+	rm -f *.o
 
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-lsqerr:
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

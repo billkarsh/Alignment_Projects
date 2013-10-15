@@ -1,56 +1,19 @@
 
-
-# ==========
-# ==========
-# My Project
-# ==========
-# ==========
-
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
-# =======
-# defines
-# =======
+appname = cross_lowres
 
-SYMBOLS_MYPROJ := -DTIXML_USE_STL
+files =\
+ cross_lowres.cpp\
+ ../1_Cross_LowRes/ScapeMeta.cpp
 
-# =======
-# sources
-# =======
+objs = ${files:.cpp=.o}
 
-SOURCES_MYPROJ := \
-	cross_lowres.cpp ../1_Cross_LowRes/ScapeMeta.cpp
+all : $(appname)
 
-_SRC_XML_ := \
-	tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+clean :
+	rm -f *.o
 
-SOURCES_XML := \
-	$(PATH_XML)/{$(subst $(space),$(comma),$(_SRC_XML_))}
-
-_SRC_GEN_ := \
-	Cmdline.cpp Disk.cpp File.cpp TrakEM2_UTL.cpp \
-	TAffine.cpp
-
-SOURCES_GEN :=  \
-	$(PATH_GEN)/{$(subst $(space),$(comma),$(_SRC_GEN_))}
-
-# =====
-# build
-# =====
-
-cross_lowres:
-	$(CC) $(CFLAGS) $(SYMBOLS_MYPROJ) \
-$(OUTPUT) \
-    \
-$(INCLUDES_STD) \
-    \
-$(SOURCES_MYPROJ) \
-    \
-$(SOURCES_XML) \
-    \
-$(SOURCES_GEN) \
-    \
-$(LINKS_STD) \
-#### end $(CC) $@
-
+$(appname) : .CHECK_GENLIB ${objs}
+	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 
