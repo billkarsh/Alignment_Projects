@@ -216,6 +216,40 @@ static void Write_mongo()
 }
 
 /* --------------------------------------------------------------- */
+/* XMLHasMRC ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return true if *.mrc images.
+//
+static bool XMLHasMRC()
+{
+	FILE		*f = FileOpenOrDie( gArgs.infile, "r", flog );
+	CLineScan	LS;
+	int			nfile_path = 0;
+	bool		ismrc = false;
+
+	while( LS.Get( f ) > 0 ) {
+
+		if( strstr( LS.line, "ex.mrc\"" ) ) {
+			ismrc = true;
+			break;
+		}
+
+		if( nfile_path >= 10 )
+			break;
+
+		if( strstr( LS.line, "file_path" ) ) {
+			++nfile_path;
+		}
+	}
+
+exit:
+	fclose( f );
+
+	return ismrc;
+}
+
+/* --------------------------------------------------------------- */
 /* Write_upmongo --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -224,7 +258,7 @@ static void Write_upmongo()
 	char	buf[2048], inname[256];
 	FILE	*f;
 
-	if( FileExtIsXML( gArgs.infile ) ) {
+	if( FileExtIsXML( gArgs.infile ) && !XMLHasMRC() ) {
 
 		const char	*name	= FileNamePtr( gArgs.infile ),
 					*dot	= FileDotPtr( name );

@@ -102,11 +102,12 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static char			gtopdir[2048];
-static cArgs_idb	gArgs;
-static CTileSet		TS;
-static FILE*		flog	= NULL;
-static int			ismrc	= false;
+static char				gtopdir[2048];
+static cArgs_idb		gArgs;
+static CTileSet			TS;
+static vector<string>	vname0;
+static FILE*			flog	= NULL;
+static int				ismrc	= false;
 
 
 
@@ -189,7 +190,7 @@ static void Make_nmrc_paths()
 
 	DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
 
-// fix all tiles
+// save mrc names in global vector and replace them in TS
 
 	int	nt = TS.vtil.size();
 
@@ -198,9 +199,10 @@ static void Make_nmrc_paths()
 		CUTile&	U = TS.vtil[i];
 		char	path[2048];
 
-		sprintf( path, "%s/%d/nmrc_%d_%d.png",
+		sprintf( path, "%s/%d/nmrc/nmrc_%d_%d.png",
 			topdir, U.z, U.z, U.id );
 
+		vname0.push_back( U.name );
 		U.name = path;
 	}
 }
@@ -494,26 +496,31 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 	for( int i = is0; i < isN; ++i ) {
 
 		const CUTile&	U = TS.vtil[i];
+
+#if 0
+// target with dependency
 		char dep[2048];
-
-		ConvertSpaces( dep, U.name.c_str() );
-
+		ConvertSpaces( dep, vname0[i].c_str() );
 		fprintf( f, "fm/fm_%d_%d.png: %s\n", U.z, U.id, dep );
+#else
+// target only
+		fprintf( f, "fm/fm_%d_%d.png:\n", U.z, U.id );
+#endif
 
 		if( gArgs.NoFolds ) {
 			if( ismrc ) {
 				fprintf( f,
 				"\ttiny %d %d '%s'"
 				" '-nmrc=nmrc/nmrc_%d_%d.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str(),
+				" -nf ${EXTRA}\n",
+				U.z, U.id, vname0[i].c_str(),
 				U.z, U.id );
 			}
 			else {
 				fprintf( f,
 				"\ttiny %d %d '%s'"
-				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str() );
+				" -nf ${EXTRA}\n",
+				U.z, U.id, vname0[i].c_str() );
 			}
 		}
 		else {
@@ -524,7 +531,7 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 				" '-fm=fm/fm_%d_%d.png'"
 				" '-fmd=fmd/fmd_%d_%d.png'"
 				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str(),
+				U.z, U.id, vname0[i].c_str(),
 				U.z, U.id,
 				U.z, U.id,
 				U.z, U.id );
@@ -535,7 +542,7 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 				" '-fm=fm/fm_%d_%d.png'"
 				" '-fmd=fmd/fmd_%d_%d.png'"
 				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str(),
+				U.z, U.id, vname0[i].c_str(),
 				U.z, U.id,
 				U.z, U.id );
 			}
@@ -615,18 +622,18 @@ int main( int argc, char* argv[] )
 	if( isrickfile )
 		TS.SetTileDimsFromImageFile();
 
+	TS.SortAll_z_id();
+
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
 	if( ismrc )
 		Make_nmrc_paths();
 
-	TS.SortAll_z_id();
-
 /* ----------- */
 /* Diagnostics */
 /* ----------- */
 
-	if( isrickfile ) {
+	if( isrickfile || ismrc ) {
 
 		TS.WriteTrakEM2_EZ( "PreClicks.xml",
 			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );

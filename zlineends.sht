@@ -14,11 +14,11 @@
 
 if [ "$1" = "-f" ]
 then
-	for ifile in $(grep -rl $'\r' $2)
+	for ifile in $(grep -rl $'\r' $2/*.{c,cpp,h,txt})
 	do
 		sed -i 's|\r||g' $ifile
 	done
 else
-	grep -rl $'\r' *
+	grep -rl $'\r' */*.{c,cpp,h,txt}
 fi
 

@@ -65,14 +65,13 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static char			gtopdir[2048];
-static CArgs_scr	gArgs;
-static CTileSet		TS;
-static FILE*		flog	= NULL;
-static int			gW		= 0,	// universal pic dims
-					gH		= 0,
-					gZMax	= 0,
-					ismrc	= false;
+static char				gtopdir[2048];
+static CArgs_scr		gArgs;
+static CTileSet			TS;
+static vector<string>	vname0;
+static FILE*			flog	= NULL;
+static int				gZMax	= 0,
+						ismrc	= false;
 
 
 
@@ -147,7 +146,7 @@ static void Make_nmrc_paths()
 
 	DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
 
-// fix all tiles
+// save mrc names in global vector and replace them in TS
 
 	int	nt = TS.vtil.size();
 
@@ -159,6 +158,7 @@ static void Make_nmrc_paths()
 		sprintf( path, "%s/%d/%d/nmrc_%d_%d.png",
 			topdir, U.z, U.id, U.z, U.id );
 
+		vname0.push_back( U.name );
 		U.name = path;
 	}
 }
@@ -190,12 +190,15 @@ static void WriteImageparamsFile()
 {
 	char	name[2048];
 	FILE	*f;
+	int		w, h;
+
+	TS.GetTileDims( w, h );
 
 	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
 
 	f = FileOpenOrDie( name, "w", flog );
 
-	fprintf( f, "IMAGESIZE %d %d\n", gW, gH );
+	fprintf( f, "IMAGESIZE %d %d\n", w, h );
 
 	fclose( f );
 }
@@ -284,7 +287,7 @@ static void Make_ThmPairFile(
 /* ABOlap -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return area(intersection) / (gW*gH).
+// Return area(intersection) / area(image).
 //
 // We construct the polygon enclosing the intersection in
 // b-space. Its vertices comprise the set of rectangle edge
@@ -478,26 +481,31 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 	for( int i = is0; i < isN; ++i ) {
 
 		const CUTile&	U = TS.vtil[i];
+
+#if 0
+// target with dependency
 		char dep[2048];
-
-		ConvertSpaces( dep, U.name.c_str() );
-
+		ConvertSpaces( dep, vname0[i].c_str() );
 		fprintf( f, "%d/fm.png: %s\n", U.id, dep );
+#else
+// target only
+		fprintf( f, "%d/fm.png:\n", U.id );
+#endif
 
 		if( gArgs.NoFolds ) {
 			if( ismrc ) {
 				fprintf( f,
 				"\ttiny %d %d '%s'"
 				" '-nmrc=%d/nmrc_%d_%d.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str(),
+				" -nf ${EXTRA}\n",
+				U.z, U.id, vname0[i].c_str(),
 				U.id, U.z, U.id );
 			}
 			else {
 				fprintf( f,
 				"\ttiny %d %d '%s'"
-				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str() );
+				" -nf ${EXTRA}\n",
+				U.z, U.id, vname0[i].c_str() );
 			}
 		}
 		else {
@@ -508,7 +516,7 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 				" '-fm=%d/fm.png'"
 				" '-fmd=%d/fmd.png'"
 				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str(),
+				U.z, U.id, vname0[i].c_str(),
 				U.id, U.z, U.id,
 				U.id,
 				U.id );
@@ -519,7 +527,7 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 				" '-fm=%d/fm.png'"
 				" '-fmd=%d/fmd.png'"
 				" ${EXTRA}\n",
-				U.z, U.id, U.name.c_str(),
+				U.z, U.id, vname0[i].c_str(),
 				U.id,
 				U.id );
 			}
@@ -850,18 +858,12 @@ int main( int argc, char* argv[] )
 	if( isrickfile )
 		TS.SetTileDimsFromImageFile();
 
-	TS.GetTileDims( gW, gH );
+	TS.SortAll_z_r();
 
 	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
 	if( ismrc )
 		Make_nmrc_paths();
-
-/* ------------------------------------------------- */
-/* Within each layer, sort tiles by dist from center */
-/* ------------------------------------------------- */
-
-	TS.SortAll_z_r();
 
 /* ------------------- */
 /* Handle connect mode */
