@@ -29,7 +29,7 @@ do
 
 			if [ -e make.down ]
 			then
-				qsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j 8 EXTRA='""'
+				qsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j 8 EXTRA='""'
 			fi
 
 			cd ..

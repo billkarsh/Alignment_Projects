@@ -305,7 +305,7 @@ int main( int argc, char* argv[] )
 /* Diagnostics */
 /* ----------- */
 
-	if( GBL.arg.Verbose ) {
+	if( Ntrans && GBL.arg.Verbose ) {
 
 		ABOverlay( px, rmap, Ntrans, tfs, ifs );
 

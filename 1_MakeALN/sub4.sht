@@ -22,11 +22,11 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr/S0_0
-		qsub -N qS0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j 4 EXTRA='""'
+		qsub -N qS0_0-$lyr -cwd -V -b y -pe batch 4 make -f make.same -j 4 EXTRA='""'
 		if (($lyr > $1))
 		then
 			cd ../D0_0
-			qsub -N qD0_0-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j 4 EXTRA='""'
+			qsub -N qD0_0-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j 4 EXTRA='""'
 		fi
 		cd ../..
 	fi

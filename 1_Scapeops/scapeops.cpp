@@ -27,6 +27,7 @@
 #include	"Maths.h"
 #include	"ImageIO.h"
 #include	"Timer.h"
+#include	"Memory.h"
 #include	"Debug.h"
 
 #include	<string.h>
@@ -707,6 +708,7 @@ int main( int argc, char* argv[] )
 
 exit:
 	fprintf( flog, "\n" );
+	VMStats( flog );
 	fclose( flog );
 
 	return 0;

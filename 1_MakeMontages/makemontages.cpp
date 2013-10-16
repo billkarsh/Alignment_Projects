@@ -482,7 +482,7 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.same -j %d EXTRA='\"\"'\n",
+	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.same -j %d EXTRA='\"\"'\n",
 	njobs );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
@@ -540,7 +540,7 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 8 make -f make.down -j -j %d EXTRA='\"\"'\n",
+	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j -j %d EXTRA='\"\"'\n",
 	njobs );
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\n" );

@@ -21,7 +21,7 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr
-		qsub -N makefm-$lyr -cwd -V -b y -pe batch 8 make -f make.fm -j 8 EXTRA='""'
+		qsub -N makefm-$lyr -cwd -V -b y -pe batch 4 make -f make.fm -j 8 EXTRA='""'
 		cd ..
 	fi
 done

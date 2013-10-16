@@ -13,7 +13,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  1_DelTiles\
  1_DMesh\
  1_LSQ\
- 1_Lsqerr\
+ 1_LsqErr\
  1_MakeALN\
  1_MakeIDB\
  1_MakeMontages\
