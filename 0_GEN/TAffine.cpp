@@ -294,7 +294,7 @@ double TAffine::EffArea() const
 		A += (a.x - b.x) * (a.y + b.y);
 	}
 
-	return A * 0.5;
+	return fabs( A * 0.5 );
 }
 
 /* --------------------------------------------------------------- */

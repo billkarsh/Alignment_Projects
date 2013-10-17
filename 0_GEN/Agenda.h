@@ -96,6 +96,9 @@ look more like:
 - Need methods paper, at some point.
 - Need scipts to qsub in batches and stay within 20000 limit.
 
+- Use microCT to make a scaffold. That is, align EM vs microCT to
+make TAffineTable.txt external scaffold file to lsq.
+
 - What is current status regarding tools for Davi to smooth intensity
 distributions among neighbor tiles?
 

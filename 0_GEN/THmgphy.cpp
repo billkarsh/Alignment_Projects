@@ -315,7 +315,7 @@ double THmgphy::EffArea() const
 		A += (a.x - b.x) * (a.y + b.y);
 	}
 
-	return A / 2;
+	return fabs( A * 0.5 );
 }
 
 /* --------------------------------------------------------------- */
