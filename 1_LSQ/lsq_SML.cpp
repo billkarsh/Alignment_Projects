@@ -18,14 +18,6 @@
 //		a x  -  b y  +  c  =  x'
 //		b x  +  a y  +  d  =  y'
 //
-// Here there are 4 free params: a, b, c, d, and each pair of
-// points (p1, p2) gives us two equations:
-//
-//      | p1x -p1y  1  0 |   | a |   | p2x |
-//      | p1y  p1x  0  1 | x | b | = | p2y |
-//                           | c |
-//                           | d |
-//
 double SML::CanAlign(
 	const vector<Point>	&p1,
 	const vector<Point>	&p2,
@@ -38,12 +30,12 @@ double SML::CanAlign(
 	vector<LHSCol>	LHS( 4 );
 	int				np    = p1.size(),
 					i1[3] = { 0, 1, 2 },
-					i2[3] = { 0, 1, 3 };
+					i2[3] = { 1, 0, 3 };
 
 	for( int i = 0; i < np; ++i ) {
 
 		double	v1[3] = { p1[i].x, -p1[i].y, 1.0 };
-		double	v2[3] = { p1[i].y,  p1[i].x, 1.0 };
+		double	v2[3] = { p1[i].x,  p1[i].y, 1.0 };
 
 		AddConstraint( LHS, RHS, 3, i1, v1, p2[i].x );
 		AddConstraint( LHS, RHS, 3, i2, v2, p2[i].y );

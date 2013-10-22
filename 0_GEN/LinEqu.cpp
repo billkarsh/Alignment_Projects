@@ -10,6 +10,20 @@
 #include	<string.h>
 
 
+/* --------------------------------------------------------------- */
+/* Macros -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	SWAP( a, b )											\
+	{double temp = (a); (a) = (b); (b) = temp;}
+
+/* --------------------------------------------------------------- */
+/* Constants ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	kMaxDirectN	256
+
+
 
 
 
@@ -46,66 +60,6 @@ static void AddToElem(
 	e.row = row;
 
 	C.push_back( e );
-}
-
-/* --------------------------------------------------------------- */
-/* Print4x4 ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-static void Print4x4( double a[4][4] )
-{
-	printf( "[ " );
-
-	for( int row = 0; row < 4; ++row ) {
-
-		for( int col = 0; col < 4; ++col )
-			printf( "%f ", a[row][col] );
-
-		if( row != 3 )
-			printf( ";" );
-	}
-
-	printf( " ]\n" );
-}
-
-/* --------------------------------------------------------------- */
-/* SolveExplicit4x4 ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void SolveExplicit4x4(
-	vector<double>			&X,
-	const vector<LHSCol>	&LHS,
-	const vector<double>	&RHS )
-{
-	double a[4][4];
-	double b[4][4];
-
-// Convert from sparse
-
-	memset( &a[0][0], 0, 16 * sizeof(double) );
-
-	for( int col = 0; col < 4; ++col ) {
-
-		const LHSCol&	C  = LHS[col];
-		int				ne = C.size();
-
-		for( int i = 0; i < ne; ++i )
-			a[C[i].row][col] = C[i].val;
-	}
-
-// Solve
-
-	Invert4x4Matrix( b, a );
-
-	for( int i = 0; i < 4; ++i ) {
-
-		double	sum = 0.0;
-
-		for( int j = 0; j < 4; ++j )
-			sum += b[i][j] * RHS[j];
-
-		X[i] = sum;
-	}
 }
 
 /* --------------------------------------------------------------- */
@@ -178,6 +132,208 @@ void AddConstraint(
 }
 
 /* --------------------------------------------------------------- */
+/* MATGaussJ ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+/* MATGaussJ ---------------------------------------------------------
+ *
+ * Solve linear equations [A].[X] = [B] by Gauss-Jordan elimination
+ * with full pivoting.
+ *
+ * An adaptation of gaussj from "Numerical Recipes in C."
+ *
+ * Important differences from gaussj:
+ *
+ *	- Strictly zero-based array and matrix addressing.
+ *	- Rearranged parameter list.
+ *	- Return value indicates degeneracy.
+ *	- Optimized pointer handling.
+ *
+ * On entry:
+ *
+ * [A] is square n x n matrix.
+ * [B] is n x m, that is, m columns of length n.
+ *
+ * On exit:
+ *
+ * [A] is replaced by its inverse.
+ * [B] is the set of solution column vectors.
+ *
+ * Return true if [A] nondegenerate.
+ *
+ * Copyright (c) 1999 Bill Karsh.
+ * All rights reserved.
+ *
+ */
+
+static int MATGaussJ(
+	vector<vector<double> >	&A,
+	vector<vector<double> >	&B,
+	int						n,
+	int						m )
+{
+	double		*p1, *p2;
+	double		t, piv;
+	vector<int>	indxc( n ),
+				indxr( n ),
+				ipiv( n, 0 );
+	int			i, j, k, icol, irow, ok = true;
+
+	for( i = 0; i < n; ++i ) {
+
+		piv = 0.0;
+
+		for( j = 0; j < n; ++j ) {
+
+			if( ipiv[j] != 1 ) {
+
+				p1 = &A[j][0];
+
+				for( k = 0; k < n; ++k ) {
+
+					if( !ipiv[k] ) {
+
+						t = fabs( p1[k] );
+
+						if( t >= piv ) {
+							piv		= t;
+							irow	= j;
+							icol	= k;
+						}
+					}
+					else if( ipiv[k] > 1 ) {
+						ok = false;
+						goto exit;
+					}
+				}
+			}
+		}
+
+		++ipiv[icol];
+
+		/* ---------------------------------- */
+		/* Swap rows to put pivot on diagonal */
+		/* ---------------------------------- */
+
+		if( irow != icol ) {
+
+			p1 = &A[irow][0];
+			p2 = &A[icol][0];
+
+			for( j = 0; j < n; ++j )
+				SWAP( p1[j], p2[j] );
+
+			p1 = &B[irow][0];
+			p2 = &B[icol][0];
+
+			for( j = 0; j < m; ++j )
+				SWAP( p1[j], p2[j] );
+		}
+
+		indxr[i]	= irow;
+		indxc[i]	= icol;
+		p1			= &A[icol][0];
+		p2			= &B[icol][0];
+
+		if( p1[icol] == 0.0 ) {
+			ok = false;
+			goto exit;
+		}
+
+		/* ------------------- */
+		/* Normalize pivot row */
+		/* ------------------- */
+
+		piv			= 1.0 / p1[icol];
+		p1[icol]	= 1.0;
+
+		for( j = 0; j < n; ++j )
+			p1[j] *= piv;
+
+		for( j = 0; j < m; ++j )
+			p2[j] *= piv;
+
+		/* ------------ */
+		/* Ellimination */
+		/* ------------ */
+
+		for( j = 0; j < n; ++j ) {
+
+			if( j != icol ) {
+
+				double	*p3	= &A[j][0];
+				double	t	= p3[icol];
+
+				p3[icol] = 0.0;
+
+				for( k = 0; k < n; ++k )
+					p3[k] -= p1[k] * t;
+
+				p3 = &B[j][0];
+
+				for( k = 0; k < m; ++k )
+					p3[k] -= p2[k] * t;
+			}
+		}
+	}
+
+/* ------------------------------- */
+/* Unswap columns in reverse order */
+/* ------------------------------- */
+
+	for( i = n - 1; i >= 0; --i ) {
+
+		if( (irow = indxr[i]) != (icol = indxc[i]) ) {
+
+			for( j = 0; j < n; ++j ) {
+
+				double	*p1 = &A[j][0];
+
+				SWAP( p1[irow], p1[icol] );
+			}
+		}
+	}
+
+exit:
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* SolveDirect --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void SolveDirect(
+	vector<double>			&X,
+	const vector<LHSCol>	&LHS,
+	const vector<double>	&RHS,
+	int						n )
+{
+	vector<vector<double> >	a, b;
+
+	a.resize( n );
+	b.resize( n );
+
+	for( int i = 0; i < n; ++i ) {
+		a[i].resize( n, 0 );
+		b[i].resize( 1, RHS[i] );
+	}
+
+	for( int col = 0; col < n; ++col ) {
+
+		const LHSCol&	C  = LHS[col];
+		int				ne = C.size();
+
+		for( int i = 0; i < ne; ++i )
+			a[C[i].row][col] = C[i].val;
+	}
+
+	MATGaussJ( a, b, n, 1 );
+
+	for( int i = 0; i < n; ++i )
+		X[i] = b[i][0];
+}
+
+/* --------------------------------------------------------------- */
 /* WriteSolveRead ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -185,8 +341,8 @@ void AddConstraint(
 // the form A.X = B, where A is the LHS (NxN) matrix, and the B
 // are the RHS (Nx1) constants. This is a blocking call.
 //
-// If N (# of unknowns) is 4 this is solved by simple matrix
-// inversion using routines in this source file.
+// If N (# of unknowns) is <= kMaxDirectN this is solved by
+// simple matrix inversion using routines in this source file.
 //
 // Otherwise the data are written to disk file 'triples', sent
 // to external program 'SuperLUSymSolve' and the results are
@@ -208,12 +364,12 @@ void WriteSolveRead(
 {
 	int	nvars = RHS.size();
 
-/* -------------- */
-/* Exactly 4 vars */
-/* -------------- */
+/* ------ */
+/* Direct */
+/* ------ */
 
-	if( nvars == 4 ) {
-		SolveExplicit4x4( X, LHS, RHS );
+	if( nvars <= kMaxDirectN ) {
+		SolveDirect( X, LHS, RHS, nvars );
 		return;
 	}
 

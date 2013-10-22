@@ -69,7 +69,7 @@ Sparco SPK-5 L
 but that is compiled in separate archive. Need to revisit when
 do foldmasks.
 
-- Unknown how large a block SUperLU can do.
+- Unknown how large a block SuperLU can do.
 - Unknown if SuperLU can work with more processors.
 - Unknown how SuperLU breaks, but it looks like MPI breaks.
 - Unknown how to glue blocks together in principle.

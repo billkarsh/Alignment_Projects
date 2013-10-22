@@ -540,18 +540,10 @@ void CTileSet::ReadClixFile( vector<TSClix> &clk, const char *path )
 /* SimilarityFromClix -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Return approximate similarity transform (rot + trans): T(A) = B:
+// Return 4 parameter similarity transform (rot + trans): T(A) = B:
 //
 //		a Ax  -  b Ay  +  c  =  Bx
 //		b Ax  +  a Ay  +  d  =  By
-//
-// Here there are 4 free params: a, b, c, d, and each pair of
-// points (A, B) gives us two equations:
-//
-//      | Ax -Ay  1  0 |   | a |   | Bx |
-//      | Ay  Ax  0  1 | x | b | = | By |
-//                         | c |
-//                         | d |
 //
 TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 {
@@ -562,7 +554,7 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 	vector<LHSCol>	LHS( 4 );
 	int				np    = clk.A.size(),
 					i1[3] = { 0, 1, 2 },
-					i2[3] = { 0, 1, 3 };
+					i2[3] = { 1, 0, 3 };
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -570,7 +562,7 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 		const Point&	B = clk.B[i];
 
 		double	v1[3] = { A.x, -A.y, 1.0 };
-		double	v2[3] = { A.y,  A.x, 1.0 };
+		double	v2[3] = { A.x,  A.y, 1.0 };
 
 		AddConstraint( LHS, RHS, 3, i1, v1, B.x );
 		AddConstraint( LHS, RHS, 3, i2, v2, B.y );
@@ -591,7 +583,7 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 
 // Return 6 parameter affine transformation: T(A) = B:
 //
-//		a Ax  -  b Ay  +  c  =  Bx
+//		a Ax  +  b Ay  +  c  =  Bx
 //		d Ax  +  e Ay  +  f  =  By
 //
 TAffine CTileSet::AffineFromClix( const TSClix &clk )

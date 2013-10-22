@@ -3,6 +3,10 @@
 # http://tldp.org/LDP/abs/html/internalvariables.html
 
 
+# Get current directory into a variable
+# here="`pwd`"
+
+
 # Get tokens from a file
 # for i in $(cat $1)
 # do
