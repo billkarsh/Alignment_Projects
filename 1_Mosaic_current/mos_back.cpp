@@ -2099,7 +2099,7 @@ if( strstr(name, "annotations-synapse") != NULL ) {
             t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
             int sector = tmap[ix + w*iy];
-            t = images[image_no].sectors[patch][sector];;
+            t = images[image_no].sectors[patch][sector];
 	    }
         t.Transform( p );
         tbs[j].pt = p;
@@ -2273,7 +2273,7 @@ map<string,int> imap;  // map of image names
 uint32 w=0,h=0;        // size of each sub-image
 
 int x0=0,y0=0;           // where to start output image
-int xsize=-1,ysize=-1;;  // size of output image, if specified
+int xsize=-1,ysize=-1;  // size of output image, if specified
 if( noa.size() >= 2 ) {
     if( sscanf(noa[1],"%d,%d,%d,%d", &x0, &y0, &xsize, &ysize) != 4 ) {
 	printf("Expected x0,y0,xsize,ysize, got '%s'\n", noa[1]);

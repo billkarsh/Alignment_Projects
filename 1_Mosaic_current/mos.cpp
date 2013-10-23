@@ -2997,7 +2997,7 @@ if( strstr(name, "annotations-synapse") != NULL ) {
             t = images[image_no].tf[patch];  // change to global coordinates
         else { //we are warping
             int sector = tmap[ix + w*iy];
-            t = images[image_no].sectors[patch][sector];;
+            t = images[image_no].sectors[patch][sector];
 	    }
         t.Transform( p );
         tbs[j].pt = p;

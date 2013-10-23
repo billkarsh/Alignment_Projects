@@ -237,7 +237,7 @@ static void FitAffine(
 
 // RMS error
 
-	double	E = 0;;
+	double	E = 0;
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -250,7 +250,8 @@ static void FitAffine(
 		E += err;
 	}
 
-	E /= np;
+	E = sqrt( E / np );
+
 	fprintf( flog, "Pipe: FitAffineRMSerr: %g\n", E );
 
 // Paint
@@ -363,7 +364,7 @@ static void FitHmgphy(
 
 // RMS error
 
-	double	E = 0;;
+	double	E = 0;
 
 	for( int i = 0; i < np; ++i ) {
 

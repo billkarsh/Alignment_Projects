@@ -120,7 +120,7 @@ skip:
 				topnr.erase( topnr.begin() + j );
 				topnp.erase( topnp.begin() + j );
 				--tnmax;
-				break;;
+				break;
 			}
 		}
 	}
