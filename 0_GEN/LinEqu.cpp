@@ -132,6 +132,227 @@ void AddConstraint(
 }
 
 /* --------------------------------------------------------------- */
+/* MATludcmp ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+/* MATludcmp ---------------------------------------------------------
+ *
+ * LU decomposition.
+ *
+ * An adaptation of ludcmp from "Numerical Recipes in C."
+ *
+ * On entry:
+ *
+ * [A] is packed n x n matrix.
+ * [indx] is dim-n workspace.
+ * d is scalar workspace.
+ * [vv] is dim-n workspace.
+ *
+ * On exit:
+ *
+ * [A] is replaced by row-permuted LU decomposition.
+ * [indx] (dimension n) records perms.
+ * d is {+1,-1} for {even,odd} # of perms.
+ *
+ * Return true if [A] nondegenerate.
+ *
+ * Copyright (c) 1999 Bill Karsh.
+ * All rights reserved.
+ *
+ */
+
+static int MATludcmp(
+	double*		A,
+	int*		indx,
+	double*		d,
+	double*		vv,
+	int			n )
+{
+	const double	TINY = 1e-20;
+
+	*d = 1.0;	// zero interchanges at start
+
+// vv gets inv of biggest elem in each row
+
+	for( int i = 0; i < n; ++i ) {
+
+		double	big = 0.0;
+
+		for( int j = 0; j < n; ++j ) {
+
+			double	t;
+
+			if( (t = fabs( A[n*i+j] )) > big )
+				big = t;
+		}
+
+		if( !big )
+			return false;
+
+		vv[i] = 1.0 / big;
+	}
+
+// Crout's method: loop over cols
+
+	for( int j = 0; j < n; ++j ) {
+
+		for( int i = 0; i < j; ++i ) {
+
+			double	sum = A[n*i+j];
+
+			for( int k = 0; k < i; ++k )
+				sum -= A[n*i+k] * A[n*k+j];
+
+			A[n*i+j] = sum;
+		}
+
+		double	big = 0.0;
+		int		imx;
+
+		for( int i = j; i < n; ++i ) {
+
+			double	sum = A[n*i+j];
+
+			for( int k = 0; k < j; ++k )
+				sum -= A[n*i+k] * A[n*k+j];
+
+			A[n*i+j] = sum;
+
+			double	t;
+
+			if( (t = vv[i] * fabs( sum )) >= big ) {
+				big = t;
+				imx = i;
+			}
+		}
+
+		// interchange rows?
+
+		if( j != imx ) {
+
+			for( int k = 0; k < n; ++k ) {
+
+				double	t	= A[n*imx+k];
+				A[n*imx+k]	= A[n*j+k];
+				A[n*j+k]	= t;
+			}
+
+			*d		= -*d;
+			vv[imx]	= vv[j];
+		}
+
+		indx[j] = imx;
+
+		if( !A[n*j+j] )
+			A[n*j+j] = TINY;
+
+		if( j != n - 1 ) {
+
+			double	t = 1.0 / A[n*j+j];
+
+			for( int i = j + 1; i < n; ++i )
+				A[n*i+j] *= t;
+		}
+	}
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* MATlubksb ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+/* MATlubksb ---------------------------------------------------------
+ *
+ * Solve Ax=B using LU decomp from MATludcmp.
+ *
+ * An adaptation of lubksb from "Numerical Recipes in C."
+ *
+ * On entry:
+ *
+ * [B] is dim-n RHS col vector.
+ * [A] is square n x n matrix from MATludcmp.
+ * [indx] is dim-n result from MATludcmp.
+ * d is scalar workspace.
+ * [vv] is dim-n workspace.
+ *
+ * On exit:
+ *
+ * [B] is replaced by solution vector x.
+ *
+ * Copyright (c) 1999 Bill Karsh.
+ * All rights reserved.
+ *
+ */
+
+static int MATlubksb(
+	double*			B,
+	const double*	A,
+	const int*		indx,
+	int				n )
+{
+	int	ii = -1;
+
+	for( int i = 0; i < n; ++i ) {
+
+		int		ip  = indx[i];
+		double	sum = B[ip];
+
+		B[ip] = B[i];
+
+		if( ii >= 0 ) {
+
+			for( int j = ii; j < i; ++j )
+				sum -= A[n*i+j] * B[j];
+		}
+		else if( sum )
+			ii = i;
+
+		B[i] = sum;
+	}
+
+	for( int i = n - 1; i >= 0; --i ) {
+
+		double	sum = B[i];
+
+		for( int j = i + 1; j < n; ++j )
+			sum -= A[n*i+j] * B[j];
+
+		B[i] = sum / A[n*i+i];
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* SolveDirectLU ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void SolveDirectLU(
+	vector<double>			&X,
+	const vector<LHSCol>	&LHS,
+	const vector<double>	&RHS,
+	int						n )
+{
+	double	A[n*n], vv[n], d;
+	int		indx[n];
+
+	memset( A, 0, n*n * sizeof(double) );
+
+	for( int col = 0; col < n; ++col ) {
+
+		const LHSCol&	C  = LHS[col];
+		int				ne = C.size();
+
+		for( int i = 0; i < ne; ++i )
+			A[n*C[i].row+col] = C[i].val;
+	}
+
+	X = RHS;
+
+	MATludcmp( A, indx, &d, vv, n );
+	MATlubksb( &X[0], A, indx, n );
+}
+
+/* --------------------------------------------------------------- */
 /* MATGaussJ ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -299,10 +520,10 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
-/* SolveDirect --------------------------------------------------- */
+/* SolveDirectGJ ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void SolveDirect(
+static void SolveDirectGJ(
 	vector<double>			&X,
 	const vector<LHSCol>	&LHS,
 	const vector<double>	&RHS,
@@ -369,7 +590,7 @@ void WriteSolveRead(
 /* ------ */
 
 	if( nvars <= kMaxDirectN ) {
-		SolveDirect( X, LHS, RHS, nvars );
+		SolveDirectLU( X, LHS, RHS, nvars );
 		return;
 	}
 
