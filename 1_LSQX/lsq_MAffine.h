@@ -81,14 +81,19 @@ private:
 
 	void AffineFromTransWt( vector<double> &X, int nTr );
 
-void Fill_myc();
-void GetStageT( vector<double> &X, int nTr );
-void GetTableT( vector<double> &X, int nTr );
-void OnePass(
-	vector<double>	&Xout,
-	vector<double>	&Xin,
-	vector<double>	&S,
-	int				nTr );
+	// ----------------------------------------------------------
+	// Iterative experiments
+	void Fill_myc( const vector<double> &X );
+	void GetStageT( vector<double> &X, int nTr );
+	void GetTableT( vector<double> &X, int nTr );
+	void GetPriorT( vector<double> &X, int nTr );
+	void OnePass(
+		vector<double>	&Xout,
+		vector<double>	&Xin,
+		vector<double>	&S,
+		int				nTr,
+		double			w );
+	// ----------------------------------------------------------
 
 	void SolveSystemStandard( vector<double> &X, int nTr );
 

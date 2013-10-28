@@ -9,6 +9,9 @@
 
 #include	<math.h>
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* SetPointPairs ------------------------------------------------- */
@@ -939,7 +942,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 
 static vector<vector<int> >	myc;
 
-void MAffine::Fill_myc()
+void MAffine::Fill_myc( const vector<double> &X )
 {
 	myc.resize( vRgn.size() );
 
@@ -950,6 +953,12 @@ void MAffine::Fill_myc()
 		const Constraint &C = vAllC[i];
 
 		if( !C.used || !C.inlier )
+			continue;
+
+		if( X[vRgn[C.r2].itr*NX] == 999.0 )
+			continue;
+
+		if( X[vRgn[C.r1].itr*NX] == 999.0 )
 			continue;
 
 		myc[C.r1].push_back( i );
@@ -984,7 +993,7 @@ void MAffine::GetStageT( vector<double> &X, int nTr )
 		t2i->T.CopyOut( &X[R.itr * NX] );
 	}
 
-	Fill_myc();
+	Fill_myc( X );
 }
 
 /* --------------------------------------------------------------- */
@@ -1020,7 +1029,26 @@ void MAffine::GetTableT( vector<double> &X, int nTr )
 		memcpy( &X[R.itr*NX], it->second.t, NX*sizeof(double) );
 	}
 
-	Fill_myc();
+	Fill_myc( X );
+}
+
+/* --------------------------------------------------------------- */
+/* GetPriorT ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::GetPriorT( vector<double> &X, int nTr )
+{
+	int	nvars = nTr * NX;
+
+	printf( "Aff: %d unknowns; %d constraints.\n",
+		nvars, vAllC.size() );
+
+	int	z0, nz;
+
+	LoadAffTable( X, z0, nz, nTr );
+	UntwistScaffold( X, z0, nz );
+
+	Fill_myc( X );
 }
 
 /* --------------------------------------------------------------- */
@@ -1032,16 +1060,14 @@ void MAffine::OnePass(
 	vector<double>	&Xout,
 	vector<double>	&Xin,
 	vector<double>	&S,
-	int				nTr )
+	int				nTr,
+	double			w )
 {
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
 sc = 1;
 scaf_strength = 0.1;
-
-	printf( "Aff: %d unknowns; %d constraints.\n",
-		nvars, vAllC.size() );
 
 	Xout.resize( nvars );
 
@@ -1100,7 +1126,7 @@ scaf_strength = 0.1;
 
 	RescaleAll( Xout, sc );
 
-double	w = 0.75;
+// like w = 0.75
 
 	for( int i = 0; i < nvars; ++i ) {
 
@@ -1110,20 +1136,26 @@ double	w = 0.75;
 #endif
 
 #if 1
+
+class Cperr {
+public:
+	double	e;
+	int		j;
+public:
+	Cperr( double e, int j )
+		{this->e=e; this->j=j;};
+	bool operator < (const Cperr &rhs) const
+		{return e < rhs.e;};
+};
+
 void MAffine::OnePass(
 	vector<double>	&Xout,
 	vector<double>	&Xin,
 	vector<double>	&S,
-	int				nTr )
+	int				nTr,
+	double			w )
 {
-	double	sc		= 2 * max( gW, gH );
-	int		nvars	= nTr * NX;
-
-sc = 1;
-scaf_strength = 0.1;
-
-	printf( "Aff: %d unknowns; %d constraints.\n",
-		nvars, vAllC.size() );
+	int	nvars = nTr * NX;
 
 	Xout.resize( nvars );
 
@@ -1144,47 +1176,56 @@ scaf_strength = 0.1;
 		if( R.itr < 0 )
 			continue;
 
+		int	nc = myc[i].size();
+
+		if( nc < 3 )
+			continue;
+
 		vector<double>	RHS( 6, 0.0 );
 		vector<LHSCol>	LHS( 6 );
-		int				nc = myc[i].size();
+		TAffine			Ta( &Xin[R.itr * NX] );
 
 		for( int j = 0; j < nc; ++j ) {
 
 			const Constraint&	C = vAllC[myc[i][j]];
 			Point				A, B;
 
-			double	w = 0.9;
+			// like w = 0.9 (same layer), 0.9 (down)
 
 			if( C.r1 == i ) {
-				L2GPoint( A = C.p1, Xin, vRgn[C.r1].itr );
-				L2GPoint( B = C.p2, Xin, vRgn[C.r2].itr );
+				TAffine Tb( &Xin[vRgn[C.r2].itr * NX] );
+				Tb.Transform( B = C.p2 );
+				Ta.Transform( A = C.p1 );
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p1;
 			}
 			else {
-				L2GPoint( A = C.p2, Xin, vRgn[C.r2].itr );
-				L2GPoint( B = C.p1, Xin, vRgn[C.r1].itr );
+				TAffine Tb( &Xin[vRgn[C.r1].itr * NX] );
+				Tb.Transform( B = C.p1 );
+				Ta.Transform( A = C.p2 );
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p2;
 			}
 
-			double	v[3] = { A.x/sc, A.y/sc, 1.0 };
+			double	v[3] = { A.x, A.y, 1.0 };
 
-			AddConstraint( LHS, RHS, 3, i1, v, B.x/sc );
-			AddConstraint( LHS, RHS, 3, i2, v, B.y/sc );
+			AddConstraint( LHS, RHS, 3, i1, v, B.x );
+			AddConstraint( LHS, RHS, 3, i2, v, B.y );
 		}
 
 		WriteSolveRead( x, LHS, RHS, "A-RLX", 1, false );
 		memcpy( &Xout[R.itr*NX], &x[0], NX*sizeof(double) );
 //----------------------------------------------------------
-	
-		double	eworst = -1;
-		int		jworst;
+// Exper to sort errors, kick out top n, then resolve
+#if 0
+		vector<Cperr>	ve;
+
+		// collect errors
 
 		for( int j = 0; j < nc; ++j ) {
-		
+
 			const Constraint&	C = vAllC[myc[i][j]];
 			Point				A, B;
 
@@ -1196,28 +1237,24 @@ scaf_strength = 0.1;
 				L2GPoint( A = C.p2, Xout, vRgn[C.r2].itr );
 				L2GPoint( B = C.p1, Xin, vRgn[C.r1].itr );
 			}
-			
-			double	e = A.DistSqr( B );
-			
-			if( e > eworst ) {
-				eworst = e;
-				jworst = j;
-			}
+
+			ve.push_back( Cperr( A.DistSqr( B ), j ) );
 		}
-	
+
+		// sort by error
+		sort( ve.begin(), ve.end() );
+
 	{
 		vector<double>	RHS( 6, 0.0 );
 		vector<LHSCol>	LHS( 6 );
+		int				ne = nc - 1;	// omit top n
 
-		for( int j = 0; j < nc; ++j ) {
+		for( int j = 0; j < ne; ++j ) {
 
-			if( j == jworst )
-				continue;
-
-			const Constraint&	C = vAllC[myc[i][j]];
+			const Constraint&	C = vAllC[myc[i][ve[j].j]];
 			Point				A, B;
 
-			double	w = 0.9;
+			// like w = 0.9 (same layer), 0.9 (down)
 
 			if( C.r1 == i ) {
 				L2GPoint( A = C.p1, Xin, vRgn[C.r1].itr );
@@ -1234,26 +1271,18 @@ scaf_strength = 0.1;
 				A = C.p2;
 			}
 
-			double	v[3] = { A.x/sc, A.y/sc, 1.0 };
+			double	v[3] = { A.x, A.y, 1.0 };
 
-			AddConstraint( LHS, RHS, 3, i1, v, B.x/sc );
-			AddConstraint( LHS, RHS, 3, i2, v, B.y/sc );
+			AddConstraint( LHS, RHS, 3, i1, v, B.x );
+			AddConstraint( LHS, RHS, 3, i2, v, B.y );
 		}
 
 		WriteSolveRead( x, LHS, RHS, "A-RLX", 1, false );
 		memcpy( &Xout[R.itr*NX], &x[0], NX*sizeof(double) );
 	}
+#endif
 //----------------------------------------------------------
 	}
-
-//	RescaleAll( Xout, sc );
-
-//double	w = 1;
-//
-//	for( int i = 0; i < nvars; ++i ) {
-//
-//		Xout[i] = (1-w) * Xin[i] + w * Xout[i];
-//	}
 }
 #endif
 
@@ -1313,6 +1342,8 @@ void MAffine::SolveSystemStandard( vector<double> &X, int nTr )
 
 void MAffine::SolveSystem( vector<double> &X, int nTr )
 {
+	clock_t	t0 = StartTiming();
+
 #if 0
 
 // This older method works fine for small montages, especially
@@ -1324,28 +1355,51 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 #else
 
-	if( priorafftbl )
+	if( priorafftbl ) {
+
+#if 0	// stack with SLU
+
 //		AffineFromFile( X, nTr );
 		AffineFromFile2( X, nTr );
+
+#else	// stack iterative
+
+		GetPriorT( X, nTr );
+		vector<double>	S = X;
+		for( int i = 0; i < 150; ++i ) {	// 25
+			vector<double> Xin = X;
+			OnePass( X, Xin, S, nTr, 0.9 );
+		}
+		PrintMagnitude( X );
+		myc.clear();
+
+#endif
+	}
 	else {
-clock_t	t0 = StartTiming();
 
-//		AffineFromTransWt( X, nTr );
+#if 0	// montage with SLU
 
-#if 1
-GetStageT( X, nTr );
-vector<double>	S = X;
-for( int i = 0; i < 25; ++i ) {	// 25
-	vector<double> Xin = X;
-	OnePass( X, Xin, S, nTr );
-}
-PrintMagnitude( X );
-myc.clear();
+		AffineFromTransWt( X, nTr );
+
+#else	// montage iterative
+
+		GetStageT( X, nTr );
+		vector<double>	S = X;
+		clock_t			t2 = StartTiming();
+		for( int i = 0; i < 250; ++i ) {	// 25
+			vector<double> Xin = X;
+			OnePass( X, Xin, S, nTr, 0.9 );
+		}
+		PrintMagnitude( X );
+		StopTiming( stdout, "Iters", t2 );
+		myc.clear();
+
 #endif
-StopTiming( stdout, "TSolve", t0 );
-}
+	}
 
 #endif
+
+	StopTiming( stdout, "Solve", t0 );
 }
 
 /* --------------------------------------------------------------- */
