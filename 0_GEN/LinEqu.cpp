@@ -29,6 +29,36 @@
 
 
 /* --------------------------------------------------------------- */
+/* AddConstraint_Quick ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Fastest way to build normal equations one constraint at a time.
+//
+// Assumes small LHS matrix in packed format:
+// rows end-to-end in contiguous 1-D array.
+//
+void AddConstraint_Quick(
+	double			*LHS,
+	double			*RHS,
+	int				n,
+	int				nnz,
+	const int		*j_nnz,
+	const double	*Ai,
+	double			Bi )
+{
+	for( int i = 0; i < nnz; ++i ) {
+
+		int	ii = j_nnz[i],
+			ni = n * ii;
+
+		for( int j = 0; j < nnz; ++j )
+			LHS[ni + j_nnz[j]] += Ai[i] * Ai[j];
+
+		RHS[ii] += Ai[i] * Bi;
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* AddToElem ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -54,12 +84,7 @@ static void AddToElem(
 
 // Not found - Add
 
-	LHSElem	e;
-
-	e.val = val;
-	e.row = row;
-
-	C.push_back( e );
+	C.push_back( LHSElem( val, row ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -555,6 +580,28 @@ static void SolveDirectGJ(
 }
 
 /* --------------------------------------------------------------- */
+/* Solve_Quick --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Fastest in-place solver for small packed matrices.
+//
+// LHS and RHS are sent directly to NR routines, so are replaced
+// by LU decomp and result vector directly. Caller should build
+// RHS directly in output X array to minimize data copying.
+//
+void Solve_Quick(
+	double	*LHS,
+	double	*RHS,
+	int		n )
+{
+	double	vv[n], d;
+	int		indx[n];
+
+	MATludcmp( LHS, indx, &d, vv, n );
+	MATlubksb( RHS, LHS, indx, n );
+}
+
+/* --------------------------------------------------------------- */
 /* WriteSolveRead ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -574,7 +621,6 @@ static void SolveDirectGJ(
 // SuperLUSymSolveMPI and wait for it to create semaphore file
 // 'slu_signal'.
 //
-
 void WriteSolveRead(
 	vector<double>			&X,
 	const vector<LHSCol>	&LHS,

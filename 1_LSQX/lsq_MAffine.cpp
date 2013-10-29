@@ -1033,10 +1033,10 @@ void MAffine::GetTableT( vector<double> &X, int nTr )
 }
 
 /* --------------------------------------------------------------- */
-/* GetPriorT ----------------------------------------------------- */
+/* GetScaffT ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void MAffine::GetPriorT( vector<double> &X, int nTr )
+void MAffine::GetScaffT( vector<double> &X, int nTr )
 {
 	int	nvars = nTr * NX;
 
@@ -1165,9 +1165,8 @@ void MAffine::OnePass(
 
 	int	nr = vRgn.size();
 
-	vector<double>	x( 6 );
-	int				i1[3] = { 0, 1, 2 },
-					i2[3] = { 3, 4, 5 };
+	int	i1[3] = { 0, 1, 2 },
+		i2[3] = { 3, 4, 5 };
 
 	for( int i = 0; i < nr; ++i ) {
 
@@ -1181,9 +1180,12 @@ void MAffine::OnePass(
 		if( nc < 3 )
 			continue;
 
-		vector<double>	RHS( 6, 0.0 );
-		vector<LHSCol>	LHS( 6 );
-		TAffine			Ta( &Xin[R.itr * NX] );
+		double	*RHS = &Xout[R.itr*NX];
+		double	LHS[6*6];
+		TAffine	Ta( &Xin[R.itr * NX] );
+
+		memset( RHS, 0, 6   * sizeof(double) );
+		memset( LHS, 0, 6*6 * sizeof(double) );
 
 		for( int j = 0; j < nc; ++j ) {
 
@@ -1211,15 +1213,15 @@ void MAffine::OnePass(
 
 			double	v[3] = { A.x, A.y, 1.0 };
 
-			AddConstraint( LHS, RHS, 3, i1, v, B.x );
-			AddConstraint( LHS, RHS, 3, i2, v, B.y );
+			AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 		}
 
-		WriteSolveRead( x, LHS, RHS, "A-RLX", 1, false );
-		memcpy( &Xout[R.itr*NX], &x[0], NX*sizeof(double) );
+		Solve_Quick( LHS, RHS, 6 );
 //----------------------------------------------------------
 // Exper to sort errors, kick out top n, then resolve
 #if 0
+		TAffine			Tx( &Xout[R.itr * NX] );
 		vector<Cperr>	ve;
 
 		// collect errors
@@ -1230,12 +1232,14 @@ void MAffine::OnePass(
 			Point				A, B;
 
 			if( C.r1 == i ) {
-				L2GPoint( A = C.p1, Xout, vRgn[C.r1].itr );
-				L2GPoint( B = C.p2, Xin, vRgn[C.r2].itr );
+				TAffine Tb( &Xin[vRgn[C.r2].itr * NX] );
+				Tb.Transform( B = C.p2 );
+				Tx.Transform( A = C.p1 );
 			}
 			else {
-				L2GPoint( A = C.p2, Xout, vRgn[C.r2].itr );
-				L2GPoint( B = C.p1, Xin, vRgn[C.r1].itr );
+				TAffine Tb( &Xin[vRgn[C.r1].itr * NX] );
+				Tb.Transform( B = C.p1 );
+				Tx.Transform( A = C.p2 );
 			}
 
 			ve.push_back( Cperr( A.DistSqr( B ), j ) );
@@ -1245,9 +1249,10 @@ void MAffine::OnePass(
 		sort( ve.begin(), ve.end() );
 
 	{
-		vector<double>	RHS( 6, 0.0 );
-		vector<LHSCol>	LHS( 6 );
-		int				ne = nc - 1;	// omit top n
+		int	ne = nc - 1;	// omit top n
+
+		memset( RHS, 0, 6   * sizeof(double) );
+		memset( LHS, 0, 6*6 * sizeof(double) );
 
 		for( int j = 0; j < ne; ++j ) {
 
@@ -1257,15 +1262,17 @@ void MAffine::OnePass(
 			// like w = 0.9 (same layer), 0.9 (down)
 
 			if( C.r1 == i ) {
-				L2GPoint( A = C.p1, Xin, vRgn[C.r1].itr );
-				L2GPoint( B = C.p2, Xin, vRgn[C.r2].itr );
+				TAffine Tb( &Xin[vRgn[C.r2].itr * NX] );
+				Tb.Transform( B = C.p2 );
+				Ta.Transform( A = C.p1 );
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p1;
 			}
 			else {
-				L2GPoint( A = C.p2, Xin, vRgn[C.r2].itr );
-				L2GPoint( B = C.p1, Xin, vRgn[C.r1].itr );
+				TAffine Tb( &Xin[vRgn[C.r1].itr * NX] );
+				Tb.Transform( B = C.p1 );
+				Ta.Transform( A = C.p2 );
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p2;
@@ -1273,12 +1280,11 @@ void MAffine::OnePass(
 
 			double	v[3] = { A.x, A.y, 1.0 };
 
-			AddConstraint( LHS, RHS, 3, i1, v, B.x );
-			AddConstraint( LHS, RHS, 3, i2, v, B.y );
+			AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 		}
 
-		WriteSolveRead( x, LHS, RHS, "A-RLX", 1, false );
-		memcpy( &Xout[R.itr*NX], &x[0], NX*sizeof(double) );
+		Solve_Quick( LHS, RHS, 6 );
 	}
 #endif
 //----------------------------------------------------------
@@ -1364,11 +1370,13 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 #else	// stack iterative
 
-		GetPriorT( X, nTr );
+		GetScaffT( X, nTr );
 		vector<double>	S = X;
 		for( int i = 0; i < 150; ++i ) {	// 25
 			vector<double> Xin = X;
 			OnePass( X, Xin, S, nTr, 0.9 );
+			printf( "Done pass %d\n", i + 1 );
+			fflush( stdout );
 		}
 		PrintMagnitude( X );
 		myc.clear();

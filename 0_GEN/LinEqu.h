@@ -18,6 +18,10 @@ class LHSElem {
 public:
 	double	val;
 	int		row;
+
+public:
+	LHSElem( double val, int row )
+		{this->val=val; this->row=row;};
 };
 
 typedef vector<LHSElem>	LHSCol;
@@ -26,6 +30,15 @@ typedef vector<LHSElem>	LHSCol;
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+void AddConstraint_Quick(
+	double			*LHS,
+	double			*RHS,
+	int				n,
+	int				nnz,
+	const int		*j_nnz,
+	const double	*Ai,
+	double			Bi );
+
 void AddConstraint(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
@@ -33,6 +46,11 @@ void AddConstraint(
 	const int		*j_nnz,
 	const double	*Ai,
 	double			Bi );
+
+void Solve_Quick(
+	double	*LHS,
+	double	*RHS,
+	int		n );
 
 void WriteSolveRead(
 	vector<double>			&X,
