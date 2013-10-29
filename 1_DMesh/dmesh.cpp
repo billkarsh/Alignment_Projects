@@ -164,11 +164,13 @@ static void FitAffine(
 
 // Create system of normal equations
 
-	vector<double>	X( 6 );
-	vector<double>	RHS( 6, 0.0 );
-	vector<LHSCol>	LHS( 6 );
-	int				i1[3] = { 0, 1, 2 },
-					i2[3] = { 3, 4, 5 };
+	double	RHS[6];
+	double	LHS[6*6];
+	int		i1[3] = { 0, 1, 2 },
+			i2[3] = { 3, 4, 5 };
+
+	memset( RHS, 0, 6   * sizeof(double) );
+	memset( LHS, 0, 6*6 * sizeof(double) );
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -177,15 +179,15 @@ static void FitAffine(
 
 		double	v[3] = { A.x, A.y, 1.0 };
 
-		AddConstraint( LHS, RHS, 3, i1, v, B.x );
-		AddConstraint( LHS, RHS, 3, i2, v, B.y );
+		AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 	}
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "A-FrmMsh", 1, true );
+	Solve_Quick( LHS, RHS, 6 );
 
-	TAffine	T( &X[0] );
+	TAffine	T( &RHS[0] );
 
 // Report
 
@@ -193,9 +195,9 @@ static void FitAffine(
 
 #if FITTAB
 	{
-		CMutex	M;
-		char	name[256];
-		char	*sud;
+		CMutex		M;
+		char		name[256];
+		const char	*sud;
 
 		// set file type and layer
 
@@ -223,8 +225,8 @@ static void FitAffine(
 				" %g %g %g %g %g %g\n",
 				GBL.A.z, GBL.A.id, argn,
 				GBL.B.z, GBL.B.id, brgn,
-				X[0], X[1], X[2],
-				X[3], X[4], X[5] );
+				RHS[0], RHS[1], RHS[2],
+				RHS[3], RHS[4], RHS[5] );
 
 				fflush( f );
 				fclose( f );
@@ -286,11 +288,10 @@ static void FitHmgphy(
 
 // Create system of normal equations
 
-	vector<double>	X( 8 );
-	vector<double>	RHS( 8, 0.0 );
-	vector<LHSCol>	LHS( 8 );
-	int				i1[5] = { 0, 1, 2, 6, 7 },
-					i2[5] = { 3, 4, 5, 6, 7 };
+	double	RHS[8];
+	double	LHS[8*8];
+	int		i1[5] = { 0, 1, 2, 6, 7 },
+			i2[5] = { 3, 4, 5, 6, 7 };
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -299,19 +300,19 @@ static void FitHmgphy(
 
 		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
 
-		AddConstraint( LHS, RHS, 5, i1, v, B.x );
+		AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
 
 		v[3] = -A.x*B.y;
 		v[4] = -A.y*B.y;
 
-		AddConstraint( LHS, RHS, 5, i2, v, B.y );
+		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
 	}
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "H-FrmMsh", 1, true );
+	Solve_Quick( LHS, RHS, 8 );
 
-	THmgphy	T( &X[0] );
+	THmgphy	T( &RHS[0] );
 
 // Report
 
@@ -319,9 +320,9 @@ static void FitHmgphy(
 
 #if FITTAB
 	{
-		CMutex	M;
-		char	name[256];
-		char	*sud;
+		CMutex		M;
+		char		name[256];
+		const char	*sud;
 
 		// set file type and layer
 
@@ -349,9 +350,9 @@ static void FitHmgphy(
 				" %g %g %g %g %g %g %g %g\n",
 				GBL.A.z, GBL.A.id, argn,
 				GBL.B.z, GBL.B.id, brgn,
-				X[0], X[1], X[2],
-				X[3], X[4], X[5],
-				X[6], X[7] );
+				RHS[0], RHS[1], RHS[2],
+				RHS[3], RHS[4], RHS[5],
+				RHS[6], RHS[7] );
 
 				fflush( f );
 				fclose( f );

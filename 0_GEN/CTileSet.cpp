@@ -549,12 +549,14 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 {
 // Create system of normal equations
 
-	vector<double>	X( 4 );
-	vector<double>	RHS( 4, 0.0 );
-	vector<LHSCol>	LHS( 4 );
-	int				np    = clk.A.size(),
-					i1[3] = { 0, 1, 2 },
-					i2[3] = { 1, 0, 3 };
+	double	RHS[4];
+	double	LHS[4*4];
+	int		np    = clk.A.size(),
+			i1[3] = { 0, 1, 2 },
+			i2[3] = { 1, 0, 3 };
+
+	memset( RHS, 0, 4   * sizeof(double) );
+	memset( LHS, 0, 4*4 * sizeof(double) );
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -564,17 +566,19 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 		double	v1[3] = { A.x, -A.y, 1.0 };
 		double	v2[3] = { A.x,  A.y, 1.0 };
 
-		AddConstraint( LHS, RHS, 3, i1, v1, B.x );
-		AddConstraint( LHS, RHS, 3, i2, v2, B.y );
+		AddConstraint_Quick( LHS, RHS, 4, 3, i1, v1, B.x );
+		AddConstraint_Quick( LHS, RHS, 4, 3, i2, v2, B.y );
 	}
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "S-FrmClx", 1, true );
+	Solve_Quick( LHS, RHS, 4 );
 
 // Return
 
-	return TAffine( X[0], -X[1], X[2], X[1], X[0], X[3] );
+	return TAffine(
+		RHS[0], -RHS[1], RHS[2],
+		RHS[1],  RHS[0], RHS[3] );
 }
 
 /* --------------------------------------------------------------- */
@@ -595,11 +599,13 @@ TAffine CTileSet::AffineFromClix( const TSClix &clk )
 
 // Create system of normal equations
 
-	vector<double>	X( 6 );
-	vector<double>	RHS( 6, 0.0 );
-	vector<LHSCol>	LHS( 6 );
-	int				i1[3] = { 0, 1, 2 },
-					i2[3] = { 3, 4, 5 };
+	double	RHS[6];
+	double	LHS[6*6];
+	int		i1[3] = { 0, 1, 2 },
+			i2[3] = { 3, 4, 5 };
+
+	memset( RHS, 0, 6   * sizeof(double) );
+	memset( LHS, 0, 6*6 * sizeof(double) );
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -608,17 +614,17 @@ TAffine CTileSet::AffineFromClix( const TSClix &clk )
 
 		double	v[3] = { A.x, A.y, 1.0 };
 
-		AddConstraint( LHS, RHS, 3, i1, v, B.x );
-		AddConstraint( LHS, RHS, 3, i2, v, B.y );
+		AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 	}
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "A-FrmClx", 1, true );
+	Solve_Quick( LHS, RHS, 6 );
 
 // Return
 
-	return TAffine( &X[0] );
+	return TAffine( &RHS[0] );
 }
 
 /* --------------------------------------------------------------- */

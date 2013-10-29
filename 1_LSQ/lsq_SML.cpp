@@ -6,6 +6,7 @@
 #include	"LinEqu.h"
 
 #include	<math.h>
+#include	<string.h>
 
 
 /* --------------------------------------------------------------- */
@@ -25,25 +26,27 @@ double SML::CanAlign(
 {
 // Create system of normal equations
 
-	vector<double>	X( 4 );
-	vector<double>	RHS( 4, 0.0 );
-	vector<LHSCol>	LHS( 4 );
-	int				np    = p1.size(),
-					i1[3] = { 0, 1, 2 },
-					i2[3] = { 1, 0, 3 };
+	double	RHS[4], *X = RHS;
+	double	LHS[4*4];
+	int		np    = p1.size(),
+			i1[3] = { 0, 1, 2 },
+			i2[3] = { 1, 0, 3 };
+
+	memset( RHS, 0, 4   * sizeof(double) );
+	memset( LHS, 0, 4*4 * sizeof(double) );
 
 	for( int i = 0; i < np; ++i ) {
 
 		double	v1[3] = { p1[i].x, -p1[i].y, 1.0 };
 		double	v2[3] = { p1[i].x,  p1[i].y, 1.0 };
 
-		AddConstraint( LHS, RHS, 3, i1, v1, p2[i].x );
-		AddConstraint( LHS, RHS, 3, i2, v2, p2[i].y );
+		AddConstraint_Quick( LHS, RHS, 4, 3, i1, v1, p2[i].x );
+		AddConstraint_Quick( LHS, RHS, 4, 3, i2, v2, p2[i].y );
 	}
 
 // Solve
 
-	WriteSolveRead( X, LHS, RHS, "SML-Test", 1, false );
+	Solve_Quick( LHS, RHS, 4 );
 
 	if( print ) {
 
