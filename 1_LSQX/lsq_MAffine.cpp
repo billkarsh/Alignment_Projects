@@ -8,6 +8,7 @@
 #include	"Timer.h"
 
 #include	<math.h>
+#include	<pthread.h>
 
 #include	<algorithm>
 using namespace std;
@@ -1293,6 +1294,139 @@ void MAffine::OnePass(
 #endif
 
 /* --------------------------------------------------------------- */
+/* OnePassTH ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class Cthrdat {
+
+public:
+	pthread_t	h;
+	int			r0,
+				rlim;
+};
+
+static vector<Cthrdat>	vthr;
+static vector<double>	*Xout;
+static vector<double>	*Xin;
+static double			w;
+
+
+static void* _OnePassTH( void* ithr )
+{
+	Cthrdat	&me = vthr[(long)ithr];
+
+	int	i1[3] = { 0, 1, 2 },
+		i2[3] = { 3, 4, 5 };
+
+	for( int i = me.r0; i < me.rlim; ++i ) {
+
+		const RGN&	R = vRgn[i];
+
+		if( R.itr < 0 )
+			continue;
+
+		int	nc = myc[i].size();
+
+		if( nc < 3 )
+			continue;
+
+		double	*RHS = &(*Xout)[R.itr * 6];
+		double	LHS[6*6];
+		TAffine	Ta( &(*Xin)[R.itr * 6] );
+
+		memset( RHS, 0, 6   * sizeof(double) );
+		memset( LHS, 0, 6*6 * sizeof(double) );
+
+		for( int j = 0; j < nc; ++j ) {
+
+			const Constraint&	C = vAllC[myc[i][j]];
+			Point				A, B;
+
+			// like w = 0.9 (same layer), 0.9 (down)
+
+			if( C.r1 == i ) {
+				TAffine Tb( &(*Xin)[vRgn[C.r2].itr * 6] );
+				Tb.Transform( B = C.p2 );
+				Ta.Transform( A = C.p1 );
+				B.x = w * B.x + (1 - w) * A.x;
+				B.y = w * B.y + (1 - w) * A.y;
+				A = C.p1;
+			}
+			else {
+				TAffine Tb( &(*Xin)[vRgn[C.r1].itr * 6] );
+				Tb.Transform( B = C.p1 );
+				Ta.Transform( A = C.p2 );
+				B.x = w * B.x + (1 - w) * A.x;
+				B.y = w * B.y + (1 - w) * A.y;
+				A = C.p2;
+			}
+
+			double	v[3] = { A.x, A.y, 1.0 };
+
+			AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+		}
+
+		Solve_Quick( LHS, RHS, 6 );
+	}
+
+	return NULL;
+}
+
+static void OnePassTH(
+	vector<double>	&shXout,
+	vector<double>	&shXin,
+	int				nTr,
+	int				nthr,
+	double			shw )
+{
+	vthr.resize( nthr );
+	Xout	= &shXout;
+	Xin		= &shXin;
+	w		= shw;
+
+	shXout.resize( nTr * 6 );
+
+	int	nr = vRgn.size(),
+		nb = nr / nthr;
+
+	vthr[0].r0		= 0;
+	vthr[0].rlim	= nb;
+
+	pthread_attr_t	attr;
+
+	pthread_attr_init( &attr );
+	pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+
+	for( int i = 1; i < nthr; ++i ) {
+
+		Cthrdat	&C = vthr[i];
+
+		C.r0	= vthr[i-1].rlim;
+		C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
+
+		int	ret = pthread_create(
+						&C.h, &attr, _OnePassTH, (void*)i );
+
+		if( ret ) {
+			printf( "Error %d starting thread %d\n", ret, i );
+			for( int j = 1; j < i; ++j )
+				pthread_cancel( vthr[j].h );
+			exit( 42 );
+		}
+	}
+
+	pthread_attr_destroy( &attr );
+
+	_OnePassTH( 0 );
+
+	void*	ret;
+
+	for( int i = 1; i < nthr; ++i )
+		pthread_join( vthr[i].h, &ret );
+}
+
+/* --------------------------------------------------------------- */
 /* SolveSystemStandard ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1368,17 +1502,31 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 //		AffineFromFile( X, nTr );
 		AffineFromFile2( X, nTr );
 
-#else	// stack iterative
+#elif 0	// stack iterative
 
 		GetScaffT( X, nTr );
 		vector<double>	S = X;
+		clock_t			t2 = StartTiming();
 		for( int i = 0; i < 150; ++i ) {	// 25
 			vector<double> Xin = X;
 			OnePass( X, Xin, S, nTr, 0.9 );
-			printf( "Done pass %d\n", i + 1 );
-			fflush( stdout );
+			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
 		}
 		PrintMagnitude( X );
+		StopTiming( stdout, "Iters", t2 );
+		myc.clear();
+
+#else	// threaded stack iterative
+
+		GetScaffT( X, nTr );
+		clock_t			t2 = StartTiming();
+		for( int i = 0; i < 150; ++i ) {	// 25
+			vector<double> Xin = X;
+			OnePassTH( X, Xin, nTr, 16, 0.9 );
+			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
+		}
+		PrintMagnitude( X );
+		StopTiming( stdout, "Iters", t2 );
 		myc.clear();
 
 #endif
@@ -1389,7 +1537,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AffineFromTransWt( X, nTr );
 
-#else	// montage iterative
+#elif 0	// montage iterative
 
 		GetStageT( X, nTr );
 		vector<double>	S = X;
@@ -1397,6 +1545,18 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 		for( int i = 0; i < 250; ++i ) {	// 25
 			vector<double> Xin = X;
 			OnePass( X, Xin, S, nTr, 0.9 );
+		}
+		PrintMagnitude( X );
+		StopTiming( stdout, "Iters", t2 );
+		myc.clear();
+
+#else	// threaded montage iterative
+
+		GetStageT( X, nTr );
+		clock_t			t2 = StartTiming();
+		for( int i = 0; i < 250; ++i ) {	// 25
+			vector<double> Xin = X;
+			OnePassTH( X, Xin, nTr, 16, 0.9 );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );
