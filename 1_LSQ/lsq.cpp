@@ -1101,6 +1101,8 @@ void EVL::Tabulate(
 
 		double		err;
 		Constraint	&C = vAllC[i];
+		const RGN&	R1 = vRgn[C.r1];
+		const RGN&	R2 = vRgn[C.r2];
 
 		if( !C.used )
 			err = -2;
@@ -1115,8 +1117,8 @@ void EVL::Tabulate(
 			Point	&g1 = C.p1,
 					&g2 = C.p2;
 
-			M->L2GPoint( g1, X, vRgn[C.r1].itr );
-			M->L2GPoint( g2, X, vRgn[C.r2].itr );
+			M->L2GPoint( g1, X, R1.itr );
+			M->L2GPoint( g2, X, R2.itr );
 
 			err = g2.DistSqr( g1 );
 
@@ -1128,8 +1130,8 @@ void EVL::Tabulate(
 			biggest = max( biggest, err );
 
 			fprintf( FOUT, "MPOINTS %d %f %f %d %f %f\n",
-			vRgn[C.r1].z, g1.x, g1.y,
-			vRgn[C.r2].z, g2.x, g2.y );
+			R1.z, g1.x, g1.y,
+			R2.z, g2.x, g2.y );
 
 			/* ------ */
 			/* Epnt[] */
@@ -1149,8 +1151,8 @@ void EVL::Tabulate(
 			/* ----------- */
 
 			SecErr	*S;
-			int		z1 = vRgn[C.r1].z,
-					z2 = vRgn[C.r2].z;
+			int		z1 = R1.z,
+					z2 = R2.z;
 
 			if( z1 == z2 )
 				S = &Ein[z1];
@@ -1166,8 +1168,8 @@ void EVL::Tabulate(
 		/* ---- */
 
 		fprintf( f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\n",
-		vRgn[C.r1].z, vRgn[C.r1].id, vRgn[C.r1].rgn,
-		vRgn[C.r2].z, vRgn[C.r2].id, vRgn[C.r2].rgn, err );
+		R1.z, R1.id, R1.rgn,
+		R2.z, R2.id, R2.rgn, err );
 	}
 
 // Close file

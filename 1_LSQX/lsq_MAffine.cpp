@@ -1333,6 +1333,8 @@ static void* _OnePassTH( void* ithr )
 		double	*RHS = &(*Xout)[R.itr * 6];
 		double	LHS[6*6];
 		TAffine	Ta( &(*Xin)[R.itr * 6] );
+		TAffine	Tb;
+		int		lastb = -1;	// cache Tb
 
 		memset( RHS, 0, 6   * sizeof(double) );
 		memset( LHS, 0, 6*6 * sizeof(double) );
@@ -1342,10 +1344,16 @@ static void* _OnePassTH( void* ithr )
 			const Constraint&	C = vAllC[myc[i][j]];
 			Point				A, B;
 
-			// like w = 0.9 (same layer), 0.9 (down)
+			// Mixing old and new solutions is related to
+			// "successive over relaxation" methods in other
+			// iterative solution schemes. Experimentally,
+			// I like w = 0.9 (same layer), 0.9 (down).
 
 			if( C.r1 == i ) {
-				TAffine Tb( &(*Xin)[vRgn[C.r2].itr * 6] );
+				if( C.r2 != lastb ) {
+					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 6] );
+					lastb = C.r2;
+				}
 				Tb.Transform( B = C.p2 );
 				Ta.Transform( A = C.p1 );
 				B.x = w * B.x + (1 - w) * A.x;
@@ -1353,7 +1361,10 @@ static void* _OnePassTH( void* ithr )
 				A = C.p1;
 			}
 			else {
-				TAffine Tb( &(*Xin)[vRgn[C.r1].itr * 6] );
+				if( C.r1 != lastb ) {
+					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 6] );
+					lastb = C.r1;
+				}
 				Tb.Transform( B = C.p1 );
 				Ta.Transform( A = C.p2 );
 				B.x = w * B.x + (1 - w) * A.x;
@@ -1380,50 +1391,59 @@ static void OnePassTH(
 	int				nthr,
 	double			shw )
 {
-	vthr.resize( nthr );
+	int	nr = vRgn.size(),
+		nb;
+
+	if( nr < nthr * 4 )
+		nthr = 1;
+
 	Xout	= &shXout;
 	Xin		= &shXin;
 	w		= shw;
+	nb		= nr / nthr;
 
-	shXout.resize( nTr * 6 );
-
-	int	nr = vRgn.size(),
-		nb = nr / nthr;
+	vthr.resize( nthr );
+	Xout->resize( nTr * 6 );
 
 	vthr[0].r0		= 0;
 	vthr[0].rlim	= nb;
 
-	pthread_attr_t	attr;
+	if( nthr > 1 ) {
 
-	pthread_attr_init( &attr );
-	pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+		pthread_attr_t	attr;
+		pthread_attr_init( &attr );
+		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
 
-	for( int i = 1; i < nthr; ++i ) {
+		for( int i = 1; i < nthr; ++i ) {
 
-		Cthrdat	&C = vthr[i];
+			Cthrdat	&C = vthr[i];
 
-		C.r0	= vthr[i-1].rlim;
-		C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
+			C.r0	= vthr[i-1].rlim;
+			C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
 
-		int	ret = pthread_create(
-						&C.h, &attr, _OnePassTH, (void*)i );
+			int	ret =
+			pthread_create( &C.h, &attr, _OnePassTH, (void*)i );
 
-		if( ret ) {
-			printf( "Error %d starting thread %d\n", ret, i );
-			for( int j = 1; j < i; ++j )
-				pthread_cancel( vthr[j].h );
-			exit( 42 );
+			if( ret ) {
+				printf( "Error %d starting thread %d\n", ret, i );
+				for( int j = 1; j < i; ++j )
+					pthread_cancel( vthr[j].h );
+				exit( 42 );
+			}
 		}
-	}
 
-	pthread_attr_destroy( &attr );
+		pthread_attr_destroy( &attr );
+	}
 
 	_OnePassTH( 0 );
 
-	void*	ret;
+	if( nthr > 1 ) {
 
-	for( int i = 1; i < nthr; ++i )
-		pthread_join( vthr[i].h, &ret );
+		void*	ret;
+
+		for( int i = 1; i < nthr; ++i )
+			pthread_join( vthr[i].h, &ret );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -1520,7 +1540,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		GetScaffT( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 150; ++i ) {	// 25
+		for( int i = 0; i < 2400; ++i ) {	// 25
 			vector<double> Xin = X;
 			OnePassTH( X, Xin, nTr, 16, 0.9 );
 			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
@@ -1533,7 +1553,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 	}
 	else {
 
-#if 0	// montage with SLU
+#if 1	// montage with SLU
 
 		AffineFromTransWt( X, nTr );
 
@@ -1542,7 +1562,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 		GetStageT( X, nTr );
 		vector<double>	S = X;
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 250; ++i ) {	// 25
+		for( int i = 0; i < 250; ++i ) {	// 250
 			vector<double> Xin = X;
 			OnePass( X, Xin, S, nTr, 0.9 );
 		}
@@ -1554,7 +1574,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		GetStageT( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 250; ++i ) {	// 25
+		for( int i = 0; i < 2; ++i ) {	// 250
 			vector<double> Xin = X;
 			OnePassTH( X, Xin, nTr, 16, 0.9 );
 		}

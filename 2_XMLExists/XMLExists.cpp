@@ -27,6 +27,7 @@
 #include	"TrakEM2_UTL.h"
 
 #include	<map>
+#include	<set>
 #include	<string>
 using namespace std;
 
@@ -195,13 +196,19 @@ static bool IsImg( string &s, TiXmlElement* ptch )
 static void ListMissing( TiXmlElement* layer, int z )
 {
 	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+	set<string>		sdir;
 
 	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
 		string	dir;
 
-		if( !IsDir( dir, ptch ) )
-			fprintf( flog, "%d\tD\t%s\n", z, dir.c_str() );
+		if( !IsDir( dir, ptch ) ) {
+
+			if( sdir.find( dir ) == sdir.end() ) {
+				sdir.insert( dir );
+				fprintf( flog, "%d\tD\t%s\n", z, dir.c_str() );
+			}
+		}
 		else if( !IsImg( dir, ptch ) )
 			fprintf( flog, "%d\tT\t%s\n", z, dir.c_str() );
 	}
