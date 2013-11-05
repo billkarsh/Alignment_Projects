@@ -1,6 +1,9 @@
 
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
+# Needed for <unordered_map> or auto iterator typing
+#CC += -std=c++0x
+
 appname = lsq
 
 files =\

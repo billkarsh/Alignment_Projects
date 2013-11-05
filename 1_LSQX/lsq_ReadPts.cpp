@@ -3,8 +3,12 @@
 #include	"lsq_ReadPts.h"
 
 #include	"File.h"
+#include	"Maths.h"
 
 #include	<string.h>
+
+//#include	<unordered_map>
+//using namespace std;
 
 
 /* --------------------------------------------------------------- */
@@ -21,32 +25,43 @@ int				gW = 4056,	// image coords
 
 
 /* --------------------------------------------------------------- */
-/* FindOrAdd ----------------------------------------------------- */
+/* CMapZIDR ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
+
+// URL <http://www.drdobbs.com/windows/user-defined-hash-functions-for-unordere/231600210?pgno=3>
+
+struct Hasher {
+	size_t operator()( const MZIDR &m ) const
+	{
+		return SuperFastHash( (char*)&m.z, 3*sizeof(int) );
+	};
+};
+
+class CMapZIDR {
+private:
+	map<MZIDR,int>	mi;
+//	unordered_map<MZIDR,int,Hasher>	mi;
+	int								nr;
+public:
+	CMapZIDR()	{nr=0;};
+	int Find( const RGN &R );
+};
 
 // Return zero-based index for given RGN.
 //
 // If already stored, that index is returned. Else, new
 // entries are created with index (nr); nr is incremented.
 //
-static int FindOrAdd( map<MZIDR,int> &m, int &nr, const RGN &R )
+int CMapZIDR::Find( const RGN &R )
 {
-// Already mapped?
-
 	MZIDR						key( R.z, R.id, R.rgn );
-	map<MZIDR,int>::iterator	it = m.find( key );
+	map<MZIDR,int>::iterator	it = mi.find( key );
 
-	if( it != m.end() )
+	if( it != mi.end() )
 		return it->second;
 
-// No - add to map
-
-	m[key] = nr;
-
-// Add to vRgn
-
+	mi[key] = nr;
 	vRgn.push_back( R );
-
 	return nr++;
 }
 
@@ -70,8 +85,8 @@ void ReadPts_StrTags(
 
 	dir.ReadDIRFile( dirfile, FOUT );
 
-	map<MZIDR,int>	mapRGN;
-	int				nr = 0, nlines = 0;
+	CMapZIDR	CM;
+	int			nlines = 0;
 
 	for(;;) {
 
@@ -101,8 +116,8 @@ void ReadPts_StrTags(
 
 			RGN	R1( name1, key1 );
 			RGN	R2( name2, key2 );
-			int r1 = FindOrAdd( mapRGN, nr, R1 );
-			int r2 = FindOrAdd( mapRGN, nr, R2 );
+			int r1 = CM.Find( R1 );
+			int r2 = CM.Find( R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
 			sml->AddPOINTPair( r1, p1, r2, p2 );
@@ -127,8 +142,8 @@ void ReadPts_StrTags(
 
 			RGN	R1( name1, dir, IDFromName( name1 ) );
 			RGN	R2( name2, dir, IDFromName( name2 ) );
-			int r1 = FindOrAdd( mapRGN, nr, R1 );
-			int r2 = FindOrAdd( mapRGN, nr, R2 );
+			int r1 = CM.Find( R1 );
+			int r2 = CM.Find( R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
 			sml->AddPOINTPair( r1, p1, r2, p2 );
@@ -261,8 +276,8 @@ void ReadPts_NumTags(
 	FILE		*f = FileOpenOrDie( ptsfile, "r" );
 	CLineScan	LS;
 
-	map<MZIDR,int>	mapRGN;
-	int				nr = 0, nlines = 0;
+	CMapZIDR	CM;
+	int			nlines = 0;
 
 	for(;;) {
 
@@ -299,11 +314,11 @@ void ReadPts_NumTags(
 			if( RejectPair( R1, R2 ) )
 				continue;
 
-			int r1 = FindOrAdd( mapRGN, nr, R1 );
-			int r2 = FindOrAdd( mapRGN, nr, R2 );
+			int r1 = CM.Find( R1 );
+			int r2 = CM.Find( R2 );
 
 			cnx->AddCorrespondence( r1, r2 );
-			sml->AddPOINTPair( r1, p1, r2, p2 );
+//			sml->AddPOINTPair( r1, p1, r2, p2 );
 
 			vAllC.push_back( Constraint( r1, p1, r2, p2 ) );
 		}

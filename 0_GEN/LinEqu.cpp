@@ -310,7 +310,7 @@ static int MATludcmp(
  *
  */
 
-static int MATlubksb(
+static void MATlubksb(
 	double*			B,
 	const double*	A,
 	const int*		indx,
@@ -589,7 +589,7 @@ static void SolveDirectGJ(
 // by LU decomp and result vector directly. Caller should build
 // RHS directly in output X array to minimize data copying.
 //
-void Solve_Quick(
+bool Solve_Quick(
 	double	*LHS,
 	double	*RHS,
 	int		n )
@@ -597,8 +597,12 @@ void Solve_Quick(
 	double	vv[n], d;
 	int		indx[n];
 
-	MATludcmp( LHS, indx, &d, vv, n );
-	MATlubksb( RHS, LHS, indx, n );
+	if( MATludcmp( LHS, indx, &d, vv, n ) ) {
+		MATlubksb( RHS, LHS, indx, n );
+		return true;
+	}
+
+	return false;
 }
 
 /* --------------------------------------------------------------- */

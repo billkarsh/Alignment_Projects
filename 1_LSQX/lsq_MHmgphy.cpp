@@ -7,8 +7,10 @@
 #include	"TrakEM2_UTL.h"
 #include	"File.h"
 #include	"Maths.h"
+#include	"Timer.h"
 
 #include	<math.h>
+#include	<pthread.h>
 
 
 /* --------------------------------------------------------------- */
@@ -454,12 +456,383 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 }
 
 /* --------------------------------------------------------------- */
+/* Fill_myc ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static vector<vector<int> >	myc;
+
+static void Fill_myc()
+{
+	myc.resize( vRgn.size() );
+
+	int	nc = vAllC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		const Constraint &C = vAllC[i];
+
+		if( !C.used || !C.inlier )
+			continue;
+
+		int	itr;
+
+		if( (itr = vRgn[C.r1].itr) < 0 )
+			continue;
+
+		if( (itr = vRgn[C.r2].itr) < 0 )
+			continue;
+
+		myc[C.r1].push_back( i );
+		myc[C.r2].push_back( i );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* AFromTbl ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void AFromTbl( vector<double> &X, int nTr )
+{
+	X.resize( nTr * 6 );
+
+	map<MZIDR,TAffine>	M;
+	set<int>			Z;
+
+	LoadTAffineTbl_AllZ( M, Z, "../s_iter200_Scaf_A_2400/TAffineTable.txt" );
+
+	int	nr = vRgn.size();
+
+	for( int i = 0; i < nr; ++i ) {
+
+		RGN&	R = vRgn[i];
+
+		if( R.itr < 0 )
+			continue;
+
+		map<MZIDR,TAffine>::iterator	it;
+
+		it = M.find( MZIDR( R.z, R.id, R.rgn ) );
+
+		if( it != M.end() )
+			memcpy( &X[R.itr*6], it->second.t, 6*sizeof(double) );
+		else
+			R.itr = -1;
+	}
+
+	Fill_myc();
+}
+
+/* --------------------------------------------------------------- */
+/* OnePassTH ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+typedef	void* (*T_OnePass)( void* );
+
+class Cthrdat {
+
+public:
+	pthread_t	h;
+	int			r0,
+				rlim;
+};
+
+static vector<Cthrdat>	vthr;
+static vector<double>	*Xout;
+static vector<double>	*Xin;
+static double			w;
+
+
+static void* _OnePass_HFromA( void* ithr )
+{
+	Cthrdat	&me = vthr[(long)ithr];
+
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 },
+		ndegen = 0;
+
+	for( int i = me.r0; i < me.rlim; ++i ) {
+
+		const RGN&	R = vRgn[i];
+
+		if( R.itr < 0 )
+			continue;
+
+		int	nc = myc[i].size();
+
+		if( nc < 4 )
+			continue;
+
+		double	*RHS = &(*Xout)[R.itr * 8];
+		double	LHS[8*8];
+		TAffine	Ta( &(*Xin)[R.itr * 6] );
+		TAffine	Tb;
+		int		lastb = -1;	// cache Tb
+
+		memset( RHS, 0, 8   * sizeof(double) );
+		memset( LHS, 0, 8*8 * sizeof(double) );
+
+		for( int j = 0; j < nc; ++j ) {
+
+			const Constraint&	C = vAllC[myc[i][j]];
+			Point				A, B;
+
+			// Mixing old and new solutions is related to
+			// "successive over relaxation" methods in other
+			// iterative solution schemes. Experimentally,
+			// I like w = 0.9 (same layer), 0.9 (down).
+
+			if( C.r1 == i ) {
+				if( C.r2 != lastb ) {
+					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 6] );
+					lastb = C.r2;
+				}
+				Tb.Transform( B = C.p2 );
+				Ta.Transform( A = C.p1 );
+				B.x = w * B.x + (1 - w) * A.x;
+				B.y = w * B.y + (1 - w) * A.y;
+				A = C.p1;
+			}
+			else {
+				if( C.r1 != lastb ) {
+					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 6] );
+					lastb = C.r1;
+				}
+				Tb.Transform( B = C.p1 );
+				Ta.Transform( A = C.p2 );
+				B.x = w * B.x + (1 - w) * A.x;
+				B.y = w * B.y + (1 - w) * A.y;
+				A = C.p2;
+			}
+
+			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+			v[3] = -A.x*B.y;
+			v[4] = -A.y*B.y;
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+		}
+
+		ndegen += !Solve_Quick( LHS, RHS, 8 );
+	}
+
+	if( ndegen )
+		printf( "HFromA degen %d\n", ndegen );
+
+	return NULL;
+}
+
+
+static void* _OnePass_HFromH( void* ithr )
+{
+	Cthrdat	&me = vthr[(long)ithr];
+
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 },
+		ndegen = 0;
+
+	for( int i = me.r0; i < me.rlim; ++i ) {
+
+		RGN&	R = vRgn[i];
+
+		if( R.itr < 0 )
+			continue;
+
+		int	nc = myc[i].size();
+
+		if( nc < 4 )
+			continue;
+
+		double	*RHS = &(*Xout)[R.itr * 8];
+		double	LHS[8*8];
+		THmgphy	Ta( &(*Xin)[R.itr * 8] );
+		THmgphy	Tb;
+		int		lastb	= -1,	// cache Tb
+				nokc	= 0;
+
+		memset( RHS, 0, 8   * sizeof(double) );
+		memset( LHS, 0, 8*8 * sizeof(double) );
+
+		for( int j = 0; j < nc; ++j ) {
+
+			const Constraint&	C = vAllC[myc[i][j]];
+			Point				A, B;
+
+			// Mixing old and new solutions is related to
+			// "successive over relaxation" methods in other
+			// iterative solution schemes. Experimentally,
+			// I like w = 0.9 (same layer), 0.9 (down).
+
+			if( C.r1 == i ) {
+
+				int	bitr = vRgn[C.r2].itr;
+
+				//if( bitr < 0 )
+				//	continue;
+
+				if( C.r2 != lastb ) {
+					Tb.CopyIn( &(*Xin)[bitr * 8] );
+					lastb = C.r2;
+				}
+
+				Tb.Transform( B = C.p2 );
+				Ta.Transform( A = C.p1 );
+				B.x = w * B.x + (1 - w) * A.x;
+				B.y = w * B.y + (1 - w) * A.y;
+				A = C.p1;
+			}
+			else {
+
+				int	bitr = vRgn[C.r1].itr;
+
+				//if( bitr < 0 )
+				//	continue;
+
+				if( C.r1 != lastb ) {
+					Tb.CopyIn( &(*Xin)[bitr * 8] );
+					lastb = C.r1;
+				}
+
+				Tb.Transform( B = C.p1 );
+				Ta.Transform( A = C.p2 );
+				B.x = w * B.x + (1 - w) * A.x;
+				B.y = w * B.y + (1 - w) * A.y;
+				A = C.p2;
+			}
+
+//			++nokc;
+
+			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+			v[3] = -A.x*B.y;
+			v[4] = -A.y*B.y;
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+		}
+
+		if( !Solve_Quick( LHS, RHS, 8 ) ) {
+			++ndegen;
+			Ta.CopyOut( RHS );
+		}
+	}
+
+	if( ndegen )
+		printf( "HFromH degen %d\n", ndegen );
+
+	return NULL;
+}
+
+
+static void OnePassTH(
+	T_OnePass		passproc,
+	vector<double>	&shXout,
+	vector<double>	&shXin,
+	int				nXout,
+	int				nthr,
+	double			shw )
+{
+	int	nr = vRgn.size(),
+		nb;
+
+	if( nr < nthr * 4 )
+		nthr = 1;
+
+	Xout	= &shXout;
+	Xin		= &shXin;
+	w		= shw;
+	nb		= nr / nthr;
+
+	vthr.resize( nthr );
+	Xout->resize( nXout );
+
+	vthr[0].r0		= 0;
+	vthr[0].rlim	= nb;
+
+// I am zero; start my coworkers
+
+	if( nthr > 1 ) {
+
+		pthread_attr_t	attr;
+		pthread_attr_init( &attr );
+		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+
+		for( int i = 1; i < nthr; ++i ) {
+
+			Cthrdat	&C = vthr[i];
+
+			C.r0	= vthr[i-1].rlim;
+			C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
+
+			int	ret =
+			pthread_create( &C.h, &attr, passproc, (void*)i );
+
+			if( ret ) {
+				printf( "Error %d starting thread %d\n", ret, i );
+				for( int j = 1; j < i; ++j )
+					pthread_cancel( vthr[j].h );
+				exit( 42 );
+			}
+		}
+
+		pthread_attr_destroy( &attr );
+	}
+
+// Do my own work
+
+	passproc( 0 );
+
+// Join/wait my coworkers
+
+	if( nthr > 1 ) {
+
+		void*	ret;
+
+		for( int i = 1; i < nthr; ++i )
+			pthread_join( vthr[i].h, &ret );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 {
+	fflush( stdout );
+	clock_t	t0 = StartTiming();
+
+#if 0
+
 	HmgphyFromHmgphy( X, nTr );
+
+#else
+
+	vector<double>	Xin;
+	AFromTbl( Xin, nTr );
+	clock_t			t2 = StartTiming();
+
+	OnePassTH( _OnePass_HFromA, X, Xin, nTr*8, 16, 0.9 );
+	printf( "Just HfromA\n" );
+	PrintMagnitude( X );
+	fflush( stdout );
+
+	for( int i = 0; i < 1000; ++i ) {	// 1000 - 2000 good
+		Xin = X;
+		OnePassTH( _OnePass_HFromH, X, Xin, nTr*8, 16, 0.9 );
+		printf( "Done pass %d\n", i + 1 ); fflush( stdout );
+	}
+
+	PrintMagnitude( X );
+	StopTiming( stdout, "Iters", t2 );
+	fflush( stdout );
+	myc.clear();
+
+#endif
+
+	StopTiming( stdout, "SolveH", t0 );
 }
 
 /* --------------------------------------------------------------- */

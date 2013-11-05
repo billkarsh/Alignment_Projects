@@ -47,7 +47,7 @@ void AddConstraint(
 	const double	*Ai,
 	double			Bi );
 
-void Solve_Quick(
+bool Solve_Quick(
 	double	*LHS,
 	double	*RHS,
 	int		n );

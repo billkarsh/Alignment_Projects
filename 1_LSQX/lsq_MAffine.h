@@ -84,9 +84,9 @@ private:
 	// ----------------------------------------------------------
 	// Iterative experiments
 	void Fill_myc( const vector<double> &X );
-	void GetStageT( vector<double> &X, int nTr );
-	void GetTableT( vector<double> &X, int nTr );
-	void GetScaffT( vector<double> &X, int nTr );
+	void AFromIDB( vector<double> &X, int nTr );
+	void AFromTbl( vector<double> &X, int nTr );
+	void AFromScf( vector<double> &X, int nTr );
 	void OnePass(
 		vector<double>	&Xout,
 		vector<double>	&Xin,
