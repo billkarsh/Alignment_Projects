@@ -17,7 +17,8 @@
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-const double SQRTOL = sin( 12 * PI/180 );
+const double	SQRTOL		= sin( 15 * PI/180 );
+const int		EDITDELAY	= 200;
 
 /* --------------------------------------------------------------- */
 /* SetUniteLayer ------------------------------------------------- */
@@ -546,6 +547,7 @@ static vector<Cthrdat>	vthr;
 static vector<double>	*Xout;
 static vector<double>	*Xin;
 static double			w;
+static int				gpass;
 
 
 static void* _OnePass_HFromA( void* ithr )
@@ -817,6 +819,11 @@ static void* _OnePass_HFromH( void* ithr )
 			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
 		}
 
+		if( gpass < EDITDELAY ) {
+			Solve_Quick( LHS, RHS, 6 );
+			continue;
+		}
+
 		if( !Solve_Quick( LHS, RHS, 8 ) ||
 			THmgphy( RHS ).Squareness() > SQRTOL ) {
 
@@ -1044,10 +1051,10 @@ void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 	PrintMagnitude( X );
 	fflush( stdout );
 
-	for( int i = 0; i < 2000; ++i ) {	// 1000 - 2000 good
+	for( gpass = 0; gpass < 2000; ++gpass ) {	// 1000 - 2000 good
 		Xin = X;
 		OnePassTH( _OnePass_HFromH, X, Xin, nTr*8, 16, 0.9 );
-		printf( "Done pass %d\n", i + 1 ); fflush( stdout );
+		printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
 	}
 
 	PrintMagnitude( X );

@@ -18,7 +18,8 @@ using namespace std;
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-const double SQRTOL = sin( 15 * PI/180 );
+const double	SQRTOL		= sin( 15 * PI/180 );
+const int		EDITDELAY	= 200;
 
 /* --------------------------------------------------------------- */
 /* SetPointPairs ------------------------------------------------- */
@@ -1352,6 +1353,7 @@ static vector<Cthrdat>	vthr;
 static vector<double>	*Xout;
 static vector<double>	*Xin;
 static double			w;
+static int				gpass;
 
 
 static void* _OnePass_AFromA( void* ithr )
@@ -1605,6 +1607,11 @@ static void* _OnePass_AFromA_stk( void* ithr )
 
 			AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
 			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+		}
+
+		if( gpass < EDITDELAY ) {
+			Solve_Quick( LHS, RHS, 6 );
+			continue;
 		}
 
 		if( !Solve_Quick( LHS, RHS, 6 ) ||
@@ -1943,10 +1950,10 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AFromScf( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 800; ++i ) {	// 25
+		for( gpass = 0; gpass < 1500; ++gpass ) {	// 25
 			vector<double> Xin = X;
 			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 16, 0.9 );
-			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
+			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );
@@ -1977,10 +1984,10 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AFromIDB( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 250; ++i ) {	// 250
+		for( gpass = 0; gpass < 250; ++gpass ) {	// 250
 			vector<double> Xin = X;
 			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 16, 0.9 );
-			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
+			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );
