@@ -14,6 +14,12 @@
 
 
 /* --------------------------------------------------------------- */
+/* Constants ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+const double SQRTOL = sin( 12 * PI/180 );
+
+/* --------------------------------------------------------------- */
 /* SetUniteLayer ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -474,12 +480,10 @@ static void Fill_myc()
 		if( !C.used || !C.inlier )
 			continue;
 
-		int	itr;
-
-		if( (itr = vRgn[C.r1].itr) < 0 )
+		if( vRgn[C.r1].itr < 0 )
 			continue;
 
-		if( (itr = vRgn[C.r2].itr) < 0 )
+		if( vRgn[C.r2].itr < 0 )
 			continue;
 
 		myc[C.r1].push_back( i );
@@ -534,6 +538,8 @@ public:
 	pthread_t	h;
 	int			r0,
 				rlim;
+	vector<int>	Rslo;
+	vector<int>	Rkil;
 };
 
 static vector<Cthrdat>	vthr;
@@ -544,7 +550,7 @@ static double			w;
 
 static void* _OnePass_HFromA( void* ithr )
 {
-	Cthrdat	&me = vthr[(long)ithr];
+	Cthrdat	&me = vthr[(int)(long)ithr];
 
 	int	i1[5] = { 0, 1, 2, 6, 7 },
 		i2[5] = { 3, 4, 5, 6, 7 },
@@ -582,8 +588,14 @@ static void* _OnePass_HFromA( void* ithr )
 			// I like w = 0.9 (same layer), 0.9 (down).
 
 			if( C.r1 == i ) {
+
+				int	bitr = vRgn[C.r2].itr;
+
+				if( bitr < 0 )
+					continue;
+
 				if( C.r2 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 6] );
+					Tb.CopyIn( &(*Xin)[bitr * 6] );
 					lastb = C.r2;
 				}
 				Tb.Transform( B = C.p2 );
@@ -593,8 +605,14 @@ static void* _OnePass_HFromA( void* ithr )
 				A = C.p1;
 			}
 			else {
+
+				int	bitr = vRgn[C.r1].itr;
+
+				if( bitr < 0 )
+					continue;
+
 				if( C.r1 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 6] );
+					Tb.CopyIn( &(*Xin)[bitr * 6] );
 					lastb = C.r1;
 				}
 				Tb.Transform( B = C.p1 );
@@ -624,17 +642,108 @@ static void* _OnePass_HFromA( void* ithr )
 }
 
 
-static void* _OnePass_HFromH( void* ithr )
+static void HFromH_SLOnly( double *RHS, int i, int ithr )
 {
-	Cthrdat	&me = vthr[(long)ithr];
+	const RGN&	R = vRgn[i];
 
 	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 },
-		ndegen = 0;
+		i2[5] = { 3, 4, 5, 6, 7 };
+
+	int	nc = myc[i].size();
+
+	double	LHS[8*8];
+	THmgphy	Ta( &(*Xin)[R.itr * 8] );
+	THmgphy	Tb;
+	int		lastb	= -1,	// cache Tb
+			nSLc	= 0;
+
+	memset( RHS, 0, 8   * sizeof(double) );
+	memset( LHS, 0, 8*8 * sizeof(double) );
+
+	for( int j = 0; j < nc; ++j ) {
+
+		const Constraint&	C = vAllC[myc[i][j]];
+		Point				A, B;
+
+		// Mixing old and new solutions is related to
+		// "successive over relaxation" methods in other
+		// iterative solution schemes. Experimentally,
+		// I like w = 0.9 (same layer), 0.9 (down).
+
+		if( C.r1 == i ) {
+
+			if( vRgn[C.r2].z != R.z )
+				continue;
+
+			int	bitr = vRgn[C.r2].itr;
+
+			if( bitr < 0 )
+				continue;
+
+			if( C.r2 != lastb ) {
+				Tb.CopyIn( &(*Xin)[bitr * 8] );
+				lastb = C.r2;
+			}
+			Tb.Transform( B = C.p2 );
+			Ta.Transform( A = C.p1 );
+			B.x = w * B.x + (1 - w) * A.x;
+			B.y = w * B.y + (1 - w) * A.y;
+			A = C.p1;
+		}
+		else {
+
+			if( vRgn[C.r1].z != R.z )
+				continue;
+
+			int	bitr = vRgn[C.r1].itr;
+
+			if( bitr < 0 )
+				continue;
+
+			if( C.r1 != lastb ) {
+				Tb.CopyIn( &(*Xin)[bitr * 8] );
+				lastb = C.r1;
+			}
+			Tb.Transform( B = C.p1 );
+			Ta.Transform( A = C.p2 );
+			B.x = w * B.x + (1 - w) * A.x;
+			B.y = w * B.y + (1 - w) * A.y;
+			A = C.p2;
+		}
+
+		++nSLc;
+
+		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+		AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+		v[3] = -A.x*B.y;
+		v[4] = -A.y*B.y;
+
+		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+	}
+
+	if( nSLc < 4 ||
+		!Solve_Quick( LHS, RHS, 8 ) ||
+		THmgphy( RHS ).Squareness() > SQRTOL ) {
+
+		vthr[ithr].Rkil.push_back( i );
+	}
+	else
+		vthr[ithr].Rslo.push_back( i );
+}
+
+
+static void* _OnePass_HFromH( void* ithr )
+{
+	Cthrdat	&me = vthr[(int)(long)ithr];
+
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 };
 
 	for( int i = me.r0; i < me.rlim; ++i ) {
 
-		RGN&	R = vRgn[i];
+		const RGN&	R = vRgn[i];
 
 		if( R.itr < 0 )
 			continue;
@@ -648,8 +757,7 @@ static void* _OnePass_HFromH( void* ithr )
 		double	LHS[8*8];
 		THmgphy	Ta( &(*Xin)[R.itr * 8] );
 		THmgphy	Tb;
-		int		lastb	= -1,	// cache Tb
-				nokc	= 0;
+		int		lastb	= -1;	// cache Tb
 
 		memset( RHS, 0, 8   * sizeof(double) );
 		memset( LHS, 0, 8*8 * sizeof(double) );
@@ -668,14 +776,13 @@ static void* _OnePass_HFromH( void* ithr )
 
 				int	bitr = vRgn[C.r2].itr;
 
-				//if( bitr < 0 )
-				//	continue;
+				if( bitr < 0 )
+					continue;
 
 				if( C.r2 != lastb ) {
 					Tb.CopyIn( &(*Xin)[bitr * 8] );
 					lastb = C.r2;
 				}
-
 				Tb.Transform( B = C.p2 );
 				Ta.Transform( A = C.p1 );
 				B.x = w * B.x + (1 - w) * A.x;
@@ -686,22 +793,19 @@ static void* _OnePass_HFromH( void* ithr )
 
 				int	bitr = vRgn[C.r1].itr;
 
-				//if( bitr < 0 )
-				//	continue;
+				if( bitr < 0 )
+					continue;
 
 				if( C.r1 != lastb ) {
 					Tb.CopyIn( &(*Xin)[bitr * 8] );
 					lastb = C.r1;
 				}
-
 				Tb.Transform( B = C.p1 );
 				Ta.Transform( A = C.p2 );
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p2;
 			}
-
-//			++nokc;
 
 			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
 
@@ -713,16 +817,134 @@ static void* _OnePass_HFromH( void* ithr )
 			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
 		}
 
-		if( !Solve_Quick( LHS, RHS, 8 ) ) {
-			++ndegen;
-			Ta.CopyOut( RHS );
+		if( !Solve_Quick( LHS, RHS, 8 ) ||
+			THmgphy( RHS ).Squareness() > SQRTOL ) {
+
+			HFromH_SLOnly( RHS, i, (int)(long)ithr );
 		}
 	}
 
-	if( ndegen )
-		printf( "HFromH degen %d\n", ndegen );
-
 	return NULL;
+}
+
+
+// Remove and remark bad RGNs and Constraints.
+//
+static void Remark()
+{
+	int	ncut = 0, nkil = 0;
+	int	nt = vthr.size();
+
+	// for each thread's lists...
+	for( int it = 0; it < nt; ++it ) {
+
+		vector<int>&	vslo = vthr[it].Rslo;
+		vector<int>&	vkil = vthr[it].Rkil;
+		int				nr = vslo.size();
+
+		ncut += nr;
+
+		// for the SLOnlys...
+		for( int ir = 0; ir < nr; ++ir ) {
+
+			int				islo = vslo[ir];
+			vector<int>&	vmine = myc[islo];
+			int				nc = vmine.size();
+
+			// for each constraint...
+			for( int ic = 0; ic < nc; ++ic ) {
+
+				Constraint&	C = vAllC[vmine[ic]];
+
+				if( vRgn[C.r1].z == vRgn[C.r2].z )
+					continue;
+
+				// mark constraint
+				C.used = false;
+
+				// remove it from other myc list
+				int	iother = (C.r1 == islo ? C.r2 : C.r1);
+				vector<int>&	vother = myc[iother];
+				int				mc = vother.size();
+
+				for( int jc = 0; jc < mc; ++jc ) {
+
+					if( vother[jc] == vmine[ic] ) {
+
+						vother.erase( vother.begin()+jc );
+
+						// mark other for kill?
+						if( vother.size() < 4 )
+							vkil.push_back( iother );
+
+						break;
+					}
+				}
+
+				// and remove it from my list
+				vmine.erase( vmine.begin()+ic );
+				--ic;
+				--nc;
+			}
+
+			// kill me?
+			if( nc < 4 ) {
+				vkil.push_back( islo );
+				--ncut;
+			}
+		}
+
+		// for the kills...
+		for( int ir = 0; ir < vkil.size(); ++ir ) {
+
+			int	ikil = vkil[ir];
+
+			// already dead?
+			if( vRgn[ikil].itr < 0 )
+				continue;
+
+			vector<int>&	vmine = myc[ikil];
+			int				nc = vmine.size();
+
+			// for each constraint...
+			for( int ic = 0; ic < nc; ++ic ) {
+
+				Constraint&	C = vAllC[vmine[ic]];
+
+				// mark constraint
+				C.used = false;
+
+				// remove it from other myc list
+				int	iother = (C.r1 == ikil ? C.r2 : C.r1);
+				vector<int>&	vother = myc[iother];
+				int				mc = vother.size();
+
+				for( int jc = 0; jc < mc; ++jc ) {
+
+					if( vother[jc] == vmine[ic] ) {
+
+						vother.erase( vother.begin()+jc );
+
+						// mark other for kill?
+						if( vother.size() < 4 )
+							vkil.push_back( iother );
+
+						break;
+					}
+				}
+			}
+
+			// kill my list
+			vmine.clear();
+
+			// mark me dead
+			vRgn[ikil].itr = -1;
+			++nkil;
+		}
+	}
+
+	if( ncut || nkil )
+		printf( "Tiles [cut, killed] = [%d, %d].\n", ncut, nkil );
 }
 
 
@@ -793,6 +1015,9 @@ static void OnePassTH(
 		for( int i = 1; i < nthr; ++i )
 			pthread_join( vthr[i].h, &ret );
 	}
+
+	Remark();
+	vthr.clear();
 }
 
 /* --------------------------------------------------------------- */
@@ -819,7 +1044,7 @@ void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 	PrintMagnitude( X );
 	fflush( stdout );
 
-	for( int i = 0; i < 1000; ++i ) {	// 1000 - 2000 good
+	for( int i = 0; i < 2000; ++i ) {	// 1000 - 2000 good
 		Xin = X;
 		OnePassTH( _OnePass_HFromH, X, Xin, nTr*8, 16, 0.9 );
 		printf( "Done pass %d\n", i + 1 ); fflush( stdout );

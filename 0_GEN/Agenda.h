@@ -91,7 +91,9 @@ look more like:
 - Need to visualize the block results to look for block errors.
 - Bad block signs: ?{low R, low point cnt, some T consistency rule}?
 - Need blocks to connect to more distant layers.
+- Need blocks to connect to more proximal layers.
 - Need study correlation drop-off with layer dZ.
+- Need more threads all over.
 - Need scape painter to observe fm's (and cropping).
 - Need blocks to observe fm's.
 - Need ptest to take params about which rgns go with this Tab hint.

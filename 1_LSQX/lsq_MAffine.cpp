@@ -15,6 +15,12 @@ using namespace std;
 
 
 /* --------------------------------------------------------------- */
+/* Constants ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+const double SQRTOL = sin( 15 * PI/180 );
+
+/* --------------------------------------------------------------- */
 /* SetPointPairs ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1306,6 +1312,27 @@ void MAffine::OnePass(
 #endif
 
 /* --------------------------------------------------------------- */
+/* KeepSLOnly ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Cull downs from given myc list.
+//
+static void KeepSLOnly( vector<int> &v, int nc )
+{
+	int id = 0;
+
+	for( int is = 0; is < nc; ++is ) {
+
+		const Constraint&	C = vAllC[v[is]];
+
+		if( C.r1 == C.r2 )
+			v[id++] = v[is];
+	}
+
+	v.resize( id );
+}
+
+/* --------------------------------------------------------------- */
 /* OnePassTH ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1317,6 +1344,8 @@ public:
 	pthread_t	h;
 	int			r0,
 				rlim;
+	vector<int>	Rslo;
+	vector<int>	Rkil;
 };
 
 static vector<Cthrdat>	vthr;
@@ -1364,8 +1393,14 @@ static void* _OnePass_AFromA( void* ithr )
 			// I like w = 0.9 (same layer), 0.9 (down).
 
 			if( C.r1 == i ) {
+
+				int	bitr = vRgn[C.r2].itr;
+
+				if( bitr < 0 )
+					continue;
+
 				if( C.r2 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 6] );
+					Tb.CopyIn( &(*Xin)[bitr * 6] );
 					lastb = C.r2;
 				}
 				Tb.Transform( B = C.p2 );
@@ -1375,8 +1410,14 @@ static void* _OnePass_AFromA( void* ithr )
 				A = C.p1;
 			}
 			else {
+
+				int	bitr = vRgn[C.r1].itr;
+
+				if( bitr < 0 )
+					continue;
+
 				if( C.r1 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 6] );
+					Tb.CopyIn( &(*Xin)[bitr * 6] );
 					lastb = C.r1;
 				}
 				Tb.Transform( B = C.p1 );
@@ -1399,165 +1440,97 @@ static void* _OnePass_AFromA( void* ithr )
 }
 
 
-static void* _OnePass_HFromA( void* ithr )
+static void AFromA_SLOnly( double *RHS, int i, int ithr )
 {
-	Cthrdat	&me = vthr[(long)ithr];
+	const RGN&	R = vRgn[i];
 
-	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 };
+	int	i1[3] = { 0, 1, 2 },
+		i2[3] = { 3, 4, 5 };
 
-	for( int i = me.r0; i < me.rlim; ++i ) {
+	int	nc = myc[i].size();
 
-		const RGN&	R = vRgn[i];
+	double	LHS[6*6];
+	TAffine	Ta( &(*Xin)[R.itr * 6] );
+	TAffine	Tb;
+	int		lastb	= -1,	// cache Tb
+			nSLc	= 0;
 
-		if( R.itr < 0 )
-			continue;
+	memset( RHS, 0, 6   * sizeof(double) );
+	memset( LHS, 0, 6*6 * sizeof(double) );
 
-		int	nc = myc[i].size();
+	for( int j = 0; j < nc; ++j ) {
 
-		if( nc < 4 )
-			continue;
+		const Constraint&	C = vAllC[myc[i][j]];
+		Point				A, B;
 
-		double	*RHS = &(*Xout)[R.itr * 8];
-		double	LHS[8*8];
-		TAffine	Ta( &(*Xin)[R.itr * 6] );
-		TAffine	Tb;
-		int		lastb = -1;	// cache Tb
+		// Mixing old and new solutions is related to
+		// "successive over relaxation" methods in other
+		// iterative solution schemes. Experimentally,
+		// I like w = 0.9 (same layer), 0.9 (down).
 
-		memset( RHS, 0, 8   * sizeof(double) );
-		memset( LHS, 0, 8*8 * sizeof(double) );
+		if( C.r1 == i ) {
 
-		for( int j = 0; j < nc; ++j ) {
+			if( vRgn[C.r2].z != R.z )
+				continue;
 
-			const Constraint&	C = vAllC[myc[i][j]];
-			Point				A, B;
+			int	bitr = vRgn[C.r2].itr;
 
-			// Mixing old and new solutions is related to
-			// "successive over relaxation" methods in other
-			// iterative solution schemes. Experimentally,
-			// I like w = 0.9 (same layer), 0.9 (down).
+			if( bitr < 0 )
+				continue;
 
-			if( C.r1 == i ) {
-				if( C.r2 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 6] );
-					lastb = C.r2;
-				}
-				Tb.Transform( B = C.p2 );
-				Ta.Transform( A = C.p1 );
-				B.x = w * B.x + (1 - w) * A.x;
-				B.y = w * B.y + (1 - w) * A.y;
-				A = C.p1;
+			if( C.r2 != lastb ) {
+				Tb.CopyIn( &(*Xin)[bitr * 6] );
+				lastb = C.r2;
 			}
-			else {
-				if( C.r1 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 6] );
-					lastb = C.r1;
-				}
-				Tb.Transform( B = C.p1 );
-				Ta.Transform( A = C.p2 );
-				B.x = w * B.x + (1 - w) * A.x;
-				B.y = w * B.y + (1 - w) * A.y;
-				A = C.p2;
+			Tb.Transform( B = C.p2 );
+			Ta.Transform( A = C.p1 );
+			B.x = w * B.x + (1 - w) * A.x;
+			B.y = w * B.y + (1 - w) * A.y;
+			A = C.p1;
+		}
+		else {
+
+			if( vRgn[C.r1].z != R.z )
+				continue;
+
+			int	bitr = vRgn[C.r1].itr;
+
+			if( bitr < 0 )
+				continue;
+
+			if( C.r1 != lastb ) {
+				Tb.CopyIn( &(*Xin)[bitr * 6] );
+				lastb = C.r1;
 			}
-
-			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
-
-			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
-
-			v[3] = -A.x*B.y;
-			v[4] = -A.y*B.y;
-
-			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+			Tb.Transform( B = C.p1 );
+			Ta.Transform( A = C.p2 );
+			B.x = w * B.x + (1 - w) * A.x;
+			B.y = w * B.y + (1 - w) * A.y;
+			A = C.p2;
 		}
 
-		Solve_Quick( LHS, RHS, 8 );
+		++nSLc;
+
+		double	v[3] = { A.x, A.y, 1.0 };
+
+		AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 	}
 
-	return NULL;
+	if( nSLc < 3 ||
+		!Solve_Quick( LHS, RHS, 6 ) ||
+		TAffine( RHS ).Squareness() > SQRTOL ) {
+
+		vthr[ithr].Rkil.push_back( i );
+	}
+	else
+		vthr[ithr].Rslo.push_back( i );
 }
 
 
-static void* _OnePass_HFromH( void* ithr )
+static void* _OnePass_AFromA_stk( void* ithr )
 {
-	Cthrdat	&me = vthr[(long)ithr];
-
-	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 };
-
-	for( int i = me.r0; i < me.rlim; ++i ) {
-
-		const RGN&	R = vRgn[i];
-
-		if( R.itr < 0 )
-			continue;
-
-		int	nc = myc[i].size();
-
-		if( nc < 4 )
-			continue;
-
-		double	*RHS = &(*Xout)[R.itr * 8];
-		double	LHS[8*8];
-		THmgphy	Ta( &(*Xin)[R.itr * 8] );
-		THmgphy	Tb;
-		int		lastb = -1;	// cache Tb
-
-		memset( RHS, 0, 8   * sizeof(double) );
-		memset( LHS, 0, 8*8 * sizeof(double) );
-
-		for( int j = 0; j < nc; ++j ) {
-
-			const Constraint&	C = vAllC[myc[i][j]];
-			Point				A, B;
-
-			// Mixing old and new solutions is related to
-			// "successive over relaxation" methods in other
-			// iterative solution schemes. Experimentally,
-			// I like w = 0.9 (same layer), 0.9 (down).
-
-			if( C.r1 == i ) {
-				if( C.r2 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 8] );
-					lastb = C.r2;
-				}
-				Tb.Transform( B = C.p2 );
-				Ta.Transform( A = C.p1 );
-				B.x = w * B.x + (1 - w) * A.x;
-				B.y = w * B.y + (1 - w) * A.y;
-				A = C.p1;
-			}
-			else {
-				if( C.r1 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 8] );
-					lastb = C.r1;
-				}
-				Tb.Transform( B = C.p1 );
-				Ta.Transform( A = C.p2 );
-				B.x = w * B.x + (1 - w) * A.x;
-				B.y = w * B.y + (1 - w) * A.y;
-				A = C.p2;
-			}
-
-			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
-
-			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
-
-			v[3] = -A.x*B.y;
-			v[4] = -A.y*B.y;
-
-			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
-		}
-
-		Solve_Quick( LHS, RHS, 8 );
-	}
-
-	return NULL;
-}
-
-
-static void* _OnePass_AFromH( void* ithr )
-{
-	Cthrdat	&me = vthr[(long)ithr];
+	Cthrdat	&me = vthr[(int)(long)ithr];
 
 	int	i1[3] = { 0, 1, 2 },
 		i2[3] = { 3, 4, 5 };
@@ -1576,8 +1549,8 @@ static void* _OnePass_AFromH( void* ithr )
 
 		double	*RHS = &(*Xout)[R.itr * 6];
 		double	LHS[6*6];
-		THmgphy	Ta( &(*Xin)[R.itr * 8] );
-		THmgphy	Tb;
+		TAffine	Ta( &(*Xin)[R.itr * 6] );
+		TAffine	Tb;
 		int		lastb = -1;	// cache Tb
 
 		memset( RHS, 0, 6   * sizeof(double) );
@@ -1594,8 +1567,14 @@ static void* _OnePass_AFromH( void* ithr )
 			// I like w = 0.9 (same layer), 0.9 (down).
 
 			if( C.r1 == i ) {
+
+				int	bitr = vRgn[C.r2].itr;
+
+				if( bitr < 0 )
+					continue;
+
 				if( C.r2 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r2].itr * 8] );
+					Tb.CopyIn( &(*Xin)[bitr * 6] );
 					lastb = C.r2;
 				}
 				Tb.Transform( B = C.p2 );
@@ -1605,8 +1584,14 @@ static void* _OnePass_AFromH( void* ithr )
 				A = C.p1;
 			}
 			else {
+
+				int	bitr = vRgn[C.r1].itr;
+
+				if( bitr < 0 )
+					continue;
+
 				if( C.r1 != lastb ) {
-					Tb.CopyIn( &(*Xin)[vRgn[C.r1].itr * 8] );
+					Tb.CopyIn( &(*Xin)[bitr * 6] );
 					lastb = C.r1;
 				}
 				Tb.Transform( B = C.p1 );
@@ -1622,10 +1607,134 @@ static void* _OnePass_AFromH( void* ithr )
 			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 		}
 
-		Solve_Quick( LHS, RHS, 6 );
+		if( !Solve_Quick( LHS, RHS, 6 ) ||
+			TAffine( RHS ).Squareness() > SQRTOL ) {
+
+			AFromA_SLOnly( RHS, i, (int)(long)ithr );
+		}
 	}
 
 	return NULL;
+}
+
+
+// Remove and remark bad RGNs and Constraints.
+//
+static void Remark()
+{
+	int	ncut = 0, nkil = 0;
+	int	nt = vthr.size();
+
+	// for each thread's lists...
+	for( int it = 0; it < nt; ++it ) {
+
+		vector<int>&	vslo = vthr[it].Rslo;
+		vector<int>&	vkil = vthr[it].Rkil;
+		int				nr = vslo.size();
+
+		ncut += nr;
+
+		// for the SLOnlys...
+		for( int ir = 0; ir < nr; ++ir ) {
+
+			int				islo = vslo[ir];
+			vector<int>&	vmine = myc[islo];
+			int				nc = vmine.size();
+
+			// for each constraint...
+			for( int ic = 0; ic < nc; ++ic ) {
+
+				Constraint&	C = vAllC[vmine[ic]];
+
+				if( vRgn[C.r1].z == vRgn[C.r2].z )
+					continue;
+
+				// mark constraint
+				C.used = false;
+
+				// remove it from other myc list
+				int	iother = (C.r1 == islo ? C.r2 : C.r1);
+				vector<int>&	vother = myc[iother];
+				int				mc = vother.size();
+
+				for( int jc = 0; jc < mc; ++jc ) {
+
+					if( vother[jc] == vmine[ic] ) {
+
+						vother.erase( vother.begin()+jc );
+
+						// mark other for kill?
+						if( vother.size() < 3 )
+							vkil.push_back( iother );
+
+						break;
+					}
+				}
+
+				// and remove it from my list
+				vmine.erase( vmine.begin()+ic );
+				--ic;
+				--nc;
+			}
+
+			// kill me?
+			if( nc < 3 ) {
+				vkil.push_back( islo );
+				--ncut;
+			}
+		}
+
+		// for the kills...
+		for( int ir = 0; ir < vkil.size(); ++ir ) {
+
+			int	ikil = vkil[ir];
+
+			// already dead?
+			if( vRgn[ikil].itr < 0 )
+				continue;
+
+			vector<int>&	vmine = myc[ikil];
+			int				nc = vmine.size();
+
+			// for each constraint...
+			for( int ic = 0; ic < nc; ++ic ) {
+
+				Constraint&	C = vAllC[vmine[ic]];
+
+				// mark constraint
+				C.used = false;
+
+				// remove it from other myc list
+				int	iother = (C.r1 == ikil ? C.r2 : C.r1);
+				vector<int>&	vother = myc[iother];
+				int				mc = vother.size();
+
+				for( int jc = 0; jc < mc; ++jc ) {
+
+					if( vother[jc] == vmine[ic] ) {
+
+						vother.erase( vother.begin()+jc );
+
+						// mark other for kill?
+						if( vother.size() < 3 )
+							vkil.push_back( iother );
+
+						break;
+					}
+				}
+			}
+
+			// kill my list
+			vmine.clear();
+
+			// mark me dead
+			vRgn[ikil].itr = -1;
+			++nkil;
+		}
+	}
+
+	if( ncut || nkil )
+		printf( "Tiles [cut, killed] = [%d, %d].\n", ncut, nkil );
 }
 
 
@@ -1696,6 +1805,9 @@ static void OnePassTH(
 		for( int i = 1; i < nthr; ++i )
 			pthread_join( vthr[i].h, &ret );
 	}
+
+	Remark();
+	vthr.clear();
 }
 
 /* --------------------------------------------------------------- */
@@ -1749,6 +1861,43 @@ void MAffine::SolveSystemStandard( vector<double> &X, int nTr )
 }
 
 /* --------------------------------------------------------------- */
+/* Test ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void MAffine::Test()
+{
+	map<MZIDR,TAffine>	M;
+	set<int>			Z;
+
+//	LoadTAffineTbl_AllZ( M, Z, "../cross_wkspc/HiRes_TF.txt" );
+	LoadTAffineTbl_AllZ( M, Z, "../s_iter200_Scaf_A_2400/TAffineTable.txt" );
+
+	map<MZIDR,TAffine>::iterator	it;
+	FILE	*f = FileOpenOrDie( "Angles_2400.txt", "w" );
+
+	int	ntot = M.size();
+	int	b5 = 0, g5 = 0;
+
+	for( it = M.begin(); it != M.end(); ++it ) {
+
+		const MZIDR&	W = it->first;
+		const TAffine&	T = it->second;
+		double			c = T.Squareness();
+
+		if( c < .174 )
+			++b5;
+		else {
+			++g5;
+			fprintf( f, "%d\t%d\t%f\n", W.z, W.id, c );
+		}
+	}
+
+	fclose( f );
+
+	printf( "tot=%d b5=%d g5=%d\n", ntot, b5, g5 );
+}
+
+/* --------------------------------------------------------------- */
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1794,10 +1943,10 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AFromScf( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 250; ++i ) {	// 25
+		for( int i = 0; i < 800; ++i ) {	// 25
 			vector<double> Xin = X;
-			OnePassTH( _OnePass_AFromA, X, Xin, nTr*6, 16, 0.9 );
-//			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
+			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 16, 0.9 );
+			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );
@@ -1807,7 +1956,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 	}
 	else {
 
-#if 1	// montage with SLU
+#if 0	// montage with SLU
 
 		AffineFromTransWt( X, nTr );
 
@@ -1824,43 +1973,15 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 		StopTiming( stdout, "Iters", t2 );
 		myc.clear();
 
-#elif 0	// threaded montage iterative
+#else	// threaded montage iterative
 
 		AFromIDB( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( int i = 0; i < 10; ++i ) {	// 250
+		for( int i = 0; i < 250; ++i ) {	// 250
 			vector<double> Xin = X;
-			OnePassTH( _OnePass_AFromA, X, Xin, nTr*6, 16, 0.9 );
+			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 16, 0.9 );
+			printf( "Done pass %d\n", i + 1 ); fflush( stdout );
 		}
-		PrintMagnitude( X );
-		StopTiming( stdout, "Iters", t2 );
-		myc.clear();
-
-#else	// threaded montage via homographies
-
-		AFromIDB( X, nTr );
-		clock_t			t2 = StartTiming();
-
-		for( int i = 0; i < 50; ++i ) {	// 250
-			vector<double> Xin = X;
-			OnePassTH( _OnePass_AFromA, X, Xin, nTr*6, 16, 0.9 );
-		}
-
-		vector<double>	Xh;
-		OnePassTH( _OnePass_HFromA, Xh, X, nTr*8, 16, 0.9 );
-
-		for( int i = 0; i < 150; ++i ) {
-			vector<double> Xin = Xh;
-			OnePassTH( _OnePass_HFromH, Xh, Xin, nTr*8, 16, 0.9 );
-		}
-
-		OnePassTH( _OnePass_AFromH, X, Xh, nTr*6, 16, 0.9 );
-
-		for( int i = 0; i < 50; ++i ) {
-			vector<double> Xin = X;
-			OnePassTH( _OnePass_AFromA, X, Xin, nTr*6, 16, 0.9 );
-		}
-
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );
 		myc.clear();

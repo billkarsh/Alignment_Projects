@@ -355,6 +355,27 @@ double TAffine::GetRadians() const
 }
 
 /* --------------------------------------------------------------- */
+/* Squareness ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Apply transform to a right angle and return |cosA|, which
+// is the same as |sin(90-A)|, that is, return (sin of) the
+// deviation from a right angle.
+//
+// Efficient version of same method in THmgphy class.
+// Here, the two unit vectors are just the two columns
+// of the R-part.
+//
+double TAffine::Squareness() const
+{
+	double	c = (t[0]*t[1] + t[3]*t[4]) /
+		sqrt(   (t[0]*t[0] + t[3]*t[3]) *
+		        (t[1]*t[1] + t[4]*t[4]) );
+
+	return (c >= 0.0 ? c : -c);
+}
+
+/* --------------------------------------------------------------- */
 /* Transform ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

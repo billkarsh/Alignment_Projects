@@ -98,6 +98,8 @@ private:
 	void SolveSystemStandard( vector<double> &X, int nTr );
 
 public:
+	void Test();
+
 	void SolveSystem( vector<double> &X, int nTr );
 
 	void UpdateScaffold( vector<double> &X, int nTr );

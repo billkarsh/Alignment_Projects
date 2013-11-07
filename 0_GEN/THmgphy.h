@@ -111,12 +111,10 @@ public:
 
 	double EffArea() const;
 	double GetRadians() const;
+	double Squareness() const;
 
 	void Transform( Point &p ) const;
 	void Transform( vector<Point> &v ) const;
-
-	void Apply_R_Part( Point &p ) const;
-	void Apply_R_Part( vector<Point> &v ) const;
 };
 
 

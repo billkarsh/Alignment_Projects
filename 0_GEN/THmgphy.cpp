@@ -176,7 +176,7 @@ void THmgphy::SetCWRot( double deg, const Point &pivot )
 	Point	Prot = pivot;
 
 	NUSetRot( deg*PI/180 );
-	Apply_R_Part( Prot );
+	Transform( Prot );
 	AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
 	Zero67();
 }
@@ -376,6 +376,34 @@ double THmgphy::GetRadians() const
 }
 
 /* --------------------------------------------------------------- */
+/* Squareness ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Apply transform to a right angle and return |cosA|, which
+// is the same as |sin(90-A)|, that is, return (sin of) the
+// deviation from a right angle.
+//
+double THmgphy::Squareness() const
+{
+	Point	po, px( 1, 0 ), py( 0, 1 );
+
+	Transform( po );
+	Transform( px );
+	Transform( py );
+
+	px.x -= po.x;
+	py.x -= po.x;
+	px.y -= po.y;
+	py.y -= po.y;
+
+	double	c = (px.x*py.x + px.y*py.y) /
+		sqrt(   (px.x*px.x + px.y*px.y) *
+		        (py.x*py.x + py.y*py.y) );
+
+	return (c >= 0.0 ? c : -c);
+}
+
+/* --------------------------------------------------------------- */
 /* Transform ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -396,31 +424,6 @@ void THmgphy::Transform( vector<Point> &v ) const
 
 	for( int i = 0; i < N; ++i )
 		Transform( v[i] );
-}
-
-/* --------------------------------------------------------------- */
-/* Apply_R_Part -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// If transform T(p) is represented as R(p) + V,
-// then here we apply R(p) without V.
-//
-void THmgphy::Apply_R_Part( Point &p ) const
-{
-	double	x = p.x*t[0] + p.y*t[1];
-	double	y = p.x*t[3] + p.y*t[4];
-
-	p.x = x;
-	p.y = y;
-}
-
-
-void THmgphy::Apply_R_Part( vector<Point> &v ) const
-{
-	int		N = v.size();
-
-	for( int i = 0; i < N; ++i )
-		Apply_R_Part( v[i] );
 }
 
 
