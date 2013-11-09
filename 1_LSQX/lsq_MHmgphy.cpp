@@ -18,7 +18,7 @@
 /* --------------------------------------------------------------- */
 
 const double	SQRTOL		= sin( 15 * PI/180 );
-const int		EDITDELAY	= 200;
+const int		EDITDELAY	= 4;
 
 /* --------------------------------------------------------------- */
 /* SetUniteLayer ------------------------------------------------- */
@@ -820,7 +820,7 @@ static void* _OnePass_HFromH( void* ithr )
 		}
 
 		if( gpass < EDITDELAY ) {
-			Solve_Quick( LHS, RHS, 6 );
+			Solve_Quick( LHS, RHS, 8 );
 			continue;
 		}
 
@@ -1051,7 +1051,7 @@ void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 	PrintMagnitude( X );
 	fflush( stdout );
 
-	for( gpass = 0; gpass < 2000; ++gpass ) {	// 1000 - 2000 good
+	for( gpass = 0; gpass < 200; ++gpass ) {	// 1000 - 2000 good
 		Xin = X;
 		OnePassTH( _OnePass_HFromH, X, Xin, nTr*8, 16, 0.9 );
 		printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );

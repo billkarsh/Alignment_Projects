@@ -1927,7 +1927,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		fflush( stdout );
 
-#if 0	// stack with SLU
+#if 1	// stack with SLU
 
 //		AffineFromFile( X, nTr );
 		AffineFromFile2( X, nTr );
@@ -1963,7 +1963,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 	}
 	else {
 
-#if 0	// montage with SLU
+#if 1	// montage with SLU
 
 		AffineFromTransWt( X, nTr );
 
