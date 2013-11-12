@@ -127,6 +127,12 @@ bool ReadMatchParams(
 
 void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
 
+bool IDBGetImageDims(
+	int				&w,
+	int				&h,
+	const string	&idb,
+	FILE			*flog = stdout );
+
 bool IDBT2IGet1(
 	Til2Img			&t2i,
 	const string	&idb,

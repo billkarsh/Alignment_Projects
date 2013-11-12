@@ -29,7 +29,6 @@ public:
 	char	*inpath,
 			*idb;
 	double	degcw;
-	int		w, h;
 
 public:
 	CArgs()
@@ -37,8 +36,6 @@ public:
 		inpath	= NULL;
 		idb		= NULL;
 		degcw	= 0.0;
-		w		= 0;
-		h		= 0;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -50,6 +47,7 @@ public:
 
 static CArgs	gArgs;
 static FILE*	flog = NULL;
+static int		gW, gH;
 
 
 
@@ -98,19 +96,10 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
 			;
-		else if( GetArg( &w, "-width=%d", argv[i] ) )
-			;
-		else if( GetArg( &h, "-height=%d", argv[i] ) )
-			;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
 		}
-	}
-
-	if( degcw && (w <= 0 || h <= 0) ) {
-		printf( "degcw option requires positive w & h.\n" );
-		exit( 42 );
 	}
 
 	fprintf( flog, "\n\n" );
@@ -149,9 +138,9 @@ static void GetXYH(
 		vector<Point>	cnr( 4 );
 
 		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gArgs.w-1, 0.0 );
-		cnr[2] = Point( gArgs.w-1, gArgs.h-1 );
-		cnr[3] = Point(  0.0, gArgs.h-1 );
+		cnr[1] = Point( gW-1, 0.0 );
+		cnr[2] = Point( gW-1, gH-1 );
+		cnr[3] = Point(  0.0, gH-1 );
 
 		T.Transform( cnr );
 
@@ -247,9 +236,9 @@ static void GetXYA(
 		vector<Point>	cnr( 4 );
 
 		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gArgs.w-1, 0.0 );
-		cnr[2] = Point( gArgs.w-1, gArgs.h-1 );
-		cnr[3] = Point(  0.0, gArgs.h-1 );
+		cnr[1] = Point( gW-1, 0.0 );
+		cnr[2] = Point( gW-1, gH-1 );
+		cnr[3] = Point(  0.0, gH-1 );
 
 		T.Transform( cnr );
 
@@ -327,6 +316,9 @@ int main( int argc, char* argv[] )
 /* ----- */
 /* Merge */
 /* ----- */
+
+	if( !IDBGetImageDims( gW, gH, gArgs.idb, flog ) )
+		exit( 42 );
 
 	if( FileNamePtr( gArgs.inpath )[1] == 'H' )
 		MergeH();

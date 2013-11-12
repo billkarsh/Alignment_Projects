@@ -239,6 +239,47 @@ close:
 }
 
 /* --------------------------------------------------------------- */
+/* IDBGetImageDims ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool IDBGetImageDims(
+	int				&w,
+	int				&h,
+	const string	&idb,
+	FILE			*flog )
+{
+	char	name[2048];
+	int		ok = false;
+	sprintf( name, "%s/imageparams.txt", idb.c_str() );
+	FILE	*f = fopen( name, "r" );
+
+	if( f ) {
+
+		CLineScan	LS;
+
+		while( LS.Get( f ) > 0 ) {
+
+			if( 2 == sscanf( LS.line, "IMAGESIZE %d %d", &w, &h ) ) {
+				ok = true;
+				goto close;
+			}
+		}
+
+		fprintf( flog,
+		"IDBGetImageDims: imageparams.txt missing IMAGESIZE tag.\n" );
+
+close:
+		fclose( f );
+	}
+	else {
+		fprintf( flog,
+		"IDBGetImageDims: Can't open imageparams.txt.\n" );
+	}
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
 /* IDBT2IGet1 ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
