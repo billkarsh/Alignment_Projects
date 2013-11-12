@@ -60,6 +60,9 @@ typedef struct TSClix {
 
 class CTileSet {
 
+	friend void* _Scape_Paint( void *ithr );
+	friend void Scape_PaintTH( int nthr );
+
 private:
 	FILE*			flog;
 	int				gW, gH;	// each tile dims
@@ -150,16 +153,6 @@ private:
 		const vector<int>	&vid,
 		double				scale,
 		int					szmult ) const;
-
-	void Scape_Paint(
-		uint8					*scp,
-		uint32					ws,
-		uint32					hs,
-		const vector<TAffine>	&vTadj,
-		const vector<int>		&vid,
-		int						iscl,
-		int						lgord,
-		int						sdnorm ) const;
 
 public:
 	uint8* Scape(

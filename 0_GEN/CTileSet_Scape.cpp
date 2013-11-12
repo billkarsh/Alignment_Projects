@@ -4,6 +4,7 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 
+#include	<stdlib.h>
 #include	<string.h>
 
 
@@ -215,22 +216,54 @@ static void NormRas( uint8 *r, int w, int h, int lgord, int sdnorm )
 }
 
 /* --------------------------------------------------------------- */
-/* Scape_Paint --------------------------------------------------------- */
+/* Scape_Paint --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CTileSet::Scape_Paint(
-	uint8					*scp,
-	uint32					ws,
-	uint32					hs,
-	const vector<TAffine>	&vTadj,
-	const vector<int>		&vid,
-	int						iscl,
-	int						lgord,
-	int						sdnorm ) const
-{
-	int		nt = vid.size();
+class CPaintPrms {
+// Parameters for _Scape_Paint()
+public:
+	uint8					*scp;
+	uint32					ws;
+	uint32					hs;
+	const vector<TAffine>	&vTadj;
+	const vector<int>		&vid;
+	int						iscl;
+	int						lgord;
+	int						sdnorm;
+public:
+	CPaintPrms(
+		uint8					*scp,
+		uint32					ws,
+		uint32					hs,
+		const vector<TAffine>	&vTadj,
+		const vector<int>		&vid,
+		int						iscl,
+		int						lgord,
+		int						sdnorm )
+	: scp(scp), ws(ws), hs(hs),
+	vTadj(vTadj), vid(vid), iscl(iscl),
+	lgord(lgord), sdnorm(sdnorm)
+	{};
+};
 
-	for( int i = 0; i < nt; ++i ) {
+typedef	void* (*T_psxthd)( void* );
+
+class CThrdat {
+public:
+	pthread_t	h;
+	int			i0,
+				ilim;
+};
+
+static const CTileSet	*ME;
+static const CPaintPrms	*GP;
+static vector<CThrdat>	vthr;
+
+void* _Scape_Paint( void *ithr )
+{
+	CThrdat	&me = vthr[(long)ithr];
+
+	for( int i = me.i0; i < me.ilim; ++i ) {
 
 		TAffine	inv;
 		int		x0, xL, y0, yL,
@@ -238,25 +271,26 @@ void CTileSet::Scape_Paint(
 				wi, hi;
 		uint32	w,  h;
 		uint8*	src = Raster8FromAny(
-						vtil[vid[i]].name.c_str(), w, h, flog );
+						ME->vtil[GP->vid[i]].name.c_str(),
+						w, h, ME->flog );
 
-		if( sdnorm > 0 )
-			NormRas( src, w, h, lgord, sdnorm );
+		if( GP->sdnorm > 0 )
+			NormRas( src, w, h, GP->lgord, GP->sdnorm );
 
-		ScanLims( x0, xL, y0, yL, ws, hs, vTadj[i], w, h );
+		ScanLims( x0, xL, y0, yL, GP->ws, GP->hs, GP->vTadj[i], w, h );
 		wi = w;
 		hi = h;
 
-		inv.InverseOf( vTadj[i] );
+		inv.InverseOf( GP->vTadj[i] );
 
-		if( iscl > 1 ) {	// Scaling down
+		if( GP->iscl > 1 ) {	// Scaling down
 
 			// actually downsample src image
-			Downsample( src, wi, hi, iscl );
+			Downsample( src, wi, hi, GP->iscl );
 
 			// and point at the new pixels
 			TAffine	A;
-			A.NUSetScl( 1.0/iscl );
+			A.NUSetScl( 1.0/GP->iscl );
 			inv = A * inv;
 		}
 
@@ -274,7 +308,7 @@ void CTileSet::Scape_Paint(
 				if( p.x >= 0 && p.x < wL &&
 					p.y >= 0 && p.y < hL ) {
 
-					scp[ix+ws*iy] =
+					GP->scp[ix+GP->ws*iy] =
 					(int)SafeInterp( p.x, p.y, src, wi, hi );
 				}
 			}
@@ -282,6 +316,69 @@ void CTileSet::Scape_Paint(
 
 		RasterFree( src );
 	}
+}
+
+
+void Scape_PaintTH( int nthr )
+{
+	int	nt = GP->vid.size(),
+		nb;
+
+	if( nthr > nt )
+		nthr = nt;
+
+	nb = nt / nthr;
+
+	vthr.resize( nthr );
+
+	vthr[0].i0		= 0;
+	vthr[0].ilim	= nb;
+
+// I am zero; start my coworkers
+
+	if( nthr > 1 ) {
+
+		pthread_attr_t	attr;
+		pthread_attr_init( &attr );
+		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+
+		for( int i = 1; i < nthr; ++i ) {
+
+			CThrdat	&C = vthr[i];
+
+			C.i0	= vthr[i-1].ilim;
+			C.ilim	= (i == nthr-1 ? nt : C.i0 + nb);
+
+			int	ret =
+			pthread_create( &C.h, &attr, _Scape_Paint, (void*)i );
+
+			if( ret ) {
+				fprintf( ME->flog,
+				"Error %d starting thread %d\n", ret, i );
+				for( int j = 1; j < i; ++j )
+					pthread_cancel( vthr[j].h );
+				exit( 42 );
+			}
+		}
+
+		pthread_attr_destroy( &attr );
+	}
+
+// Do my own work
+
+	_Scape_Paint( 0 );
+
+// Join/wait my coworkers
+
+	if( nthr > 1 ) {
+
+		void*	ret;
+
+		for( int i = 1; i < nthr; ++i )
+			pthread_join( vthr[i].h, &ret );
+	}
+
+	vthr.clear();
 }
 
 /* --------------------------------------------------------------- */
@@ -330,8 +427,11 @@ uint8* CTileSet::Scape(
 
 		memset( scp, bkval, ns );
 
-		Scape_Paint( scp, ws, hs, vTadj, vid,
-			int(1/scale), lgord, sdnorm );
+		ME = this;
+		GP = new CPaintPrms( scp, ws, hs,
+					vTadj, vid, int(1/scale), lgord, sdnorm );
+		Scape_PaintTH( 4 );
+		delete GP;
 	}
 	else
 		fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );

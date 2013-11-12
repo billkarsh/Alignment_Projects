@@ -1337,9 +1337,9 @@ static void KeepSLOnly( vector<int> &v, int nc )
 /* OnePassTH ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-typedef	void* (*T_OnePass)( void* );
+typedef	void* (*T_psxthd)( void* );
 
-class Cthrdat {
+class CThrdat {
 
 public:
 	pthread_t	h;
@@ -1349,7 +1349,7 @@ public:
 	vector<int>	Rkil;
 };
 
-static vector<Cthrdat>	vthr;
+static vector<CThrdat>	vthr;
 static vector<double>	*Xout;
 static vector<double>	*Xin;
 static double			w;
@@ -1358,7 +1358,7 @@ static int				gpass;
 
 static void* _OnePass_AFromA( void* ithr )
 {
-	Cthrdat	&me = vthr[(long)ithr];
+	CThrdat	&me = vthr[(long)ithr];
 
 	int	i1[3] = { 0, 1, 2 },
 		i2[3] = { 3, 4, 5 };
@@ -1532,7 +1532,7 @@ static void AFromA_SLOnly( double *RHS, int i, int ithr )
 
 static void* _OnePass_AFromA_stk( void* ithr )
 {
-	Cthrdat	&me = vthr[(int)(long)ithr];
+	CThrdat	&me = vthr[(int)(long)ithr];
 
 	int	i1[3] = { 0, 1, 2 },
 		i2[3] = { 3, 4, 5 };
@@ -1746,7 +1746,7 @@ static void Remark()
 
 
 static void OnePassTH(
-	T_OnePass		passproc,
+	T_psxthd		passproc,
 	vector<double>	&shXout,
 	vector<double>	&shXin,
 	int				nXout,
@@ -1756,8 +1756,8 @@ static void OnePassTH(
 	int	nr = vRgn.size(),
 		nb;
 
-	if( nr < nthr * 4 )
-		nthr = 1;
+	if( nthr > nt )
+		nthr = nt;
 
 	Xout	= &shXout;
 	Xin		= &shXin;
@@ -1780,7 +1780,7 @@ static void OnePassTH(
 
 		for( int i = 1; i < nthr; ++i ) {
 
-			Cthrdat	&C = vthr[i];
+			CThrdat	&C = vthr[i];
 
 			C.r0	= vthr[i-1].rlim;
 			C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
