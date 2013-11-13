@@ -61,6 +61,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  2_XMLGetTF\
  2_XMLInsert\
  2_XMLInterleave\
+ 2_XMLKillZ\
  2_XMLLocalPaths\
  2_XMLMissingZ\
  2_XMLRenum\

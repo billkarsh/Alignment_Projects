@@ -1,0 +1,4 @@
+#!/bin/sh
+
+XMLKillZ file.xml list.txt
+
