@@ -19,6 +19,7 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Memory.h"
+#include	"Timer.h"
 
 #include	<math.h>
 
@@ -1097,7 +1098,7 @@ void EVL::Tabulate(
 
 // Tabulate errors per constraint and per region
 
-	for( int i = 0; i < nc; ++i ) {
+	for( int i = 0; i < nc; i += 4 ) {
 
 		double		err;
 		Constraint	&C = vAllC[i];
@@ -1979,8 +1980,8 @@ void EVL::Evaluate(
 	printf( "---- Evaluate errors ----\n" );
 
 	Tabulate( zs, X );
-	Print_be_and_se_files( zs );
-	Print_errs_by_layer( zs );
+//	Print_be_and_se_files( zs );
+//	Print_errs_by_layer( zs );
 
 	if( gArgs.viserr > 0 )
 		BuildVise( xmax, ymax, zs, X );
@@ -1992,8 +1993,23 @@ void EVL::Evaluate(
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+extern void Test();
+
 int main( int argc, char **argv )
 {
+	//{
+	//	Test();
+	//	exit( 0 );
+	//}
+
+	//{
+	//	MAffine	M;
+	//	M.Test();
+	//	exit( 0 );
+	//}
+
+	clock_t	t0 = StartTiming();
+
 /* ------------------ */
 /* Parse command line */
 /* ------------------ */
@@ -2025,6 +2041,8 @@ int main( int argc, char **argv )
 		ReadPts_NumTags( FOUT, cnx, sml, gArgs.pts_file,
 			gArgs.davinocorn );
 
+	t0 = StopTiming( stdout, "ReadPts", t0 );fflush( stdout );
+
 /* ----------------- */
 /* Sort regions by z */
 /* ----------------- */
@@ -2037,6 +2055,8 @@ int main( int argc, char **argv )
 
 	sort( zs.begin(), zs.end() );
 
+	t0 = StopTiming( stdout, "Sort", t0 );fflush( stdout );
+
 	printf( "Z range [%d %d]\n\n", zs[0].z, zs[nr-1].z );
 
 /* ------------------------- */
@@ -2046,9 +2066,11 @@ int main( int argc, char **argv )
 // This writes logs about suspicious pairs
 // but has no other impact on real solver.
 
-	sml->TestPairAlignments();
+//	sml->TestPairAlignments();
 
 	delete sml;
+
+	t0 = StopTiming( stdout, "TestPairs", t0 );fflush( stdout );
 
 /* ------------ */
 /* Select model */
@@ -2074,6 +2096,8 @@ int main( int argc, char **argv )
 			(gArgs.use_all ? 0 : M->MinPairs()) );
 
 	delete cnx;
+
+	t0 = StopTiming( stdout, "CNX", t0 );fflush( stdout );
 
 /* ----- */
 /* Solve */
@@ -2133,11 +2157,15 @@ int main( int argc, char **argv )
 /* Assess and report errors */
 /* ------------------------ */
 
+	t0 = StartTiming();
+
 	{
 		EVL	evl;
 
 		evl.Evaluate( xbnd, ybnd, zs, X );
 	}
+
+	StopTiming( stdout, "EvalErr", t0 );fflush( stdout );
 
 /* ---- */
 /* Done */

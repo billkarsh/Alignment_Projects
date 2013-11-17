@@ -1756,8 +1756,8 @@ static void OnePassTH(
 	int	nr = vRgn.size(),
 		nb;
 
-	if( nthr > nt )
-		nthr = nt;
+	if( nthr > nr )
+		nthr = nr;
 
 	Xout	= &shXout;
 	Xin		= &shXin;
@@ -1927,7 +1927,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		fflush( stdout );
 
-#if 1	// stack with SLU
+#if 0	// stack with SLU
 
 //		AffineFromFile( X, nTr );
 		AffineFromFile2( X, nTr );
@@ -1950,10 +1950,10 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AFromScf( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( gpass = 0; gpass < 1500; ++gpass ) {	// 25
+		for( gpass = 0; gpass < 4000; ++gpass ) {	// 25
 			vector<double> Xin = X;
 			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 16, 0.9 );
-			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
+//			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );
@@ -1963,7 +1963,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 	}
 	else {
 
-#if 1	// montage with SLU
+#if 0	// montage with SLU
 
 		AffineFromTransWt( X, nTr );
 
@@ -1984,10 +1984,10 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AFromIDB( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( gpass = 0; gpass < 250; ++gpass ) {	// 250
+		for( gpass = 0; gpass < 2000; ++gpass ) {	// 250
 			vector<double> Xin = X;
-			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 16, 0.9 );
-			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
+			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 8, 0.9 );
+//			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );

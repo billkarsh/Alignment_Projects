@@ -2,7 +2,7 @@
 
 # Purpose:
 # Reformat file system object:
-# {-x=xml file, -r=Rick file, -d-idb}.
+# {-x=xml file, -r=Rick file, -d=idb}.
 #
 # > reformat path <-x,-r,-d> -p=_Nex.mrc -zmin=i -zmax=j
 #

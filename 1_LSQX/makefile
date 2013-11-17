@@ -17,7 +17,8 @@ files =\
  lsq_MTrans.cpp\
  lsq_MSimlr.cpp\
  lsq_MAffine.cpp\
- lsq_MHmgphy.cpp
+ lsq_MHmgphy.cpp\
+ lsq_Test.cpp
 
 objs = ${files:.cpp=.o}
 

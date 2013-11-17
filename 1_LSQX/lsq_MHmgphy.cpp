@@ -503,7 +503,8 @@ static void AFromTbl( vector<double> &X, int nTr )
 	map<MZIDR,TAffine>	M;
 	set<int>			Z;
 
-	LoadTAffineTbl_AllZ( M, Z, "../s_iter200_Scaf_A_2400/TAffineTable.txt" );
+//	LoadTAffineTbl_AllZ( M, Z, "../s_iter200_Scaf_A_2400/TAffineTable.txt" );
+	LoadTAffineTbl_AllZ( M, Z, "../stack/TAffineTable.txt" );
 
 	int	nr = vRgn.size();
 
@@ -966,8 +967,8 @@ static void OnePassTH(
 	int	nr = vRgn.size(),
 		nb;
 
-	if( nthr > nt )
-		nthr = nt;
+	if( nthr > nr )
+		nthr = nr;
 
 	Xout	= &shXout;
 	Xin		= &shXin;
@@ -1051,7 +1052,7 @@ void MHmgphy::SolveSystem( vector<double> &X, int nTr )
 	PrintMagnitude( X );
 	fflush( stdout );
 
-	for( gpass = 0; gpass < 200; ++gpass ) {	// 1000 - 2000 good
+	for( gpass = 0; gpass < 2000; ++gpass ) {	// 1000 - 2000 good
 		Xin = X;
 		OnePassTH( _OnePass_HFromH, X, Xin, nTr*8, 16, 0.9 );
 		printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );

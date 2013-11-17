@@ -19,6 +19,7 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 #include	"Memory.h"
+#include	"Timer.h"
 
 #include	<math.h>
 
@@ -1994,6 +1995,8 @@ void EVL::Evaluate(
 
 int main( int argc, char **argv )
 {
+	clock_t	t0 = StartTiming();
+
 /* ------------------ */
 /* Parse command line */
 /* ------------------ */
@@ -2025,6 +2028,8 @@ int main( int argc, char **argv )
 		ReadPts_NumTags( FOUT, cnx, sml, gArgs.pts_file,
 			gArgs.davinocorn );
 
+	t0 = StopTiming( stdout, "ReadPts", t0 );fflush( stdout );
+
 /* ----------------- */
 /* Sort regions by z */
 /* ----------------- */
@@ -2036,6 +2041,8 @@ int main( int argc, char **argv )
 		zs[i] = zsort( vRgn[i], i );
 
 	sort( zs.begin(), zs.end() );
+
+	t0 = StopTiming( stdout, "Sort", t0 );fflush( stdout );
 
 	printf( "Z range [%d %d]\n\n", zs[0].z, zs[nr-1].z );
 
@@ -2049,6 +2056,8 @@ int main( int argc, char **argv )
 	sml->TestPairAlignments();
 
 	delete sml;
+
+	t0 = StopTiming( stdout, "TestPairs", t0 );fflush( stdout );
 
 /* ------------ */
 /* Select model */
@@ -2074,6 +2083,8 @@ int main( int argc, char **argv )
 			(gArgs.use_all ? 0 : M->MinPairs()) );
 
 	delete cnx;
+
+	t0 = StopTiming( stdout, "CNX", t0 );fflush( stdout );
 
 /* ----- */
 /* Solve */
@@ -2133,11 +2144,15 @@ int main( int argc, char **argv )
 /* Assess and report errors */
 /* ------------------------ */
 
+	t0 = StartTiming();
+
 	{
 		EVL	evl;
 
 		evl.Evaluate( xbnd, ybnd, zs, X );
 	}
+
+	StopTiming( stdout, "EvalErr", t0 );fflush( stdout );
 
 /* ---- */
 /* Done */
