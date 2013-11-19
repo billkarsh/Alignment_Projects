@@ -30,4 +30,3 @@ clean :
 $(appname) : .CHECK_GENLIB ${objs}
 	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 
-

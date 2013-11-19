@@ -111,7 +111,7 @@ void Test()
 	clock_t	t0 = StartTiming();
 
 	for( int iz = 879; iz < 950; ++iz ) {
-	
+
 		CSubdirCat	C;
 
 		ScanThisZ( C, "../..", iz );

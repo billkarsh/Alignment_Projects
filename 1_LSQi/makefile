@@ -5,16 +5,7 @@ appname = lsq
 
 files =\
  lsq.cpp\
- lsq_Types.cpp\
- lsq_ReadPts.cpp\
- lsq_CNX.cpp\
- lsq_SML.cpp\
- lsq_DIR.cpp\
- lsq_MDL.cpp\
- lsq_MTrans.cpp\
- lsq_MSimlr.cpp\
- lsq_MAffine.cpp\
- lsq_MHmgphy.cpp
+ lsq_Catalog.cpp
 
 objs = ${files:.cpp=.o}
 
