@@ -3,34 +3,22 @@
 #pragma once
 
 
-#include	<set>
-#include	<vector>
-using namespace std;
-
-
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-class CSubdirCat {
-public:
-	int			z,
-				sx, sy,
-				dx, dy;
-	set<int>	zdown;
-public:
-	CSubdirCat()	{sx=-1; sy=-1; dx=-1; dy=-1;};
-};
 
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CatPoints(
-	vector<CSubdirCat>	&vC,
-	const char			*tempdir,
-	int					zolo,
-	int					zohi,
-	bool				clrcat );
+void MsgClear();
+
+void MsgSend( const char *msg );
+
+bool MsgWaitRecv( char *msgbuf, int timeout_ms );
+
+void MsgAck( int iw );
+
+bool MsgWaitAck( int nw, int timeout_ms );
 
 

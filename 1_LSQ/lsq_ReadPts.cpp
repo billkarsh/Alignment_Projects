@@ -29,7 +29,7 @@ private:
 	map<MZIDR,int>	mi;
 	int				nr;
 public:
-	CMapZIDR()	{nr=0;};
+	CMapZIDR() : nr(0) {};
 	int Find( const RGN &R );
 };
 

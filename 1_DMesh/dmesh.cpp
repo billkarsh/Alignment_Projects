@@ -29,28 +29,24 @@
 /* --------------------------------------------------------------- */
 
 class CStatus {
-
 public:
 	int	argn,
 		brgn,
 		thmok,
 		ntri;
-
 public:
-	CStatus( int a, int b )	{argn=a; brgn=b; thmok=0; ntri=0;};
+	CStatus( int argn, int brgn )
+	: argn(argn), brgn(brgn), thmok(0), ntri(0) {};
 };
 
 
 #if FITPOINTS
 
 class PPair {
-
 public:
 	Point	A, B;
-
 public:
-	PPair( const Point& pa, const Point& pb )
-	{A = pa; B = pb;};
+	PPair( const Point& A, const Point& B ) : A(A), B(B) {};
 };
 
 #endif

@@ -47,15 +47,12 @@ public:
 // Orders regions by z, for writing files
 
 class zsort{
-
 public:
 	int	z, id, rgn, i;
-
 public:
 	zsort()	{};
-
-	zsort( const RGN& R, int ii )
-		{z = R.z; id = R.id; rgn = R.rgn; i = ii;};
+	zsort( const RGN& R, int i )
+	: z(R.z), id(R.id), rgn(R.rgn), i(i) {};
 
 	bool operator < (const zsort &rhs) const
 		{
@@ -79,10 +76,8 @@ public:
 // Pair of matched connRgn
 
 class CRPair {
-
 public:
 	int	a, b;   // always stored so a <= b
-
 public:
 	CRPair( int aa, int bb )
 		{
@@ -115,11 +110,11 @@ public:
 
 public:
 	Constraint(
-		int				rr1,
-		const Point		&pp1,
-		int				rr2,
-		const Point		&pp2 )
-		{r1 = rr1; p1 = pp1; r2 = rr2; p2 = pp2;};
+		int				r1,
+		const Point		&p1,
+		int				r2,
+		const Point		&p2 )
+		: p1(p1), p2(p2), r1(r1), r2(r2) {};
 };
 
 /* --------------------------------------------------------------- */

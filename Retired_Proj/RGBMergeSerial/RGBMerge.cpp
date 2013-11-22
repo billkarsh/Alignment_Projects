@@ -20,13 +20,11 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class Picture {
-
 public:
 	string	fname;	// file name
 	int		z;		// Z layer
-
 public:
-	Picture( const char *_n, int _z )	{fname=_n; z=_z;};
+	Picture( const char *n, int z ) : fname(n), z(z) {};
 
 	bool operator < (const Picture &rhs) const
 		{return z < rhs.z;};
@@ -34,13 +32,10 @@ public:
 
 
 class Fix {
-
 public:
 	int	z;
-
 public:
-	Fix( int _z )
-		{z = _z;};
+	Fix( int z ) : z(z) {};
 };
 
 /* --------------------------------------------------------------- */

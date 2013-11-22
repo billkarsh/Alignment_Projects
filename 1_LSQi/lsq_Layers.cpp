@@ -1,8 +1,9 @@
 
 
-#include	"lsq_Catalog.h"
+#include	"lsq_Layers.h"
 #include	"File.h"
 #include	"Disk.h"
+#include	"Timer.h"
 
 #include	<dirent.h>
 
@@ -16,7 +17,7 @@
 /* --------------------------------------------------------------- */
 
 static const char	*_d;
-static CSubdirCat	*_C;
+static Layer		*_L;
 
 
 
@@ -43,9 +44,9 @@ static int ThmPair( const struct dirent* E )
 		int	za, zb;
 
 		if( 2 == sscanf( E->d_name, "ThmPair_%d_@_%d", &za, &zb )
-			&& za == _C->z ) {
+			&& za == _L->z ) {
 
-			_C->zdown.insert( zb );
+			_L->zdown.insert( zb );
 		}
 	}
 
@@ -73,11 +74,11 @@ static int SorD( const struct dirent* E )
 		int	x, y;
 		if( 2 == sscanf( E->d_name + 1, "%d_%d", &x, &y ) ) {
 
-			if( x > _C->sx )
-				_C->sx = x;
+			if( x > _L->sx )
+				_L->sx = x;
 
-			if( y > _C->sy )
-				_C->sy = y;
+			if( y > _L->sy )
+				_L->sy = y;
 		}
 	}
 
@@ -86,11 +87,11 @@ static int SorD( const struct dirent* E )
 		int	x, y;
 		if( 2 == sscanf( E->d_name + 1, "%d_%d", &x, &y ) ) {
 
-			if( x > _C->dx )
-				_C->dx = x;
+			if( x > _L->dx )
+				_L->dx = x;
 
-			if( y > _C->dy )
-				_C->dy = y;
+			if( y > _L->dy )
+				_L->dy = y;
 
 			ScanThmPairs( E->d_name );
 		}
@@ -100,14 +101,14 @@ static int SorD( const struct dirent* E )
 }
 
 
-static bool ScanThisZ( CSubdirCat &C, const char *top, int z )
+static bool ScanThisZ( Layer &L, const char *top, int z )
 {
 	char	dir[2048];
 	sprintf( dir, "%s/%d", top, z );
 
 	_d	= dir;
-	_C	= &C;
-	C.z	= z;
+	_L	= &L;
+	L.z	= z;
 
 	struct dirent **namelist = NULL;
 
@@ -120,10 +121,10 @@ static bool ScanThisZ( CSubdirCat &C, const char *top, int z )
 
 
 static void NewCat(
-	vector<CSubdirCat>	&vC,
-	const char			*tempdir,
-	int					zolo,
-	int					zohi )
+	vector<Layer>	&vL,
+	const char		*tempdir,
+	int				zolo,
+	int				zohi )
 {
 	FILE	*f = FileOpenOrDie( "catalog.txt", "w" );
 
@@ -132,17 +133,17 @@ static void NewCat(
 
 	for( int z = zolo; z <= zohi; ++z ) {
 
-		CSubdirCat	C;
+		Layer	L;
 
-		ScanThisZ( C, tempdir, z );
+		ScanThisZ( L, tempdir, z );
 
-		if( C.sx > -1 ) {
+		if( L.sx > -1 ) {
 
 			fprintf( f, "%d S %d %d D %d %d Z %d :",
-				z, C.sx, C.sy, C.dx, C.dy, C.zdown.size() );
+				z, L.sx, L.sy, L.dx, L.dy, L.zdown.size() );
 
-			for( set<int>::iterator	it = C.zdown.begin();
-				it != C.zdown.end();
+			for( set<int>::iterator	it = L.zdown.begin();
+				it != L.zdown.end();
 				++it ) {
 
 				fprintf( f, " %d", *it );
@@ -150,7 +151,7 @@ static void NewCat(
 
 			fprintf( f, "\n" );
 
-			vC.push_back( C );
+			vL.push_back( L );
 		}
 	}
 
@@ -159,9 +160,9 @@ static void NewCat(
 
 
 static bool LoadCat(
-	vector<CSubdirCat>	&vC,
-	int					zolo,
-	int					zohi )
+	vector<Layer>	&vL,
+	int				zolo,
+	int				zohi )
 {
 	if( !DskExists( "catalog.txt" ) )
 		return false;
@@ -188,20 +189,20 @@ static bool LoadCat(
 
 	while( LS.Get( f ) > 0 ) {
 
-		CSubdirCat	C;
-		int			K, k, nz;
+		Layer	L;
+		int		K, k, nz;
 
-		if( 1 != sscanf( LS.line, "%d%n", &C.z, &K ) )
+		if( 1 != sscanf( LS.line, "%d%n", &L.z, &K ) )
 			goto fail;
 
-		if( C.z > zohi )
+		if( L.z > zohi )
 			break;
 
-		if( C.z < zolo )
+		if( L.z < zolo )
 			continue;
 
 		if( 5 != sscanf( LS.line+K, " S %d %d D %d %d Z %d :%n",
-					&C.sx, &C.sy, &C.dx, &C.dy, &nz, &k ) ) {
+					&L.sx, &L.sy, &L.dx, &L.dy, &nz, &k ) ) {
 
 			goto fail;
 		}
@@ -215,22 +216,22 @@ static bool LoadCat(
 			if( 1 != sscanf( LS.line+K, "%d%n", &z, &k ) )
 				goto fail;
 
-			C.zdown.insert( z );
+			L.zdown.insert( z );
 		}
 
-		vC.push_back( C );
+		vL.push_back( L );
 	}
 
 exit:
 	if( f )
 		fclose( f );
 
-	return !vC.empty();
+	return !vL.empty();
 
 fail:
 	printf( "Catalog: Remaking due to format error.\n" );
 
-	vC.clear();
+	vL.clear();
 
 	if( f )
 		fclose( f );
@@ -239,20 +240,26 @@ fail:
 }
 
 
-void CatPoints(
-	vector<CSubdirCat>	&vC,
-	const char			*tempdir,
-	int					zolo,
-	int					zohi,
-	bool				clrcat )
+void LayerCat(
+	vector<Layer>	&vL,
+	const char		*tempdir,
+	int				zolo,
+	int				zohi,
+	bool			clrcat )
 {
-	if( clrcat || !LoadCat( vC, zolo, zohi ) )
-		NewCat( vC, tempdir, zolo, zohi );
+	printf( "\n---- Cataloging ----\n" );
 
-	if( vC.empty() ) {
+	clock_t	t0 = StartTiming();
+
+	if( clrcat || !LoadCat( vL, zolo, zohi ) )
+		NewCat( vL, tempdir, zolo, zohi );
+
+	if( vL.empty() ) {
 		printf( "Catalog: No catalog data in range.\n" );
 		exit( 42 );
 	}
+
+	StopTiming( stdout, "Catalog", t0 );
 }
 
 

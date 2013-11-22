@@ -20,13 +20,11 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class Scale {
-
 public:
 	int	z, smin, smax;
-
 public:
-	Scale( int _z, int _min, int _max )
-		{z = _z; smin = _min; smax = _max;};
+	Scale( int z, int smin, int smax )
+	: z(z), smin(smin), smax(smax) {};
 
 	bool operator < (const Scale &rhs) const
 		{return z < rhs.z;};
@@ -37,17 +35,11 @@ public:
 /* --------------------------------------------------------------- */
 
 class CArgs_gray {
-
 public:
 	char	*xmlfile;
 	int		chn;
-
 public:
-	CArgs_gray()
-	{
-		xmlfile	= NULL;
-		chn		= -1;
-	};
+	CArgs_gray() : xmlfile(NULL), chn(-1) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

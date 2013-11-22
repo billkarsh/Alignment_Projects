@@ -115,7 +115,7 @@ public:
 	TAffine	T;
 	int		id;
 public:
-	TS( int _i, TAffine &_T )	{id=_i; T=_T;};
+	TS( int id, TAffine &T ) : T(T), id(id) {};
 
 	bool operator < (const TS &rhs) const
 		{return id < rhs.id;};

@@ -31,7 +31,7 @@ private:
 	char	m_name[256];
 
 public:
-	CMutex()	{mutex = SEM_FAILED;};
+	CMutex() : mutex(SEM_FAILED) {};
 
 	bool Get( const char *name );
 	void Release();

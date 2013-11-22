@@ -5,7 +5,10 @@ appname = lsq
 
 files =\
  lsq.cpp\
- lsq_Catalog.cpp
+ lsq_Globals.cpp\
+ lsq_Layers.cpp\
+ lsq_LoadPoints.cpp\
+ lsq_Msg.cpp
 
 objs = ${files:.cpp=.o}
 

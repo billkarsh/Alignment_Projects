@@ -20,8 +20,7 @@ public:
 	int		row;
 
 public:
-	LHSElem( double val, int row )
-		{this->val=val; this->row=row;};
+	LHSElem( double val, int row ) : val(val), row(row) {};
 };
 
 typedef vector<LHSElem>	LHSCol;

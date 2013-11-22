@@ -535,7 +535,6 @@ static void AFromTbl( vector<double> &X, int nTr )
 typedef	void* (*T_psxthd)( void* );
 
 class CThrdat {
-
 public:
 	pthread_t	h;
 	int			r0,

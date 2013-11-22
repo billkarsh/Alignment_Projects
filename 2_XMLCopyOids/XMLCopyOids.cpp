@@ -31,17 +31,11 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
 public:
 	char	*dst,
 			*src;
-
 public:
-	CArgs_xml()
-	{
-		dst	= NULL;
-		src	= NULL;
-	};
+	CArgs_xml() : dst(NULL), src(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

@@ -49,8 +49,8 @@ class MZID {
 public:
 	int	z, id;
 public:
-	MZID()					{};
-	MZID( int _z, int _i )	{z=_z; id=_i;};
+	MZID()	{};
+	MZID( int z, int id ) : z(z), id(id) {};
 
 	bool operator < (const MZID &rhs) const
 		{
@@ -71,8 +71,8 @@ class MZIDR {
 public:
 	int	z, id, rgn;
 public:
-	MZIDR()							{};
-	MZIDR( int _z, int _i, int _r )	{z=_z; id=_i; rgn=_r;};
+	MZIDR()	{};
+	MZIDR( int z, int i, int rgn ) : z(z), id(id), rgn(rgn) {};
 
 	bool operator < (const MZIDR &rhs) const
 		{

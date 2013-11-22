@@ -18,10 +18,8 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class Picture {
-
 public:
 	int		z, id;
-
 public:
 	Picture( const char* name, int _z );
 
@@ -31,13 +29,11 @@ public:
 
 
 class Fix {
-
 public:
 	int	z, min, max;
-
 public:
-	Fix( int _z, int _min, int _max )
-		{z = _z; min = _min; max = _max;};
+	Fix( int z, int min, int max )
+	: z(z), min(min), max(max) {};
 };
 
 /* --------------------------------------------------------------- */

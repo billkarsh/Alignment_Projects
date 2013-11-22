@@ -25,11 +25,9 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class Picture {
-
 public:
 	string	fname;	// name excluding '_chan.tif'
 	int		z, id;
-
 public:
 	Picture( const char* name, int _z );
 

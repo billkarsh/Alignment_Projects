@@ -5,11 +5,9 @@
 // This is Lou's original (cleaned up) implementation.
 
 class Decimate {  // used for decimating Point lists
-
 public:
 	double	v;
 	int		x, y;
-
 public:
 	inline bool operator < (const Decimate &rhs) const
 		{return y < rhs.y || (y == rhs.y && x < rhs.x);};

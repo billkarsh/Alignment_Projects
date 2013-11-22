@@ -23,17 +23,11 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
 public:
 	char	*xmlfile,
 			*listfile;
-
 public:
-	CArgs_xml()
-	{
-		xmlfile		= NULL;
-		listfile	= NULL;
-	};
+	CArgs_xml() : xmlfile(NULL), listfile(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

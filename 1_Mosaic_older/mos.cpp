@@ -73,13 +73,12 @@ public:
 	uint16 image;
 	uint8  patch;
 	uint8  sector;
-
 public:
 	Triple()
-		{image = 0; patch = 0; sector = 0;};
+	: image(0), patch(0), sector(0) {};
 
 	Triple( uint16 i, uint8 p, uint8 s )
-		{image = i; patch = p; sector = s;};
+	: image(i), patch(p), sector(s) {};
 };
 
 /* --------------------------------------------------------------- */

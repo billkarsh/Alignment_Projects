@@ -34,17 +34,14 @@
 /* --------------------------------------------------------------- */
 
 class Pair {
-
 public:
 	int	a, b;
-
 public:
-	Pair( int _a, int _b )	{a = _a; b = _b;};
+	Pair( int a, int b ) : a(a), b(b) {};
 };
 
 
 class Block {
-
 public:
 	vector<Pair>	P;
 };

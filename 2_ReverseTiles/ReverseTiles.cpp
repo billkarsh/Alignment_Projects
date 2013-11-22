@@ -21,15 +21,10 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_heq {
-
 public:
 	char	*infile;
-
 public:
-	CArgs_heq()
-	{
-		infile	= NULL;
-	};
+	CArgs_heq() : infile(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

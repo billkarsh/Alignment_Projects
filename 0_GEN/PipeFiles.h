@@ -133,6 +133,12 @@ bool IDBGetImageDims(
 	const string	&idb,
 	FILE			*flog = stdout );
 
+int IDBGetIDRgnMap(
+	map<int,int>	&m,
+	const string	&idb,
+	int				z,
+	FILE			*flog = stdout );
+
 bool IDBT2IGet1(
 	Til2Img			&t2i,
 	const string	&idb,

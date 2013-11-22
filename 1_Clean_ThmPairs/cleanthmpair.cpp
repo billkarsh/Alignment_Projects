@@ -29,11 +29,7 @@ public:
 	int		zmin, zmax;
 
 public:
-	CArgs_cln()
-	{
-		zmin	= -1;
-		zmax	= -1;
-	};
+	CArgs_cln() : zmin(-1), zmax(-1) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

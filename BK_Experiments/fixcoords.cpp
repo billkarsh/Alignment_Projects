@@ -23,7 +23,6 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class CTile {
-
 public:
 	string	name;
 	double	x,
@@ -33,10 +32,8 @@ public:
 
 
 class CXY {
-
 public:
-	double	x,
-			y;
+	double	x, y;
 };
 
 /* --------------------------------------------------------------- */

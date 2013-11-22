@@ -42,14 +42,11 @@ static int dys[8] = {0, 1, 1,  1,  0, -1, -1, -1};
 // Priority queue element - track costs for cutting corners
 
 class PQElm {
-
 public:
 	int		to;		// from node zero to here...
 	double	cost;	// and the cost to get here
-
 public:
-	PQElm( int t, double c )
-		{to = t; cost = c;};
+	PQElm( int to, double cost ) : to(to), cost(cost) {};
 
 	bool operator < (const PQElm &rhs) const
 		{return cost > rhs.cost;};	// priority low if cost high
@@ -62,15 +59,13 @@ public:
 // Graph node - nodes are perimeter corners
 
 class Grf{
-
 public:
 	int		x, y,	// vertex coordinates
 			back;	// node we came from
 	double	cost;	// cost to get here from node zero
-
 public:
-	Grf( const vertex &corner, int b, double c )
-		{x = corner.x; y = corner.y; back = b; cost = c;};
+	Grf( const vertex &corner, int back, double cost )
+	: x(corner.x), y(corner.y), back(back), cost(cost) {};
 
 	double Dist( const Grf& rhs ) const;
 };
@@ -886,17 +881,15 @@ static int LongestEdge( const vector<lineseg> &edges )
 // Combined list of unique edge and internal vertices
 
 class UVert {
-
 public:
 	vertex	v;
 	int		type,
 			indx;
-
 public:
 	UVert()	{};
 
-	UVert( const vertex& _v, int _type, int _indx )
-		{v = _v; type = _type; indx = _indx;};
+	UVert( const vertex& v, int type, int indx )
+	: v(v), type(type), indx(indx) {};
 };
 
 

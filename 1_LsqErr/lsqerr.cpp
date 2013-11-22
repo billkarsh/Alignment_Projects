@@ -28,10 +28,8 @@
 /* --------------------------------------------------------------- */
 
 class CHst {
-
 public:
 	long	*all, *sam, *dwn;
-
 public:
 	void GetFile( const char *name );
 };
@@ -41,19 +39,11 @@ public:
 /* --------------------------------------------------------------- */
 
 class CArgs_lsqerr {
-
 public:
 	char	*inA, *inB;
 	int		lim, div;
-
 public:
-	CArgs_lsqerr()
-	{
-		inA	= NULL;
-		inB	= NULL;
-		lim	= 200;
-		div	= 1;
-	};
+	CArgs_lsqerr() : inA(NULL), inB(NULL), lim(200), div(1) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

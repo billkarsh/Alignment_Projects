@@ -469,7 +469,6 @@ void MAffine::LoadAffTable(
 /* --------------------------------------------------------------- */
 
 class RgdSums {
-
 public:
 	double	Xa, Ya, Xb, Yb, XaXb, YaYb, XaYb, YaXb;
 	int		za, zb, N;

@@ -280,6 +280,56 @@ close:
 }
 
 /* --------------------------------------------------------------- */
+/* IDBGetIDRgnMap ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// For given z, create mapping from (tileID,rgn) to unique
+// zero based array index. The caller uses the map<> to get
+// an index for (id,rgn) as follows:
+//
+// --- create the map
+// map<int,int>	idmap;
+// IDBGetIDRgnMap( idmap, idb, z );
+//
+// --- use map to get index for (id,rgn)
+// map<int,int>::iterator	it = idmap.find( id );
+// int						index = it->second + rgn - 1;
+//
+// Return array size.
+//
+int IDBGetIDRgnMap(
+	map<int,int>	&m,
+	const string	&idb,
+	int				z,
+	FILE			*flog )
+{
+	char	name[2048];
+	FILE	*f;
+	int		nelem = 0;
+
+	sprintf( name, "%s/%d/fm.same", idb.c_str(), z );
+
+	if( f = fopen( name, "r" ) ) {
+
+		int	z, id, nr;
+
+		while( 3 == fscanf( f, "FOLDMAP2 %d.%d %d\n",
+					&z, &id, &nr ) ) {
+
+			m[id]  = nelem;
+			nelem += nr;
+		}
+	}
+	else
+		fprintf( flog, "IDBGetIDRgnMap: Can't open [%s].\n", name );
+
+	if( f )
+		fclose( f );
+
+	return nelem;
+}
+
+/* --------------------------------------------------------------- */
 /* IDBT2IGet1 ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

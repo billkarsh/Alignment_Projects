@@ -27,11 +27,9 @@
 /* --------------------------------------------------------------- */
 
 class Picture {
-
 public:
 	string	fname;
 	TAffine	T;
-
 public:
 	Picture( const TiXmlElement* ptch );
 };

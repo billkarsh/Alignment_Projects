@@ -27,8 +27,8 @@ private:
 	vector<Point>	p2s;	// corresponding points in image 2
 
 public:
-	CorrPair( int ii1, int ii2 )
-		{i1 = ii1; i2 = ii2;};
+	CorrPair( int i1, int i2 )
+	: i1(i1), i2(i2) {};
 
 	bool operator < ( const CorrPair &rhs ) const
 		{return i1 < rhs.i1 || (i1 == rhs.i1 && i2 < rhs.i2);};

@@ -23,14 +23,10 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
 public:
 	vector<char*>	infile;
-
 public:
-	CArgs_xml()
-	{
-	};
+	CArgs_xml()	{};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

@@ -408,15 +408,12 @@ static int IDFromName( const char *name )
 // Some set of values that are derived from TForm
 
 class Tfmval {
-
 private:
 	double	t0, t1, t3, t4;
-
 public:
-	Tfmval()
-		{};
+	Tfmval()	{};
 	Tfmval( const double *X )
-		{t0=X[0];t1=X[1];t3=X[3];t4=X[4];};
+	: t0(X[0]), t1(X[1]), t3(X[3]), t4(X[4]) {};
 
 	bool IsOutlier(
 		const Tfmval	&ref,

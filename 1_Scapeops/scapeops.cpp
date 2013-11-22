@@ -63,8 +63,7 @@ public:
 			deg;		// rotate this much to orient
 
 public:
-	CSuperscape()
-		{ras = NULL;};
+	CSuperscape() : ras(NULL) {};
 
 	virtual ~CSuperscape()
 		{KillRas();};

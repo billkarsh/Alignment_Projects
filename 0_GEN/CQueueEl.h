@@ -14,8 +14,8 @@ public:
 	int		cost;	// for this cost
 
 public:
-	QueueEl( int xx, int yy, int cc )
-		{x = xx; y = yy; cost = cc;};
+	QueueEl( int x, int y, int cost )
+	: x(x), y(y), cost(cost) {};
 
 	bool operator < ( const QueueEl &rhs ) const
 		{return cost > rhs.cost;};	// lowest first

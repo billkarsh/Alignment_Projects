@@ -20,15 +20,10 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
 public:
 	char	*infile;
-
 public:
-	CArgs_xml()
-	{
-		infile	= NULL;
-	};
+	CArgs_xml() : infile(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

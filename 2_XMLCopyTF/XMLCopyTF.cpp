@@ -21,17 +21,11 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_xml {
-
 public:
 	char	*xmlfile,
 			*tblfile;
-
 public:
-	CArgs_xml()
-	{
-		xmlfile	= NULL;
-		tblfile	= NULL;
-	};
+	CArgs_xml() : xmlfile(NULL), tblfile(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

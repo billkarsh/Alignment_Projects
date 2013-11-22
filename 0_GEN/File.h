@@ -43,7 +43,7 @@ public:
 	size_t	bufsize;	// cur physical size of line buffer
 
 public:
-	CLineScan()				{line = NULL; bufsize = 0;};
+	CLineScan() : line(NULL), bufsize(0) {};
 	virtual ~CLineScan()	{Release();};
 
 	void Release()

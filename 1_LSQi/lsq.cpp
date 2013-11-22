@@ -1,6 +1,8 @@
 
 
-#include	"lsq_Catalog.h"
+#include	"lsq_Globals.h"
+#include	"lsq_LoadPoints.h"
+#include	"lsq_Msg.h"
 
 #include	"Cmdline.h"
 #include	"Disk.h"
@@ -50,9 +52,8 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CArgs				gArgs;
-static vector<CSubdirCat>	vCat;
-static int					gnw = 1;
+static CArgs	gArgs;
+static int		gnw = 1;
 
 
 
@@ -96,6 +97,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 			DskAbsPath( tempdir, sizeof(tempdir), instr, stdout );
 			printf( "Temp dir: '%s'.\n", tempdir );
+			GetIDB( tempdir );
 		}
 		else if( GetArgStr( instr, "-prior=", argv[i] ) ) {
 
@@ -142,7 +144,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		zolo = zilo;
 		zohi = zihi;
 	}
-	
+
 	if( !wkid && zilo != zihi ) {
 
 		if( !priorafftbl ) {
@@ -155,8 +157,6 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			exit( 42 );
 		}
 	}
-
-	printf( "\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -164,7 +164,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 /* --------------------------------------------------------------- */
 
 // Determine dependency range [zolo,zohi] and return cat index
-// of zohi (so master can truncate it's list).
+// of zohi (so master can truncate it's own list).
 //
 static int ZoFromZi(
 	int	&zolo,
@@ -172,18 +172,18 @@ static int ZoFromZi(
 	int	zilo_icat,
 	int	zihi_icat )
 {
-	zolo = *vCat[zilo_icat].zdown.begin();
+	zolo = *vL[zilo_icat].zdown.begin();
 
 // Look up to 10 layers away (12 for safety)
 
-	int	zihi = vCat[zihi_icat].z;
-	int	imax = min( zihi_icat + 12, vCat.size() - 1 );
+	int	zihi = vL[zihi_icat].z;
+	int	imax = min( zihi_icat + 12, vL.size() - 1 );
 
 	for( int icat = imax; icat > zihi_icat + 1; --icat ) {
 
-		if( *vCat[icat].zdown.begin() <= zihi ) {
+		if( *vL[icat].zdown.begin() <= zihi ) {
 
-			zohi = vCat[icat].z;
+			zohi = vL[icat].z;
 			return icat;
 		}
 	}
@@ -202,11 +202,11 @@ static void MasterLaunchWorkers()
 {
 // How many workers?
 
-	int	nc = vCat.size();
+	int	nL = vL.size();
 
-	gnw = nc / gArgs.zpernode;
+	gnw = nL / gArgs.zpernode;
 
-	if( nc - gnw * gArgs.zpernode > 0 )
+	if( nL - gnw * gArgs.zpernode > 0 )
 		++gnw;
 
 	if( gnw <= 1 )
@@ -214,24 +214,28 @@ static void MasterLaunchWorkers()
 
 // Master will be lowest block
 
+	printf( "\n---- Launching workers ----\n" );
+
 	int	zolo,
 		zohi,
 		zilo_icat = 0,
 		zihi_icat = gArgs.zpernode - 1,
 		newcatsiz = ZoFromZi( zolo, zohi, zilo_icat, zihi_icat ) + 1;
 
-		gArgs.zihi = vCat[zihi_icat].z;
+		gArgs.zihi = vL[zihi_icat].z;
 		gArgs.zohi = zohi;
 
-		printf( "\nMaster own range zi [%d %d] zo [%d %d]\n",
+		printf( "Master own range zi [%d %d] zo [%d %d]\n",
 		gArgs.zilo, gArgs.zihi, gArgs.zolo, gArgs.zohi );
 
 // Make ranges
 
+	MsgClear();
+
 	for( int iw = 1; iw < gnw; ++iw ) {
 
 		zilo_icat = zihi_icat + 1;
-		zihi_icat = min( zilo_icat + gArgs.zpernode, nc ) - 1;
+		zihi_icat = min( zilo_icat + gArgs.zpernode, nL ) - 1;
 		ZoFromZi( zolo, zohi, zilo_icat, zihi_icat );
 
 		char	buf[1024];
@@ -241,13 +245,13 @@ static void MasterLaunchWorkers()
 		iw,
 		gArgs.tempdir, gArgs.priorafftbl,
 		iw,
-		vCat[zilo_icat].z, vCat[zihi_icat].z,
+		vL[zilo_icat].z, vL[zihi_icat].z,
 		zolo, zohi );
 
 		system( buf );
 	}
 
-	vCat.resize( newcatsiz );
+	vL.resize( newcatsiz );
 }
 
 /* --------------------------------------------------------------- */
@@ -259,6 +263,8 @@ static void MasterLaunchWorkers()
 //
 int main( int argc, char **argv )
 {
+	clock_t	t0;
+
 /* ---------------------- */
 /* All parse command line */
 /* ---------------------- */
@@ -269,14 +275,8 @@ int main( int argc, char **argv )
 /* All need their catalog */
 /* ---------------------- */
 
-	printf( "---- Cataloging ----\n" );
-
-	clock_t	t0 = StartTiming();
-
-	CatPoints( vCat, gArgs.tempdir,
+	LayerCat( vL, gArgs.tempdir,
 		gArgs.zolo, gArgs.zohi, gArgs.clrcat );
-
-	t0 = StopTiming( stdout, "Catalog", t0 );
 
 /* ------------------------ */
 /* Master partitions layers */
@@ -284,6 +284,14 @@ int main( int argc, char **argv )
 
 	if( !gArgs.wkid )
 		MasterLaunchWorkers();
+
+/* ----------------- */
+/* Load initial data */
+/* ----------------- */
+
+	CLoadPoints	LP;
+
+	LP.Load( gArgs.tempdir, (gArgs.zolo != gArgs.zohi) );
 
 /* ---- */
 /* Done */

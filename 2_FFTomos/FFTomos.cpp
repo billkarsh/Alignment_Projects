@@ -28,15 +28,10 @@
 /* --------------------------------------------------------------- */
 
 class CArgs {
-
 public:
 	char	*prmfile;
-
 public:
-	CArgs()
-	{
-		prmfile	= NULL;
-	};
+	CArgs() : prmfile(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

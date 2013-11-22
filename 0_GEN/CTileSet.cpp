@@ -822,8 +822,7 @@ public:
 	vertex	v;
 
 public:
-	OrdVert( const vertex& _v )
-		{v = _v;};
+	OrdVert( const vertex& v ) : v(v) {};
 
 	bool operator <  (const OrdVert &rhs) const
 		{return a < rhs.a;};

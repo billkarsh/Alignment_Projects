@@ -143,16 +143,16 @@ public:
 
 public:
 	vertex()
-		{x = 0; y = 0; orig = 0; dir = 0;};
+	: x(0), y(0), orig(0), dir(0) {};
 
-	vertex( int x0, int y0 )
-		{x = x0; y = y0; orig = 0; dir = 0;};
+	vertex( int x, int y )
+	: x(x), y(y), orig(0), dir(0) {};
 
-	vertex( int x0, int y0, int d0 )
-		{x = x0; y = y0; orig = 0; dir = d0;};
+	vertex( int x, int y, int dir )
+	: x(x), y(y), orig(0), dir(dir) {};
 
 	vertex( const vertex &v )
-		{x = v.x; y = v.y; orig = v.orig; dir = v.dir;};
+	: x(v.x), y(v.y), orig(v.orig), dir(v.dir) {};
 
 	bool operator == (const vertex &rhs) const
 		{return x == rhs.x && y == rhs.y;};

@@ -18,10 +18,10 @@ public:
 
 public:
 	CorrCand()
-		{x = 0; y = 0; val = -BIG;};
+	: x(0), y(0), val(-BIG) {};
 
-	CorrCand( int xx, int yy, double v )
-		{x = xx; y = yy; val = v;};
+	CorrCand( int x, int y, double val )
+	: x(x), y(y), val(val) {};
 
 	bool operator < (const CorrCand &rhs) const
 		{return val < rhs.val;};

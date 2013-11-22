@@ -28,11 +28,7 @@ public:
 				*outdir;
 
 public:
-	CArgs_ldir()
-	{
-		infile	= NULL;
-		outdir	= "NoSuch";	// prevent overwriting real dir
-	};
+	CArgs_ldir() : infile(NULL), outdir("NoSuch") {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

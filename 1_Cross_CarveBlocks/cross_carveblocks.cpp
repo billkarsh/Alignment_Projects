@@ -22,28 +22,24 @@
 /* --------------------------------------------------------------- */
 
 class Block {
-
 public:
 	vector<int>	vID;
 };
 
 
 class BlockSet {
-
 public:
 	vector<Block>	K;
 	int				w, h,
 					kx, ky,
 					dx, dy,
 					nb;
-
 private:
 	void OrientLayer( int is0, int isN );
 	void SetDims();
 	void PartitionTiles( int is0, int isN );
 	void Consolidate();
 	void ReportBlocks( int z );
-
 public:
 	void CarveIntoBlocks( int is0, int isN );
 	void WriteParams( int za, int zb );

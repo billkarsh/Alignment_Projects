@@ -37,7 +37,6 @@
 // Used for testing how well triangles match.
 //
 class CMatch {
-
 public:
 	vector<Point>	pts;	// points in image a
 	vector<double>	a;		// value in image a (source)

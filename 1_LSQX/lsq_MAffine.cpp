@@ -481,7 +481,6 @@ void MAffine::LoadAffTable(
 /* --------------------------------------------------------------- */
 
 class RgdSums {
-
 public:
 	double	Xa, Ya, Xb, Yb, XaXb, YaYb, XaYb, YaXb;
 	int		za, zb, N;
@@ -1162,8 +1161,7 @@ public:
 	double	e;
 	int		j;
 public:
-	Cperr( double e, int j )
-		{this->e=e; this->j=j;};
+	Cperr( double e, int j ) : e(e), j(j) {};
 	bool operator < (const Cperr &rhs) const
 		{return e < rhs.e;};
 };
@@ -1340,7 +1338,6 @@ static void KeepSLOnly( vector<int> &v, int nc )
 typedef	void* (*T_psxthd)( void* );
 
 class CThrdat {
-
 public:
 	pthread_t	h;
 	int			r0,
@@ -1984,7 +1981,7 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 		AFromIDB( X, nTr );
 		clock_t			t2 = StartTiming();
-		for( gpass = 0; gpass < 2000; ++gpass ) {	// 250
+		for( gpass = 0; gpass < 250; ++gpass ) {	// 250
 			vector<double> Xin = X;
 			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 8, 0.9 );
 //			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );

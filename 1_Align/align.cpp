@@ -20,7 +20,7 @@ class TiffInfo {
     uint32 w,h;
     uint8 *raster;
     int last_used;
-    };
+};
 
 static bool Transpose = false;      // Use translation only?
 

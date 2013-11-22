@@ -39,26 +39,24 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class BlkZ {
-
 public:
 	TAffine	T;
 	double	R;
 	int		Z,
 			used;
-
 public:
-	BlkZ( TAffine t, double r, int z )	{T=t; R=r; Z=z; used=0;};
+	BlkZ( TAffine T, double R, int Z )
+	: T(T), R(R), Z(Z), used(0) {};
 };
 
 class Pair {
-
 public:
 	double	area;
 	int		id, iz;
-
 public:
-	Pair()							{};	// for resize()
-	Pair( double a, int b, int z )	{area=a; id=b; iz=z;};
+	Pair()	{};	// for resize()
+	Pair( double area, int id, int iz )
+	: area(area), id(id), iz(iz) {};
 };
 
 /* --------------------------------------------------------------- */
@@ -78,8 +76,7 @@ public:
 	int		clbl, rsvd;	// 'A' or 'B'
 
 public:
-	CSuperscape()
-		{ras = NULL;};
+	CSuperscape() : ras(NULL) {};
 
 	virtual ~CSuperscape()
 		{KillRas();};
@@ -114,13 +111,11 @@ public:
 /* --------------------------------------------------------------- */
 
 class CBlockDat {
-
 public:
 	char		xmlfile[2048];
 	int			za, zmin;
 	int			ntil;
 	set<int>	sID;
-
 public:
 	void ReadFile();
 };

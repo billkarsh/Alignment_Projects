@@ -3,10 +3,8 @@
 #pragma once
 
 
-#include	"GenDefs.h"
-#include	"TAffine.h"
-
-#include	<string>
+#include	<set>
+#include	<vector>
 using namespace std;
 
 
@@ -14,36 +12,25 @@ using namespace std;
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class ScpTile {
-
+class Layer {
 public:
-	string	name;
-	TAffine	t2g;	// tile to global
-
+	int			z,
+				sx, sy,
+				dx, dy;
+	set<int>	zdown;
 public:
-	ScpTile()	{};
-
-	ScpTile( const string &name, const TAffine &t2g )
-	: name(name), t2g(t2g) {};
+	Layer() : sx(-1), sy(-1), dx(-1), dy(-1) {};
 };
 
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-uint8* Scape(
-	uint32			&ws,
-	uint32			&hs,
-	double			&x0,
-	double			&y0,
-	vector<ScpTile>	&vTile,
-	int				wi,
-	int				hi,
-	double			scale,
-	int				szmult,
-	int				bkval,
-	int				lgord,
-	int				sdnorm,
-	FILE*			flog );
+void LayerCat(
+	vector<Layer>	&vL,
+	const char		*tempdir,
+	int				zolo,
+	int				zohi,
+	bool			clrcat );
 
 

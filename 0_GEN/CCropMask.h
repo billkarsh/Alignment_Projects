@@ -23,7 +23,7 @@ private:
 	int		isfile;	// unset if -1
 
 public:
-	CCropMask()	{isfile = -1;};
+	CCropMask() : isfile(-1) {};
 
 	bool IsFile( const string &idb );
 

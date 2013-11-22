@@ -23,16 +23,10 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_hist1 {
-
 public:
 	char	*img, *hst;
-
 public:
-	CArgs_hist1()
-	{
-		img	= NULL;
-		hst = NULL;
-	};
+	CArgs_hist1() : img(NULL), hst(NULL) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

@@ -18,18 +18,15 @@
 /* --------------------------------------------------------------- */
 
 class Entry {
-
 public:
-	int		z, id;
 	TAffine	T;
+	int		z, id;
 };
 
 
 class CTbl {
-
 public:
 	vector<Entry>	vE;
-
 public:
 	void GetFile( const char *name );
 };
@@ -39,17 +36,11 @@ public:
 /* --------------------------------------------------------------- */
 
 class CArgs_xytbl {
-
 public:
 	char	*infile;
 	int		z;
-
 public:
-	CArgs_xytbl()
-	{
-		infile	= NULL;
-		z		= -1;
-	};
+	CArgs_xytbl() : infile(NULL), z(-1) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };

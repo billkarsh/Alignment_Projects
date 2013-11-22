@@ -19,13 +19,11 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class Picture {
-
 public:
 	string	fname;	// file name
 	int		z;		// Z layer
-
 public:
-	Picture( const char *_n, int _z )	{fname=_n; z=_z;};
+	Picture( const char *n, int z )	: fname(n), z(z) {};
 
 	bool operator < (const Picture &rhs) const
 		{return z < rhs.z;};
@@ -33,13 +31,11 @@ public:
 
 
 class Fix {
-
 public:
 	int	z, min, max;
-
 public:
-	Fix( int _z, int _min, int _max )
-		{z = _z; min = _min; max = _max;};
+	Fix( int z, int min, int max )
+	: z(z), min(min), max(max) {};
 };
 
 /* --------------------------------------------------------------- */

@@ -76,13 +76,12 @@ public:
 	uint16 image;
 	uint8  patch;
 	uint8  sector;
-
 public:
 	Triple()
-		{image = 0; patch = 0; sector = 0;};
+	: image(0), patch(0), sector(0) {};
 
 	Triple( uint16 i, uint8 p, uint8 s )
-		{image = i; patch = p; sector = s;};
+	: image(i), patch(p), sector(s) {};
 };
 
 /* --------------------------------------------------------------- */
@@ -1265,7 +1264,6 @@ class NameSorter{
 public:
 	char	*name;
 	int		num;
-
 public:
 	bool operator < ( const NameSorter &rhs ) const
 		{return strcmp( name, rhs.name ) < 0;};
@@ -1885,7 +1883,6 @@ public:
 	int		z;
 	int		body_id;
 	int		image_number;
-
 public:
 	bool operator < ( const Bookmark &rhs ) const
 		{return image_number < rhs.image_number;};
@@ -1910,7 +1907,6 @@ public:
 	vector<Partner>	partners;
 	int				body_id;
 	int				image_number;
-
 public:
 	bool operator < ( const TBar &rhs ) const
 		{return image_number < rhs.image_number;};

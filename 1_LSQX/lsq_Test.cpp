@@ -18,7 +18,7 @@ public:
 				dx, dy;
 	set<int>	zdown;
 public:
-	CSubdirCat()	{sx=-1; sy=-1; dx=-1; dy=-1;};
+	CSubdirCat() : sx(-1), sy(-1), dx(-1), dy(-1) {};
 };
 
 const char	*_d;

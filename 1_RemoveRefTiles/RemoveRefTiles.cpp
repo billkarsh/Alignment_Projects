@@ -10,11 +10,9 @@ using namespace std;
 
 
 class LineRec {
-
 public:
 	char	line[2048];
 	int		id, x, y, z;
-
 public:
 	bool Get( FILE *f );
 };

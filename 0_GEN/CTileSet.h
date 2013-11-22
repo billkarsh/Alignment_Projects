@@ -37,7 +37,7 @@ public:
 			ix;		// idx to aux data
 
 public:
-	CUTile()	{col=-999;row=-999;cam=0;ix = 0;};
+	CUTile() : col(-999), row(-999), cam(0), ix(0) {};
 };
 
 
@@ -72,8 +72,7 @@ public:
 	vector<TSAux>	vaux;
 
 public:
-	CTileSet()
-		{flog=stdout; gW=0; gH=0;};
+	CTileSet() : flog(stdout), gW(0), gH(0) {};
 
 	void SetLogFile( FILE* fout )
 		{flog = fout;};

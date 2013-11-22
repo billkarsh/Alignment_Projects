@@ -22,19 +22,12 @@
 /* --------------------------------------------------------------- */
 
 class CArgs_alnmon {
-
 public:
 	int		zmin,
 			zmax;
 	bool	table;
-
 public:
-	CArgs_alnmon()
-	{
-		zmin	= 0;
-		zmax	= 32768;
-		table	= false;
-	};
+	CArgs_alnmon() : zmin(0), zmax(32768), table(false) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };
