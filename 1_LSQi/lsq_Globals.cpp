@@ -18,6 +18,7 @@ string			idb;
 vector<Layer>	vL;
 map<int,int>	mZ;
 vector<Rgns>	vR;
+vector<CorrPnt>	vC;
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
@@ -62,6 +63,32 @@ close:
 
 	if( idb.empty() )
 		exit( 42 );
+}
+
+
+void MapZPair( int &ia, int &ib, int za, int zb )
+{
+	static int	cached_za = -1, cached_zb = -1,
+				cached_ia,      cached_ib;
+
+	if( za != cached_za ) {
+		cached_ia = mZ.find( za )->second;
+		cached_za = za;
+	}
+
+	ia = cached_ia;
+
+	if( za == zb )
+		ib = ia;
+	else {
+
+		if( zb != cached_zb ) {
+			cached_ib = mZ.find( zb )->second;
+			cached_zb = zb;
+		}
+
+		ib = cached_ib;
+	}
 }
 
 

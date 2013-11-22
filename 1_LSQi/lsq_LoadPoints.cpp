@@ -7,28 +7,25 @@
 #include	"Timer.h"
 
 #include	<pthread.h>
-#include	<stdio.h>
+
+#include	<algorithm>
+using namespace std;
 
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static int	nthr = 2;
-
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* Globals ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CLoadPoints	*ME;
+static CLoadPoints		*ME;
+static pthread_mutex_t	mutex_vC = PTHREAD_MUTEX_INITIALIZER;
 
 
 
@@ -58,9 +55,14 @@ static void InitTablesToMaximum()
 
 void* _Loader( void* ithr )
 {
-	for( int ij = (long)ithr; ij < ME->nj; ij += nthr ) {
+	const int blksz = 1000;
 
-		CLoadPoints::CJob	&J = ME->vJ[ij];
+	int	nmax = blksz;
+	vector<CorrPnt>	vc( nmax );
+
+	for( int j = (long)ithr; j < ME->njob; j += ME->nthr ) {
+
+		CLoadPoints::CJob	&J = ME->vJ[j];
 
 		char	buf[2048];
 		sprintf( buf, "%s/%d/%c%d_%d/pts.%s",
@@ -71,28 +73,32 @@ void* _Loader( void* ithr )
 
 		if( f ) {
 
-			CLoadPoints::PntPair	P;
+			int	n = 0;
 
-			while( 10 == fscanf( f, "CPOINT2"
-				" %d.%d:%d %lf %lf"
-				" %d.%d:%d %lf %lf\n",
-				&P.z1, &P.d1, &P.r1, &P.x1, &P.y1,
-				&P.z2, &P.d2, &P.r2, &P.x2, &P.y2 ) ) {
+			for(;;) {
 
-				J.vP.push_back( P );
+				if( n >= nmax )
+					vc.resize( nmax += blksz );
+
+				if( vc[n].FromFile( f ) )
+					++n;
+				else
+					break;
 			}
 
 			fclose( f );
-		}
 
-		J.done = true;
+			pthread_mutex_lock( &mutex_vC );
+			vC.insert( vC.end(), vc.begin(), vc.begin() + n );
+			pthread_mutex_unlock( &mutex_vC );
+		}
 	}
 
 	return NULL;
 }
 
 /* --------------------------------------------------------------- */
-/* LoadPoints ---------------------------------------------------- */
+/* AppendJobs ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 void CLoadPoints::AppendJobs(
@@ -101,14 +107,71 @@ void CLoadPoints::AppendJobs(
 	int			xhi,
 	int			yhi )
 {
-	if( xhi < 0 )
-		return;
-
 	for( int y = 0; y <= yhi; ++y ) {
 
 		for( int x = 0; x <= xhi; ++x )
 			vJ.push_back( CJob( z, SorD, x, y ) );
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* Remap --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Presorting before remapping was expected to improve
+// cache performance, but in practice it doesn't matter.
+// --- Certainly the points are very well sorted on disk.
+//
+static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
+{
+	if( A.z1 < B.z1 )
+		return true;
+	if( A.z1 > B.z1 )
+		return false;
+	if( A.i1 < B.i1 )
+		return true;
+	if( A.i1 > B.i1 )
+		return false;
+	if( A.r1 < B.r1 )
+		return true;
+	if( A.r1 > B.r1 )
+		return false;
+
+	if( A.z2 < B.z2 )
+		return true;
+	if( A.z2 > B.z2 )
+		return false;
+	if( A.i2 < B.i2 )
+		return true;
+	if( A.i2 > B.i2 )
+		return false;
+
+	return A.r2 < B.r2;
+}
+
+
+void CLoadPoints::Remap()
+{
+	clock_t	t0 = StartTiming();
+
+	int	nc = vC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		CorrPnt&	C = vC[i];
+
+		MapZPair( C.z1, C.z2, C.z1, C.z2 );
+
+		Rgns&	R1 = vR[C.z1];
+		Rgns&	R2 = vR[C.z2];
+
+		C.i1 = R1.Map( C.i1, C.r1 );
+		C.i2 = R2.Map( C.i2, C.r2 );
+
+		C.used = false;
+	}
+
+	StopTiming( stdout, "Mapping", t0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -121,12 +184,12 @@ void CLoadPoints::Load( const char *tempdir, bool isstack )
 
 	clock_t	t0 = StartTiming();
 
-	ME				= this;
-	this->tempdir	= tempdir;
-
 	InitTablesToMaximum();
 
-// define reader job params
+// Create list of reader file specs
+
+	ME				= this;
+	this->tempdir	= tempdir;
 
 	int	nL = vL.size();
 
@@ -140,63 +203,64 @@ void CLoadPoints::Load( const char *tempdir, bool isstack )
 			AppendJobs( L.z, 'D', L.dx, L.dy );
 	}
 
-	nj = vJ.size();
+	njob = vJ.size();
 
-// make readers
+// Create reader threads to scan points
+// I will be thread zero.
 
 	nthr = (isstack ? 16 : 2);
 
-	if( nthr > nj )
-		nthr = nj;
+	if( nthr > njob )
+		nthr = njob;
 
 	vector<pthread_t>	vthr( nthr );
 
-	pthread_attr_t	attr;
-	pthread_attr_init( &attr );
-	pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+	if( nthr > 1 ) {
 
-	for( int i = 0; i < nthr; ++i ) {
+		pthread_attr_t	attr;
+		pthread_attr_init( &attr );
+		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
 
-		int	ret =
-		pthread_create( &vthr[i], &attr, _Loader, (void*)i );
+		for( int i = 1; i < nthr; ++i ) {
 
-		if( ret ) {
-			printf( "Error %d starting _Loader thread %d\n", ret, i );
-			for( int j = 0; j < i; ++j )
-				pthread_cancel( vthr[j] );
-			exit( 42 );
+			int	ret =
+			pthread_create( &vthr[i], &attr, _Loader, (void*)i );
+
+			if( ret ) {
+				printf(
+				"Error %d starting _Loader thread %d\n", ret, i );
+				for( int j = 1; j < i; ++j )
+					pthread_cancel( vthr[j] );
+				exit( 42 );
+			}
 		}
+
+		pthread_attr_destroy( &attr );
 	}
 
-	pthread_attr_destroy( &attr );
+// Do my own work
 
-// Chase the readers and process the points
+	_Loader( 0 );
 
-//	for(;;) {
-//
-//		for( int ij = 0; ij < nj; ++ij ) {
-//
-//			if( !vJ[ij].done ) {
-//				sleep( 2 );
-//				goto still_reading;
-//			}
-//		}
-//
-//		break;
-//
-//still_reading:;
-//	}
+// Join/wait my coworkers
 
-// Join/wait my readers
+	if( nthr > 1 ) {
 
-	void*	ret;
+		void*	ret;
 
-	for( int i = 0; i < nthr; ++i )
-		pthread_join( vthr[i], &ret );
+		for( int i = 1; i < nthr; ++i )
+			pthread_join( vthr[i], &ret );
+	}
 
 	vJ.clear();
 
-	StopTiming( stdout, "Load", t0 );
+	printf( "Loaded %d point pairs.\n", vC.size() );
+
+	StopTiming( stdout, "Loading", t0 );
+
+// Postprocessing
+
+	Remap();
 }
 
 
