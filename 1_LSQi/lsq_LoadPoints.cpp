@@ -252,7 +252,7 @@ void CLoadPoints::Load( const char *tempdir, bool isstack )
 			pthread_join( vthr[i], &ret );
 	}
 
-	vJ.clear();
+	vJ.clear();	// in case caller doesn't delete loader
 
 	printf( "Loaded %d point pairs.\n", vC.size() );
 
