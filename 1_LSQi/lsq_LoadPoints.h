@@ -3,12 +3,15 @@
 #pragma once
 
 
+#include	<stdio.h>
+
+
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 class CLoadPoints {
-	friend void* _Loader( void* ithr );
+	friend void* _Gather( void* ithr );
 private:
 	class CJob {
 	public:
@@ -19,18 +22,30 @@ private:
 	};
 private:
 	const char		*tempdir;
+	FILE			*fpnts;
 	vector<CJob>	vJ;
 	int				njob,
-					nthr;
+					nthr,
+					wkid,
+					zolo,
+					zohi;
 private:
+	char* NameBinary( char *buf );
+	bool IsBinary();
 	void AppendJobs(
 		int			z,
 		int			SorD,
 		int			xhi,
 		int			yhi );
+	void MakeBinary();
+	void LoadBinary();
 	void Remap();
 public:
-	void Load( const char *tempdir, bool isstack );
+	void Load(
+		const char	*tempdir,
+		int			wkid,
+		int			zolo,
+		int			zohi );
 };
 
 /* --------------------------------------------------------------- */

@@ -8,7 +8,6 @@
 #include	"Disk.h"
 #include	"Maths.h"
 #include	"Memory.h"
-#include	"Timer.h"
 
 #include	<stdlib.h>
 #include	<string.h>
@@ -289,9 +288,9 @@ int main( int argc, char **argv )
 /* Load initial data */
 /* ----------------- */
 
-	CLoadPoints	LP;
-
-	LP.Load( gArgs.tempdir, (gArgs.zolo != gArgs.zohi) );
+	CLoadPoints	*LP = new CLoadPoints;
+	LP->Load( gArgs.tempdir, gArgs.wkid, gArgs.zolo, gArgs.zohi );
+	delete LP;
 
 /* ---- */
 /* Done */

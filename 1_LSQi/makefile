@@ -1,6 +1,10 @@
 
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
+# If Valgrind (run as valgrind --leak-check=yes <mycmdline>)
+#CFLAGS = -g -O0
+#LFLAGS =
+
 appname = lsq
 
 files =\

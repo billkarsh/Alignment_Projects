@@ -9,6 +9,7 @@
 #include	"Maths.h"
 #include	"Timer.h"
 
+#include	<limits.h>
 #include	<math.h>
 #include	<pthread.h>
 
@@ -987,6 +988,7 @@ static void OnePassTH(
 		pthread_attr_t	attr;
 		pthread_attr_init( &attr );
 		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
 
 		for( int i = 1; i < nthr; ++i ) {
 
@@ -1017,10 +1019,10 @@ static void OnePassTH(
 
 	if( nthr > 1 ) {
 
-		void*	ret;
-
-		for( int i = 1; i < nthr; ++i )
-			pthread_join( vthr[i].h, &ret );
+		for( int i = 1; i < nthr; ++i ) {
+			pthread_join( vthr[i].h, NULL );
+			pthread_detach( vthr[i].h );
+		}
 	}
 
 	Remark();

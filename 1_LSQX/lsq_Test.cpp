@@ -4,6 +4,7 @@
 #include	"Timer.h"
 
 #include	<dirent.h>
+#include	<stdlib.h>
 
 #include	<set>
 using namespace std;

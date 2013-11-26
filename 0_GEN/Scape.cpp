@@ -4,6 +4,7 @@
 #include	"ImageIO.h"
 #include	"Maths.h"
 
+#include	<limits.h>
 #include	<stdlib.h>
 #include	<string.h>
 
@@ -340,6 +341,7 @@ void PaintTH( int nthr )
 		pthread_attr_t	attr;
 		pthread_attr_init( &attr );
 		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
 
 		for( int i = 1; i < nthr; ++i ) {
 
@@ -371,10 +373,10 @@ void PaintTH( int nthr )
 
 	if( nthr > 1 ) {
 
-		void*	ret;
-
-		for( int i = 1; i < nthr; ++i )
-			pthread_join( vthr[i].h, &ret );
+		for( int i = 1; i < nthr; ++i ) {
+			pthread_join( vthr[i].h, NULL );
+			pthread_detach( vthr[i].h );
+		}
 	}
 
 	vthr.clear();

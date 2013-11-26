@@ -72,7 +72,7 @@ public:
 	int	z, id, rgn;
 public:
 	MZIDR()	{};
-	MZIDR( int z, int i, int rgn ) : z(z), id(id), rgn(rgn) {};
+	MZIDR( int z, int id, int rgn ) : z(z), id(id), rgn(rgn) {};
 
 	bool operator < (const MZIDR &rhs) const
 		{
