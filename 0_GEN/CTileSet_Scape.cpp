@@ -320,7 +320,7 @@ void* _Scape_Paint( void *ithr )
 }
 
 
-void Scape_PaintTH( int nthr )
+void CTileSet::Scape_PaintTH( int nthr ) const
 {
 	int	nt = GP->vid.size(),
 		nb;
@@ -342,7 +342,7 @@ void Scape_PaintTH( int nthr )
 		pthread_attr_t	attr;
 		pthread_attr_init( &attr );
 		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
+		pthread_attr_setstacksize( &attr, 2 * PTHREAD_STACK_MIN );
 
 		for( int i = 1; i < nthr; ++i ) {
 
@@ -355,7 +355,7 @@ void Scape_PaintTH( int nthr )
 			pthread_create( &C.h, &attr, _Scape_Paint, (void*)i );
 
 			if( ret ) {
-				fprintf( ME->flog,
+				fprintf( flog,
 				"Error %d starting thread %d\n", ret, i );
 				for( int j = 1; j < i; ++j )
 					pthread_cancel( vthr[j].h );

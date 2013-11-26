@@ -4,6 +4,7 @@
 
 #include	"File.h"
 #include	"PipeFiles.h"
+#include	"Timer.h"
 
 
 /* --------------------------------------------------------------- */
@@ -28,6 +29,28 @@ vector<CorrPnt>	vC;
 
 
 
+
+/* --------------------------------------------------------------- */
+/* Methods ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+Rgns::Rgns( int z ) : z(z), cached_id(-1)
+{
+	nr = IDBGetIDRgnMap( m, idb, z );
+	pts.resize( nr );
+	used.resize( nr, 0 );
+}
+
+
+int Rgns::Map( int id, int r )
+{
+	if( id != cached_id ) {
+		cached_i  = m.find( id )->second + r - 1;
+		cached_id = id;
+	}
+
+	return cached_i;
+}
 
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */
@@ -66,6 +89,24 @@ close:
 }
 
 
+void InitTablesToMaximum()
+{
+	clock_t	t0 = StartTiming();
+
+	int	nL = vL.size();
+
+	for( int iL = 0; iL < nL; ++iL ) {
+
+		int	z = vL[iL].z;
+
+		mZ[z] = iL;
+		vR.push_back( Rgns( z ) );
+	}
+
+	StopTiming( stdout, "Table", t0 );
+}
+
+
 void MapZPair( int &ia, int &ib, int za, int zb )
 {
 	static int	cached_za = -1, cached_zb = -1,
@@ -92,23 +133,63 @@ void MapZPair( int &ia, int &ib, int za, int zb )
 }
 
 
-Rgns::Rgns( int z )
+// Presorting before remapping was expected to improve
+// cache performance, but in practice it doesn't matter.
+// --- Certainly the points are very well sorted on disk.
+//
+static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
 {
-	this->z		= z;
-	cached_id	= -1;
-	nr			= IDBGetIDRgnMap( m, idb, z );
-	used.resize( nr, 0 );
+	if( A.z1 < B.z1 )
+		return true;
+	if( A.z1 > B.z1 )
+		return false;
+	if( A.i1 < B.i1 )
+		return true;
+	if( A.i1 > B.i1 )
+		return false;
+	if( A.r1 < B.r1 )
+		return true;
+	if( A.r1 > B.r1 )
+		return false;
+
+	if( A.z2 < B.z2 )
+		return true;
+	if( A.z2 > B.z2 )
+		return false;
+	if( A.i2 < B.i2 )
+		return true;
+	if( A.i2 > B.i2 )
+		return false;
+
+	return A.r2 < B.r2;
 }
 
 
-int Rgns::Map( int id, int r )
+void RemapIndices()
 {
-	if( id != cached_id ) {
-		cached_i  = m.find( id )->second + r - 1;
-		cached_id = id;
+	clock_t	t0 = StartTiming();
+
+	int	nc = vC.size();
+
+	for( int i = 0; i < nc; ++i ) {
+
+		CorrPnt&	C = vC[i];
+
+		MapZPair( C.z1, C.z2, C.z1, C.z2 );
+
+		Rgns&	R1 = vR[C.z1];
+		Rgns&	R2 = vR[C.z2];
+
+		C.i1 = R1.Map( C.i1, C.r1 );
+		C.i2 = R2.Map( C.i2, C.r2 );
+
+		C.used = true;
+
+		R1.pts[C.i1].push_back( i );
+		R2.pts[C.i2].push_back( i );
 	}
 
-	return cached_i;
+	StopTiming( stdout, "Remap", t0 );
 }
 
 

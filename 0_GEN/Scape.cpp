@@ -319,7 +319,7 @@ void* _Paint( void *ithr )
 }
 
 
-void PaintTH( int nthr )
+static void PaintTH( int nthr )
 {
 	int	nt = GP->vTile.size(),
 		nb;
@@ -341,7 +341,7 @@ void PaintTH( int nthr )
 		pthread_attr_t	attr;
 		pthread_attr_init( &attr );
 		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
+		pthread_attr_setstacksize( &attr, 2 * PTHREAD_STACK_MIN );
 
 		for( int i = 1; i < nthr; ++i ) {
 

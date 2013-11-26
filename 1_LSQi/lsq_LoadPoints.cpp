@@ -31,23 +31,6 @@ static pthread_mutex_t	mutex_fpnts = PTHREAD_MUTEX_INITIALIZER;
 
 
 /* --------------------------------------------------------------- */
-/* InitTablesToMaximum ------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void InitTablesToMaximum()
-{
-	int	nL = vL.size();
-
-	for( int iL = 0; iL < nL; ++iL ) {
-
-		int	z = vL[iL].z;
-
-		mZ[z] = iL;
-		vR.push_back( Rgns( z ) );
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* NameBinary ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -210,7 +193,7 @@ void CLoadPoints::MakeBinary()
 	fclose( fpnts );
 	pthread_mutex_destroy( &mutex_fpnts );
 
-	StopTiming( stdout, "Making binary", t0 );
+	StopTiming( stdout, "WrBin", t0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -230,68 +213,12 @@ void CLoadPoints::LoadBinary()
 	fread( &vC[0], sizeof(CorrPnt), n, f );
 	fclose( f );
 
-	StopTiming( stdout, "Loading binary", t0 );
+	StopTiming( stdout, "LdBin", t0 );
 }
 
 /* --------------------------------------------------------------- */
 /* Remap --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-// Presorting before remapping was expected to improve
-// cache performance, but in practice it doesn't matter.
-// --- Certainly the points are very well sorted on disk.
-//
-static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
-{
-	if( A.z1 < B.z1 )
-		return true;
-	if( A.z1 > B.z1 )
-		return false;
-	if( A.i1 < B.i1 )
-		return true;
-	if( A.i1 > B.i1 )
-		return false;
-	if( A.r1 < B.r1 )
-		return true;
-	if( A.r1 > B.r1 )
-		return false;
-
-	if( A.z2 < B.z2 )
-		return true;
-	if( A.z2 > B.z2 )
-		return false;
-	if( A.i2 < B.i2 )
-		return true;
-	if( A.i2 > B.i2 )
-		return false;
-
-	return A.r2 < B.r2;
-}
-
-
-void CLoadPoints::Remap()
-{
-	clock_t	t0 = StartTiming();
-
-	int	nc = vC.size();
-
-	for( int i = 0; i < nc; ++i ) {
-
-		CorrPnt&	C = vC[i];
-
-		MapZPair( C.z1, C.z2, C.z1, C.z2 );
-
-		Rgns&	R1 = vR[C.z1];
-		Rgns&	R2 = vR[C.z2];
-
-		C.i1 = R1.Map( C.i1, C.r1 );
-		C.i2 = R2.Map( C.i2, C.r2 );
-
-		C.used = true;
-	}
-
-	StopTiming( stdout, "Remapping", t0 );
-}
 
 /* --------------------------------------------------------------- */
 /* Load ---------------------------------------------------------- */
@@ -307,19 +234,20 @@ void CLoadPoints::Load(
 
 	clock_t	t0 = StartTiming();
 
+	InitTablesToMaximum();
+
 	ME				= this;
 	this->tempdir	= tempdir;
 	this->wkid		= wkid;
 	this->zolo		= zolo;
 	this->zohi		= zohi;
 
-	InitTablesToMaximum();
-
 	if( !IsBinary() )
 		MakeBinary();
 
 	LoadBinary();
-	Remap();
+
+	RemapIndices();
 
 	StopTiming( stdout, "Total", t0 );
 

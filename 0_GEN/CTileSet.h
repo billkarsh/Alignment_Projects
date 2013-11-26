@@ -61,7 +61,6 @@ typedef struct TSClix {
 class CTileSet {
 
 	friend void* _Scape_Paint( void *ithr );
-	friend void Scape_PaintTH( int nthr );
 
 private:
 	FILE*			flog;
@@ -152,6 +151,8 @@ private:
 		const vector<int>	&vid,
 		double				scale,
 		int					szmult ) const;
+
+	void Scape_PaintTH( int nthr ) const;
 
 public:
 	uint8* Scape(

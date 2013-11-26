@@ -20,13 +20,16 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class Rgns {
+// The rgns for given layer
+// indexed by 0-based 'idx0'
 public:
-	vector<char>	used;
-	map<int,int>	m;
-	int				nr,
-					z,
-					cached_id,
-					cached_i;
+	vector<vector<int> >	pts;	// ea rgn's pts
+	vector<char>			used;	// which rgns used
+	map<int,int>			m;		// map id -> idx0
+	int						nr,		// num rgns
+							z,		// common z
+							cached_id,
+							cached_i;
 public:
 	Rgns( int z );
 	int Map( int id, int r );
@@ -35,8 +38,8 @@ public:
 class CorrPnt {
 public:
 	Point	p1, p2;
-	int		z1, z2,
-			i1, i2;
+	int		z1, z2,	// index into vR
+			i1, i2;	// index into vR[iz]
 	union {
 	int		used;
 	struct {
@@ -69,7 +72,8 @@ extern vector<CorrPnt>	vC;
 /* --------------------------------------------------------------- */
 
 void GetIDB( const char *tempdir );
-
+void InitTablesToMaximum();
 void MapZPair( int &ia, int &ib, int za, int zb );
+void RemapIndices();
 
 

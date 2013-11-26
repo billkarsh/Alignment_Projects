@@ -72,6 +72,9 @@ Alpinestars Bionic Rib S/L
 but that is compiled in separate archive. Need to revisit when
 do foldmasks.
 
+- Consider scatter/gather (vectored) IO for solution sync or
+point loading.
+
 - Unknown how large a block SuperLU can do.
 - Unknown if SuperLU can work with more processors.
 - Unknown how SuperLU breaks, but it looks like MPI breaks.
