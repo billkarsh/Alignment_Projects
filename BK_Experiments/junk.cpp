@@ -129,8 +129,57 @@ static void RunCorrTest()
 }
 
 
+#if 0
+// Convert SuperLU to Matrix Market Coordinate format
+//
+#include "File.h"
+static void Splitfile()
+{
+const char *inpath = "/nobackup/bock/karsh/ZZ200/temp0/stackTest/triples-200";
+
+FILE *fi = FileOpenOrDie( inpath, "r" );
+FILE *fa = FileOpenOrDie( "mmtriples", "w" );
+FILE *fb = FileOpenOrDie( "mmtriples.rhs", "w" );
+CLineScan	LS;
+
+long	n, nnz, nnzL = 0;
+LS.Get( fi );
+sscanf( LS.line, "%ld%ld", &n, &nnz );
+for( long i = 0; i < nnz; ++i ) {
+long	r, c;
+LS.Get( fi );
+sscanf( LS.line, "%ld%ld", &r, &c );
+if( r >= c ) ++nnzL;
+}
+fclose( fi );
 
 
+fi = FileOpenOrDie( inpath, "r" );
+LS.Get( fi );
+fprintf( fa, "%%%%MatrixMarket matrix coordinate real symmetric\n" );
+fprintf( fa, "%ld %ld %ld\n", n, n, nnzL );
+
+for( long i = 0; i < nnz; ++i ) {
+double	v;
+long	r, c;
+LS.Get( fi );
+sscanf( LS.line, "%ld%ld%lf", &r, &c, &v );
+if( r >= c )
+	fprintf( fa, "%ld %ld %.16f\n", r, c, v );
+}
+
+for( long i = 0; i < n; ++i ) {
+double	v;
+LS.Get( fi );
+sscanf( LS.line, "%lf", &v );
+fprintf( fb, "%.16f\n", v );
+}
+
+fclose( fi );
+fclose( fa );
+fclose( fb );
+}
+#endif
 
 
 int main( int argc, char **argv )
