@@ -213,7 +213,7 @@ void CLoadPoints::LoadBinary()
 	fread( &vC[0], sizeof(CorrPnt), n, f );
 	fclose( f );
 
-	StopTiming( stdout, "LdBin", t0 );
+	StopTiming( stdout, "RdBin", t0 );
 }
 
 /* --------------------------------------------------------------- */
