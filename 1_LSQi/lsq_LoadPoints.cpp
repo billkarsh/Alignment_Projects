@@ -5,9 +5,8 @@
 
 #include	"Disk.h"
 #include	"File.h"
+#include	"EZThreads.h"
 #include	"Timer.h"
-
-#include	<limits.h>
 
 
 /* --------------------------------------------------------------- */
@@ -143,55 +142,18 @@ void CLoadPoints::MakeBinary()
 	njob = vJ.size();
 
 // Create reader threads to scan points
-// I will be thread zero.
 
 	nthr = (zolo != zohi ? 16 : 2);
 
 	if( nthr > njob )
 		nthr = njob;
 
-	vector<pthread_t>	vthr( nthr );
-
-	if( nthr > 1 ) {
-
-		pthread_attr_t	attr;
-		pthread_attr_init( &attr );
-		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
-
-		for( int i = 1; i < nthr; ++i ) {
-
-			int	ret =
-			pthread_create( &vthr[i], &attr, _Gather, (void*)i );
-
-			if( ret ) {
-				printf(
-				"Error %d starting _Gather thread %d\n", ret, i );
-				for( int j = 1; j < i; ++j )
-					pthread_cancel( vthr[j] );
-				exit( 42 );
-			}
-		}
-
-		pthread_attr_destroy( &attr );
-	}
-
-// Do my own work
-
-	_Gather( 0 );
-
-// Join/wait my coworkers
-
-	if( nthr > 1 ) {
-
-		for( int i = 1; i < nthr; ++i ) {
-			pthread_join( vthr[i], NULL );
-			pthread_detach( vthr[i] );
-		}
-	}
+	if( !EZThreads( _Gather, nthr, 1, "_Gather" ) )
+		exit( 42 );
 
 	fclose( fpnts );
 	pthread_mutex_destroy( &mutex_fpnts );
+	vJ.clear();
 
 	StopTiming( stdout, "WrBin", t0 );
 }

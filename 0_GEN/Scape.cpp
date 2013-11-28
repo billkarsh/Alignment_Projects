@@ -1,10 +1,10 @@
 
 
 #include	"Scape.h"
+#include	"EZThreads.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
 
-#include	<limits.h>
 #include	<stdlib.h>
 #include	<string.h>
 
@@ -247,13 +247,9 @@ public:
 	{};
 };
 
-typedef	void* (*T_psxthd)( void* );
-
 class CThrdat {
 public:
-	pthread_t	h;
-	int			i0,
-				ilim;
+	int	i0, ilim;
 };
 
 static const CPaintPrms	*GP;
@@ -321,8 +317,8 @@ void* _Paint( void *ithr )
 
 static void PaintTH( int nthr )
 {
-	int	nt = GP->vTile.size(),
-		nb;
+	int	nt = GP->vTile.size(),	// tiles total
+		nb;						// tiles per thread
 
 	if( nthr > nt )
 		nthr = nt;
@@ -334,50 +330,14 @@ static void PaintTH( int nthr )
 	vthr[0].i0		= 0;
 	vthr[0].ilim	= nb;
 
-// I am zero; start my coworkers
-
-	if( nthr > 1 ) {
-
-		pthread_attr_t	attr;
-		pthread_attr_init( &attr );
-		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-		pthread_attr_setstacksize( &attr, 2 * PTHREAD_STACK_MIN );
-
-		for( int i = 1; i < nthr; ++i ) {
-
-			CThrdat	&C = vthr[i];
-
-			C.i0	= vthr[i-1].ilim;
-			C.ilim	= (i == nthr-1 ? nt : C.i0 + nb);
-
-			int	ret =
-			pthread_create( &C.h, &attr, _Paint, (void*)i );
-
-			if( ret ) {
-				fprintf( GP->flog,
-				"Error %d starting thread %d\n", ret, i );
-				for( int j = 1; j < i; ++j )
-					pthread_cancel( vthr[j].h );
-				exit( 42 );
-			}
-		}
-
-		pthread_attr_destroy( &attr );
+	for( int i = 1; i < nthr; ++i ) {
+		CThrdat	&C = vthr[i];
+		C.i0	= vthr[i-1].ilim;
+		C.ilim	= (i == nthr-1 ? nt : C.i0 + nb);
 	}
 
-// Do my own work
-
-	_Paint( 0 );
-
-// Join/wait my coworkers
-
-	if( nthr > 1 ) {
-
-		for( int i = 1; i < nthr; ++i ) {
-			pthread_join( vthr[i].h, NULL );
-			pthread_detach( vthr[i].h );
-		}
-	}
+	if( !EZThreads( _Paint, nthr, 2, "_Paint", GP->flog ) )
+		exit( 42 );
 
 	vthr.clear();
 }

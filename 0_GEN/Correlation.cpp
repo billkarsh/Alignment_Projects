@@ -2130,7 +2130,6 @@ void CCorImg::MakeRandA(
 
 // Create images from point lists
 
-	vector<double>	rslt( Nx * Ny );
 	vector<double>	i1, i2;
 
 	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
@@ -2138,7 +2137,8 @@ void CCorImg::MakeRandA(
 
 // FFTs and lags
 
-	vector<CD>	fft1;
+	vector<double>	rslt;
+	vector<CD>		fft1;
 
 	FFT_2D( fft2, i2, Nx, Ny, true );
 	FFT_2D( fft1, i1, Nx, Ny, false );
@@ -2148,27 +2148,11 @@ void CCorImg::MakeRandA(
 
 	IFT_2D( rslt, fft1, Nx, Ny );
 
-	fft1.clear();
-
 // Prepare correlation calculator
 
 	RCalc	calc;
 
 	calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
-
-	if( dbgCor ) {
-
-		char	simg[32];
-
-		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1 );
-
-		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2 );
-	}
-
-	i2.clear();
-	i1.clear();
 
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
@@ -2215,11 +2199,11 @@ void CCorImg::MakeRandA(
 
 		char	simg[32];
 
-		//sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		//CorrThmToTif8( simg, i1, Nx, w1, h1 );
+		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i1, Nx, w1, h1 );
 
-		//sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		//CorrThmToTif8( simg, i2, Nx, w2, h2 );
+		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i2, Nx, w2, h2 );
 
 		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
 		Raster8ToTif8( simg, &A[0], wR, hR );

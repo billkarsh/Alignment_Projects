@@ -3,13 +3,12 @@
 #include	"lsq_MTrans.h"
 #include	"lsq_MAffine.h"
 
-#include	"TrakEM2_UTL.h"
+#include	"EZThreads.h"
 #include	"File.h"
+#include	"TrakEM2_UTL.h"
 #include	"Timer.h"
 
-#include	<limits.h>
 #include	<math.h>
-#include	<pthread.h>
 
 #include	<algorithm>
 using namespace std;
@@ -1336,11 +1335,8 @@ static void KeepSLOnly( vector<int> &v, int nc )
 /* OnePassTH ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-typedef	void* (*T_psxthd)( void* );
-
 class CThrdat {
 public:
-	pthread_t	h;
 	int			r0,
 				rlim;
 	vector<int>	Rslo;
@@ -1744,15 +1740,15 @@ static void Remark()
 
 
 static void OnePassTH(
-	T_psxthd		passproc,
+	EZThreadproc	passproc,
 	vector<double>	&shXout,
 	vector<double>	&shXin,
 	int				nXout,
 	int				nthr,
 	double			shw )
 {
-	int	nr = vRgn.size(),
-		nb;
+	int	nr = vRgn.size(),	// regions total
+		nb;					// regions per thread
 
 	if( nthr > nr )
 		nthr = nr;
@@ -1768,49 +1764,14 @@ static void OnePassTH(
 	vthr[0].r0		= 0;
 	vthr[0].rlim	= nb;
 
-// I am zero; start my coworkers
-
-	if( nthr > 1 ) {
-
-		pthread_attr_t	attr;
-		pthread_attr_init( &attr );
-		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
-
-		for( int i = 1; i < nthr; ++i ) {
-
-			CThrdat	&C = vthr[i];
-
-			C.r0	= vthr[i-1].rlim;
-			C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
-
-			int	ret =
-			pthread_create( &C.h, &attr, passproc, (void*)i );
-
-			if( ret ) {
-				printf( "Error %d starting thread %d\n", ret, i );
-				for( int j = 1; j < i; ++j )
-					pthread_cancel( vthr[j].h );
-				exit( 42 );
-			}
-		}
-
-		pthread_attr_destroy( &attr );
+	for( int i = 1; i < nthr; ++i ) {
+		CThrdat	&C = vthr[i];
+		C.r0	= vthr[i-1].rlim;
+		C.rlim	= (i == nthr-1 ? nr : C.r0 + nb);
 	}
 
-// Do my own work
-
-	passproc( 0 );
-
-// Join/wait my coworkers
-
-	if( nthr > 1 ) {
-
-		for( int i = 1; i < nthr; ++i ) {
-			pthread_join( vthr[i].h, NULL );
-			pthread_detach( vthr[i].h );
-		}
-	}
+	if( !EZThreads( passproc, nthr, 1, "passproc" ) )
+		exit( 42 );
 
 	Remark();
 	vthr.clear();

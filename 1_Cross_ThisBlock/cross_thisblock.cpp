@@ -608,7 +608,7 @@ static bool ThisBZ(
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( 8 );
+	S.SetSweepNThreads( 3 );
 	S.SetUseCorrR( true );
 	S.SetDisc( Ox, Oy, Rx, Ry );
 

@@ -43,7 +43,12 @@ public:
 	CorRec( double A ) : A(A) {};
 };
 
-typedef void (*T_NewAngProc)( double deg );
+typedef void (*T_NewAngProc)(
+	int		&Ox,
+	int		&Oy,
+	int		&Rx,
+	int		&Ry,
+	double	deg );
 
 /* --------------------------------------------------------------- */
 /* Class --------------------------------------------------------- */

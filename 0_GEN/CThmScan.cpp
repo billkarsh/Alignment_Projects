@@ -2,10 +2,9 @@
 
 #include	"CThmScan.h"
 #include	"Correlation.h"
+#include	"EZThreads.h"
 #include	"Maths.h"
 #include	"Timer.h"
-
-#include	<limits.h>
 
 #include	<algorithm>
 using namespace std;
@@ -117,45 +116,10 @@ void CThmScan::TCDGet( int nthr )
 	if( nthr > nc )
 		nthr = nc;
 
-	vector<pthread_t>	vthr( TCD.nthr = nthr );
+	TCD.nthr = nthr;
 
-	if( nthr > 1 ) {
-
-		pthread_attr_t	attr;
-		pthread_attr_init( &attr );
-		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
-
-		for( int i = 1; i < nthr; ++i ) {
-
-			int	ret =
-			pthread_create( &vthr[i], &attr, _TCDGet, (void*)i );
-
-			if( ret ) {
-				printf(
-				"Error %d starting _TCDGet thread %d\n", ret, i );
-				for( int j = 1; j < i; ++j )
-					pthread_cancel( vthr[j] );
-				exit( 42 );
-			}
-		}
-
-		pthread_attr_destroy( &attr );
-	}
-
-// Do my own work
-
-	_TCDGet( 0 );
-
-// Join/wait my coworkers
-
-	if( nthr > 1 ) {
-
-		for( int i = 1; i < nthr; ++i ) {
-			pthread_join( vthr[i], NULL );
-			pthread_detach( vthr[i] );
-		}
-	}
+	if( !EZThreads( _TCDGet, nthr, 1, "_TCDGet", flog ) )
+		exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -475,13 +439,18 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 void CThmScan::RFromAngle( CorRec &C, double deg, ThmRec &thm )
 {
 	vector<Point>	pts = thm.ap;
+	int				ox, oy, rx, ry;
 
 	C.A = deg;
 
 	RotatePoints( pts, C.T, deg * PI/180.0 );
 
 	if( newAngProc )
-		newAngProc( deg );
+		newAngProc( ox, oy, rx, ry, deg );
+	else {
+		ox = Ox; oy = Oy;
+		rx = Rx; ry = Ry;
+	}
 
 	olap1D = thm.olap1D;
 
@@ -490,7 +459,7 @@ void CThmScan::RFromAngle( CorRec &C, double deg, ThmRec &thm )
 		pts, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,
 		EnoughPoints, (void*)thm.reqArea,
-		0.0, nbmaxht, Ox, Oy, Rx, Ry, thm.ftc );
+		0.0, nbmaxht, ox, oy, rx, ry, thm.ftc );
 }
 
 /* --------------------------------------------------------------- */

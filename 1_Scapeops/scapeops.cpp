@@ -525,17 +525,21 @@ static void MakeStripRasters( CSuperscape &A, CSuperscape &B )
 // and are at (0,0) in B-system. (Ox,Oy) brings center of A
 // coincident with center of B, so, Oxy = Bc - Rot(Ac).
 //
-static void NewAngProc( double deg )
+static void NewAngProc(
+	int		&Ox,
+	int		&Oy,
+	int		&Rx,
+	int		&Ry,
+	double	deg )
 {
 	double	r  = deg*PI/180,
 			c  = cos( r ),
 			s  = sin( r );
-	int		Ox = int(gB->ws - (c*gA->ws - s*gA->hs))/2,
-			Oy = int(gB->hs - (s*gA->ws + c*gA->hs))/2,
-			Rx = int(gA->ws * 0.25),
-			Ry = int(gB->hs * 0.25);
 
-	gS->SetDisc( Ox, Oy, Rx, Ry );
+	Ox = int(gB->ws - (c*gA->ws - s*gA->hs))/2;
+	Oy = int(gB->hs - (s*gA->ws + c*gA->hs))/2;
+	Rx = int(gA->ws * 0.25);
+	Ry = int(gB->hs * 0.25);
 }
 
 /* --------------------------------------------------------------- */
@@ -621,7 +625,7 @@ static void ScapeStuff()
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( 8 );
+	S.SetSweepNThreads( 3 );
 	S.SetUseCorrR( true );
 	S.SetNewAngProc( NewAngProc );
 

@@ -20,6 +20,7 @@ files =\
  Debug.cpp\
  Disk.cpp\
  Draw.cpp\
+ EZThreads.cpp\
  File.cpp\
  FoldMask.cpp\
  Geometry.cpp\
