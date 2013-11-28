@@ -362,10 +362,8 @@ double CorrPatches(
 	vector<double>	rslt;
 	vector<CD>		fft1;
 
-	if( fft2.size() != M )
-		FFT_2D( fft2, i2, N, N );
-
-	FFT_2D( fft1, i1, N, N );
+	FFT_2D( fft2, i2, N, N, true );
+	FFT_2D( fft1, i1, N, N, false );
 
 	for( int i = 0; i < M; ++i )
 		fft1[i] = fft2[i] * conj( fft1[i] );

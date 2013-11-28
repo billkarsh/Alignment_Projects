@@ -5,6 +5,8 @@
 #include	"Maths.h"
 #include	"Timer.h"
 
+#include	<limits.h>
+
 #include	<algorithm>
 using namespace std;
 
@@ -73,6 +75,87 @@ void CThmScan::RotatePoints(
 	R.NUSetRot( rads );
 	T = R * (Tdfm * Tptwk);
 	T.Apply_R_Part( pts );
+}
+
+/* --------------------------------------------------------------- */
+/* _TCDDo1 ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CThmScan::_TCDDo1( int ic )
+{
+	CorRec&	C = TCD.vC[ic];
+	RFromAngle( C, C.A, *TCD.thm );
+}
+
+/* --------------------------------------------------------------- */
+/* _TCDGet ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void* _TCDGet( void* icstart )
+{
+	int	nc = ME->TCD.vC.size();
+
+	for( int j = (long)icstart; j < nc; j += ME->TCD.nthr )
+		ME->_TCDDo1( j );
+
+	return NULL;
+}
+
+/* --------------------------------------------------------------- */
+/* TCDGet -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// (1) Caller must previously init public TCD fields.
+// (2) Call TCDGet to calculate specified CorRecs.
+//
+void CThmScan::TCDGet( int nthr )
+{
+	ME = this;
+
+	int	nc = TCD.vC.size();
+
+	if( nthr > nc )
+		nthr = nc;
+
+	vector<pthread_t>	vthr( TCD.nthr = nthr );
+
+	if( nthr > 1 ) {
+
+		pthread_attr_t	attr;
+		pthread_attr_init( &attr );
+		pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+		pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
+
+		for( int i = 1; i < nthr; ++i ) {
+
+			int	ret =
+			pthread_create( &vthr[i], &attr, _TCDGet, (void*)i );
+
+			if( ret ) {
+				printf(
+				"Error %d starting _TCDGet thread %d\n", ret, i );
+				for( int j = 1; j < i; ++j )
+					pthread_cancel( vthr[j] );
+				exit( 42 );
+			}
+		}
+
+		pthread_attr_destroy( &attr );
+	}
+
+// Do my own work
+
+	_TCDGet( 0 );
+
+// Join/wait my coworkers
+
+	if( nthr > 1 ) {
+
+		for( int i = 1; i < nthr; ++i ) {
+			pthread_join( vthr[i], NULL );
+			pthread_detach( vthr[i] );
+		}
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -263,6 +346,7 @@ CThmScan::CThmScan()
 	err			= errOK;
 	swpConstXY	= true;
 	swpPretweak	= true;
+	swpNThreads	= 1;
 	useCorrR	= false;
 	Ox			= 0;
 	Oy			= 0;
@@ -476,19 +560,29 @@ double CThmScan::AngleScanMaxR(
 
 	clock_t	t0 = StartTiming();
 
-	RFromAngle( best, center, thm );
-	RecordAngle( flog, "Center", best );
+	TCD.thm = &thm;
+	TCD.vC.clear();
+	TCD.vC.push_back( CorRec( center ) );
 
-	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
+	for( double a = center-hlfwid; a <= center+hlfwid; a += step )
+		TCD.vC.push_back( CorRec( a ) );
 
-		CorRec	C;
+	TCDGet( swpNThreads );
 
-		RFromAngle( C, a, thm );
+	RecordAngle( flog, "Center", best = TCD.vC[0] );
+
+	int	nc = TCD.vC.size();
+
+	for( int ic = 1; ic < nc; ++ic ) {
+
+		const CorRec&	C = TCD.vC[ic];
 		RecordAngle( flog, "  Scan", C );
 
 		if( C.R > best.R )
 			best = C;
 	}
+
+	TCD.vC.clear();
 
 	RecordAngle( flog, "  Best", best );
 
@@ -537,27 +631,27 @@ double CThmScan::AngleScanConstXY(
 
 // Sweep and collect
 
-	vector<CorRec>	vC;
+	TCD.thm = &thm;
+	TCD.vC.clear();
 
-	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
+	for( double a = center-hlfwid; a <= center+hlfwid; a += step )
+		TCD.vC.push_back( CorRec( a ) );
 
-		CorRec	C;
+	TCDGet( swpNThreads );
 
-		RFromAngle( C, a, thm );
-		RecordAngle( flog, "Scan", C );
-		vC.push_back( C );
-	}
+	int	nC = TCD.vC.size();
+
+	for( int ic = 0; ic < nC; ++ic )
+		RecordAngle( flog, "Scan", TCD.vC[ic] );
 
 // Make indices sorted by decreasing R
-
-	int	nC = vC.size();
 
 	vector<int>	order( nC );
 
 	for( int i = 0; i < nC; ++i )
 		order[i] = i;
 
-	_vC = &vC;
+	_vC = &TCD.vC;
 
 	sort( order.begin(), order.end(), Sort_vC_dec );
 
@@ -590,9 +684,9 @@ double CThmScan::AngleScanConstXY(
 
 		for( int j = ic - m; j <= ic + m; ++j ) {
 
-			A[n] = vC[j].A;
-			X[n] = ROUND( vC[j].X );
-			Y[n] = ROUND( vC[j].Y );
+			A[n] = TCD.vC[j].A;
+			X[n] = ROUND( TCD.vC[j].X );
+			Y[n] = ROUND( TCD.vC[j].Y );
 			++n;
 		}
 
@@ -608,9 +702,11 @@ double CThmScan::AngleScanConstXY(
 		if( isfinite( lincor ) && fabs( lincor ) < rthresh )
 			continue;
 
-		best = vC[ic];
+		best = TCD.vC[ic];
 		break;
 	}
+
+	TCD.vC.clear();
 
 // Report
 

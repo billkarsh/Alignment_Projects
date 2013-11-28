@@ -216,7 +216,7 @@ void PicBase::MakeFFTExist( int i )
 		fr[x + N*y] = val;
 	}
 
-	FFT_2D( fft_of_frame, fr, N, N );
+	FFT_2D( fft_of_frame, fr, N, N, false );
 
 #if 0
 // Now zero out the first few terms.
@@ -318,7 +318,7 @@ void PicBase::MakeDoGExist( vector<CD> &filter, int r1, int r2 )
 		}
 
 		// Now fft it
-		FFT_2D( filter, image, N, N );
+		FFT_2D( filter, image, N, N, false );
 	}
 
 // Normalize image values
@@ -337,7 +337,7 @@ void PicBase::MakeDoGExist( vector<CD> &filter, int r1, int r2 )
 
 	CopyRaster( &imag[0], N, &v[0], w, w, h );
 
-	FFT_2D( freq, imag, N, N );
+	FFT_2D( freq, imag, N, N, false );
 
 // Convolve with filter
 

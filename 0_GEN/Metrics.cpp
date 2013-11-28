@@ -597,9 +597,9 @@ double FourierMatch(
 	double		total = 0.0, dot = 0.0;
 	int			xlim = Nx/wvlen, ylim = Ny/wvlen;
 
-	FFT_2D( i1fft,  i1, Nx, Ny );
-	FFT_2D( i2fft,  i2, Nx, Ny );
-	FFT_2D( dfft, diff, Nx, Ny );
+	FFT_2D( i1fft,  i1, Nx, Ny, false );
+	FFT_2D( i2fft,  i2, Nx, Ny, false );
+	FFT_2D( dfft, diff, Nx, Ny, false );
 
 	for( int x = -xlim; x <= xlim; ++x ) {
 

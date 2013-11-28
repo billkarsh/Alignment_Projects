@@ -33,11 +33,15 @@ typedef struct {
 					scl;		// for caller convenience
 } ThmRec;
 
-typedef struct {
+class CorRec {
+public:
 	TAffine			T;
 	double			X, Y,
 					A, R;
-} CorRec;
+public:
+	CorRec()	{};
+	CorRec( double A ) : A(A) {};
+};
 
 typedef void (*T_NewAngProc)( double deg );
 
@@ -47,9 +51,22 @@ typedef void (*T_NewAngProc)( double deg );
 
 class CThmScan {
 
+	friend void* _TCDGet( void* icstart );
 	friend bool BigEnough( int sx, int sy, void *a );
 
 private:
+	class ThrCorDat {
+	public:
+		// used only by TCDGet
+		int				nthr;
+	public:
+		// caller I/O
+		ThmRec			*thm;
+		vector<CorRec>	vC;
+	};
+
+private:
+	ThrCorDat		TCD;
 	T_NewAngProc	newAngProc;
 	FILE			*flog;
 	TAffine			Tdfm,
@@ -59,6 +76,7 @@ private:
 	int				err,
 					swpConstXY,
 					swpPretweak,
+					swpNThreads,
 					useCorrR,
 					Ox, Oy, Rx, Ry,
 					olap1D;
@@ -68,6 +86,9 @@ private:
 		vector<Point>	&pts,
 		TAffine			&T,
 		double			rads );
+
+	void _TCDDo1( int ic );
+	void TCDGet( int nthr );
 
 	double PTWApply1(
 		const TAffine	&Ttry,
@@ -116,6 +137,9 @@ public:
 
 	void SetSweepPretweak( int swpPretweak )
 		{this->swpPretweak = swpPretweak;};
+
+	void SetSweepNThreads( int swpNThreads )
+		{this->swpNThreads = swpNThreads;};
 
 	void SetUseCorrR( int useCorrR )
 		{this->useCorrR = useCorrR;};

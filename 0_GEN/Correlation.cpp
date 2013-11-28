@@ -24,6 +24,7 @@ using namespace std;
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static pthread_mutex_t	mutex_fftw = PTHREAD_MUTEX_INITIALIZER;
 static int _dbg_simgidx = 0;
 
 
@@ -378,18 +379,27 @@ int FFT_2D(
 	vector<CD>				&out,
 	const vector<double>	&in,
 	int						Nfast,
-	int						Nslow )
+	int						Nslow,
+	bool					cached )
 {
-	fftw_plan	p;
-	int			M = Nslow * (Nfast/2 + 1);
+	int	M = Nslow * (Nfast/2 + 1);
 
-	out.resize( M );
+	if( !cached || out.size() != M ) {
 
-	p = fftw_plan_dft_r2c_2d( Nslow, Nfast, (double*)&in[0],
-			(double (*)[2])&out[0], FFTW_ESTIMATE );
+		pthread_mutex_lock( &mutex_fftw );
 
-	fftw_execute( p );
-	fftw_destroy_plan( p );
+		out.resize( M );
+
+		fftw_plan	p;
+
+		p = fftw_plan_dft_r2c_2d( Nslow, Nfast, (double*)&in[0],
+				(double (*)[2])&out[0], FFTW_ESTIMATE );
+
+		fftw_execute( p );
+		fftw_destroy_plan( p );
+
+		pthread_mutex_unlock( &mutex_fftw );
+	}
 
 	return M;
 }
@@ -409,16 +419,21 @@ void IFT_2D(
 	int						Nfast,
 	int						Nslow )
 {
-	fftw_plan	p;
-	int			N = Nslow * Nfast;
+	int	N = Nslow * Nfast;
 
 	out.resize( N );
+
+	pthread_mutex_lock( &mutex_fftw );
+
+	fftw_plan	p;
 
 	p = fftw_plan_dft_c2r_2d( Nslow, Nfast, (double (*)[2])&in[0],
 			&out[0], FFTW_ESTIMATE );
 
 	fftw_execute( p );
 	fftw_destroy_plan( p );
+
+	pthread_mutex_unlock( &mutex_fftw );
 }
 
 /* --------------------------------------------------------------- */
@@ -487,7 +502,7 @@ void Convolve(
 		}
 
 		// FFT
-		FFT_2D( kfft, KK, Nx, Ny );
+		FFT_2D( kfft, KK, Nx, Ny, false );
 	}
 
 // Prepare src fft
@@ -497,7 +512,7 @@ void Convolve(
 
 	CopyRaster( &SS[0], Nx, &src[0], ws, ws, hs );
 
-	FFT_2D( sfft, SS, Nx, Ny );
+	FFT_2D( sfft, SS, Nx, Ny, false );
 
 // Convolve
 
@@ -1024,10 +1039,8 @@ double CorrPatches(
 	vector<double>	rslt;
 	vector<CD>		fft1;
 
-	if( fft2.size() != M )
-		FFT_2D( fft2, i2, Nx, Ny );
-
-	FFT_2D( fft1, i1, Nx, Ny );
+	FFT_2D( fft2, i2, Nx, Ny, true );
+	FFT_2D( fft1, i1, Nx, Ny, false );
 
 	for( int i = 0; i < M; ++i )
 		fft1[i] = fft2[i] * conj( fft1[i] );
@@ -1295,8 +1308,8 @@ double CorrPatchToImage(
 	vector<double>	rslt;
 	vector<CD>		fft1, fft2;
 
-	M =	FFT_2D( fft2, i2, N, N );
-		FFT_2D( fft1, i1, N, N );
+	M =	FFT_2D( fft2, i2, N, N, false );
+		FFT_2D( fft1, i1, N, N, false );
 
 	if( bFilter ) {
 
@@ -2117,6 +2130,7 @@ void CCorImg::MakeRandA(
 
 // Create images from point lists
 
+	vector<double>	rslt( Nx * Ny );
 	vector<double>	i1, i2;
 
 	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
@@ -2124,24 +2138,37 @@ void CCorImg::MakeRandA(
 
 // FFTs and lags
 
-	vector<double>	rslt;
-	vector<CD>		fft1;
+	vector<CD>	fft1;
 
-	if( fft2.size() != M )
-		FFT_2D( fft2, i2, Nx, Ny );
-
-	FFT_2D( fft1, i1, Nx, Ny );
+	FFT_2D( fft2, i2, Nx, Ny, true );
+	FFT_2D( fft1, i1, Nx, Ny, false );
 
 	for( int i = 0; i < M; ++i )
 		fft1[i] = fft2[i] * conj( fft1[i] );
 
 	IFT_2D( rslt, fft1, Nx, Ny );
 
+	fft1.clear();
+
 // Prepare correlation calculator
 
 	RCalc	calc;
 
 	calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
+
+	if( dbgCor ) {
+
+		char	simg[32];
+
+		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
+		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+	}
+
+	i2.clear();
+	i1.clear();
 
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
@@ -2188,11 +2215,11 @@ void CCorImg::MakeRandA(
 
 		char	simg[32];
 
-		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+		//sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+		//CorrThmToTif8( simg, i1, Nx, w1, h1 );
 
-		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+		//sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+		//CorrThmToTif8( simg, i2, Nx, w2, h2 );
 
 		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
 		Raster8ToTif8( simg, &A[0], wR, hR );

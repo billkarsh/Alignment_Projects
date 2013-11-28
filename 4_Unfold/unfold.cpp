@@ -358,7 +358,7 @@ for(int k=0; k<np; k++) {
     }
 
 // Now fft it
-FFT_2D( ff, fr, N, N );
+FFT_2D( ff, fr, N, N, false );
 
 // Now multiply image i by the conjugate of the sub-image j
 for(int k=0; k<M; k++)

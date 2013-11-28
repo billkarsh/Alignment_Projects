@@ -101,7 +101,7 @@ Template::Template(
 
 // Now fft it
 
-	FFT_2D( fft, fr, nx, ny );
+	FFT_2D( fft, fr, nx, ny, false );
 }
 
 /* --------------------------------------------------------------- */
@@ -135,7 +135,7 @@ Point Template::Match(
 
 	vector<CD>	tfft;
 
-	FFT_2D( tfft, fr, nx, ny );
+	FFT_2D( tfft, fr, nx, ny, false );
 
 	for( int k = 0; k < M; ++k )
 		tfft[k] = fft[k] * conj( tfft[k] );

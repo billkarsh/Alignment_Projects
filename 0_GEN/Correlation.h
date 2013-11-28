@@ -21,7 +21,8 @@ int FFT_2D(
 	vector<CD>				&out,
 	const vector<double>	&in,
 	int						Nfast,
-	int						Nslow );
+	int						Nslow,
+	bool					cached );
 
 void IFT_2D(
 	vector<double>			&out,
