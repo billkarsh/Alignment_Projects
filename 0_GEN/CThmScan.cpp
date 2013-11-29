@@ -126,23 +126,19 @@ void CThmScan::TCDGet( int nthr )
 /* PTWApply1 ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Create product of Ttry with Tptwk and return new corr.
-// Make change to Tptwk permanent if keep = true.
+// Create temporary product of Ttry with Tptwk and return new corr.
 //
 double CThmScan::PTWApply1(
 	const TAffine	&Ttry,
 	double			deg,
-	ThmRec			&thm,
-	bool			keep )
+	ThmRec			&thm )
 {
 	CorRec	C;
 	TAffine	Tback = Tptwk;
 
 	Tptwk = Ttry * Tptwk;
 	RFromAngle( C, deg, thm );
-
-	if( !keep )
-		Tptwk = Tback;
+	Tptwk = Tback;
 
 	return C.R;
 }
@@ -179,7 +175,7 @@ double CThmScan::PTWSweep(
 		TAffine	T;
 
 		T.NUSelect( sel, abase + i * astep );
-		R = PTWApply1( T, deg, thm, false );
+		R = PTWApply1( T, deg, thm );
 		fprintf( flog, " %5.3f", R );
 
 		if( R > rbest ) {
@@ -216,15 +212,15 @@ double CThmScan::PTWInterp(
 	TAffine	T;
 
 	T.NUSelect( sel, x1 - d );
-	y0 = PTWApply1( T, deg, thm, false );
+	y0 = PTWApply1( T, deg, thm );
 
 	T.NUSelect( sel, x1 + d );
-	y2 = PTWApply1( T, deg, thm, false );
+	y2 = PTWApply1( T, deg, thm );
 
 	xnew = NewXFromParabola( x1, d, y0, y1, y2 );
 
 	T.NUSelect( sel, xnew );
-	ynew = PTWApply1( T, deg, thm, false );
+	ynew = PTWApply1( T, deg, thm );
 
 	if( ynew < y1 ) {
 		xnew = x1;
@@ -483,16 +479,23 @@ void CThmScan::DebugAngs(
 
 	fprintf( f, "Deg\tR\tX\tY\n" );
 
-	for( double a = center-hlfwid; a <= center+hlfwid; a += step ) {
+	TCD.thm = &thm;
+	TCD.vC.clear();
 
-		CorRec	C;
+	for( double a = center-hlfwid; a <= center+hlfwid; a += step )
+		TCD.vC.push_back( CorRec( a ) );
 
-		RFromAngle( C, a, thm );
+	TCDGet( swpNThreads );
 
-		fprintf( f, "%.3f\t%.4f\t%.3f\t%.3f\n",
-			a, C.R, C.X, C.Y );
+	int	nc = TCD.vC.size();
+
+	for( int ic = 0; ic < nc; ++ic ) {
+
+		const CorRec&	C = TCD.vC[ic];
+		fprintf( f, "%.3f\t%.4f\t%.3f\t%.3f\n", C.A, C.R, C.X, C.Y );
 	}
 
+	TCD.vC.clear();
 	fclose( f );
 }
 

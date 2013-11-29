@@ -98,8 +98,7 @@ private:
 	double PTWApply1(
 		const TAffine	&Ttry,
 		double			deg,
-		ThmRec			&thm,
-		bool			keep );
+		ThmRec			&thm );
 
 	double PTWSweep(
 		double	&rbest,
