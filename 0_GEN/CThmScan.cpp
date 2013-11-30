@@ -61,29 +61,13 @@ static double NewXFromParabola(
 }
 
 /* --------------------------------------------------------------- */
-/* RotatePoints -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-void CThmScan::RotatePoints(
-	vector<Point>	&pts,
-	TAffine			&T,
-	double			rads )
-{
-	TAffine	R;
-
-	R.NUSetRot( rads );
-	T = R * (Tdfm * Tptwk);
-	T.Apply_R_Part( pts );
-}
-
-/* --------------------------------------------------------------- */
 /* _TCDDo1 ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 void CThmScan::_TCDDo1( int ic )
 {
 	CorRec&	C = TCD.vC[ic];
-	RFromAngle( C, C.A, *TCD.thm );
+	RFromAngle( C, C.A, *TCD.thm, ic );
 }
 
 /* --------------------------------------------------------------- */
@@ -123,73 +107,6 @@ void CThmScan::TCDGet( int nthr )
 }
 
 /* --------------------------------------------------------------- */
-/* PTWApply1 ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Create temporary product of Ttry with Tptwk and return new corr.
-//
-double CThmScan::PTWApply1(
-	const TAffine	&Ttry,
-	double			deg,
-	ThmRec			&thm )
-{
-	CorRec	C;
-	TAffine	Tback = Tptwk;
-
-	Tptwk = Ttry * Tptwk;
-	RFromAngle( C, deg, thm );
-	Tptwk = Tback;
-
-	return C.R;
-}
-
-/* --------------------------------------------------------------- */
-/* PTWSweep ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-// For near unity transform chosen by sel, perform a magnitude
-// sweep about unity in +/- nsteps of size astep. Return the
-// best NU-magnitude and its corresponding R.
-//
-double CThmScan::PTWSweep(
-	double	&rbest,
-	int		sel,
-	int		nstep,
-	double	astep,
-	double	deg,
-	ThmRec	&thm )
-{
-	double	abase = 0.0;
-	int		ibest = 0;
-
-	rbest = -1.0;
-
-	fprintf( flog, "PTWSweep %2d:", sel );
-
-	if( sel >= tafnuScl && sel <= tafnuYScl )
-		abase = 1.0;
-
-	for( int i = -nstep; i <= nstep; ++i ) {
-
-		double	R;
-		TAffine	T;
-
-		T.NUSelect( sel, abase + i * astep );
-		R = PTWApply1( T, deg, thm );
-		fprintf( flog, " %5.3f", R );
-
-		if( R > rbest ) {
-			rbest = R;
-			ibest = i;
-		}
-	}
-
-	fprintf( flog, "\n" );
-
-	return abase + ibest * astep;
-}
-
-/* --------------------------------------------------------------- */
 /* PTWInterp ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -209,18 +126,23 @@ double CThmScan::PTWInterp(
 	ThmRec	&thm )
 {
 	double	y0, y2, xnew;
-	TAffine	T;
+	PTWRec&	T = TCD.vT[0];
+	CorRec	C;
 
-	T.NUSelect( sel, x1 - d );
-	y0 = PTWApply1( T, deg, thm );
+	T.sel	= sel;
+	T.a		= x1 - d;
+	RFromAngle( C, deg, thm, 0 );
+	y0		= C.R;
 
-	T.NUSelect( sel, x1 + d );
-	y2 = PTWApply1( T, deg, thm );
+	T.a		= x1 + d;
+	RFromAngle( C, deg, thm, 0 );
+	y2		= C.R;
 
 	xnew = NewXFromParabola( x1, d, y0, y1, y2 );
 
-	T.NUSelect( sel, xnew );
-	ynew = PTWApply1( T, deg, thm );
+	T.a		= xnew;
+	RFromAngle( C, deg, thm, 0 );
+	ynew	= C.R;
 
 	if( ynew < y1 ) {
 		xnew = x1;
@@ -363,63 +285,95 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 // type gives a better R than before, it goes into the product.
 // Repeat with other unused types.
 
+	const double	astep	= 0.02;
+	const int		nstep	= 5;
+
+	TCD.thm = &thm;
+
 	for( int itype = 0; itype < 5; ++itype ) {
 
-		// Do the sweeps
+		// Gather sweep data
 
-		vector<double>	vrbest( 5, 0.0 );
-		vector<double>	vabest( 5 );
+		TCD.vC.clear();
+		TCD.vT.clear();
 
-		for( int i = 0; i < 5; ++i ) {
+		for( int sel = 0; sel < 5; ++sel ) {
 
-			if( vused[i] )
+			if( vused[sel] )
 				continue;
 
-			vabest[i] = PTWSweep( vrbest[i], vsel[i],
-							5, .02, deg, thm );
-		}
+			double	abase = 0.0;
 
-		// Find the best sweep
+			if( sel >= tafnuScl && sel <= tafnuYScl )
+				abase = 1.0;
 
-		double	rbest	= -1;
-		int		selbest = -1;
-
-		for( int i = 0; i < 5; ++i ) {
-
-			if( vused[i] )
-				continue;
-
-			if( vrbest[i] > rbest ) {
-				rbest	= vrbest[i];
-				selbest	= i;
+			for( int j = -nstep; j <= nstep; ++j ) {
+				TCD.vC.push_back( CorRec( deg ) );
+				TCD.vT.push_back( PTWRec( sel, abase + j * astep ) );
 			}
 		}
 
-		if( selbest == -1 )
+		TCDGet( swpNThreads );
+
+		// Print table and pick best
+
+		double	rbest	= 0;
+		int		nc		= TCD.vC.size(),
+				cursel	= -1,
+				ibest	= -1;
+
+		for( int ic = 0; ic < nc; ++ic ) {
+
+			const CorRec&	C = TCD.vC[ic];
+			const PTWRec&	T = TCD.vT[ic];
+
+			if( T.sel != cursel ) {
+
+				if( cursel != -1 )
+					fprintf( flog, "\n" );
+
+				fprintf( flog, "PTWSweep %2d:", cursel = T.sel );
+			}
+
+			fprintf( flog, " %5.3f", C.R );
+
+			if( C.R > rbest ) {
+				rbest = C.R;
+				ibest = ic;
+			}
+		}
+
+		fprintf( flog, "\n" );
+
+		if( ibest == -1 )
 			break;
 
-		// Improve candidate with interpolator
+		// Optimize best with interpolator
 
-		double	a = PTWInterp( rbest, vsel[selbest],
-						vabest[selbest], vrbest[selbest],
-						.02, deg, thm );
+		PTWRec	Tbest = TCD.vT[ibest];
+
+		Tbest.a = PTWInterp( rbest, Tbest.sel,
+					Tbest.a, rbest, astep, deg, thm );
 
 		// Is it better than before?
 
 		if( rbest > bestR ) {
 
-			TAffine	T;
+			TAffine	M;
 
-			fprintf( flog, "PTWUsing %2d\n", vsel[selbest] );
-			T.NUSelect( vsel[selbest], a );
-			Tptwk = T * Tptwk;
-			vused[selbest]	= 1;
-			bestR			= rbest;
-			anychange		= true;
+			fprintf( flog, "PTWUsing %2d\n", Tbest.sel );
+			M.NUSelect( Tbest.sel, Tbest.a );
+			Tptwk = M * Tptwk;
+			vused[Tbest.sel]	= 1;
+			bestR				= rbest;
+			anychange			= true;
 		}
 		else
 			break;
 	}
+
+	TCD.vT.clear();
+	TCD.vC.clear();
 
 	StopTiming( flog, "Pretweaks", t0 );
 
@@ -432,14 +386,27 @@ bool CThmScan::Pretweaks( double bestR, double deg, ThmRec &thm )
 /* RFromAngle ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CThmScan::RFromAngle( CorRec &C, double deg, ThmRec &thm )
+void CThmScan::RFromAngle(
+	CorRec	&C,
+	double	deg,
+	ThmRec	&thm,
+	int		iaux )
 {
 	vector<Point>	pts = thm.ap;
+	TAffine			R, T( Tptwk );
 	int				ox, oy, rx, ry;
 
 	C.A = deg;
+	R.NUSetRot( deg * PI/180.0 );
 
-	RotatePoints( pts, C.T, deg * PI/180.0 );
+	if( iaux >= 0 && iaux < TCD.vT.size() ) {
+		TAffine	M;
+		M.NUSelect( TCD.vT[iaux].sel, TCD.vT[iaux].a );
+		T = M * Tptwk;
+	}
+
+	C.T = R * (Tdfm * T);
+	C.T.Apply_R_Part( pts );
 
 	if( newAngProc )
 		newAngProc( ox, oy, rx, ry, deg );

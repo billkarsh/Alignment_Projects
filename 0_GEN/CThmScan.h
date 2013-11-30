@@ -60,6 +60,14 @@ class CThmScan {
 	friend bool BigEnough( int sx, int sy, void *a );
 
 private:
+	class PTWRec {
+	public:
+		double	a;
+		int		sel;
+	public:
+		PTWRec( int sel, double a ) : a(a), sel(sel) {};
+	};
+
 	class ThrCorDat {
 	public:
 		// used only by TCDGet
@@ -68,6 +76,7 @@ private:
 		// caller I/O
 		ThmRec			*thm;
 		vector<CorRec>	vC;
+		vector<PTWRec>	vT;
 	};
 
 private:
@@ -87,26 +96,8 @@ private:
 					olap1D;
 
 private:
-	void RotatePoints(
-		vector<Point>	&pts,
-		TAffine			&T,
-		double			rads );
-
 	void _TCDDo1( int ic );
 	void TCDGet( int nthr );
-
-	double PTWApply1(
-		const TAffine	&Ttry,
-		double			deg,
-		ThmRec			&thm );
-
-	double PTWSweep(
-		double	&rbest,
-		int		sel,
-		int		nstep,
-		double	astep,
-		double	deg,
-		ThmRec	&thm );
 
 	double PTWInterp(
 		double	&ynew,
@@ -165,7 +156,11 @@ public:
 
 	bool Pretweaks( double bestR, double deg, ThmRec &thm );
 
-	void RFromAngle( CorRec &C, double deg, ThmRec &thm );
+	void RFromAngle(
+		CorRec	&C,
+		double	deg,
+		ThmRec	&thm,
+		int		iaux = -1 );
 
 	void DebugAngs(
 		int		alyr,
