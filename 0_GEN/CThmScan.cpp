@@ -102,7 +102,7 @@ void CThmScan::TCDGet( int nthr )
 
 	TCD.nthr = nthr;
 
-	if( !EZThreads( _TCDGet, nthr, 1, "_TCDGet", flog ) )
+	if( !EZThreads( _TCDGet, nthr, 2, "_TCDGet", flog ) )
 		exit( 42 );
 }
 

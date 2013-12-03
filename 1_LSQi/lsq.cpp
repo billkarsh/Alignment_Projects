@@ -297,6 +297,7 @@ int main( int argc, char **argv )
 /* ---- */
 
 	VMStats( stdout );
+
 	return 0;
 }
 

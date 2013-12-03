@@ -50,7 +50,7 @@ void MsgSend( const char *msg )
 bool MsgWaitRecv( char *msgbuf, int timeout_ms )
 {
 	clock_t	t0 = StartTiming();
-	int		sleepticks = timeout_ms / 10;
+	int		sleep_ms = timeout_ms / 10;
 
 	for(;;) {
 
@@ -70,7 +70,7 @@ bool MsgWaitRecv( char *msgbuf, int timeout_ms )
 		else if( DeltaSeconds( t0 ) * 1000 > timeout_ms )
 			break;
 
-		sleep( sleepticks );
+		usleep( sleep_ms*1000 );	// microsec
 	}
 
 	return false;
@@ -93,7 +93,7 @@ bool MsgWaitAck( int nw, int timeout_ms )
 {
 	clock_t		t0 = StartTiming();
 	vector<int>	ack( nw+1, 0 );
-	int			sleepticks = timeout_ms / 10;
+	int			sleep_ms = timeout_ms / 10;
 
 	for(;;) {
 
@@ -119,7 +119,7 @@ bool MsgWaitAck( int nw, int timeout_ms )
 		else if( DeltaSeconds( t0 ) * 1000 > timeout_ms )
 			break;
 
-		sleep( sleepticks );
+		usleep( sleep_ms*1000 );	// microsec
 	}
 
 	return false;
