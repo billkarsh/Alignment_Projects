@@ -7,6 +7,7 @@
 #include	"Debug.h"
 
 #include	<math.h>
+#include	<pthread.h>
 #include	<stdlib.h>
 #include	<string.h>
 
@@ -22,6 +23,8 @@ using namespace std;
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// mutex_fft guards {fftw interface, cached fft2 array}
+static pthread_mutex_t	mutex_fft = PTHREAD_MUTEX_INITIALIZER;
 static int _dbg_simgidx = 0;
 
 
@@ -2080,8 +2083,12 @@ void CCorImg::MakeRandA(
 	FFT_2D( fft2, i2, Nx, Ny, true );
 	FFT_2D( fft1, i1, Nx, Ny, false );
 
+	pthread_mutex_lock( &mutex_fft );
+
 	for( int i = 0; i < M; ++i )
 		fft1[i] = fft2[i] * conj( fft1[i] );
+
+	pthread_mutex_unlock( &mutex_fft );
 
 	IFT_2D( rslt, fft1, Nx, Ny );
 
