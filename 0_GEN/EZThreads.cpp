@@ -3,7 +3,6 @@
 #include	"EZThreads.h"
 
 #include	<limits.h>
-#include	<pthread.h>
 
 #include	<vector>
 using namespace std;

@@ -538,13 +538,15 @@ double CThmScan::AngleScanMaxR(
 // coordinates XY vary smoothly in a neighborhood about that angle.
 // Smoothness measured as linear corr. coeff. from fitting X vs A.
 
-static const vector<CorRec>	*_vC;
-
-
-static bool Sort_vC_dec( int a, int b )
-{
-	return (*_vC)[a].R > (*_vC)[b].R;
-}
+class CSort_vC_Dec {
+public:
+	const vector<CorRec>	&vC;
+public:
+	CSort_vC_Dec( const vector<CorRec> &vC )
+		: vC(vC) {};
+	bool operator() ( int a, int b )
+		{return vC[a].R > vC[b].R;};
+};
 
 
 double CThmScan::AngleScanConstXY(
@@ -590,9 +592,9 @@ double CThmScan::AngleScanConstXY(
 	for( int i = 0; i < nC; ++i )
 		order[i] = i;
 
-	_vC = &TCD.vC;
+	CSort_vC_Dec	sorter( TCD.vC );
 
-	sort( order.begin(), order.end(), Sort_vC_dec );
+	sort( order.begin(), order.end(), sorter );
 
 // Evaluate sweep
 // Search through decreasing R.

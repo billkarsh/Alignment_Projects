@@ -6,8 +6,6 @@
 #include	"ImageIO.h"
 #include	"Debug.h"
 
-#include	"fftw3.h"
-
 #include	<math.h>
 #include	<stdlib.h>
 #include	<string.h>
@@ -24,13 +22,22 @@ using namespace std;
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static pthread_mutex_t	mutex_fftw = PTHREAD_MUTEX_INITIALIZER;
 static int _dbg_simgidx = 0;
 
 
 
 
 
+
+/* --------------------------------------------------------------- */
+/* FFT ----------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#ifdef ALN_USE_MKL
+#include	"Correlation_fft_mkl.cpp"
+#else
+#include	"Correlation_fft_fftw.cpp"
+#endif
 
 /* --------------------------------------------------------------- */
 /* IntegrateImage ------------------------------------------------ */
@@ -364,76 +371,6 @@ int FFTSize( int n1, int n2 )
 int FFTSizeSQR( int w1, int h1, int w2, int h2 )
 {
 	return CeilPow2( max( w1 + w2, h1 + h2 ) - 1 );
-}
-
-/* --------------------------------------------------------------- */
-/* FFT_2D -------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Forward FFT of 2D data (real to complex).
-//
-// Assumes input data in row-major order. That is,
-// ordered like a C-array: in[Nslow][Nfast].
-//
-int FFT_2D(
-	vector<CD>				&out,
-	const vector<double>	&in,
-	int						Nfast,
-	int						Nslow,
-	bool					cached )
-{
-	int	M = Nslow * (Nfast/2 + 1);
-
-	if( !cached || out.size() != M ) {
-
-		pthread_mutex_lock( &mutex_fftw );
-
-		out.resize( M );
-
-		fftw_plan	p;
-
-		p = fftw_plan_dft_r2c_2d( Nslow, Nfast, (double*)&in[0],
-				(double (*)[2])&out[0], FFTW_ESTIMATE );
-
-		fftw_execute( p );
-		fftw_destroy_plan( p );
-
-		pthread_mutex_unlock( &mutex_fftw );
-	}
-
-	return M;
-}
-
-/* --------------------------------------------------------------- */
-/* IFT_2D -------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Inverse FFT of 2D data (complex to real).
-//
-// Creates output data in row-major order. That is,
-// ordered like a C-array: out[Nslow][Nfast].
-//
-void IFT_2D(
-	vector<double>			&out,
-	const vector<CD>		&in,
-	int						Nfast,
-	int						Nslow )
-{
-	int	N = Nslow * Nfast;
-
-	out.resize( N );
-
-	pthread_mutex_lock( &mutex_fftw );
-
-	fftw_plan	p;
-
-	p = fftw_plan_dft_c2r_2d( Nslow, Nfast, (double (*)[2])&in[0],
-			&out[0], FFTW_ESTIMATE );
-
-	fftw_execute( p );
-	fftw_destroy_plan( p );
-
-	pthread_mutex_unlock( &mutex_fftw );
 }
 
 /* --------------------------------------------------------------- */
@@ -2339,12 +2276,16 @@ void CCorImg::MakeF(
 /* CCorImg::OrderF ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static const double*	_F;
+class CSort_F_Dec {
+public:
+	const vector<double>	&F;
+public:
+	CSort_F_Dec( const vector<double> &F )
+		: F(F) {};
+	bool operator() ( int a, int b )
+		{return F[a] > F[b];};
+};
 
-static bool Sort_F_dec( int a, int b )
-{
-	return _F[a] > _F[b];
-}
 
 bool CCorImg::OrderF(
 	vector<int>				&forder,
@@ -2384,8 +2325,9 @@ bool CCorImg::OrderF(
 
 // Sort by decreasing F
 
-	_F = &F[0];
-	sort( forder.begin(), forder.end(), Sort_F_dec );
+	CSort_F_Dec	sorter( F );
+
+	sort( forder.begin(), forder.end(), sorter );
 
 	if( dbgCor ) {
 

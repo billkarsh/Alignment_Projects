@@ -625,7 +625,7 @@ static void ScapeStuff()
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( 3 );
+	S.SetSweepNThreads( 8 );
 	S.SetUseCorrR( true );
 	S.SetNewAngProc( NewAngProc );
 

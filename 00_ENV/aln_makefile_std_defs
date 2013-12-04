@@ -58,9 +58,11 @@ PATH_OUT      := $(PATH_BIN)
 
 INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$(PATH_UTL),$(PATH_XML)}
 
-# ============
-# object files
-# ============
+# =============
+# special flags
+# =============
+
+FLAGS_MKL :=
 
 # ===========================
 # archives (static libraries)
@@ -74,6 +76,16 @@ STATICLIBS_TIF := $(PATH_TIF_LIB)/libtiff.a
 STATICLIBS_PNG := $(PATH_PNG_LIB)/libpng.a
 STATICLIBS_ZLB := $(PATH_ZLB_LIB)/libz.a
 STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
+STATICLIBS_MKL :=
+
+# =================
+# Intel MKL support
+# =================
+
+# Enable following lines if using MKL (recommended)
+
+STATICLIBS_MKL := -l{mkl_intel_lp64,mkl_sequential,mkl_core}
+FLAGS_MKL      := -DALN_USE_MKL
 
 # ==================
 # standard libraries
@@ -88,7 +100,7 @@ STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
 # c:		c runtime
 # rt:		posix libraries (e.g. semaphore support)
 
-OTHERLIBS_STD := -l{jpeg,m,c,rt}
+OTHERLIBS_STD := -pthread -l{jpeg,m,c,rt}
 
 # ==============================
 # Combine all standard libraries
@@ -106,6 +118,7 @@ LINKS_STD :=\
  $(STATICLIBS_PNG)\
  $(STATICLIBS_ZLB)\
  $(STATICLIBS_FFT)\
+ $(STATICLIBS_MKL)\
  $(OTHERLIBS_STD)
 
 # ===========
@@ -128,11 +141,16 @@ CC := g++
 # --gc-sections:		garbage-collect unreferenced input sections
 # --strip-all:			omit symbols from output (makes smaller exe)
 
-CFLAGS := -DTIXML_USE_STL -O3 -fdata-sections -ffunction-sections
+CFLAGS := -pthread $(FLAGS_MKL) -DTIXML_USE_STL -O3 -fdata-sections -ffunction-sections
 
 LFLAGS := -Wl,--gc-sections -Wl,--strip-all
 
 OUTPUT = -o $(PATH_OUT)/$@
+
+# Enable following lines to debug with gdb or Valgrind
+
+#CFLAGS := -pthread $(FLAGS_MKL) -DTIXML_USE_STL -O0 -g
+#LFLAGS :=
 
 # ==============
 # standard rules

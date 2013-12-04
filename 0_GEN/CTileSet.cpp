@@ -18,9 +18,6 @@ using namespace std;
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static CUTile	*_Til;
-static TSAux	*_Aux;
-
 
 
 
@@ -281,8 +278,6 @@ void CTileSet::InitAuxData()
 
 		vaux.resize( nt );
 
-		_Aux = &vaux[0];	// for sort procs
-
 		for( int i = 0; i < nt; ++i ) {
 
 			vtil[i].ix	= i;
@@ -301,13 +296,18 @@ static bool Sort_z_inc( const CUTile &A, const CUTile &B )
 }
 
 /* --------------------------------------------------------------- */
-/* Sort_id_inc --------------------------------------------------- */
+/* CSort_id_inc -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static bool Sort_id_inc( int a, int b )
-{
-	return _Til[a].id < _Til[b].id;
-}
+class CSort_id_Inc {
+public:
+	const vector<CUTile>	&vtil;
+public:
+	CSort_id_Inc( const vector<CUTile> &vtil )
+		: vtil(vtil) {};
+	bool operator() ( int a, int b )
+		{return vtil[a].id < vtil[b].id;};
+};
 
 /* --------------------------------------------------------------- */
 /* Sort_z_id_inc ------------------------------------------------- */
@@ -319,14 +319,20 @@ static bool Sort_z_id_inc( const CUTile &A, const CUTile &B )
 }
 
 /* --------------------------------------------------------------- */
-/* Sort_r_id_inc ------------------------------------------------- */
+/* CSort_r_id_inc ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static bool Sort_r_id_inc( const CUTile &A, const CUTile &B )
-{
-	return _Aux[A.ix].r < _Aux[B.ix].r ||
-			(_Aux[A.ix].r == _Aux[B.ix].r && A.id < B.id);
-}
+class CSort_r_id_inc {
+public:
+	const vector<TSAux>	&vaux;
+public:
+	CSort_r_id_inc( const vector<TSAux> &vaux )
+		: vaux(vaux) {};
+	bool operator() ( const CUTile &A, const CUTile &B )
+		{return
+			vaux[A.ix].r < vaux[B.ix].r ||
+			(vaux[A.ix].r == vaux[B.ix].r && A.id < B.id);};
+};
 
 /* --------------------------------------------------------------- */
 /* SortAll_z ----------------------------------------------------- */
@@ -374,11 +380,12 @@ void CTileSet::SortAll_z_r()
 		// Assign radii from montage center
 		// Sort this layer by r
 
-		DBox	B;
+		DBox			B;
+		CSort_r_id_inc	sorter( vaux );
 
 		LayerBounds( B, is0, isN );
 		LayerAssignR( is0, isN, B );
-		sort( vtil.begin() + is0, vtil.begin() + isN, Sort_r_id_inc );
+		sort( vtil.begin() + is0, vtil.begin() + isN, sorter );
 
 		GetLayerLimits( is0 = isN, isN );
 	}
@@ -402,9 +409,9 @@ int CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
 	for( int i = 0; i < isN; ++i )
 		order[i] = is0 + i;
 
-	_Til = &vtil[0];
+	CSort_id_Inc	sorter( vtil );
 
-	sort( order.begin(), order.end(), Sort_id_inc );
+	sort( order.begin(), order.end(), sorter );
 
 	return isN;
 }

@@ -609,7 +609,7 @@ static bool ThisBZ(
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( 3 );
+	S.SetSweepNThreads( 8 );
 	S.SetUseCorrR( true );
 	S.SetDisc( Ox, Oy, Rx, Ry );
 
@@ -679,15 +679,18 @@ static bool ThisBZ(
 }
 
 /* --------------------------------------------------------------- */
-/* OrderByR ------------------------------------------------------ */
+/* CSort_R_Inc --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static const vector<BlkZ>	*_vZ;
-
-static bool OrderByR( const Pair &I, const Pair &J )
-{
-	return ((*_vZ)[I.iz].R > (*_vZ)[J.iz].R);
-}
+class CSort_R_Inc {
+public:
+	const vector<BlkZ>	&vZ;
+public:
+	CSort_R_Inc( const vector<BlkZ> &vZ )
+		: vZ(vZ) {};
+	bool operator() ( const Pair &I, const Pair &J )
+		{return vZ[I.iz].R > vZ[J.iz].R;};
+};
 
 /* --------------------------------------------------------------- */
 /* BlockCoverage ------------------------------------------------- */
@@ -704,8 +707,9 @@ static double BlockCoverage(
 {
 	double	prime = 0;
 
-	scdry	= 0;
-	_vZ		= &vZ;
+	scdry = 0;
+
+	CSort_R_Inc	sorter( vZ );
 
 	for( int ia = 0; ia < gDat.ntil; ++ia ) {
 
@@ -713,7 +717,7 @@ static double BlockCoverage(
 		double			sum = 0.0;
 		int				iblast = -1, nb = p.size();
 
-		sort( p.begin(), p.end(), OrderByR );
+		sort( p.begin(), p.end(), sorter );
 
 		// first use only best (prime)
 
