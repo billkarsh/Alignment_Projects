@@ -11,6 +11,8 @@
 
 ls -l ../*/D*/xD*.e* > BlockErrs.txt
 
+ls -l ../*/D*/xD*.o* > BlockOuts.txt
+
 ls -l ../*/D*/make.down > BlockMakes.txt
 
 grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt

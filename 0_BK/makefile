@@ -7,7 +7,7 @@ files =
 
 objs = ${files:.cpp=.o}
 
-all : 
+all :
 
 clean :
 	rm -f *.{a,o}

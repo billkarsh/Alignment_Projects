@@ -365,6 +365,8 @@ static void WriteReportFiles()
 	fprintf( f, "\n" );
 	fprintf( f, "ls -l ../*/D*/xD*.e* > BlockErrs.txt\n" );
 	fprintf( f, "\n" );
+	fprintf( f, "ls -l ../*/D*/xD*.o* > BlockOuts.txt\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "ls -l ../*/D*/make.down > BlockMakes.txt\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt\n" );
