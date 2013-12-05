@@ -679,14 +679,14 @@ static bool ThisBZ(
 }
 
 /* --------------------------------------------------------------- */
-/* CSort_R_Inc --------------------------------------------------- */
+/* CSort_R_Dec --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-class CSort_R_Inc {
+class CSort_R_Dec {
 public:
 	const vector<BlkZ>	&vZ;
 public:
-	CSort_R_Inc( const vector<BlkZ> &vZ )
+	CSort_R_Dec( const vector<BlkZ> &vZ )
 		: vZ(vZ) {};
 	bool operator() ( const Pair &I, const Pair &J )
 		{return vZ[I.iz].R > vZ[J.iz].R;};
@@ -709,7 +709,7 @@ static double BlockCoverage(
 
 	scdry = 0;
 
-	CSort_R_Inc	sorter( vZ );
+	CSort_R_Dec	sorter( vZ );
 
 	for( int ia = 0; ia < gDat.ntil; ++ia ) {
 
