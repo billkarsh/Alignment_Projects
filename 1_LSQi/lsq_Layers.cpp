@@ -245,13 +245,13 @@ void LayerCat(
 	const char		*tempdir,
 	int				zolo,
 	int				zohi,
-	bool			clrcat )
+	bool			catclr )
 {
 	printf( "\n---- Cataloging ----\n" );
 
 	clock_t	t0 = StartTiming();
 
-	if( clrcat || !LoadCat( vL, zolo, zohi ) )
+	if( catclr || !LoadCat( vL, zolo, zohi ) )
 		NewCat( vL, tempdir, zolo, zohi );
 
 	if( vL.empty() ) {

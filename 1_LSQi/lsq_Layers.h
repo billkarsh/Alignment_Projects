@@ -31,6 +31,6 @@ void LayerCat(
 	const char		*tempdir,
 	int				zolo,
 	int				zohi,
-	bool			clrcat );
+	bool			catclr );
 
 

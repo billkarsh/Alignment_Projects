@@ -28,7 +28,8 @@ public:
 			zolo,			// extended input range
 			zohi,
 			zpernode;		// max layers per node
-	bool	clrcat;			// remake point catalog
+	bool	catclr,			// remake point catalog
+			catonly;
 
 public:
 	CArgs()
@@ -41,7 +42,8 @@ public:
 		zolo		= -1;
 		zohi		= -1;
 		zpernode	= 200;
-		clrcat		= false;
+		catclr		= false;
+		catonly		= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -131,8 +133,10 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &zpernode, "-zpernode=%d", argv[i] ) )
 			;
-		else if( IsArg( "-clrcat", argv[i] ) )
-			clrcat = true;
+		else if( IsArg( "-catclr", argv[i] ) )
+			catclr = true;
+		else if( IsArg( "-catonly", argv[i] ) )
+			catonly = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -275,7 +279,10 @@ int main( int argc, char **argv )
 /* ---------------------- */
 
 	LayerCat( vL, gArgs.tempdir,
-		gArgs.zolo, gArgs.zohi, gArgs.clrcat );
+		gArgs.zolo, gArgs.zohi, gArgs.catclr );
+
+	if( gArgs.catonly )
+		goto exit;
 
 /* ------------------------ */
 /* Master partitions layers */
@@ -288,14 +295,17 @@ int main( int argc, char **argv )
 /* Load initial data */
 /* ----------------- */
 
-	CLoadPoints	*LP = new CLoadPoints;
-	LP->Load( gArgs.tempdir, gArgs.wkid, gArgs.zolo, gArgs.zohi );
-	delete LP;
+	{
+		CLoadPoints	*LP = new CLoadPoints;
+		LP->Load( gArgs.tempdir, gArgs.wkid, gArgs.zolo, gArgs.zohi );
+		delete LP;
+	}
 
 /* ---- */
 /* Done */
 /* ---- */
 
+exit:
 	VMStats( stdout );
 
 	return 0;

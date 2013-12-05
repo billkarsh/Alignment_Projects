@@ -14,7 +14,8 @@
 #
 # Options:
 # -zo=p,q			;consider input out to z=[p..q]
-# -clrcat			;rebuild catalog file
+# -catclr			;rebuild catalog file
+# -catonly			;build catalog and quit
 # -zpernode=200		;max layers per cluster node
 # -prior=path		;path to starting tforms if stack
 
