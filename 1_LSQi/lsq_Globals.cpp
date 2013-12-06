@@ -16,6 +16,7 @@
 /* --------------------------------------------------------------- */
 
 string			idb;
+int				zilo, zihi, zolo, zohi;	// index into vR
 vector<Layer>	vL;
 map<int,int>	mZ;
 vector<Rgns>	vR;
@@ -92,11 +93,15 @@ close:
 }
 
 /* --------------------------------------------------------------- */
-/* InitTablesToMaximum ------------------------------------------- */
+/* InitTables ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void InitTablesToMaximum()
+// Maximally size indexing tables.
+//
+void InitTables( int argzilo, int argzihi )
 {
+	printf( "\n---- Initializing tables ----\n" );
+
 	clock_t	t0 = StartTiming();
 
 	int	nL = vL.size();
@@ -108,6 +113,12 @@ void InitTablesToMaximum()
 		mZ[z] = iL;
 		vR.push_back( Rgns( z ) );
 	}
+
+// Turn z-ranges into zero-based indices into vR
+
+	MapZPair( zilo, zihi, argzilo, argzihi );
+	zolo = 0;
+	zohi = nL - 1;
 
 	StopTiming( stdout, "Table", t0 );
 }
@@ -180,6 +191,16 @@ static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
 /* RemapIndices -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// After loading points and calling this function:
+// - All data are indexed by zero-based (iz,idx0).
+// - The initial value of all vC[i].used are true.
+// - The initial value of all vR[i][j].used are false.
+//
+// - vC[i].used are modified later as outliers are detected
+//		in solution iteration cycles.
+// - vR[i][j].used are modified later as starting solutions
+//		are loaded, and as needed during solve cycles.
+//
 void RemapIndices()
 {
 	clock_t	t0 = StartTiming();

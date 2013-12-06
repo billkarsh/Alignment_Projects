@@ -62,6 +62,7 @@ public:
 /* --------------------------------------------------------------- */
 
 extern string			idb;
+extern int				zilo, zihi, zolo, zohi;	// index into vR
 extern vector<Layer>	vL;
 extern map<int,int>		mZ;
 extern vector<Rgns>		vR;
@@ -72,7 +73,7 @@ extern vector<CorrPnt>	vC;
 /* --------------------------------------------------------------- */
 
 void GetIDB( const char *tempdir );
-void InitTablesToMaximum();
+void InitTables( int argzilo, int argzihi );
 void MapZPair( int &ia, int &ib, int za, int zb );
 void RemapIndices();
 

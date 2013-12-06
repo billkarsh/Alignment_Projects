@@ -1864,6 +1864,20 @@ void MAffine::Test()
 	printf( "tot=%d b5=%d g5=%d\n", ntot, b5, g5 );
 }
 
+static void XWrite( const vector<double> &X )
+{
+	FILE	*f = FileOpenOrDie( "X_A.dat", "wb" );
+	fwrite( &X[0], sizeof(double), X.size(), f );
+	fclose( f );
+}
+
+static void XRead( vector<double> &X )
+{
+	FILE	*f = FileOpenOrDie( "X_A.dat", "rb" );
+	fread( &X[0], sizeof(double), X.size(), f );
+	fclose( f );
+}
+
 /* --------------------------------------------------------------- */
 /* SolveSystem --------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -1942,12 +1956,18 @@ void MAffine::SolveSystem( vector<double> &X, int nTr )
 
 #else	// threaded montage iterative
 
-		AFromIDB( X, nTr );
+		vector<double>	Xin;
 		clock_t			t2 = StartTiming();
+
 		for( gpass = 0; gpass < 250; ++gpass ) {	// 250
-			vector<double> Xin = X;
+
+			if( !gpass )
+				AFromIDB( Xin, nTr );
+			else
+				XRead( Xin );
+
 			OnePassTH( _OnePass_AFromA_stk, X, Xin, nTr*6, 8, 0.9 );
-//			printf( "Done pass %d\n", gpass + 1 ); fflush( stdout );
+			XWrite( X );
 		}
 		PrintMagnitude( X );
 		StopTiming( stdout, "Iters", t2 );

@@ -35,7 +35,7 @@ static pthread_mutex_t	mutex_fpnts = PTHREAD_MUTEX_INITIALIZER;
 
 char* CLoadPoints::NameBinary( char *buf )
 {
-	sprintf( buf, "pnts_%d_%d_%d.dat", wkid, zolo, zohi );
+	sprintf( buf, "pnts_%d_%d_%d.dat", wkid, vR[zolo].z, vR[zohi].z );
 	return buf;
 }
 
@@ -179,30 +179,18 @@ void CLoadPoints::LoadBinary()
 }
 
 /* --------------------------------------------------------------- */
-/* Remap --------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
 /* Load ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CLoadPoints::Load(
-	const char	*tempdir,
-	int			wkid,
-	int			zolo,
-	int			zohi )
+void CLoadPoints::Load( const char *tempdir, int wkid )
 {
 	printf( "\n---- Loading points ----\n" );
 
 	clock_t	t0 = StartTiming();
 
-	InitTablesToMaximum();
-
 	ME				= this;
 	this->tempdir	= tempdir;
 	this->wkid		= wkid;
-	this->zolo		= zolo;
-	this->zohi		= zohi;
 
 	if( !IsBinary() )
 		MakeBinary();

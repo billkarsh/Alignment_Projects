@@ -26,9 +26,7 @@ private:
 	vector<CJob>	vJ;
 	int				njob,
 					nthr,
-					wkid,
-					zolo,
-					zohi;
+					wkid;
 private:
 	char* NameBinary( char *buf );
 	bool IsBinary();
@@ -41,11 +39,7 @@ private:
 	void LoadBinary();
 	void Remap();
 public:
-	void Load(
-		const char	*tempdir,
-		int			wkid,
-		int			zolo,
-		int			zohi );
+	void Load( const char *tempdir, int wkid );
 };
 
 /* --------------------------------------------------------------- */

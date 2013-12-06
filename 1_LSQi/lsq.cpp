@@ -295,9 +295,11 @@ int main( int argc, char **argv )
 /* Load initial data */
 /* ----------------- */
 
+	InitTables( gArgs.zilo, gArgs.zihi );
+
 	{
 		CLoadPoints	*LP = new CLoadPoints;
-		LP->Load( gArgs.tempdir, gArgs.wkid, gArgs.zolo, gArgs.zohi );
+		LP->Load( gArgs.tempdir, gArgs.wkid );
 		delete LP;
 	}
 

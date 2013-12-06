@@ -66,6 +66,52 @@ Alpinestars Bionic Rib S/L
 
 - Agenda_101612.pptx good vision of big plan.
 
+------------------------------------------------
+Saalfeld Notes:
+---------------
+- Resume chat Wed Dec 11.
+
+- Hackathon alert: sometime in April.
+
+- I suggest we can manually extend cuts through fold masks but
+recover correct connectivity in the cut zone by adding corr.
+point pairs into the mix wherein the (x,y) coords are the same
+for A::B, as are the {z,id} labels, but the rgn numbers differ.
+For example: CPOINT2 z.id:1 x0 y0 z.id:2 x0 y0. Essentially, this
+describes a single point labelled two ways.
+
+- In dmesh, when finding corr points across layers, use even more
+scale reduction (like 10 instead of ~2 as now). This is faster,
+and focuses attention on larger features which are more stable.
+It's a more appropriate size scale. The scale factor should be a
+parameter that is decided by user mainly by slice thickness.
+
+- In doing block-block matching, SS advocate that all good layers
+be included because this effectively averages over more data so
+reduces noise. It also adds longer range rigidity.
+
+- SS suggest main places to extend current pipeline are:
+
+- Incorporate use of software lenses per camera. These only need be
+employed in CPixPair as images are loaded, and in the final rendering
+phase, which is outside my scope.
+
+- The model that is fit to the corr points should become a smooth
+interpolation function like a spline rather than an affine. Details
+of this remain vague to me right now.
+
+- Yes, we need to break up huge connected regions into small patches
+for computation, but the units we work with need not be natural
+images. Rather, we should tile conn regions flexibly so that each
+pixel is surrounded by the most possible context. So for example, if
+a natural image contains only a small spike of protruding region that
+offers too little area to match...then slide the "image" boundary
+over to include more conn region and use that in dmesh. This ability
+to paint image pairs (to be input to dmesh) from a large source conn
+region also supports use of very large images (such as may come from
+FIB SEM). Is this really needed? Lower priority than other features.
+------------------------------------------------
+
 - CLEAN OUT OLD DATA {Bocklab, Tomo}.
 
 - -DTINYSTAT in tiny foldmask project sets a flag for maths.cpp
