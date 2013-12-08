@@ -758,7 +758,7 @@ void WriteSolveRead(
 	f = FileOpenOrDie( oname, "r" );
 
 	for( int i = 0; i < nvars; ++i )
-		fscanf( f, "%lf", &X[i] );
+		fscanf( f, "%lf\n", &X[i] );
 
 	fclose( f );
 }

@@ -432,7 +432,7 @@ static void ReduceLeginonCoords()
 	char	path[2048];
 	int		x, y, z;
 
-	while( fscanf( fi, "%s%d%d%d", path, &x, &y, &z ) == 4 ) {
+	while( fscanf( fi, "%s%d%d%d\n", path, &x, &y, &z ) == 4 ) {
 		fprintf( fo, "%s\t%d\t%d\t%d\n", path, x/4, y/4, z );
 	}
 

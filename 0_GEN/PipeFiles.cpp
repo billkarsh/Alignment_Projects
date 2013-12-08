@@ -6,6 +6,9 @@
 
 #include	<string.h>
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
@@ -283,6 +286,23 @@ close:
 /* IDBGetIDRgnMap ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+class Cfmline {
+public:
+	int	id, nr;
+public:
+	Cfmline()	{};
+	inline bool FromFile( FILE *f )
+	{
+		int	z;
+		return 3 == fscanf( f, "FOLDMAP2"
+			" %d.%d %d\n", &z, &id, &nr );
+	};
+	bool operator < (const Cfmline &rhs) const
+	{
+		return id < rhs.id;
+	};
+};
+
 // For given z, create mapping from (tileID,rgn) to unique
 // zero based array index. The caller uses the map<> to get
 // an index for (id,rgn) as follows:
@@ -297,34 +317,51 @@ close:
 //
 // Return array size.
 //
+// Notes:
+// The entries are sorted before mapping, so one can recover
+// nr from a map iterator 'it': ((it+1)->second - it->second).
+//
 int IDBGetIDRgnMap(
 	map<int,int>	&m,
 	const string	&idb,
 	int				z,
 	FILE			*flog )
 {
-	char	name[2048];
-	FILE	*f;
-	int		nelem = 0;
+	char			name[2048];
+	FILE			*f;
+	vector<Cfmline>	vline;
+	int				nelem = 0;
+
+// Scan entries into vector
 
 	sprintf( name, "%s/%d/fm.same", idb.c_str(), z );
 
 	if( f = fopen( name, "r" ) ) {
 
-		int	z, id, nr;
+		Cfmline	line;
 
-		while( 3 == fscanf( f, "FOLDMAP2 %d.%d %d\n",
-					&z, &id, &nr ) ) {
-
-			m[id]  = nelem;
-			nelem += nr;
-		}
+		while( line.FromFile( f ) )
+			vline.push_back( line );
 	}
 	else
 		fprintf( flog, "IDBGetIDRgnMap: Can't open [%s].\n", name );
 
 	if( f )
 		fclose( f );
+
+// Sort entries by id, then map to 0-based indices
+
+	int	n = vline.size();
+
+	if( n ) {
+		sort( vline.begin(), vline.end() );
+		for( int i = 0; i < n; ++i ) {
+			m[vline[i].id] = nelem;
+			nelem         += vline[i].nr;
+		}
+	}
+	else
+		fprintf( flog, "IDBGetIDRgnMap: Empty file [%s].\n", name );
 
 	return nelem;
 }

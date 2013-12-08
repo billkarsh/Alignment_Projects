@@ -131,7 +131,7 @@ static void ReadRick()
 		/* Get a line */
 		/* ---------- */
 
-		if( fscanf( f, "%s%lf%lf%d", name, &T.x, &T.y, &T.z ) != 4 )
+		if( fscanf( f, "%s%lf%lf%d\n", name, &T.x, &T.y, &T.z ) != 4 )
 			break;
 
 		/* --------- */

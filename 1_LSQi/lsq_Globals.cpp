@@ -16,7 +16,8 @@
 /* --------------------------------------------------------------- */
 
 string			idb;
-int				zilo, zihi, zolo, zohi;	// index into vR
+int				zilo, zihi,
+				zolo, zohi;	// index into vR
 vector<Layer>	vL;
 map<int,int>	mZ;
 vector<Rgns>	vR;

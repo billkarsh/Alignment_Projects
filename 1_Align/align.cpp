@@ -147,7 +147,7 @@ FILE	*ftxt = FileOpenOrDie( noa[5], "r", flog );
 
 vector<double> array_of_transforms;
 double v;
-while (fscanf(ftxt, "%lf", &v) == 1)
+while (fscanf(ftxt, "%lf\n", &v) == 1)
     array_of_transforms.push_back(v);
 fclose(ftxt);
 int Ntrans = array_of_transforms.size()/6;

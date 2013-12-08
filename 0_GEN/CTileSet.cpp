@@ -71,9 +71,9 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 		/* ---------- */
 
 		if( fscanf( fp,
-			"%d%d%"
-			"lf%lf%lf%lf%lf%lf"
-			"%d%d%d%s",
+			"%d%d"
+			"%lf%lf%lf%lf%lf%lf"
+			"%d%d%d%s\n",
 			&z, &til.id,
 			&til.T.t[0], &til.T.t[1], &til.T.t[2],
 			&til.T.t[3], &til.T.t[4], &til.T.t[5],

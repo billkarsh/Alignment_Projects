@@ -45,7 +45,7 @@ static void Fix( char *path, int len, int chn )
 		CRec	C;
 		char	name[2048];
 
-		if( 4 != fscanf( f, "%s%lf%lf%d", name, &C.x, &C.y, &C.z ) )
+		if( 4 != fscanf( f, "%s%lf%lf%d\n", name, &C.x, &C.y, &C.z ) )
 			break;
 
 		strcpy( C.name, name );

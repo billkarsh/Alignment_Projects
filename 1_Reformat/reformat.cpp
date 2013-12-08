@@ -259,7 +259,7 @@ static void UpdateRick()
 		TAffine	T;
 		int		z, col = -999, row = -999, cam = 0;
 
-		if( fscanf( in, "%s%lf%lf%d",
+		if( fscanf( in, "%s%lf%lf%d\n",
 			buf, &T.t[2], &T.t[5], &z ) != 4 ) {
 
 			break;

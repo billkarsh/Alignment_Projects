@@ -12,7 +12,8 @@ files =\
  lsq_Globals.cpp\
  lsq_Layers.cpp\
  lsq_LoadPoints.cpp\
- lsq_Msg.cpp
+ lsq_Msg.cpp\
+ lsq_XArray.cpp
 
 objs = ${files:.cpp=.o}
 

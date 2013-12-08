@@ -3,6 +3,7 @@
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
 #include	"lsq_Msg.h"
+#include	"lsq_XArray.h"
 
 #include	"Cmdline.h"
 #include	"Disk.h"
@@ -301,6 +302,12 @@ int main( int argc, char **argv )
 		CLoadPoints	*LP = new CLoadPoints;
 		LP->Load( gArgs.tempdir, gArgs.wkid );
 		delete LP;
+	}
+
+	{
+		XArray	A;
+
+		A.Load_AFromIDB();
 	}
 
 /* ---- */
