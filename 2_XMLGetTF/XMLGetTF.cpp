@@ -4,6 +4,7 @@
 
 #include	"GenDefs.h"
 #include	"Cmdline.h"
+#include	"Disk.h"
 #include	"File.h"
 #include	"TrakEM2_UTL.h"
 #include	"TAffine.h"
@@ -29,7 +30,8 @@ class CArgs_xml {
 public:
 	char	*infile;
 	int		zmin, zmax;
-	bool	layers;
+	bool	layers,
+			onefile;
 
 public:
 	CArgs_xml()
@@ -38,6 +40,7 @@ public:
 		zmin	= 0;
 		zmax	= 32768;
 		layers	= false;
+		onefile	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -95,6 +98,8 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( IsArg( "-layers", argv[i] ) )
 			layers = true;
+		else if( IsArg( "-onefile", argv[i] ) )
+			onefile = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -246,10 +251,10 @@ static void PrintTAffines( FILE *f, const vector<TS> &ts, int z )
 }
 
 /* --------------------------------------------------------------- */
-/* GetEachTileTF ------------------------------------------------- */
+/* OnefileAllTF -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void GetEachTileTF()
+static void OnefileAllTF()
 {
 /* ---- */
 /* Open */
@@ -289,6 +294,71 @@ static void GetEachTileTF()
 }
 
 /* --------------------------------------------------------------- */
+/* ZFile --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ZFile( const char *folder, const vector<TS> &ts, int z )
+{
+	char	buf[64];
+	sprintf( buf, "%s/X_A_%d.txt", folder, z );
+
+	FILE	*f = FileOpenOrDie( buf, "w" );
+
+	int	nt = ts.size();
+
+	for( int i = 0; i < nt; ++i ) {
+
+		const double *t = ts[i].T.t;
+
+		fprintf( f, "%d\t1\t%f\t%f\t%f\t%f\t%f\t%f\n",
+		ts[i].id, t[0], t[1], t[2], t[3], t[4], t[5] );
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* FilePerZ ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void FilePerZ()
+{
+/* ---- */
+/* Open */
+/* ---- */
+
+	XML_TKEM		xml( gArgs.infile, flog );
+	TiXmlElement*	layer	= xml.GetFirstLayer();
+
+/* ------ */
+/* Folder */
+/* ------ */
+
+	const char	*folder = "X_A_TXT";
+	DskCreateDir( folder, flog );
+
+/* --- */
+/* Get */
+/* --- */
+
+	for( ; layer; layer = layer->NextSiblingElement() ) {
+
+		int	z = atoi( layer->Attribute( "z" ) );
+
+		if( z > gArgs.zmax )
+			break;
+
+		if( z < gArgs.zmin )
+			continue;
+
+		vector<TS>	ts;
+
+		GetSortedTAffines( ts, layer );
+		ZFile( folder, ts, z );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -306,8 +376,10 @@ int main( int argc, char* argv[] )
 
 	if( gArgs.layers )
 		GetWholeLayerTF();
+	else if( gArgs.onefile )
+		OnefileAllTF();
 	else
-		GetEachTileTF();
+		FilePerZ();
 
 /* ---- */
 /* Done */

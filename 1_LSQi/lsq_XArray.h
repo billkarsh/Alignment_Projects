@@ -12,9 +12,10 @@ using namespace std;
 
 class XArray {
 public:
+	int						NE;
 	vector<vector<double> >	X;
 public:
-	void Load_AFromIDB();
+	void Load( const char *path );
 };
 
 

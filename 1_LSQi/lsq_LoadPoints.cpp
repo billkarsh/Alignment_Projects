@@ -35,7 +35,7 @@ static pthread_mutex_t	mutex_fpnts = PTHREAD_MUTEX_INITIALIZER;
 
 char* CLoadPoints::NameBinary( char *buf )
 {
-	sprintf( buf, "pnts_%d_%d_%d.dat", wkid, vR[zolo].z, vR[zohi].z );
+	sprintf( buf, "pnts_%d_%d_%d.bin", wkid, vR[zolo].z, vR[zohi].z );
 	return buf;
 }
 

@@ -22,7 +22,7 @@ class CArgs {
 
 public:
 	char	tempdir[2048],	// master workspace
-			*priorafftbl;	// start affine model from these
+			*prior;			// start from these solutions
 	int		wkid,			// my worker id (main=0)
 			zilo,			// my output range
 			zihi,
@@ -36,7 +36,7 @@ public:
 	CArgs()
 	{
 		tempdir[0]	= 0;
-		priorafftbl	= NULL;
+		prior		= NULL;
 		wkid		= 0;
 		zilo		= 0;
 		zihi		= 0;
@@ -103,8 +103,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArgStr( instr, "-prior=", argv[i] ) ) {
 
-			priorafftbl = strdup( instr );
-			printf( "Prior solutions: '%s'.\n", priorafftbl );
+			prior = strdup( instr );
+			printf( "Prior solutions: '%s'.\n", prior );
 		}
 		else if( GetArg( &wkid, "-wkid=%d", argv[i] ) )
 			printf( "wkid %d\n", wkid );
@@ -151,13 +151,13 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 	if( !wkid && zilo != zihi ) {
 
-		if( !priorafftbl ) {
-			printf( "Solving a stack requires prior affines.\n" );
+		if( !prior ) {
+			printf( "Solving a stack requires -prior option.\n" );
 			exit( 42 );
 		}
 
-		if( !DskExists( priorafftbl ) ) {
-			printf( "Prior affines not found [%s].\n", priorafftbl );
+		if( !DskExists( prior ) ) {
+			printf( "Priors not found [%s].\n", prior );
 			exit( 42 );
 		}
 	}
@@ -247,7 +247,7 @@ static void MasterLaunchWorkers()
 		sprintf( buf, "qsub -N lsq-%d -cwd -V -b y -pe batch 16"
 		" 'lsq -temp=%s -prior=%s -wkid=%d -zi=%d,%d -zo=%d,%d'",
 		iw,
-		gArgs.tempdir, gArgs.priorafftbl,
+		gArgs.tempdir, gArgs.prior,
 		iw,
 		vL[zilo_icat].z, vL[zihi_icat].z,
 		zolo, zohi );
@@ -307,7 +307,7 @@ int main( int argc, char **argv )
 	}
 
 	XArray	A;
-	A.Load_AFromIDB();
+	A.Load( gArgs.prior );
 
 /* ---- */
 /* Done */
