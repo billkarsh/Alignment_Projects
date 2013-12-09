@@ -3,8 +3,11 @@
 #include	"lsq_Globals.h"
 #include	"lsq_XArray.h"
 
+#include	"EZThreads.h"
 #include	"PipeFiles.h"
 #include	"Timer.h"
+
+#include	<stdlib.h>
 
 
 /* --------------------------------------------------------------- */
@@ -19,10 +22,65 @@
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static XArray*	ME;
+static int		nthr;
 
 
 
 
+
+
+/* --------------------------------------------------------------- */
+/* _AFromIDB ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void* _AFromIDB( void* ithr )
+{
+	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+
+		Rgns&			R = vR[iz];
+		vector<double>&	x = ME->X[iz];
+		vector<Til2Img>	t2i;
+
+		// Get rgn #1 tforms
+
+		if( !IDBT2IGet_JustIDandT( t2i, idb, R.z ) )
+			exit( 42 );
+
+		x.resize( R.nr * 6 );
+
+		int						nt = t2i.size();
+		map<int,int>::iterator	en = R.m.end();
+
+		// For each transform in IDB...
+
+		for( int it = 0; it < nt; ++it ) {
+
+			// Get its block start and limit {j0,jlim}
+
+			const Til2Img&			T = t2i[it];
+			map<int,int>::iterator	mi = R.m.find( T.id );
+			int						j0, jlim;
+
+			if( mi == en )
+				continue;
+
+			j0		= mi->second;
+			jlim	= (++mi != en ? mi->second : R.nr);
+
+			// Propagate rgn #1 tform to all block members
+
+			for( int j = j0; j < jlim; ++j ) {
+
+				if( R.pts[j].size() >= 3 ) {
+
+					T.T.CopyOut( &x[j * 6] );
+					R.used[j] = true;
+				}
+			}
+		}
+	}
+}
 
 /* --------------------------------------------------------------- */
 /* Load_AFromIDB ------------------------------------------------- */
@@ -36,45 +94,14 @@ void XArray::Load_AFromIDB()
 
 	X.resize( nz );
 
-// For each z...
+	ME		= this;
+	nthr	= (zolo != zohi ? 16 : 1);
 
-	for( int iz = 0; iz < nz; ++iz ) {
+	if( nthr > nz )
+		nthr = nz;
 
-		Rgns&			R = vR[iz];
-		vector<double>&	x = X[iz];
-
-		x.resize( vR[iz].nr * 6 );
-
-		// Set used flags and load tforms from IDB.
-		// We use the map (m) to traverse {id,r}.
-
-		map<int,int>::iterator	it, nx, en = R.m.end();
-
-		for( it = R.m.begin(); it != en; ++it ) {
-
-			const Til2Img*	t2i;
-			int				id = it->first,
-							j0 = it->second,
-							jlim;
-
-			nx		= it;
-			jlim	= (++nx != en ? nx->second : R.nr);
-
-			// Propagate rgn #1 tform to all slots
-
-			if( !IDBT2ICacheNGet1( t2i, idb, R.z, id ) )
-				t2i = NULL;
-
-			for( int j = j0; j < jlim; ++j ) {
-
-				if( R.pts[j].size() >= 3 && t2i ) {
-
-					t2i->T.CopyOut( &x[j * 6] );
-					R.used[j] = true;
-				}
-			}
-		}
-	}
+	if( !EZThreads( _AFromIDB, nthr, 1, "_AFromIDB" ) )
+		exit( 42 );
 
 	StopTiming( stdout, "AFromIDB", t0 );
 }

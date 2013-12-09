@@ -282,8 +282,10 @@ int main( int argc, char **argv )
 	LayerCat( vL, gArgs.tempdir,
 		gArgs.zolo, gArgs.zohi, gArgs.catclr );
 
-	if( gArgs.catonly )
-		goto exit;
+	if( gArgs.catonly ) {
+		VMStats( stdout );
+		return 0;
+	}
 
 /* ------------------------ */
 /* Master partitions layers */
@@ -304,17 +306,13 @@ int main( int argc, char **argv )
 		delete LP;
 	}
 
-	{
-		XArray	A;
-
-		A.Load_AFromIDB();
-	}
+	XArray	A;
+	A.Load_AFromIDB();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-exit:
 	VMStats( stdout );
 
 	return 0;

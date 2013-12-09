@@ -153,6 +153,12 @@ bool IDBT2IGetAll(
 	int				z,
 	FILE			*flog = stdout );
 
+bool IDBT2IGet_JustIDandT(
+	vector<Til2Img>	&t2i,
+	const string	&idb,
+	int				z,
+	FILE			*flog = stdout );
+
 bool IDBT2ICacheLoad(
 	T2ICache		&C,
 	const string	&idb,

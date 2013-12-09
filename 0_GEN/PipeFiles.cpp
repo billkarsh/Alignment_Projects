@@ -520,6 +520,66 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
+/* IDBT2IGet_JustIDandT ------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Get uncached vector of Til2Img with valid {id,T}.
+//
+// Entries happen to be ordered by id because idb files are
+// always maintained that way.
+//
+bool IDBT2IGet_JustIDandT(
+	vector<Til2Img>	&t2i,
+	const string	&idb,
+	int				z,
+	FILE			*flog )
+{
+	char	name[2048];
+	FILE	*f;
+	int		ok = false;
+
+	t2i.clear();
+
+	sprintf( name, "%s/%d/TileToImage.txt", idb.c_str(), z );
+
+	if( f = fopen( name, "r" ) ) {
+
+		CLineScan	LS;
+
+		if( LS.Get( f ) <= 0 ) {
+			fprintf( flog,
+			"IDBT2IGetAll: Empty file [%s].\n", name );
+			goto exit;
+		}
+
+		while( LS.Get( f ) > 0 ) {
+
+			Til2Img	E;
+
+			sscanf( LS.line,
+			"%d"
+			"\t%lf\t%lf\t%lf"
+			"\t%lf\t%lf\t%lf",
+			&E.id,
+			&E.T.t[0], &E.T.t[1], &E.T.t[2],
+			&E.T.t[3], &E.T.t[4], &E.T.t[5] );
+
+			t2i.push_back( E );
+		}
+
+		ok = true;
+	}
+	else
+		fprintf( flog, "IDBT2IGetAll: Can't open [%s].\n", name );
+
+exit:
+	if( f )
+		fclose( f );
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
 /* IDBT2ICacheLoad ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
