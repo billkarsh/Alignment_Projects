@@ -15,7 +15,10 @@ public:
 	int						NE;
 	vector<vector<double> >	X;
 public:
+	void Size( int ne );
 	void Load( const char *path );
+	void Updt();
+	void Save();
 };
 
 

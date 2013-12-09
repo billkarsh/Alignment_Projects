@@ -4,6 +4,7 @@
 #include	"lsq_XArray.h"
 
 #include	"EZThreads.h"
+#include	"Disk.h"
 #include	"File.h"
 #include	"PipeFiles.h"
 #include	"Timer.h"
@@ -26,6 +27,7 @@
 
 static XArray*		ME;
 static const char	*gpath;
+static vector<int>	giz;
 static int			nthr;
 
 
@@ -201,15 +203,17 @@ static void* _AFromScfTxt( void* ithr )
 }
 
 /* --------------------------------------------------------------- */
-/* _AFromBin ----------------------------------------------------- */
+/* _XFromBin ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void ReadXBin( vector<double> &x, int cAH, int z )
+static void ReadXBin( vector<double> &x, int z )
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/X_%c_%d.bin", gpath, cAH, z );
+	sprintf( buf, "%s/X_%c_%d.bin",
+		gpath, (ME->NE == 6 ? 'A' : 'H'), z );
+
 	f = FileOpenOrDie( buf, "rb" );
 	fread( &x[0], sizeof(double), x.size(), f );
 	fclose( f );
@@ -228,40 +232,101 @@ static void ReadUBin( vector<char> &u, int z )
 }
 
 
-static void* _AFromBin( void* ithr )
+static void* _XFromBin( void* ithr )
 {
 	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
+		int				minpts = ME->NE / 2;
 
-		x.resize( R.nr * 6 );
-		ReadXBin( x, 'A', R.z );
+		x.resize( R.nr * ME->NE );
+		ReadXBin( x, R.z );
 		ReadUBin( R.used, R.z );
 
 		for( int j = 0; j < R.nr; ++j )
-			R.used[j] &= R.pts[j].size() >= 3;
+			R.used[j] &= R.pts[j].size() >= minpts;
 	}
 }
 
 /* --------------------------------------------------------------- */
-/* _HFromBin ----------------------------------------------------- */
+/* _Updt --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void* _HFromBin( void* ithr )
+static void* _Updt( void* ithr )
 {
-	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+	for( int iz = (long)ithr; iz < giz.size(); iz += nthr ) {
 
-		Rgns&			R = vR[iz];
-		vector<double>&	x = ME->X[iz];
+		Rgns&			R = vR[giz[iz]];
+		vector<double>&	x = ME->X[giz[iz]];
+		int				minpts = ME->NE / 2;
 
-		x.resize( R.nr * 8 );
-		ReadXBin( x, 'H', R.z );
-		ReadUBin( R.used, R.z );
+		ReadXBin( x, R.z );
+
+		vector<char>	u( R.nr );
+		ReadUBin( u, R.z );
 
 		for( int j = 0; j < R.nr; ++j )
-			R.used[j] &= R.pts[j].size() >= 4;
+			R.used[j] &= u[j] && R.pts[j].size() >= minpts;
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* _Save --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void SaveXBin( vector<double> &x, int z )
+{
+	char	buf[64];
+	FILE	*f;
+
+	sprintf( buf, "%s/X_%c_%d.bin",
+		gpath, (ME->NE == 6 ? 'A' : 'H'), z );
+
+	f = FileOpenOrDie( buf, "wb" );
+	fwrite( &x[0], sizeof(double), x.size(), f );
+	fclose( f );
+}
+
+
+static void SaveUBin( vector<char> &u, int z )
+{
+	char	buf[64];
+	FILE	*f;
+
+	sprintf( buf, "%s/U_%d.bin", gpath, z );
+	f = FileOpenOrDie( buf, "wb" );
+	fwrite( &u[0], sizeof(char), u.size(), f );
+	fclose( f );
+}
+
+
+static void* _Save( void* ithr )
+{
+	for( int iz = (long)ithr; iz < giz.size(); iz += nthr ) {
+
+		Rgns&			R = vR[giz[iz]];
+		vector<double>&	x = ME->X[giz[iz]];
+
+		SaveXBin( x, R.z );
+		SaveUBin( R.used, R.z );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* Size ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void XArray::Size( int ne )
+{
+	NE = ne;
+
+	int	nz = vR.size();
+
+	X.resize( nz );
+
+	for( int iz = 0; iz < nz; ++iz )
+		X[iz].resize( vR[iz].nr * ne );
 }
 
 /* --------------------------------------------------------------- */
@@ -304,8 +369,8 @@ void XArray::Load( const char *path )
 				sproc	= "AFromScfTxt";
 			}
 			else if( strstr( name, "X_A_BIN" ) ) {
-				proc	= _AFromBin;
-				sproc	= "AFromBin";
+				proc	= _XFromBin;
+				sproc	= "XFromBin";
 			}
 			else
 				goto error;
@@ -315,8 +380,8 @@ void XArray::Load( const char *path )
 			NE = 8;
 
 			if( strstr( name, "X_H_BIN" ) ) {
-				proc	= _HFromBin;
-				sproc	= "HFromBin";
+				proc	= _XFromBin;
+				sproc	= "XFromBin";
 			}
 			else
 				goto error;
@@ -332,6 +397,75 @@ error:
 		exit( 42 );
 
 	StopTiming( stdout, sproc, t0 );
+}
+
+/* --------------------------------------------------------------- */
+/* Updt ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void XArray::Updt()
+{
+	giz.clear();
+
+	for( int i = zolo; i < zilo; ++i )
+		giz.push_back( i );
+
+	for( int i = zihi + 1; i <= zohi; ++i )
+		giz.push_back( i );
+
+	int	nz = giz.size();
+
+	if( !nz )
+		return;
+
+	clock_t	t0 = StartTiming();
+
+	char	buf[32];
+	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
+
+	ME		= this;
+	gpath	= buf;
+	nthr	= 16;
+
+	if( nthr > nz )
+		nthr = nz;
+
+	if( !EZThreads( _Updt, nthr, 1, "Updt" ) )
+		exit( 42 );
+
+	StopTiming( stdout, "Updt", t0 );
+}
+
+/* --------------------------------------------------------------- */
+/* Save ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void XArray::Save()
+{
+	giz.clear();
+
+	for( int i = zilo; i <= zihi; ++i )
+		giz.push_back( i );
+
+	int	nz = giz.size();
+
+	clock_t	t0 = StartTiming();
+
+	char	buf[32];
+	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
+	DskCreateDir( buf, stdout );
+
+	ME		= this;
+	gpath	= buf;
+	nthr	= 16;
+
+	if( nthr > nz )
+		nthr = nz;
+
+	if( !EZThreads( _Save, nthr, 1, "Save" ) )
+		exit( 42 );
+
+	StopTiming( stdout, "Save", t0 );
 }
 
 

@@ -308,6 +308,7 @@ int main( int argc, char **argv )
 
 	XArray	A;
 	A.Load( gArgs.prior );
+	A.Save();
 
 /* ---- */
 /* Done */
