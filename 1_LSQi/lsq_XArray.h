@@ -19,6 +19,8 @@ public:
 	void Load( const char *path );
 	void Updt();
 	void Save();
+public:
+	static bool PriorIsAffine( const char *path );
 };
 
 

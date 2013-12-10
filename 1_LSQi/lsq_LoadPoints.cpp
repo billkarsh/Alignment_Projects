@@ -182,7 +182,7 @@ void CLoadPoints::LoadBinary()
 /* Load ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CLoadPoints::Load( const char *tempdir, int wkid )
+void CLoadPoints::Load( const char *tempdir )
 {
 	printf( "\n---- Loading points ----\n" );
 
@@ -190,7 +190,6 @@ void CLoadPoints::Load( const char *tempdir, int wkid )
 
 	ME				= this;
 	this->tempdir	= tempdir;
-	this->wkid		= wkid;
 
 	if( !IsBinary() )
 		MakeBinary();

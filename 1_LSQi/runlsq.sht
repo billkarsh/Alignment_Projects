@@ -18,6 +18,7 @@
 # -catonly			;build catalog and quit
 # -zpernode=200		;max layers per cluster node
 # -prior=path		;path to starting tforms if stack
+# -untwist			;untwist prior affines
 
 
 lsq -temp=../ -zi=0,0 $1

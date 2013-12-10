@@ -62,7 +62,8 @@ public:
 /* --------------------------------------------------------------- */
 
 extern string			idb;
-extern int				zilo, zihi,
+extern int				wkid, nwks,	// my workid, count
+						zilo, zihi,
 						zolo, zohi;	// index into vR
 extern vector<Layer>	vL;
 extern map<int,int>		mZ;

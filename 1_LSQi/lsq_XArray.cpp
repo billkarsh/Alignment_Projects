@@ -468,4 +468,13 @@ void XArray::Save()
 	StopTiming( stdout, "Save", t0 );
 }
 
+/* --------------------------------------------------------------- */
+/* PriorIsAffine ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool XArray::PriorIsAffine( const char *path )
+{
+	return (NULL != strstr( FileNamePtr( path ), "X_A" ));
+}
+
 

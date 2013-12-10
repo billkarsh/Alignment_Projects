@@ -16,7 +16,9 @@
 /* --------------------------------------------------------------- */
 
 string			idb;
-int				zilo, zihi,
+int				wkid = 0,	// my worker id (main=0)
+				nwks = 1,	// total number workers
+				zilo, zihi,
 				zolo, zohi;	// index into vR
 vector<Layer>	vL;
 map<int,int>	mZ;

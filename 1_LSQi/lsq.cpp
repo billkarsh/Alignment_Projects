@@ -23,21 +23,20 @@ class CArgs {
 public:
 	char	tempdir[2048],	// master workspace
 			*prior;			// start from these solutions
-	int		wkid,			// my worker id (main=0)
-			zilo,			// my output range
+	int		zilo,			// my output range
 			zihi,
 			zolo,			// extended input range
 			zohi,
 			zpernode;		// max layers per node
 	bool	catclr,			// remake point catalog
-			catonly;
+			catonly,
+			untwist;		// iff prior are affines
 
 public:
 	CArgs()
 	{
 		tempdir[0]	= 0;
 		prior		= NULL;
-		wkid		= 0;
 		zilo		= 0;
 		zihi		= 0;
 		zolo		= -1;
@@ -45,6 +44,7 @@ public:
 		zpernode	= 200;
 		catclr		= false;
 		catonly		= false;
+		untwist		= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -55,7 +55,6 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs	gArgs;
-static int		gnw = 1;
 
 
 
@@ -81,7 +80,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 // Parse command line args
 
-	printf( "---- Read params ----\n" );
+	printf( "\n---- Read params ----\n" );
 
 	if( argc < 3 ) {
 		printf(
@@ -138,6 +137,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			catclr = true;
 		else if( IsArg( "-catonly", argv[i] ) )
 			catonly = true;
+		else if( IsArg( "-untwist", argv[i] ) )
+			untwist = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -208,12 +209,12 @@ static void MasterLaunchWorkers()
 
 	int	nL = vL.size();
 
-	gnw = nL / gArgs.zpernode;
+	nwks = nL / gArgs.zpernode;
 
-	if( nL - gnw * gArgs.zpernode > 0 )
-		++gnw;
+	if( nL - nwks * gArgs.zpernode > 0 )
+		++nwks;
 
-	if( gnw <= 1 )
+	if( nwks <= 1 )
 		return;
 
 // Master will be lowest block
@@ -236,7 +237,7 @@ static void MasterLaunchWorkers()
 
 	MsgClear();
 
-	for( int iw = 1; iw < gnw; ++iw ) {
+	for( int iw = 1; iw < nwks; ++iw ) {
 
 		zilo_icat = zihi_icat + 1;
 		zihi_icat = min( zilo_icat + gArgs.zpernode, nL ) - 1;
@@ -262,7 +263,7 @@ static void MasterLaunchWorkers()
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// This flow is followed by master process (gArgs.wkid==0)
+// This flow is followed by master process (wkid==0)
 // and all workers process.
 //
 int main( int argc, char **argv )
@@ -291,7 +292,7 @@ int main( int argc, char **argv )
 /* Master partitions layers */
 /* ------------------------ */
 
-	if( !gArgs.wkid )
+	if( !wkid )
 		MasterLaunchWorkers();
 
 /* ----------------- */
@@ -302,7 +303,7 @@ int main( int argc, char **argv )
 
 	{
 		CLoadPoints	*LP = new CLoadPoints;
-		LP->Load( gArgs.tempdir, gArgs.wkid );
+		LP->Load( gArgs.tempdir );
 		delete LP;
 	}
 
