@@ -21,16 +21,16 @@
 class CArgs {
 
 public:
-	char	tempdir[2048],	// master workspace
-			*prior;			// start from these solutions
-	int		zilo,			// my output range
-			zihi,
-			zolo,			// extended input range
-			zohi,
-			zpernode;		// max layers per node
-	bool	catclr,			// remake point catalog
-			catonly,
-			untwist;		// iff prior are affines
+	char		tempdir[2048];	// master workspace
+	const char	*prior;			// start from these solutions
+	int			zilo,			// my output range
+				zihi,
+				zolo,			// extended input range
+				zohi,
+				zpernode;		// max layers per node
+	bool		catclr,			// remake point catalog
+				catonly,
+				untwist;		// iff prior are affines
 
 public:
 	CArgs()
@@ -100,11 +100,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			printf( "Temp dir: '%s'.\n", tempdir );
 			GetIDB( tempdir );
 		}
-		else if( GetArgStr( instr, "-prior=", argv[i] ) ) {
-
-			prior = strdup( instr );
+		else if( GetArgStr( prior, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", prior );
-		}
 		else if( GetArg( &wkid, "-wkid=%d", argv[i] ) )
 			printf( "wkid %d\n", wkid );
 		else if( GetArgList( vi, "-zi=", argv[i] ) ) {

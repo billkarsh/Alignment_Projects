@@ -26,9 +26,9 @@
 class CArgs {
 
 public:
-	char	*inpath,
-			*idb;
-	double	degcw;
+	const char	*inpath,
+				*idb;
+	double		degcw;
 
 public:
 	CArgs()

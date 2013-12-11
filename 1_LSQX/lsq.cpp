@@ -50,32 +50,32 @@ public:
 	//
 	vector<MZID>	include_only;	// if given, include only these
 	vector<double>	lrbt;			// if not empty, forced bbox
-	double	same_strength,
-			square_strength,
-			scale_strength,
-			scaf_strength,
-			tfm_tol,			// transform uniformity tol
-			thresh,				// outlier if worse than this
-			trim,				// trim this off XML images
-			degcw;				// rotate clockwise degrees
-	char	*pts_file,
-			*dir_file,
-			*unt_file,
-			*priorafftbl;		// start affine model from these
-	int		model,				// model type {T,S,A,H}
-			minMtgLinks,		// min connected neib/tile in montage
-			unite_layer,
-			ref_layer,
-			nproc,
-			max_pass,
-			xml_type,
-			xml_min,
-			xml_max,
-			viserr;				// 0, or, error scale
-	bool	strings,
-			lens,
-			use_all,			// align even if #pts < 3/tile
-			davinocorn;			// no davi bock same lyr corners
+	double		same_strength,
+				square_strength,
+				scale_strength,
+				scaf_strength,
+				tfm_tol,			// transform uniformity tol
+				thresh,				// outlier if worse than this
+				trim,				// trim this off XML images
+				degcw;				// rotate clockwise degrees
+	const char	*pts_file,
+				*dir_file,
+				*unt_file,
+				*priorafftbl;		// start affine model from these
+	int			model,				// model type {T,S,A,H}
+				minMtgLinks,		// min conn. neib/tile in mtg
+				unite_layer,
+				ref_layer,
+				nproc,
+				max_pass,
+				xml_type,
+				xml_min,
+				xml_max,
+				viserr;				// 0, or, error scale
+	bool		strings,
+				lens,
+				use_all,			// align even if #pts < 3/tile
+				davinocorn;			// no davi bock same lyr corners
 
 public:
 	CArgs_lsq()
@@ -318,19 +318,16 @@ void CArgs_lsq::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArgStr( instr, "-unite=", argv[i] ) ) {
 
-			char	buf[2048];
+			int	k;
 
-			sscanf( instr, "%d,%s", &unite_layer, buf );
-			unt_file = strdup( buf );
+			sscanf( instr, "%d%n", &unite_layer, &k );
+			unt_file = instr + k + 1;
 
 			printf( "Uniting: layer %d of '%s'.\n",
 			unite_layer, unt_file );
 		}
-		else if( GetArgStr( instr, "-prior=", argv[i] ) ) {
-
-			priorafftbl = strdup( instr );
+		else if( GetArgStr( priorafftbl, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", priorafftbl );
-		}
 		else if( GetArg( &minMtgLinks, "-minmtglinks=%d", argv[i] ) )
 			printf( "Minimum montage neib/tile %d\n", minMtgLinks );
 		else if( GetArg( &ref_layer, "-refz=%d", argv[i] ) )
