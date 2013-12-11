@@ -85,8 +85,11 @@ void MDL::Bounds(
 // space, including any global rotation (degcw) and find
 // bounds over whole set.
 
-	double	xmin, xmax, ymin, ymax;
-	int		nr = vRgn.size();
+	vector<Point>	cnr;
+	double			xmin, xmax, ymin, ymax;
+	int				nr = vRgn.size();
+
+	Set4Corners( cnr, gW, gH );
 
 	if( lrbt.size() ) {
 
@@ -112,21 +115,15 @@ void MDL::Bounds(
 			if( itr < 0 )
 				continue;
 
-			vector<Point>	cnr( 4 );
-
-			cnr[0] = Point(  0.0, 0.0 );
-			cnr[1] = Point( gW-1, 0.0 );
-			cnr[2] = Point( gW-1, gH-1 );
-			cnr[3] = Point(  0.0, gH-1 );
-
-			L2GPoint( cnr, X, itr );
+			vector<Point>	c( 4 );
+			memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+			L2GPoint( c, X, itr );
 
 			for( int k = 0; k < 4; ++k ) {
-
-				xmin = fmin( xmin, cnr[k].x );
-				xmax = fmax( xmax, cnr[k].x );
-				ymin = fmin( ymin, cnr[k].y );
-				ymax = fmax( ymax, cnr[k].y );
+				xmin = fmin( xmin, c[k].x );
+				xmax = fmax( xmax, c[k].x );
+				ymin = fmin( ymin, c[k].y );
+				ymax = fmax( ymax, c[k].y );
 			}
 		}
 	}
@@ -159,19 +156,15 @@ void MDL::Bounds(
 		if( itr < 0 )
 			continue;
 
-		vector<Point>	cnr( 4 );
+		vector<Point>	c( 4 );
 		double			xmid = 0.0, ymid = 0.0;
 
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point(  0.0, gH-1 );
-
-		L2GPoint( cnr, X, itr );
+		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		L2GPoint( c, X, itr );
 
 		for( int k = 0; k < 4; ++k ) {
-			xmid += cnr[k].x;
-			ymid += cnr[k].y;
+			xmid += c[k].x;
+			ymid += c[k].y;
 		}
 
 		xmid /= 4.0;

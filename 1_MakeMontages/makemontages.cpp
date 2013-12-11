@@ -1039,23 +1039,19 @@ static void WriteMakeFile(
 //
 void BlockSet::OrientLayer( int is0, int isN )
 {
-// Collect all tile corners
+// Collect all tile corners in (C)
 
-	vector<Point>	C;
+	vector<Point>	C, cnr;
+	Set4Corners( cnr, gW, gH );
 
 	for( int i = is0; i < isN; ++i ) {
 
-		vector<Point>	p( 4 );
-
-		p[0] = Point( 0.0 , 0.0 );
-		p[1] = Point( gW-1, 0.0 );
-		p[2] = Point( gW-1, gH-1 );
-		p[3] = Point( 0.0 , gH-1 );
-
-		TS.vtil[i].T.Transform( p );
+		vector<Point>	c( 4 );
+		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		TS.vtil[i].T.Transform( c );
 
 		for( int i = 0; i < 4; ++i )
-			C.push_back( p[i] );
+			C.push_back( c[i] );
 	}
 
 // Rotate layer upright and translate to (0,0)

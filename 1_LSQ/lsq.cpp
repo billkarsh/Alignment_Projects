@@ -830,28 +830,23 @@ static void ApplyLens( vector<double> &X, bool inv )
 static double AontoBOverlap( TAffine &a, TAffine &b )
 {
 	TAffine			T;	// T = a->b
-	vector<Point>	corners( 4 );
+	vector<Point>	cnr;
 
 	T.FromAToB( a, b );
-
-	corners[0] = Point(  0.0, 0.0 );
-	corners[1] = Point( gW-1, 0.0 );
-	corners[2] = Point( gW-1, gH-1 );
-	corners[3] = Point(  0.0, gH-1 );
+	Set4Corners( cnr, gW, gH );
 
 // bounding box.
 
 	double xmin = 1E9, xmax = -1E9;
 	double ymin = 1E9, ymax = -1E9;
 
+	T.Transform( cnr );
+
 	for( int k = 0; k < 4; ++k ) {
-
-		T.Transform( corners[k] );
-
-		xmin = fmin( xmin, corners[k].x );
-		ymin = fmin( ymin, corners[k].y );
-		xmax = fmax( xmax, corners[k].x );
-		ymax = fmax( ymax, corners[k].y );
+		xmin = fmin( xmin, cnr[k].x );
+		ymin = fmin( ymin, cnr[k].y );
+		xmax = fmax( xmax, cnr[k].x );
+		ymax = fmax( ymax, cnr[k].y );
 	}
 
 // any overlap possibility?

@@ -1134,7 +1134,6 @@ static void TopLeft(
 	left = BIGD;
 
 	for( int k = 0; k < 4; ++k ) {
-
 		top  = fmin( top,  cnr[k].y );
 		left = fmin( left, cnr[k].x );
 	}

@@ -332,6 +332,8 @@ int IDBGetIDRgnMap(
 	vector<Cfmline>	vline;
 	int				nelem = 0;
 
+	m.clear();
+
 // Scan entries into vector
 
 	sprintf( name, "%s/%d/fm.same", idb.c_str(), z );
@@ -343,8 +345,10 @@ int IDBGetIDRgnMap(
 		while( line.FromFile( f ) )
 			vline.push_back( line );
 	}
-	else
+	else {
 		fprintf( flog, "IDBGetIDRgnMap: Can't open [%s].\n", name );
+		return 0;
+	}
 
 	if( f )
 		fclose( f );

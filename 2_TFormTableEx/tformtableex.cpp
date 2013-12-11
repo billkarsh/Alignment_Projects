@@ -121,10 +121,13 @@ static void GetXYH(
 	x0 = BIGD;
 	y0 = BIGD;
 
+	THmgphy			T;
+	vector<Point>	cnr;
+	Set4Corners( cnr, gW, gH );
+
 	while( LS.Get( fi ) > 0 ) {
 
-		THmgphy	T;
-		int		z, id, rgn;
+		int	z, id, rgn;
 
 		sscanf( LS.line, "%d\t%d\t%d"
 		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
@@ -133,21 +136,14 @@ static void GetXYH(
 		&T.t[3], &T.t[4], &T.t[5],
 		&T.t[6], &T.t[7] );
 
+		vector<Point>	c( 4 );
+		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
 		T = R * T;
-
-		vector<Point>	cnr( 4 );
-
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point(  0.0, gH-1 );
-
-		T.Transform( cnr );
+		T.Transform( c );
 
 		for( int k = 0; k < 4; ++k ) {
-
-			x0 = fmin( x0, cnr[k].x );
-			y0 = fmin( y0, cnr[k].y );
+			x0 = fmin( x0, c[k].x );
+			y0 = fmin( y0, c[k].y );
 		}
 	}
 
@@ -220,10 +216,13 @@ static void GetXYA(
 	x0 = BIGD;
 	y0 = BIGD;
 
+	TAffine			T;
+	vector<Point>	cnr;
+	Set4Corners( cnr, gW, gH );
+
 	while( LS.Get( fi ) > 0 ) {
 
-		TAffine	T;
-		int		z, id, rgn;
+		int	z, id, rgn;
 
 		sscanf( LS.line, "%d\t%d\t%d"
 		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
@@ -231,21 +230,14 @@ static void GetXYA(
 		&T.t[0], &T.t[1], &T.t[2],
 		&T.t[3], &T.t[4], &T.t[5] );
 
+		vector<Point>	c( 4 );
+		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
 		T = R * T;
-
-		vector<Point>	cnr( 4 );
-
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point(  0.0, gH-1 );
-
-		T.Transform( cnr );
+		T.Transform( c );
 
 		for( int k = 0; k < 4; ++k ) {
-
-			x0 = fmin( x0, cnr[k].x );
-			y0 = fmin( y0, cnr[k].y );
+			x0 = fmin( x0, c[k].x );
+			y0 = fmin( y0, c[k].y );
 		}
 	}
 

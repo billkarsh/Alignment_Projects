@@ -124,4 +124,20 @@ void Mangle( Point &p, int w, int h )
 		p0.x, p0.y, p.x, p.y );
 }
 
+/* --------------------------------------------------------------- */
+/* Set4Corners --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Convenience to initialize a vector with the four corners
+// of an image (or other rectangle).
+//
+void Set4Corners( vector<Point> &cnr, int w, int h )
+{
+	cnr.resize( 4 );
+	cnr[0] = Point( 0.0, 0.0 );
+	cnr[1] = Point( w-1, 0.0 );
+	cnr[2] = Point( w-1, h-1 );
+	cnr[3] = Point( 0.0, h-1 );
+}
+
 

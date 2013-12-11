@@ -157,17 +157,11 @@ static void MakeBounds(
 
 	for( int i = 0; i < nL; ++i ) {
 
-		vector<Point>	cnr( 4 );
-
-		cnr[0] = Point(            0.0,            0.0 );
-		cnr[1] = Point( vL[i].M.ws - 1,            0.0 );
-		cnr[2] = Point( vL[i].M.ws - 1, vL[i].M.hs - 1 );
-		cnr[3] = Point(            0.0, vL[i].M.hs - 1 );
-
+		vector<Point>	cnr;
+		Set4Corners( cnr, vL[i].M.ws, vL[i].M.hs );
 		vT[i].Transform( cnr );
 
 		for( int k = 0; k < 4; ++k ) {
-
 			B.L = fmin( B.L, cnr[k].x );
 			B.R = fmax( B.R, cnr[k].x );
 			B.B = fmin( B.B, cnr[k].y );

@@ -103,7 +103,7 @@ public:
 	TAffine AffineFromClix( const TSClix &clk );
 	void ApplyClix( int tfType, const char *path );
 
-	void BoundsPlus1( DBox &B, int i );
+	void BoundsPlus1( DBox &B, const vector<Point> &cnr, int i );
 	void LayerBounds( DBox &B, int is0, int isN );
 	void AllBounds( DBox &B );
 	void Reframe( DBox &B );

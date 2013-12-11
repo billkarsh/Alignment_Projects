@@ -728,23 +728,17 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 
 // Update existing bounds B by including tile i.
 //
-void CTileSet::BoundsPlus1( DBox &B, int i )
+void CTileSet::BoundsPlus1( DBox &B, const vector<Point> &cnr, int i )
 {
-	vector<Point>	cnr( 4 );
-
-	cnr[0] = Point(  0.0, 0.0 );
-	cnr[1] = Point( gW-1, 0.0 );
-	cnr[2] = Point( gW-1, gH-1 );
-	cnr[3] = Point(  0.0, gH-1 );
-
-	vtil[i].T.Transform( cnr );
+	vector<Point>	c( 4 );
+	memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+	vtil[i].T.Transform( c );
 
 	for( int k = 0; k < 4; ++k ) {
-
-		B.L = fmin( B.L, cnr[k].x );
-		B.R = fmax( B.R, cnr[k].x );
-		B.B = fmin( B.B, cnr[k].y );
-		B.T = fmax( B.T, cnr[k].y );
+		B.L = fmin( B.L, c[k].x );
+		B.R = fmax( B.R, c[k].x );
+		B.B = fmin( B.B, c[k].y );
+		B.T = fmax( B.T, c[k].y );
 	}
 }
 
@@ -756,11 +750,14 @@ void CTileSet::BoundsPlus1( DBox &B, int i )
 //
 void CTileSet::LayerBounds( DBox &B, int is0, int isN )
 {
+	vector<Point>	cnr;
+	Set4Corners( cnr, gW, gH );
+
 	B.L = BIGD, B.R = -BIGD,
 	B.B = BIGD, B.T = -BIGD;
 
 	for( int i = is0; i < isN; ++i )
-		BoundsPlus1( B, i );
+		BoundsPlus1( B, cnr, i );
 }
 
 /* --------------------------------------------------------------- */
@@ -769,13 +766,16 @@ void CTileSet::LayerBounds( DBox &B, int is0, int isN )
 
 void CTileSet::AllBounds( DBox &B )
 {
+	vector<Point>	cnr;
+	Set4Corners( cnr, gW, gH );
+
 	B.L = BIGD, B.R = -BIGD,
 	B.B = BIGD, B.T = -BIGD;
 
 	int	nt = vtil.size();
 
 	for( int i = 0; i < nt; ++i )
-		BoundsPlus1( B, i );
+		BoundsPlus1( B, cnr, i );
 }
 
 /* --------------------------------------------------------------- */
@@ -879,19 +879,14 @@ double CTileSet::ABOlap( int a, int b, const TAffine *Tab )
 // Set a vertices (b-system) CCW ordered for LeftSide calcs
 
 	{
-		vector<Point>	p( 4 );
-
-		p[0] = Point( 0.0 , 0.0 );
-		p[1] = Point( gW-1, 0.0 );
-		p[2] = Point( gW-1, gH-1 );
-		p[3] = Point( 0.0 , gH-1 );
-
-		T.Transform( p );
+		vector<Point>	c( 4 );
+		Set4Corners( c, gW, gH );
+		T.Transform( c );
 
 		for( int i = 0; i < 4; ++i ) {
 
-			va[i].x = int(p[i].x);
-			va[i].y = int(p[i].y);
+			va[i].x = int(c[i].x);
+			va[i].y = int(c[i].y);
 
 			// make close coords same
 

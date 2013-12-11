@@ -37,4 +37,6 @@ void MakeZeroBasedPoints( vector<Point> &P, int w, int h );
 
 void Mangle( Point &p, int w, int h );
 
+void Set4Corners( vector<Point> &cnr, int w, int h );
+
 

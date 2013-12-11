@@ -138,7 +138,7 @@ static void TrimTiles( TiXmlElement* layer )
 
 		pnext = ptch->NextSiblingElement();
 
-		vector<Point>	cnr( 4 );
+		vector<Point>	cnr;
 		TAffine			T;
 		DBox			B;
 		int				w, h;
@@ -150,15 +150,10 @@ static void TrimTiles( TiXmlElement* layer )
 		B.L = BIGD, B.R = -BIGD,
 		B.B = BIGD, B.T = -BIGD;
 
-		cnr[0] = Point( 0.0, 0.0 );
-		cnr[1] = Point( w-1, 0.0 );
-		cnr[2] = Point( w-1, h-1 );
-		cnr[3] = Point( 0.0, h-1 );
-
+		Set4Corners( cnr, w, h );
 		T.Transform( cnr );
 
 		for( int k = 0; k < 4; ++k ) {
-
 			B.L = fmin( B.L, cnr[k].x );
 			B.R = fmax( B.R, cnr[k].x );
 			B.B = fmin( B.B, cnr[k].y );

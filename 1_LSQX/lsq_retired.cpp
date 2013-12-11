@@ -177,7 +177,6 @@ static void Bounds(
 		T.Transform( pts );
 
 		for( int k = 0; k < 4; ++k ) {
-
 			xmin = fmin( xmin, pts[k].x );
 			xmax = fmax( xmax, pts[k].x );
 			ymin = fmin( ymin, pts[k].y );

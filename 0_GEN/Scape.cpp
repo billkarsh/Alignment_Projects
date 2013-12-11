@@ -26,31 +26,28 @@ static void AdjustBounds(
 {
 // maximum extents over all image corners
 
-	double	xmin, xmax, ymin, ymax;
-	int		nt = vTile.size();
+	vector<Point>	cnr;
+	double			xmin, xmax, ymin, ymax;
+	int				nt = vTile.size();
 
 	xmin =  BIGD;
 	xmax = -BIGD;
 	ymin =  BIGD;
 	ymax = -BIGD;
 
+	Set4Corners( cnr, wi, hi );
+
 	for( int i = 0; i < nt; ++i ) {
 
-		vector<Point>	cnr( 4 );
-
-		cnr[0] = Point(  0.0, 0.0 );
-		cnr[1] = Point( wi-1, 0.0 );
-		cnr[2] = Point( wi-1, hi-1 );
-		cnr[3] = Point(  0.0, hi-1 );
-
-		vTile[i].t2g.Transform( cnr );
+		vector<Point>	c( 4 );
+		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		vTile[i].t2g.Transform( c );
 
 		for( int k = 0; k < 4; ++k ) {
-
-			xmin = fmin( xmin, cnr[k].x );
-			xmax = fmax( xmax, cnr[k].x );
-			ymin = fmin( ymin, cnr[k].y );
-			ymax = fmax( ymax, cnr[k].y );
+			xmin = fmin( xmin, c[k].x );
+			xmax = fmax( xmax, c[k].x );
+			ymin = fmin( ymin, c[k].y );
+			ymax = fmax( ymax, c[k].y );
 		}
 	}
 
@@ -128,7 +125,6 @@ static void ScanLims(
 	T.Transform( cnr );
 
 	for( int k = 0; k < 4; ++k ) {
-
 		xmin = fmin( xmin, cnr[k].x );
 		xmax = fmax( xmax, cnr[k].x );
 		ymin = fmin( ymin, cnr[k].y );

@@ -335,23 +335,20 @@ void CSuperscape::CalcBBox()
 	bb.B =  BIGD;
 	bb.T = -BIGD;
 
+	vector<Point>	cnr;
+	Set4Corners( cnr, gW, gH );
+
 	for( int i = 0; i < gDat.ntil; ++i ) {
 
-		vector<Point>	cnr( 4 );
-
-		cnr[0] = Point( 0.0 , 0.0 );
-		cnr[1] = Point( gW-1, 0.0 );
-		cnr[2] = Point( gW-1, gH-1 );
-		cnr[3] = Point( 0.0 , gH-1 );
-
-		TS.vtil[vID[i]].T.Transform( cnr );
+		vector<Point>	c( 4 );
+		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		TS.vtil[vID[i]].T.Transform( c );
 
 		for( int k = 0; k < 4; ++k ) {
-
-			bb.L = fmin( bb.L, cnr[k].x );
-			bb.R = fmax( bb.R, cnr[k].x );
-			bb.B = fmin( bb.B, cnr[k].y );
-			bb.T = fmax( bb.T, cnr[k].y );
+			bb.L = fmin( bb.L, c[k].x );
+			bb.R = fmax( bb.R, c[k].x );
+			bb.B = fmin( bb.B, c[k].y );
+			bb.T = fmax( bb.T, c[k].y );
 		}
 	}
 }
