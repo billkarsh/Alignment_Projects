@@ -1515,7 +1515,7 @@ static void AFromA_SLOnly( double *RHS, int i, int ithr )
 
 	if( nSLc < 3 ||
 		!Solve_Quick( LHS, RHS, 6 ) ||
-		TAffine( RHS ).Squareness() > SQRTOL ) {
+		X_AS_AFF( RHS, 0 ).Squareness() > SQRTOL ) {
 
 		vthr[ithr].Rkil.push_back( i );
 	}
@@ -1543,11 +1543,11 @@ static void* _OnePass_AFromA_stk( void* ithr )
 		if( nc < 3 )
 			continue;
 
-		double	*RHS = &(*Xout)[R.itr * 6];
-		double	LHS[6*6];
-		TAffine	Ta( &(*Xin)[R.itr * 6] );
-		TAffine	Tb;
-		int		lastb = -1;	// cache Tb
+		double		*RHS = &(*Xout)[R.itr * 6];
+		double		LHS[6*6];
+		TAffine*	Ta = &X_AS_AFF( *Xin, R.itr );
+		TAffine*	Tb;
+		int			lastb = -1;	// cache Tb
 
 		memset( RHS, 0, 6   * sizeof(double) );
 		memset( LHS, 0, 6*6 * sizeof(double) );
@@ -1570,11 +1570,12 @@ static void* _OnePass_AFromA_stk( void* ithr )
 					continue;
 
 				if( C.r2 != lastb ) {
-					Tb.CopyIn( &(*Xin)[bitr * 6] );
+					Tb = &X_AS_AFF( *Xin, bitr );
 					lastb = C.r2;
 				}
-				Tb.Transform( B = C.p2 );
-				Ta.Transform( A = C.p1 );
+				Tb->Transform( B = C.p2 );
+				Ta->Transform( A = C.p1 );
+
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p1;
@@ -1587,11 +1588,12 @@ static void* _OnePass_AFromA_stk( void* ithr )
 					continue;
 
 				if( C.r1 != lastb ) {
-					Tb.CopyIn( &(*Xin)[bitr * 6] );
+					Tb = &X_AS_AFF( *Xin, bitr );
 					lastb = C.r1;
 				}
-				Tb.Transform( B = C.p1 );
-				Ta.Transform( A = C.p2 );
+				Tb->Transform( B = C.p1 );
+				Ta->Transform( A = C.p2 );
+
 				B.x = w * B.x + (1 - w) * A.x;
 				B.y = w * B.y + (1 - w) * A.y;
 				A = C.p2;
@@ -1609,7 +1611,7 @@ static void* _OnePass_AFromA_stk( void* ithr )
 		}
 
 		if( !Solve_Quick( LHS, RHS, 6 ) ||
-			TAffine( RHS ).Squareness() > SQRTOL ) {
+			X_AS_AFF( RHS, 0 ).Squareness() > SQRTOL ) {
 
 			AFromA_SLOnly( RHS, i, (int)(long)ithr );
 		}
