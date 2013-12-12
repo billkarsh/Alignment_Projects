@@ -206,7 +206,7 @@ static void ReadParams()
 		}
 
 		fprintf( flog,
-		"chan=%d,useAff=%c,Aff=[%g %g %g %g %g %g],%s\n",
+		"chan=%d,useAff=%c,Aff=[%f %f %f %f %f %f],%s\n",
 		chan, cUse,
 		A[0], A[1], A[2], A[3], A[4], A[5],
 		buf );
@@ -219,7 +219,7 @@ static void ReadParams()
 			&fford[chan], &ffoff[chan],
 			&ffave[chan], &ffstd[chan] ) ) {
 
-			fprintf( flog, "ff chan %d using LEG [%d,%d,%g,%g].\n",
+			fprintf( flog, "ff chan %d using LEG [%d,%d,%f,%f].\n",
 			chan,
 			fford[chan], ffoff[chan],
 			ffave[chan], ffstd[chan] );

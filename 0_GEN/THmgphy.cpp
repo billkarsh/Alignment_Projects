@@ -268,7 +268,7 @@ void THmgphy::TPrint( FILE *f, const char *s ) const
 	if( !f )
 		f = stdout;
 
-	fprintf( f, "%s%g %g %g  %g %g %g  %g %g\n",
+	fprintf( f, "%s%f %f %f  %f %f %f  %.12g %.12g\n",
 		(s ? s : ""),
 		t[0], t[1], t[2],
 		t[3], t[4], t[5],
@@ -281,7 +281,7 @@ void THmgphy::TPrint( FILE *f, const char *s ) const
 
 void THmgphy::TPrintAsParam( FILE *f, bool newline ) const
 {
-	fprintf( f, " -TRH=%g,%g,%g,%g,%g,%g,%g,%g%c",
+	fprintf( f, " -TRH=%f,%f,%f,%f,%f,%f,%.12g,%.12g%c",
 		t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7],
 		(newline ? '\n' : ' ') );
 }

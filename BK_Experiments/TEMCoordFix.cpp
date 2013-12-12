@@ -69,7 +69,7 @@ static void Fix( char *path, int len, int chn )
 	f = FileOpenOrDie( path, "w" );
 	for( int i = 0; i < nc; ++i ) {
 		CRec&	C = V[i];
-		fprintf( f, "%s\t%g\t%g\t%d\n",
+		fprintf( f, "%s\t%f\t%f\t%d\n",
 			C.name, C.x, C.y, C.z );
 	}
 	fclose( f );
@@ -82,7 +82,7 @@ static void Fix( char *path, int len, int chn )
 	f = FileOpenOrDie( path, "w" );
 	for( int i = 0; i < nc; ++i ) {
 		CRec&	C = V[i];
-		fprintf( f, "%s\t%g\t%g\t%d\n",
+		fprintf( f, "%s\t%f\t%f\t%d\n",
 			C.name, C.x/Q, C.y/Q, C.z );
 	}
 	fclose( f );

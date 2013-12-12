@@ -244,7 +244,7 @@ static void Update()
 
 		const CTile	&T = vT[i];
 
-		fprintf( f, "%s\t%g\t%g\t%d\n",
+		fprintf( f, "%s\t%f\t%f\t%d\n",
 			T.name.c_str(), T.x, T.y, T.z );
 	}
 

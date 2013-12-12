@@ -431,7 +431,7 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 		A.y  = 0;
 
 		fprintf( f,
-		"%d\t%g\t%g\t%g"
+		"%d\t%.12g\t%.12g\t%.12g"
 		"\t\t%g\t%g\t\t%g\t%g\t\t%g\t%g\t\t%g\t%g\n",
 		m->cam, d, X[j+6], X[j+7],
 		A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y );
@@ -445,7 +445,7 @@ void MHmgphy::WriteSideRatios( const vector<double> &X )
 
 		M[i].Stats( ave, std );
 
-		printf( "{cam,L/R,std}: {%d,%g,%g}\n", i, ave, std );
+		printf( "{cam,L/R,std}: {%d,%.12g,%.12g}\n", i, ave, std );
 	}
 
 	fclose( f );
@@ -491,7 +491,7 @@ void MHmgphy::WriteTransforms(
 
 		++nTr;
 
-		fprintf( ft, "%d\t%d\t%d\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
+		fprintf( ft, "%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g\n",
 		I.z, I.id, I.rgn,
 		X[j  ], X[j+1], X[j+2],
 		X[j+3], X[j+4], X[j+5],
@@ -499,14 +499,14 @@ void MHmgphy::WriteTransforms(
 
 		if( !bstrings ) {
 
-			fprintf( FOUT, "THMGPHY %d.%d:%d %g %g %g %g %g %g %g %g\n",
+			fprintf( FOUT, "THMGPHY %d.%d:%d %f %f %f %f %f %f %.12g %.12g\n",
 			I.z, I.id, I.rgn,
 			X[j  ], X[j+1], X[j+2],
 			X[j+3], X[j+4], X[j+5],
 			X[j+6], X[j+7] );
 		}
 		else {
-			fprintf( FOUT, "THMGPHY '%s::%d' %g %g %g %g %g %g %g %g\n",
+			fprintf( FOUT, "THMGPHY '%s::%d' %f %f %f %f %f %f %.12g %.12g\n",
 			I.GetName(), I.rgn,
 			X[j  ], X[j+1], X[j+2],
 			X[j+3], X[j+4], X[j+5],
@@ -682,7 +682,7 @@ void MHmgphy::WriteTrakEM(
 		fprintf( f,
 		"\t\t\t<ict_transform"
 		" class=\"mpicbg.trakem2.transform.HomographyModel2D\""
-		" data=\"%g %g %g %g %g %g %g %g 1\"/>\n"
+		" data=\"%f %f %f %f %f %f %.12g %.12g 1\"/>\n"
 		"\t\t\t</t2_patch>\n",
 		X[j  ], X[j+1], X[j+2], X[j+3],
 		X[j+4], X[j+5], X[j+6], X[j+7] );
@@ -734,7 +734,7 @@ void MHmgphy::WriteJython(
 
 		TopLeft( y_orig, x_orig, T, gW, gH, trim );
 
-		fprintf( f, "\"%s\" : [%g, %g, %g, %g, %g, %g, %g, %g]%s\n",
+		fprintf( f, "\"%s\" : [%f, %f, %f, %f, %f, %f, %.12g, %.12g]%s\n",
 			path,
 			X[j+0], X[j+3], X[j+6],
 			X[j+1], X[j+4], X[j+7],

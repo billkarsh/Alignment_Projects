@@ -224,8 +224,8 @@ static void GetWholeLayerTF()
 		else if( dz > 180 )
 			dz -= 360;
 
-		fprintf( f, "%d\t%g\t%g\t%g"
-		"\t%g\t%g\t%g\t%g\t%g\t%g\n",
+		fprintf( f, "%d\t%f\t%f\t%f"
+		"\t%f\t%f\t%f\t%f\t%f\t%f\n",
 		z, zave, dz, zave - zave0,
 		t[0], t[1], t[2], t[3], t[4], t[5] );
 	}

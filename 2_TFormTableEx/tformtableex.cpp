@@ -188,7 +188,7 @@ static void MergeH()
 			T = S * (R * T);
 
 		fprintf( fo, "%d\t%d"
-		"\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g"
+		"\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g"
 		"\t%d\t%d\t%d\t%s\n",
 		z, id,
 		T.t[0], T.t[1], T.t[2],

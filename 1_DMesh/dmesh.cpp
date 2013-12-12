@@ -218,7 +218,7 @@ static void FitAffine(
 				fprintf( f,
 				"AFFINE"
 				" %d.%d:%d %d.%d:%d"
-				" %g %g %g %g %g %g\n",
+				" %f %f %f %f %f %f\n",
 				GBL.A.z, GBL.A.id, argn,
 				GBL.B.z, GBL.B.id, brgn,
 				RHS[0], RHS[1], RHS[2],
@@ -343,7 +343,7 @@ static void FitHmgphy(
 				fprintf( f,
 				"HMGPHY"
 				" %d.%d:%d %d.%d:%d"
-				" %g %g %g %g %g %g %g %g\n",
+				" %f %f %f %f %f %f %.12g %.12g\n",
 				GBL.A.z, GBL.A.id, argn,
 				GBL.B.z, GBL.B.id, brgn,
 				RHS[0], RHS[1], RHS[2],

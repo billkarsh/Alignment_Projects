@@ -509,7 +509,7 @@ void CSuperscape::WriteMeta()
 	"*%c: z scl [ws,hs] [x0,y0]\n", clbl );
 
 	fprintf( flog,
-	"%d %d [%d,%d] [%g,%g]\n",
+	"%d %d [%d,%d] [%f,%f]\n",
 	TS.vtil[is0].z, gArgs.abscl, ws, hs, x0, y0 );
 }
 
@@ -638,7 +638,7 @@ static bool ThisBZ(
 		best.T.SetXY( best.X, best.Y );
 
 		fprintf( flog, "*T: [0,1,2,3,4,5] (block-block)\n" );
-		fprintf( flog, "[%g,%g,%g,%g,%g,%g]\n",
+		fprintf( flog, "[%f,%f,%f,%f,%f,%f]\n",
 		best.T.t[0], best.T.t[1], best.T.t[2],
 		best.T.t[3], best.T.t[4], best.T.t[5] );
 	}
@@ -881,7 +881,7 @@ static void WriteMakeFile(
 
 			fprintf( f,
 			"\tptest %d/%d@%d/%d"
-			" -Tab=%g,%g,%g,%g,%g,%g%s ${EXTRA}\n\n",
+			" -Tab=%f,%f,%f,%f,%f,%f%s ${EXTRA}\n\n",
 			a.z, a.id, b.z, b.id,
 			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
 			option_nf );

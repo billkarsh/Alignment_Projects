@@ -937,7 +937,7 @@ void MHmgphy::AveHTerms(
 			h[i] /= nt[i];
 		}
 
-		printf( "Cam,G,H: %d\t%g\t%g\n", i, g[i], h[i] );
+		printf( "Cam,G,H: %d\t%.12g\t%.12g\n", i, g[i], h[i] );
 	}
 
 	IDBTil2ImgClear();
@@ -976,7 +976,7 @@ void MHmgphy::MedHTerms(
 		g[i] = MedianVal( G[i] );
 		h[i] = MedianVal( H[i] );
 
-		printf( "Cam,G,H: %d\t%g\t%g\n", i, g[i], h[i] );
+		printf( "Cam,G,H: %d\t%.12g\t%.12g\n", i, g[i], h[i] );
 	}
 
 	IDBTil2ImgClear();

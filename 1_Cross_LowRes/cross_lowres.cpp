@@ -289,8 +289,8 @@ static void Tabulate( const vector<CLog> &vL, int nL )
 
 		const TAffine	&T = vL[ib].T;
 
-		fprintf( f, "%d\t%g\t"
-		"%g\t%g\t%g\t%g\t%g\t%g\n",
+		fprintf( f, "%d\t%f\t"
+		"%f\t%f\t%f\t%f\t%f\t%f\n",
 		vL[ib].A.z, T.GetRadians() * 180/PI,
 		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5] );
 	}

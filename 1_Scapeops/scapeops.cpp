@@ -648,7 +648,7 @@ static void ScapeStuff()
 		best.T.SetXY( best.X, best.Y );
 
 		fprintf( flog, "*T: [0,1,2,3,4,5] (strip-strip)\n" );
-		fprintf( flog, "[%g,%g,%g,%g,%g,%g]\n",
+		fprintf( flog, "[%f,%f,%f,%f,%f,%f]\n",
 		best.T.t[0], best.T.t[1], best.T.t[2],
 		best.T.t[3], best.T.t[4], best.T.t[5] );
 	}
