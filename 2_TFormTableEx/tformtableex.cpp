@@ -187,10 +187,10 @@ static void MergeH()
 		if( gArgs.degcw )
 			T = S * (R * T);
 
-		fprintf( fo, "%d\t%d"
+		fprintf( fo, "%d\t%d\t%d"
 		"\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g"
 		"\t%d\t%d\t%d\t%s\n",
-		z, id,
+		z, id, rgn,
 		T.t[0], T.t[1], T.t[2],
 		T.t[3], T.t[4], T.t[5],
 		T.t[6], T.t[7],
@@ -281,10 +281,10 @@ static void MergeA()
 			T.t[5] -= y0;
 		}
 
-		fprintf( fo, "%d\t%d"
+		fprintf( fo, "%d\t%d\t%d"
 		"\t%f\t%f\t%f\t%f\t%f\t%f"
 		"\t%d\t%d\t%d\t%s\n",
-		z, id,
+		z, id, rgn
 		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
 		t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
 	}

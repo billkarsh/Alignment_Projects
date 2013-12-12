@@ -51,7 +51,7 @@ public:
 	double		degcw;
 	int			zilo,
 				zihi,
-				type;	// {'T','X'}
+				type;	// {'T','M','X'}
 
 public:
 	CArgs()
@@ -403,6 +403,94 @@ static void WriteT_Hmy()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteM_Aff ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteM_Aff()
+{
+	char	buf[64];
+	sprintf( buf, "X_A_MET/X_A_%d.txt", R.z );
+	FILE	*f = FileOpenOrDie( buf, "w" );
+
+	map<int,int>::iterator	mi, en = R.m.end();
+
+	for( mi = R.m.begin(); mi != en; ) {
+
+		int	id		= mi->first,
+			j0		= mi->second,
+			jlim	= (++mi == en ? R.nr : mi->second);
+
+		for( int j = j0; j < jlim; ++j ) {
+
+			if( !R.used[j] )
+				continue;
+
+			const Til2Img	*t2i;
+
+			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+				continue;
+
+			TAffine&	T = X_AS_AFF( X.X, j );
+
+			fprintf( f,
+			"%d\t%d"
+			"\t%f\t%f\t%f\t%f\t%f\t%f"
+			"\t%d\t%d\t%d\t%s\n",
+			id, j - j0 + 1,
+			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+			t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
+		}
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteM_Hmy ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteM_Hmy()
+{
+	char	buf[64];
+	sprintf( buf, "X_H_MET/X_H_%d.txt", R.z );
+	FILE	*f = FileOpenOrDie( buf, "w" );
+
+	map<int,int>::iterator	mi, en = R.m.end();
+
+	for( mi = R.m.begin(); mi != en; ) {
+
+		int	id		= mi->first,
+			j0		= mi->second,
+			jlim	= (++mi == en ? R.nr : mi->second);
+
+		for( int j = j0; j < jlim; ++j ) {
+
+			if( !R.used[j] )
+				continue;
+
+			const Til2Img	*t2i;
+
+			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+				continue;
+
+			THmgphy&	T = X_AS_HMY( X.X, j );
+
+			fprintf( f,
+			"%d\t%d"
+			"\t%f\t%f\t%f\t%f\t%f\t%f\t.12g\t%.12g"
+			"\t%d\t%d\t%d\t%s\n",
+			id, j - j0 + 1,
+			T.t[0], T.t[1], T.t[2],
+			T.t[3], T.t[4], T.t[5],
+			T.t[6], T.t[7],
+			t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
+		}
+	}
+
+	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
 /* ConvertA ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -418,6 +506,8 @@ static void ConvertA()
 
 	if( gArgs.type == 'T' )
 		DskCreateDir( "X_A_TXT", flog );
+	else if( gArgs.type == 'M' )
+		DskCreateDir( "X_A_MET", flog );
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
@@ -431,6 +521,8 @@ static void ConvertA()
 
 		if( gArgs.type == 'T' )
 			WriteT_Aff();
+		else if( gArgs.type == 'M' )
+			WriteM_Aff();
 	}
 }
 
@@ -450,6 +542,8 @@ static void ConvertH()
 
 	if( gArgs.type == 'T' )
 		DskCreateDir( "X_H_TXT", flog );
+	else if( gArgs.type == 'M' )
+		DskCreateDir( "X_H_MET", flog );
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
@@ -463,6 +557,8 @@ static void ConvertH()
 
 		if( gArgs.type == 'T' )
 			WriteT_Hmy();
+		else if( gArgs.type == 'M' )
+			WriteM_Hmy();
 	}
 }
 

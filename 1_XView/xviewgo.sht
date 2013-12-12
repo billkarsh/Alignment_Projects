@@ -11,8 +11,8 @@
 #
 # Options:
 # -degcw=0			;rotate CW degrees
-# -type=T			;{T,X} = {X_?_TXT,xml}
+# -type=T			;{T,M,X} = {X_?_TXT,X_?_MET,xml}
 
 
-xview /nobackup/bock/karsh/ZZ200/temp0/1000/lsqidev/X_A_BIN -idb=/nobackup/bock/karsh/ZZ200/idb0 -z=879,1088 -degcw=0 -type=T
+xview /nobackup/bock/karsh/ZZ200/temp0/1000/lsqidev/X_A_BIN -idb=/nobackup/bock/karsh/ZZ200/idb0 -z=879,1088 -degcw=0 -type=M
 

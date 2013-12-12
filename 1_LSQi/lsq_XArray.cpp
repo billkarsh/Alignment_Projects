@@ -88,8 +88,18 @@ static void* _AFromIDB( void* ithr )
 }
 
 /* --------------------------------------------------------------- */
-/* _AFromScfTxt -------------------------------------------------- */
+/* _AFromTxt ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+// There are two differences in reading 'TXT' vs 'MET' formats:
+//
+// (1) The folder path name; but that's absorbed in gpath.
+//
+// (2) We scan each line for {id,r,T} but there is more beyond
+//		in the 'MET' case. That's handled in CIDRA::FromFile()
+//		by format '%*[^\n]\n' which reads and tosses everything
+//		up to and including the terminator.
+//
 
 class CIDRA {
 public:
@@ -99,7 +109,7 @@ public:
 	inline bool FromFile( FILE *f )
 	{
 		return 8 == fscanf( f,
-			" %d %d %lf %lf %lf %lf %lf %lf\n",
+			" %d %d %lf %lf %lf %lf %lf %lf%*[^\n]\n",
 			&id, &r,
 			&A.t[0], &A.t[1], &A.t[2],
 			&A.t[3], &A.t[4], &A.t[5] );
@@ -131,7 +141,7 @@ static bool Read_vA( vector<CIDRA> &vA, int z )
 }
 
 
-static void* _AFromScfTxt( void* ithr )
+static void* _AFromTxt( void* ithr )
 {
 	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
 
@@ -195,6 +205,132 @@ static void* _AFromScfTxt( void* ithr )
 				if( R.pts[j].size() >= 3 ) {
 
 					A.A.CopyOut( &x[j * 6] );
+					R.used[j] = true;
+				}
+			}
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* _HFromTxt ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// There are two differences in reading 'TXT' vs 'MET' formats:
+//
+// (1) The folder path name; but that's absorbed in gpath.
+//
+// (2) We scan each line for {id,r,T} but there is more beyond
+//		in the 'MET' case. That's handled in CIDRH::FromFile()
+//		by format '%*[^\n]\n' which reads and tosses everything
+//		up to and including the terminator.
+//
+
+class CIDRH {
+public:
+	THmgphy	H;
+	int		id, r;
+public:
+	inline bool FromFile( FILE *f )
+	{
+		return 10 == fscanf( f,
+			" %d %d %lf %lf %lf %lf %lf %lf %lf %lf%*[^\n]\n",
+			&id, &r,
+			&H.t[0], &H.t[1], &H.t[2],
+			&H.t[3], &H.t[4], &H.t[5],
+			&H.t[6], &H.t[7] );
+	};
+};
+
+
+static bool Read_vH( vector<CIDRH> &vH, int z )
+{
+	char	buf[2048];
+	FILE	*f;
+	CIDRH	H;
+	bool	nf = true;	// default = no folds
+
+	sprintf( buf, "%s/X_H_%d.txt", gpath, z );
+	f = FileOpenOrDie( buf, "r" );
+
+	while( H.FromFile( f ) ) {
+
+		if( H.r > 1 )
+			nf = false;
+
+		vH.push_back( H );
+	}
+
+	fclose( f );
+
+	return nf;
+}
+
+
+static void* _HFromTxt( void* ithr )
+{
+	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+
+		Rgns&			R = vR[iz];
+		vector<double>&	x = ME->X[iz];
+		vector<CIDRH>	vH;
+		int				nf = Read_vH( vH, R.z );
+
+		x.resize( R.nr * 6 );
+
+		int						nh = vH.size();
+		map<int,int>::iterator	en = R.m.end();
+
+		if( nf ) {	// Propagate rgn #1 to all block members
+
+			// For each transform in vH...
+
+			for( int ih = 0; ih < nh; ++ih ) {
+
+				// Get its block start and limit {j0,jlim}
+
+				const CIDRH&			H = vH[ih];
+				map<int,int>::iterator	mi = R.m.find( H.id );
+				int						j0, jlim;
+
+				if( mi == en )
+					continue;
+
+				j0		= mi->second;
+				jlim	= (++mi != en ? mi->second : R.nr);
+
+				// Propagate rgn #1 tform to all block members
+
+				for( int j = j0; j < jlim; ++j ) {
+
+					if( R.pts[j].size() >= 4 ) {
+
+						H.H.CopyOut( &x[j * 6] );
+						R.used[j] = true;
+					}
+				}
+			}
+		}
+		else {	// Move each H to its specified position
+
+			// For each transform in vH...
+
+			for( int ih = 0; ih < nh; ++ih ) {
+
+				// Get its location j
+
+				const CIDRH&			H = vH[ih];
+				map<int,int>::iterator	mi = R.m.find( H.id );
+				int						j;
+
+				if( mi == en )
+					continue;
+
+				j = mi->second + H.r - 1;
+
+				if( R.pts[j].size() >= 4 ) {
+
+					H.H.CopyOut( &x[j * 6] );
 					R.used[j] = true;
 				}
 			}
@@ -364,9 +500,11 @@ void XArray::Load( const char *path )
 
 			NE = 6;
 
-			if( strstr( name, "X_A_TXT" ) ) {
-				proc	= _AFromScfTxt;
-				sproc	= "AFromScfTxt";
+			if( strstr( name, "X_A_TXT" ) ||
+				strstr( name, "X_A_MET" ) ) {
+
+				proc	= _AFromTxt;
+				sproc	= "AFromTxt";
 			}
 			else if( strstr( name, "X_A_BIN" ) ) {
 				proc	= _XFromBin;
@@ -379,7 +517,13 @@ void XArray::Load( const char *path )
 
 			NE = 8;
 
-			if( strstr( name, "X_H_BIN" ) ) {
+			if( strstr( name, "X_H_TXT" ) ||
+				strstr( name, "X_H_MET" ) ) {
+
+				proc	= _HFromTxt;
+				sproc	= "HFromTxt";
+			}
+			else if( strstr( name, "X_H_BIN" ) ) {
 				proc	= _XFromBin;
 				sproc	= "XFromBin";
 			}
