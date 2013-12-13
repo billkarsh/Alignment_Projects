@@ -6,6 +6,7 @@
 #include	"Disk.h"
 #include	"File.h"
 #include	"PipeFiles.h"
+#include	"TrakEM2_UTL.h"
 #include	"Timer.h"
 
 #include	<string.h>
@@ -28,7 +29,7 @@ public:
 	int				nr,		// num rgns
 					z;		// common z
 public:
-	int Init( int iz );
+	int Init( int iz, FILE *ferr );
 };
 
 class XArray {
@@ -48,20 +49,28 @@ class CArgs {
 public:
 	const char	*inpath,
 				*idb;
-	double		degcw;
+	double		degcw,
+				xml_trim;
 	int			zilo,
 				zihi,
-				type;	// {'T','M','X'}
+				type,	// {'T','M','X'}
+				xml_type,
+				xml_min,
+				xml_max;
 
 public:
 	CArgs()
 	{
-		inpath	= NULL;
-		idb		= NULL;
-		degcw	= 0.0;
-		zilo	= 0;
-		zihi	= 32768;
-		type	= 'T';
+		inpath		= NULL;
+		idb			= NULL;
+		degcw		= 0.0;
+		xml_trim	= 0.0;
+		zilo		= 0;
+		zihi		= 32768;
+		type		= 'T';
+		xml_type	= 0;
+		xml_min		= 0;
+		xml_max		= 0;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -140,6 +149,14 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 				exit( 42 );
 			}
 		}
+		else if( GetArg( &xml_trim, "-xmltrim=%lf", argv[i] ) )
+			;
+		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
+			;
+		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
+			;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -154,10 +171,10 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 /* Rgns::Init ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-int Rgns::Init( int iz )
+int Rgns::Init( int iz, FILE *ferr )
 {
 	z  = iz;
-	nr = IDBGetIDRgnMap( m, gArgs.idb, z, flog );
+	nr = IDBGetIDRgnMap( m, gArgs.idb, z, ferr );
 
 	if( nr )
 		used.resize( nr );
@@ -177,7 +194,7 @@ static void ReadXBin( vector<double> &x, int z )
 	sprintf( buf, "%s/X_%c_%d.bin",
 		gArgs.inpath, (X.NE == 6 ? 'A' : 'H'), z );
 
-	f = FileOpenOrDie( buf, "rb" );
+	f = FileOpenOrDie( buf, "rb", flog );
 	fread( &x[0], sizeof(double), x.size(), f );
 	fclose( f );
 }
@@ -189,7 +206,7 @@ static void ReadUBin( vector<char> &u, int z )
 	FILE	*f;
 
 	sprintf( buf, "%s/U_%d.bin", gArgs.inpath, z );
-	f = FileOpenOrDie( buf, "rb" );
+	f = FileOpenOrDie( buf, "rb", flog );
 	fread( &u[0], sizeof(char), u.size(), f );
 	fclose( f );
 }
@@ -220,7 +237,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z ) )
+		if( !R.Init( z, flog ) )
 			continue;
 
 		X.Load();
@@ -265,7 +282,7 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z ) )
+		if( !R.Init( z, flog ) )
 			continue;
 
 		X.Load();
@@ -338,7 +355,7 @@ static void WriteT_Aff()
 {
 	char	buf[64];
 	sprintf( buf, "X_A_TXT/X_A_%d.txt", R.z );
-	FILE	*f = FileOpenOrDie( buf, "w" );
+	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
 	map<int,int>::iterator	mi, en = R.m.end();
 
@@ -373,7 +390,7 @@ static void WriteT_Hmy()
 {
 	char	buf[64];
 	sprintf( buf, "X_H_TXT/X_H_%d.txt", R.z );
-	FILE	*f = FileOpenOrDie( buf, "w" );
+	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
 	map<int,int>::iterator	mi, en = R.m.end();
 
@@ -410,7 +427,7 @@ static void WriteM_Aff()
 {
 	char	buf[64];
 	sprintf( buf, "X_A_MET/X_A_%d.txt", R.z );
-	FILE	*f = FileOpenOrDie( buf, "w" );
+	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
 	map<int,int>::iterator	mi, en = R.m.end();
 
@@ -453,7 +470,7 @@ static void WriteM_Hmy()
 {
 	char	buf[64];
 	sprintf( buf, "X_H_MET/X_H_%d.txt", R.z );
-	FILE	*f = FileOpenOrDie( buf, "w" );
+	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
 	map<int,int>::iterator	mi, en = R.m.end();
 
@@ -491,6 +508,255 @@ static void WriteM_Hmy()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteXMLHead -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static FILE* WriteXMLHead( int &oid, const DBox &B )
+{
+	FILE	*f = FileOpenOrDie(
+					(isAff ? "Affine.xml" : "Hmgphy.xml"),
+					"w", flog );
+
+	oid = 3;
+
+	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
+
+	TrakEM2WriteDTD( f );
+
+	fprintf( f, "<trakem2>\n" );
+
+	fprintf( f,
+	"\t<project\n"
+	"\t\tid=\"0\"\n"
+	"\t\ttitle=\"Project\"\n"
+	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+	"\t\tn_mipmap_threads=\"8\"\n"
+	"\t/>\n" );
+
+	fprintf( f,
+	"\t<t2_layer_set\n"
+	"\t\toid=\"%d\"\n"
+	"\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
+	"\t\ttitle=\"Top level\"\n"
+	"\t\tlayer_width=\"%.2f\"\n"
+	"\t\tlayer_height=\"%.2f\"\n"
+	"\t>\n",
+	oid++, B.R, B.T );
+
+	return f;
+}
+
+/* --------------------------------------------------------------- */
+/* WriteXMLLyr_Aff ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteXMLLyr_Aff( FILE *f, int &oid )
+{
+	map<int,int>::iterator	mi, en = R.m.end();
+	int						offset = int(2 * gArgs.xml_trim + 0.5);
+
+	fprintf( f,
+	"\t\t<t2_layer\n"
+	"\t\t\toid=\"%d\"\n"
+	"\t\t\tthickness=\"0\"\n"
+	"\t\t\tz=\"%d\"\n"
+	"\t\t>\n",
+	oid++, R.z );
+
+	for( mi = R.m.begin(); mi != en; ) {
+
+		int	id		= mi->first,
+			j0		= mi->second,
+			jlim	= (++mi == en ? R.nr : mi->second);
+
+		for( int j = j0; j < jlim; ++j ) {
+
+			if( !R.used[j] )
+				continue;
+
+			const Til2Img	*t2i;
+
+			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+				continue;
+
+			char	title[128];
+
+			if( t2i->col != -999 ) {
+				sprintf( title, "%d.%d:%d_%d.%d.%d",
+					R.z, id, j - j0 + 1,
+					t2i->col, t2i->row, t2i->cam );
+			}
+			else
+				sprintf( title, "%d.%d:%d", R.z, id, j - j0 + 1 );
+
+			TAffine&	T = X_AS_AFF( X.X, j );
+
+			// fix origin : undo trimming
+			Point	o( gArgs.xml_trim, gArgs.xml_trim );
+			T.Transform( o );
+
+			fprintf( f,
+			"\t\t\t<t2_patch\n"
+			"\t\t\t\toid=\"%d\"\n"
+			"\t\t\t\twidth=\"%d\"\n"
+			"\t\t\t\theight=\"%d\"\n"
+			"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
+			"\t\t\t\ttitle=\"%s\"\n"
+			"\t\t\t\ttype=\"%d\"\n"
+			"\t\t\t\tfile_path=\"%s\"\n"
+			"\t\t\t\to_width=\"%d\"\n"
+			"\t\t\t\to_height=\"%d\"\n",
+			oid++, gW - offset, gH - offset,
+			T.t[0], T.t[3], T.t[1], T.t[4], o.x, o.y,
+			title, gArgs.xml_type, t2i->path.c_str(),
+			gW - offset, gH - offset );
+
+			if( gArgs.xml_min < gArgs.xml_max ) {
+
+				fprintf( f,
+				"\t\t\t\tmin=\"%d\"\n"
+				"\t\t\t\tmax=\"%d\"\n"
+				"\t\t\t/>\n",
+				gArgs.xml_min, gArgs.xml_max );
+			}
+			else
+				fprintf( f, "\t\t\t/>\n" );
+		}
+	}
+
+	fprintf( f, "\t\t</t2_layer>\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* TopLeft ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void TopLeft( Point &o, const THmgphy &T )
+{
+	vector<Point>	cnr( 4 );
+
+	cnr[0] = Point(      gArgs.xml_trim,      gArgs.xml_trim );
+	cnr[1] = Point( gW-1-gArgs.xml_trim,      gArgs.xml_trim );
+	cnr[2] = Point( gW-1-gArgs.xml_trim, gH-1-gArgs.xml_trim );
+	cnr[3] = Point(      gArgs.xml_trim, gH-1-gArgs.xml_trim );
+
+	T.Transform( cnr );
+
+	o.x = BIGD;
+	o.y = BIGD;
+
+	for( int k = 0; k < 4; ++k ) {
+		o.x = fmin( o.x, cnr[k].y );
+		o.y = fmin( o.y, cnr[k].x );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteXMLLyr_Hmy ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteXMLLyr_Hmy( FILE *f, int &oid )
+{
+	map<int,int>::iterator	mi, en = R.m.end();
+	int						offset = int(2 * gArgs.xml_trim + 0.5);
+
+	fprintf( f,
+	"\t\t<t2_layer\n"
+	"\t\t\toid=\"%d\"\n"
+	"\t\t\tthickness=\"0\"\n"
+	"\t\t\tz=\"%d\"\n"
+	"\t\t>\n",
+	oid++, R.z );
+
+	for( mi = R.m.begin(); mi != en; ) {
+
+		int	id		= mi->first,
+			j0		= mi->second,
+			jlim	= (++mi == en ? R.nr : mi->second);
+
+		for( int j = j0; j < jlim; ++j ) {
+
+			if( !R.used[j] )
+				continue;
+
+			const Til2Img	*t2i;
+
+			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+				continue;
+
+			char	title[128];
+
+			if( t2i->col != -999 ) {
+				sprintf( title, "%d.%d:%d_%d.%d.%d",
+					R.z, id, j - j0 + 1,
+					t2i->col, t2i->row, t2i->cam );
+			}
+			else
+				sprintf( title, "%d.%d:%d", R.z, id, j - j0 + 1 );
+
+			THmgphy&	T = X_AS_HMY( X.X, j );
+
+			// fix origin : undo trimming
+			Point	o;
+			TopLeft( o, T );
+
+			fprintf( f,
+			"\t\t\t<t2_patch\n"
+			"\t\t\t\toid=\"%d\"\n"
+			"\t\t\t\twidth=\"%d\"\n"
+			"\t\t\t\theight=\"%d\"\n"
+			"\t\t\t\ttransform=\"matrix(1,0,0,1,%f,%f)\"\n"
+			"\t\t\t\ttitle=\"%s\"\n"
+			"\t\t\t\ttype=\"%d\"\n"
+			"\t\t\t\tfile_path=\"%s\"\n"
+			"\t\t\t\to_width=\"%d\"\n"
+			"\t\t\t\to_height=\"%d\"\n",
+			oid++, gW - offset, gH - offset,
+			o.x, o.y,
+			title, gArgs.xml_type, t2i->path.c_str(),
+			gW - offset, gH - offset );
+
+			if( gArgs.xml_min < gArgs.xml_max ) {
+
+				fprintf( f,
+				"\t\t\t\tmin=\"%d\"\n"
+				"\t\t\t\tmax=\"%d\"\n"
+				"\t\t\t/>\n",
+				gArgs.xml_min, gArgs.xml_max );
+			}
+			else
+				fprintf( f, "\t\t\t/>\n" );
+
+			fprintf( f,
+			"\t\t\t<ict_transform"
+			" class=\"mpicbg.trakem2.transform.HomographyModel2D\""
+			" data=\"%f %f %f %f %f %f %.12g %.12g 1\"/>\n"
+			"\t\t\t</t2_patch>\n",
+			T.t[0], T.t[1], T.t[2],
+			T.t[3], T.t[4], T.t[5],
+			T.t[6], T.t[7] );
+		}
+	}
+
+	fprintf( f, "\t\t</t2_layer>\n" );
+}
+
+/* --------------------------------------------------------------- */
+/* WriteXMLTail -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static FILE* WriteXMLTail( FILE *f )
+{
+	if( f ) {
+		fprintf( f, "\t</t2_layer_set>\n" );
+		fprintf( f, "</trakem2>\n" );
+		fclose( f );
+	}
+
+	return NULL;
+}
+
+/* --------------------------------------------------------------- */
 /* ConvertA ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -498,6 +764,8 @@ static void ConvertA()
 {
 	TAffine	Trot;
 	DBox	B;
+	FILE	*fx = NULL;
+	int		oid;
 
 	if( gArgs.degcw || gArgs.type == 'X' ) {
 		Trot.NUSetRot( gArgs.degcw * PI/180.0 );
@@ -508,10 +776,12 @@ static void ConvertA()
 		DskCreateDir( "X_A_TXT", flog );
 	else if( gArgs.type == 'M' )
 		DskCreateDir( "X_A_MET", flog );
+	else if( gArgs.type == 'X' )
+		fx = WriteXMLHead( oid, B );
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z ) )
+		if( !R.Init( z, NULL ) )
 			continue;
 
 		X.Load();
@@ -523,7 +793,11 @@ static void ConvertA()
 			WriteT_Aff();
 		else if( gArgs.type == 'M' )
 			WriteM_Aff();
+		else if( gArgs.type == 'X' )
+			WriteXMLLyr_Aff( fx, oid );
 	}
+
+	fx = WriteXMLTail( fx );
 }
 
 /* --------------------------------------------------------------- */
@@ -534,6 +808,8 @@ static void ConvertH()
 {
 	THmgphy	Trot;
 	DBox	B;
+	FILE	*fx = NULL;
+	int		oid;
 
 	if( gArgs.degcw || gArgs.type == 'X' ) {
 		Trot.NUSetRot( gArgs.degcw * PI/180.0 );
@@ -544,10 +820,12 @@ static void ConvertH()
 		DskCreateDir( "X_H_TXT", flog );
 	else if( gArgs.type == 'M' )
 		DskCreateDir( "X_H_MET", flog );
+	else if( gArgs.type == 'X' )
+		fx = WriteXMLHead( oid, B );
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z ) )
+		if( !R.Init( z, NULL ) )
 			continue;
 
 		X.Load();
@@ -559,7 +837,11 @@ static void ConvertH()
 			WriteT_Hmy();
 		else if( gArgs.type == 'M' )
 			WriteM_Hmy();
+		else if( gArgs.type == 'X' )
+			WriteXMLLyr_Hmy( fx, oid );
 	}
+
+	fx = WriteXMLTail( fx );
 }
 
 /* --------------------------------------------------------------- */

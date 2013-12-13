@@ -346,7 +346,12 @@ int IDBGetIDRgnMap(
 			vline.push_back( line );
 	}
 	else {
-		fprintf( flog, "IDBGetIDRgnMap: Can't open [%s].\n", name );
+
+		if( flog ) {
+			fprintf( flog,
+			"IDBGetIDRgnMap: Can't open [%s].\n", name );
+		}
+
 		return 0;
 	}
 
@@ -364,7 +369,7 @@ int IDBGetIDRgnMap(
 			nelem         += vline[i].nr;
 		}
 	}
-	else
+	else if( flog )
 		fprintf( flog, "IDBGetIDRgnMap: Empty file [%s].\n", name );
 
 	return nelem;

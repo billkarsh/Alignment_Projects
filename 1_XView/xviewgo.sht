@@ -9,10 +9,22 @@
 # BINPath			;path of X_A_BIN or X_H_BIN folder
 # -z=i,j			;convert tforms in range z=[i..j]
 #
+# ImagePlus type codes used in xml files:
+#	AUTO		= -1
+#	GRAY8		= 0
+#	GRAY16		= 1
+#	GRAY32		= 2
+#	COLOR_256	= 3
+#	COLOR_RGB	= 4
+#
 # Options:
 # -degcw=0			;rotate CW degrees
 # -type=T			;{T,M,X} = {X_?_TXT,X_?_MET,xml}
+# -xmltrim=0.0		;trim this much from xml images
+# -xmltype=0		;ImagePlus type code
+# -xmlmin=0			;intensity scale
+# -xmlmax=0			;intensity scale
 
 
-xview /nobackup/bock/karsh/ZZ200/temp0/1000/lsqidev/X_A_BIN -idb=/nobackup/bock/karsh/ZZ200/idb0 -z=879,1088 -degcw=0 -type=M
+xview /nobackup/bock/karsh/ZZ200/temp0/1000/lsqidev/X_A_BIN0 -idb=/nobackup/bock/karsh/ZZ200/idb0 -z=879,1088 -degcw=0 -type=M
 
