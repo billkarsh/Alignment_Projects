@@ -104,6 +104,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			printf( "Prior solutions: '%s'.\n", prior );
 		else if( GetArg( &wkid, "-wkid=%d", argv[i] ) )
 			printf( "wkid %d\n", wkid );
+		else if( GetArg( &nwks, "-nwks=%d", argv[i] ) )
+			printf( "nwks %d\n", nwks );
 		else if( GetArgList( vi, "-zi=", argv[i] ) ) {
 
 			if( 2 == vi.size() ) {
@@ -243,12 +245,11 @@ static void MasterLaunchWorkers()
 		char	buf[1024];
 
 		sprintf( buf, "qsub -N lsq-%d -cwd -V -b y -pe batch 16"
-		" 'lsq -temp=%s -prior=%s -wkid=%d -zi=%d,%d -zo=%d,%d'",
+		" 'lsq -temp=%s -prior=%s -wkid=%d -nwks=%d"
+		" -zi=%d,%d -zo=%d,%d'",
 		iw,
-		gArgs.tempdir, gArgs.prior,
-		iw,
-		vL[zilo_icat].z, vL[zihi_icat].z,
-		zolo, zohi );
+		gArgs.tempdir, gArgs.prior, iw, nwks,
+		vL[zilo_icat].z, vL[zihi_icat].z, zolo, zohi );
 
 		system( buf );
 	}
@@ -303,6 +304,16 @@ int main( int argc, char **argv )
 		LP->Load( gArgs.tempdir );
 		delete LP;
 	}
+
+/* ----------- */
+/* Synchronize */
+/* ----------- */
+
+	MsgSyncWorkers( wkid, nwks );
+
+/* ----- */
+/* Start */
+/* ----- */
 
 	XArray	A;
 	A.Load( gArgs.prior );

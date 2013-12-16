@@ -122,9 +122,10 @@ void DskCreateDir( const char *path, FILE* flog )
 {
 	if( !DskExists( path ) ) {
 
-		if( mkdir( path, 0777 ) == -1 ) {
+		if( mkdir( path, 0777 ) == -1 && errno != EEXIST ) {
 
-			fprintf( flog, "Can not create dir [%s].\n", path );
+			fprintf( flog,
+			"Error %d creating dir [%s].\n", errno, path );
 			exit( 42 );
 		}
 	}
