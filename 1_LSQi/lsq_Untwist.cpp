@@ -181,6 +181,9 @@ static void CalcMyPairwiseTForms( XArray &X )
 // worker nodes except the last must write their pairwise results
 // to files "Untwist/id.txt".
 //
+// Note that printf with %.21f writes doubles to full precision
+// such that scanf with %lf recovers the identical value.
+//
 static void WriteMyTForms()
 {
 // If I'm not the last worker...
@@ -203,7 +206,7 @@ static void WriteMyTForms()
 
 		const TAffine&	A = vS[ib].A;
 
-		fprintf( f, "%d %f %f %f %f %f %f\n",
+		fprintf( f, "%d %.21f %.21f %.21f %.21f %.21f %.21f\n",
 		vR[ib+1].z,
 		A.t[0], A.t[1], A.t[2], A.t[3], A.t[4], A.t[5] );
 	}
@@ -257,10 +260,16 @@ static void WaitAllShared()
 
 // Form product of all affines with z <= my stating z.
 //
+// We must be careful here because workers have overlapping
+// zo ranges, while our product must include each z in order
+// and once only. This is fixed just by requiring monotonic
+// increase in z.
+//
 static void AccumulateBefores( TAffine &A0 )
 {
 	TAffine	A;
-	int		z0 = vR[zolo].z,
+	int		z0		= vR[zolo].z,
+			zlast	= -1,
 			z;
 
 	for( int iw = 0; iw < wkid; ++iw ) {
@@ -279,7 +288,13 @@ static void AccumulateBefores( TAffine &A0 )
 				return;
 			}
 
-			A0 = A * A0;
+			// monotonic z rule
+
+			if( z <= zlast )
+				continue;
+
+			A0		= A * A0;
+			zlast	= z;
 		}
 
 		fclose( f );
