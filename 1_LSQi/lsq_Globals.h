@@ -76,7 +76,7 @@ extern vector<CorrPnt>	vC;
 
 void GetIDB( const char *tempdir );
 void InitTables( int argzilo, int argzihi );
-void MapZPair( int &ia, int &ib, int za, int zb );
+bool MapZPair( int &ia, int &ib, int za, int zb );
 void RemapIndices();
 
 

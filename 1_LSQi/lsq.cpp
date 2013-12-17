@@ -3,6 +3,7 @@
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
 #include	"lsq_Msg.h"
+#include	"lsq_Untwist.h"
 #include	"lsq_XArray.h"
 
 #include	"Cmdline.h"
@@ -170,20 +171,36 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 // Determine dependency range [zolo,zohi] and return cat index
 // of zohi (so master can truncate it's own list).
 //
+// Look at most 10 layers from each end (12 for safety).
+//
 static int ZoFromZi(
 	int	&zolo,
 	int	&zohi,
 	int	zilo_icat,
 	int	zihi_icat )
 {
-	zolo = *vL[zilo_icat].zdown.begin();
+	int	imax;
 
-// Look up to 10 layers away (12 for safety)
+// zolo: lowest z that any interior layer touches
+
+	zolo = *vL[zilo_icat].zdown.begin();
+	imax = min( zilo_icat + 12, vL.size() - 1 );
+
+	for( int icat = imax; icat > zilo_icat; --icat ) {
+
+		int z = *vL[icat].zdown.begin();
+
+		if( z < zolo )
+			zolo = z;
+	}
+
+// zohi: highest z that touches interior
 
 	int	zihi = vL[zihi_icat].z;
-	int	imax = min( zihi_icat + 12, vL.size() - 1 );
 
-	for( int icat = imax; icat > zihi_icat + 1; --icat ) {
+	imax = min( zihi_icat + 12, vL.size() - 1 );
+
+	for( int icat = imax; icat > zihi_icat; --icat ) {
 
 		if( *vL[icat].zdown.begin() <= zihi ) {
 
@@ -317,6 +334,7 @@ int main( int argc, char **argv )
 
 	XArray	A;
 	A.Load( gArgs.prior );
+	UntwistAffines( A );
 	A.Save();
 
 /* ---- */

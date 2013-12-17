@@ -130,13 +130,23 @@ void InitTables( int argzilo, int argzihi )
 /* MapZPair ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-void MapZPair( int &ia, int &ib, int za, int zb )
+bool MapZPair( int &ia, int &ib, int za, int zb )
 {
+	static map<int,int>::iterator	en = mZ.end();
+
 	static int	cached_za = -1, cached_zb = -1,
 				cached_ia,      cached_ib;
 
+	map<int,int>::iterator	mi;
+
 	if( za != cached_za ) {
-		cached_ia = mZ.find( za )->second;
+
+		mi = mZ.find( za );
+
+		if( mi == en )
+			return false;
+
+		cached_ia = mi->second;
 		cached_za = za;
 	}
 
@@ -147,12 +157,20 @@ void MapZPair( int &ia, int &ib, int za, int zb )
 	else {
 
 		if( zb != cached_zb ) {
-			cached_ib = mZ.find( zb )->second;
+
+			mi = mZ.find( zb );
+
+			if( mi == en )
+				return false;
+
+			cached_ib = mi->second;
 			cached_zb = zb;
 		}
 
 		ib = cached_ib;
 	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -214,18 +232,21 @@ void RemapIndices()
 
 		CorrPnt&	C = vC[i];
 
-		MapZPair( C.z1, C.z2, C.z1, C.z2 );
+		if( MapZPair( C.z1, C.z2, C.z1, C.z2 ) ) {
 
-		Rgns&	R1 = vR[C.z1];
-		Rgns&	R2 = vR[C.z2];
+			Rgns&	R1 = vR[C.z1];
+			Rgns&	R2 = vR[C.z2];
 
-		C.i1 = R1.Map( C.i1, C.r1 );
-		C.i2 = R2.Map( C.i2, C.r2 );
+			C.i1 = R1.Map( C.i1, C.r1 );
+			C.i2 = R2.Map( C.i2, C.r2 );
 
-		C.used = true;
+			C.used = true;
 
-		R1.pts[C.i1].push_back( i );
-		R2.pts[C.i2].push_back( i );
+			R1.pts[C.i1].push_back( i );
+			R2.pts[C.i2].push_back( i );
+		}
+		else
+			C.used = false;
 	}
 
 	StopTiming( stdout, "Remap", t0 );
