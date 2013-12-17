@@ -284,7 +284,7 @@ static void MergeA()
 		fprintf( fo, "%d\t%d\t%d"
 		"\t%f\t%f\t%f\t%f\t%f\t%f"
 		"\t%d\t%d\t%d\t%s\n",
-		z, id, rgn
+		z, id, rgn,
 		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
 		t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
 	}
