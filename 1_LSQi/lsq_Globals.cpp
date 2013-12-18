@@ -130,6 +130,8 @@ void InitTables( int argzilo, int argzihi )
 /* MapZPair ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
+// Return true if both za,zb map to zo range.
+//
 bool MapZPair( int &ia, int &ib, int za, int zb )
 {
 	static map<int,int>::iterator	en = mZ.end();
@@ -213,9 +215,9 @@ static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
 /* --------------------------------------------------------------- */
 
 // After loading points and calling this function:
-// - All data are indexed by zero-based (iz,idx0).
-// - The initial value of all vC[i].used are true.
-// - The initial value of all vR[i][j].used are false.
+// - All data indexed by zero-based (iz,idx0).
+// - Initial value of all vC[i].used set per connectivity.
+// - Initial value of all vR[i][j].used set false.
 //
 // - vC[i].used are modified later as outliers are detected
 //		in solution iteration cycles.
@@ -232,7 +234,11 @@ void RemapIndices()
 
 		CorrPnt&	C = vC[i];
 
-		if( MapZPair( C.z1, C.z2, C.z1, C.z2 ) ) {
+		if( MapZPair( C.z1, C.z2, C.z1, C.z2 ) &&
+			(
+				(C.z1 >= zilo && C.z1 <= zihi) ||
+				(C.z2 >= zilo && C.z2 <= zihi)
+			) ) {
 
 			Rgns&	R1 = vR[C.z1];
 			Rgns&	R2 = vR[C.z2];

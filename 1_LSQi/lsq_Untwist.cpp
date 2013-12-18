@@ -184,6 +184,11 @@ static void CalcMyPairwiseTForms( XArray &X )
 // Note that printf with %.21f writes doubles to full precision
 // such that scanf with %lf recovers the identical value.
 //
+// We bother only because of long product chains. With 21 digits
+// there is no difference between many small subblocks and doing
+// all together. With standard precision (%f = %.6f), differences
+// appear in the 5th-most significant digit over 200 layers.
+//
 static void WriteMyTForms()
 {
 // If I'm not the last worker...

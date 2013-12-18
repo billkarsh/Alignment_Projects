@@ -131,9 +131,11 @@ void CLoadPoints::MakeBinary()
 
 	for( int iL = 0; iL < nL; ++iL ) {
 
-		const Layer&	L = vL[iL];
+		const Layer&	L	= vL[iL];
+		int				iz	= mZ.find( L.z )->second;
 
-		AppendJobs( L.z, 'S', L.sx, L.sy );
+		if( iz >= zilo && iz <= zihi )
+			AppendJobs( L.z, 'S', L.sx, L.sy );
 
 		if( zolo != zohi )
 			AppendJobs( L.z, 'D', L.dx, L.dy );
