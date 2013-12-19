@@ -19,7 +19,8 @@ string			idb;
 int				wkid = 0,	// my worker id (main=0)
 				nwks = 1,	// total number workers
 				zilo, zihi,
-				zolo, zohi;	// index into vR
+				zolo, zohi,	// index into vR
+				gW,   gH;	// image dims
 vector<Layer>	vL;
 map<int,int>	mZ;
 vector<Rgns>	vR;
@@ -65,6 +66,10 @@ int Rgns::Map( int id, int r )
 
 void GetIDB( const char *tempdir )
 {
+/* -------------------------------------- */
+/* Get IDB path from temp/imageparams.txt */
+/* -------------------------------------- */
+
 	char	buf[2048];
 	sprintf( buf, "%s/imageparams.txt", tempdir );
 
@@ -92,6 +97,13 @@ close:
 		printf( "Globals: Can't open imageparams.txt.\n" );
 
 	if( idb.empty() )
+		exit( 42 );
+
+/* ----------------------- */
+/* Get image dims from IDB */
+/* ----------------------- */
+
+	if( !IDBGetImageDims( gW, gH, idb ) )
 		exit( 42 );
 }
 

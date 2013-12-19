@@ -276,7 +276,7 @@ close:
 	}
 	else {
 		fprintf( flog,
-		"IDBGetImageDims: Can't open imageparams.txt.\n" );
+		"IDBGetImageDims: Can't open [%s].\n", name );
 	}
 
 	return ok;

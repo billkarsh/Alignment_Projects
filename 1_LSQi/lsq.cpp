@@ -1,5 +1,6 @@
 
 
+#include	"lsq_Bounds.h"
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
 #include	"lsq_Msg.h"
@@ -332,10 +333,15 @@ int main( int argc, char **argv )
 /* Start */
 /* ----- */
 
+	printf( "\n---- Development ----\n" );
+
 	XArray	A;
 	A.Load( gArgs.prior );
 	UntwistAffines( A );
 	A.Save();
+
+//	DBox	B;
+//	Bounds( B, A );
 
 /* ---- */
 /* Done */

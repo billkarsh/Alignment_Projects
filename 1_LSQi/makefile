@@ -9,6 +9,7 @@ appname = lsq
 
 files =\
  lsq.cpp\
+ lsq_Bounds.cpp\
  lsq_Globals.cpp\
  lsq_Layers.cpp\
  lsq_LoadPoints.cpp\

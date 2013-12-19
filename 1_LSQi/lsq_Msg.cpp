@@ -15,6 +15,35 @@ using namespace std;
 
 
 /* --------------------------------------------------------------- */
+/* Notes --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// File-based messaging uses 'command-ack-verify' protocol:
+//
+// (1) Master (wkid=0) broadcasts a command to all other workers:
+//
+//		MsgSend( "dothis" );
+//
+// (2a) All other workers respond to the command, though there
+//		is some flexibility about where they do the actual work.
+//		In fact, workers know what command is coming, so if they
+//		can do the expected work before entering a blocking wait
+//		that's likely more efficient. However, the command may
+//		signify that a resource is now available, so work may
+//		need to defer until command receipt.
+//
+//		// do work here if independent
+//		MsgWaitMatch( "dothis" );
+//		// do work here if dependent on others
+//		MsgAck( wkid );
+//
+// (2b) Master can do its own work, but eventually terminates
+//		the command-ack-verify cycle:
+//
+//		MsgWaitAck( nwks );
+//
+
+/* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -231,7 +260,7 @@ bool MsgWaitMatch(
 
 		if( DskExists( "MSG/msg" ) ) {
 
-			char	msg[128];
+			char	msg[128] = {0};
 			FILE	*f = fopen( "MSG/msg", "r" );
 
 			if( f ) {

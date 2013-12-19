@@ -64,7 +64,8 @@ public:
 extern string			idb;
 extern int				wkid, nwks,	// my workid, count
 						zilo, zihi,
-						zolo, zohi;	// index into vR
+						zolo, zohi,	// index into vR
+						gW,   gH;	// image dims
 extern vector<Layer>	vL;
 extern map<int,int>		mZ;
 extern vector<Rgns>		vR;

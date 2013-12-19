@@ -42,10 +42,10 @@ static int				nthr;
 
 
 /* --------------------------------------------------------------- */
-/* CommandSharing ------------------------------------------------ */
+/* Cmd_CalcAndShare ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void CommandSharing()
+static void Cmd_CalcAndShare()
 {
 	if( !wkid && nwks > 1 )
 		MsgSend( "untwist-share" );
@@ -73,8 +73,6 @@ void* _RgdSums( void* ithr )
 		RgdSums&				S	= vS[ib];
 
 		// For each A-layer rgn...
-
-int npt = 0;
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
 
@@ -220,10 +218,10 @@ static void WriteMyTForms()
 }
 
 /* --------------------------------------------------------------- */
-/* AckMineShared ------------------------------------------------- */
+/* Ack_CalcAndShare ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void AckMineShared()
+static void Ack_CalcAndShare()
 {
 	if( wkid > 0 ) {
 
@@ -235,13 +233,13 @@ static void AckMineShared()
 }
 
 /* --------------------------------------------------------------- */
-/* WaitAllShared ------------------------------------------------- */
+/* Cmd_Untwist --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Zero syncs by waiting for all acks, then issues "untwist".
 // All others wait for "untwist".
 //
-static void WaitAllShared()
+static void Cmd_Untwist()
 {
 	if( nwks <= 1 )
 		return;
@@ -307,12 +305,12 @@ static void AccumulateBefores( TAffine &A0 )
 }
 
 /* --------------------------------------------------------------- */
-/* Untwist ------------------------------------------------------- */
+/* Apply --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Apply A0 and pairwise affines.
 //
-static void Untwist( TAffine &A0 )
+static void Apply( TAffine &A0 )
 {
 	int	nz = vR.size();
 
@@ -337,10 +335,10 @@ static void Untwist( TAffine &A0 )
 }
 
 /* --------------------------------------------------------------- */
-/* Finish -------------------------------------------------------- */
+/* Ack_Untwist --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Finish()
+static void Ack_Untwist()
 {
 	if( nwks <= 1 )
 		return;
@@ -386,26 +384,17 @@ void UntwistAffines( XArray &X )
 
 	clock_t	t0 = StartTiming();
 
-	CommandSharing();
+	Cmd_CalcAndShare();
+		CalcMyPairwiseTForms( X );
+		WriteMyTForms();
+	Ack_CalcAndShare();
 
-	CalcMyPairwiseTForms( X );
-
-	WriteMyTForms();
-
-	AckMineShared();
-
-	WaitAllShared();
-
-	TAffine	A0;
-
-	AccumulateBefores( A0 );
-
-	Untwist( A0 );
-
-// Done
-
-	vS.clear();
-	Finish();
+	Cmd_Untwist();
+		TAffine	A0;
+		AccumulateBefores( A0 );
+		Apply( A0 );
+		vS.clear();
+	Ack_Untwist();
 
 	StopTiming( stdout, "Untwist", t0 );
 }
