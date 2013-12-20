@@ -10,6 +10,9 @@ General Notes
 - Can only occupy 2500 slots at once. Can only have 20,000 jobs
 in the queue at once. Cost nominally $0.05/slot/hour.
 
+- See ip addresses for shares: > mount.
+- See host name: > hostname.
+
 - ABComposite shows (BLUE pix) there are missed pixels in mappings
 from A to B. This is an off by one error in some decision about
 what's the interior.

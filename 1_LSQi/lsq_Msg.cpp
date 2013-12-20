@@ -42,6 +42,13 @@ using namespace std;
 //
 //		MsgWaitAck( nwks );
 //
+// IMPORTANT:
+// The scheme works fine on nobackup drive but does not work on
+// dm11 because the message files are cached. Even though master
+// has written msg file with updated content, a few workers will
+// read an older message. There does not seem to be any means to
+// force coherency, so this should be abandoned for tcp/ip or
+// mpi scheme.
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
@@ -59,7 +66,7 @@ void MsgSyncWorkers( int iw, int nw )
 
 	clock_t	t0 = StartTiming();
 
-	const int jobstart_s = 20*60;	// 20 min
+	const int jobstart_s = 30*60;	// 30 min
 
 	if( !iw ) {
 
