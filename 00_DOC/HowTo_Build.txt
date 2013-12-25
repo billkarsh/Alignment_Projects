@@ -65,6 +65,9 @@ export PATH
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
 export LD_LIBRARY_PATH
 
+# Disable Intel MKL internal threading
+export MKL_NUM_THREADS=1
+
 #
 # End alignment definitions
 # ---------------------------------------------------------

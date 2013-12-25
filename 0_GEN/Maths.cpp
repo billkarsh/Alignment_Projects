@@ -1759,7 +1759,9 @@ bool IsLowContrast( vector<double> &I, double std )
 // print powers
 	printf( "IsLowContrast: Amplitudes(%.2f):", std );
 
-	for( i = 0; i < result.size(); ++i )
+	int	nr = result.size();
+
+	for( i = 0; i < nr; ++i )
 		printf( "%.3f ", result[i]*std );
 
 	printf( "\n" );

@@ -203,11 +203,12 @@ static void NGaussHist(vector<double> &x, vector<int> &histo, const int Ngauss, 
 VecDoub y,s;  // create the y array (same data but double), and the s array
               // (points uniformly weighted; all have same std dev)
 double sum = 0.0;  // used for checking for plausibility later
-for(int i=0; i<x.size(); i++) {
-    y.push_back(histo[i]);
-    s.push_back(1.0);
-    sum += histo[i];
-    }
+int	nx = x.size();
+for( int i = 0; i < nx; ++i ) {
+	y.push_back( histo[i] );
+	s.push_back( 1.0 );
+	sum += histo[i];
+}
 
 // Remove over-represented bins at the extremes.  Sum/y.size() is what you would expect with a uniform
 // distribution.  Since the real distribution is (or should be) central, there should be many less than
@@ -252,12 +253,14 @@ for(int pass=0; pass < 3 && try_again; pass++) {
         // find the biggest peak in the residual, and add that
 	double biggest = 0.0;
 	int    bigi = 0;  // just to avoid warnings
-	for(int i=0; i<residual.size(); i++) {
-	    if( abs(residual[i]) > biggest ) {
-		biggest = abs(residual[i]);
-		bigi = i;
+	int	nr = residual.size();
+	for( int i = 0; i < nr; ++i ) {
+		double	mag = abs( residual[i] );
+		if( mag > biggest ) {
+			biggest	= mag;
+			bigi	= i;
 		}
-	    }
+	}
 	printf("Biggest remaining residual has peak of %f at x=%f\n", biggest, x[bigi]);
         peaks[N] = bigi;
         if( N >= 2 && peaks[N] == peaks[N-1] ) {
@@ -313,13 +316,14 @@ for(int pass=0; pass < 3 && try_again; pass++) {
 	sprintf(fname,"pl%d", N);  // pl1, pl2, etc. for plot files
 	FILE *fp = fopen(fname,"w");
 	MeanStd m;
-	for(int i=0; i<x.size(); i++) {
-	    double yy = ygauss( x[i], f.a );
-	    if( fp )  // if we cannot write, that's OK
+	int	nx = x.size();
+	for( int i = 0; i < nx; ++i ) {
+		double yy = ygauss( x[i], f.a );
+		if( fp )  // if we cannot write, that's OK
 		fprintf(fp,"%f %f %f\n", x[i], yy, y[i]);
-	    residual[i] = y[i] - yy;
-	    m.Element(residual[i]);
-	    }
+		residual[i] = y[i] - yy;
+		m.Element(residual[i]);
+	}
 	double mean, std;
 	m.Stats(mean, std);
 	printf("Residuals: mean %f, RMS about mean %f\n", mean, std);
@@ -386,11 +390,12 @@ for(int i=0; i<neww*newh; i++) {
     }
 vector<double>mids(256);
 int nnz = 0;  // number of non-zero values
-for(int i=0; i<histo.size(); i++) {
-    mids[i] = (i+0.5)*(maxval+1-minval)/256.0 + minval;
-    //printf("%f %d\n", mids[i], histo[i]);
-    nnz += (histo[i] > 0);
-    }
+int	nh = histo.size();
+for( int i = 0; i < nh; ++i ) {
+	mids[i] = (i+0.5)*(maxval+1-minval)/256.0 + minval;
+	//printf("%f %d\n", mids[i], histo[i]);
+	nnz += (histo[i] > 0);
+}
 bool UseGaussians = true;
 printf("Number of distinct pixel values: %d\n", nnz);
 
@@ -441,7 +446,8 @@ ohc.Stats(ohc_mean, ohc_std);
 printf("Using only high contrast squares with %d pixels, mean=%f, std=%f\n", ohc.HowMany(), ohc_mean, ohc_std);
 
 // convert to a mean of 0 and a std dev of 1
-for(int i=0; i<vals.size(); i++)
+int	nv = vals.size();
+for( int i = 0; i < nv; ++i )
     vals[i] = (vals[i] - ohc_mean)/ohc_std;
 
 // Convert to 8 bit
