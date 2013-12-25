@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Purpose:
+# Assign each tile (or each subregion if tiles divided by folds)
+# a transform (default is affine) that best describes the mapping
+# of correspondence point pairs from local images to the shared
+# global system.
+#
+# > lsq -temp=temp0 -zi=i,j [options]
+#
+# Required:
+# -temp=path		;master workspace (a.k.a. 'temp')
+# -zi=i,j			;output tforms in range z=[i..j]
+#
+# Options:
+# -zo=p,q			;consider input out to z=[p..q]
+# -catclr			;rebuild catalog file
+# -catonly			;build catalog and quit
+# -zpernode=200		;max layers per cluster node
+# -prior=path		;path to starting tforms if stack
+# -untwist			;untwist prior affines
+
+
+lsq -temp=../ -zi=0,0 $1
+

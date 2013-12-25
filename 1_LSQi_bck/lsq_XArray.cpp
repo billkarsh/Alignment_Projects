@@ -41,7 +41,9 @@ static int			nthr;
 
 static void* _AFromIDB( void* ithr )
 {
-	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+	int	nz = vR.size();
+
+	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -143,7 +145,9 @@ static bool Read_vA( vector<CIDRA> &vA, int z )
 
 static void* _AFromTxt( void* ithr )
 {
-	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+	int	nz = vR.size();
+
+	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -269,7 +273,9 @@ static bool Read_vH( vector<CIDRH> &vH, int z )
 
 static void* _HFromTxt( void* ithr )
 {
-	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+	int	nz = vR.size();
+
+	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -370,7 +376,9 @@ static void ReadUBin( vector<char> &u, int z )
 
 static void* _XFromBin( void* ithr )
 {
-	for( int iz = (long)ithr; iz < vR.size(); iz += nthr ) {
+	int	nz = vR.size();
+
+	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -391,7 +399,9 @@ static void* _XFromBin( void* ithr )
 
 static void* _Updt( void* ithr )
 {
-	for( int iz = (long)ithr; iz < giz.size(); iz += nthr ) {
+	int	nz = giz.size();
+
+	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
 		Rgns&			R = vR[giz[iz]];
 		vector<double>&	x = ME->X[giz[iz]];
@@ -439,7 +449,9 @@ static void SaveUBin( vector<char> &u, int z )
 
 static void* _Save( void* ithr )
 {
-	for( int iz = (long)ithr; iz < giz.size(); iz += nthr ) {
+	int	nz = giz.size();
+
+	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
 		Rgns&			R = vR[giz[iz]];
 		vector<double>&	x = ME->X[giz[iz]];

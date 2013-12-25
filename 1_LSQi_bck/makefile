@@ -9,7 +9,13 @@ appname = lsq
 
 files =\
  lsq.cpp\
- lsq_Layers.cpp
+ lsq_Bounds.cpp\
+ lsq_Globals.cpp\
+ lsq_Layers.cpp\
+ lsq_LoadPoints.cpp\
+ lsq_Msg.cpp\
+ lsq_Untwist.cpp\
+ lsq_XArray.cpp
 
 objs = ${files:.cpp=.o}
 

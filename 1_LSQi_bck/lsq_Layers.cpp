@@ -1,6 +1,6 @@
 
 
-#include	"../1_LSQi/lsq_Layers.h"
+#include	"lsq_Layers.h"
 #include	"File.h"
 #include	"Disk.h"
 #include	"Timer.h"

@@ -20,11 +20,6 @@ public:
 	set<int>	zdown;
 public:
 	Layer() : sx(-1), sy(-1), dx(-1), dy(-1) {};
-
-	inline int Lowest() const
-	{
-		return (zdown.size() ? *zdown.begin() : z);
-	};
 };
 
 /* --------------------------------------------------------------- */

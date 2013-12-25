@@ -1,24 +1,19 @@
-//
-// lsq comprises two parts.
-//
-// (a) lsq.exe (log file 'lsq.txt') scans command line params
-//		and looks at layers catalog to determine how the task
-//		shall be divided among workers. Finally, it launches
-//		those workers. If only one worker is needed, control
-//		is passed to lsqw by system(). Otherwise, a distributed
-//		node-set is configured for mpi data sharing.
-//
-// (b) lsqw.exe (log file 'lsqw_i.txt') is the worker code.
-//
 
 
-#include	"lsq_Layers.h"
+#include	"lsq_Bounds.h"
+#include	"lsq_Globals.h"
+#include	"lsq_LoadPoints.h"
+#include	"lsq_Msg.h"
+#include	"lsq_Untwist.h"
+#include	"lsq_XArray.h"
 
 #include	"Cmdline.h"
 #include	"Disk.h"
-#include	"File.h"
 #include	"Maths.h"
 #include	"Memory.h"
+
+#include	<stdlib.h>
+#include	<string.h>
 
 
 /* --------------------------------------------------------------- */
@@ -55,7 +50,6 @@ public:
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
-	void LaunchWorkers( const vector<Layer> &vL );
 };
 
 /* --------------------------------------------------------------- */
@@ -75,13 +69,20 @@ static CArgs	gArgs;
 
 void CArgs::SetCmdLine( int argc, char* argv[] )
 {
-// Name front end log
+// Name log by worker
 
-	freopen( "lsq.txt", "w", stdout );
+	for( int i = 1; i < argc; ++i ) {
+		if( GetArg( &wkid, "-wkid=%d", argv[i] ) )
+			break;
+	}
+
+	char slog[32];
+	sprintf( slog, "lsq_%d.txt", wkid );
+	freopen( slog, "w", stdout );
 
 // Parse command line args
 
-	printf( "---- Read params ----\n" );
+	printf( "\n---- Read params ----\n" );
 
 	if( argc < 3 ) {
 		printf(
@@ -99,9 +100,14 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 			DskAbsPath( tempdir, sizeof(tempdir), instr, stdout );
 			printf( "Temp dir: '%s'.\n", tempdir );
+			GetIDB( tempdir );
 		}
 		else if( GetArgStr( prior, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", prior );
+		else if( GetArg( &wkid, "-wkid=%d", argv[i] ) )
+			printf( "wkid %d\n", wkid );
+		else if( GetArg( &nwks, "-nwks=%d", argv[i] ) )
+			printf( "nwks %d\n", nwks );
 		else if( GetArgList( vi, "-zi=", argv[i] ) ) {
 
 			if( 2 == vi.size() ) {
@@ -145,7 +151,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		zohi = zihi;
 	}
 
-	if( zilo != zihi ) {
+	if( !wkid && zilo != zihi ) {
 
 		if( !prior ) {
 			printf( "Solving a stack requires -prior option.\n" );
@@ -163,27 +169,27 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 /* ZoFromZi ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Determine dependency range [zolo,zohi].
+// Determine dependency range [zolo,zohi] and return cat index
+// of zohi (so master can truncate it's own list).
 //
 // Look at most 10 layers from each end (12 for safety).
 //
-static void ZoFromZi(
-	int					&zolo,
-	int					&zohi,
-	int					zilo_icat,
-	int					zihi_icat,
-	const vector<Layer>	&vL )
+static int ZoFromZi(
+	int	&zolo,
+	int	&zohi,
+	int	zilo_icat,
+	int	zihi_icat )
 {
 	int	imax;
 
 // zolo: lowest z that any interior layer touches
 
-	zolo = vL[zilo_icat].Lowest();
+	zolo = *vL[zilo_icat].zdown.begin();
 	imax = min( zilo_icat + 12, vL.size() - 1 );
 
 	for( int icat = imax; icat > zilo_icat; --icat ) {
 
-		int z = vL[icat].Lowest();
+		int z = *vL[icat].zdown.begin();
 
 		if( z < zolo )
 			zolo = z;
@@ -200,132 +206,146 @@ static void ZoFromZi(
 		if( *vL[icat].zdown.begin() <= zihi ) {
 
 			zohi = vL[icat].z;
-			return;
+			return icat;
 		}
 	}
 
 // Default
 
 	zohi = zihi;
+	return zihi_icat;
 }
 
 /* --------------------------------------------------------------- */
-/* LaunchWorkers ------------------------------------------------- */
+/* MasterLaunchWorkers ------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CArgs::LaunchWorkers( const vector<Layer> &vL )
+static void MasterLaunchWorkers()
 {
-	printf( "\n---- Launching workers ----\n" );
-
 // How many workers?
 
-	int	nL		= vL.size(),
-		nwks	= nL / zpernode,
-		res		= nL - nwks * zpernode;
+	int	nL = vL.size();
 
-	if( res > 0 )
+	nwks = nL / gArgs.zpernode;
+
+	if( nL - nwks * gArgs.zpernode > 0 )
 		++nwks;
 
-// Now balance the load a little. If nwks > 1 then at this point,
-// all workers but the last have zpernode layers, and we want to
-// check that the last isn't much smaller than that. If it is, we
-// shift layers to the last by taking an equal number from each
-// of the others.
+	if( nwks <= 1 )
+		return;
 
-	if( nwks > 1 ) {
+// Master will be lowest block
 
-		int	fromeach = (zpernode - res) / (nwks - 1);
+	printf( "\n---- Launching workers ----\n" );
 
-		zpernode -= fromeach;
+	int	zolo,
+		zohi,
+		zilo_icat = 0,
+		zihi_icat = gArgs.zpernode - 1,
+		newcatsiz = ZoFromZi( zolo, zohi, zilo_icat, zihi_icat ) + 1;
+
+		gArgs.zihi = vL[zihi_icat].z;
+		gArgs.zohi = zohi;
+
+		printf( "Master own range zi [%d %d] zo [%d %d]\n",
+		gArgs.zilo, gArgs.zihi, gArgs.zolo, gArgs.zohi );
+
+// Make ranges
+
+	MsgClear();
+
+	for( int iw = 1; iw < nwks; ++iw ) {
+
+		zilo_icat = zihi_icat + 1;
+		zihi_icat = min( zilo_icat + gArgs.zpernode, nL ) - 1;
+		ZoFromZi( zolo, zohi, zilo_icat, zihi_icat );
+
+		char	buf[1024];
+
+		sprintf( buf, "qsub -N lsq-%d -cwd -V -b y -pe batch 16"
+		" 'lsq -temp=%s -prior=%s -wkid=%d -nwks=%d"
+		" -zi=%d,%d -zo=%d,%d'",
+		iw,
+		gArgs.tempdir, gArgs.prior, iw, nwks,
+		vL[zilo_icat].z, vL[zihi_icat].z, zolo, zohi );
+
+		system( buf );
 	}
 
-	printf( "Workers %d, z-per-node %d.\n", nwks, zpernode );
-
-// Launch the appropriate worker set.
-
-	char	buf[2048];
-
-	if( nwks <= 1 ) {
-
-		// 1 worker: pass flow in process to lsqw.
-
-		sprintf( buf,
-		"lsqw -nwks=%d -temp=%s -prior=%s"
-		" -zi=%d,%d -zo=%d,%d"
-		"%s",
-		nwks, tempdir, prior,
-		zilo, zihi, zolo, zohi,
-		(untwist ? " -untwist" : "") );
-	}
-	else {
-
-		// Write 'ranges.txt' telling each worker which
-		// layers it's responsible for and which it needs.
-
-		FILE	*f = FileOpenOrDie( "ranges.txt", "w" );
-		int		zilo_icat = 0,
-				zihi_icat = zpernode - 1;
-
-		for( int iw = 0; iw < nwks; ++iw ) {
-
-			ZoFromZi( zolo, zohi, zilo_icat, zihi_icat, vL );
-
-			fprintf( f, "%d zi=%d,%d zo=%d,%d\n",
-			iw,  vL[zilo_icat].z,  vL[zihi_icat].z, zolo, zohi );
-
-			zilo_icat = zihi_icat + 1;
-			zihi_icat = min( zilo_icat + zpernode, nL ) - 1;
-		}
-
-		fclose( f );
-
-		// Write script 'mpigo.sht' to:
-		// (1) clean up host list 'sge.txt' --> 'hosts.txt'.
-		// (2) call mpirun using 'hosts.txt' file.
-
-		f = FileOpenOrDie( "mpigo.sht", "w" );
-
-		fprintf( f, "#!/bin/sh\n" );
-		fprintf( f, "\n" );
-		fprintf( f, "tail -n +2 sge.txt > hosts.txt\n" );
-		fprintf( f, "\n" );
-		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
-		" lsqw -nwks=%d -temp=%s -prior=%s"
-		"%s\n",
-		nwks,
-		nwks, tempdir, prior,
-		(untwist ? " -untwist" : "") );
-		fprintf( f, "\n" );
-
-		fclose( f );
-		FileScriptPerms( "mpigo.sht" );
-
-		// Submit request to run 'mpigo.sht' script
-
-		sprintf( buf, "qsub -N lsqw -cwd -V -b y -o sge.txt"
-		" -pe impi3 %d ./mpigo.sht", 16 * nwks );
-	}
-
-	printf( "Launch <>\n<%s>\n", buf );
-
-	system( buf );
+	vL.resize( newcatsiz );
 }
 
 /* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// This flow is followed by master process (wkid==0)
+// and all workers process.
+//
 int main( int argc, char **argv )
 {
+	clock_t	t0;
+
+/* ---------------------- */
+/* All parse command line */
+/* ---------------------- */
+
 	gArgs.SetCmdLine( argc, argv );
 
-	vector<Layer>	vL;
+/* ---------------------- */
+/* All need their catalog */
+/* ---------------------- */
 
 	LayerCat( vL, gArgs.tempdir,
 		gArgs.zolo, gArgs.zohi, gArgs.catclr );
 
-	if( !gArgs.catonly )
-		gArgs.LaunchWorkers( vL );
+	if( gArgs.catonly ) {
+		VMStats( stdout );
+		return 0;
+	}
+
+/* ------------------------ */
+/* Master partitions layers */
+/* ------------------------ */
+
+	if( !wkid )
+		MasterLaunchWorkers();
+
+/* ----------------- */
+/* Load initial data */
+/* ----------------- */
+
+	InitTables( gArgs.zilo, gArgs.zihi );
+
+	{
+		CLoadPoints	*LP = new CLoadPoints;
+		LP->Load( gArgs.tempdir );
+		delete LP;
+	}
+
+/* ----------- */
+/* Synchronize */
+/* ----------- */
+
+	MsgSyncWorkers( wkid, nwks );
+
+/* ----- */
+/* Start */
+/* ----- */
+
+	printf( "\n---- Development ----\n" );
+
+	XArray	A;
+	A.Load( gArgs.prior );
+	UntwistAffines( A );
+	A.Save();
+
+//	DBox	B;
+//	Bounds( B, A );
+
+/* ---- */
+/* Done */
+/* ---- */
 
 	VMStats( stdout );
 
