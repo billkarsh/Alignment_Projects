@@ -2,7 +2,7 @@
 
 #include	"lsq_Bounds.h"
 #include	"lsq_Globals.h"
-#include	"lsq_Msg.h"
+#include	"lsq_MPI.h"
 
 #include	"EZThreads.h"
 #include	"Disk.h"
@@ -11,7 +11,6 @@
 #include	"THmgphy.h"
 #include	"Timer.h"
 
-#include	<stdlib.h>
 #include	<string.h>
 
 
@@ -35,16 +34,6 @@ static int				nthr;
 
 
 
-
-/* --------------------------------------------------------------- */
-/* Cmd_CalcAndShare ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void Cmd_CalcAndShare()
-{
-	if( !wkid && nwks > 1 )
-		MsgSend( "bounds-share" );
-}
 
 /* --------------------------------------------------------------- */
 /* _Bounds ------------------------------------------------------- */
@@ -79,7 +68,11 @@ void* _Bounds( void* ithr )
 
 			vector<Point>	c( 4 );
 			memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
-			X_AS_AFF( x, ir ).Transform( c );
+
+			if( gX->NE == 6 )
+				X_AS_AFF( x, ir ).Transform( c );
+			else
+				X_AS_HMY( x, ir ).Transform( c );
 
 			for( int k = 0; k < 4; ++k ) {
 				B.L = fmin( B.L, c[k].x );
@@ -155,46 +148,6 @@ static void WriteMyBox( DBox &B )
 }
 
 /* --------------------------------------------------------------- */
-/* Ack_CalcAndShare ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void Ack_CalcAndShare()
-{
-	if( wkid > 0 ) {
-
-		if( !MsgWaitMatch( "bounds-share" ) )
-			exit( 32 );
-
-		MsgAck( wkid );
-	}
-}
-
-/* --------------------------------------------------------------- */
-/* Cmd_Bounds ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Zero syncs by waiting for all acks, then issues "bounds".
-// All others wait for "bounds".
-//
-static void Cmd_Bounds()
-{
-	if( nwks <= 1 )
-		return;
-
-	if( !wkid ) {
-
-		if( !MsgWaitAck( nwks ) )
-			exit( 32 );
-
-		MsgSend( "bounds" );
-	}
-	else {
-		if( !MsgWaitMatch( "bounds" ) )
-			exit( 32 );
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* GlobalBounds -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -232,24 +185,6 @@ static void GlobalBounds( DBox &B )
 }
 
 /* --------------------------------------------------------------- */
-/* Ack_Bounds ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void Ack_Bounds()
-{
-	if( nwks <= 1 )
-		return;
-
-	if( !wkid ) {
-
-		if( !MsgWaitAck( nwks ) )
-			exit( 32 );
-	}
-	else
-		MsgAck( wkid );
-}
-
-/* --------------------------------------------------------------- */
 /* Bounds -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -257,19 +192,15 @@ static void Ack_Bounds()
 //
 void Bounds( DBox &B, const XArray &X )
 {
-	printf( "\n---- Global bounds ----\n" );
-
 	clock_t	t0 = StartTiming();
 
-	Cmd_CalcAndShare();
-		CalcLayerwiseBoxes( X );
-		WriteMyBox( B );
-		vB.clear();
-	Ack_CalcAndShare();
+	CalcLayerwiseBoxes( X );
+	WriteMyBox( B );
+	vB.clear();
 
-	Cmd_Bounds();
-		GlobalBounds( B );
-	Ack_Bounds();
+	MPIWaitForOthers();
+
+	GlobalBounds( B );
 
 	if( !wkid ) {
 		printf( "Global image bounds: x=[%f %f] y=[%f %f].\n",

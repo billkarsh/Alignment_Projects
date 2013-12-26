@@ -244,11 +244,7 @@ void RemapIndices()
 
 		CorrPnt&	C = vC[i];
 
-		if( MapZPair( C.z1, C.z2, C.z1, C.z2 ) /*&&
-			(
-				(C.z1 >= zilo && C.z1 <= zihi) ||
-				(C.z2 >= zilo && C.z2 <= zihi)
-			)*/ ) {
+		if( MapZPair( C.z1, C.z2, C.z1, C.z2 ) ) {
 
 			Rgns&	R1 = vR[C.z1];
 			Rgns&	R2 = vR[C.z2];

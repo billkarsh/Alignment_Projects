@@ -1,5 +1,6 @@
 
 
+#include	"lsq_Bounds.h"
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
 #include	"lsq_MPI.h"
@@ -177,8 +178,11 @@ int main( int argc, char **argv )
 
 	XArray	A;
 	A.Load( gArgs.prior );
-	UntwistAffines( A );
+//	UntwistAffines( A );
 	A.Save();
+
+	DBox	B;
+	Bounds( B, A );
 
 /* ------- */
 /* Cleanup */

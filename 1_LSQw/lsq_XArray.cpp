@@ -152,7 +152,8 @@ static void* _AFromTxt( void* ithr )
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
 		vector<CIDRA>	vA;
-		int				nf = Read_vA( vA, R.z );
+		int				in = (R.z >= zilo && R.z <= zihi ),
+						nf = Read_vA( vA, R.z );
 
 		x.resize( R.nr * 6 );
 
@@ -181,7 +182,7 @@ static void* _AFromTxt( void* ithr )
 
 				for( int j = j0; j < jlim; ++j ) {
 
-					if( R.pts[j].size() >= 3 ) {
+					if( !in || R.pts[j].size() >= 3 ) {
 
 						A.A.CopyOut( &x[j * 6] );
 						R.used[j] = true;
@@ -206,7 +207,7 @@ static void* _AFromTxt( void* ithr )
 
 				j = mi->second + A.r - 1;
 
-				if( R.pts[j].size() >= 3 ) {
+				if( !in || R.pts[j].size() >= 3 ) {
 
 					A.A.CopyOut( &x[j * 6] );
 					R.used[j] = true;
@@ -280,7 +281,8 @@ static void* _HFromTxt( void* ithr )
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
 		vector<CIDRH>	vH;
-		int				nf = Read_vH( vH, R.z );
+		int				in = (R.z >= zilo && R.z <= zihi ),
+						nf = Read_vH( vH, R.z );
 
 		x.resize( R.nr * 6 );
 
@@ -309,7 +311,7 @@ static void* _HFromTxt( void* ithr )
 
 				for( int j = j0; j < jlim; ++j ) {
 
-					if( R.pts[j].size() >= 4 ) {
+					if( !in || R.pts[j].size() >= 4 ) {
 
 						H.H.CopyOut( &x[j * 6] );
 						R.used[j] = true;
@@ -334,7 +336,7 @@ static void* _HFromTxt( void* ithr )
 
 				j = mi->second + H.r - 1;
 
-				if( R.pts[j].size() >= 4 ) {
+				if( !in || R.pts[j].size() >= 4 ) {
 
 					H.H.CopyOut( &x[j * 6] );
 					R.used[j] = true;
@@ -388,8 +390,11 @@ static void* _XFromBin( void* ithr )
 		ReadXBin( x, R.z );
 		ReadUBin( R.used, R.z );
 
-		for( int j = 0; j < R.nr; ++j )
-			R.used[j] &= R.pts[j].size() >= minpts;
+		if( R.z >= zilo && R.z <= zihi ) {
+
+			for( int j = 0; j < R.nr; ++j )
+				R.used[j] &= R.pts[j].size() >= minpts;
+		}
 	}
 }
 
@@ -408,12 +413,7 @@ static void* _Updt( void* ithr )
 		int				minpts = ME->NE / 2;
 
 		ReadXBin( x, R.z );
-
-		vector<char>	u( R.nr );
-		ReadUBin( u, R.z );
-
-		for( int j = 0; j < R.nr; ++j )
-			R.used[j] &= u[j] && R.pts[j].size() >= minpts;
+		ReadUBin( R.used, R.z );
 	}
 }
 
