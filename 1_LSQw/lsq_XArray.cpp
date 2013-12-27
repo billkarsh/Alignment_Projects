@@ -152,7 +152,7 @@ static void* _AFromTxt( void* ithr )
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
 		vector<CIDRA>	vA;
-		int				in = (R.z >= zilo && R.z <= zihi ),
+		int				in = (iz >= zilo && iz <= zihi ),
 						nf = Read_vA( vA, R.z );
 
 		x.resize( R.nr * 6 );
@@ -281,7 +281,7 @@ static void* _HFromTxt( void* ithr )
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
 		vector<CIDRH>	vH;
-		int				in = (R.z >= zilo && R.z <= zihi ),
+		int				in = (iz >= zilo && iz <= zihi ),
 						nf = Read_vH( vH, R.z );
 
 		x.resize( R.nr * 6 );
@@ -390,7 +390,7 @@ static void* _XFromBin( void* ithr )
 		ReadXBin( x, R.z );
 		ReadUBin( R.used, R.z );
 
-		if( R.z >= zilo && R.z <= zihi ) {
+		if( iz >= zilo && iz <= zihi ) {
 
 			for( int j = 0; j < R.nr; ++j )
 				R.used[j] &= R.pts[j].size() >= minpts;

@@ -70,8 +70,8 @@ void* _RgdSums( void* ithr )
 			const vector<int>&	P  = Ra.pts[ir];
 			const TAffine*		Ta = &X_AS_AFF( xa, ir );
 			const TAffine*		Tb;
-			int					lastb	= -1;
-			int					np		= P.size();
+			int					lastb	= -1,
+								np		= P.size();
 
 			// For each of its points...
 

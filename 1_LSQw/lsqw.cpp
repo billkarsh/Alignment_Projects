@@ -180,10 +180,6 @@ int main( int argc, char **argv )
 	XArray	A;
 	A.Load( gArgs.prior );
 //	UntwistAffines( A );
-	A.Save();
-
-	DBox	B;
-	Bounds( B, A );
 
 	Error( A );
 
