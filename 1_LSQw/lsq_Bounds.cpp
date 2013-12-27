@@ -26,9 +26,9 @@
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static const XArray		*gX;
-static vector<DBox>		vB;
-static int				nthr;
+static const XArray	*gX;
+static vector<DBox>	vB;
+static int			nthr;
 
 
 
@@ -102,7 +102,7 @@ static void CalcLayerwiseBoxes( const XArray &X )
 
 	vB.resize( nb );
 
-	nthr = (zolo != zohi ? 16 : 2);
+	nthr = (zolo != zohi ? 16 : 1);
 
 	if( nthr > nb )
 		nthr = nb;

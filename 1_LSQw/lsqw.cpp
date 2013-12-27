@@ -1,6 +1,7 @@
 
 
 #include	"lsq_Bounds.h"
+#include	"lsq_Error.h"
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
 #include	"lsq_MPI.h"
@@ -183,6 +184,8 @@ int main( int argc, char **argv )
 
 	DBox	B;
 	Bounds( B, A );
+
+	Error( A );
 
 /* ------- */
 /* Cleanup */

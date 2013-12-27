@@ -78,5 +78,6 @@ void GetIDB( const char *tempdir );
 void InitTables( int argzilo, int argzihi );
 bool MapZPair( int &ia, int &ib, int za, int zb );
 void RemapIndices();
+void RealZIDR( int &z, int &id, int &r, int iz, int idx );
 
 

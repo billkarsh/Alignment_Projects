@@ -252,7 +252,8 @@ void RemapIndices()
 			C.i1 = R1.Map( C.i1, C.r1 );
 			C.i2 = R2.Map( C.i2, C.r2 );
 
-			C.used = true;
+			C.used = (C.z1 >= zilo && C.z1 <= zihi)
+						|| (C.z2 >= zilo && C.z2 <= zihi);
 
 			R1.pts[C.i1].push_back( i );
 			R2.pts[C.i2].push_back( i );
@@ -262,6 +263,34 @@ void RemapIndices()
 	}
 
 	StopTiming( stdout, "Remap", t0 );
+}
+
+/* --------------------------------------------------------------- */
+/* RealZIDR ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Convert zero-based constraint indices {iz, idx0}
+// back into real world indices {z, id, r}.
+//
+void RealZIDR( int &z, int &id, int &r, int iz, int idx )
+{
+	Rgns& R = vR[iz];
+
+	z = R.z;
+
+	map<int,int>::iterator	mi, mn, en = R.m.end();
+
+	for( mi = R.m.begin(); ; mi = mn ) {
+
+		mn = mi;
+
+		if( ++mn == en || mn->second > idx ) {
+
+			id = mi->first;
+			r  = (idx - mi->second) + 1;
+			return;
+		}
+	}
 }
 
 
