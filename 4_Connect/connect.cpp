@@ -25,7 +25,7 @@ public:
 public:
 	Picture()	{dist_from_center = 0.0;};
 
-	bool operator < (const Picture &rhs) const
+	bool operator < ( const Picture &rhs ) const
 		{return dist_from_center < rhs.dist_from_center;};
 };
 
@@ -41,7 +41,8 @@ class Error {
   public:
     int which;  // which constraint
     double amt;
-    bool operator<(const Error &rhs) const {return amt < rhs.amt;};
+    bool operator < ( const Error &rhs ) const
+		{return amt < rhs.amt;};
     };
 
 class CorrPts {

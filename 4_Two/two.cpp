@@ -37,7 +37,7 @@ public:
 public:
 	Picture()	{dist_from_center = 0.0;};
 
-	bool operator < (const Picture &rhs) const
+	bool operator < ( const Picture &rhs ) const
 		{return dist_from_center < rhs.dist_from_center;};
 };
 
@@ -1209,7 +1209,8 @@ return dmax;
 class qe {
   public:
     qe(int t, double c){to = t; cost = c;}
-    bool operator<(const qe &a) const {return cost > a.cost;};  // priority is less if cost is higher
+    bool operator < ( const qe &a ) const
+		{return cost > a.cost;};  // priority is less if cost is higher
     int to;  // we know how to get to the node 'to' for total cost 'cost'
     double cost;
     };

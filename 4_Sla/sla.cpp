@@ -24,7 +24,7 @@ double THRESHOLD = 0.25;  // lowest correlation considered a match
 class Picture : public PicBase {
 
 public:
-	bool operator < (const Picture &rhs) const
+	bool operator < ( const Picture &rhs ) const
 		{return z < rhs.z || (z == rhs.z && tr.t[2] < rhs.tr.t[2]);};
 };
 

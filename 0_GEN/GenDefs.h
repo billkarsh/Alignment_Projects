@@ -52,7 +52,7 @@ public:
 	MZID()	{};
 	MZID( int z, int id ) : z(z), id(id) {};
 
-	bool operator < (const MZID &rhs) const
+	bool operator < ( const MZID &rhs ) const
 		{
 			if( z < rhs.z )
 				return true;
@@ -61,7 +61,7 @@ public:
 
 			return id < rhs.id;
 		};
-	bool operator == (const MZID &rhs) const
+	bool operator == ( const MZID &rhs ) const
 		{return z == rhs.z && id == rhs.id;};
 };
 
@@ -74,7 +74,7 @@ public:
 	MZIDR()	{};
 	MZIDR( int z, int id, int rgn ) : z(z), id(id), rgn(rgn) {};
 
-	bool operator < (const MZIDR &rhs) const
+	bool operator < ( const MZIDR &rhs ) const
 		{
 			if( z < rhs.z )
 				return true;
@@ -87,7 +87,7 @@ public:
 
 			return rgn < rhs.rgn;
 		};
-	bool operator == (const MZIDR &rhs) const
+	bool operator == ( const MZIDR &rhs ) const
 		{return z == rhs.z && id == rhs.id && rgn == rhs.rgn;};
 };
 

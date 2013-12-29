@@ -131,7 +131,7 @@ private:
 		Error( double err, int id )
 			{amt = err; idx = id;};
 
-		bool operator < (const Error &rhs) const
+		bool operator < ( const Error &rhs ) const
 			{return amt < rhs.amt;};
 	} Error;
 

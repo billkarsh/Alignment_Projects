@@ -23,7 +23,7 @@ public:
 	CorrCand( int x, int y, double val )
 	: x(x), y(y), val(val) {};
 
-	bool operator < (const CorrCand &rhs) const
+	bool operator < ( const CorrCand &rhs ) const
 		{return val < rhs.val;};
 };
 

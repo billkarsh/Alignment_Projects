@@ -54,7 +54,7 @@ public:
 	zsort( const RGN& R, int i )
 	: z(R.z), id(R.id), rgn(R.rgn), i(i) {};
 
-	bool operator < (const zsort &rhs) const
+	bool operator < ( const zsort &rhs ) const
 		{
 			if( z < rhs.z )
 				return true;
@@ -87,10 +87,10 @@ public:
 				{a = bb; b = aa;}
 		};
 
-	bool operator < (const CRPair &rhs) const
+	bool operator < ( const CRPair &rhs ) const
 		{return a < rhs.a || (a == rhs.a && b < rhs.b);};
 
-	bool operator == (const CRPair &rhs) const
+	bool operator == ( const CRPair &rhs ) const
 		{return a == rhs.a && b == rhs.b;};
 };
 

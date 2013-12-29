@@ -154,10 +154,10 @@ public:
 	vertex( const vertex &v )
 	: x(v.x), y(v.y), orig(v.orig), dir(v.dir) {};
 
-	bool operator == (const vertex &rhs) const
+	bool operator == ( const vertex &rhs ) const
 		{return x == rhs.x && y == rhs.y;};
 
-	bool operator <  (const vertex &rhs) const
+	bool operator < ( const vertex &rhs ) const
 		{return x < rhs.x || (x == rhs.x && y < rhs.y);};
 
 	int   IDistSqr( const vertex& rhs ) const;
@@ -177,7 +177,7 @@ public:
 	lineseg( int x0, int y0, int x1, int y1 )
 		{v[0].x = x0; v[0].y = y0; v[1].x = x1; v[1].y = y1;};
 
-	bool operator == (const lineseg &rhs) const
+	bool operator == ( const lineseg &rhs ) const
 		{return v[0] == rhs.v[0] && v[1] == rhs.v[1];};
 
 	double LenSqr() const

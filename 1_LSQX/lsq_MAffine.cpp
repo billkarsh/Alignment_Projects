@@ -1162,7 +1162,7 @@ public:
 	int		j;
 public:
 	Cperr( double e, int j ) : e(e), j(j) {};
-	bool operator < (const Cperr &rhs) const
+	bool operator < ( const Cperr &rhs ) const
 		{return e < rhs.e;};
 };
 

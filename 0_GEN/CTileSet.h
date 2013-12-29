@@ -50,7 +50,7 @@ typedef struct TSClix {
 	int				Az, Bz;
 	vector<Point>	A,  B;
 
-	bool operator <  (const TSClix &rhs) const
+	bool operator < ( const TSClix &rhs ) const
 		{return Az < rhs.Az;};
 } TSClix;
 

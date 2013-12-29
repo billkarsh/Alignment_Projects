@@ -9,7 +9,7 @@ public:
 	double	v;
 	int		x, y;
 public:
-	inline bool operator < (const Decimate &rhs) const
+	inline bool operator < ( const Decimate &rhs ) const
 		{return y < rhs.y || (y == rhs.y && x < rhs.x);};
 };
 

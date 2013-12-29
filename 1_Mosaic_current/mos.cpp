@@ -804,10 +804,10 @@ public:
 public:
 	ZID( int z, int id ) : z(z), id(id) {};
 
-	bool operator < (const ZID &rhs) const
+	bool operator < ( const ZID &rhs ) const
 		{return z < rhs.z || (z == rhs.z && id < rhs.id);};
 
-	bool operator == (const ZID &rhs) const
+	bool operator == ( const ZID &rhs ) const
 		{return z == rhs.z && id == rhs.id;};
 };
 

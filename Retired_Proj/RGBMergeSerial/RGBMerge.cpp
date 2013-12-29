@@ -26,7 +26,7 @@ public:
 public:
 	Picture( const char *n, int z ) : fname(n), z(z) {};
 
-	bool operator < (const Picture &rhs) const
+	bool operator < ( const Picture &rhs ) const
 		{return z < rhs.z;};
 };
 

@@ -831,7 +831,7 @@ public:
 public:
 	OrdVert( const vertex& v ) : v(v) {};
 
-	bool operator <  (const OrdVert &rhs) const
+	bool operator < ( const OrdVert &rhs ) const
 		{return a < rhs.a;};
 };
 

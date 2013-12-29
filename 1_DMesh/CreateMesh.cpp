@@ -48,7 +48,7 @@ public:
 public:
 	PQElm( int to, double cost ) : to(to), cost(cost) {};
 
-	bool operator < (const PQElm &rhs) const
+	bool operator < ( const PQElm &rhs ) const
 		{return cost > rhs.cost;};	// priority low if cost high
 };
 

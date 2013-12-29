@@ -297,7 +297,7 @@ public:
 		return 3 == fscanf( f, "FOLDMAP2"
 			" %d.%d %d\n", &z, &id, &nr );
 	};
-	bool operator < (const Cfmline &rhs) const
+	bool operator < ( const Cfmline &rhs ) const
 	{
 		return id < rhs.id;
 	};

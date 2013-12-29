@@ -122,7 +122,7 @@ public:
 public:
 	TS( int id, TAffine &T ) : T(T), id(id) {};
 
-	bool operator < (const TS &rhs) const
+	bool operator < ( const TS &rhs ) const
 		{return id < rhs.id;};
 };
 

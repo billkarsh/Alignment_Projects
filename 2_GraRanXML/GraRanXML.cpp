@@ -26,7 +26,7 @@ public:
 	Scale( int z, int smin, int smax )
 	: z(z), smin(smin), smax(smax) {};
 
-	bool operator < (const Scale &rhs) const
+	bool operator < ( const Scale &rhs ) const
 		{return z < rhs.z;};
 };
 

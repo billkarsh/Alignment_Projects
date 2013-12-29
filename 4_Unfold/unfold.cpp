@@ -33,7 +33,7 @@ public:
 public:
 	Picture()	{overlap = 0.0;};
 
-	bool operator < (const Picture &rhs) const
+	bool operator < ( const Picture &rhs ) const
 		{return overlap > rhs.overlap;};
 };
 

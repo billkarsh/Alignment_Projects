@@ -31,7 +31,7 @@ public:
 public:
 	Picture( const char* name, int _z );
 
-	bool operator < (const Picture &rhs) const
+	bool operator < ( const Picture &rhs ) const
 		{return z < rhs.z || (z == rhs.z && id < rhs.id);};
 };
 
