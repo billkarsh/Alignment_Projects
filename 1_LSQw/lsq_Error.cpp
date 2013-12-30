@@ -13,10 +13,16 @@
 
 #include	<stdlib.h>
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+#define TOPN	10
+#define	TOPL	(TOPN-1)
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -35,8 +41,32 @@ public:
 	void Add( double err );
 };
 
-class Stat {
+class EI {
+// Error and point index
 public:
+	double	e;
+	int		i;
+public:
+	EI() : e(-1), i(-1) {};
+	EI( double e, int i ) : e(e), i(i) {};
+
+	bool operator < ( const EI &rhs ) const
+		{return e > rhs.e;};
+};
+
+class Stat {
+// Per-layer statistics
+private:
+	vector<EI>::iterator	eis0, eid0;
+public:
+	vector<EI>	eis, eid;	// topn
+	double		sms, smd;	// sum
+	int			ns,  nd;	// count
+	EI			cur;		// current
+public:
+	void Init();
+	void AddS();
+	void AddD();
 };
 
 /* --------------------------------------------------------------- */
@@ -98,10 +128,63 @@ void FileErr::Add( double err )
 }
 
 /* --------------------------------------------------------------- */
-/* _Error -------------------------------------------------------- */
+/* Stat::Init ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void* _Error( void* ithr )
+void Stat::Init()
+{
+	eis.resize( TOPN );
+	eis0	= eis.begin();
+	sms		= 0.0;
+	ns		= 0;
+
+	if( zolo != zohi ) {
+		eid.resize( TOPN );
+		eid0	= eid.begin();
+		smd		= 0.0;
+		nd		= 0;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* Stat::AddS ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void Stat::AddS()
+{
+	EI&		ei = eis[TOPL];
+
+	sms += cur.e;
+	++ns;
+
+	if( cur.e > ei.e ) {
+		ei = cur;
+		sort( eis0, eis0 + TOPN );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* Stat::AddD ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void Stat::AddD()
+{
+	EI&		ei = eid[TOPL];
+
+	smd += cur.e;
+	++nd;
+
+	if( cur.e > ei.e ) {
+		ei = cur;
+		sort( eid0, eid0 + TOPN );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* _ErrorA ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void* _ErrorA( void* ithr )
 {
 	int	ns = vS.size();
 
@@ -110,10 +193,13 @@ void* _Error( void* ithr )
 	for( int is = (long)ithr; is < ns; is += nthr ) {
 
 		int						iz	= is + zilo;
+		Stat&					S	= vS[is];
 		const Rgns&				Ra	= vR[iz];
 		const vector<double>&	xa	= gX->X[iz];
 		FileErr					FS( 'S', Ra.z ),
 								FD( 'D', Ra.z );
+
+		S.Init();
 
 		// For each rgn...
 
@@ -133,7 +219,7 @@ void* _Error( void* ithr )
 
 			for( int ip = 0; ip < np; ++ip ) {
 
-				CorrPnt&	C = vC[P[ip]];
+				CorrPnt&	C = vC[S.cur.i = P[ip]];
 
 				if( C.used <= 0 )
 					continue;
@@ -152,9 +238,9 @@ void* _Error( void* ithr )
 					Ta->Transform( p1 );
 					Ta->Transform( p2 );
 
-					double	err = p2.DistSqr( p1 );
-
-					FS.Add( err );
+					S.cur.e = p2.DistSqr( p1 );
+					S.AddS();
+					FS.Add( S.cur.e );
 				}
 				else if( zolo == zohi )
 					continue;
@@ -180,12 +266,107 @@ void* _Error( void* ithr )
 					Ta->Transform( pa );
 					Tb->Transform( pb );
 
-					double	err = pb.DistSqr( pa );
-
-					FD.Add( err );
+					S.cur.e = pb.DistSqr( pa );
+					S.AddD();
+					FD.Add( S.cur.e );
 				}
-				else
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/* --------------------------------------------------------------- */
+/* _ErrorH ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void* _ErrorH( void* ithr )
+{
+	int	ns = vS.size();
+
+// For each layer...
+
+	for( int is = (long)ithr; is < ns; is += nthr ) {
+
+		int						iz	= is + zilo;
+		Stat&					S	= vS[is];
+		const Rgns&				Ra	= vR[iz];
+		const vector<double>&	xa	= gX->X[iz];
+		FileErr					FS( 'S', Ra.z ),
+								FD( 'D', Ra.z );
+
+		S.Init();
+
+		// For each rgn...
+
+		for( int ir = 0; ir < Ra.nr; ++ir ) {
+
+			if( !Ra.used[ir] )
+				continue;
+
+			const vector<int>&	P  = Ra.pts[ir];
+			const THmgphy*		Ta = &X_AS_HMY( xa, ir );
+			const THmgphy*		Tb;
+			int					lastbi,
+								lastbz	= -1,
+								np		= P.size();
+
+			// For each of its points...
+
+			for( int ip = 0; ip < np; ++ip ) {
+
+				CorrPnt&	C = vC[S.cur.i = P[ip]];
+
+				if( C.used <= 0 )
 					continue;
+
+				if( C.z1 == C.z2 ) {
+
+					// Negate C.used to signify visited;
+					// only needed for sames; thread-safe;
+					// undone by CalcLayerwiseError().
+
+					C.used = -1;
+
+					Point	p1 = C.p1,
+							p2 = C.p2;
+
+					Ta->Transform( p1 );
+					Ta->Transform( p2 );
+
+					S.cur.e = p2.DistSqr( p1 );
+					S.AddS();
+					FS.Add( S.cur.e );
+				}
+				else if( zolo == zohi )
+					continue;
+				else if( C.z1 == iz ) {
+
+					if( C.z2 != lastbz ) {
+						lastbz = C.z2;
+						lastbi = -1;
+					}
+
+					if( C.i2 != lastbi ) {
+
+						if( !vR[C.z2].used[C.i2] )
+							continue;
+
+						Tb = &X_AS_HMY( gX->X[C.z2], C.i2 );
+						lastbi = C.i2;
+					}
+
+					Point	pa = C.p1,
+							pb = C.p2;
+
+					Ta->Transform( pa );
+					Tb->Transform( pb );
+
+					S.cur.e = pb.DistSqr( pa );
+					S.AddD();
+					FD.Add( S.cur.e );
+				}
 			}
 		}
 	}
@@ -210,18 +391,31 @@ static void CalcLayerwiseError( const XArray &X )
 	if( nthr > ns )
 		nthr = ns;
 
-	if( !EZThreads( _Error, nthr, 1, "_Error" ) )
-		exit( 42 );
+	if( X.NE == 6 ) {
+		if( !EZThreads( _ErrorA, nthr, 1, "_ErrorA" ) )
+			exit( 42 );
+	}
+	else {
+		if( !EZThreads( _ErrorH, nthr, 1, "_ErrorH" ) )
+			exit( 42 );
+	}
 
 // Restore C.used flags
 
 	int	nc = vC.size();
 
 	for( int ic = 0; ic < nc; ++ic ) {
-
 		if( vC[ic].used < 0 )
 			vC[ic].used = 1;
 	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteLayerwiseText -------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteLayerwiseText()
+{
 }
 
 /* --------------------------------------------------------------- */
@@ -230,6 +424,9 @@ static void CalcLayerwiseError( const XArray &X )
 
 // Using the vC inliers (used = true) calculate several metrics
 // from the residual errors:
+//
+// - Files 'ErrSame.txt' and 'ErrDown.txt' tabulate for
+//		each layer the RMS, and ten largest errors.
 //
 // - Folder 'Error' with files-by-layer 'Err_S_i.bin' and
 //		'Err_D_i.bin' with packed |err| values as floats.
@@ -240,6 +437,7 @@ void Error( const XArray &X )
 
 	DskCreateDir( "Error", stdout );
 	CalcLayerwiseError( X );
+	WriteLayerwiseText();
 
 	StopTiming( stdout, "Error", t0 );
 }
