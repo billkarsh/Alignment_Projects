@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Purpose:
+# Histogram one or two 'Error' folders produced by lsqw.
+# The result is a text file for viewing in Excel.
+#
+# > eview Error [Error_B] -z=i,j
+#
+# Required:
+# Error			;path to lsqw Error folder
+# -z=i,j		;use data in range z=[i..j]
+#
+# Options:
+# [Error]		;second Error folder for comparison
+# -div=10		;bin width = 1/div
+# -lim=500		;nbins = div*lim + 1 (for oflo)
+
+
+eview Error ../newstack/Error -div=10 -lim=100
+

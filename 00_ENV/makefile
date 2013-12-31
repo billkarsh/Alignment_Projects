@@ -12,6 +12,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  1_Cross_TopScripts\
  1_DelTiles\
  1_DMesh\
+ 1_EView\
  1_LSQ\
  1_LsqErr\
  1_MakeALN\
