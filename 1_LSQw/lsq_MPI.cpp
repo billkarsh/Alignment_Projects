@@ -120,4 +120,26 @@ void MPIWaitForOthers()
 		MPI_Barrier( MPI_COMM_WORLD );
 }
 
+/* --------------------------------------------------------------- */
+/* MPISend ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool MPISend( void* buf, int bytes, int wdst, int tag )
+{
+	return MPI_SUCCESS ==
+	MPI_Ssend( buf, bytes, MPI_CHAR, wdst, tag, MPI_COMM_WORLD );
+}
+
+/* --------------------------------------------------------------- */
+/* MPIRecv ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool MPIRecv( void* buf, int bytes, int wsrc, int tag )
+{
+	MPI_Status	st;
+
+	return MPI_SUCCESS ==
+	MPI_Recv( buf, bytes, MPI_CHAR, wsrc, tag, MPI_COMM_WORLD, &st );
+}
+
 

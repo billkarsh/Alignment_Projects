@@ -1,6 +1,7 @@
 
 
 #include	"lsq_Globals.h"
+#include	"lsq_MPI.h"
 
 #include	"File.h"
 #include	"PipeFiles.h"
@@ -16,7 +17,9 @@
 /* --------------------------------------------------------------- */
 
 string			idb;
-int				zilo, zihi,
+int				zLlo, zLhi,	// LHS neib needs these
+				zRlo, zRhi,	// RHS neib needs these
+				zilo, zihi,
 				zolo, zohi,	// index into vR
 				gW,   gH;	// image dims
 vector<Layer>	vL;
@@ -128,6 +131,16 @@ void InitTables( int argzilo, int argzihi )
 	}
 
 // Turn z-ranges into zero-based indices into vR
+
+	if( wkid > 0 ) {
+		zLlo = mZ.find( zLlo )->second;
+		zLhi = mZ.find( zLhi )->second;
+	}
+
+	if( wkid < nwks - 1 ) {
+		zRlo = mZ.find( zRlo )->second;
+		zRhi = mZ.find( zRhi )->second;
+	}
 
 	MapZPair( zilo, zihi, argzilo, argzihi );
 	zolo = 0;

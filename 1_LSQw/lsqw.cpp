@@ -113,7 +113,11 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 /* GetRanges ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Read zi an zo ranges from file if nwks > 1.
+// Read my zi and zo ranges from file if nwks > 1.
+//
+// Also read the overlap range data for workers
+// to my immediate left and right. This is used
+// in XArray::Updt for solution coherency.
 //
 void CArgs::GetRanges()
 {
@@ -122,25 +126,63 @@ void CArgs::GetRanges()
 
 	FILE		*f = FileOpenOrDie( "ranges.txt", "r" );
 	CLineScan	LS;
+	int			code = 0;	// {4=LHS, 2=me, 1=RHS}
 
-	while( LS.Get( f ) > 0 ) {
+// Need entries for my left, for me, and my right,
+// unless I am the far left or right in which case
+// we preset that success code.
 
-		if( atoi( LS.line ) == wkid ) {
+	if( !wkid )
+		code += 4;
+	else if( wkid == nwks - 1 )
+		code += 1;
+
+	while( code != 7 && LS.Get( f ) > 0 ) {
+
+		int	iw = atoi( LS.line );
+
+		if( iw < wkid - 1 )
+			continue;
+		else if( iw == wkid - 1 ) {	// LHS
+
+			int	dum1, dum2;
 
 			sscanf( LS.line, "%d zi=%d,%d zo=%d,%d",
-				&wkid, &zilo, &zihi, &zolo, &zohi );
+				&iw, &dum1, &zLlo, &dum2, &zLhi );
+
+			++zLlo;
+			code += 4;
+		}
+		else if( iw == wkid ) {	// me
+
+			sscanf( LS.line, "%d zi=%d,%d zo=%d,%d",
+				&iw, &zilo, &zihi, &zolo, &zohi );
 
 			printf( "zi [%d %d]\n", zilo, zihi );
 			printf( "zo [%d %d]\n", zolo, zohi );
 
-			fclose( f );
-			return;
+			code += 2;
+		}
+		else if( iw == wkid + 1 ) {	// RHS
+
+			int	dum1, dum2;
+
+			sscanf( LS.line, "%d zi=%d,%d zo=%d,%d",
+				&iw, &zRhi, &dum1, &zRlo, &dum2 );
+
+			--zRhi;
+			code += 1;
+			break;
 		}
 	}
 
-	printf( "Ranges.txt: No entry for wkid %d.\n", wkid );
-	MPIExit();
-	exit( 42 );
+	fclose( f );
+
+	if( code != 7 ) {
+		printf( "Ranges.txt: Missing entries for wkid %d.\n", wkid );
+		MPIExit();
+		exit( 42 );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -179,9 +221,6 @@ int main( int argc, char **argv )
 
 	XArray	A;
 	A.Load( gArgs.prior );
-//	UntwistAffines( A );
-
-	Error( A );
 
 /* ------- */
 /* Cleanup */

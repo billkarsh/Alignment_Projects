@@ -62,7 +62,9 @@ public:
 /* --------------------------------------------------------------- */
 
 extern string			idb;
-extern int				zilo, zihi,
+extern int				zLlo, zLhi,	// LHS neib needs these
+						zRlo, zRhi,	// RHS neib needs these
+						zilo, zihi,
 						zolo, zohi,	// index into vR
 						gW,   gH;	// image dims
 extern vector<Layer>	vL;

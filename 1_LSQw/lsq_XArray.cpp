@@ -1,6 +1,7 @@
 
 
 #include	"lsq_Globals.h"
+#include	"lsq_MPI.h"
 #include	"lsq_XArray.h"
 
 #include	"EZThreads.h"
@@ -34,6 +35,15 @@ static int			nthr;
 
 
 
+
+/* --------------------------------------------------------------- */
+/* PriorIsAffine ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool XArray::PriorIsAffine( const char *path )
+{
+	return (NULL != strstr( FileNamePtr( path ), "X_A" ));
+}
 
 /* --------------------------------------------------------------- */
 /* _AFromIDB ----------------------------------------------------- */
@@ -399,10 +409,10 @@ static void* _XFromBin( void* ithr )
 }
 
 /* --------------------------------------------------------------- */
-/* _Updt --------------------------------------------------------- */
+/* _UpdtFS ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void* _Updt( void* ithr )
+static void* _UpdtFS( void* ithr )
 {
 	int	nz = giz.size();
 
@@ -556,11 +566,17 @@ error:
 }
 
 /* --------------------------------------------------------------- */
-/* Updt ---------------------------------------------------------- */
+/* UpdtFS -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void XArray::Updt()
+// Older flavor of updating across nodes in which everyone
+// writes their zi range and then reads their wings using
+// this function. Now replaced by MPI send/receive.
+//
+void XArray::UpdtFS()
 {
+	clock_t	t0 = StartTiming();
+
 	giz.clear();
 
 	for( int i = zolo; i < zilo; ++i )
@@ -574,8 +590,6 @@ void XArray::Updt()
 	if( !nz )
 		return;
 
-	clock_t	t0 = StartTiming();
-
 	char	buf[32];
 	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
 
@@ -586,7 +600,7 @@ void XArray::Updt()
 	if( nthr > nz )
 		nthr = nz;
 
-	if( !EZThreads( _Updt, nthr, 1, "Updt" ) )
+	if( !EZThreads( _UpdtFS, nthr, 1, "UpdtFS" ) )
 		exit( 42 );
 
 	StopTiming( stdout, "Updt", t0 );
@@ -598,14 +612,14 @@ void XArray::Updt()
 
 void XArray::Save()
 {
+	clock_t	t0 = StartTiming();
+
 	giz.clear();
 
 	for( int i = zilo; i <= zihi; ++i )
 		giz.push_back( i );
 
 	int	nz = giz.size();
-
-	clock_t	t0 = StartTiming();
 
 	char	buf[32];
 	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
@@ -625,12 +639,139 @@ void XArray::Save()
 }
 
 /* --------------------------------------------------------------- */
-/* PriorIsAffine ------------------------------------------------- */
+/* Send ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool XArray::PriorIsAffine( const char *path )
+bool XArray::Send( int zlo, int zhi, int XorU, int toLorR )
 {
-	return (NULL != strstr( FileNamePtr( path ), "X_A" ));
+	void	*buf;
+	int		bytes,
+			wdst;
+
+	if( toLorR == 'L' ) {
+
+		wdst = wkid - 1;
+
+		if( wdst < 0 )
+			return true;
+	}
+	else {
+		wdst = wkid + 1;
+
+		if( wdst >= nwks )
+			return true;
+	}
+
+	for( int iz = zlo; iz <= zhi; ++iz ) {
+
+		if( XorU == 'X' ) {
+			buf		= (void*)&X[iz][0];
+			bytes	= sizeof(double) * X[iz].size();
+		}
+		else {
+			buf		= (void*)&vR[iz].used[0];
+			bytes	= vR[iz].used.size();
+		}
+
+		MPISend( buf, bytes, wdst, iz - zlo );
+	}
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* Recv ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool XArray::Recv( int zlo, int zhi, int XorU, int fmLorR )
+{
+	void	*buf;
+	int		bytes,
+			wsrc;
+
+	if( fmLorR == 'L' ) {
+
+		wsrc = wkid - 1;
+
+		if( wsrc < 0 )
+			return true;
+	}
+	else {
+		wsrc = wkid + 1;
+
+		if( wsrc >= nwks )
+			return true;
+	}
+
+	for( int iz = zlo; iz <= zhi; ++iz ) {
+
+		if( XorU == 'X' ) {
+			buf		= (void*)&X[iz][0];
+			bytes	= sizeof(double) * X[iz].size();
+		}
+		else {
+			buf		= (void*)&vR[iz].used[0];
+			bytes	= vR[iz].used.size();
+		}
+
+		MPIRecv( buf, bytes, wsrc, iz - zlo );
+	}
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* Updt ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool XArray::Updt()
+{
+	if( nwks <= 1 )
+		return true;
+
+// To avoid deadlocks, we arrange that at any given time,
+// any node is just sending or just receiving. Easily done
+// by odd/even role assignment.
+
+// Odd send
+
+	if( wkid & 1 ) {
+
+		Send( zLlo, zLhi, 'X', 'L' );
+		Send( zLlo, zLhi, 'U', 'L' );
+
+		Send( zRlo, zRhi, 'X', 'R' );
+		Send( zRlo, zRhi, 'U', 'R' );
+	}
+	else {
+
+		Recv( zihi + 1, zohi, 'X', 'R' );
+		Recv( zihi + 1, zohi, 'U', 'R' );
+
+		Recv( zolo, zilo - 1, 'X', 'L' );
+		Recv( zolo, zilo - 1, 'U', 'L' );
+	}
+
+// Even send
+
+	if( !(wkid & 1) ) {
+
+		Send( zLlo, zLhi, 'X', 'L' );
+		Send( zLlo, zLhi, 'U', 'L' );
+
+		Send( zRlo, zRhi, 'X', 'R' );
+		Send( zRlo, zRhi, 'U', 'R' );
+	}
+	else {
+
+		Recv( zihi + 1, zohi, 'X', 'R' );
+		Recv( zihi + 1, zohi, 'U', 'R' );
+
+		Recv( zolo, zilo - 1, 'X', 'L' );
+		Recv( zolo, zilo - 1, 'U', 'L' );
+	}
+
+	return true;
 }
 
 
