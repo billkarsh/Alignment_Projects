@@ -6,6 +6,7 @@ DEGUG = -g
 targets =\
  davisubset\
  diff\
+ ephystxt\
  fixcoords\
  junk\
  linesolap\
@@ -20,6 +21,9 @@ davisubset : davisubset.o .CHECK_GENLIB
 	$(CC) $(CFLAGS) $< $(LFLAGS) $(LINKS_STD) $(OUTPUT)
 
 diff : diff.o .CHECK_GENLIB
+	$(CC) $(CFLAGS) $< $(LFLAGS) $(LINKS_STD) $(OUTPUT)
+
+ephystxt : ephystxt.o .CHECK_GENLIB
 	$(CC) $(CFLAGS) $< $(LFLAGS) $(LINKS_STD) $(OUTPUT)
 
 fixcoords : fixcoords.o .CHECK_GENLIB
