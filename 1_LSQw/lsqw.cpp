@@ -21,6 +21,7 @@ class CArgs {
 
 public:
 	const char	*tempdir,		// master workspace
+				*cachedir,		// {catalog, pnts} files
 				*prior;			// start from these solutions
 	int			zilo,			// my output range
 				zihi,			// iff nwks == 1
@@ -32,6 +33,7 @@ public:
 	CArgs()
 	{
 		tempdir		= NULL;
+		cachedir	= NULL;
 		prior		= NULL;
 		zilo		= 0;
 		zihi		= 0;
@@ -69,9 +71,11 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 		if( GetArgStr( tempdir, "-temp=", argv[i] ) ) {
 
-			printf( "Temp dir: '%s'.\n", tempdir );
+			printf( "Temp  dir: '%s'.\n", tempdir );
 			GetIDB( tempdir );
 		}
+		else if( GetArgStr( cachedir, "-cache=", argv[i] ) )
+			printf( "Cache dir: '%s'.\n", cachedir );
 		else if( GetArgStr( prior, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", prior );
 		else if( GetArg( &nwks, "-nwks=%d", argv[i] ) )
@@ -203,13 +207,14 @@ int main( int argc, char **argv )
 /* Initial data */
 /* ------------ */
 
-	LayerCat( vL, gArgs.tempdir, gArgs.zolo, gArgs.zohi, false );
+	LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
+		gArgs.zolo, gArgs.zohi, false );
 
 	InitTables( gArgs.zilo, gArgs.zihi );
 
 	{
 		CLoadPoints	*LP = new CLoadPoints;
-		LP->Load( gArgs.tempdir );
+		LP->Load( gArgs.tempdir, gArgs.cachedir );
 		delete LP;
 	}
 

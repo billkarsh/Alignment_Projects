@@ -13,6 +13,7 @@
 # -zi=i,j			;output tforms in range z=[i..j]
 #
 # Options:
+# -cache=lsqcache	;path to {catalog,pnts} data
 # -zo=p,q			;consider input out to z=[p..q]
 # -catclr			;rebuild catalog file
 # -catonly			;build catalog and quit

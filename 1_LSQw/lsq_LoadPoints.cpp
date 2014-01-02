@@ -36,7 +36,8 @@ static pthread_mutex_t	mutex_fpnts = PTHREAD_MUTEX_INITIALIZER;
 
 char* CLoadPoints::NameBinary( char *buf )
 {
-	sprintf( buf, "pnts_%d_%d_%d.bin", wkid, vR[zolo].z, vR[zohi].z );
+	sprintf( buf, "%s/pnts_%d_%d_%d.bin",
+		cachedir, wkid, vR[zolo].z, vR[zohi].z );
 	return buf;
 }
 
@@ -185,7 +186,7 @@ void CLoadPoints::LoadBinary()
 /* Load ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CLoadPoints::Load( const char *tempdir )
+void CLoadPoints::Load( const char *tempdir, const char *cachedir )
 {
 	printf( "\n---- Loading points ----\n" );
 
@@ -193,6 +194,7 @@ void CLoadPoints::Load( const char *tempdir )
 
 	ME				= this;
 	this->tempdir	= tempdir;
+	this->cachedir	= cachedir;
 
 	if( !IsBinary() )
 		MakeBinary();

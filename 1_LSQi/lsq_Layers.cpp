@@ -123,10 +123,15 @@ static bool ScanThisZ( Layer &L, const char *top, int z )
 static void NewCat(
 	vector<Layer>	&vL,
 	const char		*tempdir,
+	const char		*cachedir,
 	int				zolo,
 	int				zohi )
 {
-	FILE	*f = FileOpenOrDie( "catalog.txt", "w" );
+	DskCreateDir( cachedir, stdout );
+
+	char	buf[2048];
+	sprintf( buf, "%s/catalog.txt", cachedir );
+	FILE	*f = FileOpenOrDie( buf, "w" );
 
 // Query range header
 	fprintf( f, "zo %d %d\n", zolo, zohi );
@@ -161,13 +166,17 @@ static void NewCat(
 
 static bool LoadCat(
 	vector<Layer>	&vL,
+	const char		*cachedir,
 	int				zolo,
 	int				zohi )
 {
-	if( !DskExists( "catalog.txt" ) )
+	char	buf[2048];
+	sprintf( buf, "%s/catalog.txt", cachedir );
+
+	if( !DskExists( buf ) )
 		return false;
 
-	FILE		*f = FileOpenOrDie( "catalog.txt", "r" );
+	FILE		*f = FileOpenOrDie( buf, "r" );
 	CLineScan	LS;
 
 // Is file appropriate range?
@@ -243,6 +252,7 @@ fail:
 void LayerCat(
 	vector<Layer>	&vL,
 	const char		*tempdir,
+	const char		*cachedir,
 	int				zolo,
 	int				zohi,
 	bool			catclr )
@@ -251,8 +261,8 @@ void LayerCat(
 
 	clock_t	t0 = StartTiming();
 
-	if( catclr || !LoadCat( vL, zolo, zohi ) )
-		NewCat( vL, tempdir, zolo, zohi );
+	if( catclr || !LoadCat( vL, cachedir, zolo, zohi ) )
+		NewCat( vL, tempdir, cachedir, zolo, zohi );
 
 	if( vL.empty() ) {
 		printf( "Catalog: No catalog data in range.\n" );

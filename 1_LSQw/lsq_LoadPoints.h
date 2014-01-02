@@ -25,6 +25,7 @@ private:
 	};
 private:
 	const char		*tempdir;
+	const char		*cachedir;
 	FILE			*fpnts;
 	vector<CJob>	vJ;
 	int				njob,
@@ -41,7 +42,7 @@ private:
 	void LoadBinary();
 	void Remap();
 public:
-	void Load( const char *tempdir );
+	void Load( const char *tempdir, const char *cachedir );
 };
 
 /* --------------------------------------------------------------- */

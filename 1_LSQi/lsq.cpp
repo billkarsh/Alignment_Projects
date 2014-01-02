@@ -28,7 +28,8 @@
 class CArgs {
 
 public:
-	char		tempdir[2048];	// master workspace
+	char		tempdir[2048],	// master workspace
+				cachedir[2048];	// {catalog, pnts} files
 	const char	*prior;			// start from these solutions
 	int			zilo,			// my output range
 				zihi,
@@ -43,6 +44,7 @@ public:
 	CArgs()
 	{
 		tempdir[0]	= 0;
+		cachedir[0]	= 0;
 		prior		= NULL;
 		zilo		= 0;
 		zihi		= 0;
@@ -98,7 +100,12 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		if( GetArgStr( instr, "-temp=", argv[i] ) ) {
 
 			DskAbsPath( tempdir, sizeof(tempdir), instr, stdout );
-			printf( "Temp dir: '%s'.\n", tempdir );
+			printf( "Temp  dir: '%s'.\n", tempdir );
+		}
+		else if( GetArgStr( instr, "-cache=", argv[i] ) ) {
+
+			DskAbsPath( cachedir, sizeof(cachedir), instr, stdout );
+			printf( "Cache dir: '%s'.\n", cachedir );
 		}
 		else if( GetArgStr( prior, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", prior );
@@ -140,10 +147,19 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
+// Default cahe folder name
+
+	if( !cachedir[0] )
+		DskAbsPath( cachedir, sizeof(cachedir), "lsqcache", stdout );
+
+// Default zo range = zi range
+
 	if( zolo == -1 ) {
 		zolo = zilo;
 		zohi = zihi;
 	}
+
+// Stacks need explicit starting solution
 
 	if( zilo != zihi ) {
 
@@ -250,10 +266,10 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		// 1 worker: pass flow in process to lsqw.
 
 		sprintf( buf,
-		"lsqw -nwks=%d -temp=%s -prior=%s"
+		"lsqw -nwks=%d -temp=%s -cache=%s -prior=%s"
 		" -zi=%d,%d -zo=%d,%d"
 		"%s",
-		nwks, tempdir, prior,
+		nwks, tempdir, cachedir, prior,
 		zilo, zihi, zolo, zohi,
 		(untwist ? " -untwist" : "") );
 	}
@@ -290,10 +306,10 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		fprintf( f, "tail -n +2 sge.txt > hosts.txt\n" );
 		fprintf( f, "\n" );
 		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
-		" lsqw -nwks=%d -temp=%s -prior=%s"
+		" lsqw -nwks=%d -temp=%s -cache=%s -prior=%s"
 		"%s\n",
 		nwks,
-		nwks, tempdir, prior,
+		nwks, tempdir, cachedir, prior,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );
 
@@ -321,7 +337,7 @@ int main( int argc, char **argv )
 
 	vector<Layer>	vL;
 
-	LayerCat( vL, gArgs.tempdir,
+	LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
 		gArgs.zolo, gArgs.zohi, gArgs.catclr );
 
 	if( !gArgs.catonly )

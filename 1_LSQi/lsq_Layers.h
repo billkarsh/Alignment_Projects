@@ -34,6 +34,7 @@ public:
 void LayerCat(
 	vector<Layer>	&vL,
 	const char		*tempdir,
+	const char		*cachedir,
 	int				zolo,
 	int				zohi,
 	bool			catclr );
