@@ -15,14 +15,43 @@
 /* --------------------------------------------------------------- */
 
 class CArgs {
-
-public:
+private:
 	const char	*meta;
-
+private:
+	char	path[2048];
+	char	*basename;
 public:
 	CArgs() : meta(NULL) {};
-
 	void SetCmdLine( int argc, char* argv[] );
+	void ParseName();
+	FILE* OpenMeta()
+	{
+		char	buf[2048];
+		sprintf( buf, "%s/%s.meta", path, basename );
+		return FileOpenOrDie( buf, "r" );
+	};
+	void BinPath( char *buf )
+	{
+		sprintf( buf, "%s/%s.bin", path, basename );
+	};
+	double BinSize()
+	{
+		char	buf[2048];
+		BinPath( buf );
+		return DskBytes( buf );
+	}
+	FILE* OpenBin()
+	{
+		char	buf[2048];
+		BinPath( buf );
+		return FileOpenOrDie( buf, "rb" );
+	};
+	FILE* OpenText()
+	{
+		char	buf[2048];
+		sprintf( buf, "%s.txt", basename );
+		return FileOpenOrDie( buf, "w" );
+	};
 };
 
 class Meta {
@@ -31,6 +60,8 @@ public:
 		nchan;
 public:
 	Meta() : Hz(0), nchan(0) {};
+	bool Scan();
+	void Convert();
 };
 
 /* --------------------------------------------------------------- */
@@ -38,9 +69,6 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs	gArgs;
-static char		path[2048];
-static char		*name;
-static Meta		M;
 
 
 
@@ -48,7 +76,7 @@ static Meta		M;
 
 
 /* --------------------------------------------------------------- */
-/* SetCmdLine ---------------------------------------------------- */
+/* CArgs::SetCmdLine --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 void CArgs::SetCmdLine( int argc, char* argv[] )
@@ -72,49 +100,76 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* ScanMeta ------------------------------------------------------ */
+/* CArgs::ParseName ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static int ScanMeta()
+void CArgs::ParseName()
 {
-	char	buf[2048];
-	sprintf( buf, "%s/%s.meta", path, name );
-	FILE		*f = FileOpenOrDie( buf, "r" );
+	strcpy( path, meta );
+
+	char *s = strrchr( path, '/' );
+
+	if( s )
+		*s = 0;
+	else {
+		path[0] = '.';
+		path[1] = 0;
+	}
+
+	basename = FileCloneNamePart( meta );
+}
+
+/* --------------------------------------------------------------- */
+/* Meta::Scan ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool Meta::Scan()
+{
+	FILE		*f = gArgs.OpenMeta();
 	CLineScan	LS;
 
 	while( LS.Get( f ) > 0 ) {
 
 		if( LS.line[0] == 'n' ) {
 
-			if( 1 == sscanf( LS.line, "nChans = %d", &M.nchan ) )
-				printf( "num channels: %d\n", M.nchan );
+			if( 1 == sscanf( LS.line, "nChans = %d", &nchan ) )
+				printf( "num channels: %d\n", nchan );
 		}
 
 		if( LS.line[0] == 's' ) {
 
-			if( 1 == sscanf( LS.line, "sRateHz = %d", &M.Hz ) )
-				printf( "Hertz: %d\n", M.Hz );
+			if( 1 == sscanf( LS.line, "sRateHz = %d", &Hz ) )
+				printf( "Hertz: %d\n", Hz );
 		}
 	}
 
 	fclose( f );
 
-	return (M.Hz != 0) && (M.nchan != 0);
+	bool gotall = true;
+
+	if( !Hz ) {
+		printf( "Meta: Missing sRateHz field.\n" );
+		gotall = false;
+	}
+
+	if( !nchan ) {
+		printf( "Meta: Missing nChans field.\n" );
+		gotall = false;
+	}
+
+	return gotall;
 }
 
 /* --------------------------------------------------------------- */
-/* Convert ------------------------------------------------------- */
+/* Meta::Convert ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void Convert()
+void Meta::Convert()
 {
 	const int maxsamples = 20000;
 
-	char	buf[2048];
-	sprintf( buf, "%s/%s.bin", path, name );
-
-	double	filebytes = DskBytes( buf );
-	int		sampbytes = sizeof(int16) * M.nchan,
+	double	filebytes = gArgs.BinSize();
+	int		sampbytes = sizeof(int16) * nchan,
 			nsamp = int(filebytes / sampbytes),
 			readbytes;
 
@@ -124,20 +179,19 @@ static void Convert()
 	vector<char>	D( readbytes = nsamp * sampbytes );
 	FILE			*f;
 
-	f = FileOpenOrDie( buf, "rb" );
+	f = gArgs.OpenBin();
 	fread( &D[0], 1, readbytes, f );
 	fclose( f );
 
-	sprintf( buf, "%s.txt", name );
-	f = FileOpenOrDie( buf, "w" );
+	f = gArgs.OpenText();
 
 	for( int is = 0; is < nsamp; ++is ) {
 
-		fprintf( f, "%.4e", double(is)/M.Hz );
+		fprintf( f, "%.4e", double(is)/Hz );
 
 		char*	s0 = &D[is * sampbytes];
 
-		for( int ic = 0; ic < M.nchan; ++ic ) {
+		for( int ic = 0; ic < nchan; ++ic ) {
 			fprintf( f, "\t%d", *(int16*)(s0 + sizeof(int16)*ic) );
 		}
 
@@ -154,28 +208,12 @@ static void Convert()
 int main( int argc, char* argv[] )
 {
 	gArgs.SetCmdLine( argc, argv );
+	gArgs.ParseName();
 
-// Path and basename
+	Meta	M;
 
-	strcpy( path, gArgs.meta );
-	char *s = strrchr( path, '/' );
-	if( s )
-		*s = 0;
-	else {
-		path[0] = '.';
-		path[1] = 0;
-	}
-
-	name = FileCloneNamePart( gArgs.meta );
-
-// Decode meta
-
-	if( !ScanMeta() ) {
-		printf( "Missing fields in meta file.\n" );
-		return 0;
-	}
-
-	Convert();
+	if( M.Scan() )
+		M.Convert();
 
 	return 0;
 }

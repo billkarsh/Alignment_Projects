@@ -18,10 +18,10 @@ public:
 public:
 	static bool PriorIsAffine( const char *path );
 public:
-	void Size( int ne );
+	void Resize( int ne );
 	void Load( const char *path );
-	void UpdtFS();
 	void Save();
+	void UpdtFS();
 private:
 	bool Send( int zlo, int zhi, int XorU, int toLorR );
 	bool Recv( int zlo, int zhi, int XorU, int fmLorR );
