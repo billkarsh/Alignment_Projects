@@ -41,7 +41,7 @@ static int			nthr;
 
 void* _Bounds( void* ithr )
 {
-	int				nb = vB.size();
+	int				nb = zihi - zilo + 1;
 	vector<Point>	cnr;
 	Set4Corners( cnr, gW, gH );
 
@@ -177,11 +177,61 @@ static void GlobalBounds( DBox &B )
 
 		fclose( f );
 	}
+}
 
-	B.R = ceil( B.R - B.L + 1 );
-	B.T = ceil( B.T - B.B + 1 );
-	B.L = 0;
-	B.B = 0;
+/* --------------------------------------------------------------- */
+/* _Apply -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void* _Apply( void* ithr )
+{
+	double	xorg	= -vB[0].L,
+			yorg	= -vB[0].B;
+	int		nL		= zihi - zilo + 1;
+	THmgphy	M( 1,0,xorg, 0,1,yorg, 0,0 );
+
+// For each layer...
+
+	for( int iL = (long)ithr; iL < nL; iL += nthr ) {
+
+		int						iz	= iL + zilo;
+		const Rgns&				R	= vR[iz];
+		const vector<double>&	x	= gX->X[iz];
+
+		// For each rgn...
+
+		for( int ir = 0; ir < R.nr; ++ir ) {
+
+			if( !R.used[ir] )
+				continue;
+
+			if( gX->NE == 6 )
+				X_AS_AFF( x, ir ).AddXY( xorg, yorg );
+			else {
+				THmgphy&	T = X_AS_HMY( x, ir );
+				T = M * T;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/* --------------------------------------------------------------- */
+/* Apply --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Apply()
+{
+	int	nb = zihi - zilo + 1;
+
+	nthr = (zolo != zohi ? 16 : 1);
+
+	if( nthr > nb )
+		nthr = nb;
+
+	if( !EZThreads( _Apply, nthr, 1, "_Apply" ) )
+		exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -196,11 +246,23 @@ void Bounds( DBox &B, const XArray &X )
 
 	CalcLayerwiseBoxes( X );
 	WriteMyBox( B );
-	vB.clear();
 
 	MPIWaitForOthers();
 
 	GlobalBounds( B );
+
+// Adjust all transform origins
+
+	vB[0] = B;
+	Apply();
+	vB.clear();
+
+// Report pretty enclosing bounds
+
+	B.R = ceil( B.R - B.L + 1 );
+	B.T = ceil( B.T - B.B + 1 );
+	B.L = 0;
+	B.B = 0;
 
 	if( !wkid ) {
 		printf( "Global image bounds: x=[%f %f] y=[%f %f].\n",
