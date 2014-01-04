@@ -63,7 +63,7 @@ void* _Bounds( void* ithr )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( !R.used[ir] )
+			if( R.flag[ir] )
 				continue;
 
 			vector<Point>	c( 4 );
@@ -202,7 +202,7 @@ void* _Apply( void* ithr )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( !R.used[ir] )
+			if( R.flag[ir] )
 				continue;
 
 			if( gX->NE == 6 )
@@ -265,8 +265,8 @@ void Bounds( DBox &B, const XArray &X )
 	B.B = 0;
 
 	if( !wkid ) {
-		printf( "Global image bounds: x=[%f %f] y=[%f %f].\n",
-		B.L, B.R, B.B, B.T );
+		printf( "\nGlobal bounds: x=[0 %.2f] y=[0 %.2f].\n",
+		B.R, B.T );
 	}
 
 	StopTiming( stdout, "Bounds", t0 );

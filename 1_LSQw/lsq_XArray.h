@@ -23,8 +23,8 @@ public:
 	void Save();
 	void UpdtFS();
 private:
-	bool Send( int zlo, int zhi, int XorU, int toLorR );
-	bool Recv( int zlo, int zhi, int XorU, int fmLorR );
+	bool Send( int zlo, int zhi, int XorF, int toLorR );
+	bool Recv( int zlo, int zhi, int XorF, int fmLorR );
 public:
 	bool Updt();
 };

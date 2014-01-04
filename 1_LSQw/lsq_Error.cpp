@@ -125,6 +125,8 @@ public:
 
 static const XArray	*gX;
 static vector<Stat>	vS;
+static double		fnlrms = -1,
+					fnlmax = -1;
 static int			nthr;
 
 
@@ -530,7 +532,7 @@ void* _ErrorA( void* ithr )
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
 
-			if( !Ra.used[ir] )
+			if( Ra.flag[ir] )
 				continue;
 
 			const vector<int>&	P  = Ra.pts[ir];
@@ -546,7 +548,7 @@ void* _ErrorA( void* ithr )
 
 				CorrPnt&	C = vC[S.cur.i = P[ip]];
 
-				if( C.used <= 0 )
+				if( !C.used )
 					continue;
 
 				if( C.z1 == C.z2 ) {
@@ -562,7 +564,7 @@ void* _ErrorA( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( !Ra.used[C.i2] )
+						if( Ra.flag[C.i2] )
 							continue;
 
 						Tb = &X_AS_AFF( xa, C.i2 );
@@ -590,7 +592,7 @@ void* _ErrorA( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( !vR[C.z2].used[C.i2] )
+						if( vR[C.z2].flag[C.i2] )
 							continue;
 
 						Tb = &X_AS_AFF( gX->X[C.z2], C.i2 );
@@ -639,7 +641,7 @@ void* _ErrorH( void* ithr )
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
 
-			if( !Ra.used[ir] )
+			if( Ra.flag[ir] )
 				continue;
 
 			const vector<int>&	P  = Ra.pts[ir];
@@ -655,7 +657,7 @@ void* _ErrorH( void* ithr )
 
 				CorrPnt&	C = vC[S.cur.i = P[ip]];
 
-				if( C.used <= 0 )
+				if( !C.used )
 					continue;
 
 				if( C.z1 == C.z2 ) {
@@ -671,7 +673,7 @@ void* _ErrorH( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( !Ra.used[C.i2] )
+						if( Ra.flag[C.i2] )
 							continue;
 
 						Tb = &X_AS_HMY( xa, C.i2 );
@@ -699,7 +701,7 @@ void* _ErrorH( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( !vR[C.z2].used[C.i2] )
+						if( vR[C.z2].flag[C.i2] )
 							continue;
 
 						Tb = &X_AS_HMY( gX->X[C.z2], C.i2 );
@@ -853,6 +855,9 @@ static void WorkerSummary( Stat &Sw )
 	printf( "Same RMS %.2f TopN", Sw.RMSS() );
 	Sw.Topn( stdout, 'S' );
 
+	fnlrms	= Sw.RMSS();
+	fnlmax	= Sw.eis[0].e;
+
 	if( zolo != zohi ) {
 
 		printf( "\nDown RMS %.2f TopN", Sw.RMSD() );
@@ -862,6 +867,9 @@ static void WorkerSummary( Stat &Sw )
 		St.Total( Sw );
 		printf( "\nAll RMS %.2f TopN", St.RMSS() );
 		St.Topn( stdout, 'S' );
+
+		fnlrms	= St.RMSS();
+		fnlmax	= St.eis[0].e;
 	}
 }
 
@@ -907,16 +915,16 @@ static void MasterGatherStats( const Stat &Sw )
 	printf( "Same RMS %.2f TopN", S0.RMSS() );
 	S0.Topn( stdout, 'S' );
 
-	if( zolo != zohi ) {
+	printf( "\nDown RMS %.2f TopN", S0.RMSD() );
+	S0.Topn( stdout, 'D' );
 
-		printf( "\nDown RMS %.2f TopN", S0.RMSD() );
-		S0.Topn( stdout, 'D' );
+	StatG	St;
+	St.Total( S0 );
+	printf( "\nAll RMS %.2f TopN", St.RMSS() );
+	St.Topn( stdout, 'S' );
 
-		StatG	St;
-		St.Total( S0 );
-		printf( "\nAll RMS %.2f TopN", St.RMSS() );
-		St.Topn( stdout, 'S' );
-	}
+	fnlrms	= St.RMSS();
+	fnlmax	= St.eis[0].e;
 }
 
 /* --------------------------------------------------------------- */
@@ -958,7 +966,17 @@ void Error( const XArray &X )
 	MasterGatherStats( Sw );
 	vS.clear();
 
-	StopTiming( stdout, "Error", t0 );
+	StopTiming( stdout, "Errors", t0 );
+}
+
+/* --------------------------------------------------------------- */
+/* GetFinalError ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void GetFinalError( double &erms, double &emax )
+{
+	erms	= fnlrms;
+	emax	= sqrt( fnlmax );
 }
 
 

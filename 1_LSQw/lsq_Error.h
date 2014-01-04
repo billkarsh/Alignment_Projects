@@ -12,4 +12,6 @@
 
 void Error( const XArray &X );
 
+void GetFinalError( double &erms, double &emax );
+
 

@@ -11,6 +11,7 @@
 #include	"Cmdline.h"
 #include	"File.h"
 #include	"Memory.h"
+#include	"Timer.h"
 
 
 /* --------------------------------------------------------------- */
@@ -195,6 +196,8 @@ void CArgs::GetRanges()
 
 int main( int argc, char **argv )
 {
+	clock_t	t0 = StartTiming();
+
 /* ---------- */
 /* Parameters */
 /* ---------- */
@@ -226,6 +229,26 @@ int main( int argc, char **argv )
 
 	XArray	A;
 	A.Load( gArgs.prior );
+
+/* --------- */
+/* Summaries */
+/* --------- */
+
+	Error( A );
+
+	if( !wkid ) {
+		double	erms, emax;
+		GetFinalError( erms, emax );
+		printf( "\nFINAL RMS %.2f MAX %.2f\n", erms, emax );
+	}
+
+	DBox B;
+	Bounds( B, A );
+
+	if( !wkid ) {
+		printf( "\n" );
+		StopTiming( stdout, "Lsq", t0 );
+	}
 
 /* ------- */
 /* Cleanup */

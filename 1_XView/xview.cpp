@@ -13,6 +13,18 @@
 
 
 /* --------------------------------------------------------------- */
+/* Constants ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+ enum RgnFlags {
+	fUsed		= 0,	// b00000000
+	fDead		= 1,	// b00000001
+	fAsRead		= 3,	// b00000011
+	fIniPts		= 5,	// b00000101
+	fOnIter		= 9		// b00001001
+ };
+
+/* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -24,7 +36,7 @@ class Rgns {
 // The rgns for given layer
 // indexed by 0-based 'idx0'
 public:
-	vector<char>	used;	// which rgns used
+	vector<uint8>	flag;	// rgn flags
 	map<int,int>	m;		// map id -> idx0
 	int				nr,		// num rgns
 					z;		// common z
@@ -177,7 +189,7 @@ int Rgns::Init( int iz, FILE *ferr )
 	nr = IDBGetIDRgnMap( m, gArgs.idb, z, ferr );
 
 	if( nr )
-		used.resize( nr );
+		flag.resize( nr );
 
 	return nr;
 }
@@ -200,15 +212,15 @@ static void ReadXBin( vector<double> &x, int z )
 }
 
 
-static void ReadUBin( vector<char> &u, int z )
+static void ReadFBin( vector<uint8> &f, int z )
 {
 	char	buf[2048];
-	FILE	*f;
+	FILE	*q;
 
-	sprintf( buf, "%s/U_%d.bin", gArgs.inpath, z );
-	f = FileOpenOrDie( buf, "rb", flog );
-	fread( &u[0], sizeof(char), u.size(), f );
-	fclose( f );
+	sprintf( buf, "%s/F_%d.bin", gArgs.inpath, z );
+	q = FileOpenOrDie( buf, "rb", flog );
+	fread( &f[0], sizeof(uint8), f.size(), q );
+	fclose( q );
 }
 
 
@@ -217,7 +229,7 @@ void XArray::Load()
 	NE = (isAff ? 6 : 8);
 	X.resize( R.nr * NE );
 	ReadXBin( X, R.z );
-	ReadUBin( R.used, R.z );
+	ReadFBin( R.flag, R.z );
 }
 
 /* --------------------------------------------------------------- */
@@ -244,7 +256,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 		for( int j = 0; j < R.nr; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			vector<Point>	c( 4 );
@@ -289,7 +301,7 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 
 		for( int j = 0; j < R.nr; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			vector<Point>	c( 4 );
@@ -318,7 +330,7 @@ static void Update_Aff( const TAffine &Trot, const DBox &B )
 {
 	for( int j = 0; j < R.nr; ++j ) {
 
-		if( !R.used[j] )
+		if( R.flag[j] )
 			continue;
 
 		TAffine&	T = X_AS_AFF( X.X, j );
@@ -338,7 +350,7 @@ static void Update_Hmy( const THmgphy &Trot, const DBox &B )
 
 	for( int j = 0; j < R.nr; ++j ) {
 
-		if( !R.used[j] )
+		if( R.flag[j] )
 			continue;
 
 		THmgphy&	T = X_AS_HMY( X.X, j );
@@ -367,7 +379,7 @@ static void WriteT_Aff()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			TAffine&	T = X_AS_AFF( X.X, j );
@@ -402,7 +414,7 @@ static void WriteT_Hmy()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			THmgphy&	T = X_AS_HMY( X.X, j );
@@ -439,7 +451,7 @@ static void WriteM_Aff()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			const Til2Img	*t2i;
@@ -482,7 +494,7 @@ static void WriteM_Hmy()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			const Til2Img	*t2i;
@@ -571,7 +583,7 @@ static void WriteXMLLyr_Aff( FILE *f, int &oid )
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			const Til2Img	*t2i;
@@ -676,7 +688,7 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( !R.used[j] )
+			if( R.flag[j] )
 				continue;
 
 			const Til2Img	*t2i;

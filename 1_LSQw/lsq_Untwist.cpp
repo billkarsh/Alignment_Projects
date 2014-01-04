@@ -64,7 +64,7 @@ void* _RgdSums( void* ithr )
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
 
-			if( !Ra.used[ir] )
+			if( Ra.flag[ir] )
 				continue;
 
 			const vector<int>&	P  = Ra.pts[ir];
@@ -86,7 +86,7 @@ void* _RgdSums( void* ithr )
 
 				if( C.i2 != lastb ) {
 
-					if( !Rb.used[C.i2] )
+					if( Rb.flag[C.i2] )
 						continue;
 
 					Tb = &X_AS_AFF( xb, C.i2 );
@@ -272,7 +272,7 @@ static void Apply( TAffine &A0 )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( !R.used[ir] )
+			if( R.flag[ir] )
 				continue;
 
 			TAffine& T = X_AS_AFF( x, ir );

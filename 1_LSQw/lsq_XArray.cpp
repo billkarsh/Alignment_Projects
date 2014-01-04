@@ -92,8 +92,10 @@ static void* _AFromIDB( void* ithr )
 				if( R.pts[j].size() >= 3 ) {
 
 					T.T.CopyOut( &x[j * 6] );
-					R.used[j] = true;
+					R.flag[j] = fUsed;
 				}
+				else
+					R.flag[j] = fIniPts;
 			}
 		}
 	}
@@ -193,10 +195,11 @@ static void* _AFromTxt( void* ithr )
 				for( int j = j0; j < jlim; ++j ) {
 
 					if( !in || R.pts[j].size() >= 3 ) {
-
 						A.A.CopyOut( &x[j * 6] );
-						R.used[j] = true;
+						R.flag[j] = fUsed;
 					}
+					else
+						R.flag[j] = fIniPts;
 				}
 			}
 		}
@@ -218,10 +221,11 @@ static void* _AFromTxt( void* ithr )
 				j = mi->second + A.r - 1;
 
 				if( !in || R.pts[j].size() >= 3 ) {
-
 					A.A.CopyOut( &x[j * 6] );
-					R.used[j] = true;
+					R.flag[j] = fUsed;
 				}
+				else
+					R.flag[j] = fIniPts;
 			}
 		}
 	}
@@ -322,10 +326,11 @@ static void* _HFromTxt( void* ithr )
 				for( int j = j0; j < jlim; ++j ) {
 
 					if( !in || R.pts[j].size() >= 4 ) {
-
 						H.H.CopyOut( &x[j * 6] );
-						R.used[j] = true;
+						R.flag[j] = fUsed;
 					}
+					else
+						R.flag[j] = fIniPts;
 				}
 			}
 		}
@@ -347,10 +352,11 @@ static void* _HFromTxt( void* ithr )
 				j = mi->second + H.r - 1;
 
 				if( !in || R.pts[j].size() >= 4 ) {
-
 					H.H.CopyOut( &x[j * 6] );
-					R.used[j] = true;
+					R.flag[j] = fUsed;
 				}
+				else
+					R.flag[j] = fIniPts;
 			}
 		}
 	}
@@ -374,15 +380,15 @@ static void ReadXBin( vector<double> &x, int z )
 }
 
 
-static void ReadUBin( vector<char> &u, int z )
+static void ReadFBin( vector<uint8> &f, int z )
 {
 	char	buf[2048];
-	FILE	*f;
+	FILE	*q;
 
-	sprintf( buf, "%s/U_%d.bin", gpath, z );
-	f = FileOpenOrDie( buf, "rb" );
-	fread( &u[0], sizeof(char), u.size(), f );
-	fclose( f );
+	sprintf( buf, "%s/F_%d.bin", gpath, z );
+	q = FileOpenOrDie( buf, "rb" );
+	fread( &f[0], sizeof(uint8), f.size(), q );
+	fclose( q );
 }
 
 
@@ -398,12 +404,26 @@ static void* _XFromBin( void* ithr )
 
 		x.resize( R.nr * ME->NE );
 		ReadXBin( x, R.z );
-		ReadUBin( R.used, R.z );
+		ReadFBin( R.flag, R.z );
 
+		// If read tforms are in wings we adopt their
+		// flags as is and our only concern is whether
+		// they are used or not according to simple
+		// test against zero.
+		//
+		// If in our inner range, note first that the
+		// SaveFBin() operation ensures we write either
+		// fUsed or fAsRead only, so that's what we read
+		// here. We further modify either one of those
+		// by Or-ing the result of the point count.
+		//
 		if( iz >= zilo && iz <= zihi ) {
 
-			for( int j = 0; j < R.nr; ++j )
-				R.used[j] &= R.pts[j].size() >= minpts;
+			for( int j = 0; j < R.nr; ++j ) {
+
+				if( R.pts[j].size() < minpts )
+					R.flag[j] |= fIniPts;
+			}
 		}
 	}
 }
@@ -426,15 +446,22 @@ static void SaveXBin( vector<double> &x, int z )
 }
 
 
-static void SaveUBin( vector<char> &u, int z )
+static void SaveFBin( vector<uint8> &f, int z )
 {
 	char	buf[64];
-	FILE	*f;
+	FILE	*q;
+	int		nf = f.size();
 
-	sprintf( buf, "%s/U_%d.bin", gpath, z );
-	f = FileOpenOrDie( buf, "wb" );
-	fwrite( &u[0], sizeof(char), u.size(), f );
-	fclose( f );
+	for( int i = 0; i < nf; ++i ) {
+
+		if( f[i] )
+			f[i] = fAsRead;
+	}
+
+	sprintf( buf, "%s/F_%d.bin", gpath, z );
+	q = FileOpenOrDie( buf, "wb" );
+	fwrite( &f[0], sizeof(uint8), nf, q );
+	fclose( q );
 }
 
 
@@ -448,7 +475,7 @@ static void* _Save( void* ithr )
 		vector<double>&	x = ME->X[giz[iz]];
 
 		SaveXBin( x, R.z );
-		SaveUBin( R.used, R.z );
+		SaveFBin( R.flag, R.z );
 	}
 }
 
@@ -466,7 +493,7 @@ static void* _UpdtFS( void* ithr )
 		vector<double>&	x = ME->X[giz[iz]];
 
 		ReadXBin( x, R.z );
-		ReadUBin( R.used, R.z );
+		ReadFBin( R.flag, R.z );
 	}
 }
 
@@ -641,7 +668,7 @@ void XArray::UpdtFS()
 /* Send ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool XArray::Send( int zlo, int zhi, int XorU, int toLorR )
+bool XArray::Send( int zlo, int zhi, int XorF, int toLorR )
 {
 	void	*buf;
 	int		bytes,
@@ -663,13 +690,13 @@ bool XArray::Send( int zlo, int zhi, int XorU, int toLorR )
 
 	for( int iz = zlo; iz <= zhi; ++iz ) {
 
-		if( XorU == 'X' ) {
+		if( XorF == 'X' ) {
 			buf		= (void*)&X[iz][0];
 			bytes	= sizeof(double) * X[iz].size();
 		}
 		else {
-			buf		= (void*)&vR[iz].used[0];
-			bytes	= vR[iz].used.size();
+			buf		= (void*)&vR[iz].flag[0];
+			bytes	= vR[iz].flag.size();
 		}
 
 		MPISend( buf, bytes, wdst, iz - zlo );
@@ -682,7 +709,7 @@ bool XArray::Send( int zlo, int zhi, int XorU, int toLorR )
 /* Recv ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool XArray::Recv( int zlo, int zhi, int XorU, int fmLorR )
+bool XArray::Recv( int zlo, int zhi, int XorF, int fmLorR )
 {
 	void	*buf;
 	int		bytes,
@@ -704,13 +731,13 @@ bool XArray::Recv( int zlo, int zhi, int XorU, int fmLorR )
 
 	for( int iz = zlo; iz <= zhi; ++iz ) {
 
-		if( XorU == 'X' ) {
+		if( XorF == 'X' ) {
 			buf		= (void*)&X[iz][0];
 			bytes	= sizeof(double) * X[iz].size();
 		}
 		else {
-			buf		= (void*)&vR[iz].used[0];
-			bytes	= vR[iz].used.size();
+			buf		= (void*)&vR[iz].flag[0];
+			bytes	= vR[iz].flag.size();
 		}
 
 		MPIRecv( buf, bytes, wsrc, iz - zlo );
@@ -737,18 +764,18 @@ bool XArray::Updt()
 	if( wkid & 1 ) {
 
 		Send( zLlo, zLhi, 'X', 'L' );
-		Send( zLlo, zLhi, 'U', 'L' );
+		Send( zLlo, zLhi, 'F', 'L' );
 
 		Send( zRlo, zRhi, 'X', 'R' );
-		Send( zRlo, zRhi, 'U', 'R' );
+		Send( zRlo, zRhi, 'F', 'R' );
 	}
 	else {
 
 		Recv( zihi + 1, zohi, 'X', 'R' );
-		Recv( zihi + 1, zohi, 'U', 'R' );
+		Recv( zihi + 1, zohi, 'F', 'R' );
 
 		Recv( zolo, zilo - 1, 'X', 'L' );
-		Recv( zolo, zilo - 1, 'U', 'L' );
+		Recv( zolo, zilo - 1, 'F', 'L' );
 	}
 
 // Even send
@@ -756,18 +783,18 @@ bool XArray::Updt()
 	if( !(wkid & 1) ) {
 
 		Send( zLlo, zLhi, 'X', 'L' );
-		Send( zLlo, zLhi, 'U', 'L' );
+		Send( zLlo, zLhi, 'F', 'L' );
 
 		Send( zRlo, zRhi, 'X', 'R' );
-		Send( zRlo, zRhi, 'U', 'R' );
+		Send( zRlo, zRhi, 'F', 'R' );
 	}
 	else {
 
 		Recv( zihi + 1, zohi, 'X', 'R' );
-		Recv( zihi + 1, zohi, 'U', 'R' );
+		Recv( zihi + 1, zohi, 'F', 'R' );
 
 		Recv( zolo, zilo - 1, 'X', 'L' );
-		Recv( zolo, zilo - 1, 'U', 'L' );
+		Recv( zolo, zilo - 1, 'F', 'L' );
 	}
 
 	return true;

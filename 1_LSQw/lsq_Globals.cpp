@@ -44,7 +44,7 @@ Rgns::Rgns( int z ) : z(z), cached_id(-1)
 {
 	nr = IDBGetIDRgnMap( m, idb, z );
 	pts.resize( nr );
-	used.resize( nr, 0 );
+	flag.resize( nr, fAsRead );
 }
 
 /* --------------------------------------------------------------- */
@@ -240,11 +240,11 @@ static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
 // After loading points and calling this function:
 // - All data indexed by zero-based (iz,idx0).
 // - Initial value of all vC[i].used set per connectivity.
-// - Initial value of all vR[i][j].used set false.
+// - Initial value of all vR[i][j].flag set fAsRead.
 //
 // - vC[i].used are modified later as outliers are detected
 //		in solution iteration cycles.
-// - vR[i][j].used are modified later as starting solutions
+// - vR[i][j].flag are modified later as starting solutions
 //		are loaded, and as needed during solve cycles.
 //
 void RemapIndices()
