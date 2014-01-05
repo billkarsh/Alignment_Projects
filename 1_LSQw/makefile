@@ -16,6 +16,7 @@ files =\
  lsqw.cpp\
  ../1_LSQi/lsq_Layers.cpp\
  lsq_Bounds.cpp\
+ lsq_Dropout.cpp\
  lsq_Error.cpp\
  lsq_Globals.cpp\
  lsq_LoadPoints.cpp\

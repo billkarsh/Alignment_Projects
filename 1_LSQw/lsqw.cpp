@@ -1,6 +1,7 @@
 
 
 #include	"lsq_Bounds.h"
+#include	"lsq_Dropout.h"
 #include	"lsq_Error.h"
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
@@ -236,10 +237,18 @@ int main( int argc, char **argv )
 
 	Error( A );
 
+	Dropout	D;
+	D.Scan();
+
 	if( !wkid ) {
+
 		double	erms, emax;
 		GetFinalError( erms, emax );
-		printf( "\nFINAL RMS %.2f MAX %.2f\n", erms, emax );
+
+		printf(
+		"\nFINAL RMS %.2f MAX %.2f"
+		" ITER-DROPS %ld PNTS-DROPS %ld\n",
+		erms, emax, D.iter, D.pnts );
 	}
 
 	DBox B;
