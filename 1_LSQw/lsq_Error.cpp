@@ -11,7 +11,6 @@
 #include	"THmgphy.h"
 #include	"Timer.h"
 
-#include	<stdlib.h>
 #include	<string.h>
 
 #include	<algorithm>
@@ -87,6 +86,7 @@ public:
 	// combine
 	void Init_Smy( const Stat &rhs );
 	void Add_Smy( const Stat &rhs );
+	void SmyMyLayers();
 	void Total( const Stat &rhs );
 
 	// report
@@ -98,6 +98,13 @@ public:
 class StatG {
 // Stat type using cross-worker global indexing
 private:
+	typedef struct {
+		double	sms, smd;
+		int		ns,  nd;
+		EG		eis[TOPN],
+				eid[TOPN];
+	} MPIBUF;
+private:
 	vector<EG>::iterator	eis0, eid0;
 public:
 	vector<EG>	eis, eid;	// topn
@@ -106,8 +113,8 @@ public:
 public:
 	// Scatter, gather
 	void FromStat( const Stat &rhs );
-	void ToFile();
-	void FromFile( int iw );
+	void Send();
+	void Recv( int iw );
 	void Add( const StatG &rhs );
 
 	// combine
@@ -187,9 +194,10 @@ void EG::FromEI( const EI &rhs )
 {
 	const CorrPnt&	C = vC[rhs.i];
 
-	e = rhs.e;
-	RealZIDR( z1, i1, r1, C.z1, C.i1 );
-	RealZIDR( z2, i2, r2, C.z2, C.i2 );
+	if( (e = rhs.e) > -1 ) {
+		RealZIDR( z1, i1, r1, C.z1, C.i1 );
+		RealZIDR( z2, i2, r2, C.z2, C.i2 );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -291,6 +299,20 @@ void Stat::Add_Smy( const Stat &rhs )
 }
 
 /* --------------------------------------------------------------- */
+/* Stat::SmyMyLayers --------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void Stat::SmyMyLayers()
+{
+	int	ns = zihi - zilo + 1;
+
+	Init_Smy( vS[0] );
+
+	for( int is = 1; is < ns; ++is )
+		Add_Smy( vS[is] );
+}
+
+/* --------------------------------------------------------------- */
 /* Stat::Total --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -366,12 +388,13 @@ void StatG::FromStat( const Stat &rhs )
 	for( int i = 0; i < TOPN; ++i )
 		eis[i].FromEI( rhs.eis[i] );
 
+	eid.resize( 2*TOPN );
+	smd		= rhs.smd;
+	nd		= rhs.nd;
+
 	if( zolo != zohi ) {
 
-		eid.resize( 2*TOPN );
-		eid0	= eid.begin();
-		smd		= rhs.smd;
-		nd		= rhs.nd;
+		eid0 = eid.begin();
 
 		for( int i = 0; i < TOPN; ++i )
 			eid[i].FromEI( rhs.eid[i] );
@@ -379,53 +402,44 @@ void StatG::FromStat( const Stat &rhs )
 }
 
 /* --------------------------------------------------------------- */
-/* StatG::ToFile ------------------------------------------------- */
+/* StatG::Send --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void StatG::ToFile()
+void StatG::Send()
 {
-	char	buf[64];
-	sprintf( buf, "ErrTemp/stat_%d.bin", wkid );
-	FILE	*f = FileOpenOrDie( buf, "wb" );
+	MPIBUF	B;
 
-	fwrite( &sms, sizeof(double), 1, f );
-	fwrite( &smd, sizeof(double), 1, f );
+	B.sms = sms;
+	B.smd = smd;
+	B.ns  = ns;
+	B.nd  = nd;
+	memcpy( B.eis, &eis[0], TOPN * sizeof(EG) );
+	memcpy( B.eid, &eid[0], TOPN * sizeof(EG) );
 
-	fwrite( &ns, sizeof(int), 1, f );
-	fwrite( &nd, sizeof(int), 1, f );
-
-	fwrite( &eis[0], sizeof(EG), TOPN, f );
-	fwrite( &eid[0], sizeof(EG), TOPN, f );
-
-	fclose( f );
+	MPISend( &B, sizeof(MPIBUF), 0, wkid );
 }
 
 /* --------------------------------------------------------------- */
-/* StatG::FromFile ----------------------------------------------- */
+/* StatG::Recv ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void StatG::FromFile( int iw )
+void StatG::Recv( int iw )
 {
-	char	buf[64];
-	sprintf( buf, "ErrTemp/stat_%d.bin", iw );
-	FILE	*f = FileOpenOrDie( buf, "rb" );
+	MPIBUF	B;
+	MPIRecv( &B, sizeof(MPIBUF), iw, iw );
 
-	eis.resize( TOPN );
+	eis.resize( 2*TOPN );
 	eis0 = eis.begin();
 
-	eid.resize( TOPN );
+	eid.resize( 2*TOPN );
 	eid0 = eid.begin();
 
-	fread( &sms, sizeof(double), 1, f );
-	fread( &smd, sizeof(double), 1, f );
-
-	fread( &ns, sizeof(int), 1, f );
-	fread( &nd, sizeof(int), 1, f );
-
-	fread( &eis[0], sizeof(EG), TOPN, f );
-	fread( &eid[0], sizeof(EG), TOPN, f );
-
-	fclose( f );
+	sms = B.sms;
+	smd = B.smd;
+	ns  = B.ns;
+	nd  = B.nd;
+	memcpy( &eis[0], B.eis, TOPN * sizeof(EG) );
+	memcpy( &eid[0], B.eid, TOPN * sizeof(EG) );
 }
 
 /* --------------------------------------------------------------- */
@@ -761,10 +775,10 @@ static void CalcLayerwiseError( const XArray &X )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteLayerFiles ----------------------------------------------- */
+/* WriteLocalFiles ----------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteLayerFiles()
+static void WriteLocalFiles()
 {
 	char	buf[64];
 	FILE	*f;
@@ -777,6 +791,8 @@ static void WriteLayerFiles()
 		sprintf( buf, "ErrTemp/topn_S_%d.txt", wkid );
 
 	f = FileOpenOrDie( buf, "w" );
+
+	// header
 
 	if( !wkid )
 		fprintf( f, "Z\tRMS\tTOPN\n" );
@@ -803,6 +819,8 @@ static void WriteLayerFiles()
 
 	f = FileOpenOrDie( buf, "w" );
 
+	// header
+
 	if( !wkid )
 		fprintf( f, "Z\tRMS\tTOPN\n" );
 
@@ -818,39 +836,12 @@ static void WriteLayerFiles()
 }
 
 /* --------------------------------------------------------------- */
-/* WorkerSummary ------------------------------------------------- */
+/* LogLocalSmy --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// (1) In log file, print summary for this worker's range.
-// This is also the final log report in the 1-worker case.
-//
-// (2) In multiple worker case, write summary to ErrTemp.
-//
-static void WorkerSummary( Stat &Sw )
+static void LogLocalSmy( Stat &Sw, const char* title )
 {
-// Create compact worker summary
-
-	int	ns = zihi - zilo + 1;
-
-	Sw.Init_Smy( vS[0] );
-
-	for( int is = 1; is < ns; ++is )
-		Sw.Add_Smy( vS[is] );
-
-// Publish to log (and file)
-
-	if( nwks <= 1 )
-		printf( "All workers:\n" );
-	else {
-
-		printf( "This worker:\n" );
-
-		if( wkid > 0 ) {
-			StatG	Sg;
-			Sg.FromStat( Sw );
-			Sg.ToFile();
-		}
-	}
+	printf( "%s:\n", title );
 
 	printf( "Same RMS %.2f TopN", Sw.RMSS() );
 	Sw.Topn( stdout, 'S' );
@@ -874,42 +865,11 @@ static void WorkerSummary( Stat &Sw )
 }
 
 /* --------------------------------------------------------------- */
-/* MasterGatherStats --------------------------------------------- */
+/* LogGlobalSmy -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void MasterGatherStats( const Stat &Sw )
+static void LogGlobalSmy( StatG &S0 )
 {
-	if( nwks <= 1 || wkid > 0 )
-		return;
-
-// Gather from ErrTemp
-
-	StatG	S0;
-	S0.FromStat( Sw );
-
-	for( int iw = 1; iw < nwks; ++iw ) {
-
-		StatG	Si;
-		Si.FromFile( iw );
-		S0.Add( Si );
-
-		char	buf[128];
-		sprintf( buf, "cat ErrTemp/topn_S_%d.txt >> ErrSame.txt", iw );
-		system( buf );
-
-		if( zolo == zohi )
-			continue;
-
-		sprintf( buf, "cat ErrTemp/topn_D_%d.txt >> ErrDown.txt", iw );
-		system( buf );
-	}
-
-// Delete ErrTemp
-
-	system( "rm -rf ErrTemp" );
-
-// Publish to master log
-
 	printf( "\nAll workers:\n" );
 
 	printf( "Same RMS %.2f TopN", S0.RMSS() );
@@ -925,6 +885,58 @@ static void MasterGatherStats( const Stat &Sw )
 
 	fnlrms	= St.RMSS();
 	fnlmax	= St.eis[0].e;
+}
+
+/* --------------------------------------------------------------- */
+/* Consolidate --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Consolidate()
+{
+	Stat	Sw;
+
+	Sw.SmyMyLayers();
+
+	if( nwks <= 1 )
+		LogLocalSmy( Sw, "All workers" );
+	else if( wkid > 0 ) {
+
+		StatG	Sg;
+		Sg.FromStat( Sw );
+		Sg.Send();
+
+		LogLocalSmy( Sw, "This worker" );
+	}
+	else {
+
+		StatG	S0;
+		S0.FromStat( Sw );
+
+		for( int iw = 1; iw < nwks; ++iw ) {
+
+			// accumulate worker stats
+
+			StatG	Si;
+			Si.Recv( iw );
+			S0.Add( Si );
+
+			// append temp files
+
+			char	buf[128];
+
+			sprintf( buf,
+			"cat ErrTemp/topn_S_%d.txt >> ErrSame.txt", iw );
+			system( buf );
+
+			sprintf( buf,
+			"cat ErrTemp/topn_D_%d.txt >> ErrDown.txt", iw );
+			system( buf );
+		}
+
+		system( "rm -rf ErrTemp" );
+		LogLocalSmy( Sw, "This worker" );
+		LogGlobalSmy( S0 );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -956,14 +968,8 @@ void Error( const XArray &X )
 		DskCreateDir( "ErrTemp", stdout );
 
 	CalcLayerwiseError( X );
-	WriteLayerFiles();
-
-	Stat	Sw;
-	WorkerSummary( Sw );
-
-	MPIWaitForOthers();
-
-	MasterGatherStats( Sw );
+	WriteLocalFiles();
+	Consolidate();
 	vS.clear();
 
 	StopTiming( stdout, "Errors", t0 );
