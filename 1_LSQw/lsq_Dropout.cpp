@@ -117,7 +117,8 @@ void Dropout::GatherCounts()
 
 	if( wkid > 0 )
 		MPISend( this, sizeof(Dropout), 0, wkid );
-	else {
+	else if( nwks > 1 ) {
+
 		for( int iw = 1; iw < nwks; ++iw ) {
 
 			Dropout	D;

@@ -5,12 +5,11 @@
 #include	"lsq_MPI.h"
 
 #include	"EZThreads.h"
-#include	"Disk.h"
-#include	"File.h"
 #include	"TAffine.h"
 #include	"THmgphy.h"
 #include	"Timer.h"
 
+#include	<stdlib.h>
 #include	<string.h>
 
 
@@ -112,14 +111,14 @@ static void CalcLayerwiseBoxes( const XArray &X )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteMyBox ---------------------------------------------------- */
+/* GlobalBounds -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteMyBox( DBox &B )
+static void GlobalBounds( DBox &B )
 {
-// Everyone get the box for local zi range
+// Calc my local overall box
 
-	int	nb = vB.size();
+	int	nb = zihi - zilo + 1;
 
 	B = vB[0];
 
@@ -133,49 +132,26 @@ static void WriteMyBox( DBox &B )
 		B.T = fmax( B.T, b.T );
 	}
 
-// Everyone write if multiple
+// Send my box to master; then get global box from master
 
-	if( nwks <= 1 )
-		return;
+	if( wkid > 0 ) {
+		MPISend( &B, sizeof(DBox), 0, wkid );
+		MPIRecv( &B, sizeof(DBox), 0, wkid );
+	}
+	else if( nwks > 1 ) {
 
-	DskCreateDir( "Bounds", stdout );
+		for( int iw = 1; iw < nwks; ++iw ) {
 
-	char	buf[32];
-	sprintf( buf, "Bounds/%d.txt", wkid );
-	FILE	*f = FileOpenOrDie( buf, "w" );
-	fprintf( f, "%.21f %.21f %.21f %.21f\n", B.L, B.R, B.B, B.T );
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
-/* GlobalBounds -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void GlobalBounds( DBox &B )
-{
-	for( int iw = 0; iw < nwks; ++iw ) {
-
-		if( iw == wkid )
-			continue;
-
-		char	buf[32];
-		sprintf( buf, "Bounds/%d.txt", iw );
-		FILE	*f = FileOpenOrDie( buf, "r" );
-
-		DBox	b;
-
-		if( 4 != fscanf( f, "%lf%lf%lf%lf",
-				&b.L, &b.R, &b.B, &b.T ) ) {
-
-			exit( 32 );
+			DBox	b;
+			MPIRecv( &b, sizeof(DBox), iw, iw );
+			B.L = fmin( B.L, b.L );
+			B.R = fmax( B.R, b.R );
+			B.B = fmin( B.B, b.B );
+			B.T = fmax( B.T, b.T );
 		}
 
-		B.L = fmin( B.L, b.L );
-		B.R = fmax( B.R, b.R );
-		B.B = fmin( B.B, b.B );
-		B.T = fmax( B.T, b.T );
-
-		fclose( f );
+		for( int iw = 1; iw < nwks; ++iw )
+			MPISend( &B, sizeof(DBox), iw, iw );
 	}
 }
 
@@ -245,10 +221,6 @@ void Bounds( DBox &B, const XArray &X )
 	clock_t	t0 = StartTiming();
 
 	CalcLayerwiseBoxes( X );
-	WriteMyBox( B );
-
-	MPIWaitForOthers();
-
 	GlobalBounds( B );
 
 // Adjust all transform origins

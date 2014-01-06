@@ -3,6 +3,9 @@
 General Notes
 =============
 
+// Note that printf with %.21f writes doubles to full precision
+// such that scanf with %lf recovers the identical value.
+
 - Submit brief jobs immed using " qsub -l short=true".
 
 - Interactive: qlogin -l excl=true
