@@ -28,6 +28,8 @@ using namespace std;
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+namespace error {
+
 class FileErr {
 // Buffered file writing
 private:
@@ -101,13 +103,13 @@ private:
 	typedef struct {
 		double	sms, smd;
 		int		ns,  nd;
-		EG		eis[TOPN],
-				eid[TOPN];
+		EG		egs[TOPN],
+				egd[TOPN];
 	} MPIBUF;
 private:
-	vector<EG>::iterator	eis0, eid0;
+	vector<EG>::iterator	egs0, egd0;
 public:
-	vector<EG>	eis, eid;	// topn
+	vector<EG>	egs, egd;	// topn
 	double		sms, smd;	// sum
 	int			ns,  nd;	// count
 public:
@@ -125,6 +127,10 @@ public:
 	double RMSD() const	{return (nd ? sqrt( smd/nd ) : -1);};
 	void Topn( FILE *f, int SorD ) const;
 };
+
+}	// namespace error
+
+using namespace error;
 
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
@@ -304,12 +310,12 @@ void Stat::Add_Smy( const Stat &rhs )
 
 void Stat::SmyMyLayers()
 {
-	int	ns = zihi - zilo + 1;
+	int	nL = zihi - zilo + 1;
 
 	Init_Smy( vS[0] );
 
-	for( int is = 1; is < ns; ++is )
-		Add_Smy( vS[is] );
+	for( int iL = 1; iL < nL; ++iL )
+		Add_Smy( vS[iL] );
 }
 
 /* --------------------------------------------------------------- */
@@ -380,24 +386,24 @@ void Stat::Topn( FILE *f, int SorD ) const
 
 void StatG::FromStat( const Stat &rhs )
 {
-	eis.resize( 2*TOPN );
-	eis0	= eis.begin();
+	egs.resize( 2*TOPN );
+	egs0	= egs.begin();
 	sms		= rhs.sms;
 	ns		= rhs.ns;
 
 	for( int i = 0; i < TOPN; ++i )
-		eis[i].FromEI( rhs.eis[i] );
+		egs[i].FromEI( rhs.eis[i] );
 
-	eid.resize( 2*TOPN );
+	egd.resize( 2*TOPN );
 	smd		= rhs.smd;
 	nd		= rhs.nd;
 
 	if( zolo != zohi ) {
 
-		eid0 = eid.begin();
+		egd0 = egd.begin();
 
 		for( int i = 0; i < TOPN; ++i )
-			eid[i].FromEI( rhs.eid[i] );
+			egd[i].FromEI( rhs.eid[i] );
 	}
 }
 
@@ -413,8 +419,8 @@ void StatG::Send()
 	B.smd = smd;
 	B.ns  = ns;
 	B.nd  = nd;
-	memcpy( B.eis, &eis[0], TOPN * sizeof(EG) );
-	memcpy( B.eid, &eid[0], TOPN * sizeof(EG) );
+	memcpy( B.egs, &egs[0], TOPN * sizeof(EG) );
+	memcpy( B.egd, &egd[0], TOPN * sizeof(EG) );
 
 	MPISend( &B, sizeof(MPIBUF), 0, wkid );
 }
@@ -428,18 +434,18 @@ void StatG::Recv( int iw )
 	MPIBUF	B;
 	MPIRecv( &B, sizeof(MPIBUF), iw, iw );
 
-	eis.resize( 2*TOPN );
-	eis0 = eis.begin();
+	egs.resize( 2*TOPN );
+	egs0 = egs.begin();
 
-	eid.resize( 2*TOPN );
-	eid0 = eid.begin();
+	egd.resize( 2*TOPN );
+	egd0 = egd.begin();
 
 	sms = B.sms;
 	smd = B.smd;
 	ns  = B.ns;
 	nd  = B.nd;
-	memcpy( &eis[0], B.eis, TOPN * sizeof(EG) );
-	memcpy( &eid[0], B.eid, TOPN * sizeof(EG) );
+	memcpy( &egs[0], B.egs, TOPN * sizeof(EG) );
+	memcpy( &egd[0], B.egd, TOPN * sizeof(EG) );
 }
 
 /* --------------------------------------------------------------- */
@@ -451,16 +457,16 @@ void StatG::Add( const StatG &rhs )
 	sms += rhs.sms;
 	ns	+= rhs.ns;
 
-	memcpy( &eis[TOPN], &rhs.eis[0], TOPN * sizeof(EG) );
-	sort( eis0, eis0 + 2*TOPN );
+	memcpy( &egs[TOPN], &rhs.egs[0], TOPN * sizeof(EG) );
+	sort( egs0, egs0 + 2*TOPN );
 
 	if( zolo != zohi ) {
 
 		smd += rhs.smd;
 		nd	+= rhs.nd;
 
-		memcpy( &eid[TOPN], &rhs.eid[0], TOPN * sizeof(EG) );
-		sort( eid0, eid0 + 2*TOPN );
+		memcpy( &egd[TOPN], &rhs.egd[0], TOPN * sizeof(EG) );
+		sort( egd0, egd0 + 2*TOPN );
 	}
 }
 
@@ -472,14 +478,14 @@ void StatG::Add( const StatG &rhs )
 //
 void StatG::Total( const StatG &rhs )
 {
-	eis.resize( 2*TOPN );
-	eis0	= eis.begin();
+	egs.resize( 2*TOPN );
+	egs0	= egs.begin();
 	sms		= rhs.sms + rhs.smd;
 	ns		= rhs.ns  + rhs.nd;
 
-	memcpy( &eis[0],    &rhs.eis[0], TOPN * sizeof(EG) );
-	memcpy( &eis[TOPN], &rhs.eid[0], TOPN * sizeof(EG) );
-	sort( eis0, eis0 + 2*TOPN );
+	memcpy( &egs[0],    &rhs.egs[0], TOPN * sizeof(EG) );
+	memcpy( &egs[TOPN], &rhs.egd[0], TOPN * sizeof(EG) );
+	sort( egs0, egs0 + 2*TOPN );
 }
 
 /* --------------------------------------------------------------- */
@@ -490,7 +496,7 @@ void StatG::Topn( FILE *f, int SorD ) const
 {
 // print the errors...
 
-	const vector<EG>&	veg = (SorD == 'S' ? eis : eid);
+	const vector<EG>&	veg = (SorD == 'S' ? egs : egd);
 	int					ne  = 0;
 
 	for( int i = 0; i < TOPN; ++i ) {
@@ -527,7 +533,7 @@ void StatG::Topn( FILE *f, int SorD ) const
 
 void* _ErrorA( void* ithr )
 {
-	int	ns = vS.size();
+	int	ns = zihi - zilo + 1;
 
 // For each layer...
 
@@ -636,7 +642,7 @@ void* _ErrorA( void* ithr )
 
 void* _ErrorH( void* ithr )
 {
-	int	ns = vS.size();
+	int	ns = zihi - zilo + 1;
 
 // For each layer...
 
@@ -766,8 +772,8 @@ static void CalcLayerwiseError( const XArray &X )
 		sproc	= "_ErrorA";
 	}
 	else {
-		proc	= _ErrorA;
-		sproc	= "_ErrorA";
+		proc	= _ErrorH;
+		sproc	= "_ErrorH";
 	}
 
 	if( !EZThreads( proc, nthr, 1, sproc ) )
@@ -884,7 +890,7 @@ static void LogGlobalSmy( StatG &S0 )
 	St.Topn( stdout, 'S' );
 
 	fnlrms	= St.RMSS();
-	fnlmax	= St.eis[0].e;
+	fnlmax	= St.egs[0].e;
 }
 
 /* --------------------------------------------------------------- */

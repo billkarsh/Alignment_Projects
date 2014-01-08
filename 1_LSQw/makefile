@@ -20,6 +20,7 @@ files =\
  lsq_Error.cpp\
  lsq_Globals.cpp\
  lsq_LoadPoints.cpp\
+ lsq_Magnitude.cpp\
  lsq_MPI.cpp\
  lsq_Untwist.cpp\
  lsq_XArray.cpp

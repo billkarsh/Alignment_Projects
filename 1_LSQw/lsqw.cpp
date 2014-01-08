@@ -5,6 +5,7 @@
 #include	"lsq_Error.h"
 #include	"lsq_Globals.h"
 #include	"lsq_LoadPoints.h"
+#include	"lsq_Magnitude.h"
 #include	"lsq_MPI.h"
 #include	"lsq_Untwist.h"
 #include	"lsq_XArray.h"
@@ -234,6 +235,8 @@ int main( int argc, char **argv )
 /* --------- */
 /* Summaries */
 /* --------- */
+
+	Magnitude( A );
 
 	Error( A );
 
