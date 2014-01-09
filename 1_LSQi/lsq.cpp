@@ -20,6 +20,8 @@
 #include	"Maths.h"
 #include	"Memory.h"
 
+#include	<string.h>
+
 
 /* --------------------------------------------------------------- */
 /* CArgs --------------------------------------------------------- */
@@ -30,14 +32,15 @@ class CArgs {
 public:
 	char		tempdir[2048],	// master workspace
 				cachedir[2048];	// {catalog, pnts} files
-	const char	*prior;			// start from these solutions
+	const char	*prior,			// start from these solutions
+				*mode;			// {catonly,evlonly,A2A,A2H,H2H}
 	int			zilo,			// my output range
 				zihi,
 				zolo,			// extended input range
 				zohi,
-				zpernode;		// max layers per node
+				zpernode,		// max layers per node
+				iters;			// solve iterations
 	bool		catclr,			// remake point catalog
-				catonly,
 				untwist;		// iff prior are affines
 
 public:
@@ -46,13 +49,14 @@ public:
 		tempdir[0]	= 0;
 		cachedir[0]	= 0;
 		prior		= NULL;
+		mode		= "A2A";
 		zilo		= 0;
 		zihi		= 0;
 		zolo		= -1;
 		zohi		= -1;
 		zpernode	= 200;
+		iters		= 250;
 		catclr		= false;
-		catonly		= false;
 		untwist		= false;
 	};
 
@@ -109,6 +113,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArgStr( prior, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", prior );
+		else if( GetArgStr( mode, "-mode=", argv[i] ) )
+			printf( "Mode: '%s'.\n", mode );
 		else if( GetArgList( vi, "-zi=", argv[i] ) ) {
 
 			if( 2 == vi.size() ) {
@@ -135,10 +141,10 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &zpernode, "-zpernode=%d", argv[i] ) )
 			;
+		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
+			printf( "Iterations: %d\n", iters );
 		else if( IsArg( "-catclr", argv[i] ) )
 			catclr = true;
-		else if( IsArg( "-catonly", argv[i] ) )
-			catonly = true;
 		else if( IsArg( "-untwist", argv[i] ) )
 			untwist = true;
 		else {
@@ -147,8 +153,25 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 	}
 
-// Default cahe folder name
+// Mode valid?
 
+	if( !strcmp( mode, "catonly" ) )
+		goto mode_ok;
+	if( !strcmp( mode, "evlonly" ) )
+		goto mode_ok;
+	if( !strcmp( mode, "A2A" ) )
+		goto mode_ok;
+	if( !strcmp( mode, "A2H" ) )
+		goto mode_ok;
+	if( !strcmp( mode, "H2H" ) )
+		goto mode_ok;
+
+	printf( "Invalid -mode string [%s].\n", mode );
+	exit( 42 );
+
+// Default cache folder name
+
+mode_ok:
 	if( !cachedir[0] )
 		DskAbsPath( cachedir, sizeof(cachedir), "lsqcache", stdout );
 
@@ -266,10 +289,14 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		// 1 worker: pass flow in process to lsqw.
 
 		sprintf( buf,
-		"lsqw -nwks=%d -temp=%s -cache=%s -prior=%s"
+		"lsqw -nwks=%d -temp=%s"
+		" -cache=%s -prior=%s"
+		" -mode=%s -iters=%d"
 		" -zi=%d,%d -zo=%d,%d"
 		"%s",
-		nwks, tempdir, cachedir, prior,
+		nwks, tempdir,
+		cachedir, prior,
+		mode, iters,
 		zilo, zihi, zolo, zohi,
 		(untwist ? " -untwist" : "") );
 	}
@@ -306,10 +333,14 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		fprintf( f, "tail -n +2 sge.txt > hosts.txt\n" );
 		fprintf( f, "\n" );
 		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
-		" lsqw -nwks=%d -temp=%s -cache=%s -prior=%s"
+		" lsqw -nwks=%d -temp=%s"
+		" -cache=%s -prior=%s"
+		" -mode=%s -iters=%d"
 		"%s\n",
 		nwks,
-		nwks, tempdir, cachedir, prior,
+		nwks, tempdir,
+		cachedir, prior,
+		mode, iters,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );
 
@@ -340,7 +371,7 @@ int main( int argc, char **argv )
 	LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
 		gArgs.zolo, gArgs.zohi, gArgs.catclr );
 
-	if( !gArgs.catonly )
+	if( strcmp( gArgs.mode, "catonly" ) )
 		gArgs.LaunchWorkers( vL );
 
 	VMStats( stdout );

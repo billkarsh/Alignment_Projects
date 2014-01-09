@@ -25,11 +25,13 @@ class CArgs {
 public:
 	const char	*tempdir,		// master workspace
 				*cachedir,		// {catalog, pnts} files
-				*prior;			// start from these solutions
+				*prior,			// start from these solutions
+				*mode;			// {catonly,evlonly,A2A,A2H,H2H}
 	int			zilo,			// my output range
-				zihi,			// iff nwks == 1
+				zihi,
 				zolo,			// extended input range
-				zohi;
+				zohi,
+				iters;			// solve iterations
 	bool		untwist;		// iff prior are affines
 
 public:
@@ -38,10 +40,12 @@ public:
 		tempdir		= NULL;
 		cachedir	= NULL;
 		prior		= NULL;
+		mode		= NULL;
 		zilo		= 0;
 		zihi		= 0;
 		zolo		= -1;
 		zohi		= -1;
+		iters		= 250;
 		untwist		= false;
 	};
 
@@ -81,6 +85,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			printf( "Cache dir: '%s'.\n", cachedir );
 		else if( GetArgStr( prior, "-prior=", argv[i] ) )
 			printf( "Prior solutions: '%s'.\n", prior );
+		else if( GetArgStr( mode, "-mode=", argv[i] ) )
+			printf( "Mode: '%s'.\n", mode );
 		else if( GetArg( &nwks, "-nwks=%d", argv[i] ) )
 			;
 		else if( GetArgList( vi, "-zi=", argv[i] ) ) {
@@ -107,6 +113,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 				exit( 42 );
 			}
 		}
+		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
+			printf( "Iterations: %d\n", iters );
 		else if( IsArg( "-untwist", argv[i] ) )
 			untwist = true;
 		else {
@@ -193,6 +201,33 @@ void CArgs::GetRanges()
 }
 
 /* --------------------------------------------------------------- */
+/* Evaluate ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void Evaluate( const XArray& X )
+{
+	Magnitude( X );
+	Error( X );
+
+	Dropout	D;
+	D.Scan();
+
+	if( !wkid ) {
+
+		double	erms, emax;
+		GetFinalError( erms, emax );
+
+		printf(
+		"\nFINAL RMS %.2f MAX %.2f"
+		" ITER-DROPS %ld PNTS-DROPS %ld\n",
+		erms, emax, D.iter, D.pnts );
+	}
+
+	DBox B;
+	Bounds( B, X );
+}
+
+/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -224,47 +259,28 @@ int main( int argc, char **argv )
 	}
 
 /* ----- */
-/* Start */
+/* Solve */
 /* ----- */
 
-	printf( "\n---- Development ----\n" );
+	printf( "\n---- Solve ----\n" );
 
 	XArray	A;
 	A.Load( gArgs.prior );
 
-/* --------- */
-/* Summaries */
-/* --------- */
+/* -------- */
+/* Evaluate */
+/* -------- */
 
-	Magnitude( A );
+	Evaluate( A );
 
-	Error( A );
-
-	Dropout	D;
-	D.Scan();
-
-	if( !wkid ) {
-
-		double	erms, emax;
-		GetFinalError( erms, emax );
-
-		printf(
-		"\nFINAL RMS %.2f MAX %.2f"
-		" ITER-DROPS %ld PNTS-DROPS %ld\n",
-		erms, emax, D.iter, D.pnts );
-	}
-
-	DBox B;
-	Bounds( B, A );
+/* ------- */
+/* Cleanup */
+/* ------- */
 
 	if( !wkid ) {
 		printf( "\n" );
 		StopTiming( stdout, "Lsq", t0 );
 	}
-
-/* ------- */
-/* Cleanup */
-/* ------- */
 
 	MPIExit();
 	VMStats( stdout );
