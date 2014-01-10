@@ -91,7 +91,7 @@ static void ScanEachLayer()
 
 	vD.resize( nd );
 
-	nthr = (zolo != zohi ? 16 : 1);
+	nthr = maxthreads;
 
 	if( nthr > nd )
 		nthr = nd;

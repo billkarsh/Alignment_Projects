@@ -4,9 +4,7 @@
 // (a) lsq.exe (log file 'lsq.txt') scans command line params
 //		and looks at layers catalog to determine how the task
 //		shall be divided among workers. Finally, it launches
-//		those workers. If only one worker is needed, control
-//		is passed to lsqw by system(). Otherwise, a distributed
-//		node-set is configured for mpi data sharing.
+//		those workers. MPI is used for multi-worker cases.
 //
 // (b) lsqw.exe (log file 'lsqw_i.txt') is the worker code.
 //
@@ -38,8 +36,9 @@ public:
 				zihi,
 				zolo,			// extended input range
 				zohi,
+				iters,			// solve iterations
 				zpernode,		// max layers per node
-				iters;			// solve iterations
+				maxthreads;		// thr/node if not mpi
 	bool		catclr,			// remake point catalog
 				untwist;		// iff prior are affines
 
@@ -54,8 +53,9 @@ public:
 		zihi		= 0;
 		zolo		= -1;
 		zohi		= -1;
-		zpernode	= 200;
 		iters		= 250;
+		zpernode	= 200;
+		maxthreads	= 1;
 		catclr		= false;
 		untwist		= false;
 	};
@@ -139,10 +139,12 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 				exit( 42 );
 			}
 		}
-		else if( GetArg( &zpernode, "-zpernode=%d", argv[i] ) )
-			;
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
+		else if( GetArg( &zpernode, "-zpernode=%d", argv[i] ) )
+			;
+		else if( GetArg( &maxthreads, "-maxthreads=%d", argv[i] ) )
+			;
 		else if( IsArg( "-catclr", argv[i] ) )
 			catclr = true;
 		else if( IsArg( "-untwist", argv[i] ) )
@@ -286,19 +288,38 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 	if( nwks <= 1 ) {
 
-		// 1 worker: pass flow in process to lsqw.
+		// 1 worker
 
-		sprintf( buf,
-		"lsqw -nwks=%d -temp=%s"
-		" -cache=%s -prior=%s"
-		" -mode=%s -iters=%d"
-		" -zi=%d,%d -zo=%d,%d"
-		"%s",
-		nwks, tempdir,
-		cachedir, prior,
-		mode, iters,
-		zilo, zihi, zolo, zohi,
-		(untwist ? " -untwist" : "") );
+		if( maxthreads <= 1 ) { // pass flow in-process
+
+			sprintf( buf,
+			"lsqw -nwks=%d -temp=%s"
+			" -cache=%s -prior=%s"
+			" -mode=%s -iters=%d -maxthreads=1"
+			" -zi=%d,%d -zo=%d,%d"
+			"%s",
+			nwks, tempdir,
+			cachedir, prior,
+			mode, iters,
+			zilo, zihi, zolo, zohi,
+			(untwist ? " -untwist" : "") );
+		}
+		else {	// qsub for desired slots
+
+			sprintf( buf,
+			"qsub -N lsqw -cwd -V -b y -pe batch %d"
+			" lsqw -nwks=%d -temp=%s"
+			" -cache=%s -prior=%s"
+			" -mode=%s -iters=%d -maxthreads=%d"
+			" -zi=%d,%d -zo=%d,%d"
+			"%s",
+			maxthreads,
+			nwks, tempdir,
+			cachedir, prior,
+			mode, iters, maxthreads,
+			zilo, zihi, zolo, zohi,
+			(untwist ? " -untwist" : "") );
+		}
 	}
 	else {
 
@@ -335,7 +356,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
 		" lsqw -nwks=%d -temp=%s"
 		" -cache=%s -prior=%s"
-		" -mode=%s -iters=%d"
+		" -mode=%s -iters=%d -maxthreads=16"
 		"%s\n",
 		nwks,
 		nwks, tempdir,

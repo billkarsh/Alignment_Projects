@@ -149,7 +149,7 @@ static void CalcMyPairwiseTForms( XArray &X )
 
 	vS.resize( nb );
 
-	nthr = 16;
+	nthr = maxthreads;
 
 	if( nthr > nb )
 		nthr = nb;

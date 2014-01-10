@@ -20,7 +20,7 @@ public:
 public:
 	void Resize( int ne );
 	void Load( const char *path );
-	void Save();
+	void Save() const;
 	void UpdtFS();
 private:
 	bool Send( int zlo, int zhi, int XorF, int toLorR );

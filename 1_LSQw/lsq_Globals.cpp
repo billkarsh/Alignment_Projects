@@ -21,7 +21,9 @@ int				zLlo, zLhi,	// LHS neib needs these
 				zRlo, zRhi,	// RHS neib needs these
 				zilo, zihi,
 				zolo, zohi,	// index into vR
-				gW,   gH;	// image dims
+				gW,   gH,	// image dims
+				maxthreads = 1,
+				_reserved;	// pad to 8-byte boundary
 vector<Layer>	vL;
 map<int,int>	mZ;
 vector<Rgns>	vR;
@@ -246,6 +248,15 @@ static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
 //		in solution iteration cycles.
 // - vR[i][j].flag are modified later as starting solutions
 //		are loaded, and as needed during solve cycles.
+//
+// Notes
+// -----
+// Solve() and Error() observe the vC[i].used flags which
+// signify a validated connection into inner range [zi].
+// UntwistAffines() needs to calculate angles between all
+// adjacent layers, even those within [zo] only, hence it
+// ignores the flags. Since Untwist effectively avarages
+// over all points, a few ouliers have minimal effect.
 //
 void RemapIndices()
 {

@@ -101,7 +101,7 @@ static void CalcLayerwiseBoxes( const XArray &X )
 
 	vB.resize( nb );
 
-	nthr = (zolo != zohi ? 16 : 1);
+	nthr = maxthreads;
 
 	if( nthr > nb )
 		nthr = nb;
@@ -201,7 +201,7 @@ static void Apply()
 {
 	int	nb = zihi - zilo + 1;
 
-	nthr = (zolo != zohi ? 16 : 1);
+	nthr = maxthreads;
 
 	if( nthr > nb )
 		nthr = nb;

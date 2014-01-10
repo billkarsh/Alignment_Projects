@@ -757,7 +757,7 @@ static void CalcLayerwiseError( const XArray &X )
 
 	vS.resize( ns );
 
-	nthr = (zolo != zohi ? 16 : 1);
+	nthr = maxthreads;
 
 	if( nthr > ns )
 		nthr = ns;

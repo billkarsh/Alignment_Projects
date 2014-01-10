@@ -22,6 +22,7 @@ files =\
  lsq_LoadPoints.cpp\
  lsq_Magnitude.cpp\
  lsq_MPI.cpp\
+ lsq_Solve.cpp\
  lsq_Untwist.cpp\
  lsq_XArray.cpp
 

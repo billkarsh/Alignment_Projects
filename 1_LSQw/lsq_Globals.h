@@ -82,7 +82,8 @@ extern int				zLlo, zLhi,	// LHS neib needs these
 						zRlo, zRhi,	// RHS neib needs these
 						zilo, zihi,
 						zolo, zohi,	// index into vR
-						gW,   gH;	// image dims
+						gW,   gH,	// image dims
+						maxthreads;
 extern vector<Layer>	vL;
 extern map<int,int>		mZ;
 extern vector<Rgns>		vR;

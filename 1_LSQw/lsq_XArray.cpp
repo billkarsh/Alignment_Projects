@@ -527,7 +527,7 @@ void XArray::Load( const char *path )
 
 	ME		= this;
 	gpath	= path;
-	nthr	= (zolo != zohi ? 16 : 1);
+	nthr	= maxthreads;
 
 	if( nthr > nz )
 		nthr = nz;
@@ -595,7 +595,7 @@ error:
 /* Save ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void XArray::Save()
+void XArray::Save() const
 {
 	clock_t	t0 = StartTiming();
 
@@ -610,9 +610,9 @@ void XArray::Save()
 	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
 	DskCreateDir( buf, stdout );
 
-	ME		= this;
+	ME		= (XArray*)this;
 	gpath	= buf;
-	nthr	= 16;
+	nthr	= maxthreads;
 
 	if( nthr > nz )
 		nthr = nz;
@@ -653,7 +653,7 @@ void XArray::UpdtFS()
 
 	ME		= this;
 	gpath	= buf;
-	nthr	= 16;
+	nthr	= maxthreads;
 
 	if( nthr > nz )
 		nthr = nz;

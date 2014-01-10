@@ -7,13 +7,15 @@
 #include	"lsq_LoadPoints.h"
 #include	"lsq_Magnitude.h"
 #include	"lsq_MPI.h"
+#include	"lsq_Solve.h"
 #include	"lsq_Untwist.h"
-#include	"lsq_XArray.h"
 
 #include	"Cmdline.h"
 #include	"File.h"
 #include	"Memory.h"
 #include	"Timer.h"
+
+#include	<string.h>
 
 
 /* --------------------------------------------------------------- */
@@ -115,6 +117,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
+		else if( GetArg( &maxthreads, "-maxthreads=%d", argv[i] ) )
+			printf( "Maxthreads: %d\n", maxthreads );
 		else if( IsArg( "-untwist", argv[i] ) )
 			untwist = true;
 		else {
@@ -204,7 +208,7 @@ void CArgs::GetRanges()
 /* Evaluate ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void Evaluate( const XArray& X )
+static void Evaluate( const XArray &X )
 {
 	Magnitude( X );
 	Error( X );
@@ -264,14 +268,57 @@ int main( int argc, char **argv )
 
 	printf( "\n---- Solve ----\n" );
 
-	XArray	A;
-	A.Load( gArgs.prior );
+	XArray	Xevn, Xodd;
+
+	if( !strcmp( gArgs.mode, "A2A" ) ) {
+
+		Xevn.Load( gArgs.prior );
+
+		if( gArgs.untwist )
+			UntwistAffines( Xevn );
+
+		Xodd.Resize( 6 );
+		Solve( Xevn, Xodd, gArgs.iters );
+	}
+	else if( !strcmp( gArgs.mode, "A2H" ) ) {
+
+		Xevn.Resize( 8 );
+
+		{	// limit A lifetime
+			XArray	*A = new XArray;
+			A->Load( gArgs.prior );
+
+			if( gArgs.untwist )
+				UntwistAffines( *A );
+
+			Solve( *A, Xevn, 1 );
+			delete A;
+		}
+
+		Xodd.Resize( 8 );
+		Solve( Xevn, Xodd, gArgs.iters );
+	}
+	else if( !strcmp( gArgs.mode, "H2H" ) ) {
+
+		Xevn.Load( gArgs.prior );
+		Xodd.Resize( 8 );
+		Solve( Xevn, Xodd, gArgs.iters );
+	}
+	else {	// evlonly
+
+		Xevn.Load( gArgs.prior );
+		gArgs.iters = 0;
+	}
+
+	const XArray& Xfinal = ((gArgs.iters & 1) ? Xodd : Xevn);
+
+	Xfinal.Save();
 
 /* -------- */
 /* Evaluate */
 /* -------- */
 
-	Evaluate( A );
+	Evaluate( Xfinal );
 
 /* ------- */
 /* Cleanup */

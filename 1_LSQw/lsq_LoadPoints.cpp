@@ -147,7 +147,7 @@ void CLoadPoints::MakeBinary()
 
 // Create reader threads to scan points
 
-	nthr = (zolo != zohi ? 16 : 2);
+	nthr = maxthreads;
 
 	if( nthr > njob )
 		nthr = njob;
