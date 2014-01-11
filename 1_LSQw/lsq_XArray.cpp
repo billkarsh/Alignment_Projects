@@ -92,10 +92,10 @@ static void* _AFromIDB( void* ithr )
 				if( R.pts[j].size() >= 3 ) {
 
 					T.T.CopyOut( &x[j * 6] );
-					R.flag[j] = fUsed;
+					FLAG_SETUSED( R.flag[j] );
 				}
 				else
-					R.flag[j] = fIniPts;
+					FLAG_SETPNTS( R.flag[j] );
 			}
 		}
 	}
@@ -196,10 +196,10 @@ static void* _AFromTxt( void* ithr )
 
 					if( !in || R.pts[j].size() >= 3 ) {
 						A.A.CopyOut( &x[j * 6] );
-						R.flag[j] = fUsed;
+						FLAG_SETUSED( R.flag[j] );
 					}
 					else
-						R.flag[j] = fIniPts;
+						FLAG_SETPNTS( R.flag[j] );
 				}
 			}
 		}
@@ -222,10 +222,10 @@ static void* _AFromTxt( void* ithr )
 
 				if( !in || R.pts[j].size() >= 3 ) {
 					A.A.CopyOut( &x[j * 6] );
-					R.flag[j] = fUsed;
+					FLAG_SETUSED( R.flag[j] );
 				}
 				else
-					R.flag[j] = fIniPts;
+					FLAG_SETPNTS( R.flag[j] );
 			}
 		}
 	}
@@ -327,10 +327,10 @@ static void* _HFromTxt( void* ithr )
 
 					if( !in || R.pts[j].size() >= 4 ) {
 						H.H.CopyOut( &x[j * 6] );
-						R.flag[j] = fUsed;
+						FLAG_SETUSED( R.flag[j] );
 					}
 					else
-						R.flag[j] = fIniPts;
+						FLAG_SETPNTS( R.flag[j] );
 				}
 			}
 		}
@@ -353,10 +353,10 @@ static void* _HFromTxt( void* ithr )
 
 				if( !in || R.pts[j].size() >= 4 ) {
 					H.H.CopyOut( &x[j * 6] );
-					R.flag[j] = fUsed;
+					FLAG_SETUSED( R.flag[j] );
 				}
 				else
-					R.flag[j] = fIniPts;
+					FLAG_SETPNTS( R.flag[j] );
 			}
 		}
 	}
@@ -408,21 +408,20 @@ static void* _XFromBin( void* ithr )
 
 		// If read tforms are in wings we adopt their
 		// flags as is and our only concern is whether
-		// they are used or not according to simple
-		// test against zero.
+		// they are used or not via FLAG_ISUSED().
 		//
 		// If in our inner range, note first that the
-		// SaveFBin() operation ensures we write either
-		// fUsed or fAsRead only, so that's what we read
-		// here. We further modify either one of those
-		// by Or-ing the result of the point count.
+		// SaveFBin() operation ensures we only write
+		// either 'used' or 'dead as read', so that's
+		// what we read here. We further modify either
+		// of those by the result of the point count.
 		//
 		if( iz >= zilo && iz <= zihi ) {
 
 			for( int j = 0; j < R.nr; ++j ) {
 
 				if( R.pts[j].size() < minpts )
-					R.flag[j] |= fIniPts;
+					FLAG_ADDPNTS( R.flag[j] );
 			}
 		}
 	}
@@ -452,11 +451,8 @@ static void SaveFBin( vector<uint8> &f, int z )
 	FILE	*q;
 	int		nf = f.size();
 
-	for( int i = 0; i < nf; ++i ) {
-
-		if( f[i] )
-			f[i] = fAsRead;
-	}
+	for( int i = 0; i < nf; ++i )
+		FLAG_SETDISK( f[i] );
 
 	sprintf( buf, "%s/F_%d.bin", gpath, z );
 	q = FileOpenOrDie( buf, "wb" );
@@ -595,6 +591,13 @@ error:
 /* Save ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Save tforms and <<modified>> flags...
+//
+// IMPORTANT:
+// This function clears informational flags other than
+// the 'dead indicator' so the Evaluation (especially
+// the Dropouts) must run ahead of Save().
+//
 void XArray::Save() const
 {
 	clock_t	t0 = StartTiming();

@@ -223,8 +223,8 @@ static void Evaluate( const XArray &X )
 
 		printf(
 		"\nFINAL RMS %.2f MAX %.2f"
-		" ITER-DROPS %ld PNTS-DROPS %ld\n",
-		erms, emax, D.iter, D.pnts );
+		" DRP-PNTS %ld DRP-KILL %ld DRP-CUTD %ld\n",
+		erms, emax, D.pnts, D.kill, D.cutd );
 	}
 
 	DBox B;
@@ -312,13 +312,17 @@ int main( int argc, char **argv )
 
 	const XArray& Xfinal = ((gArgs.iters & 1) ? Xodd : Xevn);
 
-	Xfinal.Save();
-
 /* -------- */
 /* Evaluate */
 /* -------- */
 
 	Evaluate( Xfinal );
+
+/* ---- */
+/* Save */
+/* ---- */
+
+	Xfinal.Save();
 
 /* ------- */
 /* Cleanup */

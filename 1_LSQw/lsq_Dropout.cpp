@@ -51,7 +51,7 @@ void* _Scan( void* ithr )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( R.flag[ir] & mNewBad ) {
+			if( FLAG_ISCHNG( R.flag[ir] ) ) {
 
 				if( !q ) {
 					DskCreateDir( "Dropouts", stdout );
@@ -63,13 +63,17 @@ void* _Scan( void* ithr )
 				int	z, i, r;
 				RealZIDR( z, i, r, iz, ir );
 
-				if( R.flag[ir] & mOnIter ) {
-					fprintf( q, "I %d.%d:%d\n", z, i, r );
-					++D.iter;
+				if( FLAG_ISKILL( R.flag[ir] ) ) {
+					fprintf( q, "K %d.%d:%d\n", z, i, r );
+					++D.kill;
 				}
-				else {
+				else if( FLAG_ISPNTS( R.flag[ir] ) ) {
 					fprintf( q, "P %d.%d:%d\n", z, i, r );
 					++D.pnts;
+				}
+				else {
+					fprintf( q, "C %d.%d:%d\n", z, i, r );
+					++D.cutd;
 				}
 			}
 		}
@@ -112,8 +116,8 @@ void Dropout::GatherCounts()
 		Add( vD[id] );
 
 	printf(
-	"Worker %03d: ITER-DROPS %8ld PNTS-DROPS %8ld\n",
-	wkid, iter, pnts );
+	"Worker %03d: DRP-PNTS %8ld DRP-KILL %8ld DRP-CUTD %8ld\n",
+	wkid, pnts, kill, cutd );
 
 	if( wkid > 0 )
 		MPISend( this, sizeof(Dropout), 0, wkid );
@@ -126,14 +130,14 @@ void Dropout::GatherCounts()
 			Add( D );
 
 			printf(
-			"Worker %03d: ITER-DROPS %8ld PNTS-DROPS %8ld\n",
-			iw, D.iter, D.pnts );
+			"Worker %03d: DRP-PNTS %8ld DRP-KILL %8ld DRP-CUTD %8ld\n",
+			iw, D.pnts, D.kill, D.cutd );
 		}
 
 		printf(
 		"--------------------------------------------------------\n"
-		"     Total: ITER-DROPS %8ld PNTS-DROPS %8ld\n\n",
-		iter, pnts );
+		"     Total: DRP-PNTS %8ld DRP-KILL %8ld DRP-CUTD %8ld\n\n",
+		pnts, kill, cutd );
 	}
 }
 

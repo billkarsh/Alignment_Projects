@@ -46,7 +46,7 @@ Rgns::Rgns( int z ) : z(z), cached_id(-1)
 {
 	nr = IDBGetIDRgnMap( m, idb, z );
 	pts.resize( nr );
-	flag.resize( nr, fAsRead );
+	flag.resize( nr, fmRead );
 }
 
 /* --------------------------------------------------------------- */
@@ -179,8 +179,8 @@ bool MapZPair( int &ia, int &ib, int za, int zb )
 
 	ia = cached_ia;
 
-	if( za == zb )
-		ib = ia;
+	if( zb == cached_za )
+		ib = cached_ia;
 	else {
 
 		if( zb != cached_zb ) {
@@ -242,7 +242,7 @@ static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
 // After loading points and calling this function:
 // - All data indexed by zero-based (iz,idx0).
 // - Initial value of all vC[i].used set per connectivity.
-// - Initial value of all vR[i][j].flag set fAsRead.
+// - Initial value of all vR[i][j].flag set 'dead as read'.
 //
 // - vC[i].used are modified later as outliers are detected
 //		in solution iteration cycles.

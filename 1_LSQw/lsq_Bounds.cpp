@@ -62,7 +62,7 @@ void* _Bounds( void* ithr )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( R.flag[ir] )
+			if( !FLAG_ISUSED( R.flag[ir] ) )
 				continue;
 
 			vector<Point>	c( 4 );
@@ -178,7 +178,7 @@ void* _Apply( void* ithr )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( R.flag[ir] )
+			if( !FLAG_ISUSED( R.flag[ir] ) )
 				continue;
 
 			if( gX->NE == 6 )

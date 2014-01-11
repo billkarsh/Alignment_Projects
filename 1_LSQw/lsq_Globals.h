@@ -20,16 +20,31 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
  enum RgnFlags {
-	fUsed		= 0,	// b00000000
-	fDead		= 1,	// b00000001
-	fAsRead		= 3,	// b00000011
-	fIniPts		= 5,	// b00000101
-	fOnIter		= 9,	// b00001001
+	fbDead		= 0x01,
+	fbRead		= 0x02,
+	fbPnts		= 0x04,
+	fbKill		= 0x08,
+	fbCutd		= 0x10,
 
-	mIniPts		= 4,	// b00000100
-	mOnIter		= 8,	// b00001000
-	mNewBad		= 12	// b00001100
+	fmRead		= fbRead + fbDead,
+	fmPnts		= fbPnts + fbDead,
+	fmKill		= fbKill + fbDead,
+	fmCutd		= fbCutd + fbDead,
+	fmChgd		= fbPnts + fbKill + fbCutd
  };
+
+#define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
+#define	FLAG_ISCHNG( f )	(((f) & fmChgd) != 0)
+#define	FLAG_ISPNTS( f )	(((f) & fbPnts) != 0)
+#define	FLAG_ISKILL( f )	(((f) & fbKill) != 0)
+
+#define	FLAG_SETUSED( f )	(f = 0)
+#define	FLAG_SETPNTS( f )	(f = fmPnts)
+#define	FLAG_SETDISK( f )	(f = (FLAG_ISUSED(f) ? 0 : fmRead))
+
+#define	FLAG_ADDPNTS( f )	(f |= fmPnts)
+#define	FLAG_ADDKILL( f )	(f |= fmKill)
+#define	FLAG_ADDCUTD( f )	(f |= fmCutd)
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */

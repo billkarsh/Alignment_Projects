@@ -370,7 +370,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		// Submit request to run 'mpigo.sht' script
 
-		sprintf( buf, "qsub -N lsqw -cwd -V -b y -o sge.txt"
+		sprintf( buf, "qsub -N mpigo -cwd -V -b y -o sge.txt"
 		" -pe impi3 %d ./mpigo.sht", 16 * nwks );
 	}
 

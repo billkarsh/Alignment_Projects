@@ -17,12 +17,14 @@
 /* --------------------------------------------------------------- */
 
  enum RgnFlags {
-	fUsed		= 0,	// b00000000
-	fDead		= 1,	// b00000001
-	fAsRead		= 3,	// b00000011
-	fIniPts		= 5,	// b00000101
-	fOnIter		= 9		// b00001001
+	fbDead		= 0x01,
+	fbRead		= 0x02,
+	fbPnts		= 0x04,
+	fbKill		= 0x08,
+	fbCutd		= 0x10
  };
+
+#define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -256,7 +258,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 		for( int j = 0; j < R.nr; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			vector<Point>	c( 4 );
@@ -301,7 +303,7 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 
 		for( int j = 0; j < R.nr; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			vector<Point>	c( 4 );
@@ -330,7 +332,7 @@ static void Update_Aff( const TAffine &Trot, const DBox &B )
 {
 	for( int j = 0; j < R.nr; ++j ) {
 
-		if( R.flag[j] )
+		if( !FLAG_ISUSED( R.flag[j] ) )
 			continue;
 
 		TAffine&	T = X_AS_AFF( X.X, j );
@@ -350,7 +352,7 @@ static void Update_Hmy( const THmgphy &Trot, const DBox &B )
 
 	for( int j = 0; j < R.nr; ++j ) {
 
-		if( R.flag[j] )
+		if( !FLAG_ISUSED( R.flag[j] ) )
 			continue;
 
 		THmgphy&	T = X_AS_HMY( X.X, j );
@@ -379,7 +381,7 @@ static void WriteT_Aff()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			TAffine&	T = X_AS_AFF( X.X, j );
@@ -414,7 +416,7 @@ static void WriteT_Hmy()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			THmgphy&	T = X_AS_HMY( X.X, j );
@@ -451,7 +453,7 @@ static void WriteM_Aff()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			const Til2Img	*t2i;
@@ -494,7 +496,7 @@ static void WriteM_Hmy()
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			const Til2Img	*t2i;
@@ -583,7 +585,7 @@ static void WriteXMLLyr_Aff( FILE *f, int &oid )
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			const Til2Img	*t2i;
@@ -688,7 +690,7 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 
 		for( int j = j0; j < jlim; ++j ) {
 
-			if( R.flag[j] )
+			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
 			const Til2Img	*t2i;

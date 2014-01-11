@@ -552,7 +552,7 @@ void* _ErrorA( void* ithr )
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
 
-			if( Ra.flag[ir] )
+			if( !FLAG_ISUSED( Ra.flag[ir] ) )
 				continue;
 
 			const vector<int>&	P  = Ra.pts[ir];
@@ -584,7 +584,7 @@ void* _ErrorA( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( Ra.flag[C.i2] )
+						if( !FLAG_ISUSED( Ra.flag[C.i2] ) )
 							continue;
 
 						Tb = &X_AS_AFF( xa, C.i2 );
@@ -612,7 +612,7 @@ void* _ErrorA( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( vR[C.z2].flag[C.i2] )
+						if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
 							continue;
 
 						Tb = &X_AS_AFF( gX->X[C.z2], C.i2 );
@@ -661,7 +661,7 @@ void* _ErrorH( void* ithr )
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
 
-			if( Ra.flag[ir] )
+			if( !FLAG_ISUSED( Ra.flag[ir] ) )
 				continue;
 
 			const vector<int>&	P  = Ra.pts[ir];
@@ -693,7 +693,7 @@ void* _ErrorH( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( Ra.flag[C.i2] )
+						if( !FLAG_ISUSED( Ra.flag[C.i2] ) )
 							continue;
 
 						Tb = &X_AS_HMY( xa, C.i2 );
@@ -721,7 +721,7 @@ void* _ErrorH( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( vR[C.z2].flag[C.i2] )
+						if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
 							continue;
 
 						Tb = &X_AS_HMY( gX->X[C.z2], C.i2 );

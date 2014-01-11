@@ -9,14 +9,13 @@
 
 class Dropout {
 public:
-	long	iter,	// dropped as result of iterating
-			pnts;	// dropped as result of initial corr-pnts
+	long	pnts, kill, cutd;
 private:
 	void Add( const Dropout& rhs )
-		{iter += rhs.iter; pnts += rhs.pnts;};
+		{pnts += rhs.pnts; kill += rhs.kill; cutd += rhs.cutd;};
 	void GatherCounts();
 public:
-	Dropout() : iter(0), pnts(0) {};
+	Dropout() : pnts(0), kill(0), cutd(0) {};
 	void Scan();
 };
 

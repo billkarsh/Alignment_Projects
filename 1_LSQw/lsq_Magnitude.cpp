@@ -415,7 +415,7 @@ void* _Mag( void* ithr )
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( R.flag[ir] )
+			if( !FLAG_ISUSED( R.flag[ir] ) )
 				continue;
 
 			Point	p0, p1( 1, 1 );
