@@ -47,11 +47,13 @@ void* _Scan( void* ithr )
 		Dropout&	D	= vD[id];
 		FILE		*q	= NULL;
 
+		D.rmax += R.nr;
+
 		// For each rgn...
 
 		for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( FLAG_ISCHNG( R.flag[ir] ) ) {
+			if( R.flag[ir] ) {
 
 				if( !q ) {
 					DskCreateDir( "Dropouts", stdout );
@@ -63,15 +65,19 @@ void* _Scan( void* ithr )
 				int	z, i, r;
 				RealZIDR( z, i, r, iz, ir );
 
-				if( FLAG_ISKILL( R.flag[ir] ) ) {
-					fprintf( q, "K %d.%d:%d\n", z, i, r );
-					++D.kill;
+				if( FLAG_ISREAD( R.flag[ir] ) ) {
+					fprintf( q, "R %d.%d:%d\n", z, i, r );
+					++D.read;
 				}
 				else if( FLAG_ISPNTS( R.flag[ir] ) ) {
 					fprintf( q, "P %d.%d:%d\n", z, i, r );
 					++D.pnts;
 				}
-				else {
+				else if( FLAG_ISKILL( R.flag[ir] ) ) {
+					fprintf( q, "K %d.%d:%d\n", z, i, r );
+					++D.kill;
+				}
+				else if( FLAG_ISCUTD( R.flag[ir] ) ) {
 					fprintf( q, "C %d.%d:%d\n", z, i, r );
 					++D.cutd;
 				}
@@ -115,9 +121,18 @@ void Dropout::GatherCounts()
 	for( int id = 0; id < nd; ++id )
 		Add( vD[id] );
 
-	printf(
-	"Worker %03d: DRP-PNTS %8ld DRP-KILL %8ld DRP-CUTD %8ld\n",
-	wkid, pnts, kill, cutd );
+	if( nwks > 1 ) {
+		printf(
+		"Worker %03d: MAX %9ld READ %9ld"
+		" PNTS %9ld KILL %9ld CUTD %9ld\n",
+		wkid, rmax, read, pnts, kill, cutd );
+	}
+	else {
+		printf(
+		"All workers: MAX %9ld READ %9ld"
+		" PNTS %9ld KILL %9ld CUTD %9ld\n",
+		rmax, read, pnts, kill, cutd );
+	}
 
 	if( wkid > 0 )
 		MPISend( this, sizeof(Dropout), 0, wkid );
@@ -130,14 +145,17 @@ void Dropout::GatherCounts()
 			Add( D );
 
 			printf(
-			"Worker %03d: DRP-PNTS %8ld DRP-KILL %8ld DRP-CUTD %8ld\n",
-			iw, D.pnts, D.kill, D.cutd );
+			"Worker %03d: MAX %9ld READ %9ld"
+			" PNTS %9ld KILL %9ld CUTD %9ld\n",
+			iw, D.rmax, D.read, D.pnts, D.kill, D.cutd );
 		}
 
 		printf(
-		"--------------------------------------------------------\n"
-		"     Total: DRP-PNTS %8ld DRP-KILL %8ld DRP-CUTD %8ld\n\n",
-		pnts, kill, cutd );
+		"--------------------------------------------"
+		"-------------------------------------------\n"
+		"     Total: MAX %9ld READ %9ld"
+		" PNTS %9ld KILL %9ld CUTD %9ld\n\n",
+		rmax, read, pnts, kill, cutd );
 	}
 }
 

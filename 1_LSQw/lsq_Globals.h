@@ -34,9 +34,11 @@ using namespace std;
  };
 
 #define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
-#define	FLAG_ISCHNG( f )	(((f) & fmChgd) != 0)
+#define	FLAG_ISREAD( f )	(((f) & fbRead) != 0)
 #define	FLAG_ISPNTS( f )	(((f) & fbPnts) != 0)
 #define	FLAG_ISKILL( f )	(((f) & fbKill) != 0)
+#define	FLAG_ISCUTD( f )	(((f) & fbCutd) != 0)
+#define	FLAG_ISCHNG( f )	(((f) & fmChgd) != 0)
 
 #define	FLAG_SETUSED( f )	(f = 0)
 #define	FLAG_SETPNTS( f )	(f = fmPnts)

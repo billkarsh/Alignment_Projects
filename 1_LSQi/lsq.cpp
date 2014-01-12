@@ -31,7 +31,7 @@ public:
 	char		tempdir[2048],	// master workspace
 				cachedir[2048];	// {catalog, pnts} files
 	const char	*prior,			// start from these solutions
-				*mode;			// {catonly,evlonly,A2A,A2H,H2H}
+				*mode;			// {catalog,eval,A2A,A2H,H2H}
 	int			zilo,			// my output range
 				zihi,
 				zolo,			// extended input range
@@ -157,10 +157,12 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 // Mode valid?
 
-	if( !strcmp( mode, "catonly" ) )
+	if( !strcmp( mode, "catalog" ) )
 		goto mode_ok;
-	if( !strcmp( mode, "evlonly" ) )
+	if( !strcmp( mode, "eval" ) ) {
+		iters = 0;
 		goto mode_ok;
+	}
 	if( !strcmp( mode, "A2A" ) )
 		goto mode_ok;
 	if( !strcmp( mode, "A2H" ) )
@@ -370,7 +372,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		// Submit request to run 'mpigo.sht' script
 
-		sprintf( buf, "qsub -N mpigo -cwd -V -b y -o sge.txt"
+		sprintf( buf, "qsub -N lsqmpi -cwd -V -b y -o sge.txt"
 		" -pe impi3 %d ./mpigo.sht", 16 * nwks );
 	}
 
@@ -392,7 +394,7 @@ int main( int argc, char **argv )
 	LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
 		gArgs.zolo, gArgs.zohi, gArgs.catclr );
 
-	if( strcmp( gArgs.mode, "catonly" ) )
+	if( strcmp( gArgs.mode, "catalog" ) )
 		gArgs.LaunchWorkers( vL );
 
 	VMStats( stdout );

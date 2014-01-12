@@ -988,7 +988,7 @@ void Error( const XArray &X )
 void GetFinalError( double &erms, double &emax )
 {
 	erms	= fnlrms;
-	emax	= sqrt( fnlmax );
+	emax	= (fnlmax >= 0 ? sqrt( fnlmax ) : -1);
 }
 
 

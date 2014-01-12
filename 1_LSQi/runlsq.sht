@@ -18,7 +18,7 @@
 # -zo=p,q			;consider input out to z=[p..q]
 # -prior=path		;starting tforms (required if stack)
 # -untwist			;untwist prior affines
-# -mode=A2A			;action: {catonly,evlonly,A2A,A2H,H2H}
+# -mode=A2A			;action: {catalog,eval,A2A,A2H,H2H}
 # -iters=250		;solve iterations
 # -zpernode=200		;max layers per cluster node
 # -maxthreads=1		;thr/node if not mpi (16 if mpi)

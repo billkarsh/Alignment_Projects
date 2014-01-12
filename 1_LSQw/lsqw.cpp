@@ -28,7 +28,7 @@ public:
 	const char	*tempdir,		// master workspace
 				*cachedir,		// {catalog, pnts} files
 				*prior,			// start from these solutions
-				*mode;			// {catonly,evlonly,A2A,A2H,H2H}
+				*mode;			// {catalog,eval,A2A,A2H,H2H}
 	int			zilo,			// my output range
 				zihi,
 				zolo,			// extended input range
@@ -223,8 +223,9 @@ static void Evaluate( const XArray &X )
 
 		printf(
 		"\nFINAL RMS %.2f MAX %.2f"
-		" DRP-PNTS %ld DRP-KILL %ld DRP-CUTD %ld\n",
-		erms, emax, D.pnts, D.kill, D.cutd );
+		" {Mx,Rd,Pt,Ki,Cd} %ld %ld %ld %ld %ld\n",
+		erms, emax,
+		D.rmax, D.read, D.pnts, D.kill, D.cutd );
 	}
 
 	DBox B;
@@ -304,9 +305,13 @@ int main( int argc, char **argv )
 		Xodd.Resize( 8 );
 		Solve( Xevn, Xodd, gArgs.iters );
 	}
-	else {	// evlonly
+	else {	// eval
 
 		Xevn.Load( gArgs.prior );
+
+		if( gArgs.untwist )
+			UntwistAffines( Xevn );
+
 		gArgs.iters = 0;
 	}
 
@@ -322,7 +327,8 @@ int main( int argc, char **argv )
 /* Save */
 /* ---- */
 
-	Xfinal.Save();
+	if( gArgs.mode[0] != 'e' )
+		Xfinal.Save();
 
 /* ------- */
 /* Cleanup */

@@ -9,13 +9,19 @@
 
 class Dropout {
 public:
-	long	pnts, kill, cutd;
+	long	rmax, read, pnts, kill, cutd;
 private:
 	void Add( const Dropout& rhs )
-		{pnts += rhs.pnts; kill += rhs.kill; cutd += rhs.cutd;};
+	{
+		rmax += rhs.rmax;
+		read += rhs.read;
+		pnts += rhs.pnts;
+		kill += rhs.kill;
+		cutd += rhs.cutd;
+	};
 	void GatherCounts();
 public:
-	Dropout() : pnts(0), kill(0), cutd(0) {};
+	Dropout() : rmax(0), read(0), pnts(0), kill(0), cutd(0) {};
 	void Scan();
 };
 
