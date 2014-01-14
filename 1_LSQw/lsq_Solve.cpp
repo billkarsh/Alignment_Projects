@@ -4,11 +4,13 @@
 #include	"lsq_Globals.h"
 
 #include	"EZThreads.h"
+#include	"LinEqu.h"
 #include	"TAffine.h"
 #include	"THmgphy.h"
 #include	"Timer.h"
 
 #include	<stdlib.h>
+#include	<string.h>
 
 
 /* --------------------------------------------------------------- */
@@ -30,6 +32,13 @@ static const double Wb		= 0.9;
 static const double	sqrtol	= sin( 15 * PI/180 );
 
 /* --------------------------------------------------------------- */
+/* Macros -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	KILL( q )	vthr[(long)ithr].vkill.push_back( q )
+#define	CUTD( q )	vthr[(long)ithr].vcutd.push_back( q )
+
+/* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -38,19 +47,29 @@ class Todo {
 public:
 	int	iz, ir;
 public:
+	Todo() {};
+	Todo( int iz, int ir ) : iz(iz), ir(ir) {};
 	bool First( int ithr );
 	bool Next();
 	static bool UseThreads( int minrgns );
 	static int RgnCount();
 };
 
+class Thrdat {
+// Each thread's edit tracking data
+public:
+	vector<Todo>	vcutd,
+					vkill;
+};
+
 /* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static XArray	*Xs, *Xd;
-static int		editdelay,
-				pass, nthr;
+static XArray			*Xs, *Xd;
+static vector<Thrdat>	vthr;
+static int				editdelay,
+						pass, nthr;
 
 
 
@@ -131,11 +150,260 @@ int Todo::RgnCount()
 }
 
 /* --------------------------------------------------------------- */
+/* ShortenList --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void ShortenList( const Todo& Q, int ithr, int minpts )
+{
+	vector<int>		keep;
+	vector<int>&	vp = vR[Q.iz].pts[Q.ir];
+	int				np = vp.size(),
+					nu;
+
+	for( int ip = 0; ip < np; ++ip ) {
+
+		if( vC[vp[ip]].used )
+			keep.push_back( vp[ip] );
+	}
+
+	if( (nu = keep.size()) >= minpts ) {
+		vp.resize( nu );
+		memcpy( &vp[0], &keep[0], nu * sizeof(int) );
+	}
+	else
+		KILL( Q );
+}
+
+/* --------------------------------------------------------------- */
+/* Cut_A2A ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
+{
+	int	i1[3] = { 0, 1, 2 },
+		i2[3] = { 3, 4, 5 };
+
+// For rgn Q...
+
+	const Rgns&			R  = vR[Q.iz];
+	const vector<int>&	vp = R.pts[Q.ir];
+	int					np = vp.size(),
+						nu = 0;	// count pts used
+
+	double		LHS[6*6];
+	TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+	TAffine*	Tb;
+	int			lastbi = -1;
+
+	memset( RHS, 0, 6   * sizeof(double) );
+	memset( LHS, 0, 6*6 * sizeof(double) );
+
+	// For each of its points...
+
+	for( int ip = 0; ip < np; ++ip ) {
+
+		const CorrPnt&	C = vC[vp[ip]];
+
+		if( !C.used || C.z1 != C.z2 )
+			continue;
+
+		Point	A, B;
+
+		// Which of {1,2} is the A-side?
+
+		if( C.i1 == Q.ir ) {	// A is 1
+
+			if( C.i2 != lastbi ) {
+
+				if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+					continue;
+
+				Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+				lastbi = C.i2;
+			}
+
+			Ta->Transform( A = C.p1 );
+			Tb->Transform( B = C.p2 );
+
+			B.x = Wb * B.x + (1 - Wb) * A.x;
+			B.y = Wb * B.y + (1 - Wb) * A.y;
+			A = C.p1;
+		}
+		else {	// A is 2
+
+			if( C.i1 != lastbi ) {
+
+				if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
+					continue;
+
+				Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+				lastbi = C.i1;
+			}
+
+			Ta->Transform( A = C.p2 );
+			Tb->Transform( B = C.p1 );
+
+			B.x = Wb * B.x + (1 - Wb) * A.x;
+			B.y = Wb * B.y + (1 - Wb) * A.y;
+			A = C.p2;
+		}
+
+		++nu;
+
+		double	v[3] = { A.x, A.y, 1.0 };
+
+		AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+	}
+
+	if( nu < 3
+		|| !Solve_Quick( LHS, RHS, 6 )
+		|| X_AS_AFF( RHS, 0 ).Squareness() > sqrtol ) {
+
+		KILL( Q );
+	}
+	else
+		CUTD( Q );
+}
+
+/* --------------------------------------------------------------- */
 /* _A2A ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 static void* _A2A( void* ithr )
 {
+	Todo	Q;
+
+	if( !Q.First( (long)ithr ) )
+		return NULL;
+
+	int	i1[3] = { 0, 1, 2 },
+		i2[3] = { 3, 4, 5 };
+
+// For each of my rgns...
+
+	do {
+
+		const Rgns&			R  = vR[Q.iz];
+		const vector<int>&	vp = R.pts[Q.ir];
+		int					np = vp.size(),
+							nu = 0;	// count pts used
+
+		if( np < 3 ) {
+			KILL( Q );
+			continue;
+		}
+
+		double		*RHS = X_AS_AFF( Xd->X[Q.iz], Q.ir ).t;
+		double		LHS[6*6];
+		TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+		TAffine*	Tb;
+		int			lastbi,
+					lastbz	= -1;
+
+		memset( RHS, 0, 6   * sizeof(double) );
+		memset( LHS, 0, 6*6 * sizeof(double) );
+
+		// For each of its points...
+
+		for( int ip = 0; ip < np; ++ip ) {
+
+			const CorrPnt&	C = vC[vp[ip]];
+
+			if( !C.used )
+				continue;
+
+			Point	A, B;
+
+			// Which of {1,2} is the A-side?
+
+			if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
+
+				if( C.z2 != lastbz ) {
+					lastbz = C.z2;
+					lastbi = -1;
+				}
+
+				if( C.i2 != lastbi ) {
+
+					if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
+
+						// Here's a pnt that's 'used' referencing
+						// a rgn that's not. It's inefficient, so
+						// we'll send the dead rgn to the killer
+						// to get those point marked 'not used'.
+
+						KILL( Todo( C.z2, C.i2 ) );
+						continue;
+					}
+
+					Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+					lastbi = C.i2;
+				}
+
+				Ta->Transform( A = C.p1 );
+				Tb->Transform( B = C.p2 );
+
+				B.x = Wb * B.x + (1 - Wb) * A.x;
+				B.y = Wb * B.y + (1 - Wb) * A.y;
+				A = C.p1;
+			}
+			else {	// A is 2
+
+				if( C.z1 != lastbz ) {
+					lastbz = C.z1;
+					lastbi = -1;
+				}
+
+				if( C.i1 != lastbi ) {
+
+					if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
+
+						// Here's a pnt that's 'used' referencing
+						// a rgn that's not. It's inefficient, so
+						// we'll send the dead rgn to the killer
+						// to get those point marked 'not used'.
+
+						KILL( Todo( C.z1, C.i1 ) );
+						continue;
+					}
+
+					Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+					lastbi = C.i1;
+				}
+
+				Ta->Transform( A = C.p2 );
+				Tb->Transform( B = C.p1 );
+
+				B.x = Wb * B.x + (1 - Wb) * A.x;
+				B.y = Wb * B.y + (1 - Wb) * A.y;
+				A = C.p2;
+			}
+
+			++nu;
+
+			double	v[3] = { A.x, A.y, 1.0 };
+
+			AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+		}
+
+		if( nu < 3 )
+			KILL( Q );
+		else if( !Solve_Quick( LHS, RHS, 6 )
+			|| (
+			pass >= editdelay
+			&&
+			X_AS_AFF( RHS, 0 ).Squareness() > sqrtol
+			) ) {
+
+			Cut_A2A( RHS, Q, (long)ithr );
+		}
+		else if( nu < np )
+			ShortenList( Q, (long)ithr, 3 );
+
+	} while( Q.Next() );
+
 	return NULL;
 }
 
@@ -158,13 +426,127 @@ static void* _H2H( void* ithr )
 }
 
 /* --------------------------------------------------------------- */
+/* UpdateFlags --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// A solving pass may encompass the following kinds edit
+// operations on tracking and flag data:
+//
+// - (1) Mark a rgn flag as cut or killed.
+// - (2) Change the used field of a CorrPnt.
+// - (3) Shorten a rgn's point list.
+//
+// A solve pass has a multithreaded 'solve' phase followed by
+// a single-threaded 'update' phase and that structure shapes
+// how edits are managed.
+
+// (1) In the solve phase we may not edit any of the shared input
+// data, hence, we do not directly alter any flags or used fields.
+// However, recommendations for rgn cuts or kills are enqueued for
+// the update phase. In the update phase we actually do change the
+// rgn flags, and in consequence we change the usage status of the
+// points referenced by those rgns.
+//
+// (2) At this time we are not setting the used fields of points
+// individually, as by some outlier identification scheme. Rather,
+// it is the rgn flags that determine if a point is used. So the
+// used fields get changed solely as described in (1).
+//
+// (3) As an efficiency measure, each rgn's list of points can be
+// shortened to remove those that are not used. These lists are
+// private to each thread so are edited in the solve phase.
+//
+static void UpdateFlags()
+{
+	int	ncut = 0, nkil = 0;
+	int	nt = vthr.size();
+
+// For each thread's lists...
+
+	for( int it = 0; it < nt; ++it ) {
+
+		vector<Todo>&	vcut = vthr[it].vcutd;
+		vector<Todo>&	vkil = vthr[it].vkill;
+		int				ne;	// n edits
+
+		// Process cuts
+
+		ne    = vcut.size();
+		ncut += ne;
+
+		for( int ie = 0; ie < ne; ++ie ) {
+
+			int				iz = vcut[ie].iz,
+							ir = vcut[ie].ir;
+			Rgns&			R  = vR[iz];
+			vector<int>&	vp = R.pts[ir];
+			int				np = vp.size();
+
+			// mark rgn cutd
+			FLAG_ADDCUTD( R.flag[ir] );
+
+			// mark its cross-pnts
+			for( int ip = 0; ip < np; ++ip ) {
+
+				CorrPnt& C = vC[vp[ip]];
+
+				if( C.z1 != C.z2 )
+					C.used = false;
+			}
+		}
+
+		// Process kills
+
+		ne    = vkil.size();
+		nkil += ne;
+
+		for( int ie = 0; ie < ne; ++ie ) {
+
+			int				iz = vkil[ie].iz,
+							ir = vkil[ie].ir;
+			Rgns&			R  = vR[iz];
+			vector<int>&	vp = R.pts[ir];
+			int				np = vp.size();
+
+			// mark rgn killed
+			FLAG_ADDKILL( R.flag[ir] );
+
+			// mark all its pnts
+			for( int ip = 0; ip < np; ++ip )
+				vC[vp[ip]].used = false;
+		}
+	}
+
+// Report activity this pass
+
+	if( ncut || nkil ) {
+		printf( "Pass %d: tiles [cutd, killed] = [%d, %d].\n",
+		pass, ncut, nkil );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Do1Pass ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 static void Do1Pass( EZThreadproc proc )
 {
+// multithreaded phase
+
+	vthr.clear();
+	vthr.resize( nthr );
+
 	if( !EZThreads( proc, nthr, 1, "Solveproc" ) )
 		exit( 42 );
+
+// single-threaded phase
+
+	UpdateFlags();
+	vthr.clear();
+
+// synchronize
+
+	Xd->Updt();
 }
 
 /* --------------------------------------------------------------- */
@@ -235,8 +617,9 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 	for( pass = 0; pass < iters; ++pass ) {
 
 		Do1Pass( proc );
-		Xd->Updt();							// spread the love
-		XArray	*Xt = Xs; Xs = Xd; Xd = Xt;	// swap Xs<->Xd
+
+		// swap Xs<->Xd
+		XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
 	}
 
 	StopTiming( stdout, "Solve", t0 );

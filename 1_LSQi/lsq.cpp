@@ -301,7 +301,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			nwks, tempdir,
-			cachedir, prior,
+			cachedir, (prior ? prior : ""),
 			mode, iters,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
@@ -317,7 +317,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			"%s",
 			maxthreads,
 			nwks, tempdir,
-			cachedir, prior,
+			cachedir, (prior ? prior : ""),
 			mode, iters, maxthreads,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
@@ -362,7 +362,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		"%s\n",
 		nwks,
 		nwks, tempdir,
-		cachedir, prior,
+		cachedir, (prior ? prior : ""),
 		mode, iters,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );

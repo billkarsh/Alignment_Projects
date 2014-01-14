@@ -263,7 +263,7 @@ void Stat::Topn( FILE *f, int SorB ) const
 		double	e = vei[i].e;
 
 		if( e > -1 ) {
-			fprintf( f, "\t%.2f", sqrt( e/2 ) );
+			fprintf( f, "\t%.3f", sqrt( e/2 ) );
 			++ne;
 		}
 	}
@@ -370,7 +370,7 @@ void StatG::Topn( FILE *f, int SorB ) const
 		double	e = veg[i].e;
 
 		if( e > -1 ) {
-			fprintf( f, "\t%.2f", sqrt( e/2 ) );
+			fprintf( f, "\t%.3f", sqrt( e/2 ) );
 			++ne;
 		}
 	}
@@ -488,7 +488,7 @@ static void WriteLocalFiles()
 
 		const Stat&	S = vS[iz - zilo];
 
-		fprintf( f, "%d\t%.2f", vR[iz].z, S.RMS() );
+		fprintf( f, "%d\t%.3f", vR[iz].z, S.RMS() );
 		S.Topn( f, 'S' );
 	}
 
@@ -512,7 +512,7 @@ static void WriteLocalFiles()
 
 		const Stat&	S = vS[iz - zilo];
 
-		fprintf( f, "%d\t%.2f", vR[iz].z, S.RMS() );
+		fprintf( f, "%d\t%.3f", vR[iz].z, S.RMS() );
 		S.Topn( f, 'B' );
 	}
 
@@ -527,10 +527,10 @@ static void LogLocalSmy( Stat &Sw, const char* title )
 {
 	printf( "%s:\n", title );
 
-	printf( "Small RMS %.2f TopN", Sw.RMS() );
+	printf( "Small RMS %.3f TopN", Sw.RMS() );
 	Sw.Topn( stdout, 'S' );
 
-	printf( "\nBig RMS %.2f TopN", Sw.RMS() );
+	printf( "\nBig RMS %.3f TopN", Sw.RMS() );
 	Sw.Topn( stdout, 'B' );
 }
 
@@ -542,10 +542,10 @@ static void LogGlobalSmy( StatG &S0 )
 {
 	printf( "\nAll workers:\n" );
 
-	printf( "Small RMS %.2f TopN", S0.RMS() );
+	printf( "Small RMS %.3f TopN", S0.RMS() );
 	S0.Topn( stdout, 'S' );
 
-	printf( "\nBig RMS %.2f TopN", S0.RMS() );
+	printf( "\nBig RMS %.3f TopN", S0.RMS() );
 	S0.Topn( stdout, 'B' );
 }
 
