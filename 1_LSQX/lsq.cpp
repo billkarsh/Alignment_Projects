@@ -1087,7 +1087,7 @@ void EVL::Tabulate(
 
 // Tabulate errors per constraint and per region
 
-	for( int i = 0; i < nc; i += 4 ) {
+	for( int i = 0; i < nc; i += 1 ) {
 
 		double		err;
 		Constraint	&C = vAllC[i];

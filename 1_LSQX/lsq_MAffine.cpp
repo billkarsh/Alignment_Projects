@@ -1736,8 +1736,10 @@ static void Remark()
 		}
 	}
 
-	if( ncut || nkil )
-		printf( "Tiles [cut, killed] = [%d, %d].\n", ncut, nkil );
+	if( ncut || nkil ) {
+		printf( "Pass %d: tiles [cut, killed] = [%d, %d].\n",
+		gpass, ncut, nkil );
+	}
 }
 
 

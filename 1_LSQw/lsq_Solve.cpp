@@ -267,6 +267,198 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 }
 
 /* --------------------------------------------------------------- */
+/* Cut_A2H ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
+{
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 };
+
+// For rgn Q...
+
+	const Rgns&			R  = vR[Q.iz];
+	const vector<int>&	vp = R.pts[Q.ir];
+	int					np = vp.size(),
+						nu = 0;	// count pts used
+
+	double		LHS[8*8];
+	TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+	TAffine*	Tb;
+	int			lastbi = -1;
+
+	memset( RHS, 0, 8   * sizeof(double) );
+	memset( LHS, 0, 8*8 * sizeof(double) );
+
+	// For each of its points...
+
+	for( int ip = 0; ip < np; ++ip ) {
+
+		const CorrPnt&	C = vC[vp[ip]];
+
+		if( !C.used || C.z1 != C.z2 )
+			continue;
+
+		Point	A, B;
+
+		// Which of {1,2} is the A-side?
+
+		if( C.i1 == Q.ir ) {	// A is 1
+
+			if( C.i2 != lastbi ) {
+
+				if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+					continue;
+
+				Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+				lastbi = C.i2;
+			}
+
+			Ta->Transform( A = C.p1 );
+			Tb->Transform( B = C.p2 );
+
+			B.x = Wb * B.x + (1 - Wb) * A.x;
+			B.y = Wb * B.y + (1 - Wb) * A.y;
+			A = C.p1;
+		}
+		else {	// A is 2
+
+			if( C.i1 != lastbi ) {
+
+				if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
+					continue;
+
+				Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+				lastbi = C.i1;
+			}
+
+			Ta->Transform( A = C.p2 );
+			Tb->Transform( B = C.p1 );
+
+			B.x = Wb * B.x + (1 - Wb) * A.x;
+			B.y = Wb * B.y + (1 - Wb) * A.y;
+			A = C.p2;
+		}
+
+		++nu;
+
+		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+		AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+		v[3] = -A.x*B.y;
+		v[4] = -A.y*B.y;
+
+		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+	}
+
+	if( nu < 4
+		|| !Solve_Quick( LHS, RHS, 8 )
+		|| X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+
+		KILL( Q );
+	}
+	else
+		CUTD( Q );
+}
+
+/* --------------------------------------------------------------- */
+/* Cut_H2H ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
+{
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 };
+
+// For rgn Q...
+
+	const Rgns&			R  = vR[Q.iz];
+	const vector<int>&	vp = R.pts[Q.ir];
+	int					np = vp.size(),
+						nu = 0;	// count pts used
+
+	double		LHS[8*8];
+	THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
+	THmgphy*	Tb;
+	int			lastbi = -1;
+
+	memset( RHS, 0, 8   * sizeof(double) );
+	memset( LHS, 0, 8*8 * sizeof(double) );
+
+	// For each of its points...
+
+	for( int ip = 0; ip < np; ++ip ) {
+
+		const CorrPnt&	C = vC[vp[ip]];
+
+		if( !C.used || C.z1 != C.z2 )
+			continue;
+
+		Point	A, B;
+
+		// Which of {1,2} is the A-side?
+
+		if( C.i1 == Q.ir ) {	// A is 1
+
+			if( C.i2 != lastbi ) {
+
+				if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+					continue;
+
+				Tb = &X_AS_HMY( Xs->X[C.z2], C.i2 );
+				lastbi = C.i2;
+			}
+
+			Ta->Transform( A = C.p1 );
+			Tb->Transform( B = C.p2 );
+
+			B.x = Wb * B.x + (1 - Wb) * A.x;
+			B.y = Wb * B.y + (1 - Wb) * A.y;
+			A = C.p1;
+		}
+		else {	// A is 2
+
+			if( C.i1 != lastbi ) {
+
+				if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
+					continue;
+
+				Tb = &X_AS_HMY( Xs->X[C.z1], C.i1 );
+				lastbi = C.i1;
+			}
+
+			Ta->Transform( A = C.p2 );
+			Tb->Transform( B = C.p1 );
+
+			B.x = Wb * B.x + (1 - Wb) * A.x;
+			B.y = Wb * B.y + (1 - Wb) * A.y;
+			A = C.p2;
+		}
+
+		++nu;
+
+		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+		AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+		v[3] = -A.x*B.y;
+		v[4] = -A.y*B.y;
+
+		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+	}
+
+	if( nu < 4
+		|| !Solve_Quick( LHS, RHS, 8 )
+		|| X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+
+		KILL( Q );
+	}
+	else
+		CUTD( Q );
+}
+
+/* --------------------------------------------------------------- */
 /* _A2A ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -413,6 +605,138 @@ static void* _A2A( void* ithr )
 
 static void* _A2H( void* ithr )
 {
+	Todo	Q;
+
+	if( !Q.First( (long)ithr ) )
+		return NULL;
+
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 };
+
+// For each of my rgns...
+
+	do {
+
+		const Rgns&			R  = vR[Q.iz];
+		const vector<int>&	vp = R.pts[Q.ir];
+		int					np = vp.size(),
+							nu = 0;	// count pts used
+
+		if( np < 4 ) {
+			KILL( Q );
+			continue;
+		}
+
+		double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
+		double		LHS[8*8];
+		TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+		TAffine*	Tb;
+		int			lastbi,
+					lastbz	= -1;
+
+		memset( RHS, 0, 8   * sizeof(double) );
+		memset( LHS, 0, 8*8 * sizeof(double) );
+
+		// For each of its points...
+
+		for( int ip = 0; ip < np; ++ip ) {
+
+			const CorrPnt&	C = vC[vp[ip]];
+
+			if( !C.used )
+				continue;
+
+			Point	A, B;
+
+			// Which of {1,2} is the A-side?
+
+			if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
+
+				if( C.z2 != lastbz ) {
+					lastbz = C.z2;
+					lastbi = -1;
+				}
+
+				if( C.i2 != lastbi ) {
+
+					if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
+
+						// Here's a pnt that's 'used' referencing
+						// a rgn that's not. It's inefficient, so
+						// we'll send the dead rgn to the killer
+						// to get those point marked 'not used'.
+
+						KILL( Todo( C.z2, C.i2 ) );
+						continue;
+					}
+
+					Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+					lastbi = C.i2;
+				}
+
+				Ta->Transform( A = C.p1 );
+				Tb->Transform( B = C.p2 );
+
+				B.x = Wb * B.x + (1 - Wb) * A.x;
+				B.y = Wb * B.y + (1 - Wb) * A.y;
+				A = C.p1;
+			}
+			else {	// A is 2
+
+				if( C.z1 != lastbz ) {
+					lastbz = C.z1;
+					lastbi = -1;
+				}
+
+				if( C.i1 != lastbi ) {
+
+					if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
+
+						// Here's a pnt that's 'used' referencing
+						// a rgn that's not. It's inefficient, so
+						// we'll send the dead rgn to the killer
+						// to get those point marked 'not used'.
+
+						KILL( Todo( C.z1, C.i1 ) );
+						continue;
+					}
+
+					Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+					lastbi = C.i1;
+				}
+
+				Ta->Transform( A = C.p2 );
+				Tb->Transform( B = C.p1 );
+
+				B.x = Wb * B.x + (1 - Wb) * A.x;
+				B.y = Wb * B.y + (1 - Wb) * A.y;
+				A = C.p2;
+			}
+
+			++nu;
+
+			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+			v[3] = -A.x*B.y;
+			v[4] = -A.y*B.y;
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+		}
+
+		if( nu < 4 )
+			KILL( Q );
+		else if( !Solve_Quick( LHS, RHS, 8 )
+			|| X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+
+			Cut_A2H( RHS, Q, (long)ithr );
+		}
+		else if( nu < np )
+			ShortenList( Q, (long)ithr, 4 );
+
+	} while( Q.Next() );
+
 	return NULL;
 }
 
@@ -422,6 +746,142 @@ static void* _A2H( void* ithr )
 
 static void* _H2H( void* ithr )
 {
+	Todo	Q;
+
+	if( !Q.First( (long)ithr ) )
+		return NULL;
+
+	int	i1[5] = { 0, 1, 2, 6, 7 },
+		i2[5] = { 3, 4, 5, 6, 7 };
+
+// For each of my rgns...
+
+	do {
+
+		const Rgns&			R  = vR[Q.iz];
+		const vector<int>&	vp = R.pts[Q.ir];
+		int					np = vp.size(),
+							nu = 0;	// count pts used
+
+		if( np < 4 ) {
+			KILL( Q );
+			continue;
+		}
+
+		double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
+		double		LHS[8*8];
+		THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
+		THmgphy*	Tb;
+		int			lastbi,
+					lastbz	= -1;
+
+		memset( RHS, 0, 8   * sizeof(double) );
+		memset( LHS, 0, 8*8 * sizeof(double) );
+
+		// For each of its points...
+
+		for( int ip = 0; ip < np; ++ip ) {
+
+			const CorrPnt&	C = vC[vp[ip]];
+
+			if( !C.used )
+				continue;
+
+			Point	A, B;
+
+			// Which of {1,2} is the A-side?
+
+			if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
+
+				if( C.z2 != lastbz ) {
+					lastbz = C.z2;
+					lastbi = -1;
+				}
+
+				if( C.i2 != lastbi ) {
+
+					if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
+
+						// Here's a pnt that's 'used' referencing
+						// a rgn that's not. It's inefficient, so
+						// we'll send the dead rgn to the killer
+						// to get those point marked 'not used'.
+
+						KILL( Todo( C.z2, C.i2 ) );
+						continue;
+					}
+
+					Tb = &X_AS_HMY( Xs->X[C.z2], C.i2 );
+					lastbi = C.i2;
+				}
+
+				Ta->Transform( A = C.p1 );
+				Tb->Transform( B = C.p2 );
+
+				B.x = Wb * B.x + (1 - Wb) * A.x;
+				B.y = Wb * B.y + (1 - Wb) * A.y;
+				A = C.p1;
+			}
+			else {	// A is 2
+
+				if( C.z1 != lastbz ) {
+					lastbz = C.z1;
+					lastbi = -1;
+				}
+
+				if( C.i1 != lastbi ) {
+
+					if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
+
+						// Here's a pnt that's 'used' referencing
+						// a rgn that's not. It's inefficient, so
+						// we'll send the dead rgn to the killer
+						// to get those point marked 'not used'.
+
+						KILL( Todo( C.z1, C.i1 ) );
+						continue;
+					}
+
+					Tb = &X_AS_HMY( Xs->X[C.z1], C.i1 );
+					lastbi = C.i1;
+				}
+
+				Ta->Transform( A = C.p2 );
+				Tb->Transform( B = C.p1 );
+
+				B.x = Wb * B.x + (1 - Wb) * A.x;
+				B.y = Wb * B.y + (1 - Wb) * A.y;
+				A = C.p2;
+			}
+
+			++nu;
+
+			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+
+			v[3] = -A.x*B.y;
+			v[4] = -A.y*B.y;
+
+			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+		}
+
+		if( nu < 4 )
+			KILL( Q );
+		else if( !Solve_Quick( LHS, RHS, 8 )
+			|| (
+			pass >= editdelay
+			&&
+			X_AS_HMY( RHS, 0 ).Squareness() > sqrtol
+			) ) {
+
+			Cut_H2H( RHS, Q, (long)ithr );
+		}
+		else if( nu < np )
+			ShortenList( Q, (long)ithr, 4 );
+
+	} while( Q.Next() );
+
 	return NULL;
 }
 
@@ -580,7 +1040,7 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 			cD			= 'A';
 		}
 		else {
-			editdelay	= iters + 1;	// disable
+			editdelay	= 0;
 			proc		= _A2H;
 			cD			= 'H';
 		}
@@ -620,6 +1080,9 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 
 		// swap Xs<->Xd
 		XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
+
+		if( !((long)DeltaSeconds( t0 ) % 300) )
+			fflush( stdout );
 	}
 
 	StopTiming( stdout, "Solve", t0 );
