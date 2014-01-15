@@ -21,9 +21,14 @@
 
 class RgdSums {
 public:
-	TAffine	A;
 	double	Xa, Ya, Xb, Yb, XaXb, YaYb, XaYb, YaXb;
 	int		N;
+};
+
+class AIO {
+public:
+	int		z;
+	TAffine	A;
 };
 
 /* --------------------------------------------------------------- */
@@ -31,6 +36,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static XArray			*gX;
+static vector<AIO>		vA;
 static vector<RgdSums>	vS;
 static int				nthr;
 
@@ -58,6 +64,7 @@ void* _RgdSums( void* ithr )
 		const Rgns&				Ra	= vR[ia];
 		const vector<double>&	xb	= gX->X[ib];
 		const vector<double>&	xa	= gX->X[ia];
+		AIO&					A	= vA[ib];
 		RgdSums&				S	= vS[ib];
 
 		// For each A-layer rgn...
@@ -128,8 +135,9 @@ void* _RgdSums( void* ithr )
 		kx = (S.Xb - c*S.Xa + s*S.Ya) / S.N,
 		ky = (S.Yb - s*S.Xa - c*S.Ya) / S.N;
 
-		S.A.t[0] = c; S.A.t[1] = -s; S.A.t[2] = kx;
-		S.A.t[3] = s; S.A.t[4] =  c; S.A.t[5] = ky;
+		A.z      = Ra.z;
+		A.A.t[0] = c; A.A.t[1] = -s; A.A.t[2] = kx;
+		A.A.t[3] = s; A.A.t[4] =  c; A.A.t[5] = ky;
 	}
 
 	return NULL;
@@ -147,6 +155,7 @@ static void CalcMyPairwiseTForms( XArray &X )
 
 	int	nb = vR.size() - 1;	// this many b-layers
 
+	vA.resize( nb );
 	vS.resize( nb );
 
 	nthr = maxthreads;
@@ -156,6 +165,8 @@ static void CalcMyPairwiseTForms( XArray &X )
 
 	if( !EZThreads( _RgdSums, nthr, 1, "_RgdSums" ) )
 		exit( 42 );
+
+	vS.clear();
 }
 
 /* --------------------------------------------------------------- */
@@ -165,15 +176,7 @@ static void CalcMyPairwiseTForms( XArray &X )
 // The adjustment tform needed for a given layer is the cummulative
 // product of all adjustments to layers below. At this point, all
 // worker nodes except the last must write their pairwise results
-// to files "Untwist/id.txt".
-//
-// Note that printf with %.21f writes doubles to full precision
-// such that scanf with %lf recovers the identical value.
-//
-// We bother only because of long product chains. With 21 digits
-// there is no difference between many small subblocks and doing
-// all together. With standard precision (%f = %.6f), differences
-// appear in the 5th-most significant digit over 200 layers.
+// to files "Untwist/id.bin".
 //
 static void WriteMyTForms()
 {
@@ -182,26 +185,15 @@ static void WriteMyTForms()
 	if( wkid >= nwks - 1 )
 		return;
 
-	DskCreateDir( "Untwist", stdout );
-
-	char	buf[32];
-	sprintf( buf, "Untwist/%d.txt", wkid );
-	FILE	*f = FileOpenOrDie( buf, "w" );
-
-// Each entry affects layer zA or higher, so write lines:
+// Each entry affects layer zA or higher, so write blocks:
 // 'zA A'
 
-	int	nb = vS.size();
+	char	buf[32];
+	DskCreateDir( "Untwist", stdout );
+	sprintf( buf, "Untwist/%d.bin", wkid );
 
-	for( int ib = 0; ib < nb; ++ib ) {
-
-		const TAffine&	A = vS[ib].A;
-
-		fprintf( f, "%d %.21f %.21f %.21f %.21f %.21f %.21f\n",
-		vR[ib+1].z,
-		A.t[0], A.t[1], A.t[2], A.t[3], A.t[4], A.t[5] );
-	}
-
+	FILE	*f = FileOpenOrDie( buf, "wb" );
+	fwrite( &vA[0], sizeof(AIO), vA.size(), f );
 	fclose( f );
 }
 
@@ -218,37 +210,36 @@ static void WriteMyTForms()
 //
 static void AccumulateBefores( TAffine &A0 )
 {
-	TAffine	A;
-	int		z0		= vR[zolo].z,
-			zlast	= -1,
-			z;
+	int	z0		= vR[zolo].z,
+		zlast	= -1;
 
 	for( int iw = 0; iw < wkid; ++iw ) {
 
 		char	buf[32];
-		sprintf( buf, "Untwist/%d.txt", iw );
-		FILE	*f = FileOpenOrDie( buf, "r" );
+		sprintf( buf, "Untwist/%d.bin", iw );
 
-		while( 7 == fscanf( f, "%d%lf%lf%lf%lf%lf%lf\n",
-			&z,
-			&A.t[0], &A.t[1], &A.t[2],
-			&A.t[3], &A.t[4], &A.t[5] ) ) {
+		int			n = (int)DskBytes( buf ) / sizeof(AIO);
+		vector<AIO>	aio( n );
 
-			if( z > z0 ) {
-				fclose( f );
+		FILE	*f = FileOpenOrDie( buf, "rb" );
+		fread( &aio[0], sizeof(AIO), n, f );
+		fclose( f );
+
+		for( int i = 0; i < n; ++i ) {
+
+			const AIO&	A = aio[i];
+
+			if( A.z > z0 )
 				return;
-			}
 
 			// monotonic z rule
 
-			if( z <= zlast )
+			if( A.z <= zlast )
 				continue;
 
-			A0		= A * A0;
-			zlast	= z;
+			A0		= A.A * A0;
+			zlast	= A.z;
 		}
-
-		fclose( f );
 	}
 }
 
@@ -265,7 +256,7 @@ static void Apply( TAffine &A0 )
 	for( int iz = (wkid ? 0 : 1); iz < nz; ++iz ) {
 
 		if( iz )
-			A0 = vS[iz - 1].A * A0;
+			A0 = vA[iz - 1].A * A0;
 
 		const Rgns&		R = vR[iz];
 		vector<double>&	x = gX->X[iz];
@@ -321,8 +312,9 @@ void UntwistAffines( XArray &X )
 
 	TAffine	A0;
 	AccumulateBefores( A0 );
+
 	Apply( A0 );
-	vS.clear();
+	vA.clear();
 
 	StopTiming( stdout, "Untwist", t0 );
 }

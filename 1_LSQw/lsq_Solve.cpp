@@ -603,6 +603,20 @@ static void* _A2A( void* ithr )
 /* _A2H ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Solve for H using point-pairs {A,B}: B ~ HA.
+//
+// |Bx'|   |a b c|   |Ax|
+// |By'| = |d e f| x |Ay| ; Bx=Bx'/Bw', By=By'/Bw'
+// |Bw'|   |g h 1|   |1 |
+//
+// Expand:
+// (gAx + hAy + 1)Bx = aAx + bAy + c
+// (gAx + hAy + 1)By = dAx + eAy + f
+//
+// Gather:
+// [Ax Ay 1 0 0 0 -AxBx -AyBx] [a b c d e f g h] = Bx
+// [0 0 0 Ax Ay 1 -AxBy -AyBy] [a b c d e f g h] = By
+//
 static void* _A2H( void* ithr )
 {
 	Todo	Q;
