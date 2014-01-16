@@ -205,7 +205,7 @@ void CLoadPoints::Load( const char *tempdir, const char *cachedir )
 
 	StopTiming( stdout, "Total", t0 );
 
-	printf( "Loaded %d point pairs.\n", vC.size() );
+	printf( "Loaded %ld point pairs.\n", vC.size() );
 }
 
 

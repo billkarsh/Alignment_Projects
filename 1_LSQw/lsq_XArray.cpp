@@ -90,6 +90,8 @@ static void* _AFromIDB( void* ithr )
 			}
 		}
 	}
+
+	return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -220,6 +222,8 @@ static void* _AFromTxt( void* ithr )
 			}
 		}
 	}
+
+	return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -351,6 +355,8 @@ static void* _HFromTxt( void* ithr )
 			}
 		}
 	}
+
+	return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -416,6 +422,8 @@ static void* _XFromBin( void* ithr )
 			}
 		}
 	}
+
+	return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -464,6 +472,8 @@ static void* _Save( void* ithr )
 		SaveXBin( x, R.z );
 		SaveFBin( R.flag, R.z );
 	}
+
+	return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -482,6 +492,8 @@ static void* _UpdtFS( void* ithr )
 		ReadXBin( x, R.z );
 		ReadFBin( R.flag, R.z );
 	}
+
+	return NULL;
 }
 
 /* --------------------------------------------------------------- */
