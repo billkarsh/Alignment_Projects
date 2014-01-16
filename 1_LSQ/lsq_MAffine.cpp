@@ -638,7 +638,7 @@ void MAffine::AffineFromFile( vector<double> &X, int nTr )
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Aff: %d unknowns; %d constraints.\n",
+	printf( "Aff: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );
@@ -742,7 +742,7 @@ void MAffine::AffineFromFile2( vector<double> &X, int nTr )
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Aff: %d unknowns; %d constraints.\n",
+	printf( "Aff: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );
@@ -851,7 +851,7 @@ void MAffine::AffineFromTransWt( vector<double> &X, int nTr )
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Aff: %d unknowns; %d constraints.\n",
+	printf( "Aff: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );
@@ -947,7 +947,7 @@ void MAffine::SolveSystemStandard( vector<double> &X, int nTr )
 	double	scale	= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Aff: %d unknowns; %d constraints.\n",
+	printf( "Aff: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );

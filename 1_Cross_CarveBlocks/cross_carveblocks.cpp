@@ -738,7 +738,7 @@ int main( int argc, char* argv[] )
 
 	TS.FillFromTrakEM2( gArgs.xml_hires, gArgs.zmin, gArgs.zmax );
 
-	fprintf( flog, "Got %d images.\n", TS.vtil.size() );
+	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
 	if( !TS.vtil.size() )
 		goto exit;

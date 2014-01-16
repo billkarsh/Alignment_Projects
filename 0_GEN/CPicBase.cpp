@@ -155,7 +155,7 @@ void PicBase::MakeFFTExist( int i )
 {
 	printf(
 	"MakeFFTExist: called with %d,"
-	" fft_of_frame.size=%d\n", i, fft_of_frame.size() );
+	" fft_of_frame.size=%ld\n", i, fft_of_frame.size() );
 
 	if( fft_of_frame.size() )	// already exists
 		return;

@@ -239,7 +239,7 @@ bool CThmUtil::Olap_WholeImage(
 	const vector<Point>	&bpts )
 {
 	fprintf( flog,
-	"Subimage: Using whole images, apix=%d, bpix=%d\n",
+	"Subimage: Using whole images, apix=%ld, bpix=%ld\n",
 	apts.size(), bpts.size() );
 
 	SubI_ThesePoints( olp.a, *px.avs_aln, apts );
@@ -484,7 +484,7 @@ bool CThmUtil::MakeThumbs(
 		thm.olap1D  /= decfactor;
 
 		fprintf( flog,
-		"Thumbs: After decimation %d pts, reqArea %d, thmscl %d\n",
+		"Thumbs: After decimation %ld pts, reqArea %ld, thmscl %d\n",
 		thm.ap.size(), thm.reqArea, thm.scl );
 	}
 

@@ -304,7 +304,7 @@ void MSimlr::SolveSystem( vector<double> &X, int nTr )
 	double	scale	= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Rgd: %d unknowns; %d constraints.\n",
+	printf( "Rgd: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );

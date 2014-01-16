@@ -15,7 +15,7 @@
 
 void CRegexID::Set( const char* _pat )
 {
-	sprintf( pat, "%.*s", sizeof(pat), _pat );
+	sprintf( pat, "%.*s", int(sizeof(pat)), _pat );
 }
 
 /* --------------------------------------------------------------- */

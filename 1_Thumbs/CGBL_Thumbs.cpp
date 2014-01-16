@@ -309,7 +309,7 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 		printf( "FLD=%c\n", _arg.FLD );
 	}
 
-	if( ctx.FLD = 'X' ) {
+	if( ctx.FLD == 'X' ) {
 		ctx.FLD = (GBL.A.z == GBL.B.z ? 'N' : 'Y');
 		printf( "FLD=%c (was X)\n", ctx.FLD );
 	}
@@ -322,12 +322,12 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 	if( ctx.MODE == 'Z' ) {
 		ctx.MODE = 'C';
 		arg.CTR = 0.0;
-		printf( "MODE=C (was Z)\n", arg.CTR );
+		printf( "MODE=C (was Z)\n" );
 	}
 	else if( ctx.MODE == 'M' ) {
 		ctx.MODE = 'N';
 		arg.CTR = 0.0;
-		printf( "MODE=N (was M)\n", arg.CTR );
+		printf( "MODE=N (was M)\n" );
 	}
 
 	if( arg.CTR != 999.0 )

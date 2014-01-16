@@ -489,7 +489,7 @@ static void ChannelLoop()
 // to "...TrackEM2_FFall.txt"
 
 	char	buf[2048];
-	sprintf( buf, "%.*sFFall.txt", strlen( rick ) - 8, rick );
+	sprintf( buf, "%.*sFFall.txt", int(strlen( rick ) - 8), rick );
 
 	FILE	*fout = FileOpenOrDie( buf, "w" );
 

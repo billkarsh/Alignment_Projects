@@ -536,7 +536,7 @@ static void SelectThreshAndD(
 
 			printf(
 			"Desparate action: Thresh = %g excluding only v = 0...\n"
-			"...And setting D = 0\n" );
+			"...And setting D = 0\n", thresh );
 		}
 	}
 

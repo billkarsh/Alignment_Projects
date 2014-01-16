@@ -130,7 +130,7 @@ static void EditPath( TiXmlElement* ptch )
 	while( *--u != '_' )
 		;
 
-	sprintf( buf, "%.*s_%s%s", u - n, n, gArgs.chn, d );
+	sprintf( buf, "%.*s_%s%s", int(u - n), n, gArgs.chn, d );
 
 	ptch->SetAttribute( "file_path", buf );
 }
@@ -206,7 +206,6 @@ int main( int argc, char* argv[] )
 /* Done */
 /* ---- */
 
-exit:
 	fprintf( flog, "\n" );
 	fclose( flog );
 

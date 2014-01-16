@@ -182,7 +182,7 @@ void MHmgphy::HmgphyFromAffine( vector<double> &X, int nTr )
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Hmg: %d unknowns; %d constraints.\n",
+	printf( "Hmg: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );
@@ -293,7 +293,7 @@ void MHmgphy::HmgphyFromHmgphy( vector<double> &X, int nTr )
 	double	sc		= 2 * max( gW, gH );
 	int		nvars	= nTr * NX;
 
-	printf( "Hmg: %d unknowns; %d constraints.\n",
+	printf( "Hmg: %d unknowns; %ld constraints.\n",
 		nvars, vAllC.size() );
 
 	vector<double> RHS( nvars, 0.0 );

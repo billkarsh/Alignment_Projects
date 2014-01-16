@@ -31,8 +31,10 @@ void VMStats( FILE *flog )
 	fprintf( flog, "\n---- Memory ----\n" );
 	fprintf( flog, "Host name: %s\n", host );
 	fprintf( flog, "PID:       %d\n", pid );
-	fprintf( flog, "User time:   %5d seconds.\n", usage.ru_utime );
-	fprintf( flog, "System time: %5d seconds.\n", usage.ru_stime );
+	fprintf( flog, "User time:   %5ld seconds.\n",
+		usage.ru_utime.tv_sec );
+	fprintf( flog, "System time: %5ld seconds.\n",
+		usage.ru_stime.tv_sec );
 
 	CLineScan	LS;
 

@@ -247,7 +247,7 @@ static void MakeFolder( const Picture &p )
 
 	p1 = p.fname.c_str();
 	p2 = strrchr( p1, '/' );
-	sprintf( buf, "%.*s_%s", p2 - p1, p1, gArgs.tag );
+	sprintf( buf, "%.*s_%s", int(p2 - p1), p1, gArgs.tag );
 
 // make dir
 
@@ -269,8 +269,8 @@ static char *OutName( char *buf, const Picture &p )
 	sprintf( buf,
 		"%.*s_%s"
 		"%.*s.%s.tif",
-		p2 - p1, p1, gArgs.tag,
-		p3 - p2, p2, gArgs.tag );
+		int(p2 - p1), p1, gArgs.tag,
+		int(p3 - p2), p2, gArgs.tag );
 
 	return buf;
 }
@@ -421,7 +421,7 @@ int main( int argc, char* argv[] )
 
 	ParseTrakEM2( vp );
 
-	fprintf( flog, "Got %d images.\n", vp.size() );
+	fprintf( flog, "Got %d images.\n", (int)vp.size() );
 
 	if( !vp.size() )
 		goto exit;

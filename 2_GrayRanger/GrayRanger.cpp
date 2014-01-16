@@ -214,7 +214,7 @@ static void GRTemp( vector<int> &zlist )
 
 	FILE	*f = FileOpenOrDie( "GRTemp/range.txt", "w", flog );
 
-	fprintf( f, "%d\t%d\n", zlist[0], zlist.size() );
+	fprintf( f, "%d\t%d\n", zlist[0], (int)zlist.size() );
 	fclose( f );
 }
 

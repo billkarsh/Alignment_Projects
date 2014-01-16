@@ -243,7 +243,6 @@ static bool XMLHasMRC()
 		}
 	}
 
-exit:
 	fclose( f );
 
 	return ismrc;
@@ -263,7 +262,7 @@ static void Write_upmongo()
 		const char	*name	= FileNamePtr( gArgs.infile ),
 					*dot	= FileDotPtr( name );
 
-		sprintf( inname, "%.*s", dot - name, name );
+		sprintf( inname, "%.*s", int(dot - name), name );
 	}
 	else
 		strcpy( inname, "PreClicks" );
@@ -377,7 +376,6 @@ int main( int argc, char* argv[] )
 /* Done */
 /* ---- */
 
-exit:
 	fprintf( flog, "\n" );
 	fclose( flog );
 

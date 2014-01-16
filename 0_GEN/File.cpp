@@ -89,7 +89,7 @@ char* FileCloneNamePart( const char *path )
 	const char	*name	= FileNamePtr( path ),
 				*dot	= FileDotPtr( name );
 
-	sprintf( buf, "%.*s", dot - name, name );
+	sprintf( buf, "%.*s", int(dot - name), name );
 
 	return strdup( buf );
 }

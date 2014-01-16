@@ -425,13 +425,13 @@ void RegionToRegionMap(
 
 // Region large enough?
 
-	fprintf( flog, "Roughly %d pixels map to B.\n",
+	fprintf( flog, "Roughly %ld pixels map to B.\n",
 	ap_msh.size() );
 
 	if( ap_msh.size() < GBL.mch.MMA ) {
 
 		fprintf( flog,
-		"FAIL: Region too small - %d pixels, MMA %d\n",
+		"FAIL: Region too small - %ld pixels, MMA %d\n",
 		ap_msh.size(), GBL.mch.MMA );
 
 		return;
@@ -609,7 +609,7 @@ void RegionToRegionMap(
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - Small overlap?"
-		" %d pixels, MMA %d\n",
+		" %ld pixels, MMA %d\n",
 		ap_msh.size(), GBL.mch.MMA );
 
 		return;
@@ -621,7 +621,7 @@ void RegionToRegionMap(
 
 		fprintf( flog,
 		"FAIL: Deformable triangular mesh failed - No triangles."
-		" %d pixels, MMA %d\n",
+		" %ld pixels, MMA %d\n",
 		ap_msh.size(), GBL.mch.MMA );
 
 		return;

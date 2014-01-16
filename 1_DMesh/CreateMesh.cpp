@@ -1370,7 +1370,7 @@ int MeshCreate(
 
 		ListEdgesMatlab( edges, flog );
 
-		fprintf( flog, "\nEdges %d; Area %f\n", edges.size(), area );
+		fprintf( flog, "\nEdges %ld; Area %f\n", edges.size(), area );
 
 		/* ------------------- */
 		/* Remove longest edge */
@@ -1402,7 +1402,7 @@ int MeshCreate(
 		if( type == -2 ) {
 
 			fprintf( flog, "\nNo legal triangle at all??"
-			" %d triangles so far, area limit %d\n",
+			" %ld triangles so far, area limit %d\n",
 			tri.size(), GBL.mch.MTA );
 
 			if( tri.size() > 0 ) {
@@ -1471,7 +1471,7 @@ int MeshCreate(
 
 exit:
 	fprintf( flog,
-	"\nSTAT: From %d pts, got %d triangles, %d control points.\n",
+	"\nSTAT: From %d pts, got %ld triangles, %ld control points.\n",
 	npts, tri.size(), ctl.size() );
 
 	StopTiming( flog, "MeshCreate", t0 );
@@ -1642,7 +1642,7 @@ int MeshCreateX(
 	if( ntri < in.size() ) {
 
 		fprintf( flog,
-		"\nOf %d triangles, %d were above %3d%% occupancy.\n",
+		"\nOf %ld triangles, %d were above %3d%% occupancy.\n",
 		in.size(), ntri, int(occ*100.0) );
 
 		for( int i = ctl.size() - 1; i >= 0; --i ) {
@@ -1676,7 +1676,7 @@ next_i:;
 /* ------------ */
 
 	fprintf( flog,
-	"\nSTAT: From %d pts, got %d triangles, %d control points.\n",
+	"\nSTAT: From %ld pts, got %ld triangles, %ld control points.\n",
 	pts.size(), tri.size(), ctl.size() );
 
 	StopTiming( flog, "MeshCreate", t0 );

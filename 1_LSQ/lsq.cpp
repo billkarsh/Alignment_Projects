@@ -2147,7 +2147,6 @@ int main( int argc, char **argv )
 /* Done */
 /* ---- */
 
-exit:
 	fclose( FOUT );
 	VMStats( stdout );
 

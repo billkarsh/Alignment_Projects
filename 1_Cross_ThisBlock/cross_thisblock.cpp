@@ -391,7 +391,7 @@ bool CSuperscape::MakeRasB( const DBox &Abb )
 
 	if( vid.size() < 0.05 * gDat.ntil ) {
 
-		fprintf( flog, "Low B tile count [%d] for z=%d.\n",
+		fprintf( flog, "Low B tile count [%ld] for z=%d.\n",
 		vid.size(), TS.vtil[is0].z );
 
 		return false;
@@ -1067,7 +1067,7 @@ int main( int argc, char* argv[] )
 
 	TS.FillFromTrakEM2( gDat.xmlfile, gDat.zmin, gDat.za );
 
-	fprintf( flog, "Got %d images.\n", TS.vtil.size() );
+	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
 	if( !TS.vtil.size() )
 		goto exit;

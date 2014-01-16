@@ -165,7 +165,7 @@ static void GetWholeLayerTF()
 	char		buf[256];
 	const char	*st = FileNamePtr( gArgs.infile );
 
-	sprintf( buf, "%.*s_LayerTF.txt", strlen( st ) - 4, st );
+	sprintf( buf, "%.*s_LayerTF.txt", int(strlen( st ) - 4), st );
 
 	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
@@ -270,7 +270,7 @@ static void OnefileAllTF()
 	char		buf[256];
 	const char	*st = FileNamePtr( gArgs.infile );
 
-	sprintf( buf, "%.*s_TF.txt", strlen( st ) - 4, st );
+	sprintf( buf, "%.*s_TF.txt", int(strlen( st ) - 4), st );
 
 	FILE	*f = FileOpenOrDie( buf, "w", flog );
 
@@ -385,7 +385,6 @@ int main( int argc, char* argv[] )
 /* Done */
 /* ---- */
 
-exit:
 	fprintf( flog, "\n" );
 	fclose( flog );
 

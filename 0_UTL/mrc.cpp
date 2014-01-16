@@ -310,7 +310,7 @@ for(int pass=0; pass < 3 && try_again; pass++) {
 	    rmax = max(rmax, top);
 	    double bot = f.a[i+1] - 4/sqrt(2)*abs(f.a[i+2]);  // four sigma (sqrt(2) since width un-normalized
 	    rmin = min(rmin, bot);
-	    printf("%16.1f * exp( ((x-%7.1f)/%6.1f)^2 ) range [%7.1f %7.1f]\n", i, f.a[i], f.a[i+1], f.a[i+2], bot, top);
+	    printf("i=%d: %16.1f * exp( ((x-%7.1f)/%6.1f)^2 ) range [%7.1f %7.1f]\n", i, f.a[i], f.a[i+1], f.a[i+2], bot, top);
 	    }
 	char fname[10];
 	sprintf(fname,"pl%d", N);  // pl1, pl2, etc. for plot files

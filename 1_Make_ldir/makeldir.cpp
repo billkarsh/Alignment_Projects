@@ -169,7 +169,7 @@ static void GetUniqueDirs( set<string> &S, TiXmlElement* layer )
 
 		gArgs.FindPat( start, end, name );
 
-		sprintf( buf, "%.*s", end - name, name );
+		sprintf( buf, "%.*s", int(end - name), name );
 		S.insert( string( buf ) );
 	}
 }

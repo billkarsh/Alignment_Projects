@@ -63,7 +63,7 @@ int main( int argc, char **argv )
 
 // compose outname & open
 
-	sprintf( buf, "%.*s_v2%s", s - argv[1], argv[1], s );
+	sprintf( buf, "%.*s_v2%s", int(s - argv[1]), argv[1], s );
 	FILE	*fou = FileOpenOrDie( buf, "w" );
 
 // read lines - ref tiles, if present, are at the start of
@@ -118,7 +118,6 @@ int main( int argc, char **argv )
 
 // close files
 
-exit:
 	fclose( fin );
 	fclose( fou );
 }

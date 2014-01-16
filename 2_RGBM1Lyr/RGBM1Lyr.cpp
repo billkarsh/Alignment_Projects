@@ -298,7 +298,7 @@ static char *ChanName( char *buf, const Picture &p, int chn )
 	u	= strrchr( src, '_' );
 
 	sprintf( plt + 8, "/TIF%.*s_%c.tif",
-		u - s, s, '0' + chn );
+		int(u - s), s, '0' + chn );
 
 	return buf;
 }
@@ -319,7 +319,7 @@ static char *RGBName( char *buf, const Picture &p )
 	u	= strrchr( src, '_' );
 
 	sprintf( plt + 8, "/TIF_%s%.*s_%s.tif",
-		gArgs.tag, u - s, s, gArgs.tag );
+		gArgs.tag, int(u - s), s, gArgs.tag );
 
 	return buf;
 }
@@ -564,7 +564,7 @@ int main( int argc, char* argv[] )
 
 	ParseTrakEM2( vp );
 
-	fprintf( flog, "Got %d images.\n", vp.size() );
+	fprintf( flog, "Got %d images.\n", (int)vp.size() );
 
 	if( !vp.size() )
 		goto exit;

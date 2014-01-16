@@ -392,7 +392,7 @@ TIFFSetWarningHandler( oldEH );
 	bps, spp );
 
 	fprintf( flog,
-	"Raster8FromTif: Picture is %d by %d, %d pixels total.\n",
+	"Raster8FromTif: Picture is %d by %d, %ld pixels total.\n",
 	w, h, npixels );
 
 	raster = (uint8*)_TIFFmalloc( npixels * sizeof(uint8) );
@@ -473,7 +473,7 @@ TIFFSetWarningHandler( oldEH );
 	bps, spp );
 
 	fprintf( flog,
-	"Raster16FromTif16: Picture is %d by %d, %d pixels total.\n",
+	"Raster16FromTif16: Picture is %d by %d, %ld pixels total.\n",
 	w, h, npixels );
 
 	raster = (uint16*)_TIFFmalloc( npixels * sizeof(uint16) );

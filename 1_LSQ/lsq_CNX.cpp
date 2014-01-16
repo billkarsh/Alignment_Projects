@@ -44,7 +44,7 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 	if( r12Bad.size() ) {
 
 		printf(
-		"%d weak pair entries reported in 'FewCorr'.\n",
+		"%ld weak pair entries reported in 'FewCorr'.\n",
 		r12Bad.size() );
 
 		FILE	*f = FileOpenOrDie( "FewCorr", "w" );
@@ -241,7 +241,7 @@ int CNX::MaxConnectedSet( set<int> &ignore )
 		fclose( f );
 	}
 
-	printf( "Ignoring %d tiles (see ignored_tiles.txt)\n\n",
+	printf( "Ignoring %ld tiles (see ignored_tiles.txt)\n\n",
 		ignore.size() );
 
 	return ignore.size();

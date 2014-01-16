@@ -122,11 +122,11 @@ static void EditPath( TiXmlElement* ptch )
 
 // get the '/name' part
 
-	sprintf( name, "%.*s", u - s, s );
+	sprintf( name, "%.*s", int(u - s), s );
 
 // rebuild path
 
-	sprintf( buf, "%.*s_%s%s_%s.tif", s - n, n,
+	sprintf( buf, "%.*s_%s%s_%s.tif", int(s - n), n,
 		gArgs.tag, name, gArgs.tag );
 
 	ptch->SetAttribute( "file_path", buf );
@@ -212,7 +212,6 @@ int main( int argc, char* argv[] )
 /* Done */
 /* ---- */
 
-exit:
 	fprintf( flog, "\n" );
 	fclose( flog );
 

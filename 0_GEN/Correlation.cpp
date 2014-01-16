@@ -748,8 +748,8 @@ double CLinCorr::GetCorr()
 	if( abs( r ) > 1.0001 ) {
 
 		fprintf( flog,
-		"NormCorr: Very odd - ir=%d rslt[i]=%f olap_area=%d\n",
-		ir, r, n );
+		"NormCorr: Very odd - ir=%d rslt[i]=%f olap_area=%ld\n",
+		ir, r, (long)n );
 
 		fprintf( flog,
 		"NormCorr: shift %d %d, i1 (%d %d) to (%d %d),"
@@ -1509,7 +1509,7 @@ double CorrVectors(
 
 	if( N != b.size() ) {
 		fprintf( flog,
-		"CorrVectors: Sizes differ! %d %d\n", N, b.size() );
+		"CorrVectors: Sizes differ! %d %ld\n", N, b.size() );
 		exit( 42 );
 	}
 
@@ -1630,7 +1630,7 @@ double ImproveControlPts(
 	corr_last = corr = CorrVectors( flog, av, bnew );
 
 	fprintf( flog,
-	"STAT: ImproveCpt: Initial %s correlation %f (%d pixels).\n",
+	"STAT: ImproveCpt: Initial %s correlation %f (%ld pixels).\n",
 	describe, corr, av.size() );
 
 // Plausibility check
@@ -2417,7 +2417,7 @@ bool CCorImg::FPeak(
 		// could be very slow along the ridge, biasing the
 		// peak size estimate.
 
-up:
+//up:
 		for( int y = ry - 1; y >= 0; --y ) {
 			if( F[rx + wR*y] <= 0.5*fpk ) {
 				ri = min( ri, ry - y );

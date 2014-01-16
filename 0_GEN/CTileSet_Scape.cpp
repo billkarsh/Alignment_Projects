@@ -309,6 +309,8 @@ void* _Scape_Paint( void *ithr )
 
 		RasterFree( src );
 	}
+
+	return NULL;
 }
 
 

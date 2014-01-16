@@ -1369,7 +1369,7 @@ void LoadTHmgphyTbl_AllZ(
 		THmgphy	T;
 
 		sscanf( LS.line, "%d\t%d\t%d"
-		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+		"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 		&zir.z, &zir.id, &zir.rgn,
 		&T.t[0], &T.t[1], &T.t[2], &T.t[3],
 		&T.t[4], &T.t[5], &T.t[6], &T.t[7] );

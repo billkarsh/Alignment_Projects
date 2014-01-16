@@ -184,7 +184,6 @@ int main( int argc, char* argv[] )
 /* Done */
 /* ---- */
 
-exit:
 //	VMStats( flog );
 	fclose( flog );
 

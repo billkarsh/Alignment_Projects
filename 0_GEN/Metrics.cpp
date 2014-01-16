@@ -725,7 +725,7 @@ double PercentYellow(
 		}
 
 		fprintf( flog,
-		"%Yellow: Tol %6.2f  red %6.1f  yellow %6.1f  green %6.1f\n",
+		"%%Yellow: Tol %6.2f  red %6.1f  yellow %6.1f  green %6.1f\n",
 		tol, 100.0*red/N, 100.0*yellow/N, 100.0*green/N );
 	}
 

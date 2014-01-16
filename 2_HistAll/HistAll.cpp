@@ -258,7 +258,7 @@ int main( int argc, char* argv[] )
 
 	ParseTrakEM2( vp );
 
-	fprintf( flog, "Got %d images.\n", vp.size() );
+	fprintf( flog, "Got %d images.\n", (int)vp.size() );
 
 	if( !vp.size() )
 		goto exit;

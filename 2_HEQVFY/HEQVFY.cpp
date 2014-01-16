@@ -151,8 +151,8 @@ static char *OutName( char *buf, TiXmlElement* p )
 			"%.*s%s"	// path excl / + _HEQ
 			"%.*s"		// / + name excl .tif
 			"%s.tif",	// .HEQ.tif
-			s - n, n, gArgs.utag,
-			dot - s, s,
+			int(s - n), n, gArgs.utag,
+			int(dot - s), s,
 			gArgs.dtag );
 	}
 

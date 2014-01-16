@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 				break;
 
 				case '%':
-					printf( "%%" );
+					printf( "%%%%" );
 				break;
 
 				default:

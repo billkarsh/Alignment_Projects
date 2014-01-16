@@ -256,7 +256,6 @@ int main( int argc, char **argv )
 /* Done */
 /* ---- */
 
-exit:
 	fclose( flog );
 
 	return 0;

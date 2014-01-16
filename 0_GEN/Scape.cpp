@@ -308,6 +308,8 @@ void* _Paint( void *ithr )
 
 		RasterFree( src );
 	}
+
+	return NULL;
 }
 
 

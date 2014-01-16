@@ -643,7 +643,8 @@ static void ReadInput_StrTags(
 
 					char	buf[2048];
 
-					sprintf( buf, "%.*sd.tif", suf - mname, mname );
+					sprintf( buf, "%.*sd.tif",
+						int(suf - mname), mname );
 
 					if( DskExists( buf ) ) {
 						printf( "Using drawing file '%s'.\n", buf );
@@ -3330,10 +3331,10 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
     // Note that we ignore xmin and ymin, and always start at 0,0;
     uint32 nx = ROUND(xmax)+1;  // number of pixels in X
     uint32 ny = ROUND(ymax)+1;
-    printf("Image size is %d by %d, %d images\n", nx, ny, images.size());
+    printf("Image size is %d by %d, %d images\n", nx, ny, (int)images.size());
     vector<uint16>imap(nx*ny,0);
     if( relevant_images.size() > 0xFFFF ) {  // since we hold this as 16 bits
-	printf("Too many images (%d) on layer %d\n", relevant_images.size(), out_layer);
+	printf("Too many images (%d) on layer %d\n", (int)relevant_images.size(), out_layer);
 	exit( 42 );
 	}
     vector<uint8>PatchFrom(nx*ny,0);
@@ -3361,7 +3362,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         if( it == temp.end() ) { // add it
 	    Triple t(imap[i], PatchFrom[i], 0);
 	    temp.insert(pair<int,int>(id, Triples.size()));
-            printf("New combo %5d: %d %d at %d\n", Triples.size(), t.image, t.patch, i);
+            printf("New combo %5d: %d %d at %d\n", (int)Triples.size(), t.image, t.patch, i);
             Triples.push_back(t);
 	    it = temp.find(id);   // now should find it, since we just added it
 	    }
@@ -3442,7 +3443,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    edges.push_back(Point(0.0, y));
 	    edges.push_back(Point(w-1, y));
 	    }
-	printf("%d edge pixels\n", edges.size());
+	printf("%d edge pixels\n", (int)edges.size());
 	// OK, now transform this edge list by each of the transforms, then color it in.
 	for(int i=0; i<images.size(); i++) {
 	    if( images[i].layer != out_layer ) // only want edges on current layer
@@ -3720,7 +3721,8 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    }
 	}
 
-    printf("%d global control points; %d constraints\n", gvtx.size(), spots.size() );
+    printf("%d global control points; %d constraints\n",
+		(int)gvtx.size(), (int)spots.size() );
     int nvs = gvtx.size();  // number of control points
 
     // Now generate the constraints.  Declare the (sparse) normal matrix and the RHS
@@ -3960,7 +3962,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
         if( it == temp.end() ) { // add it
 	    Triple t(imap[i], PatchFrom[i], SectorFrom[i]);
 	    temp.insert(pair<int,int>(id, Triples.size()));
-            printf("New combo %5d: %3d %3d %3d\n", Triples.size(), t.image, t.patch, t.sector);
+            printf("New combo %5d: %3d %3d %3d\n", (int)Triples.size(), t.image, t.patch, t.sector);
             Triples.push_back(t);
 	    it = temp.find(id);   // now should find it, since we just added it
 	    }
@@ -4052,7 +4054,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	    edges.push_back(Point(0.0, y));
 	    edges.push_back(Point(w-1, y));
 	    }
-	printf("%d edge pixels\n", edges.size());
+	printf("%d edge pixels\n", (int)edges.size());
 	// OK, now transform this edge list by each of the transforms, then color it in.
 	for(int i=0; i<images.size(); i++) {
 	    if( images[i].layer != out_layer ) // only want edges on current layer
@@ -4228,7 +4230,7 @@ for(int out_layer = lowest; out_layer <= highest; out_layer++) {  //keep going u
 	int i = relevant_images[j];
 	if( images[i].spmap != NULL && images[i].spmap != BlankSPMap ) { // one was defined
             fprintf(fmap,"Map '%s'\n", images[i].spname);
-            fprintf(fmap,"NUM_MAP %d\n", images[i].SPmapping.size()-1);  // number of entries to follow
+            fprintf(fmap,"NUM_MAP %d\n", (int)images[i].SPmapping.size()-1);  // number of entries to follow
 	    for(int k=1; k<images[i].SPmapping.size(); k++) {
 		int m = images[i].SPmapping[k];
 		if( m == 0 )
