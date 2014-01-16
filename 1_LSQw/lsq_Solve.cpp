@@ -37,6 +37,7 @@ static const double	sqrtol	= sin( 15 * PI/180 );
 
 #define	KILL( q )	vthr[(long)ithr].vkill.push_back( q )
 #define	CUTD( q )	vthr[(long)ithr].vcutd.push_back( q )
+#define	MARK( q )	vthr[(long)ithr].vmark.push_back( q )
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -58,8 +59,9 @@ public:
 class Thrdat {
 // Each thread's edit tracking data
 public:
-	vector<Todo>	vcutd,
-					vkill;
+	vector<Todo>	vmark,	// update pnt used flags
+					vcutd,	// cut down pts
+					vkill;	// can't rescue
 };
 
 /* --------------------------------------------------------------- */
@@ -522,10 +524,9 @@ static void* _A2A( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll send the dead rgn to the killer
-						// to get those point marked 'not used'.
+						// we'll get those point marked 'not used'.
 
-						KILL( Todo( C.z2, C.i2 ) );
+						MARK( Todo( C.z2, C.i2 ) );
 						continue;
 					}
 
@@ -553,10 +554,9 @@ static void* _A2A( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll send the dead rgn to the killer
-						// to get those point marked 'not used'.
+						// we'll get those point marked 'not used'.
 
-						KILL( Todo( C.z1, C.i1 ) );
+						MARK( Todo( C.z1, C.i1 ) );
 						continue;
 					}
 
@@ -677,10 +677,9 @@ static void* _A2H( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll send the dead rgn to the killer
-						// to get those point marked 'not used'.
+						// we'll get those point marked 'not used'.
 
-						KILL( Todo( C.z2, C.i2 ) );
+						MARK( Todo( C.z2, C.i2 ) );
 						continue;
 					}
 
@@ -708,10 +707,9 @@ static void* _A2H( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll send the dead rgn to the killer
-						// to get those point marked 'not used'.
+						// we'll get those point marked 'not used'.
 
-						KILL( Todo( C.z1, C.i1 ) );
+						MARK( Todo( C.z1, C.i1 ) );
 						continue;
 					}
 
@@ -818,10 +816,9 @@ static void* _H2H( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll send the dead rgn to the killer
-						// to get those point marked 'not used'.
+						// we'll get those point marked 'not used'.
 
-						KILL( Todo( C.z2, C.i2 ) );
+						MARK( Todo( C.z2, C.i2 ) );
 						continue;
 					}
 
@@ -849,10 +846,9 @@ static void* _H2H( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll send the dead rgn to the killer
-						// to get those point marked 'not used'.
+						// we'll get those point marked 'not used'.
 
-						KILL( Todo( C.z1, C.i1 ) );
+						MARK( Todo( C.z1, C.i1 ) );
 						continue;
 					}
 
@@ -924,7 +920,10 @@ static void* _H2H( void* ithr )
 // (2) At this time we are not setting the used fields of points
 // individually, as by some outlier identification scheme. Rather,
 // it is the rgn flags that determine if a point is used. So the
-// used fields get changed solely as described in (1).
+// used fields get changed solely as described in (1). If lsq is
+// restarted, there may be points that are initially 'used' but
+// that reference rgns that are dead. The 'mark' facility updates
+// the used fields for those cases.
 //
 // (3) As an efficiency measure, each rgn's list of points can be
 // shortened to remove those that are not used. These lists are
@@ -939,9 +938,26 @@ static void UpdateFlags()
 
 	for( int it = 0; it < nt; ++it ) {
 
+		vector<Todo>&	vmrk = vthr[it].vmark;
 		vector<Todo>&	vcut = vthr[it].vcutd;
 		vector<Todo>&	vkil = vthr[it].vkill;
 		int				ne;	// n edits
+
+		// Process marks
+
+		ne = vmrk.size();
+
+		for( int ie = 0; ie < ne; ++ie ) {
+
+			const Todo&		e  = vmrk[ie];
+			Rgns&			R  = vR[e.iz];
+			vector<int>&	vp = R.pts[e.ir];
+			int				np = vp.size();
+
+			// mark all its pnts
+			for( int ip = 0; ip < np; ++ip )
+				vC[vp[ip]].used = false;
+		}
 
 		// Process cuts
 
@@ -950,14 +966,13 @@ static void UpdateFlags()
 
 		for( int ie = 0; ie < ne; ++ie ) {
 
-			int				iz = vcut[ie].iz,
-							ir = vcut[ie].ir;
-			Rgns&			R  = vR[iz];
-			vector<int>&	vp = R.pts[ir];
+			const Todo&		e  = vcut[ie];
+			Rgns&			R  = vR[e.iz];
+			vector<int>&	vp = R.pts[e.ir];
 			int				np = vp.size();
 
 			// mark rgn cutd
-			FLAG_ADDCUTD( R.flag[ir] );
+			FLAG_ADDCUTD( R.flag[e.ir] );
 
 			// mark its cross-pnts
 			for( int ip = 0; ip < np; ++ip ) {
@@ -976,14 +991,13 @@ static void UpdateFlags()
 
 		for( int ie = 0; ie < ne; ++ie ) {
 
-			int				iz = vkil[ie].iz,
-							ir = vkil[ie].ir;
-			Rgns&			R  = vR[iz];
-			vector<int>&	vp = R.pts[ir];
+			const Todo&		e  = vkil[ie];
+			Rgns&			R  = vR[e.iz];
+			vector<int>&	vp = R.pts[e.ir];
 			int				np = vp.size();
 
 			// mark rgn killed
-			FLAG_ADDKILL( R.flag[ir] );
+			FLAG_ADDKILL( R.flag[e.ir] );
 
 			// mark all its pnts
 			for( int ip = 0; ip < np; ++ip )
