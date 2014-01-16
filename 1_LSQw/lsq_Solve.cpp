@@ -1076,7 +1076,7 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 	else {
 		editdelay	= 4;
 		proc		= _H2H;
-		cS			= 'A';
+		cS			= 'H';
 		cD			= 'H';
 	}
 
