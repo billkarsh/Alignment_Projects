@@ -12,6 +12,9 @@
 #include	<stdlib.h>
 #include	<string.h>
 
+#include	<algorithm>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
@@ -149,6 +152,50 @@ int Todo::RgnCount()
 	printf( "NRgns: %d\n", N );
 
 	return N;
+}
+
+/* --------------------------------------------------------------- */
+/* SortPnts ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static bool SortPnts( int a, int b )
+{
+	const CorrPnt&	A = vC[a];
+	const CorrPnt&	B = vC[b];
+
+	if( A.z1 < B.z1 )
+		return true;
+	if( A.z1 > B.z1 )
+		return false;
+	if( A.i1 < B.i1 )
+		return true;
+	if( A.i1 > B.i1 )
+		return false;
+
+	if( A.z2 < B.z2 )
+		return true;
+	if( A.z2 > B.z2 )
+		return false;
+	if( A.i2 < B.i2 )
+		return true;
+	if( A.i2 > B.i2 )
+		return false;
+
+	if( A.p1.x < B.p1.x )
+		return true;
+	if( A.p1.x > B.p1.x )
+		return false;
+	if( A.p1.y < B.p1.y )
+		return true;
+	if( A.p1.y > B.p1.y )
+		return false;
+
+	if( A.p2.x < B.p2.x )
+		return true;
+	if( A.p2.x > B.p2.x )
+		return false;
+
+	return A.p2.y < B.p2.y;
 }
 
 /* --------------------------------------------------------------- */
@@ -478,10 +525,10 @@ static void* _A2A( void* ithr )
 
 	do {
 
-		const Rgns&			R  = vR[Q.iz];
-		const vector<int>&	vp = R.pts[Q.ir];
-		int					np = vp.size(),
-							nu = 0;	// count pts used
+		Rgns&			R  = vR[Q.iz];
+		vector<int>&	vp = R.pts[Q.ir];
+		int				np = vp.size(),
+						nu = 0;	// count pts used
 
 		if( np < 3 ) {
 			KILL( Q );
@@ -497,6 +544,12 @@ static void* _A2A( void* ithr )
 
 		memset( RHS, 0, 6   * sizeof(double) );
 		memset( LHS, 0, 6*6 * sizeof(double) );
+
+		// Sort the points so that cummulative rounding
+		// error tends to be same independent of nwks.
+
+		if( !pass )
+			sort( vp.begin(), vp.end(), SortPnts );
 
 		// For each of its points...
 
@@ -631,10 +684,10 @@ static void* _A2H( void* ithr )
 
 	do {
 
-		const Rgns&			R  = vR[Q.iz];
-		const vector<int>&	vp = R.pts[Q.ir];
-		int					np = vp.size(),
-							nu = 0;	// count pts used
+		Rgns&			R  = vR[Q.iz];
+		vector<int>&	vp = R.pts[Q.ir];
+		int				np = vp.size(),
+						nu = 0;	// count pts used
 
 		if( np < 4 ) {
 			KILL( Q );
@@ -650,6 +703,12 @@ static void* _A2H( void* ithr )
 
 		memset( RHS, 0, 8   * sizeof(double) );
 		memset( LHS, 0, 8*8 * sizeof(double) );
+
+		// Sort the points so that cummulative rounding
+		// error tends to be same independent of nwks.
+
+		if( !pass )
+			sort( vp.begin(), vp.end(), SortPnts );
 
 		// For each of its points...
 
@@ -770,10 +829,10 @@ static void* _H2H( void* ithr )
 
 	do {
 
-		const Rgns&			R  = vR[Q.iz];
-		const vector<int>&	vp = R.pts[Q.ir];
-		int					np = vp.size(),
-							nu = 0;	// count pts used
+		Rgns&			R  = vR[Q.iz];
+		vector<int>&	vp = R.pts[Q.ir];
+		int				np = vp.size(),
+						nu = 0;	// count pts used
 
 		if( np < 4 ) {
 			KILL( Q );
@@ -789,6 +848,12 @@ static void* _H2H( void* ithr )
 
 		memset( RHS, 0, 8   * sizeof(double) );
 		memset( LHS, 0, 8*8 * sizeof(double) );
+
+		// Sort the points so that cummulative rounding
+		// error tends to be same independent of nwks.
+
+		if( !pass )
+			sort( vp.begin(), vp.end(), SortPnts );
 
 		// For each of its points...
 

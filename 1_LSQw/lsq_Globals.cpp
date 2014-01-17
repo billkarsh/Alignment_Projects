@@ -201,41 +201,6 @@ bool MapZPair( int &ia, int &ib, int za, int zb )
 }
 
 /* --------------------------------------------------------------- */
-/* Sort_vC_inc --------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Presorting before remapping was expected to improve
-// cache performance, but in practice it doesn't matter.
-// --- Certainly the points are very well sorted on disk.
-//
-static bool Sort_vC_inc( const CorrPnt& A, const CorrPnt& B )
-{
-	if( A.z1 < B.z1 )
-		return true;
-	if( A.z1 > B.z1 )
-		return false;
-	if( A.i1 < B.i1 )
-		return true;
-	if( A.i1 > B.i1 )
-		return false;
-	if( A.r1 < B.r1 )
-		return true;
-	if( A.r1 > B.r1 )
-		return false;
-
-	if( A.z2 < B.z2 )
-		return true;
-	if( A.z2 > B.z2 )
-		return false;
-	if( A.i2 < B.i2 )
-		return true;
-	if( A.i2 > B.i2 )
-		return false;
-
-	return A.r2 < B.r2;
-}
-
-/* --------------------------------------------------------------- */
 /* RemapIndices -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

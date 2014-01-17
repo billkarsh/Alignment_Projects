@@ -144,7 +144,7 @@ static void NewCat(
 
 		if( L.sx > -1 ) {
 
-			fprintf( f, "%d S %d %d D %d %d Z %d :",
+			fprintf( f, "%d S %d %d D %d %d Z %ld :",
 				z, L.sx, L.sy, L.dx, L.dy, L.zdown.size() );
 
 			for( set<int>::iterator	it = L.zdown.begin();

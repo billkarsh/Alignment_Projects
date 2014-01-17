@@ -5,7 +5,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 #CFLAGS = -g -O0
 #LFLAGS =
 
-# Compile mpi-based apps with CC := mpicxx
+# Compile mpi-based apps with CC := mpicxx (gnu), or mpiicpc (intel)
 # and add -mt_mpi switch to LFLAGS
 CC := mpicxx
 LFLAGS += -mt_mpi
