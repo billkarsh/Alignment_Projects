@@ -316,6 +316,13 @@ void UntwistAffines( XArray &X )
 	Apply( A0 );
 	vA.clear();
 
+// Cleanup
+
+	MPIWaitForOthers();
+
+	if( nwks > 1 && !wkid )
+		system( "rm -rf Untwist" );
+
 	StopTiming( stdout, "Untwist", t0 );
 }
 
