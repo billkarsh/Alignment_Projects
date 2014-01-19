@@ -731,7 +731,7 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 void CTileSet::BoundsPlus1( DBox &B, const vector<Point> &cnr, int i )
 {
 	vector<Point>	c( 4 );
-	memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+	memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 	vtil[i].T.Transform( c );
 
 	for( int k = 0; k < 4; ++k ) {

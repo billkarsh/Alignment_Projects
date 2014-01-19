@@ -66,7 +66,7 @@ void* _Bounds( void* ithr )
 				continue;
 
 			vector<Point>	c( 4 );
-			memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 
 			if( gX->NE == 6 )
 				X_AS_AFF( x, ir ).Transform( c );

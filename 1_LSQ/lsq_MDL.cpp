@@ -117,7 +117,7 @@ void MDL::Bounds(
 				continue;
 
 			vector<Point>	c( 4 );
-			memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 			L2GPoint( c, X, itr );
 
 			for( int k = 0; k < 4; ++k ) {
@@ -160,7 +160,7 @@ void MDL::Bounds(
 		vector<Point>	c( 4 );
 		double			xmid = 0.0, ymid = 0.0;
 
-		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 		L2GPoint( c, X, itr );
 
 		for( int k = 0; k < 4; ++k ) {

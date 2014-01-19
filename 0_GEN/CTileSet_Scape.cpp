@@ -39,7 +39,7 @@ void CTileSet::Scape_AdjustBounds(
 	for( int i = 0; i < nt; ++i ) {
 
 		vector<Point>	c( 4 );
-		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 		vtil[vid[i]].T.Transform( c );
 
 		for( int k = 0; k < 4; ++k ) {

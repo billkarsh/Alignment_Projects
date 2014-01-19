@@ -1047,7 +1047,7 @@ void BlockSet::OrientLayer( int is0, int isN )
 	for( int i = is0; i < isN; ++i ) {
 
 		vector<Point>	c( 4 );
-		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 		TS.vtil[i].T.Transform( c );
 
 		for( int i = 0; i < 4; ++i )

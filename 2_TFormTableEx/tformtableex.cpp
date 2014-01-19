@@ -137,7 +137,7 @@ static void GetXYH(
 		&T.t[6], &T.t[7] );
 
 		vector<Point>	c( 4 );
-		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 		T = R * T;
 		T.Transform( c );
 
@@ -231,7 +231,7 @@ static void GetXYA(
 		&T.t[3], &T.t[4], &T.t[5] );
 
 		vector<Point>	c( 4 );
-		memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+		memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 		T = R * T;
 		T.Transform( c );
 

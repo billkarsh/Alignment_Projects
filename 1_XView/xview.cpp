@@ -262,7 +262,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 				continue;
 
 			vector<Point>	c( 4 );
-			memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 			T = Trot * X_AS_AFF( X.X, j );
 			T.Transform( c );
 
@@ -307,7 +307,7 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 				continue;
 
 			vector<Point>	c( 4 );
-			memcpy( &c[0], &cnr[0], 4*2*sizeof(double) );
+			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
 			T = Trot * X_AS_HMY( X.X, j );
 			T.Transform( c );
 
