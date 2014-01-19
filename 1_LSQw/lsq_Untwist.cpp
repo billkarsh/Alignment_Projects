@@ -153,7 +153,7 @@ static void CalcMyPairwiseTForms( XArray &X )
 {
 	gX = &X;
 
-	int	nb = vR.size() - 1;	// this many b-layers
+	int	nb = zohi - zolo;	// this many b-layers
 
 	vA.resize( nb );
 	vS.resize( nb );
@@ -251,7 +251,7 @@ static void AccumulateBefores( TAffine &A0 )
 //
 static void Apply( TAffine &A0 )
 {
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	for( int iz = (wkid ? 0 : 1); iz < nz; ++iz ) {
 

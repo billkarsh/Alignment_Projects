@@ -210,6 +210,9 @@ void CArgs::GetRanges()
 
 static void Evaluate( const XArray &X )
 {
+	DBox B;
+	Bounds( B, X );
+
 	Magnitude( X );
 	Error( X );
 
@@ -227,9 +230,6 @@ static void Evaluate( const XArray &X )
 		erms, emax,
 		D.rmax, D.read, D.pnts, D.kill, D.cutd );
 	}
-
-	DBox B;
-	Bounds( B, X );
 }
 
 /* --------------------------------------------------------------- */

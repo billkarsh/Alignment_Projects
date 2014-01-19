@@ -603,6 +603,8 @@ void* _ErrorA( void* ithr )
 				}
 				else if( C.z1 == zolo )
 					continue;
+				else if( FLAG_ISCUTD( Ra.flag[ir] ) )
+					continue;
 				else if( C.z1 == iz ) {
 
 					if( C.z2 != lastbz ) {
@@ -612,7 +614,7 @@ void* _ErrorA( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+						if( !FLAG_ISUNCT( vR[C.z2].flag[C.i2] ) )
 							continue;
 
 						Tb = &X_AS_AFF( gX->X[C.z2], C.i2 );
@@ -712,6 +714,8 @@ void* _ErrorH( void* ithr )
 				}
 				else if( C.z1 == zolo )
 					continue;
+				else if( FLAG_ISCUTD( Ra.flag[ir] ) )
+					continue;
 				else if( C.z1 == iz ) {
 
 					if( C.z2 != lastbz ) {
@@ -721,7 +725,7 @@ void* _ErrorH( void* ithr )
 
 					if( C.i2 != lastbi ) {
 
-						if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+						if( !FLAG_ISUNCT( vR[C.z2].flag[C.i2] ) )
 							continue;
 
 						Tb = &X_AS_HMY( gX->X[C.z2], C.i2 );

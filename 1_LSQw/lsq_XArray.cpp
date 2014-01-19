@@ -42,7 +42,7 @@ static int			nthr;
 
 static void* _AFromIDB( void* ithr )
 {
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
@@ -150,7 +150,7 @@ static bool Read_vA( vector<CIDRA> &vA, int z )
 
 static void* _AFromTxt( void* ithr )
 {
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
@@ -283,7 +283,7 @@ static bool Read_vH( vector<CIDRH> &vH, int z )
 
 static void* _HFromTxt( void* ithr )
 {
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
@@ -391,7 +391,7 @@ static void ReadFBin( vector<uint8> &f, int z )
 
 static void* _XFromBin( void* ithr )
 {
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
@@ -407,11 +407,7 @@ static void* _XFromBin( void* ithr )
 		// flags as is and our only concern is whether
 		// they are used or not via FLAG_ISUSED().
 		//
-		// If in our inner range, note first that the
-		// SaveFBin() operation ensures we only write
-		// either 'used' or 'dead as read', so that's
-		// what we read here. We further modify either
-		// of those by the result of the point count.
+		// If in our inner range, we test point count.
 		//
 		if( iz >= zilo && iz <= zihi ) {
 
@@ -430,7 +426,7 @@ static void* _XFromBin( void* ithr )
 /* _Save --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void SaveXBin( vector<double> &x, int z )
+static void SaveXBin( const vector<double> &x, int z )
 {
 	char	buf[64];
 	FILE	*f;
@@ -444,18 +440,14 @@ static void SaveXBin( vector<double> &x, int z )
 }
 
 
-static void SaveFBin( vector<uint8> &f, int z )
+static void SaveFBin( const vector<uint8> &f, int z )
 {
 	char	buf[64];
 	FILE	*q;
-	int		nf = f.size();
-
-	for( int i = 0; i < nf; ++i )
-		FLAG_SETDISK( f[i] );
 
 	sprintf( buf, "%s/F_%d.bin", gpath, z );
 	q = FileOpenOrDie( buf, "wb" );
-	fwrite( &f[0], sizeof(uint8), nf, q );
+	fwrite( &f[0], sizeof(uint8), f.size(), q );
 	fclose( q );
 }
 
@@ -466,8 +458,8 @@ static void* _Save( void* ithr )
 
 	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
 
-		Rgns&			R = vR[giz[iz]];
-		vector<double>&	x = ME->X[giz[iz]];
+		const Rgns&				R = vR[giz[iz]];
+		const vector<double>&	x = ME->X[giz[iz]];
 
 		SaveXBin( x, R.z );
 		SaveFBin( R.flag, R.z );
@@ -504,7 +496,7 @@ void XArray::Resize( int ne )
 {
 	NE = ne;
 
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	X.resize( nz );
 
@@ -520,7 +512,7 @@ void XArray::Load( const char *path )
 {
 	clock_t	t0 = StartTiming();
 
-	int	nz = vR.size();
+	int	nz = zohi - zolo + 1;
 
 	X.resize( nz );
 

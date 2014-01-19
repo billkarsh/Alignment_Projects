@@ -29,6 +29,7 @@ using namespace std;
 	fmRead		= fbRead + fbDead,
 	fmPnts		= fbPnts + fbDead,
 	fmKill		= fbKill + fbDead,
+	fmUnct		= fbCutd + fbDead
  };
 
 #define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
@@ -36,10 +37,10 @@ using namespace std;
 #define	FLAG_ISPNTS( f )	(((f) & fbPnts) != 0)
 #define	FLAG_ISKILL( f )	(((f) & fbKill) != 0)
 #define	FLAG_ISCUTD( f )	(((f) & fbCutd) != 0)
+#define	FLAG_ISUNCT( f )	(((f) & fmUnct) == 0)
 
 #define	FLAG_SETUSED( f )	(f = 0)
 #define	FLAG_SETPNTS( f )	(f = fmPnts)
-#define	FLAG_SETDISK( f )	(f = (FLAG_ISUSED(f) ? 0 : fmRead))
 
 #define	FLAG_ADDPNTS( f )	(f |= fmPnts)
 #define	FLAG_ADDKILL( f )	(f |= fmKill)

@@ -163,14 +163,14 @@ void* _Apply( void* ithr )
 {
 	double	xorg	= -vB[0].L,
 			yorg	= -vB[0].B;
-	int		nL		= zihi - zilo + 1;
+	int		nL		= zohi - zolo + 1;
 	THmgphy	M( 1,0,xorg, 0,1,yorg, 0,0 );
 
 // For each layer...
 
 	for( int iL = (long)ithr; iL < nL; iL += nthr ) {
 
-		int						iz	= iL + zilo;
+		int						iz	= iL + zolo;
 		const Rgns&				R	= vR[iz];
 		const vector<double>&	x	= gX->X[iz];
 
@@ -199,7 +199,7 @@ void* _Apply( void* ithr )
 
 static void Apply()
 {
-	int	nb = zihi - zilo + 1;
+	int	nb = zohi - zolo + 1;
 
 	nthr = maxthreads;
 
@@ -218,6 +218,8 @@ static void Apply()
 //
 void Bounds( DBox &B, const XArray &X )
 {
+	printf( "\n---- Bounds ----\n" );
+
 	clock_t	t0 = StartTiming();
 
 	CalcLayerwiseBoxes( X );
@@ -236,10 +238,8 @@ void Bounds( DBox &B, const XArray &X )
 	B.L = 0;
 	B.B = 0;
 
-	if( !wkid ) {
-		printf( "\nGlobal bounds: x=[0 %.2f] y=[0 %.2f].\n",
-		B.R, B.T );
-	}
+	printf( "Global bounds: x=[0 %.2f] y=[0 %.2f].\n",
+	B.R, B.T );
 
 	StopTiming( stdout, "Bounds", t0 );
 }
