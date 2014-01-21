@@ -2,7 +2,6 @@
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
 1dirs =\
- 1_Align\
  1_Clean_ThmPairs\
  1_CpyFMs\
  1_Cross_CarveBlocks\
@@ -13,19 +12,17 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  1_DelTiles\
  1_DMesh\
  1_EView\
- 1_LSQ\
+ 1_LSQi\
+ 1_LSQw\
  1_LsqErr\
- 1_MakeALN\
  1_MakeIDB\
  1_MakeMontages\
- 1_Make_ldir\
  1_Mosaic_current\
  1_MRCSD1Lyr\
  1_Ptestx\
  1_Reformat\
  1_RemoveRefTiles\
  1_Scapeops\
- 1_Script\
  1_ShtMaker\
  1_Thumbs\
  1_Tiny\
