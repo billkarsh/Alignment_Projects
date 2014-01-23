@@ -3,7 +3,7 @@
 # Purpose:
 # Fourth step in cross-layer alignment.
 #
-# Create file 'HiRes_TF.xml' of coarse affine transforms,
+# Create folder 'X_A_TXT' of coarse affine transforms,
 # one per tile, to be used as a scaffold in final LSQ runs.
 #
 # > XMLGetTF HiRes.xml -zmin=i -zmax=j

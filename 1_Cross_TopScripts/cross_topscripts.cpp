@@ -410,7 +410,7 @@ static void WriteScafgo()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Create file 'HiRes_TF.xml' of coarse affine transforms,\n" );
+	fprintf( f, "# Create folder 'X_A_TXT' of coarse affine transforms,\n" );
 	fprintf( f, "# one per tile, to be used as a scaffold in final LSQ runs.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > XMLGetTF HiRes.xml -zmin=i -zmax=j\n" );
