@@ -19,7 +19,11 @@ do
 	echo $lyr
 	if [ -d "$lyr" ]
 	then
-		qsub -N mon-$lyr -cwd -V -b y -pe batch 8 "./montage1.sht $lyr"
+		cd $lyr/montage
+
+		qsub -N mon-$lyr -cwd -V -b y -pe batch 1 "./runlsq.sht"
+
+		cd ../..
 	fi
 done
 

@@ -18,7 +18,7 @@ rm -rf MonSumy.txt
 
 for lyr in $(seq $1 $last)
 do
-	log=$lyr/montage/lsq.txt
+	log=$lyr/montage/lsqw_0.txt
 	if [ -f "$log" ]
 	then
 		echo Z $lyr `grep -e "FINAL*" $log` >> MonSumy.txt
