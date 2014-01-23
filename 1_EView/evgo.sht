@@ -16,5 +16,5 @@
 # -lim=500		;nbins = div*lim + 1 (for oflo)
 
 
-eview Error ../newstack/Error -div=10 -lim=100
+eview Error ../newstack/Error -z=0,0 -div=10 -lim=100
 

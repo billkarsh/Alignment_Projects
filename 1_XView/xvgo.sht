@@ -7,6 +7,7 @@
 #
 # Required:
 # BINPath			;path of X_A_BIN or X_H_BIN folder
+# -idb=idbpath		;path to idb folder
 # -z=i,j			;convert tforms in range z=[i..j]
 #
 # ImagePlus type codes used in xml files:
