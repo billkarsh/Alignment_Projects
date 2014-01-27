@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Update transforms in given 'myxml' file using TAffineTables in given
-# temp directory. Preserves montage-montage orientation. Output file
-# named 'myxml_v2.xml'.
+# Update transforms in given 'myxml' file using lyr/montage results
+# in given temp directory. Preserves montage-montage orientation.
+# Output file named 'myxml_v2.xml'.
 #
 # > updatemontages myxml temp
 #

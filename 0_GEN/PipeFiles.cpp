@@ -8,6 +8,7 @@
 
 #include	<algorithm>
 using namespace std;
+using namespace ns_lsqbin;
 
 
 /* --------------------------------------------------------------- */
@@ -205,22 +206,25 @@ exit:
 }
 
 /* --------------------------------------------------------------- */
-/* IDBReadImgParams ---------------------------------------------- */
+/* IDBFromTemp --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void IDBReadImgParams( string &idbpath, FILE *flog )
+void IDBFromTemp(
+	string		&idbpath,
+	const char	*tempdir,
+	FILE		*flog )
 {
 	idbpath.clear();
 
-	FILE	*f = fopen( "../../imageparams.txt", "r" );
+	char	buf[2048];
+	sprintf( buf, "%s/imageparams.txt", tempdir );
+	FILE	*f = fopen( buf, "r" );
 
 	if( f ) {
 
 		CLineScan	LS;
 
 		while( LS.Get( f ) > 0 ) {
-
-			char	buf[2048];
 
 			if( 1 == sscanf( LS.line, "IDBPATH %[^\n]", buf ) ) {
 
@@ -1423,6 +1427,86 @@ void LoadTHmgphyTbl_RngZ(
 	}
 
 	fclose( f );
+}
+
+/* --------------------------------------------------------------- */
+/* Rgns::ReadXBin ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+bool Rgns::ReadXBin( const char *path, FILE *flog )
+{
+	int	nx = nr * NE;
+
+	if( !nx )
+		return false;
+
+	char	buf[2048];
+	FILE	*f;
+	sprintf( buf, "%s/X_%c_%d.bin", path, (NE == 6 ? 'A' : 'H'), z );
+
+	if( f = fopen( buf, "rb" ) ) {
+
+		x.resize( nx );
+		fread( &x[0], sizeof(double), nx, f );
+		fclose( f );
+		return true;
+	}
+	else {
+		fprintf( flog, "Rgns: Can't open [%s].\n", buf );
+		return false;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* Rgns::ReadFBin ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+bool Rgns::ReadFBin( const char *path, FILE *flog )
+{
+	if( !nr )
+		return false;
+
+	char	buf[2048];
+	FILE	*f;
+	sprintf( buf, "%s/F_%d.bin", path, z );
+
+	if( f = fopen( buf, "rb" ) ) {
+
+		flag.resize( nr );
+		fread( &flag[0], sizeof(uint8), nr, f );
+		fclose( f );
+		return true;
+	}
+	else {
+		fprintf( flog, "Rgns: Can't open [%s].\n", buf );
+		return false;
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* Rgns::Init ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool Rgns::Init( string idb, int iz, FILE *flog )
+{
+	z  = iz;
+	nr = IDBGetIDRgnMap( m, idb, z, flog );
+
+	return (nr != 0);
+}
+
+/* --------------------------------------------------------------- */
+/* Rgns::Load ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool Rgns::Load( const char *path, FILE *flog )
+{
+	bool	isAff;
+
+	isAff	= (NULL != strstr( FileNamePtr( path ), "X_A" ));
+	NE		= (isAff ? 6 : 8);
+
+	return ReadXBin( path, flog ) && ReadFBin( path, flog );
 }
 
 

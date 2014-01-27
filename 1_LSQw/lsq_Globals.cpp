@@ -69,42 +69,10 @@ int Rgns::Map( int id, int r )
 
 void GetIDB( const char *tempdir )
 {
-/* -------------------------------------- */
-/* Get IDB path from temp/imageparams.txt */
-/* -------------------------------------- */
-
-	char	buf[2048];
-	sprintf( buf, "%s/imageparams.txt", tempdir );
-
-	FILE	*f = fopen( buf, "r" );
-
-	if( f ) {
-
-		CLineScan	LS;
-
-		while( LS.Get( f ) > 0 ) {
-
-			if( 1 == sscanf( LS.line, "IDBPATH %[^\n]", buf ) ) {
-
-				idb = buf;
-				goto close;
-			}
-		}
-
-		printf( "Globals: imageparams.txt missing IDBPATH tag.\n" );
-
-close:
-		fclose( f );
-	}
-	else
-		printf( "Globals: Can't open imageparams.txt.\n" );
+	IDBFromTemp( idb, tempdir );
 
 	if( idb.empty() )
 		exit( 42 );
-
-/* ----------------------- */
-/* Get image dims from IDB */
-/* ----------------------- */
 
 	if( !IDBGetImageDims( gW, gH, idb ) )
 		exit( 42 );

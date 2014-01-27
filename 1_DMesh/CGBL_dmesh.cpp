@@ -248,7 +248,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n---- Input images ----\n" );
 
-	IDBReadImgParams( idb );
+	IDBFromTemp( idb, "../../" );
 
 	if( !IDBT2IGet1( A.t2i, idb, A.z, A.id, _arg.ima ) ||
 		!IDBT2IGet1( B.t2i, idb, B.z, B.id, _arg.imb ) ) {

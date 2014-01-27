@@ -91,14 +91,6 @@ typedef struct {
 } Til2Img;
 
 typedef struct {
-// all t2i for this z
-	map<int,Til2Img>	m;
-	int					z;
-
-	void T2ICache() {z = -1;};
-} T2ICache;
-
-typedef struct {
 // entry: TileToFM(D).txt
 	string	path;
 	int		id;
@@ -113,6 +105,51 @@ typedef struct {
 			err;
 } ThmPair;
 
+class T2ICache {
+// all t2i for this z
+public:
+	map<int,Til2Img>	m;
+	int					z;
+public:
+	T2ICache() : z(-1) {};
+};
+
+/* --------------------------------------------------------------- */
+/* Reading LSQ Binary Output ------------------------------------- */
+/* --------------------------------------------------------------- */
+
+namespace ns_lsqbin {
+
+enum RgnFlags {
+	fbDead		= 0x01,
+	fbRead		= 0x02,
+	fbPnts		= 0x04,
+	fbKill		= 0x08,
+	fbCutd		= 0x10
+};
+
+#define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
+
+class Rgns {
+// The rgns for given layer
+// indexed by 0-based 'idx0'
+public:
+	vector<double>	x;		// tform elems
+	vector<uint8>	flag;	// rgn flags
+	map<int,int>	m;		// map id -> idx0
+	int				nr,		// num rgns
+					z,		// common z
+					NE;		// num elems/tform
+private:
+	bool ReadXBin( const char *path, FILE *flog );
+	bool ReadFBin( const char *path, FILE *flog );
+public:
+	bool Init( string idb, int iz, FILE *flog );
+	bool Load( const char *path, FILE *flog );
+};
+
+};	// ns_lsqbin
+
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
@@ -125,7 +162,10 @@ bool ReadMatchParams(
 	int				blr,
 	FILE			*flog = stdout );
 
-void IDBReadImgParams( string &idbpath, FILE *flog = stdout );
+void IDBFromTemp(
+	string		&idbpath,
+	const char	*tempdir,
+	FILE		*flog = stdout );
 
 bool IDBGetImageDims(
 	int				&w,

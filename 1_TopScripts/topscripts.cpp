@@ -272,9 +272,9 @@ static void Write_upmongo()
 
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "# Update transforms in given 'myxml' file using TAffineTables in given\n" );
-	fprintf( f, "# temp directory. Preserves montage-montage orientation. Output file\n" );
-	fprintf( f, "# named 'myxml_v2.xml'.\n" );
+	fprintf( f, "# Update transforms in given 'myxml' file using lyr/montage results\n" );
+	fprintf( f, "# in given temp directory. Preserves montage-montage orientation.\n" );
+	fprintf( f, "# Output file named 'myxml_v2.xml'.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > updatemontages myxml temp\n" );
 	fprintf( f, "#\n" );

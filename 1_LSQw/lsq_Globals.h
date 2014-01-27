@@ -19,7 +19,7 @@ using namespace std;
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
- enum RgnFlags {
+enum RgnFlags {
 	fbDead		= 0x01,
 	fbRead		= 0x02,
 	fbPnts		= 0x04,
@@ -30,7 +30,7 @@ using namespace std;
 	fmPnts		= fbPnts + fbDead,
 	fmKill		= fbKill + fbDead,
 	fmUnct		= fbCutd + fbDead
- };
+};
 
 #define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
 #define	FLAG_ISREAD( f )	(((f) & fbRead) != 0)

@@ -15,6 +15,8 @@
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
 
+using namespace ns_lsqbin;
+
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -55,6 +57,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_xml	gArgs;
+static string		idb;
 static FILE*		flog = NULL;
 
 
@@ -122,20 +125,12 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* GetTable ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static bool GetTable( map<MZIDR,TAffine> &M, int z )
+static bool GetTable( Rgns &R, int z )
 {
-	char	file[2048];
+	char	path[2048];
+	sprintf( path, "%s/%d/montage/X_A_BIN", gArgs.tempdir, z );
 
-	sprintf( file, "%s/%d/montage/TAffineTable.txt",
-		gArgs.tempdir, z );
-
-	if( !DskExists( file ) ) {
-		fprintf( flog, "Layer %d: No TAffineTable.\n", z );
-		return false;
-	}
-
-	LoadTAffineTbl_RngZ( M, z, z, file, flog );
-	return true;
+	return R.Init( idb, z, flog ) && R.Load( path, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -143,36 +138,32 @@ static bool GetTable( map<MZIDR,TAffine> &M, int z )
 /* --------------------------------------------------------------- */
 
 static bool CalcTupdt(
-	TAffine				&Tupdt,
-	TiXmlElement*		layer,
-	int					z,
-	map<MZIDR,TAffine>	&M )
+	TAffine			&Tupdt,
+	TiXmlElement*	layer,
+	int				z,
+	Rgns			&R )
 {
-	MZIDR			key;
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
-
-	key.z	= z;
-	key.rgn	= 1;
 
 	for( ; p; p = p->NextSiblingElement() ) {
 
-		key.id = IDFromPatch( p );
+		int	id = IDFromPatch( p );
 
-		map<MZIDR,TAffine>::iterator	it = M.find( key );
+		map<int,int>::iterator	it = R.m.find( id );
 
-		if( it != M.end() ) {
+		if( it != R.m.end() && FLAG_ISUSED( R.flag[it->second] ) ) {
 
-			TAffine	T0, TR;
+			const TAffine&	Tsolve = X_AS_AFF( R.x, it->second );
+			TAffine			T0, TR;
 
 			// get previous Transform
 			T0.ScanTrackEM2( p->Attribute( "transform" ) );
 
 			// set delta rotation part of Tupdt
-			Tupdt.NUSetRot(
-				T0.GetRadians() - it->second.GetRadians() );
+			Tupdt.NUSetRot( T0.GetRadians() - Tsolve.GetRadians() );
 
 			// set delta translation part of Tupdt
-			TR = Tupdt * it->second;
+			TR = Tupdt * Tsolve;
 			Tupdt.SetXY(
 				T0.t[2] - TR.t[2],
 				T0.t[5] - TR.t[5] );
@@ -190,34 +181,31 @@ static bool CalcTupdt(
 /* --------------------------------------------------------------- */
 
 static void Apply(
-	TiXmlElement*		layer,
-	int					z,
-	const TAffine		&Tupdt,
-	map<MZIDR,TAffine>	&M )
+	TiXmlElement*	layer,
+	int				z,
+	const TAffine	&Tupdt,
+	Rgns			&R )
 {
-	MZIDR			key;
 	TiXmlElement*	next;
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
-
-	key.z	= z;
-	key.rgn	= 1;
 
 	for( ; p; p = next ) {
 
 		next = p->NextSiblingElement();
 
-		key.id = IDFromPatch( p );
+		int	id = IDFromPatch( p );
 
-		map<MZIDR,TAffine>::iterator	it = M.find( key );
+		map<int,int>::iterator	it = R.m.find( id );
 
-		if( it != M.end() ) {
+		if( it != R.m.end() && FLAG_ISUSED( R.flag[it->second] ) ) {
 
-			TAffine	T = Tupdt * it->second;
+			const TAffine&	Tsolve = X_AS_AFF( R.x, it->second );
+			TAffine			T = Tupdt * Tsolve;
 			XMLSetTFVals( p, T.t );
 		}
 		else {
 			layer->RemoveChild( p );
-			fprintf( flog, "Layer %d: Tile %d dropped.\n", z, key.id );
+			fprintf( flog, "Layer %d: Tile %d dropped.\n", z, id );
 		}
 	}
 }
@@ -227,30 +215,26 @@ static void Apply(
 /* --------------------------------------------------------------- */
 
 static void Force(
-	TiXmlElement*		layer,
-	int					z,
-	map<MZIDR,TAffine>	&M )
+	TiXmlElement*	layer,
+	int				z,
+	Rgns			&R )
 {
-	MZIDR			key;
 	TiXmlElement*	next;
 	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
-
-	key.z	= z;
-	key.rgn	= 1;
 
 	for( ; p; p = next ) {
 
 		next = p->NextSiblingElement();
 
-		key.id = IDFromPatch( p );
+		int	id = IDFromPatch( p );
 
-		map<MZIDR,TAffine>::iterator	it = M.find( key );
+		map<int,int>::iterator	it = R.m.find( id );
 
-		if( it != M.end() )
-			XMLSetTFVals( p, it->second.t );
+		if( it != R.m.end() && FLAG_ISUSED( R.flag[it->second] ) )
+			XMLSetTFVals( p, X_AS_AFF( R.x, it->second ).t );
 		else {
 			layer->RemoveChild( p );
-			fprintf( flog, "Layer %d: Tile %d dropped.\n", z, key.id );
+			fprintf( flog, "Layer %d: Tile %d dropped.\n", z, id );
 		}
 	}
 }
@@ -261,11 +245,11 @@ static void Force(
 
 static void DoLayer( TiXmlElement* layer, int z )
 {
-	map<MZIDR,TAffine>	M;
-	TAffine				Tupdt;
+	Rgns	R;
+	TAffine	Tupdt;
 
-	if( GetTable( M, z ) && CalcTupdt( Tupdt, layer, z, M ) )
-		Apply( layer, z, Tupdt, M );
+	if( GetTable( R, z ) && CalcTupdt( Tupdt, layer, z, R ) )
+		Apply( layer, z, Tupdt, R );
 }
 
 /* --------------------------------------------------------------- */
@@ -274,10 +258,10 @@ static void DoLayer( TiXmlElement* layer, int z )
 
 static void DoLayerForce( TiXmlElement* layer, int z )
 {
-	map<MZIDR,TAffine>	M;
+	Rgns	R;
 
-	if( GetTable( M, z ) )
-		Force( layer, z, M );
+	if( GetTable( R, z ) )
+		Force( layer, z, R );
 }
 
 /* --------------------------------------------------------------- */
@@ -331,6 +315,8 @@ int main( int argc, char* argv[] )
 /* ------------------ */
 
 	gArgs.SetCmdLine( argc, argv );
+
+	IDBFromTemp( idb, gArgs.tempdir );
 
 /* ------------- */
 /* Write new xml */

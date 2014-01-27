@@ -346,7 +346,7 @@ static void WriteXviewFile()
 	fprintf( f, "# -xmlmax=0\t\t\t;intensity scale\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "xview X_A_BIN0 -idb=%s -z=%d,%d -degcw=0 -type=X%s\n",
+	fprintf( f, "xview X_A_BIN -idb=%s -z=%d,%d -degcw=0 -type=X%s\n",
 	gArgs.idbpath.c_str(), gArgs.zmin, gArgs.zmax, xprms );
 	fprintf( f, "\n" );
 

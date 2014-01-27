@@ -11,48 +11,8 @@
 
 #include	<string.h>
 
+using namespace ns_lsqbin;
 
-/* --------------------------------------------------------------- */
-/* Constants ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
- enum RgnFlags {
-	fbDead		= 0x01,
-	fbRead		= 0x02,
-	fbPnts		= 0x04,
-	fbKill		= 0x08,
-	fbCutd		= 0x10
- };
-
-#define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
-
-/* --------------------------------------------------------------- */
-/* Macros -------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* Types --------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-class Rgns {
-// The rgns for given layer
-// indexed by 0-based 'idx0'
-public:
-	vector<uint8>	flag;	// rgn flags
-	map<int,int>	m;		// map id -> idx0
-	int				nr,		// num rgns
-					z;		// common z
-public:
-	int Init( int iz, FILE *ferr );
-};
-
-class XArray {
-public:
-	int				NE;
-	vector<double>	X;
-public:
-	void Load();
-};
 
 /* --------------------------------------------------------------- */
 /* CArgs --------------------------------------------------------- */
@@ -97,7 +57,6 @@ public:
 static CArgs	gArgs;
 static FILE*	flog = NULL;
 static Rgns		R;
-static XArray	X;
 static int		gW, gH;
 static bool		isAff;
 
@@ -182,59 +141,6 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 }
 
 /* --------------------------------------------------------------- */
-/* Rgns::Init ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-int Rgns::Init( int iz, FILE *ferr )
-{
-	z  = iz;
-	nr = IDBGetIDRgnMap( m, gArgs.idb, z, ferr );
-
-	if( nr )
-		flag.resize( nr );
-
-	return nr;
-}
-
-/* --------------------------------------------------------------- */
-/* XArray::Load -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void ReadXBin( vector<double> &x, int z )
-{
-	char	buf[2048];
-	FILE	*f;
-
-	sprintf( buf, "%s/X_%c_%d.bin",
-		gArgs.inpath, (X.NE == 6 ? 'A' : 'H'), z );
-
-	f = FileOpenOrDie( buf, "rb", flog );
-	fread( &x[0], sizeof(double), x.size(), f );
-	fclose( f );
-}
-
-
-static void ReadFBin( vector<uint8> &f, int z )
-{
-	char	buf[2048];
-	FILE	*q;
-
-	sprintf( buf, "%s/F_%d.bin", gArgs.inpath, z );
-	q = FileOpenOrDie( buf, "rb", flog );
-	fread( &f[0], sizeof(uint8), f.size(), q );
-	fclose( q );
-}
-
-
-void XArray::Load()
-{
-	NE = (isAff ? 6 : 8);
-	X.resize( R.nr * NE );
-	ReadXBin( X, R.z );
-	ReadFBin( R.flag, R.z );
-}
-
-/* --------------------------------------------------------------- */
 /* GetXY_Aff ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -251,10 +157,11 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z, flog ) )
+		if( !R.Init( gArgs.idb, z, flog ) )
 			continue;
 
-		X.Load();
+		if( !R.Load( gArgs.inpath, flog ) )
+			continue;
 
 		for( int j = 0; j < R.nr; ++j ) {
 
@@ -263,7 +170,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 			vector<Point>	c( 4 );
 			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
-			T = Trot * X_AS_AFF( X.X, j );
+			T = Trot * X_AS_AFF( R.x, j );
 			T.Transform( c );
 
 			for( int k = 0; k < 4; ++k ) {
@@ -296,10 +203,11 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z, flog ) )
+		if( !R.Init( gArgs.idb, z, flog ) )
 			continue;
 
-		X.Load();
+		if( !R.Load( gArgs.inpath, flog ) )
+			continue;
 
 		for( int j = 0; j < R.nr; ++j ) {
 
@@ -308,7 +216,7 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 
 			vector<Point>	c( 4 );
 			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
-			T = Trot * X_AS_HMY( X.X, j );
+			T = Trot * X_AS_HMY( R.x, j );
 			T.Transform( c );
 
 			for( int k = 0; k < 4; ++k ) {
@@ -335,7 +243,7 @@ static void Update_Aff( const TAffine &Trot, const DBox &B )
 		if( !FLAG_ISUSED( R.flag[j] ) )
 			continue;
 
-		TAffine&	T = X_AS_AFF( X.X, j );
+		TAffine&	T = X_AS_AFF( R.x, j );
 
 		T = Trot * T;
 		T.AddXY( -B.L, -B.B );
@@ -355,7 +263,7 @@ static void Update_Hmy( const THmgphy &Trot, const DBox &B )
 		if( !FLAG_ISUSED( R.flag[j] ) )
 			continue;
 
-		THmgphy&	T = X_AS_HMY( X.X, j );
+		THmgphy&	T = X_AS_HMY( R.x, j );
 
 		T = M * (Trot * T);
 	}
@@ -384,7 +292,7 @@ static void WriteT_Aff()
 			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
-			TAffine&	T = X_AS_AFF( X.X, j );
+			TAffine&	T = X_AS_AFF( R.x, j );
 
 			fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
 			id, j - j0 + 1,
@@ -419,7 +327,7 @@ static void WriteT_Hmy()
 			if( !FLAG_ISUSED( R.flag[j] ) )
 				continue;
 
-			THmgphy&	T = X_AS_HMY( X.X, j );
+			THmgphy&	T = X_AS_HMY( R.x, j );
 
 			fprintf( f,
 			"%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g\n",
@@ -461,7 +369,7 @@ static void WriteM_Aff()
 			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
 				continue;
 
-			TAffine&	T = X_AS_AFF( X.X, j );
+			TAffine&	T = X_AS_AFF( R.x, j );
 
 			fprintf( f,
 			"%d\t%d"
@@ -504,7 +412,7 @@ static void WriteM_Hmy()
 			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
 				continue;
 
-			THmgphy&	T = X_AS_HMY( X.X, j );
+			THmgphy&	T = X_AS_HMY( R.x, j );
 
 			fprintf( f,
 			"%d\t%d"
@@ -603,7 +511,7 @@ static void WriteXMLLyr_Aff( FILE *f, int &oid )
 			else
 				sprintf( title, "%d.%d:%d", R.z, id, j - j0 + 1 );
 
-			TAffine&	T = X_AS_AFF( X.X, j );
+			TAffine&	T = X_AS_AFF( R.x, j );
 
 			// fix origin : undo trimming
 			Point	o( gArgs.xml_trim, gArgs.xml_trim );
@@ -708,7 +616,7 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 			else
 				sprintf( title, "%d.%d:%d", R.z, id, j - j0 + 1 );
 
-			THmgphy&	T = X_AS_HMY( X.X, j );
+			THmgphy&	T = X_AS_HMY( R.x, j );
 
 			// fix origin : undo trimming
 			Point	o;
@@ -795,10 +703,11 @@ static void ConvertA()
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z, NULL ) )
+		if( !R.Init( gArgs.idb, z, NULL ) )
 			continue;
 
-		X.Load();
+		if( !R.Load( gArgs.inpath, flog ) )
+			continue;
 
 		if( gArgs.degcw || gArgs.type == 'X' )
 			Update_Aff( Trot, B );
@@ -839,10 +748,11 @@ static void ConvertH()
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( z, NULL ) )
+		if( !R.Init( gArgs.idb, z, NULL ) )
 			continue;
 
-		X.Load();
+		if( !R.Load( gArgs.inpath, flog ) )
+			continue;
 
 		if( gArgs.degcw || gArgs.type == 'X' )
 			Update_Hmy( Trot, B );
