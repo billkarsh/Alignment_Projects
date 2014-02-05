@@ -50,6 +50,7 @@ Best yet:
 21.183 in #36 (9/9/13)
 21.292 in #32 (10/28/13)
 21.060 in #31 (11/04/13)
+21.188 in #31 (02/04/14)
 Ribtect3 42R3
 Valhalla Armadillo M
 Sparco SPK-5 L

@@ -127,7 +127,9 @@ void CLoadPoints::MakeBinary()
 	char	buf[2048];
 	fpnts = FileOpenOrDie( NameBinary( buf ), "wb" );
 
-// Create list of input file specs
+// Create list of input file specs.
+// Load sames only for the inner layers.
+// Load downs for all layers but the lowest.
 
 	int	nL = vL.size();
 

@@ -23,6 +23,7 @@ files =\
  lsq_Magnitude.cpp\
  lsq_MPI.cpp\
  lsq_Solve.cpp\
+ lsq_Split.cpp\
  lsq_Untwist.cpp\
  lsq_XArray.cpp
 

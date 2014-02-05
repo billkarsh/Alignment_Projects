@@ -8,6 +8,7 @@
 #include	"lsq_Magnitude.h"
 #include	"lsq_MPI.h"
 #include	"lsq_Solve.h"
+#include	"lsq_Split.h"
 #include	"lsq_Untwist.h"
 
 #include	"Cmdline.h"
@@ -28,12 +29,13 @@ public:
 	const char	*tempdir,		// master workspace
 				*cachedir,		// {catalog, pnts} files
 				*prior,			// start from these solutions
-				*mode;			// {catalog,eval,A2A,A2H,H2H}
+				*mode;			// {catalog,eval,split,A2A,A2H,H2H}
 	int			zilo,			// my output range
 				zihi,
 				zolo,			// extended input range
 				zohi,
-				iters;			// solve iterations
+				iters,			// solve iterations
+				splitmin;		// separate islands > splitmin tiles
 	bool		untwist;		// iff prior are affines
 
 public:
@@ -48,6 +50,7 @@ public:
 		zolo		= -1;
 		zohi		= -1;
 		iters		= 250;
+		splitmin	= 10;
 		untwist		= false;
 	};
 
@@ -117,6 +120,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
+		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
+			;
 		else if( GetArg( &maxthreads, "-maxthreads=%d", argv[i] ) )
 			printf( "Maxthreads: %d\n", maxthreads );
 		else if( IsArg( "-untwist", argv[i] ) )
@@ -305,7 +310,7 @@ int main( int argc, char **argv )
 		Xodd.Resize( 8 );
 		Solve( Xevn, Xodd, gArgs.iters );
 	}
-	else {	// eval
+	else if( !strcmp( gArgs.mode, "eval" ) ) {
 
 		Xevn.Load( gArgs.prior );
 
@@ -314,21 +319,31 @@ int main( int argc, char **argv )
 
 		gArgs.iters = 0;
 	}
+	else {	// split
+
+		Xevn.Load( gArgs.prior );
+		gArgs.iters = 0;
+	}
 
 	const XArray& Xfinal = ((gArgs.iters & 1) ? Xodd : Xevn);
 
-/* -------- */
-/* Evaluate */
-/* -------- */
+/* ----------- */
+/* Postprocess */
+/* ----------- */
 
-	Evaluate( Xfinal );
+	if( gArgs.mode[0] == 's' ) {
 
-/* ---- */
-/* Save */
-/* ---- */
+		Split	S( Xfinal, gArgs.splitmin );
 
-	if( gArgs.mode[0] != 'e' )
-		Xfinal.Save();
+		S.Run();
+	}
+	else {
+
+		Evaluate( Xfinal );
+
+		if( gArgs.mode[0] != 'e' )
+			Xfinal.Save();
+	}
 
 /* ------- */
 /* Cleanup */

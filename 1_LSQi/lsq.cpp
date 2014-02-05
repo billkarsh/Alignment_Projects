@@ -31,12 +31,13 @@ public:
 	char		tempdir[2048],	// master workspace
 				cachedir[2048];	// {catalog, pnts} files
 	const char	*prior,			// start from these solutions
-				*mode;			// {catalog,eval,A2A,A2H,H2H}
+				*mode;			// {catalog,eval,split,A2A,A2H,H2H}
 	int			zilo,			// my output range
 				zihi,
 				zolo,			// extended input range
 				zohi,
 				iters,			// solve iterations
+				splitmin,		// separate islands > splitmin tiles
 				zpernode,		// max layers per node
 				maxthreads;		// thr/node if not mpi
 	bool		catclr,			// remake point catalog
@@ -54,6 +55,7 @@ public:
 		zolo		= -1;
 		zohi		= -1;
 		iters		= 250;
+		splitmin	= 10;
 		zpernode	= 200;
 		maxthreads	= 1;
 		catclr		= false;
@@ -141,6 +143,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
+		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
+			;
 		else if( GetArg( &zpernode, "-zpernode=%d", argv[i] ) )
 			;
 		else if( GetArg( &maxthreads, "-maxthreads=%d", argv[i] ) )
@@ -160,6 +164,10 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 	if( !strcmp( mode, "catalog" ) )
 		goto mode_ok;
 	if( !strcmp( mode, "eval" ) ) {
+		iters = 0;
+		goto mode_ok;
+	}
+	if( !strcmp( mode, "split" ) ) {
 		iters = 0;
 		goto mode_ok;
 	}
@@ -186,12 +194,14 @@ mode_ok:
 		zohi = zihi;
 	}
 
-// Stacks need explicit starting solution
+// Explicit starting solution needed if {stack, eval, split}
 
-	if( zilo != zihi ) {
+	if( zilo != zihi
+		|| !strcmp( mode, "eval" )
+		|| !strcmp( mode, "split" ) ) {
 
 		if( !prior ) {
-			printf( "Solving a stack requires -prior option.\n" );
+			printf( "Missing -prior option.\n" );
 			exit( 42 );
 		}
 
@@ -297,12 +307,12 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			sprintf( buf,
 			"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
-			" -mode=%s -iters=%d -maxthreads=1"
+			" -mode=%s -iters=%d -splitmin=%d -maxthreads=1"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
-			mode, iters,
+			mode, iters, splitmin,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
 		}
@@ -312,13 +322,13 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			"qsub -N lsqw -cwd -V -b y -pe batch %d"
 			" lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
-			" -mode=%s -iters=%d -maxthreads=%d"
+			" -mode=%s -iters=%d -splitmin=%d -maxthreads=%d"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			maxthreads,
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
-			mode, iters, maxthreads,
+			mode, iters, splitmin, maxthreads,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
 		}
@@ -358,12 +368,12 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
 		" lsqw -nwks=%d -temp=%s"
 		" -cache=%s -prior=%s"
-		" -mode=%s -iters=%d -maxthreads=16"
+		" -mode=%s -iters=%d -splitmin=%d -maxthreads=16"
 		"%s\n",
 		nwks,
 		nwks, tempdir,
 		cachedir, (prior ? prior : ""),
-		mode, iters,
+		mode, iters, splitmin,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );
 

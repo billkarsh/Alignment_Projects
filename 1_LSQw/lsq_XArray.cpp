@@ -588,11 +588,6 @@ error:
 
 // Save tforms and <<modified>> flags...
 //
-// IMPORTANT:
-// This function clears informational flags other than
-// the 'dead indicator' so the Evaluation (especially
-// the Dropouts) must run ahead of Save().
-//
 void XArray::Save() const
 {
 	clock_t	t0 = StartTiming();
