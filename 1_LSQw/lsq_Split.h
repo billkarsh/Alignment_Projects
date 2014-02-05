@@ -26,6 +26,7 @@ private:
 	void ReportCount( const map<int,int>& m );
 	void CountColors( map<int,int>& m );
 	void Save();
+	void BreakOut( const map<int,int>& m );
 public:
 	void Run();
 };

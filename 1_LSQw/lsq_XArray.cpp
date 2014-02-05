@@ -454,12 +454,12 @@ static void SaveFBin( const vector<uint8> &f, int z )
 
 static void* _Save( void* ithr )
 {
-	int	nz = giz.size();
+	int	nz = zihi - zilo + 1;
 
-	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zilo + (long)ithr; iz < nz; iz += nthr ) {
 
-		const Rgns&				R = vR[giz[iz]];
-		const vector<double>&	x = ME->X[giz[iz]];
+		const Rgns&				R = vR[iz];
+		const vector<double>&	x = ME->X[iz];
 
 		SaveXBin( x, R.z );
 		SaveFBin( R.flag, R.z );
@@ -592,15 +592,10 @@ void XArray::Save() const
 {
 	clock_t	t0 = StartTiming();
 
-	giz.clear();
-
-	for( int i = zilo; i <= zihi; ++i )
-		giz.push_back( i );
-
-	int	nz = giz.size();
+	int	nz = nz = zihi - zilo + 1;
 
 	char	buf[32];
-	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
+	sprintf( buf, "X_%c_BIN", (NE == 6 ? 'A' : 'H') );
 	DskCreateDir( buf, stdout );
 
 	ME		= (XArray*)this;
@@ -642,7 +637,7 @@ void XArray::UpdtFS()
 		return;
 
 	char	buf[32];
-	sprintf( buf, "X_%c_BIN", (ME->NE == 6 ? 'A' : 'H') );
+	sprintf( buf, "X_%c_BIN", (NE == 6 ? 'A' : 'H') );
 
 	ME		= this;
 	gpath	= buf;
@@ -653,6 +648,8 @@ void XArray::UpdtFS()
 
 	if( !EZThreads( _UpdtFS, nthr, 1, "UpdtFS" ) )
 		exit( 42 );
+
+	giz.clear();
 
 	StopTiming( stdout, "Updt", t0 );
 }
