@@ -31,7 +31,7 @@ public:
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void LayerCat(
+bool LayerCat(
 	vector<Layer>	&vL,
 	const char		*tempdir,
 	const char		*cachedir,

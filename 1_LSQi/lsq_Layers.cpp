@@ -249,7 +249,7 @@ fail:
 }
 
 
-void LayerCat(
+bool LayerCat(
 	vector<Layer>	&vL,
 	const char		*tempdir,
 	const char		*cachedir,
@@ -266,10 +266,12 @@ void LayerCat(
 
 	if( vL.empty() ) {
 		printf( "Catalog: No catalog data in range.\n" );
-		exit( 42 );
+		return false;
 	}
 
 	StopTiming( stdout, "Catalog", t0 );
+
+	return true;
 }
 
 

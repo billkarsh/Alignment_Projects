@@ -401,8 +401,11 @@ int main( int argc, char **argv )
 
 	vector<Layer>	vL;
 
-	LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
-		gArgs.zolo, gArgs.zohi, gArgs.catclr );
+	if( !LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
+			gArgs.zolo, gArgs.zohi, gArgs.catclr ) ) {
+
+		exit( 42 );
+	}
 
 	if( strcmp( gArgs.mode, "catalog" ) )
 		gArgs.LaunchWorkers( vL );

@@ -103,18 +103,21 @@ void InitTables( int argzilo, int argzihi )
 // Turn z-ranges into zero-based indices into vR
 
 	if( wkid > 0 ) {
-		zLlo = mZ.find( zLlo )->second;
+		zLlo = mZ.find( zLlo )->second + 1;
 		zLhi = mZ.find( zLhi )->second;
 	}
 
 	if( wkid < nwks - 1 ) {
 		zRlo = mZ.find( zRlo )->second;
-		zRhi = mZ.find( zRhi )->second;
+		zRhi = mZ.find( zRhi )->second - 1;
 	}
 
 	MapZPair( zilo, zihi, argzilo, argzihi );
 	zolo = 0;
 	zohi = nL - 1;
+
+	printf( "Z-map: < %d %d < [%d (%d %d) %d] > %d %d >\n",
+	zLlo, zLhi, zolo, zilo, zihi, zohi, zRlo, zRhi );
 
 	StopTiming( stdout, "Table", t0 );
 }

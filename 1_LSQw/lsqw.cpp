@@ -54,8 +54,8 @@ public:
 		untwist		= false;
 	};
 
-	void SetCmdLine( int argc, char* argv[] );
-	void GetRanges();
+	bool SetCmdLine( int argc, char* argv[] );
+	bool GetRanges();
 };
 
 /* --------------------------------------------------------------- */
@@ -73,7 +73,7 @@ static CArgs	gArgs;
 /* SetCmdLine ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CArgs::SetCmdLine( int argc, char* argv[] )
+bool CArgs::SetCmdLine( int argc, char* argv[] )
 {
 // Parse command line args
 
@@ -103,7 +103,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			}
 			else {
 				printf( "Bad format in -zi [%s].\n", argv[i] );
-				exit( 42 );
+				return false;
 			}
 		}
 		else if( GetArgList( vi, "-zo=", argv[i] ) ) {
@@ -115,7 +115,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			}
 			else {
 				printf( "Bad format in -zo [%s].\n", argv[i] );
-				exit( 42 );
+				return false;
 			}
 		}
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
@@ -128,9 +128,11 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			untwist = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
+			return false;
 		}
 	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -141,12 +143,12 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 //
 // Also read the overlap range data for workers
 // to my immediate left and right. This is used
-// in XArray::Updt for solution coherency.
+// for cross-machine updates.
 //
-void CArgs::GetRanges()
+bool CArgs::GetRanges()
 {
 	if( nwks <= 1 )
-		return;
+		return true;
 
 	FILE		*f = FileOpenOrDie( "ranges.txt", "r" );
 	CLineScan	LS;
@@ -174,7 +176,7 @@ void CArgs::GetRanges()
 			sscanf( LS.line, "%d zi=%d,%d zo=%d,%d",
 				&iw, &dum1, &zLlo, &dum2, &zLhi );
 
-			++zLlo;
+			zLlo;	// InitTables() must set layer after this
 			code += 4;
 		}
 		else if( iw == wkid ) {	// me
@@ -194,7 +196,7 @@ void CArgs::GetRanges()
 			sscanf( LS.line, "%d zi=%d,%d zo=%d,%d",
 				&iw, &zRhi, &dum1, &zRlo, &dum2 );
 
-			--zRhi;
+			zRhi;	// InitTables() must set layer before this
 			code += 1;
 			break;
 		}
@@ -204,9 +206,10 @@ void CArgs::GetRanges()
 
 	if( code != 7 ) {
 		printf( "Ranges.txt: Missing entries for wkid %d.\n", wkid );
-		MPIExit();
-		exit( 42 );
+		return false;
 	}
+
+	return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -250,15 +253,24 @@ int main( int argc, char **argv )
 /* ---------- */
 
 	MPIInit( argc, argv );
-	gArgs.SetCmdLine( argc, argv );
-	gArgs.GetRanges();
+
+	if( !gArgs.SetCmdLine( argc, argv ) ||
+		!gArgs.GetRanges() ) {
+
+		MPIExit();
+		exit( 42 );
+	}
 
 /* ------------ */
 /* Initial data */
 /* ------------ */
 
-	LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
-		gArgs.zolo, gArgs.zohi, false );
+	if( !LayerCat( vL, gArgs.tempdir, gArgs.cachedir,
+			gArgs.zolo, gArgs.zohi, false ) ) {
+
+		MPIExit();
+		exit( 42 );
+	}
 
 	InitTables( gArgs.zilo, gArgs.zihi );
 
