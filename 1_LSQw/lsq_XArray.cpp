@@ -605,7 +605,7 @@ void XArray::Save() const
 	if( nthr > nz )
 		nthr = nz;
 
-	if( !EZThreads( _Save, nthr, 1, "Save" ) )
+	if( !EZThreads( _Save, nthr, 1, "_XArraySave" ) )
 		exit( 42 );
 
 	StopTiming( stdout, "Save", t0 );
@@ -646,7 +646,7 @@ void XArray::UpdtFS()
 	if( nthr > nz )
 		nthr = nz;
 
-	if( !EZThreads( _UpdtFS, nthr, 1, "UpdtFS" ) )
+	if( !EZThreads( _UpdtFS, nthr, 1, "_UpdtFS" ) )
 		exit( 42 );
 
 	giz.clear();

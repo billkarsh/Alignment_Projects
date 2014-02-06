@@ -9,10 +9,16 @@
 #include	"File.h"
 #include	"Timer.h"
 
+#include	<stack>
+using namespace std;
+
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+// colors per layer
+#define	PERZ	10000
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -35,14 +41,110 @@ static int			nthr, saveclr;
 /* Resize -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Allocate space for K vector.
+//
 void Split::Resize()
 {
 	int	nz = zohi - zolo + 1;
 
-	C.resize( nz );
+	K.resize( nz );
 
 	for( int iz = 0; iz < nz; ++iz )
-		C[iz].resize( vR[iz].nr, 0 );
+		K[iz].resize( vR[iz].nr, 0 );
+}
+
+/* --------------------------------------------------------------- */
+/* _ColorMontages ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+static void* _ColorMontages( void* ithr )
+{
+	int	nz = zihi - zilo + 1;
+
+	for( int iz = zilo + (long)ithr; iz < nz; iz += nthr ) {
+
+		const Rgns&		R = vR[iz];
+		vector<int>&	k = ME->K[iz];
+		int				clr = (R.z ? PERZ * R.z : 1) - 1;
+
+		for( int ir = 0; ir < R.nr; ++ir ) {
+
+			// Valid tile?
+			if( !FLAG_ISUSED( R.flag[ir] ) )
+				continue;
+
+			// Already assigned?
+			if( k[ir] )
+				continue;
+
+			// New seed; new stack; new color
+			stack<int>	s;
+			s.push( ir );
+			++clr;
+
+			while( !s.empty() ) {
+
+				// Process this guy
+
+				int	jr = s.top();
+				s.pop();
+
+				if( k[jr] )
+					continue;
+
+				k[jr] = clr;
+
+				// Push neighbors that are:
+				// same-layer, virgin, valid.
+
+				const vector<int>&	P  = R.pts[jr];
+				int					np = P.size(), prev = -1;
+
+				for( int ip = 0; ip < np; ++ip ) {
+
+					const CorrPnt&	C = vC[P[ip]];
+
+					if( !C.used )
+						continue;
+
+					if( C.z1 != iz || C.z2 != iz )
+						continue;
+
+					int other = (C.i1 == jr ? C.i2 : C.i1);
+
+					if( other == prev )
+						continue;
+
+					prev = other;
+
+					if( !k[other] && FLAG_ISUSED( R.flag[other] ) )
+						s.push( other );
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/* --------------------------------------------------------------- */
+/* ColorMontages ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Walk pts to colorize islands per montage.
+//
+void Split::ColorMontages()
+{
+	int	nz = zihi - zilo + 1;
+
+	ME		= (Split*)this;
+	nthr	= maxthreads;
+
+	if( nthr > nz )
+		nthr = nz;
+
+	if( !EZThreads( _ColorMontages, nthr, 1, "_ColorMontages" ) )
+		exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -82,13 +184,12 @@ void Split::CountColors( map<int,int>& m )
 
 	for( int iz = zilo; iz <= zihi; ++iz ) {
 
-//		vector<int>&	c = C[iz];
-		vector<uint8>&	c = vR[iz].flag;
+		vector<int>&	k = K[iz];
 		int				nr = vR[iz].nr;
 
 		for( int ir = 0; ir < nr; ++ir ) {
 
-			int	clr = c[ir];
+			int	clr = k[ir];
 
 			if( !clr )
 				continue;
@@ -219,7 +320,7 @@ static void* _Save( void* ithr )
 	for( int iz = zilo + (long)ithr; iz < nz; iz += nthr ) {
 
 		const Rgns&		R = vR[iz];
-		vector<int>&	c = ME->C[iz];
+		vector<int>&	k = ME->K[iz];
 		vector<uint8>	f = R.flag;
 
 		// Flag adjustment:
@@ -236,9 +337,9 @@ static void* _Save( void* ithr )
 
 			for( int j = 0; j < R.nr; ++j ) {
 
-				if( c[j] == saveclr )
-					c[j] = -1;	// mark it removed
-				else if( c[j] > 0 )
+				if( k[j] == saveclr )
+					k[j] = -1;	// mark it removed
+				else if( k[j] )	// kill all others
 					f[j] = fmRead;
 			}
 		}
@@ -246,13 +347,13 @@ static void* _Save( void* ithr )
 
 			for( int j = 0; j < R.nr; ++j ) {
 
-				if( c[j] < 0 )	// previously removed
+				if( k[j] < 0 )	// previously removed
 					f[j] = fmRead;
 			}
 		}
 
 		SaveXBin( ME->X.X[iz], R.z );
-		SaveFBin( R.flag, R.z );
+		SaveFBin( f, R.z );
 	}
 
 	return NULL;
@@ -287,7 +388,7 @@ void Split::Save()
 
 	DskCreateDir( buf, stdout );
 
-	if( !EZThreads( _Save, nthr, 1, "Save" ) )
+	if( !EZThreads( _Save, nthr, 1, "_SplitSave" ) )
 		exit( 42 );
 }
 
@@ -312,7 +413,7 @@ void Split::BreakOut( const map<int,int>& m )
 
 // First separately write each color over threshold.
 // The Save operation will replace that color by (-1)
-// removing it from the C vectors.
+// removing it from the K vectors.
 
 	map<int,int>::const_iterator	it, ie = m.end();
 
@@ -345,6 +446,7 @@ void Split::Run()
 	clock_t	t0 = StartTiming();
 
 	Resize();
+	ColorMontages();
 
 	map<int,int>	m;
 	CountColors( m );
