@@ -23,7 +23,9 @@ class CArgs {
 public:
 	const char	*inpath,
 				*idb;
-	double		degcw,
+	double		forcew,
+				forceh,
+				degcw,
 				xml_trim;
 	int			zilo,
 				zihi,
@@ -37,6 +39,8 @@ public:
 	{
 		inpath		= NULL;
 		idb			= NULL;
+		forcew		= 0.0;
+		forceh		= 0.0;
 		degcw		= 0.0;
 		xml_trim	= 0.0;
 		zilo		= 0;
@@ -93,7 +97,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		exit( 42 );
 	}
 
-	vector<int>	vi;
+	vector<double>	vd;
+	vector<int>		vi;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -106,6 +111,19 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArgStr( idb, "-idb=", argv[i] ) )
 			;
+		else if( GetArgList( vd, "-forceWH=", argv[i] ) ) {
+
+			if( 2 == vd.size() ) {
+				forcew = vd[0];
+				forceh = vd[1];
+				fprintf( flog, "WH [%f %f]\n", forcew, forceh );
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -forceWH [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
 			;
 		else if( GetArg( &type, "-type=%c", argv[i] ) )
@@ -118,7 +136,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 				fprintf( flog, "z [%d %d]\n", zilo, zihi );
 			}
 			else {
-				fprintf( flog, "Bad format in -z [%s].\n", argv[i] );
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
 				exit( 42 );
 			}
 		}
@@ -689,7 +708,13 @@ static void ConvertA()
 	FILE	*fx = NULL;
 	int		oid;
 
-	if( gArgs.degcw || gArgs.type == 'X' ) {
+	if( gArgs.forcew ) {
+		B.L	= 0;
+		B.B	= 0;
+		B.R	= gArgs.forcew;
+		B.T	= gArgs.forceh;
+	}
+	else if( gArgs.degcw || gArgs.type == 'X' ) {
 		Trot.NUSetRot( gArgs.degcw * PI/180.0 );
 		GetXY_Aff( B, Trot );
 	}
@@ -709,7 +734,9 @@ static void ConvertA()
 		if( !R.Load( gArgs.inpath, flog ) )
 			continue;
 
-		if( gArgs.degcw || gArgs.type == 'X' )
+		if( gArgs.forcew )
+			;
+		else if( gArgs.degcw || gArgs.type == 'X' )
 			Update_Aff( Trot, B );
 
 		if( gArgs.type == 'T' )
@@ -734,7 +761,13 @@ static void ConvertH()
 	FILE	*fx = NULL;
 	int		oid;
 
-	if( gArgs.degcw || gArgs.type == 'X' ) {
+	if( gArgs.forcew ) {
+		B.L	= 0;
+		B.B	= 0;
+		B.R	= gArgs.forcew;
+		B.T	= gArgs.forceh;
+	}
+	else if( gArgs.degcw || gArgs.type == 'X' ) {
 		Trot.NUSetRot( gArgs.degcw * PI/180.0 );
 		GetXY_Hmy( B, Trot );
 	}
@@ -754,7 +787,9 @@ static void ConvertH()
 		if( !R.Load( gArgs.inpath, flog ) )
 			continue;
 
-		if( gArgs.degcw || gArgs.type == 'X' )
+		if( gArgs.forcew )
+			;
+		else if( gArgs.degcw || gArgs.type == 'X' )
 			Update_Hmy( Trot, B );
 
 		if( gArgs.type == 'T' )

@@ -19,6 +19,7 @@
 #	COLOR_RGB	= 4
 #
 # Options:
+# -forceWH=w,h		;force bounds (override degcw)
 # -degcw=0			;rotate CW degrees
 # -type=T			;{T,M,X} = {X_?_TXT,X_?_MET,xml}
 # -xmltrim=0.0		;trim this much from xml images

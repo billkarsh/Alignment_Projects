@@ -339,6 +339,7 @@ static void WriteXviewFile()
 	fprintf( f, "#\tCOLOR_RGB\t= 4\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -forceWH=w,h\t\t;force bounds (override degcw)\n" );
 	fprintf( f, "# -degcw=0\t\t\t;rotate CW degrees\n" );
 	fprintf( f, "# -type=T\t\t\t;{T,M,X} = {X_?_TXT,X_?_MET,xml}\n" );
 	fprintf( f, "# -xmltrim=0.0\t\t;trim this much from xml images\n" );
