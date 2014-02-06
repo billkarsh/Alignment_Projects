@@ -148,6 +148,118 @@ void Split::ColorMontages()
 }
 
 /* --------------------------------------------------------------- */
+/* Send ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool Split::Send( int zlo, int zhi, int toLorR )
+{
+	void	*buf;
+	int		bytes,
+			wdst;
+
+	if( toLorR == 'L' ) {
+
+		wdst = wkid - 1;
+
+		if( wdst < 0 )
+			return true;
+	}
+	else {
+		wdst = wkid + 1;
+
+		if( wdst >= nwks )
+			return true;
+	}
+
+	for( int iz = zlo; iz <= zhi; ++iz ) {
+
+		buf		= (void*)&K[iz][0];
+		bytes	= sizeof(int) * vR[iz].nr;
+
+		MPISend( buf, bytes, wdst, iz - zlo );
+	}
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* Recv ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool Split::Recv( int zlo, int zhi, int fmLorR )
+{
+	void	*buf;
+	int		bytes,
+			wsrc;
+
+	if( fmLorR == 'L' ) {
+
+		wsrc = wkid - 1;
+
+		if( wsrc < 0 )
+			return true;
+	}
+	else {
+		wsrc = wkid + 1;
+
+		if( wsrc >= nwks )
+			return true;
+	}
+
+	for( int iz = zlo; iz <= zhi; ++iz ) {
+
+		buf		= (void*)&K[iz][0];
+		bytes	= sizeof(int) * vR[iz].nr;
+
+		MPIRecv( buf, bytes, wsrc, iz - zlo );
+	}
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
+/* Updt ---------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+bool Split::Updt()
+{
+	if( nwks <= 1 )
+		return true;
+
+// To avoid deadlocks, we arrange that at any given time,
+// any node is just sending or just receiving. Easily done
+// by odd/even role assignment.
+
+// Odd send
+
+	if( wkid & 1 ) {
+
+		Send( zLlo, zLhi, 'L' );
+		Send( zRlo, zRhi, 'R' );
+	}
+	else {
+
+		Recv( zihi + 1, zohi, 'R' );
+		Recv( zolo, zilo - 1, 'L' );
+	}
+
+// Even send
+
+	if( !(wkid & 1) ) {
+
+		Send( zLlo, zLhi, 'L' );
+		Send( zRlo, zRhi, 'R' );
+	}
+	else {
+
+		Recv( zihi + 1, zohi, 'R' );
+		Recv( zolo, zilo - 1, 'L' );
+	}
+
+	return true;
+}
+
+/* --------------------------------------------------------------- */
 /* ReportCount --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -447,10 +559,11 @@ void Split::Run()
 
 	Resize();
 	ColorMontages();
+	Updt();
 
 	map<int,int>	m;
 	CountColors( m );
-	BreakOut( m );
+//	BreakOut( m );
 
 	StopTiming( stdout, "Split", t0 );
 }

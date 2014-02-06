@@ -24,6 +24,9 @@ public:
 private:
 	void Resize();
 	void ColorMontages();
+	bool Send( int zlo, int zhi, int toLorR );
+	bool Recv( int zlo, int zhi, int fmLorR );
+	bool Updt();
 	void ReportCount( const map<int,int>& m );
 	void CountColors( map<int,int>& m );
 	void Save();

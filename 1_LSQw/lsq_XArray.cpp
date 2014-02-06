@@ -686,7 +686,7 @@ bool XArray::Send( int zlo, int zhi, int XorF, int toLorR )
 		}
 		else {
 			buf		= (void*)&vR[iz].flag[0];
-			bytes	= vR[iz].flag.size();
+			bytes	= vR[iz].nr;
 		}
 
 		MPISend( buf, bytes, wdst, iz - zlo );
@@ -727,7 +727,7 @@ bool XArray::Recv( int zlo, int zhi, int XorF, int fmLorR )
 		}
 		else {
 			buf		= (void*)&vR[iz].flag[0];
-			bytes	= vR[iz].flag.size();
+			bytes	= vR[iz].nr;
 		}
 
 		MPIRecv( buf, bytes, wsrc, iz - zlo );
