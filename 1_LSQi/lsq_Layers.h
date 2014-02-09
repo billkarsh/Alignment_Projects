@@ -39,4 +39,6 @@ bool LayerCat(
 	int				zohi,
 	bool			catclr );
 
+int LayerCat_MaxSpan( const vector<Layer>& vL );
+
 

@@ -275,3 +275,19 @@ bool LayerCat(
 }
 
 
+int LayerCat_MaxSpan( const vector<Layer>& vL )
+{
+	int	maxspan = 0, nL = vL.size();
+
+	for( int i = 0; i < nL; ++i ) {
+
+		int	span = vL[i].z - vL[i].Lowest();
+
+		if( span > maxspan )
+			maxspan = span;
+	}
+
+	return maxspan;
+}
+
+

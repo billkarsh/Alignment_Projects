@@ -225,11 +225,16 @@ static void ZoFromZi(
 	int					zihi_icat,
 	const vector<Layer>	&vL )
 {
+	static int	maxspan = LayerCat_MaxSpan( vL );
+
+	int	imax;
+
 // zolo: lowest z that any interior layer touches
 
 	zolo = vL[zilo_icat].Lowest();
+	imax = min( zilo_icat + maxspan, zihi_icat );
 
-	for( int icat = zihi_icat; icat > zilo_icat; --icat ) {
+	for( int icat = imax; icat > zilo_icat; --icat ) {
 
 		int z = vL[icat].Lowest();
 
@@ -241,7 +246,9 @@ static void ZoFromZi(
 
 	int	zihi = vL[zihi_icat].z;
 
-	for( int icat = vL.size() - 1; icat > zihi_icat; --icat ) {
+	imax = min( zihi_icat + maxspan, vL.size() - 1 );
+
+	for( int icat = imax; icat > zihi_icat; --icat ) {
 
 		if( vL[icat].Lowest() <= zihi ) {
 
