@@ -218,8 +218,6 @@ mode_ok:
 
 // Determine dependency range [zolo,zohi].
 //
-// Look at most 10 layers from each end (12 for safety).
-//
 static void ZoFromZi(
 	int					&zolo,
 	int					&zohi,
@@ -227,14 +225,11 @@ static void ZoFromZi(
 	int					zihi_icat,
 	const vector<Layer>	&vL )
 {
-	int	imax;
-
 // zolo: lowest z that any interior layer touches
 
 	zolo = vL[zilo_icat].Lowest();
-	imax = min( zilo_icat + 12, vL.size() - 1 );
 
-	for( int icat = imax; icat > zilo_icat; --icat ) {
+	for( int icat = zihi_icat; icat > zilo_icat; --icat ) {
 
 		int z = vL[icat].Lowest();
 
@@ -246,11 +241,9 @@ static void ZoFromZi(
 
 	int	zihi = vL[zihi_icat].z;
 
-	imax = min( zihi_icat + 12, vL.size() - 1 );
+	for( int icat = vL.size() - 1; icat > zihi_icat; --icat ) {
 
-	for( int icat = imax; icat > zihi_icat; --icat ) {
-
-		if( *vL[icat].zdown.begin() <= zihi ) {
+		if( vL[icat].Lowest() <= zihi ) {
 
 			zohi = vL[icat].z;
 			return;
@@ -340,7 +333,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		FILE	*f = FileOpenOrDie( "ranges.txt", "w" );
 		int		zilo_icat = 0,
-				zihi_icat = zpernode - 1;
+				zihi_icat = min( zpernode, nL ) - 1;
 
 		for( int iw = 0; iw < nwks; ++iw ) {
 
