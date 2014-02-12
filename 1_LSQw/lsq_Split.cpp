@@ -75,9 +75,7 @@ void Split::Resize()
 
 static void* _ColorMontages( void* ithr )
 {
-	int	nz = zihi - zilo + 1;
-
-	for( int iz = zilo + (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zilo + (long)ithr; iz <= zihi; iz += nthr ) {
 
 		const Rgns&		R = vR[iz];
 		vector<int>&	k = ME->K[iz];
@@ -649,9 +647,7 @@ static void SaveFBin( const vector<uint8> &f, int z )
 
 static void* _Save( void* ithr )
 {
-	int	nz = zihi - zilo + 1;
-
-	for( int iz = zilo + (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zilo + (long)ithr; iz <= zihi; iz += nthr ) {
 
 		const Rgns&		R = vR[iz];
 		vector<int>&	k = ME->K[iz];

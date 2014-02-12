@@ -42,9 +42,7 @@ static int			nthr;
 
 static void* _AFromIDB( void* ithr )
 {
-	int	nz = zohi - zolo + 1;
-
-	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zolo + (long)ithr; iz <= zohi; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -150,9 +148,7 @@ static bool Read_vA( vector<CIDRA> &vA, int z )
 
 static void* _AFromTxt( void* ithr )
 {
-	int	nz = zohi - zolo + 1;
-
-	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zolo + (long)ithr; iz <= zohi; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -283,9 +279,7 @@ static bool Read_vH( vector<CIDRH> &vH, int z )
 
 static void* _HFromTxt( void* ithr )
 {
-	int	nz = zohi - zolo + 1;
-
-	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zolo + (long)ithr; iz <= zohi; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -391,9 +385,7 @@ static void ReadFBin( vector<uint8> &f, int z )
 
 static void* _XFromBin( void* ithr )
 {
-	int	nz = zohi - zolo + 1;
-
-	for( int iz = (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zolo + (long)ithr; iz <= zohi; iz += nthr ) {
 
 		Rgns&			R = vR[iz];
 		vector<double>&	x = ME->X[iz];
@@ -454,9 +446,7 @@ static void SaveFBin( const vector<uint8> &f, int z )
 
 static void* _Save( void* ithr )
 {
-	int	nz = zihi - zilo + 1;
-
-	for( int iz = zilo + (long)ithr; iz < nz; iz += nthr ) {
+	for( int iz = zilo + (long)ithr; iz <= zihi; iz += nthr ) {
 
 		const Rgns&				R = vR[iz];
 		const vector<double>&	x = ME->X[iz];
