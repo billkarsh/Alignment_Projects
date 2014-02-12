@@ -669,7 +669,7 @@ static void* _Save( void* ithr )
 
 				if( k[j] == saveclr )
 					k[j] = -1;	// mark it removed
-				else if( k[j] )	// kill all others
+				else			// kill all others
 					f[j] = fmRead;
 			}
 		}
@@ -677,7 +677,7 @@ static void* _Save( void* ithr )
 
 			for( int j = 0; j < R.nr; ++j ) {
 
-				if( k[j] < 0 )	// previously removed
+				if( k[j] <= 0 )	// not these
 					f[j] = fmRead;
 			}
 		}
