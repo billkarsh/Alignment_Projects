@@ -55,7 +55,7 @@ public:
 		zolo		= -1;
 		zohi		= -1;
 		iters		= 250;
-		splitmin	= 10;
+		splitmin	= 1000;
 		zpernode	= 200;
 		maxthreads	= 1;
 		catclr		= false;

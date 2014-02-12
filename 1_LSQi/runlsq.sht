@@ -20,7 +20,7 @@
 # -untwist			;untwist prior affines
 # -mode=A2A			;action: {catalog,eval,split,A2A,A2H,H2H}
 # -iters=250		;solve iterations
-# -splitmin=10		;separate islands > splitmin tiles
+# -splitmin=1000	;separate islands > splitmin tiles
 # -zpernode=200		;max layers per cluster node
 # -maxthreads=1		;thr/node if not mpi (16 if mpi)
 
