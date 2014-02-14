@@ -76,7 +76,10 @@ describes a single point labelled two ways.
 scale reduction (like 10 instead of ~2 as now). This is faster,
 and focuses attention on larger features which are more stable.
 It's a more appropriate size scale. The scale factor should be a
-parameter that is decided by user mainly by slice thickness.
+parameter that is decided by user mainly by slice thickness...
+The counter argument is that low res matching is done at the block
+level and what we want from image pairs is high res correspondence
+points, so use highest res.
 
 - In doing block-block matching, SS advocate that all good layers
 be included because this effectively averages over more data so
@@ -134,8 +137,6 @@ look more like:
 - Need scipts to qsub in batches and stay within 20000 limit.
 
 - LSQw needs option -freset to clear flag history from prior.
-- LSQw needs splitter tool.
-- LSQw splitter might use -minvolpct=%d to ignore tiny splits.
 
 - Use microCT to make a scaffold. That is, align EM vs microCT to
 make external scaffold to lsq.
