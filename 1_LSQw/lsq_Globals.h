@@ -81,8 +81,8 @@ public:
 	inline bool FromFile( FILE *f )
 	{
 		return 10 == fscanf( f, "CPOINT2"
-			" %d.%d:%hd %lf %lf"
-			" %d.%d:%hd %lf %lf\n",
+			" %d.%d-%hd %lf %lf"
+			" %d.%d-%hd %lf %lf\n",
 			&z1, &i1, &r1, &p1.x, &p1.y,
 			&z2, &i2, &r2, &p2.x, &p2.y );
 	};
