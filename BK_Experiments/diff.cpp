@@ -309,7 +309,7 @@ static void BasicAScan( Raw& R )
 	char	file[256];
 	Thumbs	thm;
 
-	sprintf( file, "angsR_%s_@_%s.log", R.a.name, R.b.name );
+	sprintf( file, "angsR_%s^%s.log", R.a.name, R.b.name );
 	FILE	*f = fopen( file, "w" );
 
 	fprintf( f, "Deg\tR\tX\tY\tX\tY\n" );
@@ -359,7 +359,7 @@ static void RvsSigma( Raw& R )
 		++is;
 	}
 
-	sprintf( file, "angsR_%s_@_%s.log", R.a.name, R.b.name );
+	sprintf( file, "angsR_%s^%s.log", R.a.name, R.b.name );
 	FILE	*f = fopen( file, "w" );
 
 	for( int ia = 0; ia < r[0].size(); ++ia ) {

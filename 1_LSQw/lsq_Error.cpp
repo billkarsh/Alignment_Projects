@@ -370,7 +370,7 @@ void Stat::Topn( FILE *f, int SorD ) const
 			RealZIDR( z1, i1, r1, C.z1, C.i1 );
 			RealZIDR( z2, i2, r2, C.z2, C.i2 );
 
-			fprintf( f, "\t%d.%d:%d^%d.%d:%d",
+			fprintf( f, "\t%d.%d-%d^%d.%d-%d",
 				z1, i1, r1, z2, i2, r2 );
 		}
 	}
@@ -517,7 +517,7 @@ void StatG::Topn( FILE *f, int SorD ) const
 
 			const EG&	G = veg[i];
 
-			fprintf( f, "\t%d.%d:%d^%d.%d:%d",
+			fprintf( f, "\t%d.%d-%d^%d.%d-%d",
 				G.z1, G.i1, G.r1, G.z2, G.i2, G.r2 );
 		}
 	}

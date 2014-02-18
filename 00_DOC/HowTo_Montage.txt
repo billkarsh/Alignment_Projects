@@ -159,7 +159,7 @@ Inspect results
 
 Each layer's montaging work is done within a folder 'temp0/z/montage' where z is a layer index.
 
-Each montage job gets a master log file called 'temp0/z/montage/lsq.txt' as well as other reports in the montage folder listing suspicious results.
+Each montage job gets a master log file called 'temp0/z/montage/lsqw_0.txt' as well as other reports in the montage folder listing suspicious results.
 
 A quick summary report over all layers is obtained at the temp0 level using:
 
@@ -174,12 +174,9 @@ This creates 'MonSumy.txt' which shows for each layer's montage:
 Fetch results
 ===============
 
-Within each montage folder (temp0/z/montage) find key output files:
-- MultLayAff.xml	# TrakEM2 for this layer
-- TAffineTable.txt	# Table of affines labeled by {z,tile-id,rgn-id}.
+Within each montage folder (temp0/z/montage) find key output folder:
+- X_A_BIN	# binary table of transforms and flags
 
-To get an expanded version of TAffineTable.txt that links these data to other meta-data from the idb, you can cp/edit/run the script found at ???/Alignment_Projects/2_TFormTableEx/tformtableex.sht.
-
-Currently this operates on one layer at a time.
+This can be converted to text tables with tool ???/Alignment_Projects/1_XView/xvgo.sht.
 
 

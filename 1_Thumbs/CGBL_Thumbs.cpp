@@ -137,11 +137,11 @@ bool CGBL_Thumbs::SetCmdLine( int argc, char* argv[] )
 // Decode labels in key
 
 	if( !key ||
-		(4 != sscanf( key, "%d/%d@%d/%d",
+		(4 != sscanf( key, "%d.%d^%d.%d",
 				&A.z, &A.id,
 				&B.z, &B.id )) ) {
 
-		printf( "main: Usage: thumbs <za/ia@zb/ib>.\n" );
+		printf( "main: Usage: thumbs <za.ia^zb.ib>.\n" );
 		return false;
 	}
 

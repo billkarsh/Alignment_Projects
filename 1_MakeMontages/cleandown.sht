@@ -28,8 +28,8 @@ do
 			cd $jb
 			rm -f p*
 			rm -f q*
-			hdr=$(printf "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
-			echo "$hdr" > "ThmPair_"$lyr"_@_"$b".txt"
+			hdr=$(printf "Atl\tAcr\tBtl\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
+			echo "$hdr" > "ThmPair_"$lyr"^"$b".txt"
 			cd ..
 		done
 

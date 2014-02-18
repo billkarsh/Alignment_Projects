@@ -100,8 +100,8 @@ typedef struct {
 // entry: ThmPair.txt
 	TAffine	T;
 	double	A, R;
-	int		atl, btl,
-			acr, bcr,
+	int		atl, acr,
+			btl, bcr,
 			err;
 } ThmPair;
 

@@ -66,19 +66,19 @@ void* _Scan( void* ithr )
 				RealZIDR( z, i, r, iz, ir );
 
 				if( FLAG_ISREAD( R.flag[ir] ) ) {
-					fprintf( q, "R %d.%d:%d\n", z, i, r );
+					fprintf( q, "R %d.%d-%d\n", z, i, r );
 					++D.read;
 				}
 				else if( FLAG_ISPNTS( R.flag[ir] ) ) {
-					fprintf( q, "P %d.%d:%d\n", z, i, r );
+					fprintf( q, "P %d.%d-%d\n", z, i, r );
 					++D.pnts;
 				}
 				else if( FLAG_ISKILL( R.flag[ir] ) ) {
-					fprintf( q, "K %d.%d:%d\n", z, i, r );
+					fprintf( q, "K %d.%d-%d\n", z, i, r );
 					++D.kill;
 				}
 				else if( FLAG_ISCUTD( R.flag[ir] ) ) {
-					fprintf( q, "C %d.%d:%d\n", z, i, r );
+					fprintf( q, "C %d.%d-%d\n", z, i, r );
 					++D.cutd;
 				}
 			}

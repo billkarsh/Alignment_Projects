@@ -11,8 +11,8 @@
 # -blkmincorr=0.45	;required min corr for alignment
 # -blknomcorr=0.50	;nominal corr for alignment
 # -xyconf=0.75		;search radius = (1-xyconf)*blkwide
-# -abdbg			;make diagnostic images and exit (Z@Z-1)
-# -abdbg=k			;make diagnostic images and exit (Z@k)
+# -abdbg			;make diagnostic images and exit (Z^Z-1)
+# -abdbg=k			;make diagnostic images and exit (Z^k)
 # -abctr=0			;debug at this a-to-b angle
 
 

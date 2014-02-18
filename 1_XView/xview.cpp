@@ -523,12 +523,12 @@ static void WriteXMLLyr_Aff( FILE *f, int &oid )
 			char	title[128];
 
 			if( t2i->col != -999 ) {
-				sprintf( title, "%d.%d:%d_%d.%d.%d",
+				sprintf( title, "%d.%d-%d_%d.%d.%d",
 					R.z, id, j - j0 + 1,
 					t2i->col, t2i->row, t2i->cam );
 			}
 			else
-				sprintf( title, "%d.%d:%d", R.z, id, j - j0 + 1 );
+				sprintf( title, "%d.%d-%d", R.z, id, j - j0 + 1 );
 
 			TAffine&	T = X_AS_AFF( R.x, j );
 
@@ -628,12 +628,12 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 			char	title[128];
 
 			if( t2i->col != -999 ) {
-				sprintf( title, "%d.%d:%d_%d.%d.%d",
+				sprintf( title, "%d.%d-%d_%d.%d.%d",
 					R.z, id, j - j0 + 1,
 					t2i->col, t2i->row, t2i->cam );
 			}
 			else
-				sprintf( title, "%d.%d:%d", R.z, id, j - j0 + 1 );
+				sprintf( title, "%d.%d-%d", R.z, id, j - j0 + 1 );
 
 			THmgphy&	T = X_AS_HMY( R.x, j );
 

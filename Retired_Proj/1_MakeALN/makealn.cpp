@@ -8,10 +8,10 @@
 //			folder '0'				// output folder per tile, here '0'
 //			S0_0					// same layer jobs
 //				make.same			// make file for same layer
-//				ThmPair_0_@_0.txt	// table of thumbnail results
+//				ThmPair_0^0.txt		// table of thumbnail results
 //			D0_0					// down layer jobs
 //				make.down			// make file for cross layers
-//				ThmPair_0_@_j.txt	// table of thumbnail results
+//				ThmPair_0^j.txt		// table of thumbnail results
 //
 
 
@@ -651,7 +651,7 @@ static void WriteThumbMakeFile(
 		const CUTile&	B = TS.vtil[P[i].b];
 
 		fprintf( f,
-		"\tthumbs %d/%d@%d/%d ${EXTRA}\n",
+		"\tthumbs %d.%d^%d.%d ${EXTRA}\n",
 		A.z, A.id, B.z, B.id );
 	}
 
@@ -709,7 +709,7 @@ static void Make_ThumbsDown(
 {
 	vector<Pair>	P;
 
-	fprintf( flog, "--Make_ThumbsDown: layer %d @ %d\n",
+	fprintf( flog, "--Make_ThumbsDown: layer %d ^ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
@@ -788,7 +788,7 @@ static void WriteMakeFile(
 		A.id, B.z, B.id );
 
 		fprintf( f,
-		"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
+		"\t%s %d.%d^%d.%d%s ${EXTRA}\n\n",
 		gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
 	}
 
@@ -844,7 +844,7 @@ static void Make_MakeDownTight(
 {
 	vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
+	fprintf( flog, "--Make_MakeDown: layer %d ^ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
@@ -884,7 +884,7 @@ static void Make_MakeDownLoose(
 	w /= 2;
 	h /= 2;
 
-	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
+	fprintf( flog, "--Make_MakeDown: layer %d ^ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets

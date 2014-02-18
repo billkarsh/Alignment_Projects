@@ -43,7 +43,7 @@ static int ThmPair( const struct dirent* E )
 
 		int	za, zb;
 
-		if( 2 == sscanf( E->d_name, "ThmPair_%d_@_%d", &za, &zb )
+		if( 2 == sscanf( E->d_name, "ThmPair_%d^%d", &za, &zb )
 			&& za == _L->z ) {
 
 			_L->zdown.insert( zb );

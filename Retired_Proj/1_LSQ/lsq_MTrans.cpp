@@ -122,7 +122,7 @@ void MTrans::WriteTransforms(
 
 		if( !bstrings ) {
 
-			fprintf( FOUT, "TAFFINE %d.%d:%d 1 0 %f 0 1 %f\n",
+			fprintf( FOUT, "TAFFINE %d.%d-%d 1 0 %f 0 1 %f\n",
 			I.z, I.id, I.rgn,
 			X[j], X[j+1] );
 		}

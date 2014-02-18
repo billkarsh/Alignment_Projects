@@ -1,5 +1,5 @@
 //
-// Reset all ThmPair_N_@_M.txt files to headers-only state
+// Reset all ThmPair_N^M.txt files to headers-only state
 // in given range [zmin,zmax]. Current dir must be 'temp'
 // at execution time.
 //
@@ -109,11 +109,11 @@ static void WriteOne( int a, int b )
 	char	name[256];
 	FILE	*f;
 
-	sprintf( name, "%d/ThmPair_%d_@_%d.txt", a, a, b );
+	sprintf( name, "%d/ThmPair_%d^%d.txt", a, a, b );
 
 	f = FileOpenOrDie( name, "w", flog );
 
-	fprintf( f, "Atl\tBtl\tAcr\tBcr\tErr\tDeg\tQ\tR"
+	fprintf( f, "Atl\tAcr\tBtl\tBcr\tErr\tDeg\tQ\tR"
 	"\tT0\tT1\tX\tT3\tT4\tY\n" );
 
 	fclose( f );

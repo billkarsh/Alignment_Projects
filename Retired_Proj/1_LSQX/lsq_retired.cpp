@@ -268,7 +268,7 @@ static void Bounds(
 
 		const char *rgn = strrchr( vImg[i].name.c_str(), ':' ) + 1;
 
-		fprintf( flab, "set label \"%d:%d.%s \" at %f,%f tc lt %d\n",
+		fprintf( flab, "set label \"%d.%d-%s \" at %f,%f tc lt %d\n",
 		vImg[i].z, vImg[i].id, rgn, xmid, ymid, color );
 	}
 

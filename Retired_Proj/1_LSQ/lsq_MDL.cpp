@@ -60,11 +60,11 @@ void MDL::DisplayStrings(
 
 		if( m->col != -999 ) {
 
-			sprintf( title, "%d.%d:1_%d.%d.%d",
+			sprintf( title, "%d.%d-1_%d.%d.%d",
 				I.z, m->id, m->col, m->row, m->cam );
 		}
 		else
-			sprintf( title, "%d.%d:1", I.z, m->id );
+			sprintf( title, "%d.%d-1", I.z, m->id );
 	}
 }
 
@@ -196,7 +196,7 @@ void MDL::Bounds(
 
 		// label
 
-		fprintf( flab, "set label \"%d:%d.%d \" at %f,%f tc lt %d\n",
+		fprintf( flab, "set label \"%d.%d-%d \" at %f,%f tc lt %d\n",
 		vRgn[i].z, vRgn[i].id, vRgn[i].rgn, xmid, ymid, color );
 	}
 

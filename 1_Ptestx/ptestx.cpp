@@ -3,13 +3,13 @@
 // folder/file structure that ptest expects, and then calls ptest.
 //
 // E.g.
-// > ptestx za/ia@zb/ib -d=temp -prm=matchparams.txt
+// > ptestx za.ia^zb.ib -d=temp -prm=matchparams.txt
 //	[-idb=xxx]
 //	[-ima=xxx -imb=xxx]
 //	[-fma=xxx -fmb=xxx]
 //
 // Required params:
-//	za/ia@zb/ib:	z/tileid numerical labels (A onto B)
+//	za.ia^zb.ib:	z/tileid numerical labels (A onto B)
 //	d:				output directory to create
 //	prm:			path to parameter file
 //
@@ -115,7 +115,7 @@ void CArgs_ptx::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 usage:
-		printf( "Usage: ptestx <za/ia@zb/ib> -d=temp"
+		printf( "Usage: ptestx <za.ia^zb.ib> -d=temp"
 		" -prm=matchparams.txt [-idb=xxx]"
 		" [-ima=xxx -imb=xxx -fma=zzz -fmb=xxx]"
 		" [options].\n" );
@@ -166,7 +166,7 @@ usage:
 
 // Decode labels in key
 
-	if( 4 != sscanf( key, "%d/%d@%d/%d",
+	if( 4 != sscanf( key, "%d.%d^%d.%d",
 		&z[0], &tile[0], &z[1], &tile[1] ) ) {
 
 		fprintf( flog, "Bad label string '%s'.\n", key );

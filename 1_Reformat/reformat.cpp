@@ -3,8 +3,8 @@
 // {-x=xml file, -r=Rick file, -d-idb}.
 //
 // New xml files have 'title' attributes like this:
-// "z.id:rgn", or,
-// "z.id:rgn_col.row.cam" (if data present).
+// "z.id-rgn", or,
+// "z.id-rgn_col.row.cam" (if data present).
 //
 // New Rick files have lines like this:
 // "z id 6_aff_val_by_row -999 -999 -999 path", or,
@@ -185,11 +185,11 @@ static void UpdateXMLLayer( TiXmlElement* layer, int z )
 			int	col = -1, row = -1, cam = 0;
 			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
 
-			sprintf( title, "%d.%d:1_%d.%d.%d",
+			sprintf( title, "%d.%d-1_%d.%d.%d",
 				z, id, col, row, cam );
 		}
 		else
-			sprintf( title, "%d.%d:1", z, id );
+			sprintf( title, "%d.%d-1", z, id );
 
 		p->SetAttribute( "title", title );
 	}

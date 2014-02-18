@@ -8,10 +8,10 @@
 //			folder '0'				// output folder per tile, here '0'
 //			S0_0					// same layer jobs
 //				make.same			// make file for same layer
-//				ThmPair_0_@_0.txt	// table of thumbnail results
+//				ThmPair_0^0.txt		// table of thumbnail results
 //			D0_0					// down layer jobs
 //				make.down			// make file for cross layers
-//				ThmPair_0_@_j.txt	// table of thumbnail results
+//				ThmPair_0^j.txt		// table of thumbnail results
 //
 
 
@@ -870,7 +870,7 @@ static void WriteMakeFile(
 		A.id, B.z, B.id );
 
 		fprintf( f,
-		"\t%s %d/%d@%d/%d%s ${EXTRA}\n\n",
+		"\t%s %d.%d^%d.%d%s ${EXTRA}\n\n",
 		gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
 	}
 

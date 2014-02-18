@@ -36,7 +36,7 @@ static Til2Img			_T1,
 
 RGN::RGN( const char *key )
 {
-	sscanf( key, "%d.%d:%d", &z, &id, &rgn );
+	sscanf( key, "%d.%d-%d", &z, &id, &rgn );
 	iname	= -1;
 	itr		= -1;
 }
@@ -67,7 +67,7 @@ RGN::RGN( const char *path, const DIR &dir, int _id )
 
 RGN::RGN( const char *path, const char *key )
 {
-	sscanf( key, "%d.%d:%d", &z, &id, &rgn );
+	sscanf( key, "%d.%d-%d", &z, &id, &rgn );
 	itr		= -1;
 
 	MZID					zid( z, id );

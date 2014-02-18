@@ -276,7 +276,7 @@ void Stat::Topn( FILE *f, int SorB ) const
 
 			int	z, i, r;
 			RealZIDR( z, i, r, vei[ie].iz, vei[ie].i );
-			fprintf( f, "\t%d.%d:%d", z, i, r );
+			fprintf( f, "\t%d.%d-%d", z, i, r );
 		}
 	}
 	else
@@ -383,7 +383,7 @@ void StatG::Topn( FILE *f, int SorB ) const
 
 			const EG&	G = veg[i];
 
-			fprintf( f, "\t%d.%d:%d", G.z, G.i, G.r );
+			fprintf( f, "\t%d.%d-%d", G.z, G.i, G.r );
 		}
 	}
 	else

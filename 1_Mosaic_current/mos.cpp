@@ -819,7 +819,7 @@ public:
 // IDBPATH /groups/tomo/EX2/imagedb
 // IMAGESIZE 1376 1040
 // BBOX 0.273737 0.750210 2855.407509 6533.489589
-// TAFFINE 0.17:1 \
+// TAFFINE 0.17-1 \
 //	0.995873 0.031339 1310.166353 -0.032305 0.996346 45.169905
 // MPOINTS 0 1581.204923 3755.906136 0 1573.213831 3755.796253
 // SPMAP2 0.17 /path/spmapname
@@ -830,7 +830,7 @@ public:
 // xmin...ymax come from BBOX.
 // w, h come from IMAGESIZE.
 //
-// This scheme uses {z.id:rgn} to label data items. Decoder
+// This scheme uses {z.id-rgn} to label data items. Decoder
 // functions are not needed, but we do require the IDBPATH
 // to look up paths when needed.
 //
@@ -892,7 +892,7 @@ static void ReadInput_NumTags(
 			int		z, id, rgn;
 
 			if( 9 != sscanf( LS.line + 11,
-				"%d.%d:%d %lf %lf %lf %lf %lf %lf",
+				"%d.%d-%d %lf %lf %lf %lf %lf %lf",
 				&z, &id, &rgn, &a, &b, &c, &d, &e, &f ) ) {
 
 				printf( "Bad TAFFINE statement '%s'.", LS.line );

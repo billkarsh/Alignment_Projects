@@ -33,7 +33,7 @@ void OpenPairLog( int alr, int atl, int blr, int btl )
 {
 	char	slog[256];
 
-	sprintf( slog, "pair_%d_%d_@_%d_%d.log",
+	sprintf( slog, "pair_%d.%d^%d.%d.log",
 		alr, atl, blr, btl );
 
 	freopen( slog, "a", stdout );
@@ -1006,7 +1006,7 @@ bool ReadThmPair(
 
 	if( M.Get( name ) ) {
 
-		sprintf( name, "ThmPair_%d_@_%d.txt", alr, blr );
+		sprintf( name, "ThmPair_%d^%d.txt", alr, blr );
 		f = fopen( name, "r" );
 
 		if( f ) {
@@ -1026,7 +1026,7 @@ bool ReadThmPair(
 				"%d\t%d\t%d\t%d\t%d"
 				"\t%lf\t%lf"
 				"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
-				&tpr.atl, &tpr.btl, &tpr.acr, &tpr.bcr, &tpr.err,
+				&tpr.atl, &tpr.acr, &tpr.btl, &tpr.bcr, &tpr.err,
 				&tpr.A, &tpr.R,
 				&tpr.T.t[0], &tpr.T.t[1], &tpr.T.t[2],
 				&tpr.T.t[3], &tpr.T.t[4], &tpr.T.t[5] );
@@ -1048,8 +1048,8 @@ bool ReadThmPair(
 			}
 
 			fprintf( flog,
-			"ReadThmPair: No entry for %d_%d@%d_%d; cr:%d-%d\n",
-			alr, atl, blr, btl, acr, bcr );
+			"ReadThmPair: No entry for %d.%d-%d^%d.%d-%d\n",
+			alr, atl, acr, blr, btl, bcr );
 		}
 		else
 			fprintf( flog, "ReadThmPair: Can't open [%s].\n", name );
@@ -1088,7 +1088,7 @@ bool ReadAllThmPair(
 
 	if( M.Get( name ) ) {
 
-		sprintf( name, "ThmPair_%d_@_%d.txt", alr, blr );
+		sprintf( name, "ThmPair_%d^%d.txt", alr, blr );
 		f = fopen( name, "r" );
 
 		if( f ) {
@@ -1110,7 +1110,7 @@ bool ReadAllThmPair(
 				"%d\t%d\t%d\t%d\t%d"
 				"\t%lf\t%lf"
 				"\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
-				&P.atl, &P.btl, &P.acr, &P.bcr, &P.err,
+				&P.atl, &P.acr, &P.btl, &P.bcr, &P.err,
 				&P.A, &P.R,
 				&P.T.t[0], &P.T.t[1], &P.T.t[2],
 				&P.T.t[3], &P.T.t[4], &P.T.t[5] );
@@ -1140,7 +1140,7 @@ exit:
 void WriteThmPairHdr( FILE *f )
 {
 	fprintf( f,
-	"Atl\tBtl\tAcr\tBcr\tErr\tDeg\tR"
+	"Atl\tAcr\tBtl\tBcr\tErr\tDeg\tR"
 	"\tT0\tT1\tX\tT3\tT4\tY\n" );
 }
 
@@ -1166,7 +1166,7 @@ void CreateJobsDir(
 
 // Create ThmPair file
 	if( zb >= 0 ) {
-		sprintf( name + len, "/ThmPair_%d_@_%d.txt", za, zb );
+		sprintf( name + len, "/ThmPair_%d^%d.txt", za, zb );
 		FILE	*f = FileOpenOrDie( name, "w", flog );
 		WriteThmPairHdr( f );
 		fclose( f );
@@ -1193,7 +1193,7 @@ void WriteThmPair(
 
 	if( M.Get( name ) ) {
 
-		sprintf( name, "ThmPair_%d_@_%d.txt", alr, blr );
+		sprintf( name, "ThmPair_%d^%d.txt", alr, blr );
 		FILE *f = fopen( name, "a" );
 
 		if( f ) {
@@ -1201,7 +1201,7 @@ void WriteThmPair(
 				"%d\t%d\t%d\t%d\t%d"
 				"\t%f\t%f"
 				"\t%f\t%f\t%f\t%f\t%f\t%f\n",
-				atl, btl, acr, bcr, tpr.err,
+				atl, acr, btl, bcr, tpr.err,
 				tpr.A, tpr.R,
 				tpr.T.t[0], tpr.T.t[1], tpr.T.t[2],
 				tpr.T.t[3], tpr.T.t[4], tpr.T.t[5] );

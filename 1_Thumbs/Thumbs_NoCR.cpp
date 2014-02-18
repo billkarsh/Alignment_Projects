@@ -14,7 +14,7 @@
 
 // Seek transform A->B composed as: Tsim * Tdfm * Tpretwk.
 //
-// The output is an entry in the ThmPair_lyrA_@_lyrB.txt file.
+// The output is an entry in the ThmPair_lyrA^lyrB.txt file.
 //
 // Discussion
 // ----------

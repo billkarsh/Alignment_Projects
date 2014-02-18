@@ -106,7 +106,7 @@
 //
 // Return true and add one entry to guesses if successful.
 //
-// Also, output an entry in the ThmPair_lyrA_@_lyrB.txt file.
+// Also, output an entry in the ThmPair_lyrA^lyrB.txt file.
 //
 // Discussion
 // ----------

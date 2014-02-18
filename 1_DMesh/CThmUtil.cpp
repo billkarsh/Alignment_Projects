@@ -728,7 +728,7 @@ void CThmUtil::RecordSumSqDif( const TAffine &T )
 
 	if( M.Get( name ) ) {
 
-		sprintf( name, "SmSqDf_%d_@_%d.log", A.z, B.z );
+		sprintf( name, "SmSqDf_%d^%d.log", A.z, B.z );
 
 		FILE *f;
 		int  is;

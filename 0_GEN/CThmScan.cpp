@@ -441,7 +441,7 @@ void CThmScan::DebugAngs(
 {
 	char	file[256];
 
-	sprintf( file, "angs_%d_%d_@_%d_%d.log", alyr, atil, blyr, btil );
+	sprintf( file, "angs_%d.%d^%d.%d.log", alyr, atil, blyr, btil );
 	FILE	*f = fopen( file, "w" );
 
 	fprintf( f, "Deg\tR\tX\tY\n" );

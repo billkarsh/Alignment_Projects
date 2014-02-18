@@ -133,7 +133,7 @@ static TiXmlElement* XMLGetTiles(
 			int	rgn, col, row, cam;
 
 			if( 6 == sscanf( ptch->Attribute( "title" ),
-				"%d.%d:%d_%d.%d.%d",
+				"%d.%d-%d_%d.%d.%d",
 				&z, &til.id, &rgn,
 				&col, &row, &cam ) ) {
 
@@ -1052,11 +1052,11 @@ void CTileSet::WriteTrakEM2Layer(
 
 		if( U.col != -999 ) {
 
-			sprintf( title, "%d.%d:1_%d.%d.%d",
+			sprintf( title, "%d.%d-1_%d.%d.%d",
 				U.z, U.id, U.col, U.row, U.cam );
 		}
 		else
-			sprintf( title, "%d.%d:1", U.z, U.id );
+			sprintf( title, "%d.%d-1", U.z, U.id );
 
 		fprintf( f,
 		"\t\t\t<t2_patch\n"

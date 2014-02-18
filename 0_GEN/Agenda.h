@@ -23,7 +23,7 @@ what's the interior.
 matchparams, so one param file drives pipeline.
 
 - MOS needs better name handling (that is, ween off of string labels
-and onto idb z.id:rgn labels).
+and onto idb z.id-rgn labels).
 
 LSQ maybes:
 - LSQ weight CPOINT by Q,R?
@@ -69,7 +69,7 @@ Saalfeld Notes:
 recover correct connectivity in the cut zone by adding corr.
 point pairs into the mix wherein the (x,y) coords are the same
 for A::B, as are the {z,id} labels, but the rgn numbers differ.
-For example: CPOINT2 z.id:1 x0 y0 z.id:2 x0 y0. Essentially, this
+For example: CPOINT2 z.id-1 x0 y0 z.id-2 x0 y0. Essentially, this
 describes a single point labelled two ways.
 
 - In dmesh, when finding corr points across layers, use even more

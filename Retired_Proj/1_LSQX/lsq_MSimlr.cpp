@@ -374,7 +374,7 @@ void MSimlr::WriteTransforms(
 
 		if( !bstrings ) {
 
-			fprintf( FOUT, "TAFFINE %d.%d:%d %f %f %f %f %f %f\n",
+			fprintf( FOUT, "TAFFINE %d.%d-%d %f %f %f %f %f %f\n",
 			I.z, I.id, I.rgn,
 			X[j  ], -X[j+1], X[j+2],
 			X[j+1],  X[j  ], X[j+3] );
@@ -393,11 +393,11 @@ void MSimlr::WriteTransforms(
 		smax  = fmax( smax, mag );
 
 		if( mag < 0.9 ) {
-			fprintf( fx, "Low mag %f @ %d.%d:%d\n",
+			fprintf( fx, "Low mag %f @ %d.%d-%d\n",
 				mag, I.z, I.id, I.rgn );
 		}
 		else if( mag > 1.1 ) {
-			fprintf( fx, "Hi  mag %f @ %d.%d:%d\n",
+			fprintf( fx, "Hi  mag %f @ %d.%d-%d\n",
 				mag, I.z, I.id, I.rgn );
 		}
 	}

@@ -196,8 +196,8 @@ static void WriteTestblockFile()
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
-	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z@Z-1)\n" );
-	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z@k)\n" );
+	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
+	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
@@ -242,8 +242,8 @@ static void WriteSubblocksFile()
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
-	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z@Z-1)\n" );
-	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z@k)\n" );
+	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
+	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );

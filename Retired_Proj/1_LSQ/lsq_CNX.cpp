@@ -49,7 +49,7 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 
 		FILE	*f = FileOpenOrDie( "FewCorr", "w" );
 
-		fprintf( f, "Lyr.til:rgn pairs with few ctl pts between\n" );
+		fprintf( f, "Lyr.til-rgn pairs with few ctl pts between\n" );
 
 		set<CRPair>::iterator	pi;
 
@@ -58,7 +58,7 @@ void CNX::ListWeakConnections( set<CRPair> &r12Bad )
 			const RGN	&A = vRgn[pi->a];
 			const RGN	&B = vRgn[pi->b];
 
-			fprintf( f, "%d.%d:%d - %d.%d:%d\n",
+			fprintf( f, "%d.%d-%d ^ %d.%d-%d\n",
 			A.z, A.id, A.rgn, B.z, B.id, B.rgn );
 		}
 
@@ -88,7 +88,7 @@ bool CNX::IsWeakLink( int irgn )
 
 	if( nsame < minLinks ) {
 
-		printf( "CNX: Weak link %d.%d:%d\n",
+		printf( "CNX: Weak link %d.%d-%d\n",
 		z, vRgn[irgn].id, vRgn[irgn].rgn );
 
 		return true;
@@ -234,7 +234,7 @@ int CNX::MaxConnectedSet( set<int> &ignore )
 				const RGN	&A = vRgn[i];
 
 				ignore.insert( i );
-				fprintf( f, "%d.%d:%d\n", A.z, A.id, A.rgn );
+				fprintf( f, "%d.%d-%d\n", A.z, A.id, A.rgn );
 			}
 		}
 

@@ -255,7 +255,7 @@ static void OneTprFile( const char *lyrdir, int a, int b )
     char	name[2048];
     FILE	*f;
 
-	sprintf( name, "%s/ThmPair_%d_@_%d.txt", lyrdir, a, b );
+	sprintf( name, "%s/ThmPair_%d^%d.txt", lyrdir, a, b );
 	f = FileOpenOrDie( name, "w", flog );
 	WriteThmPairHdr( f );
 	fclose( f );
@@ -364,7 +364,7 @@ static void WriteThumbMakeFile(
 		const CUTile&	B = TS.vtil[P[i].b];
 
 		fprintf( f,
-		"\tthumbs %d/%d@%d/%d ${EXTRA}\n",
+		"\tthumbs %d.%d^%d.%d ${EXTRA}\n",
 		A.z, A.id, B.z, B.id );
 	}
 
@@ -422,7 +422,7 @@ static void Make_ThumbsDown(
 {
 	vector<Pair>	P;
 
-	fprintf( flog, "--Make_ThumbsDown: layer %d @ %d\n",
+	fprintf( flog, "--Make_ThumbsDown: layer %d ^ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
@@ -619,7 +619,7 @@ static void WriteMakeFile(
 			A.id, B.z, B.id );
 
 			fprintf( f,
-			"\tptest %d/%d@%d/%d -nf ${EXTRA}\n\n",
+			"\tptest %d.%d^%d.%d -nf ${EXTRA}\n\n",
 			A.z, A.id, B.z, B.id );
 		}
 	}
@@ -645,7 +645,7 @@ static void WriteMakeFile(
 			B.z, B.id );
 
 			fprintf( f,
-			"\tptest %d/%d@%d/%d ${EXTRA}\n\n",
+			"\tptest %d.%d^%d.%d ${EXTRA}\n\n",
 			A.z, A.id, B.z, B.id );
 		}
 	}
@@ -702,7 +702,7 @@ static void Make_MakeDown(
 {
 	vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeDown: layer %d @ %d\n",
+	fprintf( flog, "--Make_MakeDown: layer %d ^ %d\n",
 		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
@@ -745,7 +745,7 @@ static void Make_MakeUp(
 {
 	vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeUp: layer %d @ %d\n",
+	fprintf( flog, "--Make_MakeUp: layer %d ^ %d\n",
 		TS.vtil[is0].z, (iu0 != -1 ? TS.vtil[iu0].z : -1) );
 
 // write dummy file even if no targets

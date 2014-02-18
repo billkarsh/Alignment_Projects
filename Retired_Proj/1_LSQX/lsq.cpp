@@ -978,7 +978,7 @@ static void NoCorrs(
 			RGN::GetMeta( &ma, &mb, A, B );
 
 			fprintf( flog, "No points in common -"
-			" Lyr.til:rgn %d.%d:%d - %d.%d:%d, overlap %.1f%%\n"
+			" Lyr.til-rgn %d.%d-%d ^ %d.%d-%d, overlap %.1f%%\n"
 			" - %s\n"
 			" - %s\n",
 			A.z, A.id, A.rgn, B.z, B.id, B.rgn, olap*100.0,

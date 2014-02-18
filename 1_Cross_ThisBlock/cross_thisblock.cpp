@@ -880,7 +880,7 @@ static void WriteMakeFile(
 			T.FromAToB( T, b.T );
 
 			fprintf( f,
-			"\tptest %d/%d@%d/%d"
+			"\tptest %d.%d^%d.%d"
 			" -Tab=%f,%f,%f,%f,%f,%f%s ${EXTRA}\n\n",
 			a.z, a.id, b.z, b.id,
 			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
@@ -905,7 +905,7 @@ static void WriteThumbFiles( const vector<BlkZ> &vZ )
 			continue;
 
 		char	name[128];
-		sprintf( name, "ThmPair_%d_@_%d.txt", gDat.za, vZ[iz].Z );
+		sprintf( name, "ThmPair_%d^%d.txt", gDat.za, vZ[iz].Z );
 		FILE	*f = FileOpenOrDie( name, "w", flog );
 		WriteThmPairHdr( f );
 		fclose( f );

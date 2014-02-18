@@ -46,7 +46,7 @@ static void ScanThmPairs( const char *subdir )
 
 		char	path[2048];
 
-		sprintf( path, "%s/%s/ThmPair_%d_@_%d.txt",
+		sprintf( path, "%s/%s/ThmPair_%d^%d.txt",
 			_d, subdir, _z, i );
 
 		if( DskExists( path ) )

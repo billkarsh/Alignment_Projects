@@ -136,7 +136,7 @@ void SML::AddPOINTPair(
 void SML::TestPairAlignments()
 {
 	printf(
-	"---- Lyr.til:rgn pairs with simlr align err > 70 pix ----\n" );
+	"---- Lyr.til-rgn pairs with simlr align err > 70 pix ----\n" );
 
 	map<CRPair,int>::iterator	pi;	// iterator over pairs
 
@@ -153,7 +153,7 @@ void SML::TestPairAlignments()
 				const RGN	&A = vRgn[(pi->first).a];
 				const RGN	&B = vRgn[(pi->first).b];
 
-				printf( "%d.%d:%d - %d.%d:%d\n",
+				printf( "%d.%d-%d ^ %d.%d-%d\n",
 				A.z, A.id, A.rgn, B.z, B.id, B.rgn );
 
 				// repeat for report

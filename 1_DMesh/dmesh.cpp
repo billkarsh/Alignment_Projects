@@ -217,7 +217,7 @@ static void FitAffine(
 
 				fprintf( f,
 				"AFFINE"
-				" %d.%d:%d %d.%d:%d"
+				" %d.%d-%d %d.%d-%d"
 				" %f %f %f %f %f %f\n",
 				GBL.A.z, GBL.A.id, argn,
 				GBL.B.z, GBL.B.id, brgn,
@@ -342,7 +342,7 @@ static void FitHmgphy(
 
 				fprintf( f,
 				"HMGPHY"
-				" %d.%d:%d %d.%d:%d"
+				" %d.%d-%d %d.%d-%d"
 				" %f %f %f %f %f %f %.12g %.12g\n",
 				GBL.A.z, GBL.A.id, argn,
 				GBL.B.z, GBL.B.id, brgn,
@@ -530,8 +530,8 @@ static void WritePOINTEntries(
 
 					fprintf( f,
 					"CPOINT2"
-					" %d.%d:%d %f %f"
-					" %d.%d:%d %f %f\n",
+					" %d.%d-%d %f %f"
+					" %d.%d-%d %f %f\n",
 					GBL.A.z, GBL.A.id, ma, pa.x, pa.y,
 					GBL.B.z, GBL.B.id, mb, pb.x, pb.y );
 
