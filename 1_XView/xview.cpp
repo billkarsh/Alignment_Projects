@@ -587,8 +587,8 @@ static void TopLeft( Point &o, const THmgphy &T )
 	o.y = BIGD;
 
 	for( int k = 0; k < 4; ++k ) {
-		o.x = fmin( o.x, cnr[k].y );
-		o.y = fmin( o.y, cnr[k].x );
+		o.x = fmin( o.x, cnr[k].x );
+		o.y = fmin( o.y, cnr[k].y );
 	}
 }
 
@@ -662,14 +662,14 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 				fprintf( f,
 				"\t\t\t\tmin=\"%d\"\n"
 				"\t\t\t\tmax=\"%d\"\n"
-				"\t\t\t/>\n",
+				"\t\t\t>\n",
 				gArgs.xml_min, gArgs.xml_max );
 			}
 			else
-				fprintf( f, "\t\t\t/>\n" );
+				fprintf( f, "\t\t\t>\n" );
 
 			fprintf( f,
-			"\t\t\t<ict_transform"
+			"\t\t\t\t<ict_transform"
 			" class=\"mpicbg.trakem2.transform.HomographyModel2D\""
 			" data=\"%f %f %f %f %f %f %.12g %.12g 1\"/>\n"
 			"\t\t\t</t2_patch>\n",
