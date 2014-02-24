@@ -1722,7 +1722,7 @@ void ImageGradients(
 // Note that image (I) has already been pre-processed
 // so has mean 0 and std 1.
 //
-bool IsLowContrast( vector<double> &I, double std )
+bool IsLowContrast( const vector<double> &I, double std )
 {
 	vector<double>	result;		// power as a function of scale
 	vector<double>	smaller;
@@ -1762,7 +1762,7 @@ bool IsLowContrast( vector<double> &I, double std )
 	int	nr = result.size();
 
 	for( i = 0; i < nr; ++i )
-		printf( "%.3f ", result[i]*std );
+		printf( " %.3f", result[i]*std );
 
 	printf( "\n" );
 

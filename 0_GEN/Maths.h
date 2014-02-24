@@ -286,6 +286,6 @@ void ImageGradients(
 	const vector<Point>	&pts,
 	FILE				*flog );
 
-bool IsLowContrast( vector<double> &I, double std );
+bool IsLowContrast( const vector<double> &I, double std );
 
 
