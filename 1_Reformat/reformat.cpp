@@ -265,6 +265,12 @@ static void UpdateRick()
 			break;
 		}
 
+		if( z > gArgs.zmax )
+			break;
+
+		if( z < gArgs.zmin )
+			continue;
+
 		const char *c, *n = FileNamePtr( buf );
 
 		if( c = strstr( n, "col" ) )
