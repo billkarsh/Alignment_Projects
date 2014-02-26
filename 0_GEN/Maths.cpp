@@ -1776,4 +1776,131 @@ bool IsLowContrast( const vector<double> &I, double std )
 	return lowcon;
 }
 
+/* --------------------------------------------------------------- */
+/* Sobel8 -------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Sobel filter 8-bit data with image boundary extension.
+//
+// Dst assumed preallocated to size wxh.
+//
+// Kx = -1  0  1
+//		-2  0  2
+//		-1  0  1
+//
+// Ky =  1  2  1
+//		 0  0  0
+//		-1 -2 -1
+//
+// |K| = sqrt( Kx^2 + Ky^2 )
+//
+void Sobel8(
+	uint8		*dst,
+	const uint8	*src,
+	int			w,
+	int			h )
+{
+	int	dx, dy, c, n = w * h;
+
+// top-left
+	c  = 0;
+	dx = 3*(src[c+1] - src[c]) + src[c+1+w] - src[c+w];
+	dy = 3*(src[c] - src[c+w]) + src[c+1] - src[c+1+w];
+
+	dx = (int)sqrt( dx*dx + dy*dy);
+	dst[c] = (dx <= 255 ? dx : 255);
+
+// top-right
+	c  = w-1;
+	dx = 3*(src[c] - src[c-1]) + src[c+w] - src[c-1+w];
+	dy = 3*(src[c] - src[c+w]) + src[c-1] - src[c-1+w];
+
+	dx = (int)sqrt( dx*dx + dy*dy);
+	dst[c] = (dx <= 255 ? dx : 255);
+
+// bot-left
+	c  = n-w;
+	dx = 3*(src[c+1] - src[c]) + src[c+1-w] - src[c-w];
+	dy = 3*(src[c-w] - src[c]) + src[c+1-w] - src[c+1];
+
+	dx = (int)sqrt( dx*dx + dy*dy);
+	dst[c] = (dx <= 255 ? dx : 255);
+
+// bot-right
+	c  = n-1;
+	dx = 3*(src[c] - src[c-1]) + src[c-w] - src[c-1-w];
+	dy = 3*(src[c-w] - src[c]) + src[c-1-w] - src[c-1];
+
+	dx = (int)sqrt( dx*dx + dy*dy);
+	dst[c] = (dx <= 255 ? dx : 255);
+
+// top row
+	for( int i = 1; i < w-1; ++i ) {
+
+		dx = 3*(src[i+1] - src[i-1]) + src[i+1+w] - src[i-1+w];
+		dy = src[i+1] - src[i+1+w]
+				+ 2*(src[i] - src[i+w])
+				+ src[i-1] - src[i-1+w];
+
+		dx = (int)sqrt( dx*dx + dy*dy);
+		dst[i] = (dx <= 255 ? dx : 255);
+	}
+
+// left side
+	for( int i = w; i < n-w; i += w ) {
+
+		dx = src[i+1-w] - src[i-w]
+				+ 2*(src[i+1] - src[i])
+				+ src[i+1+w] - src[i+w];
+		dy = 3*(src[i-w] - src[i+w]) + src[i+1-w] - src[i+1+w];
+
+		dx = (int)sqrt( dx*dx + dy*dy);
+		dst[i] = (dx <= 255 ? dx : 255);
+	}
+
+// right side
+	for( int i = w+w-1; i < n-1; i += w ) {
+
+		dx = src[i-w] - src[i-1-w]
+				+ 2*(src[i] - src[i-1])
+				+ src[i+w] - src[i-1+w];
+		dy = 3*(src[i-w] - src[i+w]) + src[i-1-w] - src[i-1+w];
+
+		dx = (int)sqrt( dx*dx + dy*dy);
+		dst[i] = (dx <= 255 ? dx : 255);
+	}
+
+// bot row
+	for( int i = n-w+1; i < n-1; ++i ) {
+
+		dx = 3*(src[i+1] - src[i-1]) + src[i+1-w] - src[i-1-w];
+		dy = src[i+1-w] - src[i+1]
+				+ 2*(src[i-w] - src[i])
+				+ src[i-1-w] - src[i-1];
+
+		dx = (int)sqrt( dx*dx + dy*dy);
+		dst[i] = (dx <= 255 ? dx : 255);
+	}
+
+// inside
+	for( int y = 1; y < h-1; ++y ) {
+
+		for( int x = 1; x < w-1; ++x ) {
+
+			c  = x + w * y;
+
+			dx = src[c+1-w] - src[c-1-w]
+					+ 2*(src[c+1] - src[c-1])
+					+ src[c+1+w] - src[c-1+w];
+
+			dy = src[c+1-w] - src[c+1+w]
+					+ 2*(src[c-w] - src[c+w])
+					+ src[c-1-w] - src[c-1+w];
+
+			dx = (int)sqrt( dx*dx + dy*dy);
+			dst[c] = (dx <= 255 ? dx : 255);
+		}
+	}
+}
+
 

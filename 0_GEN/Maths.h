@@ -288,4 +288,10 @@ void ImageGradients(
 
 bool IsLowContrast( const vector<double> &I, double std );
 
+void Sobel8(
+	uint8		*dst,
+	const uint8	*src,
+	int			w,
+	int			h );
+
 
