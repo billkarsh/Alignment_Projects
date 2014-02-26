@@ -607,7 +607,7 @@ int main( int argc, char* argv[] )
 /* Read source file */
 /* ---------------- */
 
-	int		isrickfile = !FileExtIsXML( gArgs.infile );
+	int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
 
 	if( isrickfile )
 		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
@@ -624,7 +624,7 @@ int main( int argc, char* argv[] )
 
 	TS.SortAll_z_id();
 
-	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
+	ismrc = FileIsExt( TS.vtil[0].name.c_str(), ".mrc" );
 
 	if( ismrc )
 		Make_nmrc_paths();

@@ -95,24 +95,30 @@ char* FileCloneNamePart( const char *path )
 }
 
 /* --------------------------------------------------------------- */
-/* FileExtIsXML -------------------------------------------------- */
+/* FileIsExt ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool FileExtIsXML( const char *path )
+// True if file extension matches (case insensitive).
+//
+// Target ext should include dot, e.g., ".xml"
+//
+bool FileIsExt( const char *path, const char *ext )
 {
-	bool		isxml	= false;
 	const char	*dot	= strrchr( path, '.' );
+	int			ne		= strlen( ext );
 
-	if( dot
-		&& strlen( path ) - (++dot - path) == 3
-		&& toupper( *dot++ ) == 'X'
-		&& toupper( *dot++ ) == 'M'
-		&& toupper( *dot++ ) == 'L' ) {
+	if( dot && strlen( dot ) == ne ) {
 
-		isxml = true;
+		for( int i = 0; i < ne; ++i ) {
+
+			if( toupper( *++dot ) != toupper( *++ext ) )
+				return false;
+		}
+
+		return true;
 	}
 
-	return isxml;
+	return false;
 }
 
 

@@ -841,7 +841,7 @@ int main( int argc, char* argv[] )
 /* Read source file */
 /* ---------------- */
 
-	int		isrickfile = !FileExtIsXML( gArgs.infile );
+	int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
 
 	if( isrickfile )
 		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );

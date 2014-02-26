@@ -257,7 +257,7 @@ static void Write_upmongo()
 	char	buf[2048], inname[256];
 	FILE	*f;
 
-	if( FileExtIsXML( gArgs.infile ) && !XMLHasMRC() ) {
+	if( FileIsExt( gArgs.infile, ".xml" ) && !XMLHasMRC() ) {
 
 		const char	*name	= FileNamePtr( gArgs.infile ),
 					*dot	= FileDotPtr( name );
