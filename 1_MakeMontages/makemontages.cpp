@@ -263,7 +263,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	fprintf( f, "# -prior=path\t\t;starting tforms (required if stack)\n" );
 	fprintf( f, "# -untwist\t\t\t;untwist prior affines\n" );
 	fprintf( f, "# -mode=A2A\t\t\t;action: {catalog,eval,split,A2A,A2H,H2H}\n" );
-	fprintf( f, "# -iters=250\t\t;solve iterations\n" );
+	fprintf( f, "# -iters=2000\t\t;solve iterations\n" );
 	fprintf( f, "# -splitmin=1000\t;separate islands > splitmin tiles\n" );
 	fprintf( f, "# -zpernode=200\t\t;max layers per cluster node\n" );
 	fprintf( f, "# -maxthreads=1\t\t;thr/node if not mpi (16 if mpi)\n" );
@@ -275,7 +275,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	else {
 		fprintf( f, "lsq -temp=../ -zi=%d,%d"
 		" -prior=../cross_wkspc/X_A_TXT -untwist"
-		" -mode=A2A -iters=1000 -zpernode=200"
+		" -mode=A2A -iters=2000 -zpernode=200"
 		" -maxthreads=16\n",
 		gArgs.zmin, gArgs.zmax );
 	}

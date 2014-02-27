@@ -19,7 +19,7 @@
 # -prior=path		;starting tforms (required if stack)
 # -untwist			;untwist prior affines
 # -mode=A2A			;action: {catalog,eval,split,A2A,A2H,H2H}
-# -iters=250		;solve iterations
+# -iters=2000		;solve iterations
 # -splitmin=1000	;separate islands > splitmin tiles
 # -zpernode=200		;max layers per cluster node
 # -maxthreads=1		;thr/node if not mpi (16 if mpi)

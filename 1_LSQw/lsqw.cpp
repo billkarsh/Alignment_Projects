@@ -49,7 +49,7 @@ public:
 		zihi		= 0;
 		zolo		= -1;
 		zohi		= -1;
-		iters		= 250;
+		iters		= 2000;
 		splitmin	= 10;
 		untwist		= false;
 	};
