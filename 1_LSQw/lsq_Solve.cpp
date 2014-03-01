@@ -1151,7 +1151,10 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 /* Set nthr */
 /* -------- */
 
-	const int minrgnsperthr = 100;
+// Balance work/thread vs. thread overhead.
+// Revisit if workload altered.
+
+	const int minrgnsperthr = 8;
 
 	int	nrgn = Todo::RgnCount();
 
@@ -1159,6 +1162,8 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 
 	while( nthr > 1 && nrgn < minrgnsperthr * nthr )
 		--nthr;
+
+	printf( "NThrd: %d\n", nthr );
 
 /* ------- */
 /* Iterate */
