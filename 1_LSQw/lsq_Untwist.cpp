@@ -67,6 +67,8 @@ void* _RgdSums( void* ithr )
 		AIO&					A	= vA[ib];
 		RgdSums&				S	= vS[ib];
 
+		memset( &S, 0, sizeof(RgdSums) );
+
 		// For each A-layer rgn...
 
 		for( int ir = 0; ir < Ra.nr; ++ir ) {
