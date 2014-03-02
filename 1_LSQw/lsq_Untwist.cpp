@@ -7,8 +7,10 @@
 #include	"EZThreads.h"
 #include	"Disk.h"
 #include	"File.h"
-#include	"TAffine.h"
+#include	"CRigid.h"
 #include	"Timer.h"
+
+#include	<string.h>
 
 
 /* --------------------------------------------------------------- */
@@ -18,12 +20,6 @@
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-class RgdSums {
-public:
-	double	Xa, Ya, Xb, Yb, XaXb, YaYb, XaYb, YaXb;
-	int		N;
-};
 
 class AIO {
 public:
@@ -35,10 +31,9 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static XArray			*gX;
-static vector<AIO>		vA;
-static vector<RgdSums>	vS;
-static int				nthr;
+static XArray		*gX;
+static vector<AIO>	vA;
+static int			nthr;
 
 
 
@@ -51,7 +46,7 @@ static int				nthr;
 
 void* _RgdSums( void* ithr )
 {
-	int	nb = vS.size();
+	int	nb = vA.size();
 
 // For each B-layer...
 
@@ -59,15 +54,13 @@ void* _RgdSums( void* ithr )
 
 		// Form the sums
 
+		CRigid					rgd;
 		int						ia	= ib + 1;
 		const Rgns&				Rb	= vR[ib];
 		const Rgns&				Ra	= vR[ia];
 		const vector<double>&	xb	= gX->X[ib];
 		const vector<double>&	xa	= gX->X[ia];
 		AIO&					A	= vA[ib];
-		RgdSums&				S	= vS[ib];
-
-		memset( &S, 0, sizeof(RgdSums) );
 
 		// For each A-layer rgn...
 
@@ -107,39 +100,14 @@ void* _RgdSums( void* ithr )
 
 				Ta->Transform( pa );
 				Tb->Transform( pb );
-
-				S.Xa += pa.x;
-				S.Ya += pa.y;
-				S.Xb += pb.x;
-				S.Yb += pb.y;
-
-				S.XaXb += pa.x * pb.x;
-				S.YaYb += pa.y * pb.y;
-				S.XaYb += pa.x * pb.y;
-				S.YaXb += pa.y * pb.x;
-
-				++S.N;
+				rgd.Add( pa, pb );
 			}
 		}
 
 		// Set transform
 
-		if( S.N < 2 )
-			continue;
-
-		double
-		theta = atan(
-			(S.YaXb - S.XaYb + (S.Xa*S.Yb - S.Ya*S.Xb)/S.N) /
-			((S.Xa*S.Xb + S.Ya*S.Yb)/S.N - S.XaXb - S.YaYb)
-		),
-		c  = cos( theta ),
-		s  = sin( theta ),
-		kx = (S.Xb - c*S.Xa + s*S.Ya) / S.N,
-		ky = (S.Yb - s*S.Xa - c*S.Ya) / S.N;
-
-		A.z      = Ra.z;
-		A.A.t[0] = c; A.A.t[1] = -s; A.A.t[2] = kx;
-		A.A.t[3] = s; A.A.t[4] =  c; A.A.t[5] = ky;
+		A.z = Ra.z;
+		rgd.Solve( A.A );
 	}
 
 	return NULL;
@@ -158,7 +126,6 @@ static void CalcMyPairwiseTForms( XArray &X )
 	int	nb = zohi - zolo;	// this many b-layers
 
 	vA.resize( nb );
-	vS.resize( nb );
 
 	nthr = maxthreads;
 
@@ -167,8 +134,6 @@ static void CalcMyPairwiseTForms( XArray &X )
 
 	if( !EZThreads( _RgdSums, nthr, 1, "_RgdSums" ) )
 		exit( 42 );
-
-	vS.clear();
 }
 
 /* --------------------------------------------------------------- */
@@ -285,20 +250,6 @@ static void Apply( TAffine &A0 )
 // better angle calculations can be made later, after the down
 // correspondence points are formed. Adjustments are calculated
 // here as rigid transforms T{theta, kx, ky) from layer a to b.
-//
-// Let c=cos(theta), s=sin(theta), Sum over all point-pairs:
-//
-// E = Sum[Xb - cXa + sYa - kx]^2 + [Yb - sXa - cYa - ky]^2
-//
-// The params u = {theta,kx,ky) are determined by dE/du = 0.
-// If we use notation [arg] => Sum[argi] over point-pairs,
-//
-// kx = ([Xb] - c[Xa] + s[Ya]) / N
-// ky = ([Yb] - s[Xa] - c[Ya]) / N
-//
-//				[YaXb] - [XaYb] + ([Xa][Yb] - [Ya][Xb]) / N
-// tan(theta) = --------------------------------------------
-//				([Xa][Xb] + [Ya][Yb]) / N - [XaXb] - [YaYb]
 //
 void UntwistAffines( XArray &X )
 {

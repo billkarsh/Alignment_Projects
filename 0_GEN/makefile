@@ -13,6 +13,7 @@ files =\
  CPixPair.cpp\
  CPoint.cpp\
  CRegexID.cpp\
+ CRigid.cpp\
  CTemplate.cpp\
  CThmScan.cpp\
  CTileSet.cpp\
