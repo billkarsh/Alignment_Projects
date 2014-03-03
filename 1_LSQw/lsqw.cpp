@@ -26,6 +26,7 @@
 class CArgs {
 
 public:
+	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rdg
 	const char	*tempdir,		// master workspace
 				*cachedir,		// {catalog, pnts} files
 				*prior,			// start from these solutions
@@ -41,6 +42,7 @@ public:
 public:
 	CArgs()
 	{
+		Wr			= 0.001;
 		tempdir		= NULL;
 		cachedir	= NULL;
 		prior		= NULL;
@@ -118,6 +120,8 @@ bool CArgs::SetCmdLine( int argc, char* argv[] )
 				return false;
 			}
 		}
+		else if( GetArg( &Wr, "-Wr=%lf", argv[i] ) )
+			printf( "Rglizer Wr: %g\n", Wr );
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
 		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
@@ -296,7 +300,7 @@ int main( int argc, char **argv )
 			UntwistAffines( Xevn );
 
 		Xodd.Resize( 6 );
-		Solve( Xevn, Xodd, gArgs.iters );
+		Solve( Xevn, Xodd, gArgs.Wr, gArgs.iters );
 	}
 	else if( !strcmp( gArgs.mode, "A2H" ) ) {
 
@@ -309,18 +313,18 @@ int main( int argc, char **argv )
 			if( gArgs.untwist )
 				UntwistAffines( *A );
 
-			Solve( *A, Xevn, 1 );
+			Solve( *A, Xevn, gArgs.Wr, 1 );
 			delete A;
 		}
 
 		Xodd.Resize( 8 );
-		Solve( Xevn, Xodd, gArgs.iters );
+		Solve( Xevn, Xodd, gArgs.Wr, gArgs.iters );
 	}
 	else if( !strcmp( gArgs.mode, "H2H" ) ) {
 
 		Xevn.Load( gArgs.prior );
 		Xodd.Resize( 8 );
-		Solve( Xevn, Xodd, gArgs.iters );
+		Solve( Xevn, Xodd, gArgs.Wr, gArgs.iters );
 	}
 	else if( !strcmp( gArgs.mode, "eval" ) ) {
 

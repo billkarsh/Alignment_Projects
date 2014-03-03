@@ -18,6 +18,7 @@ public:
 	CRigid();
 	void Add( const Point &A, const Point &B );
 	void Solve( TAffine& T );
+	void Regularize( double *v, int nv, double Wr );
 };
 
 

@@ -85,4 +85,33 @@ void CRigid::Solve( TAffine& T )
 		T.NUSetOne();
 }
 
+/* --------------------------------------------------------------- */
+/* CRigid::Regularize -------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Solve for a rigid transform (R) and form a weighted average
+// of R and given values describing an affine or homography (T):
+// T -> (1-Wr)*T + Wr*R.
+//
+// Number of transform values (nv) must be 6 or 8.
+//
+void CRigid::Regularize( double *v, int nv, double Wr )
+{
+	if( N < 2 || Wr == 0 )
+		return;
+
+	TAffine	R;
+	Solve( R );
+
+	double	Wv = (1.0 - Wr);
+
+	for( int i = 0; i < 6; ++i )
+		v[i] = Wv * v[i] + Wr * R.t[i];
+
+	if( nv == 8 ) {
+		v[6] *= Wv;
+		v[7] *= Wv;
+	}
+}
+
 

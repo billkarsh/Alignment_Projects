@@ -10,6 +10,6 @@
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void Solve( XArray &Xsrc, XArray &Xdst, int iters );
+void Solve( XArray &Xsrc, XArray &Xdst, double inWr, int iters );
 
 

@@ -28,6 +28,7 @@
 class CArgs {
 
 public:
+	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rdg
 	char		tempdir[2048],	// master workspace
 				cachedir[2048];	// {catalog, pnts} files
 	const char	*prior,			// start from these solutions
@@ -46,6 +47,7 @@ public:
 public:
 	CArgs()
 	{
+		Wr			= 0.001;
 		tempdir[0]	= 0;
 		cachedir[0]	= 0;
 		prior		= NULL;
@@ -141,6 +143,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 				exit( 42 );
 			}
 		}
+		else if( GetArg( &Wr, "-Wr=%lf", argv[i] ) )
+			printf( "Rglizer Wr: %g\n", Wr );
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
 		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
@@ -307,12 +311,14 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			sprintf( buf,
 			"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
-			" -mode=%s -iters=%d -splitmin=%d -maxthreads=1"
+			" -mode=%s -Wr=%g -iters=%d"
+			" -splitmin=%d -maxthreads=1"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
-			mode, iters, splitmin,
+			mode, Wr, iters,
+			splitmin,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
 		}
@@ -322,13 +328,15 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			"qsub -N lsqw -cwd -V -b y -pe batch %d"
 			" lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
-			" -mode=%s -iters=%d -splitmin=%d -maxthreads=%d"
+			" -mode=%s -Wr=%g -iters=%d"
+			" -splitmin=%d -maxthreads=%d"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			maxthreads,
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
-			mode, iters, splitmin, maxthreads,
+			mode, Wr, iters,
+			splitmin, maxthreads,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
 		}
@@ -368,12 +376,14 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
 		" lsqw -nwks=%d -temp=%s"
 		" -cache=%s -prior=%s"
-		" -mode=%s -iters=%d -splitmin=%d -maxthreads=16"
+		" -mode=%s -Wr=%g -iters=%d"
+		" -splitmin=%d -maxthreads=16"
 		"%s\n",
 		nwks,
 		nwks, tempdir,
 		cachedir, (prior ? prior : ""),
-		mode, iters, splitmin,
+		mode, Wr, iters,
+		splitmin,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );
 

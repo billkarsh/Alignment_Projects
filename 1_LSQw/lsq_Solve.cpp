@@ -5,7 +5,7 @@
 
 #include	"EZThreads.h"
 #include	"LinEqu.h"
-#include	"TAffine.h"
+#include	"CRigid.h"
 #include	"THmgphy.h"
 #include	"Timer.h"
 
@@ -71,6 +71,7 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+static double			Wr;
 static XArray			*Xs, *Xd;
 static vector<Thrdat>	vthr;
 static int				editdelay,
@@ -234,6 +235,7 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 
 // For rgn Q...
 
+	CRigid				rgd;
 	const Rgns&			R  = vR[Q.iz];
 	const vector<int>&	vp = R.pts[Q.ir];
 	int					np = vp.size(),
@@ -277,6 +279,8 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
+
+			rgd.Add( A, B );
 		}
 		else {	// A is 2
 
@@ -295,6 +299,8 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p2;
+
+			rgd.Add( A, B );
 		}
 
 		++nu;
@@ -305,14 +311,17 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
 	}
 
-	if( nu < 3
-		|| !Solve_Quick( LHS, RHS, 6 )
-		|| X_AS_AFF( RHS, 0 ).Squareness() > sqrtol ) {
-
+	if( nu < 3 || !Solve_Quick( LHS, RHS, 6 ) )
 		KILL( Q );
+	else {
+
+		rgd.Regularize( RHS, 6, Wr );
+
+		if( X_AS_AFF( RHS, 0 ).Squareness() > sqrtol )
+			KILL( Q );
+		else
+			CUTD( Q );
 	}
-	else
-		CUTD( Q );
 }
 
 /* --------------------------------------------------------------- */
@@ -326,6 +335,7 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 
 // For rgn Q...
 
+	CRigid				rgd;
 	const Rgns&			R  = vR[Q.iz];
 	const vector<int>&	vp = R.pts[Q.ir];
 	int					np = vp.size(),
@@ -369,6 +379,8 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
+
+			rgd.Add( A, B );
 		}
 		else {	// A is 2
 
@@ -387,6 +399,8 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p2;
+
+			rgd.Add( A, B );
 		}
 
 		++nu;
@@ -401,14 +415,17 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
 	}
 
-	if( nu < 4
-		|| !Solve_Quick( LHS, RHS, 8 )
-		|| X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
-
+	if( nu < 4 || !Solve_Quick( LHS, RHS, 8 ) )
 		KILL( Q );
+	else {
+
+		rgd.Regularize( RHS, 8, Wr );
+
+		if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
+			KILL( Q );
+		else
+			CUTD( Q );
 	}
-	else
-		CUTD( Q );
 }
 
 /* --------------------------------------------------------------- */
@@ -422,6 +439,7 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 
 // For rgn Q...
 
+	CRigid				rgd;
 	const Rgns&			R  = vR[Q.iz];
 	const vector<int>&	vp = R.pts[Q.ir];
 	int					np = vp.size(),
@@ -465,6 +483,8 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
+
+			rgd.Add( A, B );
 		}
 		else {	// A is 2
 
@@ -483,6 +503,8 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p2;
+
+			rgd.Add( A, B );
 		}
 
 		++nu;
@@ -497,14 +519,17 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
 	}
 
-	if( nu < 4
-		|| !Solve_Quick( LHS, RHS, 8 )
-		|| X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
-
+	if( nu < 4 || !Solve_Quick( LHS, RHS, 8 ) )
 		KILL( Q );
+	else {
+
+		rgd.Regularize( RHS, 8, Wr );
+
+		if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
+			KILL( Q );
+		else
+			CUTD( Q );
 	}
-	else
-		CUTD( Q );
 }
 
 /* --------------------------------------------------------------- */
@@ -525,6 +550,7 @@ static void* _A2A( void* ithr )
 
 	do {
 
+		CRigid			rgd;
 		Rgns&			R  = vR[Q.iz];
 		vector<int>&	vp = R.pts[Q.ir];
 		int				np = vp.size(),
@@ -593,6 +619,8 @@ static void* _A2A( void* ithr )
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
+
+				rgd.Add( A, B );
 			}
 			else {	// A is 2
 
@@ -623,6 +651,8 @@ static void* _A2A( void* ithr )
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p2;
+
+				rgd.Add( A, B );
 			}
 
 			++nu;
@@ -635,17 +665,20 @@ static void* _A2A( void* ithr )
 
 		if( nu < 3 )
 			KILL( Q );
-		else if( !Solve_Quick( LHS, RHS, 6 )
-			|| (
-			pass >= editdelay
-			&&
-			X_AS_AFF( RHS, 0 ).Squareness() > sqrtol
-			) ) {
-
+		else if( !Solve_Quick( LHS, RHS, 6 ) )
 			Cut_A2A( RHS, Q, (long)ithr );
+		else {
+
+			rgd.Regularize( RHS, 6, Wr );
+
+			if( pass >= editdelay
+				&& X_AS_AFF( RHS, 0 ).Squareness() > sqrtol ) {
+
+				Cut_A2A( RHS, Q, (long)ithr );
+			}
+			else if( nu < np )
+				ShortenList( Q, (long)ithr, 3 );
 		}
-		else if( nu < np )
-			ShortenList( Q, (long)ithr, 3 );
 
 	} while( Q.Next() );
 
@@ -684,6 +717,7 @@ static void* _A2H( void* ithr )
 
 	do {
 
+		CRigid			rgd;
 		Rgns&			R  = vR[Q.iz];
 		vector<int>&	vp = R.pts[Q.ir];
 		int				np = vp.size(),
@@ -752,6 +786,8 @@ static void* _A2H( void* ithr )
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
+
+				rgd.Add( A, B );
 			}
 			else {	// A is 2
 
@@ -782,6 +818,8 @@ static void* _A2H( void* ithr )
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p2;
+
+				rgd.Add( A, B );
 			}
 
 			++nu;
@@ -798,13 +836,19 @@ static void* _A2H( void* ithr )
 
 		if( nu < 4 )
 			KILL( Q );
-		else if( !Solve_Quick( LHS, RHS, 8 )
-			|| X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
-
+		else if( !Solve_Quick( LHS, RHS, 8 ) )
 			Cut_A2H( RHS, Q, (long)ithr );
+		else {
+
+			rgd.Regularize( RHS, 8, Wr );
+
+			if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+
+				Cut_A2H( RHS, Q, (long)ithr );
+			}
+			else if( nu < np )
+				ShortenList( Q, (long)ithr, 4 );
 		}
-		else if( nu < np )
-			ShortenList( Q, (long)ithr, 4 );
 
 	} while( Q.Next() );
 
@@ -829,6 +873,7 @@ static void* _H2H( void* ithr )
 
 	do {
 
+		CRigid			rgd;
 		Rgns&			R  = vR[Q.iz];
 		vector<int>&	vp = R.pts[Q.ir];
 		int				np = vp.size(),
@@ -897,6 +942,8 @@ static void* _H2H( void* ithr )
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
+
+				rgd.Add( A, B );
 			}
 			else {	// A is 2
 
@@ -927,6 +974,8 @@ static void* _H2H( void* ithr )
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p2;
+
+				rgd.Add( A, B );
 			}
 
 			++nu;
@@ -943,17 +992,20 @@ static void* _H2H( void* ithr )
 
 		if( nu < 4 )
 			KILL( Q );
-		else if( !Solve_Quick( LHS, RHS, 8 )
-			|| (
-			pass >= editdelay
-			&&
-			X_AS_HMY( RHS, 0 ).Squareness() > sqrtol
-			) ) {
-
+		else if( !Solve_Quick( LHS, RHS, 8 ) )
 			Cut_H2H( RHS, Q, (long)ithr );
+		else {
+
+			rgd.Regularize( RHS, 8, Wr );
+
+			if( pass >= editdelay
+				&& X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+
+				Cut_H2H( RHS, Q, (long)ithr );
+			}
+			else if( nu < np )
+				ShortenList( Q, (long)ithr, 4 );
 		}
-		else if( nu < np )
-			ShortenList( Q, (long)ithr, 4 );
 
 	} while( Q.Next() );
 
@@ -1112,9 +1164,21 @@ static void Do1Pass( EZThreadproc proc )
 // Next the src/dst roles are swapped (Xs/Xd pointer swap) and
 // the process repeats.
 //
-void Solve( XArray &Xsrc, XArray &Xdst, int iters )
+// Regularization:
+// When solving for affines, homographies or other transforms
+// that include scaling, the objective function (minimization
+// of square error) is satisfied by driving the scale toward
+// zero. To counter that possibility, we regularize the system
+// by solving both for the desired transform and for a model
+// transform that does not permit scale change, here, a rigid
+// transform. These two are combined in a weighted average:
+// (1-Wr)*Aff + Wr*Rdg.
+//
+void Solve( XArray &Xsrc, XArray &Xdst, double inWr, int iters )
 {
 	clock_t	t0 = StartTiming();
+
+	Wr = inWr;
 
 /* ---------------------- */
 /* Mode specific settings */
@@ -1145,7 +1209,8 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 		cD			= 'H';
 	}
 
-	printf( "Solve: %c to %c iters %d\n", cS, cD, iters );
+	printf( "Solve: %c to %c (Wr %g iters %d)\n",
+	cS, cD, Wr, iters );
 
 /* -------- */
 /* Set nthr */
