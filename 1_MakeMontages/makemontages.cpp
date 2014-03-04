@@ -263,7 +263,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	fprintf( f, "# -prior=path\t\t;starting tforms (required if stack)\n" );
 	fprintf( f, "# -untwist\t\t\t;untwist prior affines\n" );
 	fprintf( f, "# -mode=A2A\t\t\t;action: {catalog,eval,split,A2A,A2H,H2H}\n" );
-	fprintf( f, "# -Wr=0.001\t\t\t;Aff -> (1-Wr)*Aff + Wr*Rdg\n" );
+	fprintf( f, "# -Wr=R,0.001\t\t;Aff -> (1-Wr)*Aff + Wr*(T=Trans, R=Rgd}\n" );
 	fprintf( f, "# -iters=2000\t\t;solve iterations\n" );
 	fprintf( f, "# -splitmin=1000\t;separate islands > splitmin tiles\n" );
 	fprintf( f, "# -zpernode=200\t\t;max layers per cluster node\n" );

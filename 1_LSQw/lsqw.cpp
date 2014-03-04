@@ -26,7 +26,7 @@
 class CArgs {
 
 public:
-	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rdg
+	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rgd
 	const char	*tempdir,		// master workspace
 				*cachedir,		// {catalog, pnts} files
 				*prior,			// start from these solutions
@@ -35,6 +35,7 @@ public:
 				zihi,
 				zolo,			// extended input range
 				zohi,
+				regtype,		// regularizer {T,R}
 				iters,			// solve iterations
 				splitmin;		// separate islands > splitmin tiles
 	bool		untwist;		// iff prior are affines
@@ -51,6 +52,7 @@ public:
 		zihi		= 0;
 		zolo		= -1;
 		zohi		= -1;
+		regtype		= 'R';
 		iters		= 2000;
 		splitmin	= 10;
 		untwist		= false;
@@ -120,8 +122,14 @@ bool CArgs::SetCmdLine( int argc, char* argv[] )
 				return false;
 			}
 		}
-		else if( GetArg( &Wr, "-Wr=%lf", argv[i] ) )
-			printf( "Rglizer Wr: %g\n", Wr );
+		else if( GetArg( &Wr, "-Wr=T,%lf", argv[i] ) ) {
+			regtype = 'T';
+			printf( "Rglizer Wr: T, %g\n", Wr );
+		}
+		else if( GetArg( &Wr, "-Wr=R,%lf", argv[i] ) ) {
+			regtype = 'R';
+			printf( "Rglizer Wr: R, %g\n", Wr );
+		}
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
 		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
@@ -290,6 +298,8 @@ int main( int argc, char **argv )
 
 	printf( "\n---- Solve ----\n" );
 
+	SetRegularizer( gArgs.regtype, gArgs.Wr );
+
 	XArray	Xevn, Xodd;
 
 	if( !strcmp( gArgs.mode, "A2A" ) ) {
@@ -300,7 +310,7 @@ int main( int argc, char **argv )
 			UntwistAffines( Xevn );
 
 		Xodd.Resize( 6 );
-		Solve( Xevn, Xodd, gArgs.Wr, gArgs.iters );
+		Solve( Xevn, Xodd, gArgs.iters );
 	}
 	else if( !strcmp( gArgs.mode, "A2H" ) ) {
 
@@ -313,18 +323,18 @@ int main( int argc, char **argv )
 			if( gArgs.untwist )
 				UntwistAffines( *A );
 
-			Solve( *A, Xevn, gArgs.Wr, 1 );
+			Solve( *A, Xevn, 1 );
 			delete A;
 		}
 
 		Xodd.Resize( 8 );
-		Solve( Xevn, Xodd, gArgs.Wr, gArgs.iters );
+		Solve( Xevn, Xodd, gArgs.iters );
 	}
 	else if( !strcmp( gArgs.mode, "H2H" ) ) {
 
 		Xevn.Load( gArgs.prior );
 		Xodd.Resize( 8 );
-		Solve( Xevn, Xodd, gArgs.Wr, gArgs.iters );
+		Solve( Xevn, Xodd, gArgs.iters );
 	}
 	else if( !strcmp( gArgs.mode, "eval" ) ) {
 

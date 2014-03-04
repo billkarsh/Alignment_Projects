@@ -28,7 +28,7 @@
 class CArgs {
 
 public:
-	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rdg
+	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rgd
 	char		tempdir[2048],	// master workspace
 				cachedir[2048];	// {catalog, pnts} files
 	const char	*prior,			// start from these solutions
@@ -37,6 +37,7 @@ public:
 				zihi,
 				zolo,			// extended input range
 				zohi,
+				regtype,		// regularizer {T,R}
 				iters,			// solve iterations
 				splitmin,		// separate islands > splitmin tiles
 				zpernode,		// max layers per node
@@ -56,6 +57,7 @@ public:
 		zihi		= 0;
 		zolo		= -1;
 		zohi		= -1;
+		regtype		= 'R';
 		iters		= 2000;
 		splitmin	= 1000;
 		zpernode	= 200;
@@ -143,8 +145,14 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 				exit( 42 );
 			}
 		}
-		else if( GetArg( &Wr, "-Wr=%lf", argv[i] ) )
-			printf( "Rglizer Wr: %g\n", Wr );
+		else if( GetArg( &Wr, "-Wr=T,%lf", argv[i] ) ) {
+			regtype = 'T';
+			printf( "Rglizer Wr: T, %g\n", Wr );
+		}
+		else if( GetArg( &Wr, "-Wr=R,%lf", argv[i] ) ) {
+			regtype = 'R';
+			printf( "Rglizer Wr: R, %g\n", Wr );
+		}
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
 		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
@@ -311,13 +319,13 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			sprintf( buf,
 			"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
-			" -mode=%s -Wr=%g -iters=%d"
+			" -mode=%s -Wr=%c,%g -iters=%d"
 			" -splitmin=%d -maxthreads=1"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
-			mode, Wr, iters,
+			mode, regtype, Wr, iters,
 			splitmin,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
@@ -328,14 +336,14 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 			"qsub -N lsqw -cwd -V -b y -pe batch %d"
 			" lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
-			" -mode=%s -Wr=%g -iters=%d"
+			" -mode=%s -Wr=%c,%g -iters=%d"
 			" -splitmin=%d -maxthreads=%d"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			maxthreads,
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
-			mode, Wr, iters,
+			mode, regtype, Wr, iters,
 			splitmin, maxthreads,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
@@ -376,13 +384,13 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		fprintf( f, "mpirun -perhost 1 -n %d -machinefile hosts.txt"
 		" lsqw -nwks=%d -temp=%s"
 		" -cache=%s -prior=%s"
-		" -mode=%s -Wr=%g -iters=%d"
+		" -mode=%s -Wr=%c,%g -iters=%d"
 		" -splitmin=%d -maxthreads=16"
 		"%s\n",
 		nwks,
 		nwks, tempdir,
 		cachedir, (prior ? prior : ""),
-		mode, Wr, iters,
+		mode, regtype, Wr, iters,
 		splitmin,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );

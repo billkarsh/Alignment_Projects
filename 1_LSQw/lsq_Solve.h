@@ -10,6 +10,8 @@
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void Solve( XArray &Xsrc, XArray &Xdst, double inWr, int iters );
+void SetRegularizer( int type, double weight );
+
+void Solve( XArray &Xsrc, XArray &Xdst, int iters );
 
 

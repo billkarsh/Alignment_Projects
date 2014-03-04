@@ -74,7 +74,8 @@ public:
 static double			Wr;
 static XArray			*Xs, *Xd;
 static vector<Thrdat>	vthr;
-static int				editdelay,
+static int				regtype,
+						editdelay,
 						pass, nthr;
 
 
@@ -235,11 +236,16 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 
 // For rgn Q...
 
-	CRigid				rgd;
+	CRigid				*rgd;
 	const Rgns&			R  = vR[Q.iz];
 	const vector<int>&	vp = R.pts[Q.ir];
 	int					np = vp.size(),
 						nu = 0;	// count pts used
+
+	if( regtype == 'R' )
+		rgd = new CRigid;
+	else
+		rgd = new CTrans;
 
 	double		LHS[6*6];
 	TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
@@ -280,7 +286,7 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
 
-			rgd.Add( A, B );
+			rgd->Add( A, B );
 		}
 		else {	// A is 2
 
@@ -300,7 +306,7 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p2;
 
-			rgd.Add( A, B );
+			rgd->Add( A, B );
 		}
 
 		++nu;
@@ -315,13 +321,15 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 		KILL( Q );
 	else {
 
-		rgd.Regularize( RHS, 6, Wr );
+		rgd->Regularize( RHS, 6, Wr );
 
 		if( X_AS_AFF( RHS, 0 ).Squareness() > sqrtol )
 			KILL( Q );
 		else
 			CUTD( Q );
 	}
+
+	delete rgd;
 }
 
 /* --------------------------------------------------------------- */
@@ -335,11 +343,16 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 
 // For rgn Q...
 
-	CRigid				rgd;
+	CRigid				*rgd;
 	const Rgns&			R  = vR[Q.iz];
 	const vector<int>&	vp = R.pts[Q.ir];
 	int					np = vp.size(),
 						nu = 0;	// count pts used
+
+	if( regtype == 'R' )
+		rgd = new CRigid;
+	else
+		rgd = new CTrans;
 
 	double		LHS[8*8];
 	TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
@@ -380,7 +393,7 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
 
-			rgd.Add( A, B );
+			rgd->Add( A, B );
 		}
 		else {	// A is 2
 
@@ -400,7 +413,7 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p2;
 
-			rgd.Add( A, B );
+			rgd->Add( A, B );
 		}
 
 		++nu;
@@ -419,13 +432,15 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 		KILL( Q );
 	else {
 
-		rgd.Regularize( RHS, 8, Wr );
+		rgd->Regularize( RHS, 8, Wr );
 
 		if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
 			KILL( Q );
 		else
 			CUTD( Q );
 	}
+
+	delete rgd;
 }
 
 /* --------------------------------------------------------------- */
@@ -439,11 +454,16 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 
 // For rgn Q...
 
-	CRigid				rgd;
+	CRigid				*rgd;
 	const Rgns&			R  = vR[Q.iz];
 	const vector<int>&	vp = R.pts[Q.ir];
 	int					np = vp.size(),
 						nu = 0;	// count pts used
+
+	if( regtype == 'R' )
+		rgd = new CRigid;
+	else
+		rgd = new CTrans;
 
 	double		LHS[8*8];
 	THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
@@ -484,7 +504,7 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
 
-			rgd.Add( A, B );
+			rgd->Add( A, B );
 		}
 		else {	// A is 2
 
@@ -504,7 +524,7 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p2;
 
-			rgd.Add( A, B );
+			rgd->Add( A, B );
 		}
 
 		++nu;
@@ -523,13 +543,15 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 		KILL( Q );
 	else {
 
-		rgd.Regularize( RHS, 8, Wr );
+		rgd->Regularize( RHS, 8, Wr );
 
 		if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
 			KILL( Q );
 		else
 			CUTD( Q );
 	}
+
+	delete rgd;
 }
 
 /* --------------------------------------------------------------- */
@@ -550,7 +572,7 @@ static void* _A2A( void* ithr )
 
 	do {
 
-		CRigid			rgd;
+		CRigid			*rgd;
 		Rgns&			R  = vR[Q.iz];
 		vector<int>&	vp = R.pts[Q.ir];
 		int				np = vp.size(),
@@ -560,6 +582,11 @@ static void* _A2A( void* ithr )
 			KILL( Q );
 			continue;
 		}
+
+		if( regtype == 'R' )
+			rgd = new CRigid;
+		else
+			rgd = new CTrans;
 
 		double		*RHS = X_AS_AFF( Xd->X[Q.iz], Q.ir ).t;
 		double		LHS[6*6];
@@ -620,7 +647,7 @@ static void* _A2A( void* ithr )
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
 
-				rgd.Add( A, B );
+				rgd->Add( A, B );
 			}
 			else {	// A is 2
 
@@ -652,7 +679,7 @@ static void* _A2A( void* ithr )
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p2;
 
-				rgd.Add( A, B );
+				rgd->Add( A, B );
 			}
 
 			++nu;
@@ -669,7 +696,7 @@ static void* _A2A( void* ithr )
 			Cut_A2A( RHS, Q, (long)ithr );
 		else {
 
-			rgd.Regularize( RHS, 6, Wr );
+			rgd->Regularize( RHS, 6, Wr );
 
 			if( pass >= editdelay
 				&& X_AS_AFF( RHS, 0 ).Squareness() > sqrtol ) {
@@ -679,6 +706,8 @@ static void* _A2A( void* ithr )
 			else if( nu < np )
 				ShortenList( Q, (long)ithr, 3 );
 		}
+
+		delete rgd;
 
 	} while( Q.Next() );
 
@@ -717,7 +746,7 @@ static void* _A2H( void* ithr )
 
 	do {
 
-		CRigid			rgd;
+		CRigid			*rgd;
 		Rgns&			R  = vR[Q.iz];
 		vector<int>&	vp = R.pts[Q.ir];
 		int				np = vp.size(),
@@ -727,6 +756,11 @@ static void* _A2H( void* ithr )
 			KILL( Q );
 			continue;
 		}
+
+		if( regtype == 'R' )
+			rgd = new CRigid;
+		else
+			rgd = new CTrans;
 
 		double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
 		double		LHS[8*8];
@@ -787,7 +821,7 @@ static void* _A2H( void* ithr )
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
 
-				rgd.Add( A, B );
+				rgd->Add( A, B );
 			}
 			else {	// A is 2
 
@@ -819,7 +853,7 @@ static void* _A2H( void* ithr )
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p2;
 
-				rgd.Add( A, B );
+				rgd->Add( A, B );
 			}
 
 			++nu;
@@ -840,7 +874,7 @@ static void* _A2H( void* ithr )
 			Cut_A2H( RHS, Q, (long)ithr );
 		else {
 
-			rgd.Regularize( RHS, 8, Wr );
+			rgd->Regularize( RHS, 8, Wr );
 
 			if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
 
@@ -849,6 +883,8 @@ static void* _A2H( void* ithr )
 			else if( nu < np )
 				ShortenList( Q, (long)ithr, 4 );
 		}
+
+		delete rgd;
 
 	} while( Q.Next() );
 
@@ -873,7 +909,7 @@ static void* _H2H( void* ithr )
 
 	do {
 
-		CRigid			rgd;
+		CRigid			*rgd;
 		Rgns&			R  = vR[Q.iz];
 		vector<int>&	vp = R.pts[Q.ir];
 		int				np = vp.size(),
@@ -883,6 +919,11 @@ static void* _H2H( void* ithr )
 			KILL( Q );
 			continue;
 		}
+
+		if( regtype == 'R' )
+			rgd = new CRigid;
+		else
+			rgd = new CTrans;
 
 		double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
 		double		LHS[8*8];
@@ -943,7 +984,7 @@ static void* _H2H( void* ithr )
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
 
-				rgd.Add( A, B );
+				rgd->Add( A, B );
 			}
 			else {	// A is 2
 
@@ -975,7 +1016,7 @@ static void* _H2H( void* ithr )
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p2;
 
-				rgd.Add( A, B );
+				rgd->Add( A, B );
 			}
 
 			++nu;
@@ -996,7 +1037,7 @@ static void* _H2H( void* ithr )
 			Cut_H2H( RHS, Q, (long)ithr );
 		else {
 
-			rgd.Regularize( RHS, 8, Wr );
+			rgd->Regularize( RHS, 8, Wr );
 
 			if( pass >= editdelay
 				&& X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
@@ -1006,6 +1047,8 @@ static void* _H2H( void* ithr )
 			else if( nu < np )
 				ShortenList( Q, (long)ithr, 4 );
 		}
+
+		delete rgd;
 
 	} while( Q.Next() );
 
@@ -1155,6 +1198,25 @@ static void Do1Pass( EZThreadproc proc )
 }
 
 /* --------------------------------------------------------------- */
+/* SetRegularizer ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// When solving for affines, homographies or other transforms
+// that include scaling, the objective function (minimization
+// of square error) is satisfied by driving the scale toward
+// zero. To counter that possibility, we regularize the system
+// by solving both for the desired transform and for a model
+// transform that does not permit scale change, say, a rigid
+// transform. These two are combined in a weighted average:
+// (1-Wr)*Aff + Wr*Rgd.
+//
+void SetRegularizer( int type, double weight )
+{
+	Wr		= weight;
+	regtype	= type;
+}
+
+/* --------------------------------------------------------------- */
 /* Solve --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1164,21 +1226,9 @@ static void Do1Pass( EZThreadproc proc )
 // Next the src/dst roles are swapped (Xs/Xd pointer swap) and
 // the process repeats.
 //
-// Regularization:
-// When solving for affines, homographies or other transforms
-// that include scaling, the objective function (minimization
-// of square error) is satisfied by driving the scale toward
-// zero. To counter that possibility, we regularize the system
-// by solving both for the desired transform and for a model
-// transform that does not permit scale change, here, a rigid
-// transform. These two are combined in a weighted average:
-// (1-Wr)*Aff + Wr*Rdg.
-//
-void Solve( XArray &Xsrc, XArray &Xdst, double inWr, int iters )
+void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 {
 	clock_t	t0 = StartTiming();
-
-	Wr = inWr;
 
 /* ---------------------- */
 /* Mode specific settings */
@@ -1209,8 +1259,8 @@ void Solve( XArray &Xsrc, XArray &Xdst, double inWr, int iters )
 		cD			= 'H';
 	}
 
-	printf( "Solve: %c to %c (Wr %g iters %d)\n",
-	cS, cD, Wr, iters );
+	printf( "Solve: %c to %c (Wr %c, %g iters %d)\n",
+	cS, cD, regtype, Wr, iters );
 
 /* -------- */
 /* Set nthr */
