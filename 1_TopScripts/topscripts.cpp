@@ -142,10 +142,10 @@ static void Write_dbgo()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Make image database 'idb' from 'myxml' file...\n" );
+	fprintf( f, "# Make image database 'idb' from Rick or xml file...\n" );
 	fprintf( f, "# Makes everything.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > makeidb myxml -idb=idb\n" );
+	fprintf( f, "# > makeidb <mylayout.txt or myxml.xml> -idb=idb\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -zmin=i -zmax=j\t\t\t;restricts layer range\n" );

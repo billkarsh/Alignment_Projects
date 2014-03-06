@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Purpose:
-# Make image database 'idb' from 'myxml' file...
+# Make image database 'idb' from Rick or xml file...
 # Makes everything.
 #
-# > makeidb myxml -idb=idb
+# > makeidb <mylayout.txt or myxml.xml> -idb=idb
 #
 # Options:
 # -zmin=i -zmax=j			;restricts layer range
