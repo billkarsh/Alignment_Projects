@@ -59,6 +59,37 @@ void AddConstraint_Quick(
 }
 
 /* --------------------------------------------------------------- */
+/* AddConstraint_QuickWt ----------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Similar to AddConstraint_Quick(),
+// but adds equation weighting factor.
+//
+void AddConstraint_QuickWt(
+	double			*LHS,
+	double			*RHS,
+	int				n,
+	int				nnz,
+	const int		*j_nnz,
+	const double	*Ai,
+	double			Bi,
+	double			Wt )
+{
+	Wt *= Wt;
+
+	for( int i = 0; i < nnz; ++i ) {
+
+		int	ii = j_nnz[i],
+			ni = n * ii;
+
+		for( int j = 0; j < nnz; ++j )
+			LHS[ni + j_nnz[j]] += Wt * Ai[i] * Ai[j];
+
+		RHS[ii] += Wt * Ai[i] * Bi;
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* AddToElem ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 

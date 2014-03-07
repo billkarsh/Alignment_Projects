@@ -38,6 +38,16 @@ void AddConstraint_Quick(
 	const double	*Ai,
 	double			Bi );
 
+void AddConstraint_QuickWt(
+	double			*LHS,
+	double			*RHS,
+	int				n,
+	int				nnz,
+	const int		*j_nnz,
+	const double	*Ai,
+	double			Bi,
+	double			Wt );
+
 void AddConstraint(
 	vector<LHSCol>	&LHS,
 	vector<double>	&RHS,
