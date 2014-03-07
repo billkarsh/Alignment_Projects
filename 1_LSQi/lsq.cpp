@@ -206,9 +206,11 @@ mode_ok:
 		zohi = zihi;
 	}
 
-// Explicit starting solution needed if {stack, eval, split}
+// Explicit starting solution needed if {solve stack, eval, split}
 
-	if( zilo != zihi
+	if( !strcmp( mode, "catalog" ) )
+		;
+	else if( zilo != zihi
 		|| !strcmp( mode, "eval" )
 		|| !strcmp( mode, "split" ) ) {
 
