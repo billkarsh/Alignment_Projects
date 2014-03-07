@@ -287,23 +287,21 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 // How many workers?
 
 	int	nL		= vL.size(),
-		nwks	= nL / zpernode,
-		res		= nL - nwks * zpernode;
+		nwks	= nL / zpernode;
 
-	if( res > 0 )
+	if( nL - nwks * zpernode > 0 )
 		++nwks;
 
-// Now balance the load a little. If nwks > 1 then at this point,
-// all workers but the last have zpernode layers, and we want to
-// check that the last isn't much smaller than that. If it is, we
-// shift layers to the last by taking an equal number from each
-// of the others.
+// Rebalance the load.
 
 	if( nwks > 1 ) {
 
-		int	fromeach = (zpernode - res) / (nwks - 1);
+		int	zper = nL / nwks;
 
-		zpernode -= fromeach;
+		if( nL - nwks * zper > 0 )
+			++zper;
+
+		zpernode = zper;
 	}
 
 	printf( "Workers %d, z-per-node %d.\n", nwks, zpernode );
