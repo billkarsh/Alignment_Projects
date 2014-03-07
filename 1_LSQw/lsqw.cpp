@@ -54,7 +54,7 @@ public:
 		zohi		= -1;
 		regtype		= 'R';
 		iters		= 2000;
-		splitmin	= 10;
+		splitmin	= 1000;
 		untwist		= false;
 	};
 
@@ -133,7 +133,7 @@ bool CArgs::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
 		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
-			printf( "Split-min:  %d\n", iters );
+			printf( "Split-min:  %d\n", splitmin );
 		else if( GetArg( &maxthreads, "-maxthreads=%d", argv[i] ) )
 			printf( "Maxthreads: %d\n", maxthreads );
 		else if( IsArg( "-untwist", argv[i] ) )
