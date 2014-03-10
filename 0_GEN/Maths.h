@@ -288,6 +288,20 @@ void ImageGradients(
 
 bool IsLowContrast( const vector<double> &I, double std );
 
+void EmbedExtended8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				w,
+	int				h,
+	int				r );
+
+void ExtractEmbedded8(
+	uint8			*dst,
+	const uint8		*src,
+	int				w,
+	int				h,
+	int				r );
+
 void Sobel8(
 	uint8		*dst,
 	const uint8	*src,

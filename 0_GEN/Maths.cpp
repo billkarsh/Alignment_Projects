@@ -1777,6 +1777,88 @@ bool IsLowContrast( const vector<double> &I, double std )
 }
 
 /* --------------------------------------------------------------- */
+/* EmbedExtended8 ------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Extend the border of src image outward another r pixels,
+// in preparation for image processing operations.
+//
+// New image dims: (w+2r) x (h+2r).
+//
+// Extension at corner (r=2):
+//
+// 0 0 | 0 1 2 3
+// 0 0 | 0 1 2 3
+// -------------
+// 0 0 | 0 1 2 3
+// a a | a i j k
+// b b | b p q s
+// c c | c x y z
+//
+void EmbedExtended8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				w,
+	int				h,
+	int				r )
+{
+	int	W = w + 2 * r,
+		H = h + 2 * r,
+		n = w * h,
+		N = W * H;
+
+	dst.resize( N );
+
+// Build top and bottom rows
+	for( int i = 0; i < r; ++i ) {
+		dst[i]			= src[0];		// T-L
+		dst[W - r + i]	= src[w - 1];	// T-R
+		dst[N - W + i]	= src[n - w];	// B-L
+		dst[N - r + i]	= src[n - 1];	// B-R
+	}
+
+	memcpy( &dst[r], &src[0], w * sizeof(uint8) );
+	memcpy( &dst[N - W + r], &src[n - w], w * sizeof(uint8) );
+
+// Propagate those down/up
+	for( int i = 1; i <= r; ++i ) {
+		memcpy( &dst[W*i], &dst[0], W * sizeof(uint8) );
+		memcpy( &dst[N - W*(i+1)], &dst[N - W], W * sizeof(uint8) );
+	}
+
+// Now do inner rows
+	for( int y = 1; y < h - 1; ++y ) {
+
+		int	R0 = W*(r + y),
+			r0 = w*y;
+
+		for( int i = 0; i < r; ++i ) {
+			dst[R0 + i]			= src[r0];
+			dst[R0 + W - r + i]	= src[r0 + w - 1];
+		}
+
+		memcpy( &dst[R0 + r], &src[r0], w * sizeof(uint8) );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* ExtractEmbedded8 ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void ExtractEmbedded8(
+	uint8			*dst,
+	const uint8		*src,
+	int				w,
+	int				h,
+	int				r )
+{
+	int	W = w + 2 * r;
+
+	for( int y = 0; y < h; ++y )
+		memcpy( &dst[w*y], &src[r + W*(r+y)], w * sizeof(uint8) );
+}
+
+/* --------------------------------------------------------------- */
 /* Sobel8 -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1794,111 +1876,37 @@ bool IsLowContrast( const vector<double> &I, double std )
 //
 // |K| = sqrt( Kx^2 + Ky^2 )
 //
+// Note:
+// Dst can be same array as src.
+//
 void Sobel8(
 	uint8		*dst,
 	const uint8	*src,
 	int			w,
 	int			h )
 {
-	int	dx, dy, c, n = w * h;
+	vector<uint8>	tmp;
+	EmbedExtended8( tmp, src, w, h, 1 );
 
-// top-left
-	c  = 0;
-	dx = 3*(src[c+1] - src[c]) + src[c+1+w] - src[c+w];
-	dy = 3*(src[c] - src[c+w]) + src[c+1] - src[c+1+w];
+	int	W = w + 2;
 
-	dx = (int)sqrt( dx*dx + dy*dy);
-	dst[c] = (dx <= 255 ? dx : 255);
+	for( int y = 0; y < h; ++y ) {
 
-// top-right
-	c  = w-1;
-	dx = 3*(src[c] - src[c-1]) + src[c+w] - src[c-1+w];
-	dy = 3*(src[c] - src[c+w]) + src[c-1] - src[c-1+w];
+		for( int x = 0; x < w; ++x ) {
 
-	dx = (int)sqrt( dx*dx + dy*dy);
-	dst[c] = (dx <= 255 ? dx : 255);
+			int	C = 1 + x + W*(1 + y),
+				dx, dy;
 
-// bot-left
-	c  = n-w;
-	dx = 3*(src[c+1] - src[c]) + src[c+1-w] - src[c-w];
-	dy = 3*(src[c-w] - src[c]) + src[c+1-w] - src[c+1];
+			dx = tmp[C+1-W] - tmp[C-1-W]
+					+ 2*(tmp[C+1] - tmp[C-1])
+					+ tmp[C+1+W] - tmp[C-1+W];
 
-	dx = (int)sqrt( dx*dx + dy*dy);
-	dst[c] = (dx <= 255 ? dx : 255);
-
-// bot-right
-	c  = n-1;
-	dx = 3*(src[c] - src[c-1]) + src[c-w] - src[c-1-w];
-	dy = 3*(src[c-w] - src[c]) + src[c-1-w] - src[c-1];
-
-	dx = (int)sqrt( dx*dx + dy*dy);
-	dst[c] = (dx <= 255 ? dx : 255);
-
-// top row
-	for( int i = 1; i < w-1; ++i ) {
-
-		dx = 3*(src[i+1] - src[i-1]) + src[i+1+w] - src[i-1+w];
-		dy = src[i+1] - src[i+1+w]
-				+ 2*(src[i] - src[i+w])
-				+ src[i-1] - src[i-1+w];
-
-		dx = (int)sqrt( dx*dx + dy*dy);
-		dst[i] = (dx <= 255 ? dx : 255);
-	}
-
-// left side
-	for( int i = w; i < n-w; i += w ) {
-
-		dx = src[i+1-w] - src[i-w]
-				+ 2*(src[i+1] - src[i])
-				+ src[i+1+w] - src[i+w];
-		dy = 3*(src[i-w] - src[i+w]) + src[i+1-w] - src[i+1+w];
-
-		dx = (int)sqrt( dx*dx + dy*dy);
-		dst[i] = (dx <= 255 ? dx : 255);
-	}
-
-// right side
-	for( int i = w+w-1; i < n-1; i += w ) {
-
-		dx = src[i-w] - src[i-1-w]
-				+ 2*(src[i] - src[i-1])
-				+ src[i+w] - src[i-1+w];
-		dy = 3*(src[i-w] - src[i+w]) + src[i-1-w] - src[i-1+w];
-
-		dx = (int)sqrt( dx*dx + dy*dy);
-		dst[i] = (dx <= 255 ? dx : 255);
-	}
-
-// bot row
-	for( int i = n-w+1; i < n-1; ++i ) {
-
-		dx = 3*(src[i+1] - src[i-1]) + src[i+1-w] - src[i-1-w];
-		dy = src[i+1-w] - src[i+1]
-				+ 2*(src[i-w] - src[i])
-				+ src[i-1-w] - src[i-1];
-
-		dx = (int)sqrt( dx*dx + dy*dy);
-		dst[i] = (dx <= 255 ? dx : 255);
-	}
-
-// inside
-	for( int y = 1; y < h-1; ++y ) {
-
-		for( int x = 1; x < w-1; ++x ) {
-
-			c  = x + w * y;
-
-			dx = src[c+1-w] - src[c-1-w]
-					+ 2*(src[c+1] - src[c-1])
-					+ src[c+1+w] - src[c-1+w];
-
-			dy = src[c+1-w] - src[c+1+w]
-					+ 2*(src[c-w] - src[c+w])
-					+ src[c-1-w] - src[c-1+w];
+			dy = tmp[C+1-W] - tmp[C+1+W]
+					+ 2*(tmp[C-W] - tmp[C+W])
+					+ tmp[C-1-W] - tmp[C-1+W];
 
 			dx = (int)sqrt( dx*dx + dy*dy);
-			dst[c] = (dx <= 255 ? dx : 255);
+			dst[x+w*y] = (dx <= 255 ? dx : 255);
 		}
 	}
 }
