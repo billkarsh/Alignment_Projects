@@ -308,4 +308,11 @@ void Sobel8(
 	int			w,
 	int			h );
 
+void Median8(
+	uint8		*dst,
+	const uint8	*src,
+	int			w,
+	int			h,
+	int			r );
+
 

@@ -1911,4 +1911,58 @@ void Sobel8(
 	}
 }
 
+/* --------------------------------------------------------------- */
+/* Median8 ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Apply radius-r median filter.
+//
+// Note:
+// Dst can be same array as src.
+//
+void Median8(
+	uint8		*dst,
+	const uint8	*src,
+	int			w,
+	int			h,
+	int			r )
+{
+	vector<uint8>	tmp;
+	EmbedExtended8( tmp, src, w, h, r );
+
+	int			kw	= 2*r + 1,
+				n	= kw * kw,
+				W	= w + 2 * r;
+	vector<int>	hist( 256 );
+
+	n /= 2;
+
+	for( int y = r; y < h + r; ++y ) {
+
+		for( int x = r; x < w + r; ++x ) {
+
+			// histogram kernel values
+
+			memset( &hist[0], 0, 256*sizeof(int) );
+
+			for( int ky = y - r; ky <= y + r; ++ky ) {
+				for( int kx = x - r; kx <= x + r; ++kx )
+					++hist[tmp[kx + W*ky]];
+			}
+
+			// accumulate half integrated area
+
+			int	area = 0;
+
+			for( int i = 0; i < 256; ++i ) {
+
+				if( (area += hist[i]) >= n ) {
+					dst[(x-r) + w*(y-r)] = i;
+					break;
+				}
+			}
+		}
+	}
+}
+
 
