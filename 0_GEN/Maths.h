@@ -302,17 +302,38 @@ void ExtractEmbedded8(
 	int				h,
 	int				r );
 
+void Downsample8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				&w,
+	int				&h,
+	int				scl );
+
+void Upsize8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				wd,
+	int				hd,
+	int				ws,
+	int				hs );
+
 void Sobel8(
-	uint8		*dst,
-	const uint8	*src,
-	int			w,
-	int			h );
+	uint8			*dst,
+	const uint8		*src,
+	int				w,
+	int				h );
 
 void Median8(
-	uint8		*dst,
-	const uint8	*src,
-	int			w,
-	int			h,
-	int			r );
+	uint8			*dst,
+	const uint8		*src,
+	int				w,
+	int				h,
+	int				r );
+
+void ResinMask8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				w,
+	int				h );
 
 

@@ -1830,11 +1830,13 @@ void EmbedExtended8(
 	for( int y = 1; y < h - 1; ++y ) {
 
 		int	R0 = W*(r + y),
-			r0 = w*y;
+			r0 = w*y,
+			sL = src[r0],
+			sR = src[r0 + w - 1];
 
 		for( int i = 0; i < r; ++i ) {
-			dst[R0 + i]			= src[r0];
-			dst[R0 + W - r + i]	= src[r0 + w - 1];
+			dst[R0 + i]			= sL;
+			dst[R0 + W - r + i]	= sR;
 		}
 
 		memcpy( &dst[R0 + r], &src[r0], w * sizeof(uint8) );
@@ -1859,6 +1861,113 @@ void ExtractEmbedded8(
 }
 
 /* --------------------------------------------------------------- */
+/* Downsample8 --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// On entry:	original src w x h.
+// On exit:		reduced  dst w' x h'.
+//
+void Downsample8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				&w,
+	int				&h,
+	int				scl )
+{
+	int	ws = w / scl,
+		hs = h / scl,
+		ns = scl * scl;
+
+	dst.resize( ws * hs );
+
+	for( int y = 0; y < hs; ++y ) {
+
+		for( int x = 0; x < ws; ++x ) {
+
+			int	sum = 0;
+
+			for( int dy = 0; dy < scl; ++dy ) {
+				for( int dx = 0; dx < scl; ++dx )
+					sum += src[x*scl+dx + w*(y*scl+dy)];
+			}
+
+			dst[x + ws*y] = sum / ns;
+		}
+	}
+
+	w = ws;
+	h = hs;
+}
+
+/* --------------------------------------------------------------- */
+/* Upsize8 ------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Given downsampled src ws x hs, upsize into dst wd x hd.
+//
+// The integer scale factor is adjusted to be as large as
+// possible without exceeding wd x hd. Same scale applied
+// to both dims. Remainder pixels on right and bottom are
+// clones of those edges.
+//
+void Upsize8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				wd,
+	int				hd,
+	int				ws,
+	int				hs )
+{
+	int	scl = wd / ws,
+		rmw = wd - scl * ws,
+		rmh = hd - scl * hs;
+
+	dst.resize( wd * hd );
+
+// Interior
+
+	for( int y = 0; y < hs; ++y ) {
+
+		for( int x = 0; x < ws; ++x ) {
+
+			uint8	px = src[x + ws*y];
+
+			for( int dy = 0; dy < scl; ++dy ) {
+				for( int dx = 0; dx < scl; ++dx )
+					dst[x*scl+dx + wd*(y*scl+dy)] = px;
+			}
+		}
+	}
+
+// Extend right
+
+	if( rmw ) {
+
+		int	wb = scl * ws,
+			hb = scl * hs;
+
+		for( int y = 0; y < hb; ++y ) {
+
+			int	sR = dst[wb - 1 + wd*y];
+
+			for( int r = 0; r < rmw; ++r )
+				dst[wb + r + wd*y] = sR;
+		}
+	}
+
+// Extend down
+
+	if( rmh ) {
+
+		int	hb = scl * hs,
+			sz = wd*(hb - 1);
+
+		for( int r = 0; r < rmh; ++r )
+			memcpy( &dst[wd*(hb + r)], &dst[sz], wd * sizeof(uint8) );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Sobel8 -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -1880,10 +1989,10 @@ void ExtractEmbedded8(
 // Dst can be same array as src.
 //
 void Sobel8(
-	uint8		*dst,
-	const uint8	*src,
-	int			w,
-	int			h )
+	uint8			*dst,
+	const uint8		*src,
+	int				w,
+	int				h )
 {
 	vector<uint8>	tmp;
 	EmbedExtended8( tmp, src, w, h, 1 );
@@ -1921,11 +2030,11 @@ void Sobel8(
 // Dst can be same array as src.
 //
 void Median8(
-	uint8		*dst,
-	const uint8	*src,
-	int			w,
-	int			h,
-	int			r )
+	uint8			*dst,
+	const uint8		*src,
+	int				w,
+	int				h,
+	int				r )
 {
 	vector<uint8>	tmp;
 	EmbedExtended8( tmp, src, w, h, r );
@@ -1962,6 +2071,54 @@ void Median8(
 				}
 			}
 		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* ResinMask8 ---------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void ResinMask8(
+	vector<uint8>	&dst,
+	const uint8		*src,
+	int				w,
+	int				h )
+{
+	vector<uint8>	tmp;
+	int				ws = w, hs = h;
+
+// Crunch down
+
+	Downsample8( tmp, src, ws, hs, 8 );
+
+// Fatten edges
+
+	for( int i = 0; i < 3; ++i )
+		Sobel8( &tmp[0], &tmp[0], ws, hs );
+
+// Smooth
+
+	Median8( &tmp[0], &tmp[0], ws, hs, 8 );
+
+// Threshold
+
+	int	n = ws * hs;
+
+	for( int i = 0; i < n; ++i )
+		tmp[i] = (tmp[i] >= 100 ? 1 : 0);
+
+// Resize
+
+	Upsize8( dst, &tmp[0], w, h, ws, hs );
+
+// Mask saturated pixels
+
+	n = w * h;
+
+	for( int i = 0; i < n; ++i ) {
+
+		if( !src[i] || src[i] == 255 )
+			dst[i] = 0;
 	}
 }
 
