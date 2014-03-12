@@ -705,8 +705,13 @@ quality_control:
 
 		if( N ) {
 
-			Normalize( matches[k].a );
-			Normalize( matches[k].b );
+			if( !isfinite( Normalize( matches[k].a ) ) ||
+				!isfinite( Normalize( matches[k].b ) ) ) {
+
+				fprintf( flog,
+				"Triangle %d: Likely empty; skip metrics.\n\n", k );
+				continue;
+			}
 
 			for( int i = 0; i < N; ++i )
 				sum += matches[k].a[i] * matches[k].b[i];
@@ -749,7 +754,7 @@ quality_control:
 
 		fprintf( flog,
 		"STAT: Overall %d points, corr %.4f,"
-		" EMM %.4f, weighed EMM %.4f,"
+		" EMM %.4f, weighted EMM %.4f,"
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
 
@@ -775,7 +780,7 @@ quality_control:
 
 		fprintf( flog,
 		"STAT: Overall %d points, corr %.4f,"
-		" dfm %.4f, weighed Fourier %.4f,"
+		" dfm %.4f, weighted Fourier %.4f,"
 		" cor+dfm %.4f, weighted yellow %6.4f\n",
 		sum_pts, corr, dfm, score, corr+dfm, yell );
 

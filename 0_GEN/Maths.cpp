@@ -2078,8 +2078,11 @@ void Median8(
 /* ResinMask8 ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Given 8-bit EM src image, make mask image msk
+// with values: {0, 1} = {resin, tissue}.
+//
 void ResinMask8(
-	vector<uint8>	&dst,
+	vector<uint8>	&msk,
 	const uint8		*src,
 	int				w,
 	int				h )
@@ -2091,7 +2094,7 @@ void ResinMask8(
 
 	Downsample8( tmp, src, ws, hs, 8 );
 
-// Fatten edges
+// Fatten all object edges
 
 	for( int i = 0; i < 3; ++i )
 		Sobel8( &tmp[0], &tmp[0], ws, hs );
@@ -2109,16 +2112,16 @@ void ResinMask8(
 
 // Resize
 
-	Upsize8( dst, &tmp[0], w, h, ws, hs );
+	Upsize8( msk, &tmp[0], w, h, ws, hs );
 
-// Mask saturated pixels
+// Additionally, remove saturated pixels
 
 	n = w * h;
 
 	for( int i = 0; i < n; ++i ) {
 
 		if( !src[i] || src[i] == 255 )
-			dst[i] = 0;
+			msk[i] = 0;
 	}
 }
 

@@ -331,7 +331,7 @@ void Median8(
 	int				r );
 
 void ResinMask8(
-	vector<uint8>	&dst,
+	vector<uint8>	&msk,
 	const uint8		*src,
 	int				w,
 	int				h );
