@@ -3,11 +3,7 @@
 #pragma once
 
 
-#include	<stdio.h>
-
-#include	<string>
-#include	<vector>
-using namespace std;
+#include	"PipeFiles.h"
 
 
 /* --------------------------------------------------------------- */
@@ -44,11 +40,9 @@ private:
 
 public:
 	bool Load(
-		const char		*apath,
-		const char		*bpath,
+		const PicSpecs	&A,
+		const PicSpecs	&B,
 		const string	&idb,
-		int				acam,
-		int				bcam,
 		bool			lens,
 		int				order,
 		int				bDoG,

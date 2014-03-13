@@ -84,16 +84,14 @@ static void CalcTransforms(
 			pCM = NULL;
 
 		fold_mask_a = GetFoldMask(
-						GBL.idb, GBL.A.z, GBL.A.id,
-						GBL.arg.fma, wf, hf, (GBL.ctx.FLD == 'N'),
-						GBL.arg.Transpose, GBL.arg.SingleFold,
-						pCM, GBL.A.t2i.cam );
+						GBL.idb, GBL.A, GBL.arg.fma,
+						wf, hf, (GBL.ctx.FLD == 'N'),
+						GBL.arg.Transpose, GBL.arg.SingleFold, pCM );
 
 		fold_mask_b = GetFoldMask(
-						GBL.idb, GBL.B.z, GBL.B.id,
-						GBL.arg.fmb, wf, hf, (GBL.ctx.FLD == 'N'),
-						GBL.arg.Transpose, GBL.arg.SingleFold,
-						pCM, GBL.B.t2i.cam );
+						GBL.idb, GBL.B, GBL.arg.fmb,
+						wf, hf, (GBL.ctx.FLD == 'N'),
+						GBL.arg.Transpose, GBL.arg.SingleFold, pCM );
 	}
 
 /* ------------- */
@@ -247,10 +245,9 @@ int main( int argc, char* argv[] )
 	int			Ntrans	= 0;
 
 	if( !px.Load(
-			GBL.A.t2i.path.c_str(), GBL.B.t2i.path.c_str(),
-			GBL.idb, GBL.A.t2i.cam, GBL.B.t2i.cam,
-			GBL.mch.PXLENS, GBL.mch.PXBRO, GBL.mch.PXDOG,
-			GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
+			GBL.A, GBL.B, GBL.idb,
+			GBL.mch.PXLENS, GBL.mch.PXBRO,
+			GBL.mch.PXDOG, GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
 			stdout, GBL.arg.Transpose ) ) {
 
 		goto exit;

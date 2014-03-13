@@ -261,11 +261,6 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 	printf( "\n" );
 
-// Extract file name as useful label
-
-	A.file = FileCloneNamePart( A.t2i.path.c_str() );
-	B.file = FileCloneNamePart( B.t2i.path.c_str() );
-
 // Commandline overrides
 
 	printf( "\n---- Command-line overrides ----\n" );

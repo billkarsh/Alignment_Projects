@@ -1,7 +1,6 @@
 
 
 #include	"Disk.h"
-#include	"PipeFiles.h"
 #include	"FoldMask.h"
 #include	"ImageIO.h"
 
@@ -40,16 +39,14 @@ static void PrintFoldmapHisto( const uint8* fm, int w, int h )
 //
 uint8* GetFoldMask(
 	const string	&idb,
-	int				lyr,
-	int				tile,
+	const PicSpecs	&P,
 	const char		*forcepath,
 	int				wf,
 	int				hf,
 	bool			nofile,
 	bool			transpose,
 	bool			force1rgn,
-	CCropMask		*CM,
-	int				cam )
+	CCropMask		*CM )
 {
 	uint8*	mask;
 	int		np = wf * hf;
@@ -63,7 +60,7 @@ uint8* GetFoldMask(
 		Til2FM	t2f;
 
 		if( !forcepath ) {
-			IDBTil2FM( t2f, idb, lyr, tile );
+			IDBTil2FM( t2f, idb, P.z, P.id );
 			forcepath = t2f.path.c_str();
 		}
 
@@ -97,7 +94,7 @@ uint8* GetFoldMask(
 	if( CM && CM->IsFile( idb ) ) {
 
 		IBox	B;
-		CM->GetBox( B, cam );
+		CM->GetBox( B, P.t2i.cam );
 
 		for( int i = 0; i < np; ++i ) {
 
@@ -112,7 +109,7 @@ uint8* GetFoldMask(
 		}
 
 		printf( "Crop z %d id %d cam %d to x[%d %d) y[%d %d)\n",
-		lyr, tile, cam, B.L, B.R, B.B, B.T );
+		P.z, P.id, P.t2i.cam, B.L, B.R, B.B, B.T );
 	}
 
 	return mask;

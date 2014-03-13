@@ -3,7 +3,7 @@
 #pragma once
 
 
-#include	"CPoint.h"
+#include	"PipeFiles.h"
 #include	"CCropMask.h"
 
 
@@ -31,16 +31,14 @@ public:
 
 uint8* GetFoldMask(
 	const string	&idb,
-	int				lyr,
-	int				tile,
+	const PicSpecs	&P,
 	const char		*forcepath,
 	int				wf,
 	int				hf,
 	bool			nofile,
 	bool			transpose,
 	bool			force1rgn,
-	CCropMask		*CM,
-	int				cam );
+	CCropMask		*CM );
 
 void SetWithinSectionBorders( uint8* foldMask, int wf, int hf );
 

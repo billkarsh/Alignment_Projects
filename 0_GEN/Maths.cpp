@@ -2085,7 +2085,8 @@ void ResinMask8(
 	vector<uint8>	&msk,
 	const uint8		*src,
 	int				w,
-	int				h )
+	int				h,
+	bool			samelayer )
 {
 	vector<uint8>	tmp;
 	int				ws = w, hs = h;
@@ -2100,8 +2101,13 @@ void ResinMask8(
 		Sobel8( &tmp[0], &tmp[0], ws, hs );
 
 // Smooth
+// For same layer matching, tiny resin spots are useful
+// and they are better preserved with a smaller kernel.
+// In the cross layer case, tiny features are unlikely
+// to appear in both layers, and a larger kernel will
+// help wash them out.
 
-	Median8( &tmp[0], &tmp[0], ws, hs, 8 );
+	Median8( &tmp[0], &tmp[0], ws, hs, (samelayer ? 5 : 10) );
 
 // Threshold
 

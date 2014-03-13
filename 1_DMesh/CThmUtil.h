@@ -3,7 +3,6 @@
 #pragma once
 
 
-#include	"PipeFiles.h"
 #include	"FoldMask.h"
 #include	"CPixPair.h"
 #include	"CThmScan.h"
@@ -12,13 +11,6 @@
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
 /* --------------------------------------------------------------- */
-
-typedef struct {
-	int			z,
-				id;
-	Til2Img		t2i;
-	const char	*file;
-} PicSpecs;
 
 typedef struct {
 	vector<double>	v;

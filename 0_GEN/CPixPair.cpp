@@ -203,7 +203,7 @@ static bool HasTissue( const char *path )
 static void Lens(
 	vector<double>	&vout,
 	CAffineLens		&LN,
-	uint8*			&ras,
+	const uint8		*ras,
 	int				w,
 	int				h,
 	int				order,
@@ -213,7 +213,6 @@ static void Lens(
 
 	vector<double>	vflat;
 	LegPolyFlatten( vflat, ras, w, h, order );
-	RasterFree( ras );
 
 // Transform into vout
 
@@ -238,11 +237,9 @@ static void Lens(
 /* --------------------------------------------------------------- */
 
 bool PixPair::Load(
-	const char		*apath,
-	const char		*bpath,
+	const PicSpecs	&A,
+	const PicSpecs	&B,
 	const string	&idb,
-	int				acam,
-	int				bcam,
 	bool			lens,
 	int				order,
 	int				bDoG,
@@ -262,8 +259,11 @@ bool PixPair::Load(
 	uint32	wa, ha, wb, hb;
 	int		ok = false;
 
-	aras = Raster8FromAny( apath, wa, ha, flog, transpose );
-	bras = Raster8FromAny( bpath, wb, hb, flog, transpose );
+	aras = Raster8FromAny( A.t2i.path.c_str(),
+			wa, ha, flog, transpose );
+
+	bras = Raster8FromAny( B.t2i.path.c_str(),
+			wb, hb, flog, transpose );
 
 	if( !aras || !bras ) {
 		fprintf( flog,
@@ -283,8 +283,11 @@ bool PixPair::Load(
 // Also we trim off some rows and columns to fix aperture and
 // odd sizing issues (if needed).
 //
-	//if( !HasTissue( apath ) || !HasTissue( bpath ) )
+	//if( !HasTissue( A.t2i.path.c_str() ) ||
+	//	!HasTissue( B.t2i.path.c_str() ) ) {
+
 	//	goto exit;
+	//}
 	//Trim( aras, wa, ha );
 	//Trim( bras, wb, hb );
 //-----------------------------------------------------------
@@ -324,18 +327,15 @@ bool PixPair::Load(
 		if( !LN.ReadIDB( idb ) )
 			return false;
 
-		Lens( _avf, LN, aras, wf, hf, order, acam );
-		Lens( _bvf, LN, bras, wf, hf, order, bcam );
+		Lens( _avf, LN, aras, wf, hf, order, A.t2i.cam );
+		Lens( _bvf, LN, bras, wf, hf, order, B.t2i.cam );
 		//VectorDblToTif8( "LensA.tif", _avf, wf, hf );
 		//VectorDblToTif8( "LensB.tif", _bvf, wf, hf );
 	}
 	else {
 
 		LegPolyFlatten( _avf, aras, wf, hf, order );
-		RasterFree( aras );
-
 		LegPolyFlatten( _bvf, bras, wf, hf, order );
-		RasterFree( bras );
 	}
 
 	avs_vfy	= avs_aln = avf_vfy	= avf_aln = &_avf;

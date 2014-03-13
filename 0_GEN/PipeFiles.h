@@ -97,6 +97,12 @@ typedef struct {
 } Til2FM;
 
 typedef struct {
+	Til2Img		t2i;
+	int			z,
+				id;
+} PicSpecs;
+
+typedef struct {
 // entry: ThmPair.txt
 	TAffine	T;
 	double	A, R;

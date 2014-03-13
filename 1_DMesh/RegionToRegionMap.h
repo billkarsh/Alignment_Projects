@@ -4,7 +4,6 @@
 
 
 #include	"FoldMask.h"
-
 #include	"CPixPair.h"
 #include	"Cffmap.h"
 

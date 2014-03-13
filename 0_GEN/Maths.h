@@ -334,6 +334,7 @@ void ResinMask8(
 	vector<uint8>	&msk,
 	const uint8		*src,
 	int				w,
-	int				h );
+	int				h,
+	bool			samelayer );
 
 

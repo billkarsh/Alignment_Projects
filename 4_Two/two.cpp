@@ -1,7 +1,6 @@
 
 
 #include	"FoldMask.h"
-
 #include	"File.h"
 #include	"ImageIO.h"
 #include	"Maths.h"
