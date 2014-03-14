@@ -20,6 +20,7 @@
 # -untwist			;untwist prior affines
 # -mode=A2A			;action: {catalog,eval,split,A2A,A2H,H2H}
 # -Wr=R,0.001		;Aff -> (1-Wr)*Aff + Wr*(T=Trans, R=Rgd}
+# -Etol=10.0		;point error tolerance
 # -iters=2000		;solve iterations
 # -splitmin=1000	;separate islands > splitmin tiles
 # -zpernode=200		;max layers per cluster node

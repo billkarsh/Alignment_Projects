@@ -71,7 +71,7 @@ public:
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static double			Wr;
+static double			Wr, Etol;
 static XArray			*Xs, *Xd;
 static vector<Thrdat>	vthr;
 static int				regtype,
@@ -259,7 +259,7 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 
 	for( int ip = 0; ip < np; ++ip ) {
 
-		const CorrPnt&	C = vC[vp[ip]];
+		CorrPnt&	C = vC[vp[ip]];
 
 		if( !C.used || C.z1 != C.z2 )
 			continue;
@@ -282,6 +282,11 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			Ta->Transform( A = C.p1 );
 			Tb->Transform( B = C.p2 );
 
+			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+				C.used = false;
+				continue;
+			}
+
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
@@ -301,6 +306,11 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 
 			Ta->Transform( A = C.p2 );
 			Tb->Transform( B = C.p1 );
+
+			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+				C.used = false;
+				continue;
+			}
 
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -477,7 +487,7 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 
 	for( int ip = 0; ip < np; ++ip ) {
 
-		const CorrPnt&	C = vC[vp[ip]];
+		CorrPnt&	C = vC[vp[ip]];
 
 		if( !C.used || C.z1 != C.z2 )
 			continue;
@@ -500,6 +510,11 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			Ta->Transform( A = C.p1 );
 			Tb->Transform( B = C.p2 );
 
+			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+				C.used = false;
+				continue;
+			}
+
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
 			A = C.p1;
@@ -519,6 +534,11 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 
 			Ta->Transform( A = C.p2 );
 			Tb->Transform( B = C.p1 );
+
+			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+				C.used = false;
+				continue;
+			}
 
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -608,7 +628,7 @@ static void* _A2A( void* ithr )
 
 		for( int ip = 0; ip < np; ++ip ) {
 
-			const CorrPnt&	C = vC[vp[ip]];
+			CorrPnt&	C = vC[vp[ip]];
 
 			if( !C.used )
 				continue;
@@ -630,7 +650,7 @@ static void* _A2A( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll get those point marked 'not used'.
+						// we'll get such points marked 'not used'.
 
 						MARK( Todo( C.z2, C.i2 ) );
 						continue;
@@ -642,6 +662,11 @@ static void* _A2A( void* ithr )
 
 				Ta->Transform( A = C.p1 );
 				Tb->Transform( B = C.p2 );
+
+				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+					C.used = false;
+					continue;
+				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -662,7 +687,7 @@ static void* _A2A( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll get those point marked 'not used'.
+						// we'll get such points marked 'not used'.
 
 						MARK( Todo( C.z1, C.i1 ) );
 						continue;
@@ -674,6 +699,11 @@ static void* _A2A( void* ithr )
 
 				Ta->Transform( A = C.p2 );
 				Tb->Transform( B = C.p1 );
+
+				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+					C.used = false;
+					continue;
+				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -804,7 +834,7 @@ static void* _A2H( void* ithr )
 
 						// Here's a pnt that's 'used' referencing
 						// a rgn that's not. It's inefficient, so
-						// we'll get those point marked 'not used'.
+						// we'll get such points marked 'not used'.
 
 						MARK( Todo( C.z2, C.i2 ) );
 						continue;
@@ -945,7 +975,7 @@ static void* _H2H( void* ithr )
 
 		for( int ip = 0; ip < np; ++ip ) {
 
-			const CorrPnt&	C = vC[vp[ip]];
+			CorrPnt&	C = vC[vp[ip]];
 
 			if( !C.used )
 				continue;
@@ -980,6 +1010,11 @@ static void* _H2H( void* ithr )
 				Ta->Transform( A = C.p1 );
 				Tb->Transform( B = C.p2 );
 
+				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+					C.used = false;
+					continue;
+				}
+
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
 				A = C.p1;
@@ -1011,6 +1046,11 @@ static void* _H2H( void* ithr )
 
 				Ta->Transform( A = C.p2 );
 				Tb->Transform( B = C.p1 );
+
+				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
+					C.used = false;
+					continue;
+				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -1198,7 +1238,7 @@ static void Do1Pass( EZThreadproc proc )
 }
 
 /* --------------------------------------------------------------- */
-/* SetRegularizer ------------------------------------------------ */
+/* SetSolveParams ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
 // When solving for affines, homographies or other transforms
@@ -1210,9 +1250,12 @@ static void Do1Pass( EZThreadproc proc )
 // transform. These two are combined in a weighted average:
 // (1-Wr)*Aff + Wr*Rgd.
 //
-void SetRegularizer( int type, double weight )
+// errtol is the largest permitted point error.
+//
+void SetSolveParams( int type, double inWr, double inEtol )
 {
-	Wr		= weight;
+	Etol	= inEtol * inEtol;
+	Wr		= inWr;
 	regtype	= type;
 }
 
@@ -1259,8 +1302,8 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 		cD			= 'H';
 	}
 
-	printf( "Solve: %c to %c (Wr %c, %g iters %d)\n",
-	cS, cD, regtype, Wr, iters );
+	printf( "Solve: %c to %c (Wr %c, %g Etol %g iters %d)\n",
+	cS, cD, regtype, Wr, sqrt( Etol ), iters );
 
 /* -------- */
 /* Set nthr */

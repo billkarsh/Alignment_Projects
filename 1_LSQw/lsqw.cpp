@@ -26,7 +26,8 @@
 class CArgs {
 
 public:
-	double		Wr;				// Aff -> (1-Wr)*Aff + Wr*Rgd
+	double		Wr,				// Aff -> (1-Wr)*Aff + Wr*Rgd
+				Etol;			// point error tolerance
 	const char	*tempdir,		// master workspace
 				*cachedir,		// {catalog, pnts} files
 				*prior,			// start from these solutions
@@ -44,6 +45,7 @@ public:
 	CArgs()
 	{
 		Wr			= 0.001;
+		Etol		= 10.0;
 		tempdir		= NULL;
 		cachedir	= NULL;
 		prior		= NULL;
@@ -130,6 +132,8 @@ bool CArgs::SetCmdLine( int argc, char* argv[] )
 			regtype = 'R';
 			printf( "Rglizer Wr: R, %g\n", Wr );
 		}
+		else if( GetArg( &Etol, "-Etol=%lf", argv[i] ) )
+			printf( "Error  tol: %g\n", Etol );
 		else if( GetArg( &iters, "-iters=%d", argv[i] ) )
 			printf( "Iterations: %d\n", iters );
 		else if( GetArg( &splitmin, "-splitmin=%d", argv[i] ) )
@@ -298,7 +302,7 @@ int main( int argc, char **argv )
 
 	printf( "\n---- Solve ----\n" );
 
-	SetRegularizer( gArgs.regtype, gArgs.Wr );
+	SetSolveParams( gArgs.regtype, gArgs.Wr, gArgs.Etol );
 
 	XArray	Xevn, Xodd;
 
