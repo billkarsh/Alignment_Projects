@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
 
 	if( !px.Load(
 			GBL.A, GBL.B, GBL.idb,
-			GBL.mch.PXLENS, GBL.mch.PXBRO,
+			GBL.mch.PXLENS, GBL.mch.PXRESMSK, GBL.mch.PXBRO,
 			GBL.mch.PXDOG, GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
 			stdout, GBL.arg.Transpose ) ) {
 

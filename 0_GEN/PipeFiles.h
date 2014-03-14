@@ -51,6 +51,7 @@ typedef struct {
 			DXY;
 	int		PXBRO,
 			PXLENS,
+			PXRESMSK,
 			PXDOG,
 			PXDOG_R1,
 			PXDOG_R2,

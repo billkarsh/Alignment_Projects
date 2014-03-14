@@ -44,6 +44,7 @@ public:
 		const PicSpecs	&B,
 		const string	&idb,
 		bool			lens,
+		bool			resmsk,
 		int				order,
 		int				bDoG,
 		int				r1,

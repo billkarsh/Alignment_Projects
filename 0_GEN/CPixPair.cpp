@@ -113,36 +113,6 @@ void PixPair::Downsample(
 }
 
 /* --------------------------------------------------------------- */
-/* Trapezoid ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Experiment to remove banana curve in Davi data.
-//
-static void Trapezoid( uint8 *ras, int w, int h )
-{
-	const double	grow = 0.008 / (w - 1);
-
-	int	np = w * h;
-	int	h2 = h / 2;
-
-	vector<double>	dbl( np, 0.0 );
-
-	for( int i = 0; i < np; ++i ) {
-
-		double	y;
-		int		iy = i / w;
-		int		ix = i - w * iy;
-
-		y = h2 + (iy - h2)*(1.0 + grow*(w - 1 - ix));
-
-		DistributePixel( ix, y, ras[i], dbl, w, h );
-	}
-
-	for( int i = 0; i < np; ++i )
-		ras[i] = (dbl[i] <= 255.0 ? (uint8)dbl[i] : 255);
-}
-
-/* --------------------------------------------------------------- */
 /* Trim ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -241,6 +211,7 @@ bool PixPair::Load(
 	const PicSpecs	&B,
 	const string	&idb,
 	bool			lens,
+	bool			resmsk,
 	int				order,
 	int				bDoG,
 	int				r1,
@@ -308,18 +279,6 @@ bool PixPair::Load(
 /* Flatten */
 /* ------- */
 
-//-----------------------------------------------------------
-// Experiment to undo the banana effect in Davi data...
-// Not needed if Eric applies the correction before I
-// see the images.
-//
-	//Raster8ToTif8( "origA.tif", aras, wf, hf );
-	//Trapezoid( aras, wf, hf );
-	//Trapezoid( bras, wf, hf );
-	//Raster8ToTif8( "trapA.tif", aras, wf, hf );
-	//exit( 1 );
-//-----------------------------------------------------------
-
 	if( lens ) {
 
 		CAffineLens	LN;
@@ -337,6 +296,42 @@ bool PixPair::Load(
 		LegPolyFlatten( _avf, aras, wf, hf, order );
 		LegPolyFlatten( _bvf, bras, wf, hf, order );
 	}
+
+/* ------------- */
+/* Resin masking */
+/* ------------- */
+
+	if( resmsk ) {
+
+		vector<uint8>	msk;
+		int				n = wf * hf;
+
+		ResinMask8( msk, aras, wf, hf, (A.z == B.z) );
+		//Raster8ToTif8( "resinA.tif", &msk[0], wf, hf );
+
+		for( int i = 0; i < n; ++i ) {
+
+			if( !msk[i] )
+				_avf[i] = 0.0;
+		}
+
+		Normalize( _avf );
+
+		ResinMask8( msk, bras, wf, hf, (A.z == B.z) );
+		//Raster8ToTif8( "resinB.tif", &msk[0], wf, hf );
+
+		for( int i = 0; i < n; ++i ) {
+
+			if( !msk[i] )
+				_bvf[i] = 0.0;
+		}
+
+		Normalize( _bvf );
+	}
+
+/* ------------- */
+/* Init pointers */
+/* ------------- */
 
 	avs_vfy	= avs_aln = avf_vfy	= avf_aln = &_avf;
 	bvs_vfy	= bvs_aln = bvf_vfy	= bvf_aln = &_bvf;

@@ -113,6 +113,7 @@ bool ReadMatchParams(
 
 		GETPRM_MCH( &M.PXBRO, "PXBRO=%d" );
 		GETPRM_MCH( &M.PXLENS, "PXLENS=%c" );
+		GETPRM_MCH( &M.PXRESMSK, "PXRESMSK=%c" );
 		GETPRM_MCH( &M.PXDOG, "PXDOG=%c" );
 		GETPRM_MCH( &M.PXDOG_R1, "PXDOG_R1=%d" );
 		GETPRM_MCH( &M.PXDOG_R2, "PXDOG_R2=%d" );
@@ -179,6 +180,7 @@ bool ReadMatchParams(
 
 		// finish Y/N booleans
 		M.PXLENS		= (toupper( M.PXLENS ) == 'Y');
+		M.PXRESMSK		= (toupper( M.PXRESMSK ) == 'Y');
 		M.PXDOG			= (toupper( M.PXDOG ) == 'Y');
 		M.PRETWEAK		= (toupper( M.PRETWEAK ) == 'Y');
 		M.TAB2DFM_SL	= (toupper( M.TAB2DFM_SL ) == 'Y');
