@@ -1,0 +1,38 @@
+#!/bin/sh
+
+
+here="`pwd`"
+cd /groups/apig/tomo/Alignment_Projects/1_Tiny
+# make clean
+make
+cd $here
+
+#0.52041-1_41.52.0.png
+# .30 alone too soft (nneds like .50 but not really good)
+# 2.0 way too agressive (needs 1.0)
+# together naturally too agressive
+# Nothing works here
+
+
+#0.58035-1_35.58.3.png
+# .30 alone too soft (0.35 looks good)
+# 2.0 awesome
+# together awesome
+# (.30,1.0) too soft
+
+
+#0.63037-1_37.63.2.png
+# .30 alone not agressive enough
+# 2.0 a little soft but pretty good
+# together like 2.0, pretty good
+
+
+#0.63039-1_39.63.3.png
+# .30 alone very good
+# 2.0 agressive but good
+# together like 2.0, pretty good
+
+
+#tiny 0 0 test.tif -fm=xxx.png > zzz.txt
+
+tiny 0 0 0.54033-1_33.54.2.png -fm=xxx.png > zzz.txt

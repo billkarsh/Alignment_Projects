@@ -182,7 +182,7 @@ static void WriteFOLDMAP2Entry( int ncr )
 /* SingleValueDominates ------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// Tells if a single pixel value dominates the histogram.
+// Return true if any histo bin has half or more of the counts.
 //
 static bool SingleValueDominates( const vector<int> &histo )
 {
@@ -210,19 +210,19 @@ static bool SingleValueDominates( const vector<int> &histo )
 /* IsTooGaussian ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Tells whether a histogram is too well explained by a gaussian.
+// Return true if histo is likely a single gaussian.
 //
 static bool IsTooGaussian( const vector<int> &histo )
 {
-	int	nhist = histo.size();
+	int	nh = histo.size();
 
-// Mean and std deviation.
+// Simple mean and standard deviation (std)
 
 	MeanStd	mh;
 	double	mean, std;
 	int		ndv = 0;	// number of different values
 
-	for( int i = 0; i < nhist; ++i ) {
+	for( int i = 0; i < nh; ++i ) {
 
 		mh.Run( i, histo[i] );
 		ndv += (histo[i] > 0);
@@ -237,85 +237,79 @@ static bool IsTooGaussian( const vector<int> &histo )
 
 	if( ndv <= 20 ) {
 
-		for( int i = 0; i < nhist; ++i ) {
+		printf( "Oddly few vals [v n]:" );
+
+		for( int i = 0; i < nh; ++i ) {
 
 			if( histo[i] > 0 )
-				printf( "[%d %d] ", i, histo[i] );
+				printf( " [%d %d]", i, histo[i] );
 		}
 
 		printf( "\n" );
 	}
 
-// Now do a least squares fit. Should yield little diff, in theory.
-// Create y array (same data as double); s array (const std dev).
+// Now try a 1 gaussian fit. Mean and std from fit should look
+// very much like those from the raw data. We'll actually just
+// consider similarity of the std's.
+//
+// To estimate the amplitude, note that for our model,
+// (centered at zero for this argument), A*exp(-x*x/(2*s*s)),
+// the integral over +- inf is A*s*sqrt(2pi). So the integral
+// (sum) over +- s encloses 68% of that. Therefore,
+// A ~ sum /[(0.68)*sqrt(2pi)*s] = sum / (1.7*s).
 
-	VecDoub	x( nhist ), y( nhist ), s( nhist );
-	MeanStd orig;
+	VecDoub	x( nh ), y( nh ), s( nh );
+	VecDoub	a( 3 );
+	double	sum = 0.0;
+	int		ilo = max(   0, int(mean - std) ),
+			ihi = min( 255, int(mean + std) );
 
-	for( int i = 0; i < nhist; ++i ) {
-
+	for( int i = 0; i < nh; ++i ) {
 		x[i] = i;
 		y[i] = histo[i];
 		s[i] = 1.0;
-		orig.Element( histo[i] );
 	}
 
-	double	omean, ostd;
-
-	orig.Stats( omean, ostd );
-
-	printf( "Histogram values: mean %f rms %f\n", omean, ostd );
-
-// Now try a 1 gaussian fit
-
-	VecDoub	a( 3 );
-	double	sum = 0.0;
-	double	cnt = 0;
-	int		ilo = max(   0, int(mean-std) ),
-			ihi = min( 255, int(mean+std) );
-
-	for( int i = ilo; i <= ihi; ++i ) {
-
+	for( int i = ilo; i <= ihi; ++i )
 		sum += histo[i];
-		++cnt;
 
-		printf( "%d ", histo[i] );
-	}
+	a[0] = sum / (1.7*std);		// estimated peak value
+	a[1] = mean;				// where it is
+	a[2] = std * sqrt( 2 );		// divisor term
 
-	printf( "\n" );
-	printf( "Boxcar average is %f\n", sum/cnt );
-
-	a[0] = 1.5 * sum/cnt;	// estimated peak value
-	a[1] = mean;			// where it is
-	a[2] = std * sqrt( 2 );	// and the divisor term
-
-	printf( "Before fit fit: height %f, loc %f, width %f\n",
-		a[0], mean, std );
+	printf( "Before fit: height %10.4f, loc %f, width %f\n",
+		a[0], a[1], std );
 
 	Fitmrq f( x, y, s, a, fgauss );
 
 	try {
 		f.fit();
 	}
-	catch(int) {		// if the fitting procedure blows up
-		return false;	// it's safe to assume it's not very gaussian
+	catch(int) {		// if fit blows up
+		return false;	// probably not gaussian
 	}
 
-	printf( "After fit: height %f, loc %f, width %f\n",
+	printf( "After  fit: height %10.4f, loc %f, width %f\n",
 		f.a[0], f.a[1], f.a[2]/sqrt(2) );
 
-// Now look at residuals
+#if 0
+// Now look at residuals (what metric applies to these?)
 
 	MeanStd	m;
 
-	for( int i = 0; i < nhist; ++i )
+	for( int i = 0; i < nh; ++i )
 		m.Element( y[i] - ygauss( x[i], f.a ) );
 
 	m.Stats( mean, std );
 
 	printf( "Residuals: mean %f, RMS about mean %f\n", mean, std );
+#endif
 
-	return std < ostd/8;	// a guess
+// Evaluate std
+
+	const double	T = 2;	// similarity threshold (2)
+
+	return (f.a[2] >= a[2] ? f.a[2]/a[2] < T : a[2]/f.a[2] < T);
 }
 
 /* --------------------------------------------------------------- */
@@ -503,7 +497,7 @@ static void ZeroWhitePixels(
 // The stats calculation calls 'good' pixels in range [SAT,255-SAT].
 // So the highest fold value is SAT-1.
 //
-// Also select radius D such that all  pixels within D of a fold
+// Also select radius D such that all pixels within D of a fold
 // are ignored.
 //
 static void SelectThreshAndD(
@@ -565,8 +559,8 @@ static void RemoveLowContrast(
 	double			std,
 	double			thresh )
 {
-	const int	D = 32;
-	const int	S = 128;
+	const int	D = 32;		// 32
+	const int	S = 128;	// 128
 
 	vector<double>	window( S*S );
 	vector<int>		remove;
