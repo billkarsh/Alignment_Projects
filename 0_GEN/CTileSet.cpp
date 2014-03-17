@@ -247,23 +247,8 @@ void CTileSet::SetTileDimsFromImageFile()
 
 void CTileSet::SetTileDimsFromIDB( const string &idb )
 {
-	char	buf[2048];
-
-	sprintf( buf, "%s/imageparams.txt", idb.c_str() );
-	FILE		*f = FileOpenOrDie( buf, "r" );
-	CLineScan	LS;
-
-	while( LS.Get( f ) > 0 ) {
-
-		if( 2 == sscanf( LS.line, "IMAGESIZE %d %d", &gW, &gH ) )
-			goto exit;
-	}
-
-	fprintf( flog, "IMAGESIZE tag not found.\n" );
-	exit( 42 );
-
-exit:
-	fclose( f );
+	if( !IDBGetImageDims( gW, gH, idb, flog ) )
+		exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
