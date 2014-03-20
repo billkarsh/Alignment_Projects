@@ -59,11 +59,12 @@ public:
 	int		zmin,
 			zmax,
 			blksize,
-			abscl,
-			ablgord,
-			absdev,
+			scl,
+			lgord,
+			sdev,
 			maxDZ;
-	bool	NoFolds;
+	bool	resmask,
+			NoFolds;
 
 public:
 	CArgs_alnmon()
@@ -75,10 +76,11 @@ public:
 		zmin			= 0;
 		zmax			= 32768;
 		blksize			= 10;
-		abscl			= 50;
-		ablgord			= 1;	// 1  probably good for Davi EM
-		absdev			= 42;	// 42 useful for Davi EM
+		scl				= 50;
+		lgord			= 1;	// 1  probably good for Davi EM
+		sdev			= 42;	// 42 useful for Davi EM
 		maxDZ			= 10;
+		resmask			= false;
 		NoFolds			= false;
 	};
 
@@ -142,11 +144,11 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &blksize, "-b=%d", argv[i] ) )
 			;
-		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
+		else if( GetArg( &scl, "-scl=%d", argv[i] ) )
 			;
-		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
+		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
 			;
-		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
+		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
 			;
@@ -159,6 +161,8 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &maxDZ, "-maxDZ=%d", argv[i] ) )
 			;
+		else if( IsArg( "-resmask", argv[i] ) )
+			resmask = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else {
@@ -190,9 +194,10 @@ static void WriteTestblockFile()
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=50\t\t\t;integer scale reduction\n" );
-	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -scl=50\t\t\t;integer scale reduction\n" );
+	fprintf( f, "# -lgord=1\t\t\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -sdev=42\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
@@ -203,9 +208,10 @@ static void WriteTestblockFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
+	fprintf( f, "qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock%s -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
 	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.scl, gArgs.lgord, gArgs.sdev,
+	(gArgs.resmask ? " -resmask" : ""),
 	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
 	fprintf( f, "\n" );
 
@@ -236,9 +242,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=50\t\t\t;integer scale reduction\n" );
-	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -scl=50\t\t\t;integer scale reduction\n" );
+	fprintf( f, "# -lgord=1\t\t\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -sdev=42\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
@@ -268,9 +275,10 @@ static void WriteSubblocksFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -abscl=%d -ablgord=%d -absdev=%d -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
+	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
 	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.scl, gArgs.lgord, gArgs.sdev,
+	(gArgs.resmask ? " -resmask" : ""),
 	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );

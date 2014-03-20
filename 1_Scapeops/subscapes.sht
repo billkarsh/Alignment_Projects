@@ -9,30 +9,28 @@
 #
 # If drawing a montage...
 #
-#	-mb -zb=%d -mbscl=%d
+#	-mb -zb=%d -scl=%d
 #
-#		[-mblgord=%d] [-mbsdev=%d]
+#		[-lgord=%d] [-sdev=%d] [-resmask]
 #
 # If aligning strips...
 #
-#	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -stpcorr=%lf
+#	-ab -za=%d -zb=%d -scl=%d -abwide=%d -stpcorr=%lf
 #
-#		[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]
+#		[-lgord=%d] [-sdev=%d] [-resmask] [-abdbg] [-abctr=%lf]
 #
 # Options:
 # -mb			;make montage for layer zb
 # -ab			;align layer za to zb
 # -za			;layer za used only with -ab option
 # -zb			;required layer zb
-# -mbscl=50		;integer scale reduction
-# -abscl=50		;integer scale reduction
-# -mblgord=1	;Legendre poly field-flat max int order
-# -ablgord=1	;Legendre poly field-flat max int order
-# -mbsdev=42	;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
-# -absdev=42	;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -scl=50		;integer scale reduction
+# -lgord=1		;Legendre poly field-flat max int order
+# -sdev=42		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -resmask		;mask out resin
 # -abwide=15	;strips this many tiles wide on short axis
 # -stpcorr=0.02	;required min corr for alignment
-# -addbg		;make diagnostic images and exit
+# -abdbg		;make diagnostic images and exit
 # -abctr=0		;debug at this a-to-b angle
 
 

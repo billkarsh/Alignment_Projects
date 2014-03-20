@@ -2111,10 +2111,11 @@ void ResinMask8(
 
 // Threshold
 
-	int	n = ws * hs;
+	int	n = ws * hs,
+		t = (samelayer ? 100 : 160);
 
 	for( int i = 0; i < n; ++i )
-		tmp[i] = (tmp[i] >= 100 ? 1 : 0);
+		tmp[i] = (tmp[i] >= t ? 1 : 0);
 
 // Resize
 

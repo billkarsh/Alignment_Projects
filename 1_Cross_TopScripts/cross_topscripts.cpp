@@ -32,14 +32,15 @@ public:
 			outdir[2048];
 	int		zmin,
 			zmax,
+			scl,
+			lgord,
+			sdev,
 			abwide,
-			abscl,
-			ablgord,
-			absdev,
 			xml_type,
 			xml_min,
 			xml_max;
-	bool	NoFolds;
+	bool	resmask,
+			NoFolds;
 
 public:
 	CArgs_cross()
@@ -51,13 +52,14 @@ public:
 		xmlfile[0]	= 0;
 		zmin		= 0;
 		zmax		= 32768;
+		scl			= 50;
+		lgord		= 1;	// 1  probably good for Davi EM
+		sdev		= 42;	// 42 useful for Davi EM
 		abwide		= 15;
-		abscl		= 50;
-		ablgord		= 1;	// 1  probably good for Davi EM
-		absdev		= 42;	// 42 useful for Davi EM
 		xml_type	= 0;
 		xml_min		= 0;
 		xml_max		= 0;
+		resmask		= false;
 		NoFolds		= false;
 
 		strcpy( outdir, "NoSuch" ); // protect real dirs
@@ -123,13 +125,13 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
+		else if( GetArg( &scl, "-scl=%d", argv[i] ) )
+			;
+		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
+			;
+		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
+			;
 		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
-			;
-		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
-			;
-		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
 			;
@@ -148,6 +150,8 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
 			;
+		else if( IsArg( "-resmask", argv[i] ) )
+			resmask = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else {
@@ -218,12 +222,12 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	sprintf( sopt,
 	"'%s'"
-	" -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
-	" -ab -abwide=%d -abscl=%d -ablgord=%d -absdev=%d -stpcorr=%g",
+	" -mb -scl=%d -lgord=%d -sdev=%d%s"
+	" -ab -abwide=%d -stpcorr=%g",
 	gArgs.xmlfile,
-	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
-	gArgs.abwide, gArgs.abscl, gArgs.ablgord, gArgs.absdev,
-	gArgs.stpcorr );
+	gArgs.scl, gArgs.lgord, gArgs.sdev,
+	(gArgs.resmask ? " -resmask" : ""),
+	gArgs.abwide, gArgs.stpcorr );
 
 // open file
 
@@ -246,30 +250,28 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "#\n" );
 	fprintf( f, "# If drawing a montage...\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t-mb -zb=%%d -mbscl=%%d\n" );
+	fprintf( f, "#\t-mb -zb=%%d -scl=%%d\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t\t[-mblgord=%%d] [-mbsdev=%%d]\n" );
+	fprintf( f, "#\t\t[-lgord=%%d] [-sdev=%%d] [-resmask]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# If aligning strips...\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t-ab -za=%%d -zb=%%d -abwide=%%d -abscl=%%d -stpcorr=%%lf\n" );
+	fprintf( f, "#\t-ab -za=%%d -zb=%%d -scl=%%d -abwide=%%d -stpcorr=%%lf\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t\t[-ablgord=%%d] [-absdev=%%d] [-abdbg] [-abctr=%%lf]\n" );
+	fprintf( f, "#\t\t[-lgord=%%d] [-sdev=%%d] [-resmask] [-abdbg] [-abctr=%%lf]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -mb\t\t\t;make montage for layer zb\n" );
 	fprintf( f, "# -ab\t\t\t;align layer za to zb\n" );
 	fprintf( f, "# -za\t\t\t;layer za used only with -ab option\n" );
 	fprintf( f, "# -zb\t\t\t;required layer zb\n" );
-	fprintf( f, "# -mbscl=50\t\t;integer scale reduction\n" );
-	fprintf( f, "# -abscl=50\t\t;integer scale reduction\n" );
-	fprintf( f, "# -mblgord=1\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -ablgord=1\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -mbsdev=42\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -absdev=42\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -scl=50\t\t;integer scale reduction\n" );
+	fprintf( f, "# -lgord=1\t\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -sdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -resmask\t\t;mask out resin\n" );
 	fprintf( f, "# -abwide=15\t;strips this many tiles wide on short axis\n" );
 	fprintf( f, "# -stpcorr=0.02\t;required min corr for alignment\n" );
-	fprintf( f, "# -addbg\t\t;make diagnostic images and exit\n" );
+	fprintf( f, "# -abdbg\t\t;make diagnostic images and exit\n" );
 	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
@@ -300,11 +302,13 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	fprintf( f,
 	"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -mb -mbscl=%d -mblgord=%d -mbsdev=%d"
+	" scapeops '%s' -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.xmlfile, gArgs.abscl,
-	gArgs.ablgord, gArgs.absdev, zlist[nz - 1] );
+	gArgs.xmlfile, gArgs.scl,
+	gArgs.lgord, gArgs.sdev,
+	(gArgs.resmask ? " -resmask" : ""),
+	zlist[nz - 1] );
 
 	fprintf( f, "\n" );
 
@@ -449,19 +453,21 @@ static void WriteCarvego()
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -b=10\t\t\t\t;ea. block roughly bXb tiles in area\n" );
 	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -abscl=50\t\t\t;integer scale reduction\n" );
-	fprintf( f, "# -ablgord=1\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -absdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -scl=50\t\t\t;integer scale reduction\n" );
+	fprintf( f, "# -lgord=1\t\t\t;Legendre poly field-flat max int order\n" );
+	fprintf( f, "# -sdev=42\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
+	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -abscl=%d -ablgord=%d -absdev=%d -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
+	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.abscl, gArgs.ablgord, gArgs.absdev,
+	gArgs.scl, gArgs.lgord, gArgs.sdev,
+	(gArgs.resmask ? " -resmask" : ""),
 	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
 	fprintf( f, "\n" );
 

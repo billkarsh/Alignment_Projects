@@ -128,16 +128,17 @@ public:
 class CArgs_scp {
 
 public:
-	double	inv_abscl,
+	double	inv_scl,
 			blkmincorr,
 			blknomcorr,
 			abctr,
 			xyconf;		// search radius = (1-conf)(blockwide)
-	int		abscl,
-			ablgord,
-			absdev,
+	int		scl,
+			lgord,
+			sdev,
 			dbgz;
-	bool	abdbg,
+	bool	resmask,
+			abdbg,
 			NoFolds;
 
 public:
@@ -147,14 +148,15 @@ public:
 		blknomcorr	= 0.50;
 		abctr		= 0.0;
 		xyconf		= 0.75;
-		abscl		= 50;
-		ablgord		= 1;	// 1  probably good for Davi EM
-		absdev		= 42;	// 42 useful for Davi EM
+		scl			= 50;
+		lgord		= 1;	// 1  probably good for Davi EM
+		sdev		= 42;	// 42 useful for Davi EM
 		dbgz		= -1;
+		resmask		= false;
 		abdbg		= false;
 		NoFolds		= false;
 
-		inv_abscl	= 1.0/abscl;
+		inv_scl	= 1.0/scl;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -209,11 +211,11 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
-			inv_abscl = 1.0/abscl;
-		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
+		if( GetArg( &scl, "-scl=%d", argv[i] ) )
+			inv_scl = 1.0/scl;
+		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
 			;
-		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
+		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
 			;
@@ -228,6 +230,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArg( &dbgz, "-abdbg=%d", argv[i] ) )
 			abdbg = true;
+		else if( IsArg( "-resmask", argv[i] ) )
+			resmask = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else if( IsArg( "-nf", argv[i] ) )
@@ -360,8 +364,9 @@ void CSuperscape::CalcBBox()
 bool CSuperscape::MakeRasA()
 {
 	ras = TS.Scape( ws, hs, x0, y0,
-			vID, gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev );
+			vID, gArgs.inv_scl, 1, 0,
+			gArgs.lgord, gArgs.sdev,
+			gArgs.resmask );
 
 	return (ras != NULL);
 }
@@ -398,8 +403,9 @@ bool CSuperscape::MakeRasB( const DBox &Abb )
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev );
+			vid, gArgs.inv_scl, 1, 0,
+			gArgs.lgord, gArgs.sdev,
+			gArgs.resmask );
 
 	if( !ras ) {
 
@@ -510,7 +516,7 @@ void CSuperscape::WriteMeta()
 
 	fprintf( flog,
 	"%d %d [%d,%d] [%f,%f]\n",
-	TS.vtil[is0].z, gArgs.abscl, ws, hs, x0, y0 );
+	TS.vtil[is0].z, gArgs.scl, ws, hs, x0, y0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -653,7 +659,7 @@ static bool ThisBZ(
 	TAffine	s, t;
 
 	// A montage -> A block image
-	s.NUSetScl( gArgs.inv_abscl );
+	s.NUSetScl( gArgs.inv_scl );
 	s.AddXY( -A.x0, -A.y0 );
 
 	// A block image -> B block image
@@ -661,7 +667,7 @@ static bool ThisBZ(
 
 	// B block image -> B montage
 	t.AddXY( B.x0, B.y0 );
-	s.NUSetScl( gArgs.abscl );
+	s.NUSetScl( gArgs.scl );
 	best.T = s * t;
 
 // Append to list

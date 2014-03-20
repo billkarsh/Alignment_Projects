@@ -5,9 +5,10 @@
 #
 # Options:
 # -nf				;no foldmasks
-# -abscl=50			;integer scale reduction
-# -ablgord=1		;Legendre poly field-flat max int order
-# -absdev=42		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -scl=50			;integer scale reduction
+# -lgord=1			;Legendre poly field-flat max int order
+# -sdev=42			;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -resmask			;mask out resin
 # -blkmincorr=0.45	;required min corr for alignment
 # -blknomcorr=0.50	;nominal corr for alignment
 # -xyconf=0.75		;search radius = (1-xyconf)*blkwide
@@ -18,5 +19,5 @@
 
 export MRC_TRIM=12
 
-qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -nf -abscl=50 -absdev=42 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75
+qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -nf -scl=50 -lgord=1 -sdev=42 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75
 

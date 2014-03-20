@@ -165,7 +165,8 @@ public:
 		int					szmult,
 		int					bkval,
 		int					lgord,
-		int					sdnorm ) const;
+		int					sdnorm,
+		bool				resmask ) const;
 };
 
 

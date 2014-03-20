@@ -224,8 +224,10 @@ public:
 	uint32					hs;
 	const vector<ScpTile>	&vTile;
 	int						iscl;
+	int						bkval;
 	int						lgord;
 	int						sdnorm;
+	bool					resmask;
 	FILE					*flog;
 public:
 	CPaintPrms(
@@ -234,12 +236,15 @@ public:
 		uint32					hs,
 		const vector<ScpTile>	&vTile,
 		int						iscl,
+		int						bkval,
 		int						lgord,
 		int						sdnorm,
+		bool					resmask,
 		FILE					*flog )
 	: scp(scp), ws(ws), hs(hs),
-	vTile(vTile), iscl(iscl),
-	lgord(lgord), sdnorm(sdnorm), flog(flog)
+	vTile(vTile), iscl(iscl), bkval(bkval),
+	lgord(lgord), sdnorm(sdnorm),
+	resmask(resmask), flog(flog)
 	{};
 };
 
@@ -257,16 +262,42 @@ void* _Paint( void *ithr )
 
 	for( int i = me.i0; i < me.ilim; ++i ) {
 
-		TAffine	inv;
-		int		x0, xL, y0, yL,
-				wL, hL,
-				wi, hi;
-		uint32	w,  h;
-		uint8*	src = Raster8FromAny(
-						GP->vTile[i].name.c_str(), w, h, GP->flog );
+		vector<uint8>	msk;
+		uint8*			src;
+		TAffine			inv;
+		uint32			w,  h;
+		int				x0, xL, y0, yL,
+						wL, hL,
+						wi, hi,
+						n;
 
-		if( GP->sdnorm > 0 )
+		src = Raster8FromAny(
+				GP->vTile[i].name.c_str(),
+				w, h, GP->flog );
+
+		if( GP->resmask ) {
+			ResinMask8( msk, src, w, h, false );
+			n = w * h;
+		}
+
+		if( GP->sdnorm > 0 ) {
+
 			NormRas( src, w, h, GP->lgord, GP->sdnorm );
+
+			if( GP->resmask ) {
+				for( int j = 0; j < n; ++j ) {
+					if( !msk[j] )
+						src[j] = 127;
+				}
+			}
+		}
+		else if( GP->resmask ) {
+
+			for( int j = 0; j < n; ++j ) {
+				if( !msk[j] )
+					src[j] = GP->bkval;
+			}
+		}
 
 		ScanLims( x0, xL, y0, yL,
 			GP->ws, GP->hs, GP->vTile[i].t2g, w, h );
@@ -354,8 +385,9 @@ static void PaintTH( int nthr )
 // scale	- for example, 0.25 reduces by 4X.
 // szmult	- scape dims made divisible by szmult.
 // bkval	- default scape value where no data.
-// lgord	- Legendre poly max order
+// lgord	- Legendre poly max order.
 // sdnorm	- if > 0, image normalized to mean=127, sd=sdnorm.
+// resmask	- mask resin areas.
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
@@ -372,6 +404,7 @@ uint8* Scape(
 	int				bkval,
 	int				lgord,
 	int				sdnorm,
+	bool			resmask,
 	FILE*			flog )
 {
 	if( !vTile.size() ) {
@@ -389,7 +422,8 @@ uint8* Scape(
 		memset( scp, bkval, ns );
 
 		GP = new CPaintPrms( scp, ws, hs,
-					vTile, int(1/scale), lgord, sdnorm, flog );
+					vTile, int(1/scale), bkval,
+					lgord, sdnorm, resmask, flog );
 		PaintTH( 4 );
 		delete GP;
 	}

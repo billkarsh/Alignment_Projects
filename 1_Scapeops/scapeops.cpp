@@ -7,15 +7,15 @@
 //
 //	If drawing a montage...
 //
-//	-mb -zb=%d -mbscl=%d
+//	-mb -zb=%d -scl=%d
 //
-//		[-mblgord=%d] [-mbsdev=%d]
+//		[-lgord=%d] [-sdev=%d] [-resmask]
 //
 // If aligning strips...
 //
-//	-ab -za=%d -zb=%d -abwide=%d -abscl=%d -stpcorr=%lf
+//	-ab -za=%d -zb=%d -scl=%d -abwide=%d -stpcorr=%lf
 //
-//		[-ablgord=%d] [-absdev=%d] [-abdbg] [-abctr=%lf]
+//		[-lgord=%d] [-sdev=%d] [-resmask] [-abdbg] [-abctr=%lf]
 //
 
 
@@ -108,21 +108,19 @@ public:
 class CArgs_scp {
 
 public:
-	double	inv_abscl,
+	double	inv_scl,
 			stpcorr,
 			abctr;
 	char	*infile;
 	int		za,
 			zb,
-			abwide,
-			mbscl,
-			abscl,
-			mblgord,
-			ablgord,
-			mbsdev,
-			absdev;
+			scl,
+			lgord,
+			sdev,
+			abwide;
 	bool	ismb,
 			isab,
+			resmask,
 			abdbg;
 
 public:
@@ -133,18 +131,15 @@ public:
 		infile		= NULL;
 		za			= -1;
 		zb			= -1;
+		scl			= 50;
+		lgord		= 1;	// 1  probably good for Davi EM
+		sdev		= 42;	// 42 useful for Davi EM
 		abwide		= 15;
-		mbscl		= 50;
-		abscl		= 50;
-		mblgord		= 1;	// 1  probably good for Davi EM
-		ablgord		= 1;	// 1  probably good for Davi EM
-		mbsdev		= 42;	// 42 useful for Davi EM
-		absdev		= 42;	// 42 useful for Davi EM
 		ismb		= false;
 		isab		= false;
 		abdbg		= false;
 
-		inv_abscl	= 1.0/abscl;
+		inv_scl	= 1.0/scl;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -222,19 +217,13 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &zb, "-zb=%d", argv[i] ) )
 			;
+		else if( GetArg( &scl, "-scl=%d", argv[i] ) )
+			inv_scl = 1.0/scl;
+		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
+			;
+		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
+			;
 		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
-			;
-		else if( GetArg( &mbscl, "-mbscl=%d", argv[i] ) )
-			;
-		else if( GetArg( &abscl, "-abscl=%d", argv[i] ) )
-			inv_abscl = 1.0/abscl;
-		else if( GetArg( &mblgord, "-mblgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &ablgord, "-ablgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &mbsdev, "-mbsdev=%d", argv[i] ) )
-			;
-		else if( GetArg( &absdev, "-absdev=%d", argv[i] ) )
 			;
 		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
 			;
@@ -244,6 +233,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			ismb = true;
 		else if( IsArg( "-ab", argv[i] ) )
 			isab = true;
+		else if( IsArg( "-resmask", argv[i] ) )
+			resmask = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else {
@@ -339,8 +330,9 @@ bool CSuperscape::MakeWholeRaster()
 		vid[i - is0] = i;
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, 1.0/gArgs.mbscl, 1, 0,
-			gArgs.mblgord, gArgs.mbsdev );
+			vid, 1.0/gArgs.scl, 1, 0,
+			gArgs.lgord, gArgs.sdev,
+			gArgs.resmask );
 
 	return (ras != NULL);
 }
@@ -376,8 +368,9 @@ bool CSuperscape::MakeRasV()
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev );
+			vid, gArgs.inv_scl, 1, 0,
+			gArgs.lgord, gArgs.sdev,
+			gArgs.resmask );
 
 	return (ras != NULL);
 }
@@ -413,8 +406,9 @@ bool CSuperscape::MakeRasH()
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_abscl, 1, 0,
-			gArgs.ablgord, gArgs.absdev );
+			vid, gArgs.inv_scl, 1, 0,
+			gArgs.lgord, gArgs.sdev,
+			gArgs.resmask );
 
 	return (ras != NULL);
 }
@@ -551,11 +545,11 @@ static void NewAngProc(
 //	TAffine	Rbi, Ra, t;
 //
 // Scale back up
-//	best.T.MulXY( gArgs.abscl );
-//	A.x0 *= gArgs.abscl;
-//	A.y0 *= gArgs.abscl;
-//	B.x0 *= gArgs.abscl;
-//	B.y0 *= gArgs.abscl;
+//	best.T.MulXY( gArgs.scl );
+//	A.x0 *= gArgs.scl;
+//	A.y0 *= gArgs.scl;
+//	B.x0 *= gArgs.scl;
+//	B.y0 *= gArgs.scl;
 //
 // A-montage -> A-oriented
 //	Ra.NUSetRot( A.deg*PI/180 );
@@ -592,7 +586,7 @@ static void ScapeStuff()
 		sprintf( buf, "montages/M_%d_0.png", gArgs.zb );
 		B.DrawRas( buf );
 		B.KillRas();
-		B.WriteMeta( 'M', gArgs.zb, gArgs.mbscl );
+		B.WriteMeta( 'M', gArgs.zb, gArgs.scl );
 		t0 = StopTiming( flog, "MakeMontage", t0 );
 	}
 
@@ -606,14 +600,14 @@ static void ScapeStuff()
 	t0 = StopTiming( flog, "MakeStrips", t0 );
 
 	A.MakePoints( thm.av, thm.ap );
-	A.WriteMeta( 'A', gArgs.za, gArgs.abscl );
+	A.WriteMeta( 'A', gArgs.za, gArgs.scl );
 
 	B.MakePoints( thm.bv, thm.bp );
-	B.WriteMeta( 'B', gArgs.zb, gArgs.abscl );
+	B.WriteMeta( 'B', gArgs.zb, gArgs.scl );
 
 	thm.ftc.clear();
-	thm.reqArea	= int(gW * gH * gArgs.inv_abscl * gArgs.inv_abscl);
-	thm.olap1D	= int(gW * gArgs.inv_abscl * 0.20);
+	thm.reqArea	= int(gW * gH * gArgs.inv_scl * gArgs.inv_scl);
+	thm.olap1D	= int(gW * gArgs.inv_scl * 0.20);
 	thm.scl		= 1;
 
 	S.Initialize( flog, best );

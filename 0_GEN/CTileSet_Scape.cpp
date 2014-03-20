@@ -225,8 +225,10 @@ public:
 	const vector<TAffine>	&vTadj;
 	const vector<int>		&vid;
 	int						iscl;
+	int						bkval;
 	int						lgord;
 	int						sdnorm;
+	bool					resmask;
 public:
 	CPaintPrms(
 		uint8					*scp,
@@ -235,11 +237,13 @@ public:
 		const vector<TAffine>	&vTadj,
 		const vector<int>		&vid,
 		int						iscl,
+		int						bkval,
 		int						lgord,
-		int						sdnorm )
+		int						sdnorm,
+		bool					resmask )
 	: scp(scp), ws(ws), hs(hs),
-	vTadj(vTadj), vid(vid), iscl(iscl),
-	lgord(lgord), sdnorm(sdnorm)
+	vTadj(vTadj), vid(vid), iscl(iscl), bkval(bkval),
+	lgord(lgord), sdnorm(sdnorm), resmask(resmask)
 	{};
 };
 
@@ -258,17 +262,42 @@ void* _Scape_Paint( void *ithr )
 
 	for( int i = me.i0; i < me.ilim; ++i ) {
 
-		TAffine	inv;
-		int		x0, xL, y0, yL,
-				wL, hL,
-				wi, hi;
-		uint32	w,  h;
-		uint8*	src = Raster8FromAny(
-						ME->vtil[GP->vid[i]].name.c_str(),
-						w, h, ME->flog );
+		vector<uint8>	msk;
+		uint8*			src;
+		TAffine			inv;
+		uint32			w,  h;
+		int				x0, xL, y0, yL,
+						wL, hL,
+						wi, hi,
+						n;
 
-		if( GP->sdnorm > 0 )
+		src = Raster8FromAny(
+				ME->vtil[GP->vid[i]].name.c_str(),
+				w, h, ME->flog );
+
+		if( GP->resmask ) {
+			ResinMask8( msk, src, w, h, false );
+			n = w * h;
+		}
+
+		if( GP->sdnorm > 0 ) {
+
 			NormRas( src, w, h, GP->lgord, GP->sdnorm );
+
+			if( GP->resmask ) {
+				for( int j = 0; j < n; ++j ) {
+					if( !msk[j] )
+						src[j] = 127;
+				}
+			}
+		}
+		else if( GP->resmask ) {
+
+			for( int j = 0; j < n; ++j ) {
+				if( !msk[j] )
+					src[j] = GP->bkval;
+			}
+		}
 
 		ScanLims( x0, xL, y0, yL, GP->ws, GP->hs, GP->vTadj[i], w, h );
 		wi = w;
@@ -354,8 +383,9 @@ void CTileSet::Scape_PaintTH( int nthr ) const
 // scale	- for example, 0.25 reduces by 4X.
 // szmult	- scape dims made divisible by szmult.
 // bkval	- default scape value where no data.
-// lgord	- Legendre poly max order
+// lgord	- Legendre poly max order.
 // sdnorm	- if > 0, image normalized to mean=127, sd=sdnorm.
+// resmask	- mask resin areas.
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
@@ -369,7 +399,8 @@ uint8* CTileSet::Scape(
 	int					szmult,
 	int					bkval,
 	int					lgord,
-	int					sdnorm ) const
+	int					sdnorm,
+	bool				resmask ) const
 {
 	if( !vid.size() ) {
 		fprintf( flog, "Scape: Empty tile list.\n" );
@@ -389,7 +420,8 @@ uint8* CTileSet::Scape(
 
 		ME = this;
 		GP = new CPaintPrms( scp, ws, hs,
-					vTadj, vid, int(1/scale), lgord, sdnorm );
+					vTadj, vid, int(1/scale),
+					bkval, lgord, sdnorm, resmask );
 		Scape_PaintTH( 4 );
 		delete GP;
 	}
