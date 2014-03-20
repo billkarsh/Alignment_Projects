@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Purpose:
+# Clean all same data for layer $1.
+#
+# > ./cleansame1.sht <z>
+
+
+if (($# == 0))
+then
+	echo "Need layer number"
+	exit
+fi
+
+cd $1
+
+for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+do
+	echo $jb
+	cd $jb
+	rm -f p*
+	rm -f q*
+	hdr=$(printf "Atl\tAcr\tBtl\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
+	echo "$hdr" > "ThmPair_"$1"^"$1".txt"
+	cd ..
+done
+
+cd ..
+
