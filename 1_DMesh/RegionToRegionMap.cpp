@@ -453,6 +453,16 @@ void RegionToRegionMap(
 
 	MeshGetBounds( B, ap_msh, flog );
 
+	if( B.R - B.L + 1 < 10 ||
+		B.T - B.B + 1 < 10 ) {
+
+		fprintf( flog,
+		"FAIL: Region too slim - %d pixels, min %d\n",
+		min( B.R - B.L, B.T - B.B ) + 1, 10 );
+
+		return;
+	}
+
 /* -------------------------------------------- */
 /* First create a single-triangle "affine" mesh */
 /* -------------------------------------------- */
