@@ -2107,7 +2107,7 @@ void ResinMask8(
 // to appear in both layers, and a larger kernel will
 // help wash them out.
 
-	Median8( &tmp[0], &tmp[0], ws, hs, (samelayer ? 5 : 10) );
+	Median8( &tmp[0], &tmp[0], ws, hs, (samelayer ? 5 : 20) );
 
 // Threshold
 

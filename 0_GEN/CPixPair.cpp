@@ -284,7 +284,7 @@ bool PixPair::Load(
 		CAffineLens	LN;
 
 		if( !LN.ReadIDB( idb ) )
-			return false;
+			goto exit;
 
 		Lens( _avf, LN, aras, wf, hf, order, A.t2i.cam );
 		Lens( _bvf, LN, bras, wf, hf, order, B.t2i.cam );
@@ -303,29 +303,50 @@ bool PixPair::Load(
 
 	if( resmsk ) {
 
-		vector<uint8>	msk;
-		int				n = wf * hf;
+		vector<uint8>	mska, mskb;
+		double			fa, fb;
+		int				n = wf * hf, sa = 0, sb = 0;
 
-		ResinMask8( msk, aras, wf, hf, (A.z == B.z) );
-		//Raster8ToTif8( "resinA.tif", &msk[0], wf, hf );
+		// first make smoothest masks
+		ResinMask8( mska, aras, wf, hf, false );
+		ResinMask8( mskb, bras, wf, hf, false );
 
+		// reject if no tissue
 		for( int i = 0; i < n; ++i ) {
-
-			if( !msk[i] )
-				_avf[i] = 0.0;
+			sa += mska[i];
+			sb += mskb[i];
 		}
 
-		Normalize( _avf );
+		fa = (double)sa / n;
+		fb = (double)sb / n;
+		fprintf( flog, "Tissue frac: A %.3f B %.3f\n", 	fa, fb );
 
-		ResinMask8( msk, bras, wf, hf, (A.z == B.z) );
-		//Raster8ToTif8( "resinB.tif", &msk[0], wf, hf );
+		if( fa < 0.15 && fb < 0.15 ) {
+			fprintf( flog,
+			"FAIL: PixPair: Low tissue fraction [%.3f %.3f]\n",
+			fa, fb );
+			goto exit;
+		}
+
+		// remake masks if same layer
+		if( A.z == B.z ) {
+			ResinMask8( mska, aras, wf, hf, true );
+			ResinMask8( mskb, bras, wf, hf, true );
+		}
+
+		//Raster8ToTif8( "resinA.tif", &mska[0], wf, hf );
+		//Raster8ToTif8( "resinB.tif", &mskb[0], wf, hf );
 
 		for( int i = 0; i < n; ++i ) {
 
-			if( !msk[i] )
+			if( !mska[i] )
+				_avf[i] = 0.0;
+
+			if( !mskb[i] )
 				_bvf[i] = 0.0;
 		}
 
+		Normalize( _avf );
 		Normalize( _bvf );
 	}
 
