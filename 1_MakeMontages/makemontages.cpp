@@ -547,7 +547,7 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j -j %d EXTRA='\"\"'\n",
+	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j %d EXTRA='\"\"'\n",
 	njobs );
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\n" );
