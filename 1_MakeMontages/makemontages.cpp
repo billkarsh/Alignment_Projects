@@ -269,6 +269,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	fprintf( f, "# -splitmin=1000\t;separate islands > splitmin tiles\n" );
 	fprintf( f, "# -zpernode=200\t\t;max layers per cluster node\n" );
 	fprintf( f, "# -maxthreads=1\t\t;thr/node if not mpi (16 if mpi)\n" );
+	fprintf( f, "# -local\t\t\t;run locally (no qsub) if 1 worker\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 

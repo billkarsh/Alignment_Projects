@@ -25,6 +25,7 @@
 # -splitmin=1000	;separate islands > splitmin tiles
 # -zpernode=200		;max layers per cluster node
 # -maxthreads=1		;thr/node if not mpi (16 if mpi)
+# -local			;run locally (no qsub) if 1 worker
 
 
 lsq -temp=../../ -zi=0,0 $1

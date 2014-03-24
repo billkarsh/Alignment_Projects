@@ -44,7 +44,8 @@ public:
 				zpernode,		// max layers per node
 				maxthreads;		// thr/node if not mpi
 	bool		catclr,			// remake point catalog
-				untwist;		// iff prior are affines
+				untwist,		// iff prior are affines
+				local;			// run locally (no qsub) if 1 worker
 
 public:
 	CArgs()
@@ -66,6 +67,7 @@ public:
 		maxthreads	= 1;
 		catclr		= false;
 		untwist		= false;
+		local		= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -169,6 +171,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			catclr = true;
 		else if( IsArg( "-untwist", argv[i] ) )
 			untwist = true;
+		else if( IsArg( "-local", argv[i] ) )
+			local = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -318,7 +322,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		// 1 worker
 
-		if( maxthreads <= 1 ) { // pass flow in-process
+		if( local || maxthreads <= 1 ) { // pass flow in-process
 
 			sprintf( buf,
 			"lsqw -nwks=%d -temp=%s"
