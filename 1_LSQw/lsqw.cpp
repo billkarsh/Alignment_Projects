@@ -238,7 +238,7 @@ static void Evaluate( const XArray &X )
 	Bounds( B, X );
 
 	Magnitude( X );
-	Error( X );
+	Error( X, gArgs.Etol );
 
 	Dropout	D;
 	D.Scan();

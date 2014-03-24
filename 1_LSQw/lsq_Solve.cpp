@@ -282,10 +282,8 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			Ta->Transform( A = C.p1 );
 			Tb->Transform( B = C.p2 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-				C.used = false;
+			if( pass > editdelay && A.DistSqr( B ) > Etol )
 				continue;
-			}
 
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -307,10 +305,8 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 			Ta->Transform( A = C.p2 );
 			Tb->Transform( B = C.p1 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-				C.used = false;
+			if( pass > editdelay && A.DistSqr( B ) > Etol )
 				continue;
-			}
 
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -510,10 +506,8 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			Ta->Transform( A = C.p1 );
 			Tb->Transform( B = C.p2 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-				C.used = false;
+			if( pass > editdelay && A.DistSqr( B ) > Etol )
 				continue;
-			}
 
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -535,10 +529,8 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 			Ta->Transform( A = C.p2 );
 			Tb->Transform( B = C.p1 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-				C.used = false;
+			if( pass > editdelay && A.DistSqr( B ) > Etol )
 				continue;
-			}
 
 			B.x = Wb * B.x + (1 - Wb) * A.x;
 			B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -663,10 +655,8 @@ static void* _A2A( void* ithr )
 				Ta->Transform( A = C.p1 );
 				Tb->Transform( B = C.p2 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-					C.used = false;
+				if( pass > editdelay && A.DistSqr( B ) > Etol )
 					continue;
-				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -700,10 +690,8 @@ static void* _A2A( void* ithr )
 				Ta->Transform( A = C.p2 );
 				Tb->Transform( B = C.p1 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-					C.used = false;
+				if( pass > editdelay && A.DistSqr( B ) > Etol )
 					continue;
-				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -1010,10 +998,8 @@ static void* _H2H( void* ithr )
 				Ta->Transform( A = C.p1 );
 				Tb->Transform( B = C.p2 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-					C.used = false;
+				if( pass > editdelay && A.DistSqr( B ) > Etol )
 					continue;
-				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;
@@ -1047,10 +1033,8 @@ static void* _H2H( void* ithr )
 				Ta->Transform( A = C.p2 );
 				Tb->Transform( B = C.p1 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol ) {
-					C.used = false;
+				if( pass > editdelay && A.DistSqr( B ) > Etol )
 					continue;
-				}
 
 				B.x = Wb * B.x + (1 - Wb) * A.x;
 				B.y = Wb * B.y + (1 - Wb) * A.y;

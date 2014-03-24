@@ -138,7 +138,8 @@ using namespace error;
 
 static const XArray	*gX;
 static vector<Stat>	vS;
-static double		fnlrms = -1,
+static double		Etol,
+					fnlrms = -1,
 					fnlmax = -1;
 static int			nthr;
 
@@ -555,6 +556,7 @@ void* _ErrorA( void* ithr )
 			if( !FLAG_ISUSED( Ra.flag[ir] ) )
 				continue;
 
+
 			const vector<int>&	P  = Ra.pts[ir];
 			const TAffine*		Ta = &X_AS_AFF( xa, ir );
 			const TAffine*		Tb;
@@ -566,7 +568,7 @@ void* _ErrorA( void* ithr )
 
 			for( int ip = 0; ip < np; ++ip ) {
 
-				CorrPnt&	C = vC[S.cur.i = P[ip]];
+				const CorrPnt&	C = vC[S.cur.i = P[ip]];
 
 				if( !C.used )
 					continue;
@@ -598,6 +600,10 @@ void* _ErrorA( void* ithr )
 					Tb->Transform( pb );
 
 					S.cur.e = pb.DistSqr( pa );
+
+					if( S.cur.e > Etol )
+						continue;
+
 					S.AddS();
 					FS.Add( S.cur.e );
 				}
@@ -628,6 +634,10 @@ void* _ErrorA( void* ithr )
 					Tb->Transform( pb );
 
 					S.cur.e = pb.DistSqr( pa );
+
+					if( S.cur.e > Etol )
+						continue;
+
 					S.AddD();
 					FD.Add( S.cur.e );
 				}
@@ -677,7 +687,7 @@ void* _ErrorH( void* ithr )
 
 			for( int ip = 0; ip < np; ++ip ) {
 
-				CorrPnt&	C = vC[S.cur.i = P[ip]];
+				const CorrPnt&	C = vC[S.cur.i = P[ip]];
 
 				if( !C.used )
 					continue;
@@ -709,6 +719,10 @@ void* _ErrorH( void* ithr )
 					Tb->Transform( pb );
 
 					S.cur.e = pb.DistSqr( pa );
+
+					if( S.cur.e > Etol )
+						continue;
+
 					S.AddS();
 					FS.Add( S.cur.e );
 				}
@@ -739,6 +753,10 @@ void* _ErrorH( void* ithr )
 					Tb->Transform( pb );
 
 					S.cur.e = pb.DistSqr( pa );
+
+					if( S.cur.e > Etol )
+						continue;
+
 					S.AddD();
 					FD.Add( S.cur.e );
 				}
@@ -966,11 +984,13 @@ static void Consolidate()
 //		'Err_D_i.bin' with packed |err| values as floats.
 //		These are histogrammed using separate eview tool.
 //
-void Error( const XArray &X )
+void Error( const XArray &X, double inEtol )
 {
 	printf( "\n---- Error statistics ----\n" );
 
 	clock_t	t0 = StartTiming();
+
+	Etol = inEtol * inEtol;
 
 	DskCreateDir( "Error", stdout );
 
