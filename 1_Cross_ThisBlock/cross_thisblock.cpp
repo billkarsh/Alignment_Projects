@@ -686,14 +686,59 @@ static bool ThisBZ(
 /* --------------------------------------------------------------- */
 
 class CSort_R_Dec {
+// Rank tissue by quality:
+// Nearest tissue to head of list if close to best R.
+// Otherwise simply order by R.
 public:
 	const vector<BlkZ>	&vZ;
+	bool				zeroPrime;
 public:
-	CSort_R_Dec( const vector<BlkZ> &vZ )
-		: vZ(vZ) {};
-	bool operator() ( const Pair &I, const Pair &J )
-		{return vZ[I.iz].R > vZ[J.iz].R;};
+	CSort_R_Dec( const vector<BlkZ> &vZ );
+	bool operator() ( const Pair &I, const Pair &J );
+	bool IsPrime( const Pair &P );
 };
+
+
+CSort_R_Dec::CSort_R_Dec( const vector<BlkZ> &vZ ) : vZ(vZ)
+{
+// Who's the best?
+
+	double	Rbest = -1;
+	int		nz = vZ.size();
+
+	for( int i = 0; i < nz; ++i ) {
+
+		if( vZ[i].R > Rbest )
+			Rbest = vZ[i].R;
+	}
+
+// Layer-0 goes to head if better than 90% of best
+
+	zeroPrime = (vZ[0].R >= Rbest * 0.90);
+}
+
+
+// True if I goes ahead of J.
+//
+bool CSort_R_Dec::operator() ( const Pair &I, const Pair &J )
+{
+	if( zeroPrime ) {
+
+		if( !I.iz )
+			return true;
+		else if( !J.iz )
+			return false;
+	}
+
+	return (vZ[I.iz].R > vZ[J.iz].R);
+}
+
+
+bool CSort_R_Dec::IsPrime( const Pair &P )
+{
+	return (!P.iz && zeroPrime)
+			|| (vZ[P.iz].R >= gArgs.blknomcorr);
+}
 
 /* --------------------------------------------------------------- */
 /* BlockCoverage ------------------------------------------------- */
@@ -726,7 +771,7 @@ static double BlockCoverage(
 
 		for( int ib = 0; ib < nb; ++ib ) {
 
-			if( vZ[p[ib].iz].R >= gArgs.blknomcorr )
+			if( sorter.IsPrime( p[ib] ) )
 				sum += p[iblast = ib].area;
 			else
 				break;
@@ -945,7 +990,10 @@ static void WriteThumbFiles( const vector<BlkZ> &vZ )
 // or if we have already used the lowest allowed B-layer (zmin).
 //
 // The test of good matches for an A-tile goes like this:
-// - Sort its pair records, descending R order.
+// - Sort its pair records, descending R order, (but place highest
+// B-layer at the head of the list if its R is within 90% of the
+// best R yet. We'll get better smoothness if we can keep matches
+// to nearest layers).
 // - Sum the fractional areas of records with R >= blknomcorr.
 // - Call this A-tile matched if its sum is >= 0.30.
 // Summing is admittedly coarse, we just sum fractional overlap
