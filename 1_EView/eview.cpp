@@ -211,14 +211,14 @@ static void Record()
 		if( gArgs.inB ) {
 
 			fprintf( flog,
-			"%.2f\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
+			"%.4f\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
 			double(i + 1)/gArgs.div,
 			A.all[i], A.sam[i], A.dwn[i],
 			B.all[i], B.sam[i], B.dwn[i] );
 		}
 		else {
 			fprintf( flog,
-			"%.2f\t%ld\t%ld\t%ld\n",
+			"%.4f\t%ld\t%ld\t%ld\n",
 			double(i + 1)/gArgs.div,
 			A.all[i], A.sam[i], A.dwn[i] );
 		}
