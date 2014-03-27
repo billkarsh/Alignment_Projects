@@ -116,9 +116,9 @@ void MeanStd::Stats( double &avg, double &std )
 	if( n > 1 ) {
 		avg /= n;
 #ifdef TINYSTAT
-		std  = sqrt( (sum2 - n*avg*avg) / n );
+		std  = sqrt( fmax( sum2 - n*avg*avg, 0.0 ) / n );
 #else
-		std  = sqrt( (sum2 - n*avg*avg) / (n - 1.0) );
+		std  = sqrt( fmax( sum2 - n*avg*avg, 0.0 ) / (n - 1.0) );
 #endif
 	}
 }
@@ -2014,7 +2014,7 @@ void Sobel8(
 					+ 2*(tmp[C-W] - tmp[C+W])
 					+ tmp[C-1-W] - tmp[C-1+W];
 
-			dx = (int)sqrt( dx*dx + dy*dy);
+			dx = (int)sqrt( dx*dx + dy*dy );
 			dst[x+w*y] = (dx <= 255 ? dx : 255);
 		}
 	}

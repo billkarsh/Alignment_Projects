@@ -488,22 +488,18 @@ bool CThmUtil::MakeThumbs(
 		thm.ap.size(), thm.reqArea, thm.scl );
 	}
 
-	double	sd = Normalize( thm.av );
-
-	if( !sd || !isfinite( sd ) ) {
+	if( !Normalize( thm.av ) ) {
 
 		fprintf( flog,
-		"Thumbs: Image A intersection region has stdev: %f\n", sd );
+		"Thumbs: Image A intersection region: stdev = 0.\n" );
 
 		return false;
 	}
 
-	sd = Normalize( thm.bv );
-
-	if( !sd || !isfinite( sd ) ) {
+	if( !Normalize( thm.bv ) ) {
 
 		fprintf( flog,
-		"Thumbs: Image B intersection region has stdev: %f\n", sd );
+		"Thumbs: Image B intersection region: stdev = 0.\n" );
 
 		return false;
 	}

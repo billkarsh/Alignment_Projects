@@ -715,8 +715,8 @@ quality_control:
 
 		if( N ) {
 
-			if( !isfinite( Normalize( matches[k].a ) ) ||
-				!isfinite( Normalize( matches[k].b ) ) ) {
+			if( !Normalize( matches[k].a ) ||
+				!Normalize( matches[k].b ) ) {
 
 				fprintf( flog,
 				"Triangle %d: Likely empty; skip metrics.\n\n", k );

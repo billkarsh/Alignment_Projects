@@ -492,12 +492,8 @@ bool CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 
 // normalize values
 
-	{
-		double	sd = Normalize( v );
-
-		if( !sd || !isfinite( sd ) )
-			ok = false;
-	}
+	if( !Normalize( v ) )
+		ok = false;
 
 exit:
 	KillRas();

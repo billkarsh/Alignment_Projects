@@ -469,10 +469,8 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 
 // normalize values
 
-	double	sd = Normalize( v );
-
-	if( !sd || !isfinite( sd ) ) {
-		fprintf( flog, "FAIL: Scape has stdev: %f\n", sd );
+	if( !Normalize( v ) ) {
+		fprintf( flog, "FAIL: Scape stdev = 0.\n" );
 		exit( 42 );
 	}
 
