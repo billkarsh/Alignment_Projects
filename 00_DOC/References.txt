@@ -5,7 +5,7 @@ Bash scripting
 
 http://tldp.org/LDP/abs/html/index.html
 
-===XXX
+===
 MPI
 ===
 
