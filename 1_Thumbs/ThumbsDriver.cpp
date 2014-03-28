@@ -91,16 +91,18 @@ int main( int argc, char* argv[] )
 			fold_mask_a =
 				GetFoldMask(
 					GBL.idb, GBL.A, GBL.arg.fma,
+					px.resmska, pCM,
 					px.wf, px.hf,
 					false, GBL.arg.Transpose,
-					GBL.arg.SingleFold, pCM );
+					GBL.arg.SingleFold );
 
 			fold_mask_b =
 				GetFoldMask(
 					GBL.idb, GBL.B, GBL.arg.fmb,
+					px.resmskb, pCM,
 					px.wf, px.hf,
 					false, GBL.arg.Transpose,
-					GBL.arg.SingleFold, pCM );
+					GBL.arg.SingleFold );
 		}
 
 		/* ----------------------- */

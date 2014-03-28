@@ -38,15 +38,16 @@ static void PrintFoldmapHisto( const uint8* fm, int w, int h )
 // Load or create a foldmask (always full size).
 //
 uint8* GetFoldMask(
-	const string	&idb,
-	const PicSpecs	&P,
-	const char		*forcepath,
-	int				wf,
-	int				hf,
-	bool			nofile,
-	bool			transpose,
-	bool			force1rgn,
-	CCropMask		*CM )
+	const string		&idb,
+	const PicSpecs		&P,
+	const char			*forcepath,
+	const vector<uint8>	&resmsk,
+	CCropMask			*CM,
+	int					wf,
+	int					hf,
+	bool				nofile,
+	bool				transpose,
+	bool				force1rgn )
 {
 	uint8*	mask;
 	int		np = wf * hf;
@@ -86,6 +87,17 @@ uint8* GetFoldMask(
 				if( mask[i] )
 					mask[i] = 1;
 			}
+		}
+	}
+
+// optionally remove resin
+
+	if( resmsk.size() == np ) {
+
+		for( int i = 0; i < np; ++i ) {
+
+			if( !resmsk[i] )
+				mask[i] = 0;
 		}
 	}
 

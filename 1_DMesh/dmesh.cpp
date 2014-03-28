@@ -79,7 +79,9 @@ static bool RoughMatch(
 	if( guesses.size() > 0 )
 		return true;
 
-	if( GBL.ctx.FLD == 'N' && !CM.IsFile( GBL.idb ) ) {
+	if( GBL.ctx.FLD == 'N'
+		&& !GBL.mch.PXRESMSK
+		&& !CM.IsFile( GBL.idb ) ) {
 
 		// Call NoCR at most once. Possible states
 		// are {0=never called, 1=failed, 2=success}.
@@ -613,7 +615,9 @@ void PipelineDeformableMap(
 	vector<ConnRegion>	Acr, Bcr;
 	CCropMask			CM;
 
-	if( GBL.ctx.FLD == 'N' && !CM.IsFile( GBL.idb ) ) {
+	if( GBL.ctx.FLD == 'N'
+		&& !GBL.mch.PXRESMSK
+		&& !CM.IsFile( GBL.idb ) ) {
 
 		fprintf( flog, "Forcing single connected region.\n" );
 

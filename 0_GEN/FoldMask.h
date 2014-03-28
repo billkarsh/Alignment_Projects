@@ -30,15 +30,16 @@ public:
 /* --------------------------------------------------------------- */
 
 uint8* GetFoldMask(
-	const string	&idb,
-	const PicSpecs	&P,
-	const char		*forcepath,
-	int				wf,
-	int				hf,
-	bool			nofile,
-	bool			transpose,
-	bool			force1rgn,
-	CCropMask		*CM );
+	const string		&idb,
+	const PicSpecs		&P,
+	const char			*forcepath,
+	const vector<uint8>	&resmsk,
+	CCropMask			*CM,
+	int					wf,
+	int					hf,
+	bool				nofile,
+	bool				transpose,
+	bool				force1rgn );
 
 void SetWithinSectionBorders( uint8* foldMask, int wf, int hf );
 

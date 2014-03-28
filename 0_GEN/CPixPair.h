@@ -29,6 +29,7 @@ public:
 	const
 	vector<double>	*avf_aln, *avs_aln, *avf_vfy, *avs_vfy,
 					*bvf_aln, *bvs_aln, *bvf_vfy, *bvs_vfy;
+	vector<uint8>	resmska, resmskb;
 	int				wf, hf,
 					ws, hs,
 					scl;

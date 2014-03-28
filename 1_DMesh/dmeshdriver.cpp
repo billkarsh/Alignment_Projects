@@ -85,13 +85,15 @@ static void CalcTransforms(
 
 		fold_mask_a = GetFoldMask(
 						GBL.idb, GBL.A, GBL.arg.fma,
+						px.resmska, pCM,
 						wf, hf, (GBL.ctx.FLD == 'N'),
-						GBL.arg.Transpose, GBL.arg.SingleFold, pCM );
+						GBL.arg.Transpose, GBL.arg.SingleFold );
 
 		fold_mask_b = GetFoldMask(
 						GBL.idb, GBL.B, GBL.arg.fmb,
+						px.resmskb, pCM,
 						wf, hf, (GBL.ctx.FLD == 'N'),
-						GBL.arg.Transpose, GBL.arg.SingleFold, pCM );
+						GBL.arg.Transpose, GBL.arg.SingleFold );
 	}
 
 /* ------------- */
