@@ -1842,7 +1842,7 @@ double RCalc::CalcR( double rslt )
 	double	d	= d1 * d2;
 	double	r	= (d < n * n * 1.0E-9 ? 0.0 : num / sqrt( d ));
 
-	return r;
+	return (r > -1.0 && r < 1.0 ? r : 0.0);
 }
 
 /* --------------------------------------------------------------- */
