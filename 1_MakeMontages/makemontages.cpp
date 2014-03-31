@@ -345,6 +345,7 @@ static void WriteXviewFile()
 	fprintf( f, "# -forceWH=w,h\t\t;force bounds (override degcw)\n" );
 	fprintf( f, "# -degcw=0\t\t\t;rotate CW degrees\n" );
 	fprintf( f, "# -type=T\t\t\t;{T,M,X} = {X_?_TXT,X_?_MET,xml}\n" );
+	fprintf( f, "# -meta=path\t\t;billfile with alt image paths\n" );
 	fprintf( f, "# -xmltrim=0.0\t\t;trim this much from xml images\n" );
 	fprintf( f, "# -xmltype=0\t\t;ImagePlus type code\n" );
 	fprintf( f, "# -xmlmin=0\t\t\t;intensity scale\n" );

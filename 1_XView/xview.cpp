@@ -22,7 +22,8 @@ class CArgs {
 
 public:
 	const char	*inpath,
-				*idb;
+				*idb,
+				*meta;
 	double		forcew,
 				forceh,
 				degcw,
@@ -39,6 +40,7 @@ public:
 	{
 		inpath		= NULL;
 		idb			= NULL;
+		meta		= NULL;
 		forcew		= 0.0;
 		forceh		= 0.0;
 		degcw		= 0.0;
@@ -55,10 +57,30 @@ public:
 };
 
 /* --------------------------------------------------------------- */
+/* CMeta --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+class CMeta {
+// Tool to map paths from idb back to original mrc images.
+// This is known from the layout meta file we started with.
+private:
+	FILE			*f;
+	CLineScan		LS;
+	map<int,string>	mz;
+public:
+	CMeta() : f(NULL) {};
+	virtual ~CMeta();
+	void Init( const char *meta );
+	void MapZ( int z );
+	const char* Path( const Til2Img* t2i );
+};
+
+/* --------------------------------------------------------------- */
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 static CArgs	gArgs;
+static CMeta	gMeta;
 static FILE*	flog = NULL;
 static Rgns		R;
 static int		gW, gH;
@@ -111,6 +133,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 		}
 		else if( GetArgStr( idb, "-idb=", argv[i] ) )
 			;
+		else if( GetArgStr( meta, "-meta=", argv[i] ) )
+			;
 		else if( GetArgList( vd, "-forceWH=", argv[i] ) ) {
 
 			if( 2 == vd.size() ) {
@@ -157,6 +181,123 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 	fprintf( flog, "\n\n" );
 	fflush( flog );
+}
+
+/* --------------------------------------------------------------- */
+/* CMeta --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Just close the file, a formality.
+//
+CMeta::~CMeta()
+{
+	if( f )
+		fclose( f );
+}
+
+
+// Open file and get ready (cache one line from next z-block).
+//
+void CMeta::Init( const char *meta )
+{
+// Open file
+
+	if( !meta )
+		return;
+
+	f = FileOpenOrDie( meta, "r" );
+
+// Cache first line
+
+	if( LS.Get( f ) <= 0 ) {
+		fprintf( flog, "Meta: Empty file [%s].\n", meta );
+		exit( 42 );
+	}
+}
+
+
+// Read lines for this z into map<id,path>.
+//
+// End with one line from next z-block.
+//
+void CMeta::MapZ( int z )
+{
+	if( !f )
+		return;
+
+	mz.clear();
+
+// Gone too far?
+
+	int	linez;
+
+	sscanf( LS.line, "%d", &linez );
+
+	if( linez > z ) {
+not_found:;
+		fprintf( flog, "Meta: Z [%d] not found.\n", z );
+		exit( 42 );
+	}
+
+// Move up to requested z
+
+	while( linez < z ) {
+
+		if( LS.Get( f ) <= 0 )
+			goto not_found;
+
+		sscanf( LS.line, "%d", &linez );
+
+		if( linez > z )
+			goto not_found;
+	}
+
+// Map lines while this z
+
+	char	path[2048];
+	int		id;
+
+	do {
+
+		// map this line
+
+		sscanf( LS.line,
+			"%d%d"
+			"%*lf%*lf%*lf%*lf%*lf%*lf"
+			"%*d%*d%*d%s\n",
+			&linez, &id, path );
+
+		mz[id] = path;
+
+		// get next one, or make fake one with huge z
+
+		if ( LS.Get( f ) > 0 )
+			sscanf( LS.line, "%d", &linez );
+		else
+			sprintf( LS.line, "%d", linez = 0x7FFFFFFF );
+
+	} while( linez == z );
+}
+
+
+// Return path pointer either from meta data or idb.
+//
+const char* CMeta::Path( const Til2Img* t2i )
+{
+	if( f ) {
+
+		map<int,string>::iterator	it = mz.find( t2i->id );
+
+		if( it != mz.end() )
+			return it->second.c_str();
+		else {
+			fprintf( flog, "Meta: missing line for [%s].\n",
+			FileNamePtr( t2i->path.c_str() ) );
+			exit( 42 );
+		}
+	}
+	else
+		return t2i->path.c_str();
 }
 
 /* --------------------------------------------------------------- */
@@ -396,7 +537,7 @@ static void WriteM_Aff()
 			"\t%d\t%d\t%d\t%s\n",
 			id, j - j0 + 1,
 			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
-			t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
+			t2i->col, t2i->row, t2i->cam, gMeta.Path( t2i ) );
 		}
 	}
 
@@ -441,7 +582,7 @@ static void WriteM_Hmy()
 			T.t[0], T.t[1], T.t[2],
 			T.t[3], T.t[4], T.t[5],
 			T.t[6], T.t[7],
-			t2i->col, t2i->row, t2i->cam, t2i->path.c_str() );
+			t2i->col, t2i->row, t2i->cam, gMeta.Path( t2i ) );
 		}
 	}
 
@@ -549,7 +690,7 @@ static void WriteXMLLyr_Aff( FILE *f, int &oid )
 			"\t\t\t\to_height=\"%d\"\n",
 			oid++, gW - offset, gH - offset,
 			T.t[0], T.t[3], T.t[1], T.t[4], o.x, o.y,
-			title, gArgs.xml_type, t2i->path.c_str(),
+			title, gArgs.xml_type, gMeta.Path( t2i ),
 			gW - offset, gH - offset );
 
 			if( gArgs.xml_min < gArgs.xml_max ) {
@@ -654,7 +795,7 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 			"\t\t\t\to_height=\"%d\"\n",
 			oid++, gW - offset, gH - offset,
 			o.x, o.y,
-			title, gArgs.xml_type, t2i->path.c_str(),
+			title, gArgs.xml_type, gMeta.Path( t2i ),
 			gW - offset, gH - offset );
 
 			if( gArgs.xml_min < gArgs.xml_max ) {
@@ -734,6 +875,8 @@ static void ConvertA()
 		if( !R.Load( gArgs.inpath, flog ) )
 			continue;
 
+		gMeta.MapZ( z );
+
 		if( gArgs.forcew )
 			;
 		else if( gArgs.degcw || gArgs.type == 'X' )
@@ -787,6 +930,8 @@ static void ConvertH()
 		if( !R.Load( gArgs.inpath, flog ) )
 			continue;
 
+		gMeta.MapZ( z );
+
 		if( gArgs.forcew )
 			;
 		else if( gArgs.degcw || gArgs.type == 'X' )
@@ -823,6 +968,8 @@ int main( int argc, char* argv[] )
 
 	if( !IDBGetImageDims( gW, gH, gArgs.idb, flog ) )
 		exit( 42 );
+
+	gMeta.Init( gArgs.meta );
 
 	if( isAff )
 		ConvertA();
