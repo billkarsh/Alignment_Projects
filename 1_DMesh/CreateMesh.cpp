@@ -1594,7 +1594,7 @@ int MeshCreateX(
 /* Remove empty tri */
 /* ---------------- */
 
-	const double	occ = 0.75;
+	const double	occ = 0.30;
 
 	int	ntri = tri.size(),
 		npnt = pts.size();
