@@ -4,7 +4,12 @@ Fetching the code from git
 ============================
 
 Bill's source code lives in directory:
-/groups/apig/share/git-repos/Alignment_Projects.pub
+
+new:
+<https://github.com/billkarsh/Alignment_Projects>
+
+formerly:
+</groups/apig/share/git-repos/Alignment_Projects.pub>
 
 Assuming git is installed and available (appears to be true
 within qlogin sessions but not on login nodes)...
@@ -36,9 +41,13 @@ So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
 
 (Example bash_profile edits below).
 
-(4) Edit 00_ENV/getsharedbins.sht...
-(4a) Redefine myDst to point to your choice from step (0).
-(4b) This file will also be overwritten by updates to git, so you might copy it out of the git folder, or just remember to edit it again as needed. I like having it with to the master make files 00_ENV/1_makeAll etc. to keep all the build scripts together.
+//--- Retired ---
+// No longer depend upon SuperLU
+//
+// (4) Edit 00_ENV/getsharedbins.sht...
+// (4a) Redefine myDst to point to your choice from step (0).
+// (4b) This file will also be overwritten by updates to git, so you might copy it out of the git folder, or just remember to edit it again as needed. I like having it with to the master make files 00_ENV/1_makeAll etc. to keep all the build scripts together.
+//--- Retired ---
 
 ====================
 Edit .bash_profile
@@ -123,7 +132,10 @@ Standard way to make everything:
 
 (1) > cd 00_ENV
 (2) > make
-(3) > ./getsharedbins.sht
+
+// --- Retired ---
+// (3) > ./getsharedbins.sht
+// --- Retired ---
 
 ======================
 Script type '.sht'
