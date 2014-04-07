@@ -347,6 +347,24 @@ static void Transpose( uint8* raster, uint32 &w, uint32 &h )
 }
 
 /* --------------------------------------------------------------- */
+/* FlipY --------------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void FlipY( uint8* raster, uint32 w, uint32 h )
+{
+// swap rows
+
+	vector<uint8>	t( w );
+
+	for( int y = 0; y < h/2; ++y ) {
+
+		memcpy( &t[0], &raster[w*y], w );
+		memcpy( &raster[w*y], &raster[w*(h-1-y)], w );
+		memcpy( &raster[w*(h-1-y)], &t[0], w );
+	}
+}
+
+/* --------------------------------------------------------------- */
 /* Raster8FromTif ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -399,7 +417,7 @@ TIFFSetWarningHandler( oldEH );
 
 	if( raster ) {
 
-		if( spp == 1 ) {
+		if( spp == 1 || spp == 0 ) {
 
 			if( bps == 32 )
 				Raster8FromTifFloat( tif, w, h, raster, flog );
@@ -421,6 +439,9 @@ TIFFSetWarningHandler( oldEH );
 	}
 
 	TIFFClose( tif );
+
+// Enable following line to flip image vertically
+//	FlipY( raster, w, h );
 
 // optional transposition
 	if( transpose )
