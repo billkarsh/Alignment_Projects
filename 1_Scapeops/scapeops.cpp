@@ -605,7 +605,7 @@ static void ScapeStuff()
 
 	thm.ftc.clear();
 	thm.reqArea	= int(gW * gH * gArgs.inv_scl * gArgs.inv_scl);
-	thm.olap1D	= int(gW * gArgs.inv_scl * 0.20);
+	thm.olap1D	= int(gW * gArgs.inv_scl * 0.5);
 	thm.scl		= 1;
 
 	S.Initialize( flog, best );
