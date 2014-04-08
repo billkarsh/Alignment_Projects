@@ -720,8 +720,11 @@ bool CSort_R_Dec::operator() ( const Pair &I, const Pair &J )
 {
 	if( zeroPrime ) {
 
-		if( !I.iz )
-			return true;
+		if( !I.iz ) {
+
+			if( J.iz )
+				return true;
+		}
 		else if( !J.iz )
 			return false;
 	}
