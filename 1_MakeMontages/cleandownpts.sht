@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# Purpose:
+# In layer range, clean all down point data.
+#
+# > ./cleandown.sht <zmin> [zmax]
+
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+for lyr in $(seq $1 $last)
+do
+	echo $lyr
+	if [ -d "$lyr" ]
+	then
+		cd $lyr
+
+		for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		do
+			echo $jb
+			cd $jb
+			rm -f p*
+			rm -f q*
+
+			hdr=$(printf "Atl\tAcr\tBtl\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
+
+			for tbl in $(find . -name "ThmPair*.txt")
+			do
+				echo "$hdr" > "$tbl"
+			done
+
+			cd ..
+		done
+
+		cd ..
+	fi
+done
+
