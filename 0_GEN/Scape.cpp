@@ -288,6 +288,10 @@ void* _Paint( void *ithr )
 				for( int j = 0; j < n; ++j ) {
 					if( !msk[j] )
 						src[j] = 127;
+// Optional method to reduce correlation potency of masked
+// areas is to paint them with white noise, but this is
+// aesthetically unappealing.s
+//						src[j] = (rand() * 255) / RAND_MAX;
 				}
 			}
 		}
