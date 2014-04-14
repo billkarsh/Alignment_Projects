@@ -278,8 +278,8 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	else {
 		fprintf( f, "lsq -temp=../ -zi=%d,%d"
 		" -prior=../cross_wkspc/X_A_TXT -untwist"
-		" -mode=A2A -iters=2000 -zpernode=200"
-		" -maxthreads=16\n",
+		" -mode=A2A -Wr=R,0 -iters=10000"
+		" -zpernode=200 -maxthreads=16\n",
 		gArgs.zmin, gArgs.zmax );
 	}
 
