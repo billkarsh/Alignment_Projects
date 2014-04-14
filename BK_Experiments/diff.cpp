@@ -295,7 +295,7 @@ static void RFromAngle(
 	C.A = a;
 	RotatePoints( ps, C.T, a );
 
-	C.R = CorrImages(
+	C.R = CorrImagesF(
 		stdout, true, C.X, C.Y,
 		ps, thm.av, thm.bpts, thm.bv,
 		BigEnough, (void*)thm.reqArea,

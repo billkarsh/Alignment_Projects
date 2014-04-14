@@ -1766,6 +1766,9 @@ public:
 		int			dy );
 
 	double CalcR( double rslt );
+
+	inline double CalcS( double rslt )
+		{return rslt / Nxy;};
 };
 
 
@@ -1891,6 +1894,24 @@ public:
 		int						Ry,
 		vector<CD>				&fft2 );
 
+	void MakeSandRandA(
+		vector<double>			&S,
+		vector<double>			&R,
+		vector<uint8>			&A,
+		const vector<Point>		&ip1,
+		const vector<double>	&iv1,
+		const vector<Point>		&ip2,
+		const vector<double>	&iv2,
+		EvalType				LegalRgn,
+		void*					arglr,
+		EvalType				LegalCnt,
+		void*					arglc,
+		int						Ox,
+		int						Oy,
+		int						Rx,
+		int						Ry,
+		vector<CD>				&fft2 );
+
 	void MakeF(
 		vector<double>			&F,
 		vector<uint8>			&A,
@@ -1911,18 +1932,18 @@ public:
 		const vector<double>	&R,
 		double					nbmaxht );
 
-	void MaxR(
+	void SimpleMax(
 		int						&rx,
 		int						&ry,
-		const vector<int>		&forder,
-		const vector<double>	&R );
+		const vector<int>		&forder );
 
 	double ReturnR(
 		double					&dx,
 		double					&dy,
 		int						rx,
 		int						ry,
-		const vector<double>	&R );
+		const vector<double>	&Rreport,
+		const vector<double>	&Rtweak );
 };
 
 /* --------------------------------------------------------------- */
@@ -2129,8 +2150,6 @@ void CCorImg::MakeRandA(
 		}
 	}
 
-	MaskA( A, Ox, Oy, Rx, Ry );
-
 	if( dbgCor )
 		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
 
@@ -2138,6 +2157,8 @@ void CCorImg::MakeRandA(
 		fprintf( flog,
 		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
 	}
+
+	MaskA( A, Ox, Oy, Rx, Ry );
 
 	if( dbgCor ) {
 
@@ -2154,6 +2175,173 @@ void CCorImg::MakeRandA(
 
 		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
 		RasterDblToTifFlt( simg, &R[0], wR, hR );
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* CCorImg::MakeSandRandA ---------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CCorImg::MakeSandRandA(
+	vector<double>			&S,
+	vector<double>			&R,
+	vector<uint8>			&A,
+	const vector<Point>		&ip1,
+	const vector<double>	&iv1,
+	const vector<Point>		&ip2,
+	const vector<double>	&iv2,
+	EvalType				LegalRgn,
+	void*					arglr,
+	EvalType				LegalCnt,
+	void*					arglc,
+	int						Ox,
+	int						Oy,
+	int						Rx,
+	int						Ry,
+	vector<CD>				&fft2 )
+{
+// Get array sizes (Nx,Ny) and FFT size M
+
+	int	Nx, Ny, M;
+
+	Nx = FFTSize( w1, w2 ),
+	Ny = FFTSize( h1, h2 ),
+	M  = Ny*(Nx/2+1);
+
+	if( verbose )
+		fprintf( flog, "Corr: Nx = %d, Ny = %d\n", Nx, Ny );
+
+// Create images from point lists
+
+	vector<double>	i1, i2;
+
+	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
+	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
+
+// FFTs and lags
+
+	vector<double>	rslt;
+	vector<CD>		fft1;
+
+	FFT_2D( fft2, i2, Nx, Ny, true );
+	FFT_2D( fft1, i1, Nx, Ny, false );
+
+	pthread_mutex_lock( &mutex_fft );
+
+	for( int i = 0; i < M; ++i )
+		fft1[i] = fft2[i] * conj( fft1[i] );
+
+	pthread_mutex_unlock( &mutex_fft );
+
+	IFT_2D( rslt, fft1, Nx, Ny );
+
+// Prepare correlation calculator
+
+	RCalc	calc;
+
+	calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
+
+// Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
+// is at the image center and (cx,cy)+(dx,dy) indexes all pixels
+// of any sign.
+
+	R.resize( nR );
+	A.resize( nR );
+
+	double	vmin = 1e7, vmax = -1e7;
+
+	for( int y = -nnegy; y < nposy; ++y ) {
+
+		int	iy = Nx * (y >= 0 ? y : Ny + y);
+
+		for( int x = -nnegx; x < nposx; ++x ) {
+
+			int	ix = (x >= 0 ? x : Nx + x);
+			int	ir = cx+x + wR*(cy+y);
+
+			A[ir] = calc.Valid( LegalRgn, arglr,
+						LegalCnt, arglc, x, y );
+
+			R[ir] = calc.CalcR( rslt[ix+iy] );
+
+			if( R[ir] < vmin )
+				vmin = R[ir];
+
+			if( R[ir] > vmax )
+				vmax = R[ir];
+		}
+	}
+
+	if( dbgCor )
+		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
+
+	if( verbose ) {
+		fprintf( flog,
+		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
+	}
+
+	MaskA( A, Ox, Oy, Rx, Ry );
+
+// Create S =========================================
+
+	for( int i = 0; i < M; ++i ) {
+
+		double	mag = abs( fft1[i] );
+
+		if( mag > 1e-10 )
+			fft1[i] /= sqrt( mag );
+	}
+
+	IFT_2D( rslt, fft1, Nx, Ny );
+
+	S.resize( nR );
+
+	vmin = 1e7, vmax = -1e7;
+
+	for( int y = -nnegy; y < nposy; ++y ) {
+
+		int	iy = Nx * (y >= 0 ? y : Ny + y);
+
+		for( int x = -nnegx; x < nposx; ++x ) {
+
+			int	ix = (x >= 0 ? x : Nx + x);
+			int	ir = cx+x + wR*(cy+y);
+
+			S[ir] = calc.CalcS( rslt[ix+iy] );
+
+			if( S[ir] < vmin )
+				vmin = S[ir];
+
+			if( S[ir] > vmax )
+				vmax = S[ir];
+		}
+	}
+
+	if( verbose ) {
+		fprintf( flog,
+		"Corr: S image range [%11.6f %11.6f].\n", vmin, vmax );
+	}
+
+// ==================================================
+
+	if( dbgCor ) {
+
+		char	simg[32];
+
+		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+
+		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+
+		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
+		Raster8ToTif8( simg, &A[0], wR, hR );
+
+		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
+		RasterDblToTifFlt( simg, &R[0], wR, hR );
+
+		sprintf( simg, "corr_S_%d.tif", _dbg_simgidx );
+		RasterDblToTifFlt( simg, &S[0], wR, hR );
 	}
 }
 
@@ -2721,14 +2909,13 @@ next_i:;
 #endif
 
 /* --------------------------------------------------------------- */
-/* MaxR ---------------------------------------------------------- */
+/* CCorImg::SimpleMax -------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CCorImg::MaxR(
+void CCorImg::SimpleMax(
 	int						&rx,
 	int						&ry,
-	const vector<int>		&forder,
-	const vector<double>	&R )
+	const vector<int>		&forder )
 {
 	int	k = forder[0];
 
@@ -2807,9 +2994,10 @@ double CCorImg::ReturnR(
 	double					&dy,
 	int						rx,
 	int						ry,
-	const vector<double>	&R )
+	const vector<double>	&Rreport,
+	const vector<double>	&Rtweak )
 {
-	double	bigR = R[rx + wR*ry];
+	double	bigR = Rreport[rx + wR*ry];
 
 	if( verbose ) {
 		fprintf( flog,
@@ -2819,7 +3007,7 @@ double CCorImg::ReturnR(
 
 	dx = rx;
 	dy = ry;
-	ParabPeak( dx, dy, 1, &R[0], wR, hR );
+	ParabPeak( dx, dy, 1, &Rtweak[0], wR, hR );
 
 	dx += B2.L - B1.L - cx;
 	dy += B2.B - B1.B - cy;
@@ -2831,7 +3019,7 @@ double CCorImg::ReturnR(
 }
 
 /* --------------------------------------------------------------- */
-/* CorrImages ---------------------------------------------------- */
+/* CorrImagesF --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // Return cross-correlation and additive displacement
@@ -2851,7 +3039,7 @@ double CCorImg::ReturnR(
 //
 // Version using F and well isolated F peak.
 //
-double CorrImages(
+double CorrImagesF(
 	FILE					*flog,
 	int						verbose,
 	double					&dx,
@@ -2906,7 +3094,7 @@ double CorrImages(
 		return 0.0;
 	}
 
-	return cc.ReturnR( dx, dy, rx, ry, R );
+	return cc.ReturnR( dx, dy, rx, ry, R, R );
 }
 
 /* --------------------------------------------------------------- */
@@ -2981,9 +3169,88 @@ double CorrImagesR(
 		return 0.0;
 	}
 
-	cc.MaxR( rx, ry, order, R );
+	cc.SimpleMax( rx, ry, order );
 
-	return cc.ReturnR( dx, dy, rx, ry, R );
+	return cc.ReturnR( dx, dy, rx, ry, R, R );
+}
+
+/* --------------------------------------------------------------- */
+/* CorrImagesS --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Return cross-correlation and additive displacement
+// (dx, dy) that places set ip1 into bounding box of ip2.
+//
+// mincor: If non-zero, used to prescreen S values during the
+// peak-hunting phase.
+//
+// nbmaxht: Dummy slot for compatibility with F-version.
+//
+// {Ox,Oy,Rx,Ry}: If Rx > 0 and Ry > 0, search narrowed to oval
+// with origin (Ox,Oy) and semimajor axes Rx,Ry.
+//
+// fft2: Cache of image2 FFT. On entry, if fft2 has the
+// correct size it is used. Otherwise recomputed here.
+//
+// Version using FFT power spectrum filtering as prescribed
+// by Art Wetzel, followed by straight max S.
+//
+double CorrImagesS(
+	FILE					*flog,
+	int						verbose,
+	double					&dx,
+	double					&dy,
+	const vector<Point>		&ip1,
+	const vector<double>	&iv1,
+	const vector<Point>		&ip2,
+	const vector<double>	&iv2,
+	EvalType				LegalRgn,
+	void*					arglr,
+	EvalType				LegalCnt,
+	void*					arglc,
+	double					mincor,
+	double					nbmaxht,
+	int						Ox,
+	int						Oy,
+	int						Rx,
+	int						Ry,
+	vector<CD>				&fft2 )
+{
+	CCorImg			cc;
+	vector<double>	R;
+	vector<uint8>	A;
+	vector<double>	S;
+	vector<int>		order;
+	int				rx;
+	int				ry;
+
+	if( dbgCor )
+		verbose = true;
+
+	if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
+
+		dx	= 0.0;
+		dy	= 0.0;
+
+		return 0.0;
+	}
+
+	cc.MakeSandRandA( S, R, A, ip1, iv1, ip2, iv2,
+		LegalRgn, arglr, LegalCnt, arglc,
+		Ox, Oy, Rx, Ry, fft2 );
+
+	// actually orders S, here
+	if( !cc.OrderF( order, S, A, R, mincor ) ) {
+
+		dx	= 0.0;
+		dy	= 0.0;
+
+		return 0.0;
+	}
+
+	cc.SimpleMax( rx, ry, order );
+
+	return cc.ReturnR( dx, dy, rx, ry, R, S );
 }
 
 

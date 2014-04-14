@@ -417,7 +417,7 @@ void CThmScan::RFromAngle(
 
 	olap1D = thm.olap1D;
 
-	C.R = (useCorrR ? CorrImagesR : CorrImages)(
+	C.R = (useCorrR ? CorrImagesS : CorrImagesF)(
 		flog, false, C.X, C.Y,
 		pts, thm.av, thm.bp, thm.bv,
 		BigEnough, (void*)thm.reqArea,

@@ -153,7 +153,7 @@ double ImproveControlPts(
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-double CorrImages(
+double CorrImagesF(
 	FILE					*flog,
 	int						verbose,
 	double					&dx,
@@ -175,6 +175,27 @@ double CorrImages(
 	vector<CD>				&fft2 );
 
 double CorrImagesR(
+	FILE					*flog,
+	int						verbose,
+	double					&dx,
+	double					&dy,
+	const vector<Point>		&ip1,
+	const vector<double>	&iv1,
+	const vector<Point>		&ip2,
+	const vector<double>	&iv2,
+	EvalType				LegalRgn,
+	void*					arglr,
+	EvalType				LegalCnt,
+	void*					arglc,
+	double					mincor,
+	double					nbmaxht,
+	int						Ox,
+	int						Oy,
+	int						Rx,
+	int						Ry,
+	vector<CD>				&fft2 );
+
+double CorrImagesS(
 	FILE					*flog,
 	int						verbose,
 	double					&dx,
