@@ -84,10 +84,12 @@ STATICLIBS_ZLB := $(PATH_ZLB_LIB)/libz.a
 # EDIT THIS IF NOT AT JANELIA FARM--
 # You need one and only one of the following two FFT packages:
 # {fftw3, intel_MKL}. The MKL library is preferred because the
-# code is fully reentrant, so multithreaded code runs faster.
+# code is fully reentrant, so multithreaded application code
+# can forego serialization and run faster.
 #
-# If using MKL, your bash.rc file will likely run a script to
-# set environment variables like this:
+# If using MKL, you don't need to define a real 'PATH_FFT_INC'
+# because your bash.rc file will likely run a script to set
+# environment variables like this:
 #
 # if [ -f /usr/local/INTEL2013.sh ]; then
 #      . /usr/local/INTEL2013.sh
