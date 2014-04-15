@@ -72,7 +72,6 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 4dirs =\
  4_Cmap\
  4_Connect\
- 4_FFT\
  4_Fold\
  4_Import\
  4_Local\
@@ -82,7 +81,6 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  4_Qcheck\
  4_Sla\
  4_TestNormCorr\
- 4_Time_FFT\
  4_Two\
  4_Two32\
  4_Unfold\

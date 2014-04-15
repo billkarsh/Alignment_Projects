@@ -15,77 +15,111 @@ empty :=
 comma := ,
 space := $(empty) $(empty)
 
-# =====
-# paths
-# =====
+# =================
+# source code paths
+# =================
 
-# Edit these paths ----------------------------------------------
-#
-# My git alignment code repository lives here:
-PATH_SRCCODE  := /groups/apig/tomo/Alignment_Projects
-#
+# EDIT THIS--
+# My git alignment repo lives here:
+
+PATH_SRCCODE := /groups/apig/tomo/Alignment_Projects
+
+# DON'T EDIT THIS--
+# Subdirs within my git repo:
+
+PATH_GEN := $(PATH_SRCCODE)/0_GEN
+PATH_UTL := $(PATH_SRCCODE)/0_UTL
+PATH_XML := $(PATH_SRCCODE)/0_XML
+PATH_BK  := $(PATH_SRCCODE)/0_BK
+
+# DON'T EDIT THIS--
+# Archives built by repo:
+
+STATICLIBS_GEN := $(PATH_GEN)/genlib.a
+STATICLIBS_UTL := $(PATH_UTL)/utllib.a
+STATICLIBS_XML := $(PATH_XML)/xmllib.a
+
+# ==================
+# output binary path
+# ==================
+
+# EDIT THIS--
 # I want my alignment output binaries to live here:
-PATH_BIN      := /groups/apig/tomo/lou_stuff/binaries
-# ---------------------------------------------------------------
 
-# DO NOT EDIT: These paths are fixed or derived from yours ------
+PATH_OUT := /groups/apig/tomo/lou_stuff/binaries
+
+# =======================
+# 3rd party library paths
+# =======================
+
+# EDIT THIS IF NOT AT JANELIA FARM--
+# We unconditionally need libraries {libtiff, libpng, libz},
+# so you MAY have to install those yourself. We have some
+# docs about that in Alignment_Projects/00_Libraries.
 #
-PATH_PUBLIC   := /groups/apig/share/ClusterSupport/Libraries
+# Further, we need the paths for their include files and their
+# archive files. At Janelia Farm, these are preinstalled in a
+# shared public directory; our definitions look like this:
 
-PATH_TIF      := $(PATH_PUBLIC)/TIFF
-PATH_TIF_INC  := $(PATH_TIF)/include
-PATH_TIF_LIB  := $(PATH_TIF)/lib
-PATH_PNG      := $(PATH_PUBLIC)/PNG
-PATH_PNG_INC  := $(PATH_PNG)/include
-PATH_PNG_LIB  := $(PATH_PNG)/lib
-PATH_ZLB      := $(PATH_PUBLIC)/ZLIB
-PATH_ZLB_INC  := $(PATH_ZLB)/include
-PATH_ZLB_LIB  := $(PATH_ZLB)/lib
-PATH_FFT      := $(PATH_PUBLIC)/FFT
-PATH_FFT_INC  := $(PATH_FFT)/include
-PATH_FFT_LIB  := $(PATH_FFT)/lib
+PATH_PUBLIC    := /groups/apig/share/ClusterSupport/Libraries
 
-PATH_GEN      := $(PATH_SRCCODE)/0_GEN
-PATH_UTL      := $(PATH_SRCCODE)/0_UTL
-PATH_XML      := $(PATH_SRCCODE)/0_XML
-PATH_BK       := $(PATH_SRCCODE)/0_BK
+PATH_TIF       := $(PATH_PUBLIC)/TIFF
+PATH_TIF_INC   := $(PATH_TIF)/include
+PATH_TIF_LIB   := $(PATH_TIF)/lib
+PATH_PNG       := $(PATH_PUBLIC)/PNG
+PATH_PNG_INC   := $(PATH_PNG)/include
+PATH_PNG_LIB   := $(PATH_PNG)/lib
+PATH_ZLB       := $(PATH_PUBLIC)/ZLIB
+PATH_ZLB_INC   := $(PATH_ZLB)/include
+PATH_ZLB_LIB   := $(PATH_ZLB)/lib
 
-PATH_OUT      := $(PATH_BIN)
+STATICLIBS_TIF := $(PATH_TIF_LIB)/libtiff.a
+STATICLIBS_PNG := $(PATH_PNG_LIB)/libpng.a
+STATICLIBS_ZLB := $(PATH_ZLB_LIB)/libz.a
+
+# ===================
+# FFT library support
+# ===================
+
+# EDIT THIS IF NOT AT JANELIA FARM--
+# You need one and only one of the following two FFT packages:
+# {fftw3, intel_MKL}. The MKL library is preferred because the
+# code is fully reentrant, so multithreaded code runs faster.
+#
+# If using MKL, your bash.rc file will likely run a script to
+# set environment variables like this:
+#
+# if [ -f /usr/local/INTEL2013.sh ]; then
+#      . /usr/local/INTEL2013.sh
+# fi
+#
+# The following lets us easily select either package. Note that
+# 'FLAGS_MKL' controls compiler switch 'ALN_USE_MKL' which tells
+# the code which API to call.
+
+MKL_AVAILABLE := 1
+
+ifeq ($(MKL_AVAILABLE), 1)
+
+PATH_FFT_INC   := " "
+STATICLIBS_FFT := -l{mkl_intel_lp64,mkl_sequential,mkl_core}
+FLAGS_MKL      := -DALN_USE_MKL
+
+else
+
+PATH_FFT       := $(PATH_PUBLIC)/FFT
+PATH_FFT_INC   := $(PATH_FFT)/include
+PATH_FFT_LIB   := $(PATH_FFT)/lib
+STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
+FLAGS_MKL      :=
+
+endif
 
 # =============
 # include paths
 # =============
 
 INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$(PATH_UTL),$(PATH_XML)}
-
-# =============
-# special flags
-# =============
-
-FLAGS_MKL :=
-
-# ===========================
-# archives (static libraries)
-# ===========================
-
-STATICLIBS_GEN := $(PATH_GEN)/genlib.a
-STATICLIBS_UTL := $(PATH_UTL)/utllib.a
-STATICLIBS_XML := $(PATH_XML)/xmllib.a
-
-STATICLIBS_TIF := $(PATH_TIF_LIB)/libtiff.a
-STATICLIBS_PNG := $(PATH_PNG_LIB)/libpng.a
-STATICLIBS_ZLB := $(PATH_ZLB_LIB)/libz.a
-STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
-STATICLIBS_MKL :=
-
-# =================
-# Intel MKL support
-# =================
-
-# Enable following lines if using MKL (recommended)
-
-STATICLIBS_MKL := -l{mkl_intel_lp64,mkl_sequential,mkl_core}
-FLAGS_MKL      := -DALN_USE_MKL
 
 # ==================
 # standard libraries
@@ -118,7 +152,6 @@ LINKS_STD :=\
  $(STATICLIBS_PNG)\
  $(STATICLIBS_ZLB)\
  $(STATICLIBS_FFT)\
- $(STATICLIBS_MKL)\
  $(OTHERLIBS_STD)
 
 # ===========
