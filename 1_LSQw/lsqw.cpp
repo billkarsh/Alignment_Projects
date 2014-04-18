@@ -45,7 +45,7 @@ public:
 	CArgs()
 	{
 		Wr			= 0.001;
-		Etol		= 1e6;
+		Etol		= 30;
 		tempdir		= NULL;
 		cachedir	= NULL;
 		prior		= NULL;
