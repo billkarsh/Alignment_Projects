@@ -1234,7 +1234,7 @@ static void Do1Pass( EZThreadproc proc )
 // transform. These two are combined in a weighted average:
 // (1-Wr)*Aff + Wr*Rgd.
 //
-// errtol is the largest permitted point error.
+// inEtol is the largest permitted point error.
 //
 void SetSolveParams( int type, double inWr, double inEtol )
 {
@@ -1269,18 +1269,18 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 		cS = 'A';
 
 		if( Xdst.NE == 6 ) {
-			editdelay	= 200;
+			editdelay	= max( iters / 4, 200 );
 			proc		= _A2A;
 			cD			= 'A';
 		}
 		else {
-			editdelay	= 0;
+			editdelay	= 0;	// not applied in A2H
 			proc		= _A2H;
 			cD			= 'H';
 		}
 	}
 	else {
-		editdelay	= 4;
+		editdelay	= max( iters / 100, 4 );
 		proc		= _H2H;
 		cS			= 'H';
 		cD			= 'H';
