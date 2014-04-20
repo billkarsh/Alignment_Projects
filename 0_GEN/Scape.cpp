@@ -268,34 +268,21 @@ void* _Paint( void *ithr )
 		uint32			w,  h;
 		int				x0, xL, y0, yL,
 						wL, hL,
-						wi, hi,
-						n;
+						wi, hi;
 
 		src = Raster8FromAny(
 				GP->vTile[i].name.c_str(),
 				w, h, GP->flog );
 
-		if( GP->resmask ) {
+		if( GP->resmask )
 			ResinMask8( msk, src, w, h, false );
-			n = w * h;
-		}
 
-		if( GP->sdnorm > 0 ) {
-
+		if( GP->sdnorm > 0 )
 			NormRas( src, w, h, GP->lgord, GP->sdnorm );
 
-			if( GP->resmask ) {
-				for( int j = 0; j < n; ++j ) {
-					if( !msk[j] )
-						src[j] = 127;
-// Optional method to reduce correlation potency of masked
-// areas is to paint them with white noise, but this is
-// aesthetically unappealing.s
-//						src[j] = (rand() * 255) / RAND_MAX;
-				}
-			}
-		}
-		else if( GP->resmask ) {
+		if( GP->resmask ) {
+
+			int	n = w * h;
 
 			for( int j = 0; j < n; ++j ) {
 				if( !msk[j] )
@@ -335,8 +322,11 @@ void* _Paint( void *ithr )
 				if( p.x >= 0 && p.x < wL &&
 					p.y >= 0 && p.y < hL ) {
 
-					GP->scp[ix+GP->ws*iy] =
+					int	pix =
 					(int)SafeInterp( p.x, p.y, src, wi, hi );
+
+					if( pix != GP->bkval )
+						GP->scp[ix+GP->ws*iy] = pix;
 				}
 			}
 		}
@@ -422,6 +412,9 @@ uint8* Scape(
 	uint8	*scp	= (uint8*)RasterAlloc( ns );
 
 	if( scp ) {
+
+		if( sdnorm > 0 )
+			bkval = 127;
 
 		memset( scp, bkval, ns );
 
