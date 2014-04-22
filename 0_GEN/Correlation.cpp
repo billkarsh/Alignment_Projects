@@ -3305,7 +3305,19 @@ double CorrImagesS(
 
 	cc.SimpleMax( rx, ry, order );
 
-	return cc.ReturnR( dx, dy, rx, ry, R, S );
+// S is really better than R for comparing different cases,
+// say sweeps for strips or blocks. So we return S directly.
+// To scale S roughly like R, we create the following hack:
+// To get better content independence, form snr = (r-mn)/sd.
+// Then, to account somewhat for image size, divide by linear
+// size estimator sqrt( area ). Finally, arbitrary factor 10
+// scales result "roughly" into range [-1, 1].
+
+	double	mn, sd, r = cc.ReturnR( dx, dy, rx, ry, S, S );
+
+	Stats( S, mn, sd );
+
+	return 10.0 * (r - mn) / (sd * sqrt( S.size() ));
 }
 
 
