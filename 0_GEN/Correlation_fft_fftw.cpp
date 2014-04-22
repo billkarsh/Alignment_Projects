@@ -55,12 +55,7 @@ int FFT_2D(
 
 	pthread_mutex_lock( &mutex_fft );
 
-	if( cached ) {
-
-		if( out.size() != M )
-			_FFT_2D( out, in, Nfast, Nslow );
-	}
-	else
+	if( !cached || out.size() != M )
 		_FFT_2D( out, in, Nfast, Nslow );
 
 	pthread_mutex_unlock( &mutex_fft );

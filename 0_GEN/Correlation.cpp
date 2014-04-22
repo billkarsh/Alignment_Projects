@@ -979,11 +979,32 @@ double CorrPatches(
 	vector<double>	rslt;
 	vector<CD>		fft1;
 
-	FFT_2D( fft2, i2, Nx, Ny, true );
+#ifdef ALN_USE_MKL
+// Janelia pthread_mutex_lock appears unreliable, so prefer
+// using MKL fft because that API is thread-safe; and don't
+// cache fft2.
+
+	vector<CD>	_fft2;
+
+	FFT_2D( _fft2, i2, Nx, Ny, false );
 	FFT_2D( fft1, i1, Nx, Ny, false );
 
 	for( int i = 0; i < M; ++i )
+		fft1[i] = _fft2[i] * conj( fft1[i] );
+
+#else
+
+	FFT_2D( fft2, i2, Nx, Ny, true );
+	FFT_2D( fft1, i1, Nx, Ny, false );
+
+	pthread_mutex_lock( &mutex_fft );
+
+	for( int i = 0; i < M; ++i )
 		fft1[i] = fft2[i] * conj( fft1[i] );
+
+	pthread_mutex_unlock( &mutex_fft );
+
+#endif
 
 	IFT_2D( rslt, fft1, Nx, Ny );
 
@@ -2101,6 +2122,21 @@ void CCorImg::MakeRandA(
 	vector<double>	rslt;
 	vector<CD>		fft1;
 
+#ifdef ALN_USE_MKL
+// Janelia pthread_mutex_lock appears unreliable, so prefer
+// using MKL fft because that API is thread-safe; and don't
+// cache fft2.
+
+	vector<CD>	_fft2;
+
+	FFT_2D( _fft2, i2, Nx, Ny, false );
+	FFT_2D( fft1, i1, Nx, Ny, false );
+
+	for( int i = 0; i < M; ++i )
+		fft1[i] = _fft2[i] * conj( fft1[i] );
+
+#else
+
 	FFT_2D( fft2, i2, Nx, Ny, true );
 	FFT_2D( fft1, i1, Nx, Ny, false );
 
@@ -2110,6 +2146,8 @@ void CCorImg::MakeRandA(
 		fft1[i] = fft2[i] * conj( fft1[i] );
 
 	pthread_mutex_unlock( &mutex_fft );
+
+#endif
 
 	IFT_2D( rslt, fft1, Nx, Ny );
 
@@ -2223,6 +2261,21 @@ void CCorImg::MakeSandRandA(
 	vector<double>	rslt;
 	vector<CD>		fft1;
 
+#ifdef ALN_USE_MKL
+// Janelia pthread_mutex_lock appears unreliable, so prefer
+// using MKL fft because that API is thread-safe; and don't
+// cache fft2.
+
+	vector<CD>	_fft2;
+
+	FFT_2D( _fft2, i2, Nx, Ny, false );
+	FFT_2D( fft1, i1, Nx, Ny, false );
+
+	for( int i = 0; i < M; ++i )
+		fft1[i] = _fft2[i] * conj( fft1[i] );
+
+#else
+
 	FFT_2D( fft2, i2, Nx, Ny, true );
 	FFT_2D( fft1, i1, Nx, Ny, false );
 
@@ -2232,6 +2285,8 @@ void CCorImg::MakeSandRandA(
 		fft1[i] = fft2[i] * conj( fft1[i] );
 
 	pthread_mutex_unlock( &mutex_fft );
+
+#endif
 
 	IFT_2D( rslt, fft1, Nx, Ny );
 
