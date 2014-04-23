@@ -4,10 +4,12 @@
 # For layer range, submit all make.down and use the make option -j <n>
 # to set number of concurrent jobs.
 #
-# > ./dsub4.sht <zmin> [zmax]
+# > ./dsub.sht <zmin> [zmax]
 
 
 export MRC_TRIM=12
+
+nthr=4
 
 if (($# == 1))
 then
@@ -29,7 +31,7 @@ do
 
 			if [ -e make.down ]
 			then
-				qsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j 4 EXTRA='""'
+				qsub -N q$jb-$lyr -cwd -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
 			fi
 
 			cd ..

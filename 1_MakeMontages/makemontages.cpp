@@ -459,7 +459,7 @@ static void WriteSSubNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/ssub%d.sht", gArgs.outdir, njobs );
+	sprintf( buf, "%s/ssub.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -468,11 +468,12 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "# For layer range, submit all make.same and use the make option -j <n>\n" );
 	fprintf( f, "# to set number of concurrent jobs.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./ssub%d.sht <zmin> [zmax]\n",
-	njobs );
+	fprintf( f, "# > ./ssub.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "nthr=%d\n", njobs );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -491,8 +492,7 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.same -j %d EXTRA='\"\"'\n",
-	njobs );
+	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='\"\"'\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
@@ -514,7 +514,7 @@ static void WriteDSubNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/dsub%d.sht", gArgs.outdir, njobs );
+	sprintf( buf, "%s/dsub.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -523,11 +523,12 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "# For layer range, submit all make.down and use the make option -j <n>\n" );
 	fprintf( f, "# to set number of concurrent jobs.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./dsub%d.sht <zmin> [zmax]\n",
-	njobs );
+	fprintf( f, "# > ./dsub.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "nthr=%d\n", njobs );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -549,8 +550,7 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j %d EXTRA='\"\"'\n",
-	njobs );
+	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='\"\"'\n" );
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
@@ -1213,10 +1213,8 @@ int main( int argc, char* argv[] )
 	WriteEviewFile();
 
 	WriteCountsamedirsFile();
-//	WriteSSubNFile( 4 );
-	WriteSSubNFile( 8 );
-//	WriteDSubNFile( 4 );
-	WriteDSubNFile( 8 );
+	WriteSSubNFile( 4 );
+	WriteDSubNFile( 4 );
 	WriteReportFiles();
 	WriteSubmonFile();
 	WriteReportMonsFile();
