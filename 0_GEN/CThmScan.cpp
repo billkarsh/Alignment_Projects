@@ -486,11 +486,14 @@ static void RecordAngle(
 
 // Original version selecting best angle based on maximal R.
 //
+// If favorCenter true, sample more densely near center.
+//
 double CThmScan::AngleScanMaxR(
 	CorRec	&best,
 	double	center,
 	double	hlfwid,
 	double	step,
+	bool	favorCenter,
 	ThmRec	&thm )
 {
 	fprintf( flog,
@@ -502,6 +505,15 @@ double CThmScan::AngleScanMaxR(
 	TCD.thm = &thm;
 	TCD.vC.clear();
 	TCD.vC.push_back( CorRec( center ) );
+
+	if( favorCenter ) {
+
+		double	cwide = 2.0 * step,
+				cstep = step / 3.0;
+
+		for( double a = center-cwide; a <= center+cwide; a += cstep )
+			TCD.vC.push_back( CorRec( a ) );
+	}
 
 	for( double a = center-hlfwid; a <= center+hlfwid; a += step )
 		TCD.vC.push_back( CorRec( a ) );
@@ -667,12 +679,15 @@ double CThmScan::AngleScanSel(
 	double	center,
 	double	hlfwid,
 	double	step,
+	bool	favorCenter,
 	ThmRec	&thm )
 {
 	if( swpConstXY )
 		return AngleScanConstXY( best, center, hlfwid, step, thm );
-	else
-		return AngleScanMaxR( best, center, hlfwid, step, thm );
+	else {
+		return AngleScanMaxR(
+				best, center, hlfwid, step, favorCenter, thm );
+	}
 }
 
 /* --------------------------------------------------------------- */
@@ -686,14 +701,15 @@ double CThmScan::AngleScanWithTweaks(
 	double	step,
 	ThmRec	&thm )
 {
-	if( AngleScanSel( best, center, hlfwid, step, thm ) < rthresh ) {
+	if( AngleScanSel( best, center, hlfwid, step, true, thm )
+		< rthresh ) {
 
 		if( swpPretweak ) {
 
 			if( Pretweaks( best.R,
 					(best.R > 0.0 ? best.A : center), thm ) ) {
 
-				AngleScanSel( best, center, hlfwid, step, thm );
+				AngleScanSel( best, center, hlfwid, step, true, thm );
 			}
 		}
 	}
@@ -745,7 +761,7 @@ bool CThmScan::DenovoBestAngle(
 {
 	if( AngleScanWithTweaks( best, ang0, hfangdn, step, thm )
 			< rthresh ||
-		AngleScanSel( best, best.A, step * 2.0, step * 0.05, thm )
+		AngleScanSel( best, best.A, step*2.0, step*0.05, false, thm )
 			< rthresh ||
 		PeakHunt( best, step * 0.05 * 1.5, thm )
 			< rthresh ) {

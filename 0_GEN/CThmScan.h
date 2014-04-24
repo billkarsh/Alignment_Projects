@@ -177,6 +177,7 @@ public:
 		double	center,
 		double	hlfwid,
 		double	step,
+		bool	favorCenter,
 		ThmRec	&thm );
 
 	double AngleScanConstXY(
@@ -191,6 +192,7 @@ public:
 		double	center,
 		double	hlfwid,
 		double	step,
+		bool	favorCenter,
 		ThmRec	&thm );
 
 	double AngleScanWithTweaks(
