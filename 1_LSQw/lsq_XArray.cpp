@@ -102,7 +102,7 @@ static void* _AFromIDB( void* ithr )
 //
 // (2) We scan each line for {id,r,T} but there is more beyond
 //		in the 'MET' case. That's handled in CIDRA::FromFile()
-//		by format '%*[^\n]\n' which reads and tosses everything
+//		by format '%*[^\r\n][\r\n]' which reads and tosses all
 //		up to and including the terminator.
 //
 
@@ -114,7 +114,7 @@ public:
 	inline bool FromFile( FILE *f )
 	{
 		return 8 == fscanf( f,
-			" %d %d %lf %lf %lf %lf %lf %lf%*[^\n]\n",
+			" %d %d %lf %lf %lf %lf %lf %lf%*[^\r\n][\r\n]",
 			&id, &r,
 			&A.t[0], &A.t[1], &A.t[2],
 			&A.t[3], &A.t[4], &A.t[5] );
@@ -232,7 +232,7 @@ static void* _AFromTxt( void* ithr )
 //
 // (2) We scan each line for {id,r,T} but there is more beyond
 //		in the 'MET' case. That's handled in CIDRH::FromFile()
-//		by format '%*[^\n]\n' which reads and tosses everything
+//		by format '%*[^\r\n][\r\n]' which reads and tosses all
 //		up to and including the terminator.
 //
 
@@ -244,7 +244,7 @@ public:
 	inline bool FromFile( FILE *f )
 	{
 		return 10 == fscanf( f,
-			" %d %d %lf %lf %lf %lf %lf %lf %lf %lf%*[^\n]\n",
+			" %d %d %lf %lf %lf %lf %lf %lf %lf %lf%*[^\r\n][\r\n]",
 			&id, &r,
 			&H.t[0], &H.t[1], &H.t[2],
 			&H.t[3], &H.t[4], &H.t[5],
