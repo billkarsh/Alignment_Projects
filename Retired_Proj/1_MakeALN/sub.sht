@@ -4,10 +4,12 @@
 # Submit all make files {same,down} and use the make option -j <n>
 # to set number of concurrent jobs.
 #
-# > ./sub4.sht <zmin> [zmax]
+# > ./sub.sht <zmin> [zmax]
 
 
 export MRC_TRIM=12
+
+nthr=4
 
 if (($# == 1))
 then
@@ -22,11 +24,11 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr/S0_0
-		qsub -N qS0_0-$lyr -cwd -V -b y -pe batch 4 make -f make.same -j 4 EXTRA='""'
+		qsub -N qS0_0-$lyr -cwd -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='""'
 		if (($lyr > $1))
 		then
 			cd ../D0_0
-			qsub -N qD0_0-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j 4 EXTRA='""'
+			qsub -N qD0_0-$lyr -cwd -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
 		fi
 		cd ../..
 	fi

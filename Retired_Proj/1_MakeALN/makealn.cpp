@@ -342,7 +342,7 @@ static void WriteSubNFile( int njobs )
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sub%d.sht", gArgs.outdir, njobs );
+	sprintf( buf, "%s/sub.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -351,11 +351,12 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "# Submit all make files {same,down} and use the make option -j <n>\n" );
 	fprintf( f, "# to set number of concurrent jobs.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./sub%d.sht <zmin> [zmax]\n",
-	njobs );
+	fprintf( f, "# > ./sub.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "nthr=%d\n", njobs );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -370,13 +371,11 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr/S0_0\n" );
-	fprintf( f, "\t\tqsub -N qS0_0-$lyr -cwd -V -b y -pe batch 4 make -f make.same -j %d EXTRA='\"\"'\n",
-	njobs );
+	fprintf( f, "\t\tqsub -N qS0_0-$lyr -cwd -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='\"\"'\n" );
 	fprintf( f, "\t\tif (($lyr > $1))\n" );
 	fprintf( f, "\t\tthen\n" );
 	fprintf( f, "\t\t\tcd ../D0_0\n" );
-	fprintf( f, "\t\t\tqsub -N qD0_0-$lyr -cwd -V -b y -pe batch 4 make -f make.down -j %d EXTRA='\"\"'\n",
-	njobs );
+	fprintf( f, "\t\t\tqsub -N qD0_0-$lyr -cwd -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='\"\"'\n" );
 	fprintf( f, "\t\tfi\n" );
 	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tfi\n" );
@@ -1004,8 +1003,7 @@ int main( int argc, char* argv[] )
 	WriteRunlsqFile();
 	//WriteSubmosFile();
 
-	//WriteSubNFile( 4 );
-	WriteSubNFile( 8 );
+	WriteSubNFile( 4 );
 	WriteReportFile();
 	WriteCombineFile();
 	WriteFinishFile();

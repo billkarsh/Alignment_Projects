@@ -1,6 +1,8 @@
 #!/bin/sh
 
 
+nthr=4
+
 if (($# == 1))
 then
     last=$1
@@ -12,7 +14,7 @@ for i in $(seq $1 $last)
 do
 	echo $i
 	cd $i
-	qsub -N lou-d-$i -cwd -V -b y -pe batch 8 make -f thumbs.down -j 8 EXTRA=''
+	qsub -N lou-d-$i -cwd -V -b y -pe batch $nthr make -f thumbs.down -j $nthr EXTRA=''
 	cd ..
 done
 

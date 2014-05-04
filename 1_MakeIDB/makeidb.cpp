@@ -292,6 +292,8 @@ static void WriteSubfmFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
+	fprintf( f, "nthr=4\n" );
+	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
 	fprintf( f, "\tlast=$1\n" );
@@ -305,7 +307,7 @@ static void WriteSubfmFile()
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tqsub -N makefm-$lyr -cwd -V -b y -pe batch 4 make -f make.fm -j 4 EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tqsub -N makefm-$lyr -cwd -V -b y -pe batch $nthr make -f make.fm -j $nthr EXTRA='\"\"'\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );
