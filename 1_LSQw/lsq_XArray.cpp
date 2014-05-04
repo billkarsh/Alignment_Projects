@@ -292,7 +292,7 @@ static void* _HFromTxt( void* ithr )
 		int						nh = vH.size();
 		map<int,int>::iterator	en = R.m.end();
 
-		if( nf ) {	// Propagate rgn #1 to all block members
+		if( !nf ) {	// Propagate rgn #1 to all block members
 
 			// For each transform in vH...
 
