@@ -161,7 +161,7 @@ static void* _AFromTxt( void* ithr )
 		int						na = vA.size();
 		map<int,int>::iterator	en = R.m.end();
 
-		if( nf ) {	// Propagate rgn #1 to all block members
+		if( !nf ) {	// Propagate rgn #1 to all block members
 
 			// For each transform in vA...
 
