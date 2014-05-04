@@ -61,10 +61,6 @@ Alpinestars Bionic Rib S/L
 ------------------------------------------------
 Saalfeld Notes:
 ---------------
-- Resume chat Wed Dec 11.
-
-- Hackathon alert: sometime in April.
-
 - I suggest we can manually extend cuts through fold masks but
 recover correct connectivity in the cut zone by adding corr.
 point pairs into the mix wherein the (x,y) coords are the same

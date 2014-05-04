@@ -2,7 +2,6 @@
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
 1dirs =\
- 1_Clean_ThmPairs\
  1_CpyFMs\
  1_Cross_CarveBlocks\
  1_Cross_LowRes\
@@ -69,23 +68,6 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  2_XMLUnite\
  2_XMLZScale
 
-4dirs =\
- 4_Cmap\
- 4_Connect\
- 4_Fold\
- 4_Import\
- 4_Local\
- 4_Master\
- 4_Qa\
- 4_Qafm\
- 4_Qcheck\
- 4_Sla\
- 4_TestNormCorr\
- 4_Two\
- 4_Two32\
- 4_Unfold\
- 4_Unmap
-
 all : xdirs = ${1dirs} ${2dirs}
 all : build_dirs
 
@@ -95,10 +77,7 @@ all1 : build_dirs
 all2 : xdirs = ${2dirs}
 all2 : build_dirs
 
-all4 : xdirs = ${4dirs}
-all4 : build_dirs
-
-clean : xdirs = ${1dirs} ${2dirs} ${4dirs}
+clean : xdirs = ${1dirs} ${2dirs}
 clean : clean_dirs clean_libs
 
 build_dirs : .CHECK_ALL_LIBS
