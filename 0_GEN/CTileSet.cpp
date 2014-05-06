@@ -12,6 +12,7 @@
 
 #include	<algorithm>
 using namespace std;
+using namespace ns_pipergns;
 
 
 /* --------------------------------------------------------------- */
@@ -214,6 +215,66 @@ void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 				til.col		= E.col;
 				til.row		= E.row;
 				til.cam		= E.cam;
+
+				if( !RejectTile( til ) )
+					vtil.push_back( til );
+			}
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* FillFromRgns -------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+void CTileSet::FillFromRgns(
+	const char		*path,
+	const string	&idb,
+	int				zmin,
+	int				zmax )
+{
+	if( !path ) {
+		FillFromIDB( idb, zmin, zmax );
+		return;
+	}
+
+	for( int z = zmin; z <= zmax; ++z ) {
+
+		Rgns	R;
+
+		if( !R.Init( idb, z, flog ) )
+			continue;
+
+		if( !R.Load( path ) )
+			continue;
+
+		map<int,int>::iterator	mi, en = R.m.end();
+
+		for( mi = R.m.begin(); mi != en; ) {
+
+			const Til2Img	*t2i;
+
+			int	id		= mi->first,
+				j0		= mi->second,
+				jlim	= (++mi == en ? R.nr : mi->second);
+
+			if( !IDBT2ICacheNGet1( t2i, idb, z, id, flog ) )
+				continue;
+
+			for( int j = j0; j < jlim; ++j ) {
+
+				if( !FLAG_ISUSED( R.flag[j] ) )
+					continue;
+
+				CUTile	til;
+
+				til.name	= t2i->path;
+				til.T		= X_AS_AFF( R.x, j );
+				til.z		= z;
+				til.id		= id;
+				til.col		= t2i->col;
+				til.row		= t2i->row;
+				til.cam		= t2i->cam;
 
 				if( !RejectTile( til ) )
 					vtil.push_back( til );

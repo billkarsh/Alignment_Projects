@@ -79,6 +79,11 @@ public:
 	void FillFromRickFile( const char *path, int zmin, int zmax );
 	void FillFromTrakEM2( const char *path, int zmin, int zmax );
 	void FillFromIDB( const string &idb, int zmin, int zmax );
+	void FillFromRgns(
+		const char		*path,
+		const string	&idb,
+		int				zmin,
+		int				zmax );
 
 	void SetTileDims( int w, int h )	{gW = w; gH = h;};
 	void SetTileDimsFromImageFile();

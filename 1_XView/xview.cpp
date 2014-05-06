@@ -521,18 +521,18 @@ static void WriteM_Aff()
 
 	for( mi = R.m.begin(); mi != en; ) {
 
+		const Til2Img	*t2i;
+
 		int	id		= mi->first,
 			j0		= mi->second,
 			jlim	= (++mi == en ? R.nr : mi->second);
 
+		if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+			continue;
+
 		for( int j = j0; j < jlim; ++j ) {
 
 			if( !FLAG_ISUSED( R.flag[j] ) )
-				continue;
-
-			const Til2Img	*t2i;
-
-			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
 				continue;
 
 			TAffine&	T = X_AS_AFF( R.x, j );
@@ -564,18 +564,18 @@ static void WriteM_Hmy()
 
 	for( mi = R.m.begin(); mi != en; ) {
 
+		const Til2Img	*t2i;
+
 		int	id		= mi->first,
 			j0		= mi->second,
 			jlim	= (++mi == en ? R.nr : mi->second);
 
+		if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+			continue;
+
 		for( int j = j0; j < jlim; ++j ) {
 
 			if( !FLAG_ISUSED( R.flag[j] ) )
-				continue;
-
-			const Til2Img	*t2i;
-
-			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
 				continue;
 
 			THmgphy&	T = X_AS_HMY( R.x, j );
@@ -653,18 +653,18 @@ static void WriteXMLLyr_Aff( FILE *f, int &oid )
 
 	for( mi = R.m.begin(); mi != en; ) {
 
+		const Til2Img	*t2i;
+
 		int	id		= mi->first,
 			j0		= mi->second,
 			jlim	= (++mi == en ? R.nr : mi->second);
 
+		if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+			continue;
+
 		for( int j = j0; j < jlim; ++j ) {
 
 			if( !FLAG_ISUSED( R.flag[j] ) )
-				continue;
-
-			const Til2Img	*t2i;
-
-			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
 				continue;
 
 			char	title[128];
@@ -758,18 +758,18 @@ static void WriteXMLLyr_Hmy( FILE *f, int &oid )
 
 	for( mi = R.m.begin(); mi != en; ) {
 
+		const Til2Img	*t2i;
+
 		int	id		= mi->first,
 			j0		= mi->second,
 			jlim	= (++mi == en ? R.nr : mi->second);
 
+		if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+			continue;
+
 		for( int j = j0; j < jlim; ++j ) {
 
 			if( !FLAG_ISUSED( R.flag[j] ) )
-				continue;
-
-			const Til2Img	*t2i;
-
-			if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
 				continue;
 
 			char	title[128];
