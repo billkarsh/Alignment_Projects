@@ -287,7 +287,7 @@ static void* _HFromTxt( void* ithr )
 		int				in = (iz >= zilo && iz <= zihi ),
 						nf = Read_vH( vH, R.z );
 
-		x.resize( R.nr * 6 );
+		x.resize( R.nr * 8 );
 
 		int						nh = vH.size();
 		map<int,int>::iterator	en = R.m.end();
@@ -315,7 +315,7 @@ static void* _HFromTxt( void* ithr )
 				for( int j = j0; j < jlim; ++j ) {
 
 					if( !in || R.pts[j].size() >= 4 ) {
-						H.H.CopyOut( &x[j * 6] );
+						H.H.CopyOut( &x[j * 8] );
 						FLAG_SETUSED( R.flag[j] );
 					}
 					else
@@ -341,7 +341,7 @@ static void* _HFromTxt( void* ithr )
 				j = mi->second + H.r - 1;
 
 				if( !in || R.pts[j].size() >= 4 ) {
-					H.H.CopyOut( &x[j * 6] );
+					H.H.CopyOut( &x[j * 8] );
 					FLAG_SETUSED( R.flag[j] );
 				}
 				else
