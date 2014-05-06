@@ -122,24 +122,30 @@ public:
 };
 
 /* --------------------------------------------------------------- */
-/* Reading LSQ Binary Output ------------------------------------- */
+/* Read tforms organized as Z-files ------------------------------ */
 /* --------------------------------------------------------------- */
 
-namespace ns_lsqbin {
+namespace ns_pipergns {
 
 enum RgnFlags {
 	fbDead		= 0x01,
 	fbRead		= 0x02,
 	fbPnts		= 0x04,
 	fbKill		= 0x08,
-	fbCutd		= 0x10
+	fbCutd		= 0x10,
+
+	fmRead		= fbRead + fbDead
 };
 
 #define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
+#define	FLAG_SETUSED( f )	(f = 0)
 
 class Rgns {
 // The rgns for given layer
 // indexed by 0-based 'idx0'
+private:
+	FILE			*flog;
+	const string	*idb;
 public:
 	vector<double>	x;		// tform elems
 	vector<uint8>	flag;	// rgn flags
@@ -148,14 +154,17 @@ public:
 					z,		// common z
 					NE;		// num elems/tform
 private:
-	bool ReadXBin( const char *path, FILE *flog );
-	bool ReadFBin( const char *path, FILE *flog );
+	bool AFromIDB();
+	bool AFromTxt( const char *path );
+	bool HFromTxt( const char *path );
+	bool ReadXBin( const char *path );
+	bool ReadFBin( const char *path );
 public:
-	bool Init( string idb, int iz, FILE *flog );
-	bool Load( const char *path, FILE *flog );
+	bool Init( const string &idb, int iz, FILE *flog );
+	bool Load( const char *path );
 };
 
-};	// ns_lsqbin
+};	// ns_pipergns
 
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */

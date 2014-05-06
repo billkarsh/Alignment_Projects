@@ -1,12 +1,18 @@
 #!/bin/sh
 
 # Purpose:
-# Convert X_A_BIN or X_H_BIN tform data to viewable text or xml.
+# Convert Z-file tform data to viewable text or xml.
 #
-# > xview BINpath -idb=idbpath -z=i,j [options]
+# Z-file organized data can be:
+# - IDB (inpath not specified)
+# - X_A_TXT, X_H_TXT
+# - X_A_MET, X_H_MET
+# - X_A_BIN, X_H_BIN
+#
+# > xview inpath -idb=idbpath -z=i,j [options]
 #
 # Required:
-# BINPath			;path of X_A_BIN or X_H_BIN folder
+# inPath			;path of a tform source folder
 # -idb=idbpath		;path to idb folder
 # -z=i,j			;convert tforms in range z=[i..j]
 #
@@ -21,7 +27,7 @@
 # Options:
 # -forceWH=w,h		;force bounds (override degcw)
 # -degcw=0			;rotate CW degrees
-# -type=T			;{T,M,X} = {X_?_TXT,X_?_MET,xml}
+# -type=X			;{T,M,X} = {X_?_TXT,X_?_MET,xml}
 # -meta=path		;billfile with alt image paths
 # -xmltrim=0.0		;trim this much from xml images
 # -xmltype=0		;ImagePlus type code

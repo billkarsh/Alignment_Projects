@@ -15,7 +15,7 @@
 #include	"TrakEM2_UTL.h"
 #include	"PipeFiles.h"
 
-using namespace ns_lsqbin;
+using namespace ns_pipergns;
 
 
 /* --------------------------------------------------------------- */
@@ -130,7 +130,7 @@ static bool GetTable( Rgns &R, int z )
 	char	path[2048];
 	sprintf( path, "%s/%d/montage/X_A_BIN", gArgs.tempdir, z );
 
-	return R.Init( idb, z, flog ) && R.Load( path, flog );
+	return R.Init( idb, z, flog ) && R.Load( path );
 }
 
 /* --------------------------------------------------------------- */

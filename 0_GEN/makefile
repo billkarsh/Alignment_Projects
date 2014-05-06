@@ -32,6 +32,7 @@ files =\
  Memory.cpp\
  Metrics.cpp\
  PipeFiles.cpp\
+ PipeFiles_Rgns.cpp\
  Scape.cpp\
  TAffine.cpp\
  Tform_Array.cpp\

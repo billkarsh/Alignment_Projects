@@ -1,5 +1,11 @@
 //
-// Convert X_A_BIN or X_H_BIN tform data to viewable text or xml.
+// Convert Z-file tform data to viewable text or xml.
+//
+// Z-file organized data can be:
+// - IDB (inpath not specified)
+// - X_A_TXT, X_H_TXT
+// - X_A_MET, X_H_MET
+// - X_A_BIN, X_H_BIN
 //
 
 #include	"Cmdline.h"
@@ -11,7 +17,7 @@
 
 #include	<string.h>
 
-using namespace ns_lsqbin;
+using namespace ns_pipergns;
 
 
 /* --------------------------------------------------------------- */
@@ -21,8 +27,8 @@ using namespace ns_lsqbin;
 class CArgs {
 
 public:
+	string		idb;
 	const char	*inpath,
-				*idb,
 				*meta;
 	double		forcew,
 				forceh,
@@ -39,7 +45,6 @@ public:
 	CArgs()
 	{
 		inpath		= NULL;
-		idb			= NULL;
 		meta		= NULL;
 		forcew		= 0.0;
 		forceh		= 0.0;
@@ -47,7 +52,7 @@ public:
 		xml_trim	= 0.0;
 		zilo		= 0;
 		zihi		= 32768;
-		type		= 'T';
+		type		= 'X';
 		xml_type	= 0;
 		xml_min		= 0;
 		xml_max		= 0;
@@ -84,7 +89,7 @@ static CMeta	gMeta;
 static FILE*	flog = NULL;
 static Rgns		R;
 static int		gW, gH;
-static bool		isAff;
+static bool		isAff	= true;
 
 
 
@@ -115,12 +120,13 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 4 ) {
 		printf(
-		"Usage: xview BINpath -idb=idbpath -z=i,j\n" );
+		"Usage: xview inpath -idb=idbpath -z=i,j\n" );
 		exit( 42 );
 	}
 
 	vector<double>	vd;
 	vector<int>		vi;
+	const char		*pchar;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -131,8 +137,8 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 			inpath = argv[i];
 			isAff = (NULL != strstr( FileNamePtr( inpath ), "X_A" ));
 		}
-		else if( GetArgStr( idb, "-idb=", argv[i] ) )
-			;
+		else if( GetArgStr( pchar, "-idb=", argv[i] ) )
+			idb = pchar;
 		else if( GetArgStr( meta, "-meta=", argv[i] ) )
 			;
 		else if( GetArgList( vd, "-forceWH=", argv[i] ) ) {
@@ -320,7 +326,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 		if( !R.Init( gArgs.idb, z, flog ) )
 			continue;
 
-		if( !R.Load( gArgs.inpath, flog ) )
+		if( !R.Load( gArgs.inpath ) )
 			continue;
 
 		for( int j = 0; j < R.nr; ++j ) {
@@ -330,7 +336,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 			vector<Point>	c( 4 );
 			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
-			T = Trot * X_AS_AFF( R.x, j );
+			T = /*Trot **/ X_AS_AFF( R.x, j );
 			T.Transform( c );
 
 			for( int k = 0; k < 4; ++k ) {
@@ -366,7 +372,7 @@ static void GetXY_Hmy( DBox &B, const THmgphy &Trot )
 		if( !R.Init( gArgs.idb, z, flog ) )
 			continue;
 
-		if( !R.Load( gArgs.inpath, flog ) )
+		if( !R.Load( gArgs.inpath ) )
 			continue;
 
 		for( int j = 0; j < R.nr; ++j ) {
@@ -872,7 +878,7 @@ static void ConvertA()
 		if( !R.Init( gArgs.idb, z, NULL ) )
 			continue;
 
-		if( !R.Load( gArgs.inpath, flog ) )
+		if( !R.Load( gArgs.inpath ) )
 			continue;
 
 		gMeta.MapZ( z );
@@ -927,7 +933,7 @@ static void ConvertH()
 		if( !R.Init( gArgs.idb, z, NULL ) )
 			continue;
 
-		if( !R.Load( gArgs.inpath, flog ) )
+		if( !R.Load( gArgs.inpath ) )
 			continue;
 
 		gMeta.MapZ( z );
