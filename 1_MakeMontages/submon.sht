@@ -1,8 +1,7 @@
 #!/bin/sh
 
 # Purpose:
-# For each layer in range, gather points, cd to layer's montage dir,
-# run lsq there.
+# For each layer in range, cd to montage dir, run lsq there.
 #
 # > ./submon.sht <zmin> [zmax]
 

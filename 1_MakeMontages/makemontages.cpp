@@ -694,8 +694,7 @@ static void WriteSubmonFile()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# For each layer in range, gather points, cd to layer's montage dir,\n" );
-	fprintf( f, "# run lsq there.\n" );
+	fprintf( f, "# For each layer in range, cd to montage dir, run lsq there.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > ./submon.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );

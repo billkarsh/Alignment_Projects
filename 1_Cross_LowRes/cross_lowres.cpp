@@ -296,7 +296,7 @@ static void Tabulate( const vector<CLog> &vL, int nL )
 	}
 
 	fclose( f );
-	exit(42);
+	exit( 42 );
 }
 
 /* --------------------------------------------------------------- */

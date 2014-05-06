@@ -30,7 +30,7 @@
 // - All entries in TileToXXX files are in tile id order.
 //
 // If output directory (idbname) is unspecified, either by
-// omitting '-d' option entirely, or by using '-d' with no
+// omitting '-idb' option entirely, or by using '-idb' with no
 // name, then no idb is generated. Rather, we write TrakEM2
 // generator files.
 //
