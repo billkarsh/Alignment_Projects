@@ -143,7 +143,6 @@ static void Write_dbgo()
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Make image database 'idb' from Rick or xml file...\n" );
-	fprintf( f, "# Makes everything.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > makeidb <mylayout.txt or myxml.xml> -idb=idb\n" );
 	fprintf( f, "#\n" );
@@ -151,11 +150,11 @@ static void Write_dbgo()
 	fprintf( f, "# -zmin=i -zmax=j\t\t\t;restricts layer range\n" );
 	fprintf( f, "# -nf\t\t\t\t\t\t;no foldmasks\n" );
 	fprintf( f, "# -crop=CropRectsFile.txt\t;{cam,x0,y0,dx,dy} for ea. cam\n" );
-	fprintf( f, "# -lens=AffineLensFile.txt\t;external affine software lens\n" );
-	fprintf( f, "# -k=MyClicksfile.txt\t\t;align with manual landmarks\n" );
 	fprintf( f, "# -xmltype=0\t\t\t\t;ImagePlus type code\n" );
 	fprintf( f, "# -xmlmin=0\t\t\t\t\t;intensity scale\n" );
 	fprintf( f, "# -xmlmax=0\t\t\t\t\t;intensity scale\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# NOTE: Omit -idb parameter to generate RawData.xml.\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );

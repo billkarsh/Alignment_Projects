@@ -2,7 +2,6 @@
 
 # Purpose:
 # Make image database 'idb' from Rick or xml file...
-# Makes everything.
 #
 # > makeidb <mylayout.txt or myxml.xml> -idb=idb
 #
@@ -10,11 +9,11 @@
 # -zmin=i -zmax=j			;restricts layer range
 # -nf						;no foldmasks
 # -crop=CropRectsFile.txt	;{cam,x0,y0,dx,dy} for ea. cam
-# -lens=AffineLensFile.txt	;external affine software lens
-# -k=MyClicksfile.txt		;align with manual landmarks
 # -xmltype=0				;ImagePlus type code
 # -xmlmin=0					;intensity scale
 # -xmlmax=0					;intensity scale
+#
+# NOTE: Omit -idb parameter to generate RawData.xml.
 
 
 export MRC_TRIM=12

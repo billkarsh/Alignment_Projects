@@ -69,9 +69,7 @@ public:
 	//
 	const char	*infile,
 				*outdir,
-				*crop,
-				*lens,
-				*clk;
+				*crop;
 	int			zmin,
 				zmax,
 				xml_type,
@@ -85,8 +83,6 @@ public:
 		infile		=
 		outdir		= "NoSuch";	// prevent overwriting real dir
 		crop		= NULL;
-		lens		= NULL;
-		clk			= NULL;
 		zmin		= 0;
 		zmax		= 32768;
 		xml_type	= 0;
@@ -151,10 +147,6 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( outdir, "-idb=", argv[i] ) )
 			;
 		else if( GetArgStr( crop, "-crop=", argv[i] ) )
-			;
-		else if( GetArgStr( lens, "-lens=", argv[i] ) )
-			;
-		else if( GetArgStr( clk, "-k=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
@@ -258,19 +250,6 @@ static void CopyCropFile()
 }
 
 /* --------------------------------------------------------------- */
-/* CopyLensFile -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void CopyLensFile()
-{
-	if( gArgs.lens ) {
-		char	buf[2048];
-		sprintf( buf, "cp %s %s/lens.txt", gArgs.lens, gArgs.outdir );
-		system( buf );
-	}
-}
-
-/* --------------------------------------------------------------- */
 /* WriteSubfmFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -332,10 +311,9 @@ static void WriteReportFile()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# For layer range, tabulate sizes of all cluster stderr logs\n" );
-	fprintf( f, "# from foldmask generation jobs.\n" );
+	fprintf( f, "# Tabulate sizes of all stderr logs from foldmask generation.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./report_fm.sht <zmin> [zmax]\n" );
+	fprintf( f, "# > ./report_fm.sht\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "ls -l */makefm*.e* > FmErrs.txt\n" );
@@ -626,35 +604,26 @@ int main( int argc, char* argv[] )
 
 	TS.SortAll_z_id();
 
+/* ------------------ */
+/* Make XML if no IDB */
+/* ------------------ */
+
+	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) ) {
+
+		TS.WriteTrakEM2_EZ( "RawData.xml",
+			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
+
+		goto exit;
+	}
+
+/* ------------------------------------ */
+/* Redirect from mrc images to our nmrc */
+/* ------------------------------------ */
+
 	ismrc = FileIsExt( TS.vtil[0].name.c_str(), ".mrc" );
 
 	if( ismrc )
 		Make_nmrc_paths();
-
-/* ----------- */
-/* Diagnostics */
-/* ----------- */
-
-	if( isrickfile || ismrc ) {
-
-		TS.WriteTrakEM2_EZ( "PreClicks.xml",
-			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
-	}
-
-	if( gArgs.clk ) {
-
-		TS.ApplyClix( tsClixAffine, gArgs.clk );
-
-		TS.WriteTrakEM2_EZ( "PostClicks.xml",
-			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
-	}
-
-/* ----------------------- */
-/* Just make generator xml */
-/* ----------------------- */
-
-	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) )
-		goto exit;
 
 /* --------------- */
 /* Create dir tree */
@@ -664,7 +633,6 @@ int main( int argc, char* argv[] )
 
 	WriteImageparamsFile();
 	CopyCropFile();
-	CopyLensFile();
 
 	if( !gArgs.NoFolds || ismrc ) {
 		WriteSubfmFile();

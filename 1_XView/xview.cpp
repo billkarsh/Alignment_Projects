@@ -118,7 +118,7 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 4 ) {
+	if( argc < 3 ) {
 		printf(
 		"Usage: xview inpath -idb=idbpath -z=i,j\n" );
 		exit( 42 );
