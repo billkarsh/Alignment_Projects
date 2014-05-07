@@ -96,8 +96,7 @@ public:
 				xml_type,
 				xml_min,
 				xml_max;
-	bool		lens,
-				NoFolds,
+	bool		NoFolds,
 				NoDirs,
 				davinocorn;
 
@@ -113,7 +112,6 @@ public:
 		xml_type	= -999;
 		xml_min		= -999;
 		xml_max		= -999;
-		lens		= false;
 		NoFolds		= false;
 		NoDirs		= false;
 		davinocorn	= false;
@@ -191,8 +189,6 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
 			;
-		else if( IsArg( "-lens", argv[i] ) )
-			lens = true;
 		else if( IsArg( "-nf", argv[i] ) )
 			NoFolds = true;
 		else if( IsArg( "-nd", argv[i] ) )

@@ -12,7 +12,6 @@
 # -b=8					;subblock 1D size <in tiles>
 # -minareafrac=0.02		;same and cross req. area olap frac
 # -exe=ptestalt			;exe other than 'ptest'
-# -lens					;use lens file
 # -davinc				;no davi bock same lyr corners
 # -xmltype=0			;ImagePlus type code
 # -xmlmin=0				;intensity scale

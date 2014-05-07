@@ -194,7 +194,6 @@ static void Write_mongo()
 	fprintf( f, "# -b=8\t\t\t\t\t;subblock 1D size <in tiles>\n" );
 	fprintf( f, "# -minareafrac=0.02\t\t;same and cross req. area olap frac\n" );
 	fprintf( f, "# -exe=ptestalt\t\t\t;exe other than 'ptest'\n" );
-	fprintf( f, "# -lens\t\t\t\t\t;use lens file\n" );
 	fprintf( f, "# -davinc\t\t\t\t;no davi bock same lyr corners\n" );
 	fprintf( f, "# -xmltype=0\t\t\t;ImagePlus type code\n" );
 	fprintf( f, "# -xmlmin=0\t\t\t\t;intensity scale\n" );
