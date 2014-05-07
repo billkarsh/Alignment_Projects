@@ -26,7 +26,6 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  1_Thumbs\
  1_Tiny\
  1_TopScripts\
- 1_UpdateMontages\
  1_ViewSD\
  1_XView
 

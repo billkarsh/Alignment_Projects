@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Purpose:
+# For each layer in range, copy montage results to X_A_BIN_mons.
+#
+# > ./gathermons.sht <zmin> [zmax]
+
+
+dst=X_A_BIN_mons
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
+
+rm -rf $dst
+mkdir -p $dst
+
+for lyr in $(seq $1 $last)
+do
+	if [ -d "$lyr" ]
+	then
+		cp $lyr/montage/X_A_BIN/* $dst
+	fi
+done
+

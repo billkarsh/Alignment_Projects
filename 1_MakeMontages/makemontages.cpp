@@ -769,6 +769,51 @@ static void WriteReportMonsFile()
 }
 
 /* --------------------------------------------------------------- */
+/* WriteGatherMonsFile ------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteGatherMonsFile()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/gathermons.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# For each layer in range, copy montage results to X_A_BIN_mons.\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > ./gathermons.sht <zmin> [zmax]\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "dst=X_A_BIN_mons\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "if (($# == 1))\n" );
+	fprintf( f, "then\n" );
+	fprintf( f, "\tlast=$1\n" );
+	fprintf( f, "else\n" );
+	fprintf( f, "\tlast=$2\n" );
+	fprintf( f, "fi\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "rm -rf $dst\n" );
+	fprintf( f, "mkdir -p $dst\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "for lyr in $(seq $1 $last)\n" );
+	fprintf( f, "do\n" );
+	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+	fprintf( f, "\tthen\n" );
+	fprintf( f, "\t\tcp $lyr/montage/X_A_BIN/* $dst\n" );
+	fprintf( f, "\tfi\n" );
+	fprintf( f, "done\n" );
+	fprintf( f, "\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* CreateLayerDir ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1223,6 +1268,7 @@ int main( int argc, char* argv[] )
 	WriteReportFiles();
 	WriteSubmonFile();
 	WriteReportMonsFile();
+	WriteGatherMonsFile();
 
 	ForEachLayer();
 
