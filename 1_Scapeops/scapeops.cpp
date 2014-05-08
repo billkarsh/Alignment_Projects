@@ -1,7 +1,7 @@
 //
 // scapeops
 //
-// Given xmlfile...
+// Given inpath -idb=idbpath...
 //
 // Perform montage drawing and/or strip aligning as follows:
 //
@@ -21,6 +21,7 @@
 
 #include	"Cmdline.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"CTileSet.h"
 #include	"CThmScan.h"
 #include	"Geometry.h"
@@ -111,7 +112,8 @@ public:
 	double	inv_scl,
 			stpcorr,
 			abctr;
-	char	*infile;
+	char	*inpath;
+	string	idb;
 	int		za,
 			zb,
 			scl,
@@ -128,7 +130,7 @@ public:
 	{
 		stpcorr		= 0.02;
 		abctr		= 0.0;
-		infile		= NULL;
+		inpath		= NULL;
 		za			= -1;
 		zb			= -1;
 		scl			= 50;
@@ -206,13 +208,17 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		exit( 42 );
 	}
 
+	const char	*pchar;
+
 	for( int i = 1; i < argc; ++i ) {
 
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			infile = argv[i];
+			inpath = argv[i];
+		else if( GetArgStr( pchar, "-idb=", argv[i] ) )
+			idb = pchar;
 		else if( GetArg( &za, "-za=%d", argv[i] ) )
 			;
 		else if( GetArg( &zb, "-zb=%d", argv[i] ) )
@@ -671,13 +677,14 @@ int main( int argc, char* argv[] )
 	if( gArgs.zb >= 0 && gArgs.za < 0 )
 		gArgs.za = gArgs.zb;
 
-	TS.FillFromTrakEM2( gArgs.infile, gArgs.zb, gArgs.za );
+	TS.FillFromRgns( gArgs.inpath, gArgs.idb, gArgs.zb, gArgs.za );
 
 	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
 	if( !TS.vtil.size() )
 		goto exit;
 
+	TS.SetTileDimsFromImageFile();
 	TS.GetTileDims( gW, gH );
 
 	t0 = StopTiming( flog, "ReadFile", t0 );

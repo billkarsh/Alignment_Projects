@@ -3,7 +3,7 @@
 # Purpose:
 # First step in cross-layer alignment.
 #
-# > scapeops myxml -zb=%d [options]
+# > scapeops inpath -idb=idbpath -zb=%d [options]
 #
 # Scapeops does montage drawing and/or strip aligning as follows:
 #

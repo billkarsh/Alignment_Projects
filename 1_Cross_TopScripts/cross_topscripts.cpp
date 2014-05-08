@@ -6,6 +6,7 @@
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"TrakEM2_UTL.h"
 
 
@@ -69,6 +70,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_cross	gArgs;
+static string		idb;
 static char			*gtopdir = "cross_wkspc";
 static FILE*		flog = NULL;
 
@@ -206,10 +208,10 @@ static void WriteSubscapes( vector<int> &zlist )
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"'%s'"
+	"'%s' -idb=%s"
 	" -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -ab -abwide=%d -stpcorr=%g",
-	gArgs.mondir,
+	gArgs.mondir, idb.c_str(),
 	gArgs.scl, gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),
 	gArgs.abwide, gArgs.stpcorr );
@@ -229,7 +231,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# First step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > scapeops myxml -zb=%%d [options]\n" );
+	fprintf( f, "# > scapeops inpath -idb=idbpath -zb=%%d [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Scapeops does montage drawing and/or strip aligning as follows:\n" );
 	fprintf( f, "#\n" );
@@ -287,11 +289,11 @@ static void WriteSubscapes( vector<int> &zlist )
 
 	fprintf( f,
 	"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -mb -scl=%d -lgord=%d -sdev=%d%s"
+	" scapeops '%s' -idb=%s -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.mondir, gArgs.scl,
-	gArgs.lgord, gArgs.sdev,
+	gArgs.mondir, idb.c_str(),
+	gArgs.scl, gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),
 	zlist[nz - 1] );
 
@@ -473,6 +475,11 @@ int main( int argc, char* argv[] )
 /* ------------------ */
 
 	gArgs.SetCmdLine( argc, argv );
+
+	IDBFromTemp( idb, ".", flog );
+
+	if( idb.empty() )
+		exit( 42 );
 
 /* ---------------- */
 /* Read source data */
