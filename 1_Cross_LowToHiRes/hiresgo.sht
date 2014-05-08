@@ -11,7 +11,7 @@
 # The resulting coarsely aligned full resolution 'HiRes.xml'
 # can serve as a scaffold in the final LSQ alignment.
 #
-# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j
+# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j [options]
 #
 # Options:
 # -lowres=LowRes.xml	;alternate coarse alignment reference

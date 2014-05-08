@@ -10,7 +10,7 @@
 # Correct mistakes using 'Align with Manual Landmarks' feature
 # and then Save result with the same name.
 #
-# > cross_lowres -zmin=i -zmax=j
+# > cross_lowres -zmin=i -zmax=j [options]
 #
 # Options:
 # -table		;write debugging striptable.txt and exit

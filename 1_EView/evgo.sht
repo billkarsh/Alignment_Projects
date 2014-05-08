@@ -4,7 +4,7 @@
 # Histogram one or two 'Error' folders produced by lsqw.
 # The result is a text file for viewing in Excel.
 #
-# > eview Error [Error_B] -z=i,j
+# > eview Error [Error_B] -z=i,j [options]
 #
 # Required:
 # Error			;path to lsqw Error folder
