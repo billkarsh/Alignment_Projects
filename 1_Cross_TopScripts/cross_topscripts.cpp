@@ -28,8 +28,7 @@ public:
 			blkmincorr,
 			blknomcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
-	char	xmlfile[2048],
-			outdir[2048];
+	char	mondir[2048];
 	int		zmin,
 			zmax,
 			scl,
@@ -49,7 +48,6 @@ public:
 		blkmincorr	= 0.45;
 		blknomcorr	= 0.50;
 		xyconf		= 0.75;
-		xmlfile[0]	= 0;
 		zmin		= 0;
 		zmax		= 32768;
 		scl			= 50;
@@ -61,8 +59,6 @@ public:
 		xml_max		= 0;
 		resmask		= false;
 		NoFolds		= false;
-
-		strcpy( outdir, "NoSuch" ); // protect real dirs
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -73,7 +69,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_cross	gArgs;
-static char			gtopdir[2048];
+static char			*gtopdir = "cross_wkspc";
 static FILE*		flog = NULL;
 
 
@@ -103,9 +99,9 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 5 ) {
+	if( argc < 3 ) {
 		printf(
-		"Usage: cross_topscripts <xmlfile> -d=temp -zmin=i -zmax=j"
+		"Usage: cross_topscripts -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -117,11 +113,7 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			DskAbsPath( xmlfile, sizeof(xmlfile), argv[i], flog );
-		else if( GetArgStr( _outdir, "-d=", argv[i] ) )
-			DskAbsPath( outdir, sizeof(outdir), _outdir, flog );
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
@@ -161,41 +153,35 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 	}
 
 	fprintf( flog, "\n\n" );
+
+	DskAbsPath( mondir, sizeof(mondir), "X_A_BIN_mons", flog );
+
+	if( !DskExists( mondir ) ) {
+
+		fprintf( flog,
+		"Can't find [%s].\n"
+		"(Did you run gathermons.sht yet?)\n", mondir );
+
+		exit( 42 );
+	}
+
 	fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
-/* ParseTrakEM2 -------------------------------------------------- */
+/* GetZList ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void ParseTrakEM2( vector<int> &zlist )
+static void GetZList( vector<int> &zlist )
 {
-/* ---- */
-/* Open */
-/* ---- */
+	for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
 
-	XML_TKEM		xml( gArgs.xmlfile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+		char	path[2048];
 
-/* -------------- */
-/* For each layer */
-/* -------------- */
+		sprintf( path, "%s/X_A_%d.bin", gArgs.mondir, z );
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
-
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
-
-		int	z = atoi( layer->Attribute( "z" ) );
-
-		if( z > gArgs.zmax )
-			break;
-
-		if( z < gArgs.zmin )
-			continue;
-
-		zlist.push_back( z );
+		if( DskExists( path ) )
+			zlist.push_back( z );
 	}
 }
 
@@ -206,7 +192,6 @@ static void ParseTrakEM2( vector<int> &zlist )
 static void CreateTopDir()
 {
 // create top subdir
-	sprintf( gtopdir, "%s/cross_wkspc", gArgs.outdir );
 	DskCreateDir( gtopdir, flog );
 }
 
@@ -224,7 +209,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	"'%s'"
 	" -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -ab -abwide=%d -stpcorr=%g",
-	gArgs.xmlfile,
+	gArgs.mondir,
 	gArgs.scl, gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),
 	gArgs.abwide, gArgs.stpcorr );
@@ -305,7 +290,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	" scapeops '%s' -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.xmlfile, gArgs.scl,
+	gArgs.mondir, gArgs.scl,
 	gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),
 	zlist[nz - 1] );
@@ -340,7 +325,7 @@ static void WriteLowresgo()
 	fprintf( f, "# Correct mistakes using 'Align with Manual Landmarks' feature\n" );
 	fprintf( f, "# and then Save result with the same name.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_lowres -zmin=i -zmax=j\n" );
+	fprintf( f, "# > cross_lowres -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -table\t\t;write debugging striptable.txt and exit\n" );
@@ -379,7 +364,7 @@ static void WriteHiresgo()
 	fprintf( f, "# The resulting coarsely aligned full resolution 'HiRes.xml'\n" );
 	fprintf( f, "# can serve as a scaffold in the final LSQ alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j\n" );
+	fprintf( f, "# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -lowres=LowRes.xml\t;alternate coarse alignment reference\n" );
@@ -389,7 +374,7 @@ static void WriteHiresgo()
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "cross_lowtohires '%s' -zmin=%d -zmax=%d -xmltype=%d -xmlmin=%d -xmlmax=%d\n",
-	gArgs.xmlfile, gArgs.zmin, gArgs.zmax,
+	gArgs.mondir, gArgs.zmin, gArgs.zmax,
 	gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
 	fprintf( f, "\n" );
 
@@ -490,13 +475,15 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 /* ---------------- */
-/* Read source file */
+/* Read source data */
 /* ---------------- */
 
-	ParseTrakEM2( zlist );
+	GetZList( zlist );
 
-	if( zlist.size() < 2 )
+	if( zlist.size() < 2 ) {
+		fprintf( flog, "Fewer than 2 layers -- do nothing.\n" );
 		goto exit;
+	}
 
 /* -------------- */
 /* Create content */

@@ -247,51 +247,6 @@ static bool XMLHasMRC()
 }
 
 /* --------------------------------------------------------------- */
-/* Write_crossgo ------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void Write_crossgo()
-{
-	char	buf[2048];
-	FILE	*f;
-
-	sprintf( buf, "crossgo.sht" );
-	f = FileOpenOrDie( buf, "w", flog );
-
-	fprintf( f, "#!/bin/sh\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Write scripts governing cross layer alignment.\n" );
-	fprintf( f, "# Creates folder mytemp/cross_wkspc\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_topscripts myxml -d=temp0 -zmin=i -zmax=j\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -scl=50\t\t\t;size reduction factor\n" );
-	fprintf( f, "# -lgord=1\t\t\t;Legendre poly max order\n" );
-	fprintf( f, "# -sdev=42\t\t\t;scape sdev size\n" );
-	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
-	fprintf( f, "# -abwide=15\t\t;strip width in tiles\n" );
-	fprintf( f, "# -stpcorr=0.02\t\t;req. min strip corr\n" );
-	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
-	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
-	fprintf( f, "# -xmltype=0\t\t;ImagePlus type code\n" );
-	fprintf( f, "# -xmlmin=0\t\t\t;intensity scale\n" );
-	fprintf( f, "# -xmlmax=0\t\t\t;intensity scale\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts newmons.xml -d=temp0 -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75%s\n",
-	gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
-	fprintf( f, "\n" );
-
-	fclose( f );
-	FileScriptPerms( buf );
-}
-
-/* --------------------------------------------------------------- */
 /* main ---------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -302,10 +257,6 @@ int main( int argc, char* argv[] )
 /* ------------------ */
 
 	gArgs.SetCmdLine( argc, argv );
-
-/* ------- */
-/* Scripts */
-/* ------- */
 
 	int	L = 0;
 
@@ -318,9 +269,12 @@ int main( int argc, char* argv[] )
 	if( gArgs.xml_max != 0 )
 		L += sprintf( xmlprms + L, " -xmlmax=%d", gArgs.xml_max );
 
+/* ------- */
+/* Scripts */
+/* ------- */
+
 	Write_dbgo();
 	Write_mongo();
-	Write_crossgo();
 
 /* ---- */
 /* Done */

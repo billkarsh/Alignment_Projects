@@ -109,9 +109,9 @@ public:
 		zmin		= 0;
 		zmax		= 32768;
 		blksize		= 8;
-		xml_type	= -999;
-		xml_min		= -999;
-		xml_max		= -999;
+		xml_type	= 0;
+		xml_min		= 0;
+		xml_max		= 0;
 		NoFolds		= false;
 		NoDirs		= false;
 		davinocorn	= false;
@@ -127,6 +127,7 @@ public:
 static CArgs_scr	gArgs;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
+static char			xmlprms[256]	= {0};
 static int			gW		= 0,	// universal pic dims
 					gH		= 0;
 
@@ -305,18 +306,6 @@ static void WriteXviewFile()
 	sprintf( buf, "%s/stack/xviewgo.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
-	char	xprms[256] = "";
-	int		L = 0;
-
-	if( gArgs.xml_type != -999 )
-		L += sprintf( xprms + L, " -xmltype=%d", gArgs.xml_type );
-
-	if( gArgs.xml_min != -999 )
-		L += sprintf( xprms + L, " -xmlmin=%d", gArgs.xml_min );
-
-	if( gArgs.xml_max != -999 )
-		L += sprintf( xprms + L, " -xmlmax=%d", gArgs.xml_max );
-
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
@@ -355,7 +344,7 @@ static void WriteXviewFile()
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "xview X_A_BIN -idb=%s -z=%d,%d -degcw=0 -type=X%s\n",
-	gArgs.idbpath.c_str(), gArgs.zmin, gArgs.zmax, xprms );
+	gArgs.idbpath.c_str(), gArgs.zmin, gArgs.zmax, xmlprms );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -380,7 +369,7 @@ static void WriteEviewFile()
 	fprintf( f, "# Histogram one or two 'Error' folders produced by lsqw.\n" );
 	fprintf( f, "# The result is a text file for viewing in Excel.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > eview Error [Error_B] -z=i,j\n" );
+	fprintf( f, "# > eview Error [Error_B] -z=i,j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Required:\n" );
 	fprintf( f, "# Error\t\t\t;path to lsqw Error folder\n" );
@@ -810,6 +799,51 @@ static void WriteGatherMonsFile()
 }
 
 /* --------------------------------------------------------------- */
+/* Write_Crossgo ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void Write_Crossgo()
+{
+	char	buf[2048];
+	FILE	*f;
+
+	sprintf( buf, "%s/crossgo.sht", gArgs.outdir );
+	f = FileOpenOrDie( buf, "w", flog );
+
+	fprintf( f, "#!/bin/sh\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "# Purpose:\n" );
+	fprintf( f, "# Write scripts governing cross layer alignment.\n" );
+	fprintf( f, "# Creates folder mytemp/cross_wkspc\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# > cross_topscripts -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
+	fprintf( f, "# -scl=50\t\t\t;size reduction factor\n" );
+	fprintf( f, "# -lgord=1\t\t\t;Legendre poly max order\n" );
+	fprintf( f, "# -sdev=42\t\t\t;scape sdev size\n" );
+	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
+	fprintf( f, "# -abwide=15\t\t;strip width in tiles\n" );
+	fprintf( f, "# -stpcorr=0.02\t\t;req. min strip corr\n" );
+	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
+	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
+	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# -xmltype=0\t\t;ImagePlus type code\n" );
+	fprintf( f, "# -xmlmin=0\t\t\t;intensity scale\n" );
+	fprintf( f, "# -xmlmax=0\t\t\t;intensity scale\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "\n" );
+	fprintf( f, "cross_topscripts -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75%s\n",
+	gArgs.zmin, gArgs.zmax,
+	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
+	fprintf( f, "\n" );
+
+	fclose( f );
+	FileScriptPerms( buf );
+}
+
+/* --------------------------------------------------------------- */
 /* CreateLayerDir ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -1228,6 +1262,17 @@ int main( int argc, char* argv[] )
 
 	TS.SetLogFile( flog );
 
+	int	L = 0;
+
+	if( gArgs.xml_type != 0 )
+		L += sprintf( xmlprms + L, " -xmltype=%d", gArgs.xml_type );
+
+	if( gArgs.xml_min != 0 )
+		L += sprintf( xmlprms + L, " -xmlmin=%d", gArgs.xml_min );
+
+	if( gArgs.xml_max != 0 )
+		L += sprintf( xmlprms + L, " -xmlmax=%d", gArgs.xml_max );
+
 /* ---------------- */
 /* Read source data */
 /* ---------------- */
@@ -1265,6 +1310,7 @@ int main( int argc, char* argv[] )
 	WriteSubmonFile();
 	WriteReportMonsFile();
 	WriteGatherMonsFile();
+	Write_Crossgo();
 
 	ForEachLayer();
 
