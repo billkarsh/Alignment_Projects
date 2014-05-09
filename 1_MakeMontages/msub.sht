@@ -3,7 +3,7 @@
 # Purpose:
 # For each layer in range, cd to montage dir, run lsq there.
 #
-# > ./submon.sht <zmin> [zmax]
+# > ./msub.sht <zmin> [zmax]
 
 
 if (($# == 1))

@@ -385,7 +385,7 @@ static void WriteCarvego()
 	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Carve each layer into blocks of size bxb tiles and create new script\n" );
-	fprintf( f, "# 'subblocks.sht' to distribute block-block alignment jobs to cluster.\n" );
+	fprintf( f, "# 'bsub.sht' to distribute block-block alignment jobs to cluster.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > cross_carveblocks -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );

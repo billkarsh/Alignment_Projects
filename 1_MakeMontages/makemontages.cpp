@@ -665,15 +665,15 @@ static void WriteReportFiles()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteSubmonFile ----------------------------------------------- */
+/* WriteMSubFile ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteSubmonFile()
+static void WriteMSubFile()
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/submon.sht", gArgs.outdir );
+	sprintf( buf, "%s/msub.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -681,7 +681,7 @@ static void WriteSubmonFile()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# For each layer in range, cd to montage dir, run lsq there.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./submon.sht <zmin> [zmax]\n" );
+	fprintf( f, "# > ./msub.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
@@ -710,15 +710,15 @@ static void WriteSubmonFile()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteReportMonsFile ------------------------------------------- */
+/* WriteMReportFile ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteReportMonsFile()
+static void WriteMReportFile()
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/sumymons.sht", gArgs.outdir );
+	sprintf( buf, "%s/mreport.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -727,7 +727,7 @@ static void WriteReportMonsFile()
 	fprintf( f, "# For layer range, gather list of 'FINAL' lines from lsq.txt files\n" );
 	fprintf( f, "# for individual montages. Report these in MonSumy.txt.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./sumymons.sht <zmin> [zmax]\n" );
+	fprintf( f, "# > ./mreport.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
@@ -1304,8 +1304,8 @@ int main( int argc, char* argv[] )
 	WriteSSubNFile( 4 );
 	WriteDSubNFile( 4 );
 	WriteReportFiles();
-	WriteSubmonFile();
-	WriteReportMonsFile();
+	WriteMSubFile();
+	WriteMReportFile();
 	WriteGatherMonsFile();
 	Write_Crossgo();
 

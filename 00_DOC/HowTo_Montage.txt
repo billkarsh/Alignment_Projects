@@ -69,10 +69,7 @@ topgo
 
 > ./topgo.sht
 
-This creates several new sht scripts:
-- crossgo, dbgo, mongo, upmongo.
-
-However, to make montages alone, we only need:
+This creates two new sht scripts:
 - dbgo, mongo.
 
 ++++
@@ -112,9 +109,9 @@ Each layer is tiled by several blocks, and if there are many layers one could ov
 
 If the number exceeds 20,000 then do subranges, like this:
 
-> ./ssub8.sht 879 988
+> ./ssub.sht 879 988
 # ...wait for enough jobs to finish...
-> ./ssub8.sht 989 1088
+> ./ssub.sht 989 1088
 
 Enqueued jobs are named by pattern 'qSx_y-z' where (x,y) are block indices and z is the layer index.
 
@@ -145,7 +142,7 @@ Submit montage fitting jobs
 
 Having made all the pts.same files which collect correspondence point pairs associated with each block, we can now sweep up all these and solve for the transforms that compose montages.
 
-> ./submon.sht 879 1088
+> ./msub.sht 879 1088
 
 Enqueued jobs are named 'mon-z' where z is a layer index.
 
@@ -163,7 +160,7 @@ Each montage job gets a master log file called 'temp0/z/montage/lsqw_0.txt' as w
 
 A quick summary report over all layers is obtained at the temp0 level using:
 
-> ./sumymons.sht 879 1088
+> ./mreport.sht 879 1088
 
 This creates 'MonSumy.txt' which shows for each layer's montage:
 - RMS error:	Should be < 5 for EM, < 1 for optical

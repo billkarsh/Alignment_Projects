@@ -3,10 +3,10 @@
 # Purpose:
 # Sixth step in cross-layer alignment.
 #
-# Run this after subblocks completes to compile tables
+# Run this after bsub completes to compile tables
 # of block alignment errors, FAILs and make sizes.
 #
-# > ./breports.sht
+# > ./breport.sht
 
 
 ls -l ../*/D*/xD*.e* > BlockErrs.txt

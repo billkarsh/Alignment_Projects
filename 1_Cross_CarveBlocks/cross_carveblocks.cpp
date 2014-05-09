@@ -1,5 +1,5 @@
 //
-// Carve cross layer work into blocks; write subblocks.sht.
+// Carve cross layer work into blocks; write bsub.sht.
 //
 
 
@@ -220,15 +220,15 @@ static void WriteTestblockFile()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteSubblocksFile -------------------------------------------- */
+/* WriteBSubFile ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteSubblocksFile()
+static void WriteBSubFile()
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "subblocks.sht" );
+	sprintf( buf, "bsub.sht" );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -365,10 +365,10 @@ static void WriteReportFiles()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Sixth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Run this after subblocks completes to compile tables\n" );
+	fprintf( f, "# Run this after bsub completes to compile tables\n" );
 	fprintf( f, "# of block alignment errors, FAILs and make sizes.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./breports.sht\n" );
+	fprintf( f, "# > ./breport.sht\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "ls -l ../*/D*/xD*.e* > BlockErrs.txt\n" );
@@ -768,7 +768,7 @@ int main( int argc, char* argv[] )
 /* ------------- */
 
 	WriteTestblockFile();
-	WriteSubblocksFile();
+	WriteBSubFile();
 	WriteCountdowndirsFile();
 	WriteReportFiles();
 

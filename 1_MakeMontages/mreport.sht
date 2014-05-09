@@ -4,7 +4,7 @@
 # For layer range, gather list of 'FINAL' lines from lsq.txt files
 # for individual montages. Report these in MonSumy.txt.
 #
-# > ./sumymons.sht <zmin> [zmax]
+# > ./mreport.sht <zmin> [zmax]
 
 
 if (($# == 1))

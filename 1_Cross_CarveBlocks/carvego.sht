@@ -4,7 +4,7 @@
 # Fourth step in cross-layer alignment.
 #
 # Carve each layer into blocks of size bxb tiles and create new script
-# 'subblocks.sht' to distribute block-block alignment jobs to cluster.
+# 'bsub.sht' to distribute block-block alignment jobs to cluster.
 #
 # > cross_carveblocks -zmin=i -zmax=j [options]
 #
