@@ -3,6 +3,8 @@
 #include	"File.h"
 #include	"PipeFiles.h"
 
+#include	<string.h>
+
 using namespace ns_pipergns;
 
 
