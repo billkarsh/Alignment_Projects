@@ -55,7 +55,7 @@ public:
 	double	blkmincorr,
 			blknomcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
-	char	xml_hires[2048];
+	char	scafdir[2048];
 	int		zmin,
 			zmax,
 			blksize,
@@ -72,7 +72,6 @@ public:
 		blkmincorr		= 0.45;
 		blknomcorr		= 0.50;
 		xyconf			= 0.75;
-		xml_hires[0]	= 0;
 		zmin			= 0;
 		zmax			= 32768;
 		blksize			= 10;
@@ -124,9 +123,9 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 4 ) {
+	if( argc < 3 ) {
 		printf(
-		"Usage: cross_carveblocks <xml-file> -zmin=i -zmax=j"
+		"Usage: cross_carveblocks -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -136,9 +135,7 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			DskAbsPath( xml_hires, sizeof(xml_hires), argv[i], flog );
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
@@ -172,6 +169,9 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 	}
 
 	fprintf( flog, "\n\n" );
+
+	DskAbsPath( scafdir, sizeof(scafdir), "X_A_BIN_scaf", flog );
+
 	fflush( flog );
 }
 
@@ -234,7 +234,7 @@ static void WriteSubblocksFile()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Sixth step in cross-layer alignment.\n" );
+	fprintf( f, "# Fifth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > cross_thisblock [options]\n" );
 	fprintf( f, "#\n" );
@@ -363,7 +363,7 @@ static void WriteReportFiles()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Seventh step in cross-layer alignment.\n" );
+	fprintf( f, "# Sixth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Run this after subblocks completes to compile tables\n" );
 	fprintf( f, "# of block alignment errors, FAILs and make sizes.\n" );
@@ -678,7 +678,7 @@ void BlockSet::WriteParams( int za, int zb )
 			sprintf( path, "../%d/D%d_%d/blockdat.txt", za, ix, iy );
 			FILE	*f = FileOpenOrDie( path, "w", flog );
 
-			fprintf( f, "file=%s\n", gArgs.xml_hires );
+			fprintf( f, "scaf=%s\n", gArgs.scafdir );
 
 			fprintf( f, "ZaZmin=%d,%d\n", za, zmin );
 
@@ -744,13 +744,21 @@ int main( int argc, char* argv[] )
 /* Read src file */
 /* ------------- */
 
-	TS.FillFromTrakEM2( gArgs.xml_hires, gArgs.zmin, gArgs.zmax );
+	string	idb;
+
+	IDBFromTemp( idb, "..", flog );
+
+	if( idb.empty() )
+		exit( 42 );
+
+	TS.FillFromRgns( gArgs.scafdir, idb, gArgs.zmin, gArgs.zmax );
 
 	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
 	if( !TS.vtil.size() )
 		goto exit;
 
+	TS.SetTileDimsFromImageFile();
 	TS.GetTileDims( gW, gH );
 
 	TS.SortAll_z_id();

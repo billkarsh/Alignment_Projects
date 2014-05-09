@@ -274,7 +274,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 		fprintf( f, "lsq -temp=../../ -zi=%d,%d $1\n", z, z );
 	else {
 		fprintf( f, "lsq -temp=../ -zi=%d,%d"
-		" -prior=../cross_wkspc/X_A_TXT -untwist"
+		" -prior=../cross_wkspc/X_A_BIN_scaf -untwist"
 		" -mode=A2A -Wr=R,0 -Etol=500 -iters=10000"
 		" -zpernode=200 -maxthreads=16\n",
 		gArgs.zmin, gArgs.zmax );
@@ -829,14 +829,11 @@ static void Write_Crossgo()
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
-	fprintf( f, "# -xmltype=0\t\t;ImagePlus type code\n" );
-	fprintf( f, "# -xmlmin=0\t\t\t;intensity scale\n" );
-	fprintf( f, "# -xmlmax=0\t\t\t;intensity scale\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75%s\n",
+	fprintf( f, "cross_topscripts -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75\n",
 	gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
+	(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\n" );
 
 	fclose( f );

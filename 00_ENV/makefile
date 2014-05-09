@@ -5,7 +5,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
  1_CpyFMs\
  1_Cross_CarveBlocks\
  1_Cross_LowRes\
- 1_Cross_LowToHiRes\
+ 1_Cross_Scaffold\
  1_Cross_ThisBlock\
  1_Cross_TopScripts\
  1_DelTiles\

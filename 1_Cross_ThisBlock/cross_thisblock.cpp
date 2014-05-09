@@ -113,7 +113,7 @@ public:
 
 class CBlockDat {
 public:
-	char		xmlfile[2048];
+	char		scaf[2048];
 	int			za, zmin;
 	int			ntil;
 	set<int>	sID;
@@ -259,7 +259,7 @@ void CBlockDat::ReadFile()
 	while( LS.Get( f ) > 0 ) {
 
 		if( item == 0 ) {
-			sscanf( LS.line, "file=%s", xmlfile );
+			sscanf( LS.line, "scaf=%s", scaf );
 			item = 1;
 		}
 		else if( item == 1 ) {
@@ -1118,13 +1118,21 @@ int main( int argc, char* argv[] )
 /* Read source data */
 /* ---------------- */
 
-	TS.FillFromTrakEM2( gDat.xmlfile, gDat.zmin, gDat.za );
+	string	idb;
+
+	IDBFromTemp( idb, "../..", flog );
+
+	if( idb.empty() )
+		exit( 42 );
+
+	TS.FillFromRgns( gDat.scaf, idb, gDat.zmin, gDat.za );
 
 	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
 	if( !TS.vtil.size() )
 		goto exit;
 
+	TS.SetTileDimsFromImageFile();
 	TS.GetTileDims( gW, gH );
 
 	t0 = StopTiming( flog, "ReadFile", t0 );

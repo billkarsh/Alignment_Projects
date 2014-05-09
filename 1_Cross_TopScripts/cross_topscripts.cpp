@@ -35,10 +35,7 @@ public:
 			scl,
 			lgord,
 			sdev,
-			abwide,
-			xml_type,
-			xml_min,
-			xml_max;
+			abwide;
 	bool	resmask,
 			NoFolds;
 
@@ -55,9 +52,6 @@ public:
 		lgord		= 1;	// 1  probably good for Davi EM
 		sdev		= 42;	// 42 useful for Davi EM
 		abwide		= 15;
-		xml_type	= 0;
-		xml_min		= 0;
-		xml_max		= 0;
 		resmask		= false;
 		NoFolds		= false;
 	};
@@ -138,12 +132,6 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 			if( xyconf < 0.0 || xyconf > 1.0 )
 				xyconf = 0.5;
 		}
-		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
-			;
 		else if( IsArg( "-resmask", argv[i] ) )
 			resmask = true;
 		else if( IsArg( "-nf", argv[i] ) )
@@ -342,49 +330,6 @@ static void WriteLowresgo()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteHiresgo -------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void WriteHiresgo()
-{
-	char	path[2048];
-	FILE	*f;
-
-	sprintf( path, "%s/hiresgo.sht", gtopdir );
-	f = FileOpenOrDie( path, "w", flog );
-
-	fprintf( f, "#!/bin/sh\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Third step in cross-layer alignment.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Distribute the coarse layer-layer transforms from 'LowRes.xml'\n" );
-	fprintf( f, "# to the individual tiles in (usually) 'newmons.xml', the stack\n" );
-	fprintf( f, "# of precision single-layer montaging results. The new stack is\n" );
-	fprintf( f, "# named 'HiRes.xml'.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# The resulting coarsely aligned full resolution 'HiRes.xml'\n" );
-	fprintf( f, "# can serve as a scaffold in the final LSQ alignment.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_lowtohires montaged_fullres_xml -zmin=i -zmax=j [options]\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -lowres=LowRes.xml\t;alternate coarse alignment reference\n" );
-	fprintf( f, "# -xmltype=0\t\t\t;ImagePlus type code\n" );
-	fprintf( f, "# -xmlmin=0\t\t\t\t;intensity scale\n" );
-	fprintf( f, "# -xmlmax=0\t\t\t\t;intensity scale\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "cross_lowtohires '%s' -zmin=%d -zmax=%d -xmltype=%d -xmlmin=%d -xmlmax=%d\n",
-	gArgs.mondir, gArgs.zmin, gArgs.zmax,
-	gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
-	fprintf( f, "\n" );
-
-	fclose( f );
-	FileScriptPerms( path );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteScafgo --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -399,15 +344,22 @@ static void WriteScafgo()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
+	fprintf( f, "# Third step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Create folder 'X_A_TXT' of coarse affine transforms,\n" );
-	fprintf( f, "# one per tile, to be used as a scaffold in final LSQ runs.\n" );
+	fprintf( f, "# Apply the coarse layer-layer tforms from 'LowRes.xml' to the\n" );
+	fprintf( f, "# individual tiles in 'mytemp/X_A_BIN_mons'. The new coarsely\n" );
+	fprintf( f, "# aligned stack is named 'cross_wkspc/X_A_BIN_scaf'. It serves\n" );
+	fprintf( f, "# both as the input for the block-block alignment, and as the\n" );
+	fprintf( f, "# starting guess (scaffold) for the final LSQ alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > XMLGetTF HiRes.xml -zmin=i -zmax=j\n" );
+	fprintf( f, "# > cross_scaffold -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Options:\n" );
+	fprintf( f, "# -mons=../X_A_BIN_mons\t\t;alternate target montages\n" );
+	fprintf( f, "# -lowres=LowRes.xml\t\t;alternate coarse alignment reference\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "XMLGetTF HiRes.xml -zmin=%d -zmax=%d\n",
+	fprintf( f, "cross_scaffold -zmin=%d -zmax=%d\n",
 	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
@@ -430,12 +382,12 @@ static void WriteCarvego()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Fifth step in cross-layer alignment.\n" );
+	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Carve each layer into blocks of size bxb tiles and create new script\n" );
 	fprintf( f, "# 'subblocks.sht' to distribute block-block alignment jobs to cluster.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_carveblocks myxml -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_carveblocks -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -b=10\t\t\t\t;ea. block roughly bXb tiles in area\n" );
@@ -450,7 +402,7 @@ static void WriteCarvego()
 	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_carveblocks HiRes.xml -zmin=%d -zmax=%d%s -b=10 -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
+	fprintf( f, "cross_carveblocks -zmin=%d -zmax=%d%s -b=10 -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.scl, gArgs.lgord, gArgs.sdev,
@@ -500,7 +452,6 @@ int main( int argc, char* argv[] )
 
 	WriteSubscapes( zlist );
 	WriteLowresgo();
-	WriteHiresgo();
 	WriteScafgo();
 	WriteCarvego();
 

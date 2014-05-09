@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Purpose:
-# Seventh step in cross-layer alignment.
+# Sixth step in cross-layer alignment.
 #
 # Run this after subblocks completes to compile tables
 # of block alignment errors, FAILs and make sizes.

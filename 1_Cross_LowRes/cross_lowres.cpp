@@ -130,7 +130,7 @@ static void MakeTAffines(
 		vT[ia].AddXY( vL[ib].B.x0, vL[ib].B.y0 );
 
 		// Strip size -> image size
-		vT[ia].MulXY( (double)vL[ib].B.scl / vL[ia].M.scl );
+		vT[ia].MulXY( (double)vL[ib].B.scl / vL[ib].M.scl );
 
 		// B content -> B image
 		vT[ia].AddXY( -vL[ib].M.x0, -vL[ib].M.y0 );

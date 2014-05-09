@@ -244,12 +244,12 @@ static void Apply( TAffine &A0 )
 /* UntwistAffines ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-// The standard way to obtain an external scaffold for use with
-// the -prior option is to use XMLGetTF on HiRes.xml; the result
-// of aligning low-res strips from very good montages. However,
-// better angle calculations can be made later, after the down
-// correspondence points are formed. Adjustments are calculated
-// here as rigid transforms T{theta, kx, ky) from layer a to b.
+// The standard external scaffold for use with the -prior option
+// is 'cross_wkspc/X_A_BIN_scaf'; the result of aligning low-res
+// strips from very good montages. However, we can make better
+// angle calculations later, after the down correspondence points
+// are formed. Adjustments are calculated here as rigid transforms
+// T{theta, kx, ky) from layer a to b.
 //
 void UntwistAffines( XArray &X )
 {

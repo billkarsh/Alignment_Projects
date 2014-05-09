@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Purpose:
-# Sixth step in cross-layer alignment.
+# Fifth step in cross-layer alignment.
 #
 # > cross_thisblock [options]
 #

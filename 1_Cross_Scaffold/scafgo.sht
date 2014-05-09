@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Purpose:
+# Third step in cross-layer alignment.
+#
+# Apply the coarse layer-layer tforms from 'LowRes.xml' to the
+# individual tiles in 'mytemp/X_A_BIN_mons'. The new coarsely
+# aligned stack is named 'cross_wkspc/X_A_BIN_scaf'. It serves
+# both as the input for the block-block alignment, and as the
+# starting guess (scaffold) for the final LSQ alignment.
+#
+# > cross_scaffold -zmin=i -zmax=j [options]
+#
+# Options:
+# -mons=../X_A_BIN_mons		;alternate target montages
+# -lowres=LowRes.xml		;alternate coarse alignment reference
+
+
+cross_scaffold -zmin=0 -zmax=2
+
