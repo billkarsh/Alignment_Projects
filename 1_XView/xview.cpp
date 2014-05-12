@@ -851,7 +851,7 @@ static FILE* WriteXMLTail( FILE *f )
 static FILE* WriteBillHead()
 {
 	FILE	*f = FileOpenOrDie(
-			(isAff ? "billfile_Affine.xml" : "billfile_Hmgphy.xml"),
+			(isAff ? "billfile_Affine.txt" : "billfile_Hmgphy.txt"),
 			"w", flog );
 
 	return f;
