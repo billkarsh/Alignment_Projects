@@ -27,7 +27,7 @@
 # Options:
 # -forceWH=w,h		;force bounds (override degcw)
 # -degcw=0			;rotate CW degrees
-# -type=X			;{T,M,X} = {X_?_TXT,X_?_MET,xml}
+# -type=X			;{T,M,X,B} = {X_?_TXT,X_?_MET,xml,billfile}
 # -meta=path		;billfile with alt image paths
 # -xmltrim=0.0		;trim this much from xml images
 # -xmltype=0		;ImagePlus type code

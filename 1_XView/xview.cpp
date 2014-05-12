@@ -36,7 +36,7 @@ public:
 				xml_trim;
 	int			zilo,
 				zihi,
-				type,	// {'T','M','X'}
+				type,	// {'T','M','X','B'}
 				xml_type,
 				xml_min,
 				xml_max;
@@ -845,6 +845,107 @@ static FILE* WriteXMLTail( FILE *f )
 }
 
 /* --------------------------------------------------------------- */
+/* WriteBillHead ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static FILE* WriteBillHead()
+{
+	FILE	*f = FileOpenOrDie(
+			(isAff ? "billfile_Affine.xml" : "billfile_Hmgphy.xml"),
+			"w", flog );
+
+	return f;
+}
+
+/* --------------------------------------------------------------- */
+/* WriteBillLyr_Aff ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteBillLyr_Aff( FILE *f )
+{
+	map<int,int>::iterator	mi, en = R.m.end();
+
+	for( mi = R.m.begin(); mi != en; ) {
+
+		const Til2Img	*t2i;
+
+		int	id		= mi->first,
+			j0		= mi->second,
+			jlim	= (++mi == en ? R.nr : mi->second);
+
+		if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+			continue;
+
+		for( int j = j0; j < jlim; ++j ) {
+
+			if( !FLAG_ISUSED( R.flag[j] ) )
+				continue;
+
+			TAffine&	T = X_AS_AFF( R.x, j );
+
+			fprintf( f,
+			"%d\t%d\t%d"
+			"\t%f\t%f\t%f\t%f\t%f\t%f"
+			"\t%d\t%d\t%d\t%s\n",
+			R.z, id, j - j0 + 1,
+			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+			t2i->col, t2i->row, t2i->cam, gMeta.Path( t2i ) );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteBillLyr_Hmy ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void WriteBillLyr_Hmy( FILE *f )
+{
+	map<int,int>::iterator	mi, en = R.m.end();
+
+	for( mi = R.m.begin(); mi != en; ) {
+
+		const Til2Img	*t2i;
+
+		int	id		= mi->first,
+			j0		= mi->second,
+			jlim	= (++mi == en ? R.nr : mi->second);
+
+		if( !IDBT2ICacheNGet1( t2i, gArgs.idb, R.z, id, flog ) )
+			continue;
+
+		for( int j = j0; j < jlim; ++j ) {
+
+			if( !FLAG_ISUSED( R.flag[j] ) )
+				continue;
+
+			THmgphy&	T = X_AS_HMY( R.x, j );
+
+			fprintf( f,
+			"%d\t%d\t%d"
+			"\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g"
+			"\t%d\t%d\t%d\t%s\n",
+			R.z, id, j - j0 + 1,
+			T.t[0], T.t[1], T.t[2],
+			T.t[3], T.t[4], T.t[5],
+			T.t[6], T.t[7],
+			t2i->col, t2i->row, t2i->cam, gMeta.Path( t2i ) );
+		}
+	}
+}
+
+/* --------------------------------------------------------------- */
+/* WriteBillTail ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static FILE* WriteBillTail( FILE *f )
+{
+	if( f )
+		fclose( f );
+
+	return NULL;
+}
+
+/* --------------------------------------------------------------- */
 /* ConvertA ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -852,7 +953,7 @@ static void ConvertA()
 {
 	TAffine	Trot;
 	DBox	B;
-	FILE	*fx = NULL;
+	FILE	*fout = NULL;
 	int		oid;
 
 	if( gArgs.forcew ) {
@@ -871,7 +972,9 @@ static void ConvertA()
 	else if( gArgs.type == 'M' )
 		DskCreateDir( "X_A_MET", flog );
 	else if( gArgs.type == 'X' )
-		fx = WriteXMLHead( oid, B );
+		fout = WriteXMLHead( oid, B );
+	else if( gArgs.type == 'B' )
+		fout = WriteBillHead();
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
@@ -893,10 +996,15 @@ static void ConvertA()
 		else if( gArgs.type == 'M' )
 			WriteM_Aff();
 		else if( gArgs.type == 'X' )
-			WriteXMLLyr_Aff( fx, oid );
+			WriteXMLLyr_Aff( fout, oid );
+		else if( gArgs.type == 'B' )
+			WriteBillLyr_Aff( fout );
 	}
 
-	fx = WriteXMLTail( fx );
+	if( gArgs.type == 'X' )
+		fout = WriteXMLTail( fout );
+	else if( gArgs.type == 'B' )
+		fout = WriteBillTail( fout );
 }
 
 /* --------------------------------------------------------------- */
@@ -907,7 +1015,7 @@ static void ConvertH()
 {
 	THmgphy	Trot;
 	DBox	B;
-	FILE	*fx = NULL;
+	FILE	*fout = NULL;
 	int		oid;
 
 	if( gArgs.forcew ) {
@@ -926,7 +1034,9 @@ static void ConvertH()
 	else if( gArgs.type == 'M' )
 		DskCreateDir( "X_H_MET", flog );
 	else if( gArgs.type == 'X' )
-		fx = WriteXMLHead( oid, B );
+		fout = WriteXMLHead( oid, B );
+	else if( gArgs.type == 'B' )
+		fout = WriteBillHead();
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
@@ -948,10 +1058,15 @@ static void ConvertH()
 		else if( gArgs.type == 'M' )
 			WriteM_Hmy();
 		else if( gArgs.type == 'X' )
-			WriteXMLLyr_Hmy( fx, oid );
+			WriteXMLLyr_Hmy( fout, oid );
+		else if( gArgs.type == 'B' )
+			WriteBillLyr_Hmy( fout );
 	}
 
-	fx = WriteXMLTail( fx );
+	if( gArgs.type == 'X' )
+		fout = WriteXMLTail( fout );
+	else if( gArgs.type == 'B' )
+		fout = WriteBillTail( fout );
 }
 
 /* --------------------------------------------------------------- */
