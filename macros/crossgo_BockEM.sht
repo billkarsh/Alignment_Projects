@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Purpose:
+# Write scripts governing cross layer alignment.
+# Creates folder mytemp/cross_wkspc
+#
+# > cross_topscripts -zmin=i -zmax=j [options]
+#
+# Options:
+# -nf				;no foldmasks
+# -scl=50			;size reduction factor
+# -lgord=1			;Legendre poly max order
+# -sdev=42			;scape sdev size
+# -resmask			;mask out resin
+# -abwide=15		;strip width in tiles
+# -stpcorr=0.02		;req. min strip corr
+# -blkmincorr=0.45	;required min corr for alignment
+# -blknomcorr=0.50	;nominal corr for alignment
+# -xyconf=0.75		;search radius = (1-conf)(blockwide)
+
+
+cross_topscripts -zmin=2299 -zmax=2611 -nf -scl=50 -lgord=1 -sdev=200 -resmask -abwide=12 -stpcorr=0.02 -blkmincorr=0.12 -blknomcorr=0.12 -xyconf=0.75
+
