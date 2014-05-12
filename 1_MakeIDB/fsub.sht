@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # Purpose:
-# For layer range, generate foldmasks for images.
+# For layer range, convert mrc images and/or auto-generate foldmasks.
 #
-# > ./subfm.sht <zmin> [zmax]
+# > ./fsub.sht <zmin> [zmax]
 
 
 export MRC_TRIM=12

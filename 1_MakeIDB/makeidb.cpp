@@ -250,23 +250,23 @@ static void CopyCropFile()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteSubfmFile ------------------------------------------------ */
+/* WriteFSubFile ------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteSubfmFile()
+static void WriteFSubFile()
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/subfm.sht", gArgs.outdir );
+	sprintf( buf, "%s/fsub.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# For layer range, generate foldmasks for images.\n" );
+	fprintf( f, "# For layer range, convert mrc images and/or auto-generate foldmasks.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./subfm.sht <zmin> [zmax]\n" );
+	fprintf( f, "# > ./fsub.sht <zmin> [zmax]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
@@ -297,15 +297,15 @@ static void WriteSubfmFile()
 }
 
 /* --------------------------------------------------------------- */
-/* WriteReportFile ----------------------------------------------- */
+/* WriteFReportFile ---------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void WriteReportFile()
+static void WriteFReportFile()
 {
 	char	buf[2048];
 	FILE	*f;
 
-	sprintf( buf, "%s/report_fm.sht", gArgs.outdir );
+	sprintf( buf, "%s/freport.sht", gArgs.outdir );
 	f = FileOpenOrDie( buf, "w", flog );
 
 	fprintf( f, "#!/bin/sh\n" );
@@ -313,7 +313,7 @@ static void WriteReportFile()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Tabulate sizes of all stderr logs from foldmask generation.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > ./report_fm.sht\n" );
+	fprintf( f, "# > ./freport.sht\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "ls -l */makefm*.e* > FmErrs.txt\n" );
@@ -635,8 +635,8 @@ int main( int argc, char* argv[] )
 	CopyCropFile();
 
 	if( !gArgs.NoFolds || ismrc ) {
-		WriteSubfmFile();
-		WriteReportFile();
+		WriteFSubFile();
+		WriteFReportFile();
 	}
 
 	ForEachLayer();

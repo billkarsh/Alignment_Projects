@@ -3,7 +3,7 @@
 # Purpose:
 # Tabulate sizes of all stderr logs from foldmask generation.
 #
-# > ./report_fm.sht
+# > ./freport.sht
 
 
 ls -l */makefm*.e* > FmErrs.txt
