@@ -236,10 +236,7 @@ static void UpdateTAffines()
 			}
 		}
 
-		sprintf( buf, "%s/X_A_%d.bin", out, z );
-		FILE *f = FileOpenOrDie( buf, "wb" );
-		fwrite( &R.x[0], sizeof(double), R.x.size(), f );
-		fclose( f );
+		R.SaveBIN( out, false );
 	}
 }
 

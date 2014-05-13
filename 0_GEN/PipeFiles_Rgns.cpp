@@ -439,4 +439,159 @@ error:
 	}
 }
 
+/* --------------------------------------------------------------- */
+/* Rgns::SaveBIN ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Save currently loaded tforms (and optionally flags)
+// in binary format.
+//
+// Caller must create containing folder.
+//
+// Return true if success.
+//
+bool Rgns::SaveBIN( const char *path, bool writeflags )
+{
+	const char	*name	= FileNamePtr( path );
+	const char	*isaff	= strstr( name, "X_A_BIN" );
+	bool		ok		= false;
+
+	if( isaff || strstr( name, "X_H_BIN" ) ) {
+
+		if( (isaff && NE != 6) || (!isaff && NE != 8) ) {
+			fprintf( flog,
+			"Rgns: SaveBIN type mismatch NE=%d -> [%s].\n",
+			NE, name );
+		}
+		else {
+
+			char	buf[2048];
+			FILE	*f;
+
+			sprintf( buf, "%s/X_%c_%d.bin",
+				path, (NE == 6 ? 'A' : 'H'), z );
+
+			f = FileOpenOrDie( buf, "wb" );
+			fwrite( &x[0], sizeof(double), x.size(), f );
+			fclose( f );
+
+			if( writeflags ) {
+
+				sprintf( buf, "%s/F_%d.bin", path, z );
+				f = FileOpenOrDie( buf, "wb" );
+				fwrite( &flag[0], sizeof(uint8), nr, f );
+				fclose( f );
+			}
+
+			ok = true;
+		}
+	}
+	else
+		fprintf( flog, "Rgns: Unknown SaveBIN type [%s].\n", name );
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* Rgns::SaveTXT ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Save currently loaded tforms as text. Text-style folders
+// never contain flag files.
+//
+// Caller must create containing folder.
+//
+// Return true if success.
+//
+bool Rgns::SaveTXT( const char *path )
+{
+	const char	*name = FileNamePtr( path );
+	FILE		*f;
+	char		buf[2048];
+	bool		ok = false;
+
+	if( strstr( name, "X_A_TXT" ) ) {
+
+		if( NE != 6 ) {
+			fprintf( flog,
+			"Rgns: SaveTXT type mismatch NE=%d -> [%s].\n",
+			NE, name );
+		}
+		else {
+
+			sprintf( buf, "%s/X_A_%d.txt", path, z );
+			f = FileOpenOrDie( buf, "w", flog );
+
+			map<int,int>::iterator	mi, en = m.end();
+
+			for( mi = m.begin(); mi != en; ) {
+
+				int	id		= mi->first,
+					j0		= mi->second,
+					jlim	= (++mi == en ? nr : mi->second);
+
+				for( int j = j0; j < jlim; ++j ) {
+
+					if( !FLAG_ISUSED( flag[j] ) )
+						continue;
+
+					TAffine&	T = X_AS_AFF( x, j );
+
+					fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
+					id, j - j0 + 1,
+					T.t[0], T.t[1], T.t[2],
+					T.t[3], T.t[4], T.t[5] );
+				}
+			}
+
+			fclose( f );
+			ok = true;
+		}
+	}
+	else if( strstr( name, "X_H_TXT" ) ) {
+
+		if( NE != 8 ) {
+			fprintf( flog,
+			"Rgns: SaveTXT type mismatch NE=%d -> [%s].\n",
+			NE, name );
+		}
+		else {
+
+			sprintf( buf, "%s/X_H_%d.txt", path, z );
+			f = FileOpenOrDie( buf, "w", flog );
+
+			map<int,int>::iterator	mi, en = m.end();
+
+			for( mi = m.begin(); mi != en; ) {
+
+				int	id		= mi->first,
+					j0		= mi->second,
+					jlim	= (++mi == en ? nr : mi->second);
+
+				for( int j = j0; j < jlim; ++j ) {
+
+					if( !FLAG_ISUSED( flag[j] ) )
+						continue;
+
+					THmgphy&	T = X_AS_HMY( x, j );
+
+					fprintf( f,
+					"%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g\n",
+					id, j - j0 + 1,
+					T.t[0], T.t[1], T.t[2],
+					T.t[3], T.t[4], T.t[5],
+					T.t[6], T.t[7] );
+				}
+			}
+
+			fclose( f );
+			ok = true;
+		}
+	}
+	else
+		fprintf( flog, "Rgns: Unknown SaveTXT type [%s].\n", name );
+
+	return ok;
+}
+
 

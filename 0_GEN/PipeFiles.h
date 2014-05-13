@@ -162,6 +162,9 @@ private:
 public:
 	bool Init( const string &idb, int iz, FILE *flog );
 	bool Load( const char *path );
+	// Caller must create dst path BEFORE calling SaveXXX()
+	bool SaveBIN( const char *path, bool writeflags );
+	bool SaveTXT( const char *path );
 };
 
 };	// ns_pipergns

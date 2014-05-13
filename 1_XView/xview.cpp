@@ -436,78 +436,6 @@ static void Update_Hmy( const THmgphy &Trot, const DBox &B )
 }
 
 /* --------------------------------------------------------------- */
-/* WriteT_Aff ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void WriteT_Aff()
-{
-	char	buf[64];
-	sprintf( buf, "X_A_TXT/X_A_%d.txt", R.z );
-	FILE	*f = FileOpenOrDie( buf, "w", flog );
-
-	map<int,int>::iterator	mi, en = R.m.end();
-
-	for( mi = R.m.begin(); mi != en; ) {
-
-		int	id		= mi->first,
-			j0		= mi->second,
-			jlim	= (++mi == en ? R.nr : mi->second);
-
-		for( int j = j0; j < jlim; ++j ) {
-
-			if( !FLAG_ISUSED( R.flag[j] ) )
-				continue;
-
-			TAffine&	T = X_AS_AFF( R.x, j );
-
-			fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
-			id, j - j0 + 1,
-			T.t[0], T.t[1], T.t[2],
-			T.t[3], T.t[4], T.t[5] );
-		}
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
-/* WriteT_Hmy ---------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void WriteT_Hmy()
-{
-	char	buf[64];
-	sprintf( buf, "X_H_TXT/X_H_%d.txt", R.z );
-	FILE	*f = FileOpenOrDie( buf, "w", flog );
-
-	map<int,int>::iterator	mi, en = R.m.end();
-
-	for( mi = R.m.begin(); mi != en; ) {
-
-		int	id		= mi->first,
-			j0		= mi->second,
-			jlim	= (++mi == en ? R.nr : mi->second);
-
-		for( int j = j0; j < jlim; ++j ) {
-
-			if( !FLAG_ISUSED( R.flag[j] ) )
-				continue;
-
-			THmgphy&	T = X_AS_HMY( R.x, j );
-
-			fprintf( f,
-			"%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g\n",
-			id, j - j0 + 1,
-			T.t[0], T.t[1], T.t[2],
-			T.t[3], T.t[4], T.t[5],
-			T.t[6], T.t[7] );
-		}
-	}
-
-	fclose( f );
-}
-
-/* --------------------------------------------------------------- */
 /* WriteM_Aff ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
@@ -978,7 +906,7 @@ static void ConvertA()
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( gArgs.idb, z, NULL ) )
+		if( !R.Init( gArgs.idb, z, flog ) )
 			continue;
 
 		if( !R.Load( gArgs.inpath ) )
@@ -992,7 +920,7 @@ static void ConvertA()
 			Update_Aff( Trot, B );
 
 		if( gArgs.type == 'T' )
-			WriteT_Aff();
+			R.SaveTXT( "X_A_TXT" );
 		else if( gArgs.type == 'M' )
 			WriteM_Aff();
 		else if( gArgs.type == 'X' )
@@ -1040,7 +968,7 @@ static void ConvertH()
 
 	for( int z = gArgs.zilo; z <= gArgs.zihi; ++z ) {
 
-		if( !R.Init( gArgs.idb, z, NULL ) )
+		if( !R.Init( gArgs.idb, z, flog ) )
 			continue;
 
 		if( !R.Load( gArgs.inpath ) )
@@ -1054,7 +982,7 @@ static void ConvertH()
 			Update_Hmy( Trot, B );
 
 		if( gArgs.type == 'T' )
-			WriteT_Hmy();
+			R.SaveTXT( "X_H_TXT" );
 		else if( gArgs.type == 'M' )
 			WriteM_Hmy();
 		else if( gArgs.type == 'X' )
