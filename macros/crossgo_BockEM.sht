@@ -20,5 +20,5 @@
 # -xyconf=0.75		;search radius = (1-conf)(blockwide)
 
 
-cross_topscripts X_A_BIN_mons -zmin=2299 -zmax=2611 -nf -scl=50 -lgord=1 -sdev=200 -resmask -abwide=12 -stpcorr=0.02 -blkmincorr=0.12 -blknomcorr=0.12 -xyconf=0.75
+cross_topscripts X_A_BIN_mons -zmin=2239 -zmax=2611 -nf -scl=50 -lgord=1 -sdev=200 -resmask -abwide=12 -stpcorr=0.02 -blkmincorr=0.05 -blknomcorr=0.20 -xyconf=0.75
 
