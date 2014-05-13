@@ -813,8 +813,9 @@ static void Write_Crossgo()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Write scripts governing cross layer alignment.\n" );
-	fprintf( f, "# Creates folder mytemp/cross_wkspc\n" );
+	fprintf( f, "# Given folder of Z-file montage tforms (srcmons),\n" );
+	fprintf( f, "# create workspace mytemp/cross_wkspc, and scripts\n" );
+	fprintf( f, "# governing cross layer alignment.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# > cross_topscripts -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
@@ -831,7 +832,7 @@ static void Write_Crossgo()
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75\n",
+	fprintf( f, "cross_topscripts X_A_BIN_mons -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75\n",
 	gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\n" );

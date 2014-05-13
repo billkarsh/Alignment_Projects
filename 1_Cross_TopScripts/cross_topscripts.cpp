@@ -29,7 +29,7 @@ public:
 			blkmincorr,
 			blknomcorr,
 			xyconf;		// search radius = (1-conf)(blockwide)
-	char	mondir[2048];
+	char	srcmons[2048];
 	int		zmin,
 			zmax,
 			scl,
@@ -54,6 +54,8 @@ public:
 		abwide		= 15;
 		resmask		= false;
 		NoFolds		= false;
+
+		strcpy( srcmons, "X_A_BIN_mons" );
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -95,9 +97,9 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
+	if( argc < 4 ) {
 		printf(
-		"Usage: cross_topscripts -zmin=i -zmax=j"
+		"Usage: cross_topscripts srcmons -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -109,7 +111,9 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		if( argv[i][0] != '-' )
+			DskAbsPath( srcmons, sizeof(srcmons), argv[i], flog );
+		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
@@ -144,13 +148,11 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 	fprintf( flog, "\n\n" );
 
-	DskAbsPath( mondir, sizeof(mondir), "X_A_BIN_mons", flog );
-
-	if( !DskExists( mondir ) ) {
+	if( !DskExists( srcmons ) ) {
 
 		fprintf( flog,
 		"Can't find [%s].\n"
-		"(Did you run gathermons.sht yet?)\n", mondir );
+		"(Did you run gathermons.sht yet?)\n", srcmons );
 
 		exit( 42 );
 	}
@@ -164,14 +166,33 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 static void GetZList( vector<int> &zlist )
 {
-	for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
+	const char	*name = FileNamePtr( gArgs.srcmons );
+	char		path[2048];
 
-		char	path[2048];
+	if( strstr( name, "X_A_BIN" ) ) {
 
-		sprintf( path, "%s/X_A_%d.bin", gArgs.mondir, z );
+		for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
 
-		if( DskExists( path ) )
-			zlist.push_back( z );
+			sprintf( path, "%s/X_A_%d.bin", gArgs.srcmons, z );
+
+			if( DskExists( path ) )
+				zlist.push_back( z );
+		}
+	}
+	else if( strstr( name, "X_A_TXT" ) ) {
+
+		for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
+
+			sprintf( path, "%s/X_A_%d.txt", gArgs.srcmons, z );
+
+			if( DskExists( path ) )
+				zlist.push_back( z );
+		}
+	}
+	else {
+		fprintf( flog,
+		"Unsupported montage folder type [%s].\n", gArgs.srcmons );
+		exit( 42 );
 	}
 }
 
@@ -199,7 +220,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	"'%s' -idb=%s"
 	" -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -ab -abwide=%d -stpcorr=%g",
-	gArgs.mondir, idb.c_str(),
+	gArgs.srcmons, idb.c_str(),
 	gArgs.scl, gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),
 	gArgs.abwide, gArgs.stpcorr );
@@ -280,7 +301,7 @@ static void WriteSubscapes( vector<int> &zlist )
 	" scapeops '%s' -idb=%s -mb -scl=%d -lgord=%d -sdev=%d%s"
 	" -zb=%d\n",
 	zlist[nz - 1],
-	gArgs.mondir, idb.c_str(),
+	gArgs.srcmons, idb.c_str(),
 	gArgs.scl, gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),
 	zlist[nz - 1] );
@@ -347,24 +368,40 @@ static void WriteScafgo()
 	fprintf( f, "# Third step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Apply the coarse layer-layer tforms from 'LowRes.xml' to the\n" );
-	fprintf( f, "# individual tiles in 'mytemp/X_A_BIN_mons'. The new coarsely\n" );
-	fprintf( f, "# aligned stack is named 'cross_wkspc/X_A_BIN_scaf'. It serves\n" );
-	fprintf( f, "# both as the input for the block-block alignment, and as the\n" );
-	fprintf( f, "# starting guess (scaffold) for the final LSQ alignment.\n" );
+	fprintf( f, "# individual tiles in srcmons. The new coarsely aligned stack\n" );
+	fprintf( f, "# will be created in cross_wkspc and will be named X_A_BIN_scaf\n" );
+	fprintf( f, "# or X_A_TXT_scaf following the type of srcmons. The scaffold\n" );
+	fprintf( f, "# serves both as the input for the block-block alignment, and\n" );
+	fprintf( f, "# as the starting guess for the final LSQ alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_scaffold -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_scaffold srcmons -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -mons=../X_A_BIN_mons\t\t;alternate target montages\n" );
 	fprintf( f, "# -lowres=LowRes.xml\t\t;alternate coarse alignment reference\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_scaffold -zmin=%d -zmax=%d\n",
-	gArgs.zmin, gArgs.zmax );
+	fprintf( f, "cross_scaffold %s -zmin=%d -zmax=%d\n",
+	gArgs.srcmons, gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( path );
+}
+
+/* --------------------------------------------------------------- */
+/* BuildScafPath ------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static char* BuildScafPath( char srcscaf[2048] )
+{
+	DskAbsPath( srcscaf, 2048, gtopdir, flog );
+
+	if( strstr( FileNamePtr( gArgs.srcmons ), "X_A_BIN" ) )
+		strcat( srcscaf, "/X_A_BIN_scaf" );
+	else
+		strcat( srcscaf, "/X_A_TXT_scaf" );
+
+	return srcscaf;
 }
 
 /* --------------------------------------------------------------- */
@@ -373,7 +410,7 @@ static void WriteScafgo()
 
 static void WriteCarvego()
 {
-	char	path[2048];
+	char	path[2048], srcscaf[2048];
 	FILE	*f;
 
 	sprintf( path, "%s/carvego.sht", gtopdir );
@@ -384,10 +421,11 @@ static void WriteCarvego()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Carve each layer into blocks of size bxb tiles and create new script\n" );
-	fprintf( f, "# 'bsub.sht' to distribute block-block alignment jobs to cluster.\n" );
+	fprintf( f, "# Carve each scaffold layer into blocks of size bxb tiles\n" );
+	fprintf( f, "# and create new script 'bsub.sht' to distribute block-block\n" );
+	fprintf( f, "# alignment jobs to cluster.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_carveblocks -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_carveblocks srcscaf -zmin=i -zmax=j [options]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -b=10\t\t\t\t;ea. block roughly bXb tiles in area\n" );
@@ -402,8 +440,8 @@ static void WriteCarvego()
 	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_carveblocks -zmin=%d -zmax=%d%s -b=10 -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
-	gArgs.zmin, gArgs.zmax,
+	fprintf( f, "cross_carveblocks %s -zmin=%d -zmax=%d%s -b=10 -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
+	BuildScafPath( srcscaf ), gArgs.zmin, gArgs.zmax,
 	(gArgs.NoFolds ? " -nf" : ""),
 	gArgs.scl, gArgs.lgord, gArgs.sdev,
 	(gArgs.resmask ? " -resmask" : ""),

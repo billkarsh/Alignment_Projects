@@ -52,19 +52,19 @@ public:
 class CArgs_alnmon {
 
 public:
-	double	blkmincorr,
-			blknomcorr,
-			xyconf;		// search radius = (1-conf)(blockwide)
-	char	scafdir[2048];
-	int		zmin,
-			zmax,
-			blksize,
-			scl,
-			lgord,
-			sdev,
-			maxDZ;
-	bool	resmask,
-			NoFolds;
+	double		blkmincorr,
+				blknomcorr,
+				xyconf;		// search radius = (1-conf)(blockwide)
+	const char	*srcscaf;
+	int			zmin,
+				zmax,
+				blksize,
+				scl,
+				lgord,
+				sdev,
+				maxDZ;
+	bool		resmask,
+				NoFolds;
 
 public:
 	CArgs_alnmon()
@@ -72,6 +72,7 @@ public:
 		blkmincorr		= 0.45;
 		blknomcorr		= 0.50;
 		xyconf			= 0.75;
+		srcscaf			= NULL;
 		zmin			= 0;
 		zmax			= 32768;
 		blksize			= 10;
@@ -123,9 +124,9 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
+	if( argc < 4 ) {
 		printf(
-		"Usage: cross_carveblocks -zmin=i -zmax=j"
+		"Usage: cross_carveblocks srcscaf -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -135,7 +136,9 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		if( argv[i][0] != '-' )
+			srcscaf = argv[i];
+		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
 			;
 		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
 			;
@@ -169,9 +172,6 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 	}
 
 	fprintf( flog, "\n\n" );
-
-	DskAbsPath( scafdir, sizeof(scafdir), "X_A_BIN_scaf", flog );
-
 	fflush( flog );
 }
 
@@ -678,7 +678,7 @@ void BlockSet::WriteParams( int za, int zb )
 			sprintf( path, "../%d/D%d_%d/blockdat.txt", za, ix, iy );
 			FILE	*f = FileOpenOrDie( path, "w", flog );
 
-			fprintf( f, "scaf=%s\n", gArgs.scafdir );
+			fprintf( f, "scaf=%s\n", gArgs.srcscaf );
 
 			fprintf( f, "ZaZmin=%d,%d\n", za, zmin );
 
@@ -751,7 +751,7 @@ int main( int argc, char* argv[] )
 	if( idb.empty() )
 		exit( 42 );
 
-	TS.FillFromRgns( gArgs.scafdir, idb, gArgs.zmin, gArgs.zmax );
+	TS.FillFromRgns( gArgs.srcscaf, idb, gArgs.zmin, gArgs.zmax );
 
 	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 

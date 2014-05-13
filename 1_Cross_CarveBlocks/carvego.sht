@@ -3,10 +3,11 @@
 # Purpose:
 # Fourth step in cross-layer alignment.
 #
-# Carve each layer into blocks of size bxb tiles and create new script
-# 'bsub.sht' to distribute block-block alignment jobs to cluster.
+# Carve each scaffold layer into blocks of size bxb tiles
+# and create new script 'bsub.sht' to distribute block-block
+# alignment jobs to cluster.
 #
-# > cross_carveblocks -zmin=i -zmax=j [options]
+# > cross_carveblocks srcscaf -zmin=i -zmax=j [options]
 #
 # Options:
 # -b=10				;ea. block roughly bXb tiles in area
@@ -21,5 +22,5 @@
 # -maxDZ=10			;layers still correlate at this z-index span
 
 
-cross_carveblocks -zmin=0 -zmax=2 -nf -b=10 -scl=50 -lgord=1 -sdev=42 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75
+cross_carveblocks X_A_BIN_scaf -zmin=0 -zmax=2 -nf -b=10 -scl=50 -lgord=1 -sdev=42 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75
 

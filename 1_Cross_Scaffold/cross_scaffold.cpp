@@ -28,7 +28,7 @@ using namespace ns_pipergns;
 class CArgs_alnmon {
 
 public:
-	const char	*mons,
+	const char	*srcmons,
 				*xml_lowres;
 	int			zmin,
 				zmax;
@@ -36,7 +36,7 @@ public:
 public:
 	CArgs_alnmon()
 	{
-		mons		= "../X_A_BIN_mons";
+		srcmons		= NULL;
 		xml_lowres	= "LowRes.xml";
 		zmin		= 0;
 		zmax		= 32768;
@@ -51,7 +51,6 @@ public:
 
 static CArgs_alnmon	gArgs;
 static string		idb;
-static const char	*out = "X_A_BIN_scaf";
 static FILE*		flog = NULL;
 
 
@@ -81,9 +80,9 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
+	if( argc < 4 ) {
 		printf(
-		"Usage: cross_scaffold -zmin=i -zmax=j"
+		"Usage: cross_scaffold srcmons -zmin=i -zmax=j"
 		" [options].\n" );
 		exit( 42 );
 	}
@@ -93,8 +92,8 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArgStr( mons, "-mons=", argv[i] ) )
-			;
+		if( argv[i][0] != '-' )
+			srcmons = argv[i];
 		else if( GetArgStr( xml_lowres, "-lowres=", argv[i] ) )
 			;
 		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
@@ -186,14 +185,27 @@ static void UpdateTAffines()
 
 // Apply
 
-	char	buf[128];
+	char	out[128], buf[2048];
+	bool	isbin;
 
-	// copy everything as is
+	// create destination
 
-	sprintf( buf, "cp -rf %s %s", gArgs.mons, out );
+	isbin = (strstr( FileNamePtr( gArgs.srcmons ), "X_A_BIN" )
+			 != NULL);
+
+	if( isbin )
+		strcpy( out, "X_A_BIN_scaf" );
+	else
+		strcpy( out, "X_A_TXT_scaf" );
+
+	DskCreateDir( out, flog );
+
+	// copy data for lowest layer
+
+	sprintf( buf, "cp %s/*_%d* %s", gArgs.srcmons, gArgs.zmin, out );
 	system( buf );
 
-	// overwrite modified parts
+	// load and modify above layers
 
 	for( int z = gArgs.zmin + 1; z <= gArgs.zmax; ++z ) {
 
@@ -203,7 +215,7 @@ static void UpdateTAffines()
 		if( !R.Init( idb, z, flog ) )
 			continue;
 
-		if( !R.Load( gArgs.mons ) )
+		if( !R.Load( gArgs.srcmons ) )
 			continue;
 
 		// find TAffine for this z
@@ -236,7 +248,10 @@ static void UpdateTAffines()
 			}
 		}
 
-		R.SaveBIN( out, false );
+		if( isbin )
+			R.SaveBIN( out, true );
+		else
+			R.SaveTXT( out );
 	}
 }
 

@@ -1,8 +1,9 @@
 #!/bin/sh
 
 # Purpose:
-# Write scripts governing cross layer alignment.
-# Creates folder mytemp/cross_wkspc
+# Given folder of Z-file montage tforms (srcmons),
+# create workspace mytemp/cross_wkspc, and scripts
+# governing cross layer alignment.
 #
 # > cross_topscripts -zmin=i -zmax=j [options]
 #
@@ -19,5 +20,5 @@
 # -xyconf=0.75		;search radius = (1-conf)(blockwide)
 
 
-cross_topscripts -zmin=0 -zmax=1695 -nf -scl=4 -lgord=1 -sdev=42 -abwide=3 -stpcorr=0.02 -blkmincorr=0.1 -blknomcorr=0.2 -xyconf=0.75
+cross_topscripts X_A_BIN_mons -zmin=0 -zmax=1695 -nf -scl=4 -lgord=1 -sdev=42 -abwide=3 -stpcorr=0.02 -blkmincorr=0.1 -blknomcorr=0.2 -xyconf=0.75
 
