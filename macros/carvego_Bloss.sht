@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Purpose:
+# Fourth step in cross-layer alignment.
+#
+# Carve each scaffold layer into blocks of size bxb tiles
+# and create new script 'bsub.sht' to distribute block-block
+# alignment jobs to cluster.
+#
+# > cross_carveblocks srcscaf -zmin=i -zmax=j [options]
+#
+# Options:
+# -b=10				;ea. block roughly bXb tiles in area
+# -nf				;no foldmasks
+# -scl=50			;integer scale reduction
+# -lgord=1			;Legendre poly field-flat max int order
+# -sdev=42			;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
+# -resmask			;mask out resin
+# -blkmincorr=0.45	;required min corr for alignment
+# -blknomcorr=0.50	;nominal corr for alignment
+# -xyconf=0.75		;search radius = (1-conf)(blockwide)
+# -maxDZ=10			;layers still correlate at this z-index span
+
+
+cross_carveblocks /groups/apig/tomo/Eric/240624_3/temp0/cross_wkspc/X_A_BIN_scaf -zmin=0 -zmax=1695 -nf -b=10 -scl=4 -lgord=1 -sdev=42 -blkmincorr=0.1 -blknomcorr=0.2 -xyconf=0.75
+
