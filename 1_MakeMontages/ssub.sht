@@ -28,7 +28,7 @@ do
 		for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
 		do
 			cd $jb
-			qsub -N q$jb-$lyr -cwd -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='""'
+			qsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='""'
 			cd ..
 		done
 

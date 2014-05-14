@@ -31,7 +31,7 @@ do
 
 			if [ -e make.down ]
 			then
-				qsub -N q$jb-$lyr -cwd -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
+				qsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
 			fi
 
 			cd ..

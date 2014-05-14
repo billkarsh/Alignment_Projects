@@ -286,7 +286,7 @@ static void WriteFSubFile()
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tqsub -N makefm-$lyr -cwd -V -b y -pe batch $nthr make -f make.fm -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tqsub -N makefm-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.fm -j $nthr EXTRA='\"\"'\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );

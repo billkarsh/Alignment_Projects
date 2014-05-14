@@ -24,11 +24,11 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr/S0_0
-		qsub -N qS0_0-$lyr -cwd -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='""'
+		qsub -N qS0_0-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='""'
 		if (($lyr > $1))
 		then
 			cd ../D0_0
-			qsub -N qD0_0-$lyr -cwd -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
+			qsub -N qD0_0-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
 		fi
 		cd ../..
 	fi
