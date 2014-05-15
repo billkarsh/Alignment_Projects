@@ -336,7 +336,7 @@ static void GetXY_Aff( DBox &B, const TAffine &Trot )
 
 			vector<Point>	c( 4 );
 			memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
-			T = /*Trot **/ X_AS_AFF( R.x, j );
+			T = Trot * X_AS_AFF( R.x, j );
 			T.Transform( c );
 
 			for( int k = 0; k < 4; ++k ) {
