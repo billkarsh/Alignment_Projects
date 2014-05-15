@@ -433,7 +433,8 @@ bool Rgns::Load( const char *path )
 		}
 		else {
 error:
-			fprintf( flog, "Unknown prior type [%s].\n", name );
+			fprintf( flog,
+			"Rgns: Unknown folder name pattern [%s].\n", name );
 			exit( 42 );
 		}
 	}
