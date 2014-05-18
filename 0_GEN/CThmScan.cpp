@@ -513,6 +513,16 @@ double CThmScan::AngleScanMaxR(
 
 		for( double a = center-cwide; a <= center+cwide; a += cstep )
 			TCD.vC.push_back( CorRec( a ) );
+
+		// symmetrically opposite if full circle
+
+		if( hlfwid >= 180 ) {
+
+			double	opc = center + 180;
+
+			for( double a = opc-cwide; a <= opc+cwide; a += cstep )
+				TCD.vC.push_back( CorRec( a ) );
+		}
 	}
 
 	for( double a = center-hlfwid; a <= center+hlfwid; a += step )
