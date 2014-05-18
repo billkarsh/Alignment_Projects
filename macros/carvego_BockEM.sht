@@ -22,5 +22,5 @@
 # -maxDZ=10			;layers still correlate at this z-index span
 
 
-cross_carveblocks /nobackup/bock/karsh/fly500_v0/temp0/cross_wkspc/X_A_BIN_scaf -zmin=2239 -zmax=2758 -nf -b=6 -scl=50 -lgord=1 -sdev=200 -resmask -blkmincorr=0.05 -blknomcorr=0.2 -xyconf=0.25
+cross_carveblocks /nobackup/bock/karsh/fly500_v0/temp0/cross_wkspc/X_A_BIN_scaf -zmin=2239 -zmax=2758 -nf -b=6 -scl=50 -lgord=1 -sdev=200 -resmask -blkmincorr=0.25 -blknomcorr=0.3 -xyconf=0.25
 
