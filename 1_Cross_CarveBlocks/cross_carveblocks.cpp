@@ -616,6 +616,8 @@ void BlockSet::ReportBlocks( int z )
 
 	fprintf( flog, "\nZ %d, Array %dx%d, Tiles(i,j):\n", z, kx, ky );
 
+// Report occupancy
+
 	for( int i = 0; i < nb; ++i ) {
 
 		int	iy = i / kx,
@@ -627,6 +629,24 @@ void BlockSet::ReportBlocks( int z )
 	}
 
 	fprintf( flog, "Total = %d\n", ntiles );
+
+// Report block centers
+
+	fprintf( flog, "Block centers:\n" );
+
+	for( int i = 0; i < nb; ++i ) {
+
+		int	iy = i / kx,
+			ix = i - kx * iy;
+
+		if( K[i].vID.size() ) {
+
+			fprintf( flog, "D%d_%d %d %d\n",
+			ix, iy,
+			ix * dx + dx/2,
+			iy * dy + dy/2 );
+		}
+	}
 }
 
 /* --------------------------------------------------------------- */
