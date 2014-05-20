@@ -200,7 +200,9 @@ static void WriteTestblockFile()
 	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
+	fprintf( f, "# -blknomcvrg=0.90\t;nominal coverage for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
+	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
@@ -248,7 +250,9 @@ static void WriteBSubFile()
 	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
 	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
 	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
+	fprintf( f, "# -blknomcvrg=0.90\t;nominal coverage for alignment\n" );
 	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
+	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );

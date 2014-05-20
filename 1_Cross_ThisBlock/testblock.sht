@@ -11,7 +11,9 @@
 # -resmask			;mask out resin
 # -blkmincorr=0.45	;required min corr for alignment
 # -blknomcorr=0.50	;nominal corr for alignment
+# -blknomcvrg=0.90	;nominal coverage for alignment
 # -xyconf=0.75		;search radius = (1-xyconf)*blkwide
+# -alldz			;force evaluation of all maxdz layers
 # -abdbg			;make diagnostic images and exit (Z^Z-1)
 # -abdbg=k			;make diagnostic images and exit (Z^k)
 # -abctr=0			;debug at this a-to-b angle

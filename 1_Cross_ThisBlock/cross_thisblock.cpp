@@ -26,10 +26,9 @@ using namespace std;
 /* Constants ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-#define	kPairOlapLo		0.02
-#define	kTileAnchorLo	0.30
-#define	kTileAnchorHi	0.80
-#define	kBlockAnchorHi	0.90
+#define	kPairMinOlap	0.02
+#define	kTileMinCvrg	0.30
+#define	kTileNomCvrg	0.80
 
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
@@ -131,6 +130,7 @@ public:
 	double	inv_scl,
 			blkmincorr,
 			blknomcorr,
+			blknomcvrg,
 			abctr,
 			xyconf;		// search radius = (1-conf)(blockwide)
 	int		scl,
@@ -138,6 +138,7 @@ public:
 			sdev,
 			dbgz;
 	bool	resmask,
+			alldz,
 			abdbg,
 			NoFolds;
 
@@ -146,6 +147,7 @@ public:
 	{
 		blkmincorr	= 0.45;
 		blknomcorr	= 0.50;
+		blknomcvrg	= 0.90;
 		abctr		= 0.0;
 		xyconf		= 0.75;
 		scl			= 50;
@@ -153,6 +155,7 @@ public:
 		sdev		= 42;	// 42 useful for Davi EM
 		dbgz		= -1;
 		resmask		= false;
+		alldz		= false;
 		abdbg		= false;
 		NoFolds		= false;
 
@@ -221,6 +224,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
 			;
+		else if( GetArg( &blknomcvrg, "-blknomcvrg=%lf", argv[i] ) )
+			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
@@ -232,6 +237,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			abdbg = true;
 		else if( IsArg( "-resmask", argv[i] ) )
 			resmask = true;
+		else if( IsArg( "-alldz", argv[i] ) )
+			alldz = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else if( IsArg( "-nf", argv[i] ) )
@@ -541,7 +548,7 @@ static void FindPairs(
 
 			double	area = TS.ABOlap( aid, bid, &Tab );
 
-			if( area >= kPairOlapLo )
+			if( area >= kPairMinOlap )
 				p.push_back( Pair( area, bid, iz ) );
 		}
 	}
@@ -594,7 +601,7 @@ static bool ThisBZ(
 	t0 = StopTiming( flog, "MakeRasB", t0 );
 
 	thm.ftc.clear();
-	thm.reqArea	= int(kPairOlapLo * A.ws * A.hs);
+	thm.reqArea	= int(kPairMinOlap * A.ws * A.hs);
 	thm.olap1D	= 4;
 	thm.scl		= 1;
 
@@ -776,7 +783,7 @@ static double BlockCoverage(
 				break;
 		}
 
-		if( sum >= kTileAnchorLo ) {
+		if( sum >= kTileMinCvrg ) {
 			++prime;
 			++scdry;
 		}
@@ -785,7 +792,7 @@ static double BlockCoverage(
 			for( int ib = iblast + 1; ib < nb; ++ib )
 				sum += p[ib].area;
 
-			if( sum >= kTileAnchorLo )
+			if( sum >= kTileMinCvrg )
 				++scdry;
 		}
 	}
@@ -850,7 +857,7 @@ static void KeepBest(
 				vZ[curz].used = 1;
 			}
 
-		} while( sum < kTileAnchorHi );
+		} while( sum < kTileNomCvrg );
 
 		// kill the rest
 
@@ -1066,8 +1073,15 @@ static void LayerLoop()
 		fprintf( flog, "Block coverage prime %.2f scdry %.2f  Z %d\n",
 		prime, scdry, vZ[vZ.size()-1].Z );
 
-		if( (prime >= kBlockAnchorHi) ||
-			(scdry >= kBlockAnchorHi && ZSeen( vZ ) >= 0.50) ) {
+		// force measurement of all layers
+
+		if( gArgs.alldz )
+			continue;
+
+		// done if satisfied now, or if unlikely to get better
+
+		if( (prime >= gArgs.blknomcvrg) ||
+			(scdry >= gArgs.blknomcvrg && ZSeen( vZ ) >= 0.50) ) {
 
 			break;
 		}
