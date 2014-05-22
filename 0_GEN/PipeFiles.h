@@ -18,6 +18,34 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 typedef struct {
+	string	croprectfile;
+	double	mintileolapfrac,
+			stripsweepspan,
+			stripsweepstep,
+			stripmincorr,
+			blockmincorr,
+			blocknomcorr,
+			blockxyconf;
+	int		usingfoldmasks,
+			makefmslots,
+			createauxdirs,
+			montageblocksize,
+			ignorecorners,
+			makesameslots,
+			crossscale,
+			legendremaxorder,
+			rendersdevcnts,
+			maskoutresin,
+			stripwidth,
+			crossblocksize,
+			blockmaxdz,
+			makedownslots,
+			xmlpixeltype,
+			xmlsclmin,
+			xmlsclmax;
+} ScriptParams;
+
+typedef struct {
 	double	SCALE,
 			XSCALE,
 			YSCALE,
@@ -174,6 +202,11 @@ public:
 /* --------------------------------------------------------------- */
 
 void OpenPairLog( int alr, int atl, int blr, int btl );
+
+bool ReadScriptParams(
+	ScriptParams	&S,
+	const char		*tempdir,
+	FILE			*flog = stdout );
 
 bool ReadMatchParams(
 	MatchParams		&M,

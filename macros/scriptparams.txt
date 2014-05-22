@@ -1,0 +1,59 @@
+# Parameters for alignment pipeline stages.
+#
+# ImagePlus type codes used in xml files:
+#	AUTO		= -1
+#	GRAY8		= 0
+#	GRAY16		= 1		(use this for .mrc)
+#	GRAY32		= 2
+#	COLOR_256	= 3
+#	COLOR_RGB	= 4
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Image database (IDB) params
+#
+usingfoldmasks=N       <typical N>       "Y=Each tile gets foldmask image"
+croprectfile=          <path or blank>   "{cam,x0,y0,dx,dy} for ea. cam"
+makefmslots=4          <typical 4>       "'fsub'/make.fm slots/threads per job"
+#
+# Montaging (same-layer)
+#
+createauxdirs=N        <typical N>       "Y=create special dirs for aux ptest info"
+montageblocksize=8     <typical 8>       "montage work grid cell nxn tiles"
+mintileolapfrac=0.02   <typical 0.02>    "min layout tile area frac for overlap"
+ignorecorners=N        <typical N>       "Y=using row/col data, omit corner-corner pairs"
+makesameslots=4        <typical 4>       "'ssub'/make.same slots/threads per job"
+#
+# Cross-layer rendering of strips and blocks
+#
+crossscale=50          <typical 50>      "scale reduction for strips and blocks"
+legendremaxorder=1     <typical 1>       "max order Legendre poly bkgnd subtraction"
+rendersdevcnts=42      <typical 42>      "rescale making 1 stdev this many cnts"
+maskoutresin=N         <typical N>       "Y=remove resin pixels from EM rendering"
+#
+# Cross-layer strip-strip coarse alignment
+#
+stripwidth=15          <typical 15>      "strips n tiles wide in short dimension"
+stripsweepspan=360     <typical 360.0>   "span of strip angle sweep (degrees)"
+stripsweepstep=5       <typical 5.0>     "step angle sweep step size (degrees)"
+stripmincorr=0.02      <typical 0.02>    "strips FAIL if correlation this low"
+#
+# Cross-layer block-block refinement
+#
+crossblocksize=10      <typical 10>      "block work grid cell nxn tiles"
+blockmincorr=0.45      <typical 0.45>    "min required block match correlation"
+blocknomcorr=0.50      <typical 0.50>    "nominal block match correlation"
+blockxyconf=0.75       <typical 0.75>    "search radius = (1-conf)(blockwide)"
+blockmaxdz=10          <typical 10>      "max z-index span of useful correlation"
+#
+# Cross-layer tile-tile point-pair extraction
+#
+makedownslots=4        <typical 4>       "'dsub'/make.down slots/threads per job"
+#
+# TrakEM2 auto-generation
+#
+xmlpixeltype=0         <typical 0>       "ImagePlus type code (above)"
+xmlsclmin=0            <typical 0>       "intensity scale min"
+xmlsclmax=0            <typical 0>       "intensity scale max"
+
+# *These lines are echoed to reports, so use spaces to neaten!
