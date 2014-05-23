@@ -10,11 +10,14 @@
 # Correct mistakes using 'Align with Manual Landmarks' feature
 # and then Save result with the same name.
 #
-# > cross_lowres -zmin=i -zmax=j [options]
+# > cross_lowres -z=i,j [options]
+#
+# Required:
+# -z=i,j		;assemble layers in range z=[i..j]
 #
 # Options:
 # -table		;write debugging striptable.txt and exit
 
 
-cross_lowres -zmin=0 -zmax=2
+cross_lowres -z=0,2
 

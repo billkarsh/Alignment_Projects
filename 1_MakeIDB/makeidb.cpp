@@ -1,5 +1,5 @@
 //
-// makeidb reads either a 'Rick' txt file or TrakEM2 xml
+// makeidb reads either a txt 'billfile' or TrakEM2 xml
 // file and creates an 'image database' with this structure:
 //
 //	folder 'idbname'		// top folder
@@ -39,6 +39,7 @@
 #include	"Cmdline.h"
 #include	"Disk.h"
 #include	"File.h"
+#include	"PipeFiles.h"
 #include	"CTileSet.h"
 
 #include	<string.h>
@@ -59,36 +60,20 @@
 class cArgs_idb {
 
 public:
-	// xml_type values: these are ImagePlus codes:
-	// AUTO			= -1
-	// GRAY8		= 0
-	// GRAY16		= 1
-	// GRAY32		= 2
-	// COLOR_256	= 3
-	// COLOR_RGB	= 4
-	//
 	const char	*infile,
-				*outdir,
-				*crop;
+				*script,
+				*outdir;
 	int			zmin,
-				zmax,
-				xml_type,
-				xml_min,
-				xml_max;
-	bool		NoFolds;
+				zmax;
 
 public:
 	cArgs_idb()
 	{
-		infile		=
-		outdir		= "NoSuch";	// prevent overwriting real dir
-		crop		= NULL;
-		zmin		= 0;
-		zmax		= 32768;
-		xml_type	= 0;
-		xml_min		= 0;
-		xml_max		= 0;
-		NoFolds		= false;
+		infile	=
+		outdir	= "NoSuch";	// prevent overwriting real dir
+		script	= NULL;
+		zmin	= 0;
+		zmax	= 32768;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -100,6 +85,7 @@ public:
 
 static char				gtopdir[2048];
 static cArgs_idb		gArgs;
+static ScriptParams		scr;
 static CTileSet			TS;
 static vector<string>	vname0;
 static FILE*			flog	= NULL;
@@ -132,10 +118,13 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: makeidb <source-file> [options].\n" );
+	if( argc < 5 ) {
+		printf( "Usage: makeidb <source-file>"
+		" -script=scriptpath -idb=idbpath -z=i,j.\n" );
 		exit( 42 );
 	}
+
+	vector<int>	vi;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -144,22 +133,22 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
+		else if( GetArgStr( script, "-script=", argv[i] ) )
+			;
 		else if( GetArgStr( outdir, "-idb=", argv[i] ) )
 			;
-		else if( GetArgStr( crop, "-crop=", argv[i] ) )
-			;
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
-			;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
+		else if( GetArgList( vi, "-z=", argv[i] ) ) {
+
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -242,9 +231,10 @@ static void WriteImageparamsFile()
 
 static void CopyCropFile()
 {
-	if( gArgs.crop ) {
+	if( !scr.croprectfile.empty() ) {
 		char	buf[2048];
-		sprintf( buf, "cp %s %s/crop.txt", gArgs.crop, gArgs.outdir );
+		sprintf( buf, "cp %s %s/crop.txt",
+			scr.croprectfile.c_str(), gArgs.outdir );
 		system( buf );
 	}
 }
@@ -271,7 +261,8 @@ static void WriteFSubFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=4\n" );
+	fprintf( f, "nthr=%d\n",
+	scr.makefmslots );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -487,7 +478,31 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 		fprintf( f, "fm/fm_%d_%d.png:\n", U.z, U.id );
 #endif
 
-		if( gArgs.NoFolds ) {
+		if( scr.usingfoldmasks ) {
+			if( ismrc ) {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-nmrc=nmrc/nmrc_%d_%d.png'"
+				" '-fm=fm/fm_%d_%d.png'"
+				" '-fmd=fmd/fmd_%d_%d.png'"
+				" ${EXTRA}\n",
+				U.z, U.id, vname0[i].c_str(),
+				U.z, U.id,
+				U.z, U.id,
+				U.z, U.id );
+			}
+			else {
+				fprintf( f,
+				"\ttiny %d %d '%s'"
+				" '-fm=fm/fm_%d_%d.png'"
+				" '-fmd=fmd/fmd_%d_%d.png'"
+				" ${EXTRA}\n",
+				U.z, U.id, vname0[i].c_str(),
+				U.z, U.id,
+				U.z, U.id );
+			}
+		}
+		else {
 			if( ismrc ) {
 				fprintf( f,
 				"\ttiny %d %d '%s'"
@@ -501,30 +516,6 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 				"\ttiny %d %d '%s'"
 				" -nf ${EXTRA}\n",
 				U.z, U.id, vname0[i].c_str() );
-			}
-		}
-		else {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=nmrc/nmrc_%d_%d.png'"
-				" '-fm=fm/fm_%d_%d.png'"
-				" '-fmd=fmd/fmd_%d_%d.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.z, U.id,
-				U.z, U.id,
-				U.z, U.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-fm=fm/fm_%d_%d.png'"
-				" '-fmd=fmd/fmd_%d_%d.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.z, U.id,
-				U.z, U.id );
 			}
 		}
 	}
@@ -552,17 +543,16 @@ static void ForEachLayer()
 
 		TS.WriteTileToImage( gtopdir, false, ismrc, is0, isN );
 
-		if( gArgs.NoFolds ) {
-
+		if( scr.usingfoldmasks ) {
+			Make_TileToFM( lyrdir, "TileToFM",  "fm",  is0, isN );
+			Make_TileToFM( lyrdir, "TileToFMD", "fmd", is0, isN );
+			Make_MakeFM( lyrdir, is0, isN );
+		}
+		else {
 			if( ismrc )
 				Make_MakeFM( lyrdir, is0, isN );
 			else
 				Make_fmsame( lyrdir, is0, isN );
-		}
-		else {
-			Make_TileToFM( lyrdir, "TileToFM",  "fm",  is0, isN );
-			Make_TileToFM( lyrdir, "TileToFMD", "fmd", is0, isN );
-			Make_MakeFM( lyrdir, is0, isN );
 		}
 
 		TS.GetLayerLimits( is0 = isN, isN );
@@ -583,11 +573,14 @@ int main( int argc, char* argv[] )
 
 	TS.SetLogFile( flog );
 
+	int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
+
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
+		goto exit;
+
 /* ---------------- */
 /* Read source file */
 /* ---------------- */
-
-	int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
 
 	if( isrickfile )
 		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
@@ -611,7 +604,7 @@ int main( int argc, char* argv[] )
 	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) ) {
 
 		TS.WriteTrakEM2_EZ( "RawData.xml",
-			gArgs.xml_type, gArgs.xml_min, gArgs.xml_max );
+			scr.xmlpixeltype, scr.xmlsclmin, scr.xmlsclmax );
 
 		goto exit;
 	}
@@ -634,7 +627,7 @@ int main( int argc, char* argv[] )
 	WriteImageparamsFile();
 	CopyCropFile();
 
-	if( !gArgs.NoFolds || ismrc ) {
+	if( scr.usingfoldmasks || ismrc ) {
 		WriteFSubFile();
 		WriteFReportFile();
 	}

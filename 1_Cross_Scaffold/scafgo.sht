@@ -10,11 +10,15 @@
 # serves both as the input for the block-block alignment, and
 # as the starting guess for the final LSQ alignment.
 #
-# > cross_scaffold srcmons -zmin=i -zmax=j [options]
+# > cross_scaffold srcmons -z=i,j [options]
+#
+# Required:
+# srcmons				;collected independent montages
+# -z=i,j				;align layers in range z=[i..j]
 #
 # Options:
-# -lowres=LowRes.xml		;alternate coarse alignment reference
+# -lowres=LowRes.xml	;alternate coarse alignment reference
 
 
-cross_scaffold ../X_A_BIN_mons -zmin=0 -zmax=2
+cross_scaffold ../X_A_BIN_mons -z=0,2
 

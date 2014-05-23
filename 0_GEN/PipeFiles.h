@@ -25,6 +25,7 @@ typedef struct {
 			stripmincorr,
 			blockmincorr,
 			blocknomcorr,
+			blocknomcoverage,
 			blockxyconf;
 	int		usingfoldmasks,
 			makefmslots,
@@ -37,8 +38,10 @@ typedef struct {
 			rendersdevcnts,
 			maskoutresin,
 			stripwidth,
+			stripslots,
 			crossblocksize,
 			blockmaxdz,
+			blockslots,
 			makedownslots,
 			xmlpixeltype,
 			xmlsclmin,
@@ -205,7 +208,7 @@ void OpenPairLog( int alr, int atl, int blr, int btl );
 
 bool ReadScriptParams(
 	ScriptParams	&S,
-	const char		*tempdir,
+	const char		*scriptpath,
 	FILE			*flog = stdout );
 
 bool ReadMatchParams(

@@ -52,37 +52,13 @@ public:
 class CArgs_alnmon {
 
 public:
-	double		blkmincorr,
-				blknomcorr,
-				xyconf;		// search radius = (1-conf)(blockwide)
-	const char	*srcscaf;
+	const char	*srcscaf,
+				*script;
 	int			zmin,
-				zmax,
-				blksize,
-				scl,
-				lgord,
-				sdev,
-				maxDZ;
-	bool		resmask,
-				NoFolds;
-
+				zmax;
 public:
 	CArgs_alnmon()
-	{
-		blkmincorr		= 0.45;
-		blknomcorr		= 0.50;
-		xyconf			= 0.75;
-		srcscaf			= NULL;
-		zmin			= 0;
-		zmax			= 32768;
-		blksize			= 10;
-		scl				= 50;
-		lgord			= 1;	// 1  probably good for Davi EM
-		sdev			= 42;	// 42 useful for Davi EM
-		maxDZ			= 10;
-		resmask			= false;
-		NoFolds			= false;
-	};
+	: srcscaf(NULL), script(NULL), zmin(0), zmax(32768) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };
@@ -92,6 +68,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_alnmon	gArgs;
+static ScriptParams	scr;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
 static int			gW		= 0,	// universal pic dims
@@ -126,10 +103,12 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 4 ) {
 		printf(
-		"Usage: cross_carveblocks srcscaf -zmin=i -zmax=j"
-		" [options].\n" );
+		"Usage: cross_carveblocks srcscaf"
+		" -script=scriptpath -z=i,j.\n" );
 		exit( 42 );
 	}
+
+	vector<int>	vi;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -138,33 +117,20 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			srcscaf = argv[i];
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		else if( GetArgStr( script, "-script=", argv[i] ) )
 			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArg( &blksize, "-b=%d", argv[i] ) )
-			;
-		else if( GetArg( &scl, "-scl=%d", argv[i] ) )
-			;
-		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
-			;
-		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
+		else if( GetArgList( vi, "-z=", argv[i] ) ) {
 
-			if( xyconf < 0.0 || xyconf > 1.0 )
-				xyconf = 0.5;
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
 		}
-		else if( GetArg( &maxDZ, "-maxDZ=%d", argv[i] ) )
-			;
-		else if( IsArg( "-resmask", argv[i] ) )
-			resmask = true;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -193,15 +159,6 @@ static void WriteTestblockFile()
 	fprintf( f, "# Put this script into a Dx_y folder to try or debug block.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -scl=50\t\t\t;integer scale reduction\n" );
-	fprintf( f, "# -lgord=1\t\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -sdev=42\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
-	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
-	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
-	fprintf( f, "# -blknomcvrg=0.90\t;nominal coverage for alignment\n" );
-	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
 	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
@@ -210,11 +167,8 @@ static void WriteTestblockFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock%s -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
-	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.scl, gArgs.lgord, gArgs.sdev,
-	(gArgs.resmask ? " -resmask" : ""),
-	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
+	fprintf( f, "qsub -N x -cwd -V -b y -pe batch %d cross_thisblock -script=%s\n",
+	scr.blockslots, gArgs.script );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -238,20 +192,11 @@ static void WriteBSubFile()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Fifth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_thisblock [options]\n" );
+	fprintf( f, "# > cross_thisblock -script=scriptpath\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Do one block alignment job, data read from 'blockdat.txt'.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -scl=50\t\t\t;integer scale reduction\n" );
-	fprintf( f, "# -lgord=1\t\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -sdev=42\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
-	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
-	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
-	fprintf( f, "# -blknomcvrg=0.90\t;nominal coverage for alignment\n" );
-	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-xyconf)*blkwide\n" );
 	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
@@ -279,11 +224,8 @@ static void WriteBSubFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch 8 cross_thisblock%s -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
-	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.scl, gArgs.lgord, gArgs.sdev,
-	(gArgs.resmask ? " -resmask" : ""),
-	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
+	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch %d cross_thisblock -script=%s\n",
+	scr.blockslots, gArgs.script );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
@@ -443,7 +385,7 @@ void BlockSet::OrientLayer( int is0, int isN )
 //
 void BlockSet::SetDims()
 {
-	dx = gArgs.blksize;
+	dx = scr.crossblocksize;
 	dy = dx;
 	dx *= gW;
 	dy *= gH;
@@ -506,7 +448,8 @@ void BlockSet::Consolidate()
 
 	vector<Point>	pc;
 
-	int	lowcount	= int(gArgs.blksize * gArgs.blksize * 0.25),
+	int	lowcount	=
+			int(scr.crossblocksize * scr.crossblocksize * 0.25),
 		W2			= gW/2,
 		H2			= gH/2;
 
@@ -673,15 +616,15 @@ void BlockSet::CarveIntoBlocks( int is0, int isN )
 void BlockSet::WriteParams( int za, int zb )
 {
 // In simplest terms, the lowest B we should match to is
-// zmin = min( za - gArgs.maxDZ, gArgs.zmin ). Since zb is
+// zmin = min( za - blockmaxdz, gArgs.zmin ). Since zb is
 // usually just za-1, we could write that equivalently as
-// zmin = min( zb + 1 - gArgs.maxDZ, gArgs.zmin ). This
+// zmin = min( zb + 1 - blockmaxdz, gArgs.zmin ). This
 // second form is preferred in cases where layers are missing
 // so that zb < za-1, but we still want to give cross_thisblock
 // several tries to get a good match (yes, even if we exceed
-// maxDZ to get those tries).
+// blockmaxdz to get those tries).
 
-	int zmin = max( zb + 1 - gArgs.maxDZ, gArgs.zmin );
+	int zmin = max( zb + 1 - scr.blockmaxdz, gArgs.zmin );
 
 	for( int i = 0; i < nb; ++i ) {
 
@@ -763,6 +706,9 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
+
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
+		exit( 42 );
 
 /* ------------- */
 /* Read src file */

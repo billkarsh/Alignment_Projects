@@ -20,20 +20,20 @@ makefmslots=4          <typical 4>       "'fsub'/make.fm slots/threads per job"
 #
 createauxdirs=N        <typical N>       "Y=create special dirs for aux ptest info"
 montageblocksize=8     <typical 8>       "montage work grid cell size^2 tiles"
-mintileolapfrac=0.02   <typical 0.02>    "min layout tile area frac for overlap"
-ignorecorners=N        <typical N>       "Y=using row/col data, omit corner-corner pairs"
+mintileolapfrac=0.01   <typical 0.02>    "min layout tile area frac for overlap"
+ignorecorners=Y        <typical N>       "Y=using row/col data, omit corner-corner pairs"
 makesameslots=4        <typical 4>       "'ssub'/make.same slots/threads per job"
 #
 # Cross-layer rendering of strips and blocks
 #
 crossscale=50          <typical 50>      "scale reduction for strips and blocks"
 legendremaxorder=1     <typical 1>       "max order Legendre poly bkgnd subtraction"
-rendersdevcnts=42      <typical 42>      "rescale making 1 stdev this many cnts"
-maskoutresin=N         <typical N>       "Y=remove resin pixels from EM rendering"
+rendersdevcnts=200     <typical 42>      "rescale making 1 stdev this many cnts"
+maskoutresin=Y         <typical N>       "Y=remove resin pixels from EM rendering"
 #
 # Cross-layer strip-strip coarse alignment
 #
-stripwidth=15          <typical 15>      "strips n tiles wide in short dimension"
+stripwidth=12          <typical 15>      "strips n tiles wide in short dimension"
 stripsweepspan=360     <typical 360.0>   "span of strip angle sweep (degrees)"
 stripsweepstep=5       <typical 5.0>     "angle sweep step size (degrees, step > 0)"
 stripmincorr=0.02      <typical 0.02>    "strips 'fail' if correlation this low"
@@ -41,11 +41,11 @@ stripslots=8           <typical 8>       "subscapes.sht/scapeops slots/threads p
 #
 # Cross-layer block-block refinement
 #
-crossblocksize=10      <typical 10>      "block work grid cell size^2 tiles"
-blockmincorr=0.45      <typical 0.45>    "min required block match correlation"
-blocknomcorr=0.50      <typical 0.50>    "nominal block match correlation"
+crossblocksize=6       <typical 10>      "block work grid cell size^2 tiles"
+blockmincorr=0.25      <typical 0.45>    "min required block match correlation"
+blocknomcorr=0.30      <typical 0.50>    "nominal block match correlation"
 blocknomcoverage=0.90  <typical 0.90>    "nominal block area frac matched"
-blockxyconf=0.75       <typical 0.75>    "search radius = (1-conf)(blockwide)"
+blockxyconf=0.25       <typical 0.75>    "search radius = (1-conf)(blockwide)"
 blockmaxdz=10          <typical 10>      "max z-index span of useful correlation"
 blockslots=8           <typical 8>       "bsub.sht/cross_thisblock slots/threads per job"
 #

@@ -2,7 +2,6 @@
 
 # Purpose:
 # Make workspace 'temp' for 'myidb'...
-# Makes everything except matchparams.txt file.
 #
 # > makealn myidb -d=temp -zmin=0 -zmax=5
 #

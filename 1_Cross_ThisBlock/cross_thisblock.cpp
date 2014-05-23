@@ -127,40 +127,15 @@ public:
 class CArgs_scp {
 
 public:
-	double	inv_scl,
-			blkmincorr,
-			blknomcorr,
-			blknomcvrg,
-			abctr,
-			xyconf;		// search radius = (1-conf)(blockwide)
-	int		scl,
-			lgord,
-			sdev,
-			dbgz;
-	bool	resmask,
-			alldz,
-			abdbg,
-			NoFolds;
-
+	double		abctr;
+	const char	*script;
+	int			dbgz;
+	bool		alldz,
+				abdbg;
 public:
 	CArgs_scp()
-	{
-		blkmincorr	= 0.45;
-		blknomcorr	= 0.50;
-		blknomcvrg	= 0.90;
-		abctr		= 0.0;
-		xyconf		= 0.75;
-		scl			= 50;
-		lgord		= 1;	// 1  probably good for Davi EM
-		sdev		= 42;	// 42 useful for Davi EM
-		dbgz		= -1;
-		resmask		= false;
-		alldz		= false;
-		abdbg		= false;
-		NoFolds		= false;
-
-		inv_scl	= 1.0/scl;
-	};
+	: abctr(0), script(NULL),
+	  dbgz(-1), alldz(false), abdbg(false) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };
@@ -170,6 +145,8 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_scp	gArgs;
+static ScriptParams	scr;
+static double		inv_scl;
 static CBlockDat	gDat;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
@@ -203,9 +180,9 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 1 ) {
+	if( argc < 2 ) {
 		printf(
-		"Usage: cross_thisblock [options].\n" );
+		"Usage: cross_thisblock -script=scriptpath [options].\n" );
 		exit( 42 );
 	}
 
@@ -214,35 +191,16 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArg( &scl, "-scl=%d", argv[i] ) )
-			inv_scl = 1.0/scl;
-		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
-			;
-		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &blknomcvrg, "-blknomcvrg=%lf", argv[i] ) )
+		if( GetArgStr( script, "-script=", argv[i] ) )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
-		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
-
-			if( xyconf < 0.0 || xyconf > 1.0 )
-				xyconf = 0.5;
-		}
 		else if( GetArg( &dbgz, "-abdbg=%d", argv[i] ) )
 			abdbg = true;
-		else if( IsArg( "-resmask", argv[i] ) )
-			resmask = true;
 		else if( IsArg( "-alldz", argv[i] ) )
 			alldz = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -371,9 +329,9 @@ void CSuperscape::CalcBBox()
 bool CSuperscape::MakeRasA()
 {
 	ras = TS.Scape( ws, hs, x0, y0,
-			vID, gArgs.inv_scl, 1, 0,
-			gArgs.lgord, gArgs.sdev,
-			gArgs.resmask );
+			vID, inv_scl, 1, 0,
+			scr.legendremaxorder, scr.rendersdevcnts,
+			scr.maskoutresin );
 
 	return (ras != NULL);
 }
@@ -410,9 +368,9 @@ bool CSuperscape::MakeRasB( const DBox &Abb )
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_scl, 1, 0,
-			gArgs.lgord, gArgs.sdev,
-			gArgs.resmask );
+			vid, inv_scl, 1, 0,
+			scr.legendremaxorder, scr.rendersdevcnts,
+			scr.maskoutresin );
 
 	if( !ras ) {
 
@@ -519,7 +477,7 @@ void CSuperscape::WriteMeta()
 
 	fprintf( flog,
 	"%d %d [%d,%d] [%f,%f]\n",
-	TS.vtil[is0].z, gArgs.scl, ws, hs, x0, y0 );
+	TS.vtil[is0].z, scr.crossscale, ws, hs, x0, y0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -607,15 +565,15 @@ static bool ThisBZ(
 
 	int	Ox	= int(A.x0 - B.x0),
 		Oy	= int(A.y0 - B.y0),
-		Rx	= int((1.0 - gArgs.xyconf) * A.ws),
-		Ry	= int((1.0 - gArgs.xyconf) * A.hs);
+		Rx	= int((1.0 - scr.blockxyconf) * A.ws),
+		Ry	= int((1.0 - scr.blockxyconf) * A.hs);
 
 	S.Initialize( flog, best );
-	S.SetRThresh( gArgs.blkmincorr );
+	S.SetRThresh( scr.blockmincorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( 8 );
+	S.SetSweepNThreads( scr.blockslots );
 	S.SetUseCorrR( true );
 	S.SetDisc( Ox, Oy, Rx, Ry );
 
@@ -662,7 +620,7 @@ static bool ThisBZ(
 	TAffine	s, t;
 
 	// A montage -> A block image
-	s.NUSetScl( gArgs.inv_scl );
+	s.NUSetScl( inv_scl );
 	s.AddXY( -A.x0, -A.y0 );
 
 	// A block image -> B block image
@@ -670,7 +628,7 @@ static bool ThisBZ(
 
 	// B block image -> B montage
 	t.AddXY( B.x0, B.y0 );
-	s.NUSetScl( gArgs.scl );
+	s.NUSetScl( scr.crossscale );
 	best.T = s * t;
 
 // Append to list
@@ -743,7 +701,7 @@ bool CSort_R_Dec::operator() ( const Pair &I, const Pair &J )
 bool CSort_R_Dec::IsPrime( const Pair &P )
 {
 	return (!P.iz && zeroPrime)
-			|| (vZ[P.iz].R >= gArgs.blknomcorr);
+			|| (vZ[P.iz].R >= scr.blocknomcorr);
 }
 
 /* --------------------------------------------------------------- */
@@ -916,7 +874,7 @@ static void WriteMakeFile(
 // Write each 'target: dependencies' line
 //		and each 'rule' line
 
-	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
+	const char	*option_nf = (scr.usingfoldmasks ? "" : " -nf");
 
 	for( int ia = 0; ia < gDat.ntil; ++ia ) {
 
@@ -976,7 +934,7 @@ static void WriteThumbFiles( const vector<BlkZ> &vZ )
 // Here's the strategy:
 // We paint a scape for the whole A-block and match it to the
 // scape for the nearest whole B-block below. If the correlation
-// (R-block) is at least blkmincorr then we use this B-block and
+// (R-block) is at least blockmincorr then we use this B-block and
 // pair off the tiles. Otherwise, the match is too uncertain and
 // we ignore this B-block. Remember that the block match transform
 // will set a search disc for the tile-tile jobs, and this will not
@@ -1000,7 +958,7 @@ static void WriteThumbFiles( const vector<BlkZ> &vZ )
 // B-layer at the head of the list if its R is within 90% of the
 // best R yet. We'll get better smoothness if we can keep matches
 // to nearest layers).
-// - Sum the fractional areas of records with R >= blknomcorr.
+// - Sum the fractional areas of records with R >= blocknomcorr.
 // - Call this A-tile matched if its sum is >= 0.30.
 // Summing is admittedly coarse, we just sum fractional overlap
 // areas without regard to orientation, and it's good enough for
@@ -1008,8 +966,8 @@ static void WriteThumbFiles( const vector<BlkZ> &vZ )
 //
 // There's an additional clause to stop looking at more B-blocks
 // a bit earlier, and this really comes into play if few of the
-// blocks in this region are as good as blknomcorr. Let's call
-// the coverage obtained using only great tissue (> blknomcorr)
+// blocks in this region are as good as blocknomcorr. Let's call
+// the coverage obtained using only great tissue (> blocknomcorr)
 // 'prime coverage' and the coverage we can get from all blocks
 // done so far 'secondary coverage'. If we've already looked at
 // half of the prospective blocks and the secondary coverage is
@@ -1080,8 +1038,8 @@ static void LayerLoop()
 
 		// done if satisfied now, or if unlikely to get better
 
-		if( (prime >= gArgs.blknomcvrg) ||
-			(scdry >= gArgs.blknomcvrg && ZSeen( vZ ) >= 0.50) ) {
+		if( (prime >= scr.blocknomcoverage) ||
+			(scdry >= scr.blocknomcoverage && ZSeen( vZ ) >= 0.50) ) {
 
 			break;
 		}
@@ -1113,6 +1071,11 @@ int main( int argc, char* argv[] )
 	gArgs.SetCmdLine( argc, argv );
 
 	TS.SetLogFile( flog );
+
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
+		exit( 42 );
+
+	inv_scl = 1.0 / scr.crossscale;
 
 /* --------------- */
 /* Read block data */

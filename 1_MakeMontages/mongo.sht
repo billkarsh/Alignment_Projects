@@ -1,26 +1,24 @@
 #!/bin/sh
 
 # Purpose:
-# Make workspace 'temp' for 'myidb'...
-# Makes everything except prms/matchparams.txt file.
+# Make alignment workspace 'temp' and create scripts within
+# to drive montaging pipeline steps.
 #
-# > makemontages myidb -d=temp -zmin=i -zmax=j
+# > makemontages temp -script=scriptpath -idb=idbpath -z=i,j
+#
+# Required:
+# temp					;workspace directory to create
+# -script=scriptpath	;alignment pipeline params file
+# -idb=idbpath			;path to idb directory
+# -z=i,j				;align layers in range z=[i..j]
 #
 # Options:
-# -nf					;no foldmasks
-# -nd					;no tile directories
-# -b=8					;subblock 1D size <in tiles>
-# -minareafrac=0.02		;same and cross req. area olap frac
 # -exe=ptestalt			;exe other than 'ptest'
-# -davinc				;no davi bock same lyr corners
-# -xmltype=0			;ImagePlus type code
-# -xmlmin=0				;intensity scale
-# -xmlmax=0				;intensity scale
 
 
 wrk=temp0
 
-makemontages idb0 -d=$wrk -zmin=7 -zmax=119 -nf -nd -b=8
+makemontages $wrk -script=prms/scriptparams.txt -idb=idb0 -z=7,119
 
 cp prms/* $wrk
 

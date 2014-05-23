@@ -92,15 +92,11 @@ exit:
 //
 bool ReadScriptParams(
 	ScriptParams	&S,
-	const char		*tempdir,
+	const char		*scriptpath,
 	FILE			*flog )
 {
-	char	name[2048];
-	FILE	*f;
+	FILE	*f = fopen( scriptpath, "r" );
 	int		ok = false;
-
-	sprintf( name, "%s/scriptparams.txt", tempdir );
-	f = fopen( name, "r" );
 
 	if( f ) {
 
@@ -127,12 +123,15 @@ bool ReadScriptParams(
 		GETPRM_SCR( &S.stripsweepspan, "stripsweepspan=%lf" );
 		GETPRM_SCR( &S.stripsweepstep, "stripsweepstep=%lf" );
 		GETPRM_SCR( &S.stripmincorr, "stripmincorr=%lf" );
+		GETPRM_SCR( &S.stripslots, "stripslots=%d" );
 
 		GETPRM_SCR( &S.crossblocksize, "crossblocksize=%d" );
 		GETPRM_SCR( &S.blockmincorr, "blockmincorr=%lf" );
 		GETPRM_SCR( &S.blocknomcorr, "blocknomcorr=%lf" );
+		GETPRM_SCR( &S.blocknomcoverage, "blocknomcoverage=%lf" );
 		GETPRM_SCR( &S.blockxyconf, "blockxyconf=%lf" );
 		GETPRM_SCR( &S.blockmaxdz, "blockmaxdz=%d" );
+		GETPRM_SCR( &S.blockslots, "blockslots=%d" );
 
 		GETPRM_SCR( &S.makedownslots, "makedownslots=%d" );
 
@@ -150,8 +149,10 @@ bool ReadScriptParams(
 
 		ok = true;
 	}
-	else
-		fprintf( flog, "ReadScriptParams: Can't open [%s].\n", name );
+	else {
+		fprintf( flog,
+		"ReadScriptParams: Can't open [%s].\n", scriptpath );
+	}
 
 exit:
 	if( f )
@@ -208,6 +209,7 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.XSCALE, "XSCALE=%lf" );
 		GETPRM_MCH( &M.YSCALE, "YSCALE=%lf" );
 		GETPRM_MCH( &M.SKEW, "SKEW=%lf" );
+
 		GETPRM_MCH( &M.MODE_SL, "MODE_SL=%c" );
 		GETPRM_MCH( &M.MODE_XL, "MODE_XL=%c" );
 		GETPRM_MCH( &M.TAB2DFM_SL, "TAB2DFM_SL=%c" );
@@ -231,6 +233,7 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.TWEAKS, "TWEAKS=%c" );
 		GETPRM_MCH( &M.LIMXY_SL, "LIMXY_SL=%d" );
 		GETPRM_MCH( &M.LIMXY_XL, "LIMXY_XL=%d" );
+
 		GETPRM_MCH( &M.OPT_SL, "OPT_SL=%c" );
 		GETPRM_MCH( &M.RIT_SL, "RIT_SL=%lf" );
 		GETPRM_MCH( &M.RIT_XL, "RIT_XL=%lf" );

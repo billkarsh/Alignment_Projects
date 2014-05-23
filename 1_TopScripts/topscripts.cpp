@@ -26,27 +26,20 @@
 class CArgs_scr {
 
 public:
-	char	idb[2048];
+	char	script[2048],
+			idb[2048];
 	char	*infile;
 	int		zmin,
-			zmax,
-			xml_type,
-			xml_min,
-			xml_max;
-	bool	NoFolds;
+			zmax;
 
 public:
 	CArgs_scr()
 	{
+		script[0]	= 0;
+		idb[0]		= 0;
 		infile		= NULL;
 		zmin		= 0;
 		zmax		= 32768;
-		xml_type	= 0;
-		xml_min		= 0;
-		xml_max		= 0;
-		NoFolds		= false;
-
-		strcpy( idb, "NoSuch" ); // protect real dirs
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -57,8 +50,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_scr	gArgs;
-static FILE*		flog			= NULL;
-static char			xmlprms[256]	= {0};
+static FILE*		flog	= NULL;
 
 
 
@@ -89,34 +81,37 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: topscripts <infile> -idb=idbpath -zmin=i -zmax=j"
-		" [options].\n" );
+		"Usage: topscripts <infile> -script=scriptpath"
+		" -idb=idbpath -z=i,j.\n" );
 		exit( 42 );
 	}
 
-	for( int i = 1; i < argc; ++i ) {
+	vector<int>	vi;
+	const char	*pchar;
 
-		const char	*_dir;
+	for( int i = 1; i < argc; ++i ) {
 
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
 			infile = argv[i];
-		else if( GetArgStr( _dir, "-idb=", argv[i] ) )
-			DskAbsPath( idb, sizeof(idb), _dir, flog );
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
-			;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
+		else if( GetArgStr( pchar, "-script=", argv[i] ) )
+			DskAbsPath( script, sizeof(script), pchar, flog );
+		else if( GetArgStr( pchar, "-idb=", argv[i] ) )
+			DskAbsPath( idb, sizeof(idb), pchar, flog );
+		else if( GetArgList( vi, "-z=", argv[i] ) ) {
+
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -142,26 +137,24 @@ static void Write_dbgo()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Make image database 'idb' from Rick or xml file...\n" );
+	fprintf( f, "# Make image database 'idb' from text 'billfile' or xml file...\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > makeidb <mylayout.txt or myxml.xml> -idb=idb\n" );
+	fprintf( f, "# > makeidb inpath -script=scriptpath -idb=idbpath -z=i,j\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -zmin=i -zmax=j\t\t\t;restricts layer range\n" );
-	fprintf( f, "# -nf\t\t\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -crop=CropRectsFile.txt\t;{cam,x0,y0,dx,dy} for ea. cam\n" );
-	fprintf( f, "# -xmltype=0\t\t\t\t;ImagePlus type code\n" );
-	fprintf( f, "# -xmlmin=0\t\t\t\t\t;intensity scale\n" );
-	fprintf( f, "# -xmlmax=0\t\t\t\t\t;intensity scale\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# inPath\t\t\t\t;mylayout.txt or myxml.xml file\n" );
+	fprintf( f, "# -script=scriptpath\t;alignment pipeline params file\n" );
+	fprintf( f, "# -idb=idbpath\t\t\t;idb folder to create\n" );
+	fprintf( f, "# -z=i,j\t\t\t\t;process layers in range z=[i..j]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# NOTE: Omit -idb parameter to generate RawData.xml.\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "makeidb %s -idb=%s -zmin=%d -zmax=%d%s%s\n",
-	gArgs.infile, gArgs.idb, gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
+	fprintf( f, "makeidb %s -script=%s -idb=%s -z=%d,%d\n",
+	gArgs.infile, gArgs.script, gArgs.idb,
+	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -183,67 +176,32 @@ static void Write_mongo()
 	fprintf( f, "#!/bin/sh\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Make workspace 'temp' for 'myidb'...\n" );
-	fprintf( f, "# Makes everything except prms/matchparams.txt file.\n" );
+	fprintf( f, "# Make alignment workspace 'temp' and create scripts within\n" );
+	fprintf( f, "# to drive montaging pipeline steps.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > makemontages myidb -d=temp -zmin=i -zmax=j\n" );
+	fprintf( f, "# > makemontages temp -script=scriptpath -idb=idbpath -z=i,j\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# temp\t\t\t\t\t;workspace directory to create\n" );
+	fprintf( f, "# -script=scriptpath\t;alignment pipeline params file\n" );
+	fprintf( f, "# -idb=idbpath\t\t\t;path to idb directory\n" );
+	fprintf( f, "# -z=i,j\t\t\t\t;align layers in range z=[i..j]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -nf\t\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -nd\t\t\t\t\t;no tile directories\n" );
-	fprintf( f, "# -b=8\t\t\t\t\t;subblock 1D size <in tiles>\n" );
-	fprintf( f, "# -minareafrac=0.02\t\t;same and cross req. area olap frac\n" );
 	fprintf( f, "# -exe=ptestalt\t\t\t;exe other than 'ptest'\n" );
-	fprintf( f, "# -davinc\t\t\t\t;no davi bock same lyr corners\n" );
-	fprintf( f, "# -xmltype=0\t\t\t;ImagePlus type code\n" );
-	fprintf( f, "# -xmlmin=0\t\t\t\t;intensity scale\n" );
-	fprintf( f, "# -xmlmax=0\t\t\t\t;intensity scale\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "wrk=temp0\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "makemontages %s -d=$wrk -zmin=%d -zmax=%d%s -nd -b=8%s\n",
-	gArgs.idb, gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : ""), xmlprms );
+	fprintf( f, "makemontages $wrk -script=%s -idb=%s -z=%d,%d\n",
+	gArgs.script, gArgs.idb,
+	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 	fprintf( f, "cp prms/* $wrk\n" );
 	fprintf( f, "\n" );
 
 	fclose( f );
 	FileScriptPerms( buf );
-}
-
-/* --------------------------------------------------------------- */
-/* XMLHasMRC ----------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-// Return true if *.mrc images.
-//
-static bool XMLHasMRC()
-{
-	FILE		*f = FileOpenOrDie( gArgs.infile, "r", flog );
-	CLineScan	LS;
-	int			nfile_path = 0;
-	bool		ismrc = false;
-
-	while( LS.Get( f ) > 0 ) {
-
-		if( strstr( LS.line, "ex.mrc\"" ) ) {
-			ismrc = true;
-			break;
-		}
-
-		if( nfile_path >= 10 )
-			break;
-
-		if( strstr( LS.line, "file_path" ) ) {
-			++nfile_path;
-		}
-	}
-
-	fclose( f );
-
-	return ismrc;
 }
 
 /* --------------------------------------------------------------- */
@@ -257,17 +215,6 @@ int main( int argc, char* argv[] )
 /* ------------------ */
 
 	gArgs.SetCmdLine( argc, argv );
-
-	int	L = 0;
-
-	if( gArgs.xml_type != 0 )
-		L += sprintf( xmlprms + L, " -xmltype=%d", gArgs.xml_type );
-
-	if( gArgs.xml_min != 0 )
-		L += sprintf( xmlprms + L, " -xmlmin=%d", gArgs.xml_min );
-
-	if( gArgs.xml_max != 0 )
-		L += sprintf( xmlprms + L, " -xmlmax=%d", gArgs.xml_max );
 
 /* ------- */
 /* Scripts */
