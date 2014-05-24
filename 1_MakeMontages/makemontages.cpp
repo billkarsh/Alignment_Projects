@@ -1230,6 +1230,9 @@ int main( int argc, char* argv[] )
 
 	TS.SetLogFile( flog );
 
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
+		exit( 42 );
+
 	int	L = 0;
 
 	if( scr.xmlpixeltype != 0 )
@@ -1240,9 +1243,6 @@ int main( int argc, char* argv[] )
 
 	if( scr.xmlsclmax != 0 )
 		L += sprintf( xmlprms + L, " -xmlmax=%d", scr.xmlsclmax );
-
-	if( !ReadScriptParams( scr, gArgs.script, flog ) )
-		goto exit;
 
 /* ---------------- */
 /* Read source data */
