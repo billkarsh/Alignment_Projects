@@ -126,10 +126,12 @@ bool ReadScriptParams(
 		GETPRM_SCR( &S.stripslots, "stripslots=%d" );
 
 		GETPRM_SCR( &S.crossblocksize, "crossblocksize=%d" );
+		GETPRM_SCR( &S.blocksweepspan, "blocksweepspan=%lf" );
+		GETPRM_SCR( &S.blocksweepstep, "blocksweepstep=%lf" );
+		GETPRM_SCR( &S.blockxyconf, "blockxyconf=%lf" );
 		GETPRM_SCR( &S.blockmincorr, "blockmincorr=%lf" );
 		GETPRM_SCR( &S.blocknomcorr, "blocknomcorr=%lf" );
 		GETPRM_SCR( &S.blocknomcoverage, "blocknomcoverage=%lf" );
-		GETPRM_SCR( &S.blockxyconf, "blockxyconf=%lf" );
 		GETPRM_SCR( &S.blockmaxdz, "blockmaxdz=%d" );
 		GETPRM_SCR( &S.blockslots, "blockslots=%d" );
 

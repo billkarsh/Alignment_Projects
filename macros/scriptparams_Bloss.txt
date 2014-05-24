@@ -34,18 +34,20 @@ maskoutresin=N         <typical N>       "Y=remove resin pixels from EM renderin
 # Cross-layer strip-strip coarse alignment
 #
 stripwidth=3           <typical 15>      "strips n tiles wide in short dimension"
-stripsweepspan=360     <typical 360.0>   "span of strip angle sweep (degrees)"
-stripsweepstep=5       <typical 5.0>     "angle sweep step size (degrees, step > 0)"
+stripsweepspan=360     <typical 360.0>   "strip angle sweep span (deg, 0 -> force 0)"
+stripsweepstep=5       <typical 5.0>     "strip sweep step size (deg, step > 0)"
 stripmincorr=0.02      <typical 0.02>    "strips 'fail' if correlation this low"
 stripslots=8           <typical 8>       "subscapes.sht/scapeops slots/threads per job"
 #
 # Cross-layer block-block refinement
 #
 crossblocksize=10      <typical 10>      "block work grid cell size^2 tiles"
+blocksweepspan=8       <typical 8.0>     "block angle sweep span (deg)"
+blocksweepstep=0.2     <typical 0.2>     "block sweep step size (deg, step > 0)"
+blockxyconf=0.75       <typical 0.75>    "search radius = (1-conf)(blockwide)"
 blockmincorr=0.1       <typical 0.45>    "min required block match correlation"
 blocknomcorr=0.2       <typical 0.50>    "nominal block match correlation"
 blocknomcoverage=0.90  <typical 0.90>    "nominal block area frac matched"
-blockxyconf=0.75       <typical 0.75>    "search radius = (1-conf)(blockwide)"
 blockmaxdz=10          <typical 10>      "max z-index span of useful correlation"
 blockslots=8           <typical 8>       "bsub.sht/cross_thisblock slots/threads per job"
 #

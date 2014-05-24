@@ -155,66 +155,6 @@ double CThmScan::PTWInterp(
 }
 
 /* --------------------------------------------------------------- */
-/* PeakHunt ------------------------------------------------------ */
-/* --------------------------------------------------------------- */
-
-// Bracket search for peak.
-//
-double CThmScan::PeakHunt( CorRec &best, double hlfwid, ThmRec &thm )
-{
-	CorRec	C,
-			B0	= best;
-	double	L	= best.A - hlfwid,
-			R	= best.A + hlfwid,
-			M;
-	int		k	= 1;
-
-	clock_t	t0 = StartTiming();
-
-	RFromAngle( best, M = (L+R)/2.0, thm );
-
-	while( R - L > 0.0001 ) {
-
-		double	a;
-
-		++k;
-
-		// move left up
-		RFromAngle( C, a = (L+M)/2.0, thm );
-
-		if( C.R >= best.R ) {
-			R		= M;
-			best	= C;
-			M		= a;
-		}
-		else
-			L		= a;
-
-		// move right back
-		RFromAngle( C, a = (M+R)/2.0, thm );
-
-		if( C.R >= best.R ) {
-			L		= M;
-			best	= C;
-			M		= a;
-		}
-		else
-			R		= a;
-	}
-
-	if( B0.R > best.R )
-		best = B0;
-
-	fprintf( flog,
-	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f\n",
-	k, best.R, best.A, best.X, best.Y );
-
-	StopTiming( flog, "PeakHunt", t0 );
-
-	return best.R;
-}
-
-/* --------------------------------------------------------------- */
 /* CThmScan ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
@@ -723,6 +663,66 @@ double CThmScan::AngleScanWithTweaks(
 			}
 		}
 	}
+
+	return best.R;
+}
+
+/* --------------------------------------------------------------- */
+/* PeakHunt ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Bracket search for peak.
+//
+double CThmScan::PeakHunt( CorRec &best, double hlfwid, ThmRec &thm )
+{
+	CorRec	C,
+			B0	= best;
+	double	L	= best.A - hlfwid,
+			R	= best.A + hlfwid,
+			M;
+	int		k	= 1;
+
+	clock_t	t0 = StartTiming();
+
+	RFromAngle( best, M = (L+R)/2.0, thm );
+
+	while( R - L > 0.0001 ) {
+
+		double	a;
+
+		++k;
+
+		// move left up
+		RFromAngle( C, a = (L+M)/2.0, thm );
+
+		if( C.R >= best.R ) {
+			R		= M;
+			best	= C;
+			M		= a;
+		}
+		else
+			L		= a;
+
+		// move right back
+		RFromAngle( C, a = (M+R)/2.0, thm );
+
+		if( C.R >= best.R ) {
+			L		= M;
+			best	= C;
+			M		= a;
+		}
+		else
+			R		= a;
+	}
+
+	if( B0.R > best.R )
+		best = B0;
+
+	fprintf( flog,
+	"PeakHunt: Best: K=%d, R=%.3f, A=%.3f, X=%.3f, Y=%.3f\n",
+	k, best.R, best.A, best.X, best.Y );
+
+	StopTiming( flog, "PeakHunt", t0 );
 
 	return best.R;
 }

@@ -612,9 +612,16 @@ static void ScapeStuff()
 	}
 	else {
 
-		S.DenovoBestAngle( best,
-			0, scr.stripsweepspan / 2, scr.stripsweepstep,
-			thm, true );
+		if( scr.stripsweepspan && scr.stripsweepstep ) {
+
+			S.DenovoBestAngle( best,
+				0, scr.stripsweepspan / 2, scr.stripsweepstep,
+				thm, true );
+		}
+		else {
+			best.A = 0;
+			S.PeakHunt( best, 0, thm );
+		}
 
 		best.T.Apply_R_Part( A.Opts );
 

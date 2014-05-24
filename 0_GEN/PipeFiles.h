@@ -23,10 +23,12 @@ typedef struct {
 			stripsweepspan,
 			stripsweepstep,
 			stripmincorr,
+			blocksweepspan,
+			blocksweepstep,
+			blockxyconf,
 			blockmincorr,
 			blocknomcorr,
-			blocknomcoverage,
-			blockxyconf;
+			blocknomcoverage;
 	int		usingfoldmasks,
 			makefmslots,
 			createauxdirs,

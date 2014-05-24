@@ -587,7 +587,9 @@ static bool ThisBZ(
 
 		S.Pretweaks( 0, 0, thm );
 
-		if( !S.DenovoBestAngle( best, 0, 4, .2, thm, false ) ) {
+		if( !S.DenovoBestAngle( best,
+				0, scr.blocksweepspan / 2, scr.blocksweepstep,
+				thm, false ) ) {
 
 			fprintf( flog, "Low corr [%g] for z=%d.\n",
 			best.R, TS.vtil[B.is0].z );
