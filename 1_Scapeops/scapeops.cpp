@@ -1,21 +1,17 @@
 //
 // scapeops
 //
-// Given inpath -idb=idbpath...
+// Given srcmons -idb=idbpath...
 //
 // Perform montage drawing and/or strip aligning as follows:
 //
 //	If drawing a montage...
 //
-//	-mb -zb=%d -scl=%d
-//
-//		[-lgord=%d] [-sdev=%d] [-resmask]
+//	-mb -zb=%d
 //
 // If aligning strips...
 //
-//	-ab -za=%d -zb=%d -scl=%d -abwide=%d -stpcorr=%lf
-//
-//		[-lgord=%d] [-sdev=%d] [-resmask] [-abdbg] [-abctr=%lf]
+//	-ab -za=%d -zb=%d
 //
 
 
@@ -97,7 +93,7 @@ public:
 	bool MakeRasV();
 	bool MakeRasH();
 
-	void WriteMeta( char clbl, int z, int scl );
+	void WriteMeta( char clbl, int z );
 
 	void MakePoints( vector<double> &v, vector<Point> &p );
 };
@@ -109,39 +105,27 @@ public:
 class CArgs_scp {
 
 public:
-	double	inv_scl,
-			stpcorr,
-			abctr;
-	char	*inpath;
-	string	idb;
-	int		za,
-			zb,
-			scl,
-			lgord,
-			sdev,
-			abwide;
-	bool	ismb,
-			isab,
-			resmask,
-			abdbg;
+	double		abctr;
+	string		idb;
+	const char	*srcmons,
+				*script;
+	int			za,
+				zb;
+	bool		ismb,
+				isab,
+				abdbg;
 
 public:
 	CArgs_scp()
 	{
-		stpcorr		= 0.02;
 		abctr		= 0.0;
-		inpath		= NULL;
+		srcmons		= NULL;
+		script		= NULL;
 		za			= -1;
 		zb			= -1;
-		scl			= 50;
-		lgord		= 1;	// 1  probably good for Davi EM
-		sdev		= 42;	// 42 useful for Davi EM
-		abwide		= 15;
 		ismb		= false;
 		isab		= false;
 		abdbg		= false;
-
-		inv_scl	= 1.0/scl;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -152,6 +136,8 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_scp	gArgs;
+static ScriptParams	scr;
+static double		inv_scl;
 static CTileSet		TS;
 static CSuperscape	*gA, *gB;
 static CThmScan		*gS;
@@ -216,22 +202,14 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			inpath = argv[i];
+			srcmons = argv[i];
+		else if( GetArgStr( script, "-script=", argv[i] ) )
+			;
 		else if( GetArgStr( pchar, "-idb=", argv[i] ) )
 			idb = pchar;
 		else if( GetArg( &za, "-za=%d", argv[i] ) )
 			;
 		else if( GetArg( &zb, "-zb=%d", argv[i] ) )
-			;
-		else if( GetArg( &scl, "-scl=%d", argv[i] ) )
-			inv_scl = 1.0/scl;
-		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
-			;
-		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
-			;
-		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
 			;
 		else if( GetArg( &abctr, "-abctr=%lf", argv[i] ) )
 			;
@@ -239,8 +217,6 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			ismb = true;
 		else if( IsArg( "-ab", argv[i] ) )
 			isab = true;
-		else if( IsArg( "-resmask", argv[i] ) )
-			resmask = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else {
@@ -336,9 +312,9 @@ bool CSuperscape::MakeWholeRaster()
 		vid[i - is0] = i;
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, 1.0/gArgs.scl, 1, 0,
-			gArgs.lgord, gArgs.sdev,
-			gArgs.resmask );
+			vid, inv_scl, 1, 0,
+			scr.legendremaxorder, scr.rendersdevcnts,
+			scr.maskoutresin );
 
 	return (ras != NULL);
 }
@@ -354,7 +330,7 @@ bool CSuperscape::MakeRasV()
 	vector<int>	vid;
 	int			w1, w2, h1, h2;
 
-	w1 = (gArgs.abwide * gW)/2;
+	w1 = (scr.stripwidth * gW)/2;
 	w2 = Bxc + w1;
 	w1 = Bxc - w1;
 
@@ -374,9 +350,9 @@ bool CSuperscape::MakeRasV()
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_scl, 1, 0,
-			gArgs.lgord, gArgs.sdev,
-			gArgs.resmask );
+			vid, inv_scl, 1, 0,
+			scr.legendremaxorder, scr.rendersdevcnts,
+			scr.maskoutresin );
 
 	return (ras != NULL);
 }
@@ -396,7 +372,7 @@ bool CSuperscape::MakeRasH()
 	w2 = Bxc + w1;
 	w1 = Bxc - w1;
 
-	h1 = (gArgs.abwide * gH)/2;
+	h1 = (scr.stripwidth * gH)/2;
 	h2 = Byc + h1;
 	h1 = Byc - h1;
 
@@ -412,9 +388,9 @@ bool CSuperscape::MakeRasH()
 	}
 
 	ras = TS.Scape( ws, hs, x0, y0,
-			vid, gArgs.inv_scl, 1, 0,
-			gArgs.lgord, gArgs.sdev,
-			gArgs.resmask );
+			vid, inv_scl, 1, 0,
+			scr.legendremaxorder, scr.rendersdevcnts,
+			scr.maskoutresin );
 
 	return (ras != NULL);
 }
@@ -423,14 +399,14 @@ bool CSuperscape::MakeRasH()
 /* WriteMeta ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-void CSuperscape::WriteMeta( char clbl, int z, int scl )
+void CSuperscape::WriteMeta( char clbl, int z )
 {
 	fprintf( flog,
 	"*%c: z deg [l,r,b,t] scl [ws,hs] [x0,y0]\n", clbl );
 
 	fprintf( flog,
 	"%d %d [%g,%g,%g,%g] %d [%d,%d] [%g,%g]\n",
-	z, deg, B.L, B.R, B.B, B.T, scl, ws, hs, x0, y0 );
+	z, deg, B.L, B.R, B.B, B.T, scr.crossscale, ws, hs, x0, y0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -549,11 +525,11 @@ static void NewAngProc(
 //	TAffine	Rbi, Ra, t;
 //
 // Scale back up
-//	best.T.MulXY( gArgs.scl );
-//	A.x0 *= gArgs.scl;
-//	A.y0 *= gArgs.scl;
-//	B.x0 *= gArgs.scl;
-//	B.y0 *= gArgs.scl;
+//	best.T.MulXY( scr.crossscale );
+//	A.x0 *= scr.crossscale;
+//	A.y0 *= scr.crossscale;
+//	B.x0 *= scr.crossscale;
+//	B.y0 *= scr.crossscale;
 //
 // A-montage -> A-oriented
 //	Ra.NUSetRot( A.deg*PI/180 );
@@ -590,7 +566,7 @@ static void ScapeStuff()
 		sprintf( buf, "montages/M_%d_0.png", gArgs.zb );
 		B.DrawRas( buf );
 		B.KillRas();
-		B.WriteMeta( 'M', gArgs.zb, gArgs.scl );
+		B.WriteMeta( 'M', gArgs.zb );
 		t0 = StopTiming( flog, "MakeMontage", t0 );
 	}
 
@@ -604,22 +580,22 @@ static void ScapeStuff()
 	t0 = StopTiming( flog, "MakeStrips", t0 );
 
 	A.MakePoints( thm.av, thm.ap );
-	A.WriteMeta( 'A', gArgs.za, gArgs.scl );
+	A.WriteMeta( 'A', gArgs.za );
 
 	B.MakePoints( thm.bv, thm.bp );
-	B.WriteMeta( 'B', gArgs.zb, gArgs.scl );
+	B.WriteMeta( 'B', gArgs.zb );
 
 	thm.ftc.clear();
-	thm.reqArea	= int(gW * gH * gArgs.inv_scl * gArgs.inv_scl);
-	thm.olap1D	= int(gW * gArgs.inv_scl * 0.5);
+	thm.reqArea	= int(gW * gH * inv_scl * inv_scl);
+	thm.olap1D	= int(gW * inv_scl * 0.5);
 	thm.scl		= 1;
 
 	S.Initialize( flog, best );
-	S.SetRThresh( gArgs.stpcorr );
+	S.SetRThresh( scr.stripmincorr );
 	S.SetNbMaxHt( 0.99 );
 	S.SetSweepConstXY( false );
 	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( 8 );
+	S.SetSweepNThreads( scr.stripslots );
 	S.SetUseCorrR( true );
 	S.SetNewAngProc( NewAngProc );
 
@@ -636,7 +612,16 @@ static void ScapeStuff()
 	}
 	else {
 
-		S.DenovoBestAngle( best, 0, 180, 5, thm, true );
+		if( scr.stripsweepspan && scr.stripsweepstep ) {
+
+			S.DenovoBestAngle( best,
+				0, scr.stripsweepspan / 2, scr.stripsweepstep,
+				thm, true );
+		}
+		else {
+			best.A = 0;
+			S.PeakHunt( best, 0, thm );
+		}
 
 		best.T.Apply_R_Part( A.Opts );
 
@@ -670,6 +655,11 @@ int main( int argc, char* argv[] )
 
 	TS.SetLogFile( flog );
 
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
+		goto exit;
+
+	inv_scl = 1.0 / scr.crossscale;
+
 /* ---------------- */
 /* Read source data */
 /* ---------------- */
@@ -677,7 +667,7 @@ int main( int argc, char* argv[] )
 	if( gArgs.zb >= 0 && gArgs.za < 0 )
 		gArgs.za = gArgs.zb;
 
-	TS.FillFromRgns( gArgs.inpath, gArgs.idb, gArgs.zb, gArgs.za );
+	TS.FillFromRgns( gArgs.srcmons, gArgs.idb, gArgs.zb, gArgs.za );
 
 	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 

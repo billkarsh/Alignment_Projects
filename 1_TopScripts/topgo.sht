@@ -2,26 +2,17 @@
 
 # Purpose:
 # Create (in CWD) top-level scripts for running alignment.
-# Makes everything except prms/matchparams.txt file.
 #
-# > topscripts <mylayout.txt or myxml.xml> -idb=idbpath -zmin=i -zmax=j
+# > topscripts inpath -script=scriptpath -idb=idbpath -z=i,j
 #
-# ImagePlus type codes used in xml files:
-#	AUTO		= -1
-#	GRAY8		= 0
-#	GRAY16		= 1
-#	GRAY32		= 2
-#	COLOR_256	= 3
-#	COLOR_RGB	= 4
-#
-# Options:
-# -nf				;no foldmasks
-# -xmltype=0		;ImagePlus type code
-# -xmlmin=0			;intensity scale
-# -xmlmax=0			;intensity scale
+# Required:
+# inPath				;mylayout.txt or myxml.xml file
+# -script=scriptpath	;alignment pipeline params file
+# -idb=idbpath			;idb folder to create
+# -z=i,j				;align layers in range z=[i..j]
 
 
 export MRC_TRIM=12
 
-topscripts myfile.txt -idb=idb0 -zmin=0 -zmax=100 -nf
+topscripts mylayout.txt -script=prms/scriptparams.txt -idb=idb0 -z=0,100
 

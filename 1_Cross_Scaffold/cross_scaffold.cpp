@@ -80,12 +80,13 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 4 ) {
+	if( argc < 3 ) {
 		printf(
-		"Usage: cross_scaffold srcmons -zmin=i -zmax=j"
-		" [options].\n" );
+		"Usage: cross_scaffold srcmons -z=i,j [options].\n" );
 		exit( 42 );
 	}
+
+	vector<int>	vi;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -96,10 +97,18 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 			srcmons = argv[i];
 		else if( GetArgStr( xml_lowres, "-lowres=", argv[i] ) )
 			;
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
+		else if( GetArgList( vi, "-z=", argv[i] ) ) {
+
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );

@@ -3,33 +3,28 @@
 # Purpose:
 # First step in cross-layer alignment.
 #
-# > scapeops inpath -idb=idbpath -zb=%d [options]
+# > scapeops srcmons -script=scriptpath -idb=idbpath [options]
+#
+# Required:
+# srcmons				;collected independent montages
+# -script=scriptpath	;alignment pipeline params file
+# -idb=idbpath			;path to idb directory
 #
 # Scapeops does montage drawing and/or strip aligning as follows:
 #
 # If drawing a montage...
 #
-#	-mb -zb=%d -scl=%d
-#
-#		[-lgord=%d] [-sdev=%d] [-resmask]
+#	-mb -zb=%d
 #
 # If aligning strips...
 #
-#	-ab -za=%d -zb=%d -scl=%d -abwide=%d -stpcorr=%lf
-#
-#		[-lgord=%d] [-sdev=%d] [-resmask] [-abdbg] [-abctr=%lf]
+#	-ab -za=%d -zb=%d
 #
 # Options:
 # -mb			;make montage for layer zb
 # -ab			;align layer za to zb
 # -za			;layer za used only with -ab option
 # -zb			;required layer zb
-# -scl=50		;integer scale reduction
-# -lgord=1		;Legendre poly field-flat max int order
-# -sdev=42		;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
-# -resmask		;mask out resin
-# -abwide=15	;strips this many tiles wide on short axis
-# -stpcorr=0.02	;required min corr for alignment
 # -abdbg		;make diagnostic images and exit
 # -abctr=0		;debug at this a-to-b angle
 

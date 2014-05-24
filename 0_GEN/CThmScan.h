@@ -108,8 +108,6 @@ private:
 		double	deg,
 		ThmRec	&thm );
 
-	double PeakHunt( CorRec &best, double hlfwid, ThmRec &thm );
-
 public:
 	CThmScan();
 
@@ -201,6 +199,8 @@ public:
 		double	hlfwid,
 		double	step,
 		ThmRec	&thm );
+
+	double PeakHunt( CorRec &best, double hlfwid, ThmRec &thm );
 
 	bool UsePriorAngles(
 		CorRec	&best,

@@ -1,22 +1,20 @@
 #!/bin/sh
 
 # Purpose:
-# Make image database 'idb' from Rick or xml file...
+# Make image database 'idb' from text 'billfile' or xml file...
 #
-# > makeidb <mylayout.txt or myxml.xml> -idb=idb
+# > makeidb inpath -script=scriptpath -idb=idbpath -z=i,j
 #
-# Options:
-# -zmin=i -zmax=j			;restricts layer range
-# -nf						;no foldmasks
-# -crop=CropRectsFile.txt	;{cam,x0,y0,dx,dy} for ea. cam
-# -xmltype=0				;ImagePlus type code
-# -xmlmin=0					;intensity scale
-# -xmlmax=0					;intensity scale
+# Required:
+# inPath				;mylayout.txt or myxml.xml file
+# -script=scriptpath	;alignment pipeline params file
+# -idb=idbpath			;idb folder to create
+# -z=i,j				;process layers in range z=[i..j]
 #
 # NOTE: Omit -idb parameter to generate RawData.xml.
 
 
 export MRC_TRIM=12
 
-makeidb Z7-119.txt -idb=idb0 -zmin=7 -zmax=119 -nf
+makeidb Z7-119.txt -script=prms/scriptparams.txt -idb=idb0 -z=7,119
 

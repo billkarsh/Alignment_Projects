@@ -66,22 +66,31 @@ void CArgs_alnmon::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 3 ) {
+	if( argc < 2 ) {
 		printf(
-		"Usage: cross_lowres -zmin=i -zmax=j"
-		" [options].\n" );
+		"Usage: cross_lowres -z=i,j [options].\n" );
 		exit( 42 );
 	}
+
+	vector<int>	vi;
 
 	for( int i = 1; i < argc; ++i ) {
 
 		// echo to log
 		fprintf( flog, "%s ", argv[i] );
 
-		if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
+		if( GetArgList( vi, "-z=", argv[i] ) ) {
+
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else if( IsArg( "-table", argv[i] ) )
 			table = true;
 		else {

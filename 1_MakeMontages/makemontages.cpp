@@ -80,41 +80,21 @@ public:
 class CArgs_scr {
 
 public:
-	// minareafrac used for same and cross layer.
-	// Typical vals:
-	// 0.025	historic typical
-	// 0.020	Davi and new typical
-	// 0.0003	Davi older Harvard data
-	//
-	double		minareafrac;
-	string		idbpath;
+	string		idb;
 	const char	*outdir,
+				*script,
 				*exenam;
 	int			zmin,
-				zmax,
-				blksize,
-				xml_type,
-				xml_min,
-				xml_max;
-	bool		NoFolds,
-				NoDirs,
-				davinocorn;
+				zmax;
 
 public:
 	CArgs_scr()
 	{
-		minareafrac	= 0.020;
 		outdir		= "NoSuch";	// prevent overwriting real dir
+		script		= NULL;
 		exenam		= "ptest";
 		zmin		= 0;
 		zmax		= 32768;
-		blksize		= 8;
-		xml_type	= 0;
-		xml_min		= 0;
-		xml_max		= 0;
-		NoFolds		= false;
-		NoDirs		= false;
-		davinocorn	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -125,6 +105,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_scr	gArgs;
+static ScriptParams	scr;
 static CTileSet		TS;
 static FILE*		flog	= NULL;
 static char			xmlprms[256]	= {0};
@@ -160,10 +141,14 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 5 ) {
 		printf(
-		"Usage: makemontages <idbpath> -d=temp -zmin=i -zmax=j"
+		"Usage: makemontages temp"
+		" -script=scriptpath -idb=idbpath -z=i,j"
 		" [options].\n" );
 		exit( 42 );
 	}
+
+	vector<int>	vi;
+	const char	*pchar;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -171,31 +156,25 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 		fprintf( flog, "%s ", argv[i] );
 
 		if( argv[i][0] != '-' )
-			idbpath = argv[i];
-		else if( GetArgStr( outdir, "-d=", argv[i] ) )
+			outdir = argv[i];
+		else if( GetArgStr( script, "-script=", argv[i] ) )
 			;
+		else if( GetArgStr( pchar, "-idb=", argv[i] ) )
+			idb=pchar;
 		else if( GetArgStr( exenam, "-exe=", argv[i] ) )
 			;
-		else if( GetArg( &minareafrac, "-minareafrac=%lf", argv[i] ) )
-			;
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArg( &blksize, "-b=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_type, "-xmltype=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_min, "-xmlmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &xml_max, "-xmlmax=%d", argv[i] ) )
-			;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
-		else if( IsArg( "-nd", argv[i] ) )
-			NoDirs = true;
-		else if( IsArg( "-davinc", argv[i] ) )
-			davinocorn = true;
+		else if( GetArgList( vi, "-z=", argv[i] ) ) {
+
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
+		}
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -219,7 +198,7 @@ static void CreateTopDir()
 
 // copy imageparams here
 	sprintf( name, "cp %s/imageparams.txt %s",
-		gArgs.idbpath.c_str(), gArgs.outdir );
+		gArgs.idb.c_str(), gArgs.outdir );
 	system( name );
 
 // create stack subdir
@@ -344,7 +323,7 @@ static void WriteXviewFile()
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "xview X_A_BIN -idb=%s -z=%d,%d -degcw=0 -type=X%s\n",
-	gArgs.idbpath.c_str(), gArgs.zmin, gArgs.zmax, xmlprms );
+	gArgs.idb.c_str(), gArgs.zmin, gArgs.zmax, xmlprms );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -817,24 +796,16 @@ static void Write_Crossgo()
 	fprintf( f, "# create workspace mytemp/cross_wkspc, and scripts\n" );
 	fprintf( f, "# governing cross layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_topscripts -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_topscripts srcmons -script=scriptpath -z=i,j\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -scl=50\t\t\t;size reduction factor\n" );
-	fprintf( f, "# -lgord=1\t\t\t;Legendre poly max order\n" );
-	fprintf( f, "# -sdev=42\t\t\t;scape sdev size\n" );
-	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
-	fprintf( f, "# -abwide=15\t\t;strip width in tiles\n" );
-	fprintf( f, "# -stpcorr=0.02\t\t;req. min strip corr\n" );
-	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
-	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# srcmons\t\t\t\t;collected independent montages\n" );
+	fprintf( f, "# -script=scriptpath\t;alignment pipeline params file\n" );
+	fprintf( f, "# -z=i,j\t\t\t\t;align layers in range z=[i..j]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_topscripts X_A_BIN_mons -zmin=%d -zmax=%d%s -scl=50 -lgord=1 -sdev=42 -abwide=15 -stpcorr=0.02 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75\n",
-	gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : "") );
+	fprintf( f, "cross_topscripts X_A_BIN_mons -script=%s -z=%d,%d\n",
+	gArgs.script, gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -880,8 +851,7 @@ static void CreateLayerDir( char *lyrdir, int L )
 // pertains to this tile, or this tile acting as a source onto
 // other tiles.
 //
-// For example, folder 8/10 contains the foldmask fm.png for tile
-// 10 in layer 8. If this folder contains file 7.11.tf.txt it
+// For example, if folder 8/10 contains the file 7.11.tf.txt it
 // lists the transforms mapping tile 8/10 onto tile 7/11.
 //
 static void CreateTileSubdirs( const char *lyrdir, int is0, int isN )
@@ -940,7 +910,7 @@ static void WriteMakeFile(
 // Write each 'target: dependencies' line
 //		and each 'rule' line
 
-	const char	*option_nf = (gArgs.NoFolds ? " -nf" : "");
+	const char	*option_nf = (scr.usingfoldmasks ? "" : " -nf");
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -1010,7 +980,7 @@ void BlockSet::OrientLayer( int is0, int isN )
 //
 void BlockSet::SetDims()
 {
-	dx = gArgs.blksize;
+	dx = scr.montageblocksize;
 	dy = dx;
 	dx *= gW;
 	dy *= gH;
@@ -1056,7 +1026,7 @@ void BlockSet::PartitionJobs( int is0, int isN )
 		else if( iy >= ky )
 			iy = ky - 1;
 
-		if( gArgs.davinocorn ) {
+		if( scr.ignorecorners ) {
 
 			const char	*c, *n;
 
@@ -1067,7 +1037,7 @@ void BlockSet::PartitionJobs( int is0, int isN )
 
 		for( int b = a + 1; b < isN; ++b ) {
 
-			if( gArgs.davinocorn ) {
+			if( scr.ignorecorners ) {
 
 				const char	*c, *n;
 				int			rowb, colb;
@@ -1080,7 +1050,7 @@ void BlockSet::PartitionJobs( int is0, int isN )
 					continue;
 			}
 
-			if( TS.ABOlap( a, b ) > gArgs.minareafrac )
+			if( TS.ABOlap( a, b ) > scr.mintileolapfrac )
 				K[ix + kx*iy].P.push_back( Pair( a, b ) );
 		}
 	}
@@ -1236,7 +1206,7 @@ static void ForEachLayer()
 
 		CreateLayerDir( lyrdir, z );
 
-		if( !gArgs.NoDirs )
+		if( scr.createauxdirs )
 			CreateTileSubdirs( lyrdir, is0, isN );
 
 		BS.CarveIntoBlocks( is0, isN );
@@ -1260,29 +1230,32 @@ int main( int argc, char* argv[] )
 
 	TS.SetLogFile( flog );
 
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
+		exit( 42 );
+
 	int	L = 0;
 
-	if( gArgs.xml_type != 0 )
-		L += sprintf( xmlprms + L, " -xmltype=%d", gArgs.xml_type );
+	if( scr.xmlpixeltype != 0 )
+		L += sprintf( xmlprms + L, " -xmltype=%d", scr.xmlpixeltype );
 
-	if( gArgs.xml_min != 0 )
-		L += sprintf( xmlprms + L, " -xmlmin=%d", gArgs.xml_min );
+	if( scr.xmlsclmin != 0 )
+		L += sprintf( xmlprms + L, " -xmlmin=%d", scr.xmlsclmin );
 
-	if( gArgs.xml_max != 0 )
-		L += sprintf( xmlprms + L, " -xmlmax=%d", gArgs.xml_max );
+	if( scr.xmlsclmax != 0 )
+		L += sprintf( xmlprms + L, " -xmlmax=%d", scr.xmlsclmax );
 
 /* ---------------- */
 /* Read source data */
 /* ---------------- */
 
-	TS.FillFromIDB( gArgs.idbpath, gArgs.zmin, gArgs.zmax );
+	TS.FillFromIDB( gArgs.idb, gArgs.zmin, gArgs.zmax );
 
 	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
 	if( !TS.vtil.size() )
 		goto exit;
 
-	TS.SetTileDimsFromIDB( gArgs.idbpath );
+	TS.SetTileDimsFromIDB( gArgs.idb );
 	TS.GetTileDims( gW, gH );
 
 /* ------------------------------------------------- */
@@ -1302,8 +1275,8 @@ int main( int argc, char* argv[] )
 	WriteEviewFile();
 
 	WriteCountsamedirsFile();
-	WriteSSubNFile( 4 );
-	WriteDSubNFile( 4 );
+	WriteSSubNFile( scr.makesameslots );
+	WriteDSubNFile( scr.makedownslots );
 	WriteReportFiles();
 	WriteMSubFile();
 	WriteMReportFile();

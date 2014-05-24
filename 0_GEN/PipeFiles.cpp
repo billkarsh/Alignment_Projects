@@ -57,7 +57,13 @@ static bool GetPrm(
 		if( isspace( LS.line[0] ) || LS.line[0] == '#' )
 			continue;
 		else if( 1 == sscanf( LS.line, fmt, v ) ) {
+
 			fprintf( flog, LS.line );
+
+			// rectify empty path spec
+			if( strchr( fmt, 's' ) && ((char*)v)[0] == '<' )
+				((char*)v)[0] = 0;
+
 			ok = true;
 			goto exit;
 		}
@@ -71,6 +77,89 @@ static bool GetPrm(
 	fprintf( flog, "%s: Can't find [%s].\n", caller, fmt );
 
 exit:
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* ReadScriptParams ---------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+#define	GETPRM_SCR( addr, pat )									\
+	if( !GetPrm( addr, pat, "ReadScriptParams", f, flog ) )		\
+		goto exit
+
+// Read parameter file governing alignment pipeline.
+//
+bool ReadScriptParams(
+	ScriptParams	&S,
+	const char		*scriptpath,
+	FILE			*flog )
+{
+	FILE	*f = fopen( scriptpath, "r" );
+	int		ok = false;
+
+	if( f ) {
+
+		char	buf[2048];
+
+		fprintf( flog, "\n---- Script parameters ----\n" );
+
+		GETPRM_SCR( &S.usingfoldmasks, "usingfoldmasks=%c" );
+		GETPRM_SCR( buf, "croprectfile=%s" ); S.croprectfile = buf;
+		GETPRM_SCR( &S.makefmslots, "makefmslots=%d" );
+
+		GETPRM_SCR( &S.createauxdirs, "createauxdirs=%c" );
+		GETPRM_SCR( &S.montageblocksize, "montageblocksize=%d" );
+		GETPRM_SCR( &S.mintileolapfrac, "mintileolapfrac=%lf" );
+		GETPRM_SCR( &S.ignorecorners, "ignorecorners=%c" );
+		GETPRM_SCR( &S.makesameslots, "makesameslots=%d" );
+
+		GETPRM_SCR( &S.crossscale, "crossscale=%d" );
+		GETPRM_SCR( &S.legendremaxorder, "legendremaxorder=%d" );
+		GETPRM_SCR( &S.rendersdevcnts, "rendersdevcnts=%d" );
+		GETPRM_SCR( &S.maskoutresin, "maskoutresin=%c" );
+
+		GETPRM_SCR( &S.stripwidth, "stripwidth=%d" );
+		GETPRM_SCR( &S.stripsweepspan, "stripsweepspan=%lf" );
+		GETPRM_SCR( &S.stripsweepstep, "stripsweepstep=%lf" );
+		GETPRM_SCR( &S.stripmincorr, "stripmincorr=%lf" );
+		GETPRM_SCR( &S.stripslots, "stripslots=%d" );
+
+		GETPRM_SCR( &S.crossblocksize, "crossblocksize=%d" );
+		GETPRM_SCR( &S.blocksweepspan, "blocksweepspan=%lf" );
+		GETPRM_SCR( &S.blocksweepstep, "blocksweepstep=%lf" );
+		GETPRM_SCR( &S.blockxyconf, "blockxyconf=%lf" );
+		GETPRM_SCR( &S.blockmincorr, "blockmincorr=%lf" );
+		GETPRM_SCR( &S.blocknomcorr, "blocknomcorr=%lf" );
+		GETPRM_SCR( &S.blocknomcoverage, "blocknomcoverage=%lf" );
+		GETPRM_SCR( &S.blockmaxdz, "blockmaxdz=%d" );
+		GETPRM_SCR( &S.blockslots, "blockslots=%d" );
+
+		GETPRM_SCR( &S.makedownslots, "makedownslots=%d" );
+
+		GETPRM_SCR( &S.xmlpixeltype, "xmlpixeltype=%d" );
+		GETPRM_SCR( &S.xmlsclmin, "xmlsclmin=%d" );
+		GETPRM_SCR( &S.xmlsclmax, "xmlsclmax=%d" );
+
+		// finish Y/N booleans
+		S.usingfoldmasks	= (toupper( S.usingfoldmasks ) == 'Y');
+		S.createauxdirs		= (toupper( S.createauxdirs ) == 'Y');
+		S.ignorecorners		= (toupper( S.ignorecorners ) == 'Y');
+		S.maskoutresin		= (toupper( S.maskoutresin ) == 'Y');
+
+		fprintf( flog, "\n" );
+
+		ok = true;
+	}
+	else {
+		fprintf( flog,
+		"ReadScriptParams: Can't open [%s].\n", scriptpath );
+	}
+
+exit:
+	if( f )
+		fclose( f );
+
 	return ok;
 }
 
@@ -122,6 +211,7 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.XSCALE, "XSCALE=%lf" );
 		GETPRM_MCH( &M.YSCALE, "YSCALE=%lf" );
 		GETPRM_MCH( &M.SKEW, "SKEW=%lf" );
+
 		GETPRM_MCH( &M.MODE_SL, "MODE_SL=%c" );
 		GETPRM_MCH( &M.MODE_XL, "MODE_XL=%c" );
 		GETPRM_MCH( &M.TAB2DFM_SL, "TAB2DFM_SL=%c" );
@@ -145,6 +235,7 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.TWEAKS, "TWEAKS=%c" );
 		GETPRM_MCH( &M.LIMXY_SL, "LIMXY_SL=%d" );
 		GETPRM_MCH( &M.LIMXY_XL, "LIMXY_XL=%d" );
+
 		GETPRM_MCH( &M.OPT_SL, "OPT_SL=%c" );
 		GETPRM_MCH( &M.RIT_SL, "RIT_SL=%lf" );
 		GETPRM_MCH( &M.RIT_XL, "RIT_XL=%lf" );

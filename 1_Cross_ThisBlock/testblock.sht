@@ -4,15 +4,6 @@
 # Put this script into a Dx_y folder to try or debug block.
 #
 # Options:
-# -nf				;no foldmasks
-# -scl=50			;integer scale reduction
-# -lgord=1			;Legendre poly field-flat max int order
-# -sdev=42			;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)
-# -resmask			;mask out resin
-# -blkmincorr=0.45	;required min corr for alignment
-# -blknomcorr=0.50	;nominal corr for alignment
-# -blknomcvrg=0.90	;nominal coverage for alignment
-# -xyconf=0.75		;search radius = (1-xyconf)*blkwide
 # -alldz			;force evaluation of all maxdz layers
 # -abdbg			;make diagnostic images and exit (Z^Z-1)
 # -abdbg=k			;make diagnostic images and exit (Z^k)
@@ -21,5 +12,5 @@
 
 export MRC_TRIM=12
 
-qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -nf -scl=50 -lgord=1 -sdev=42 -blkmincorr=0.45 -blknomcorr=0.50 -xyconf=0.75
+qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -script=../../scriptparams.txt
 

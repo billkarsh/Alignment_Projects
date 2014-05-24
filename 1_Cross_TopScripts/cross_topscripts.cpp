@@ -25,35 +25,17 @@
 class CArgs_cross {
 
 public:
-	double	stpcorr,
-			blkmincorr,
-			blknomcorr,
-			xyconf;		// search radius = (1-conf)(blockwide)
-	char	srcmons[2048];
-	int		zmin,
-			zmax,
-			scl,
-			lgord,
-			sdev,
-			abwide;
-	bool	resmask,
-			NoFolds;
+	char		srcmons[2048];
+	const char	*script;
+	int			zmin,
+				zmax;
 
 public:
 	CArgs_cross()
 	{
-		stpcorr		= 0.02;
-		blkmincorr	= 0.45;
-		blknomcorr	= 0.50;
-		xyconf		= 0.75;
-		zmin		= 0;
-		zmax		= 32768;
-		scl			= 50;
-		lgord		= 1;	// 1  probably good for Davi EM
-		sdev		= 42;	// 42 useful for Davi EM
-		abwide		= 15;
-		resmask		= false;
-		NoFolds		= false;
+		script	= NULL;
+		zmin	= 0;
+		zmax	= 32768;
 
 		strcpy( srcmons, "X_A_BIN_mons" );
 	};
@@ -66,6 +48,7 @@ public:
 /* --------------------------------------------------------------- */
 
 static CArgs_cross	gArgs;
+static ScriptParams	scr;
 static string		idb;
 static char			*gtopdir = "cross_wkspc";
 static FILE*		flog = NULL;
@@ -99,10 +82,12 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 	if( argc < 4 ) {
 		printf(
-		"Usage: cross_topscripts srcmons -zmin=i -zmax=j"
-		" [options].\n" );
+		"Usage: cross_topscripts srcmons"
+		" -script=scriptpath -z=i,j.\n" );
 		exit( 42 );
 	}
+
+	vector<int>	vi;
 
 	for( int i = 1; i < argc; ++i ) {
 
@@ -113,33 +98,20 @@ void CArgs_cross::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			DskAbsPath( srcmons, sizeof(srcmons), argv[i], flog );
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+		else if( GetArgStr( script, "-script=", argv[i] ) )
 			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArg( &scl, "-scl=%d", argv[i] ) )
-			;
-		else if( GetArg( &lgord, "-lgord=%d", argv[i] ) )
-			;
-		else if( GetArg( &sdev, "-sdev=%d", argv[i] ) )
-			;
-		else if( GetArg( &abwide, "-abwide=%d", argv[i] ) )
-			;
-		else if( GetArg( &stpcorr, "-stpcorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &blkmincorr, "-blkmincorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &blknomcorr, "-blknomcorr=%lf", argv[i] ) )
-			;
-		else if( GetArg( &xyconf, "-xyconf=%lf", argv[i] ) ) {
+		else if( GetArgList( vi, "-z=", argv[i] ) ) {
 
-			if( xyconf < 0.0 || xyconf > 1.0 )
-				xyconf = 0.5;
+			if( 2 == vi.size() ) {
+				zmin = vi[0];
+				zmax = vi[1];
+			}
+			else {
+				fprintf( flog,
+				"Bad format in -z [%s].\n", argv[i] );
+				exit( 42 );
+			}
 		}
-		else if( IsArg( "-resmask", argv[i] ) )
-			resmask = true;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
 		else {
 			printf( "Did not understand option '%s'.\n", argv[i] );
 			exit( 42 );
@@ -212,18 +184,13 @@ static void CreateTopDir()
 
 static void WriteSubscapes( vector<int> &zlist )
 {
-// compose common argument string for all but last layer
+// compose common argument string
 
 	char	sopt[2048];
 
 	sprintf( sopt,
-	"'%s' -idb=%s"
-	" -mb -scl=%d -lgord=%d -sdev=%d%s"
-	" -ab -abwide=%d -stpcorr=%g",
-	gArgs.srcmons, idb.c_str(),
-	gArgs.scl, gArgs.lgord, gArgs.sdev,
-	(gArgs.resmask ? " -resmask" : ""),
-	gArgs.abwide, gArgs.stpcorr );
+	"'%s' -script=%s -idb=%s -mb",
+	gArgs.srcmons, gArgs.script, idb.c_str() );
 
 // open file
 
@@ -240,33 +207,28 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# First step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > scapeops inpath -idb=idbpath -zb=%%d [options]\n" );
+	fprintf( f, "# > scapeops srcmons -script=scriptpath -idb=idbpath [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# srcmons\t\t\t\t;collected independent montages\n" );
+	fprintf( f, "# -script=scriptpath\t;alignment pipeline params file\n" );
+	fprintf( f, "# -idb=idbpath\t\t\t;path to idb directory\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Scapeops does montage drawing and/or strip aligning as follows:\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# If drawing a montage...\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t-mb -zb=%%d -scl=%%d\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "#\t\t[-lgord=%%d] [-sdev=%%d] [-resmask]\n" );
+	fprintf( f, "#\t-mb -zb=%%d\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# If aligning strips...\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "#\t-ab -za=%%d -zb=%%d -scl=%%d -abwide=%%d -stpcorr=%%lf\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "#\t\t[-lgord=%%d] [-sdev=%%d] [-resmask] [-abdbg] [-abctr=%%lf]\n" );
+	fprintf( f, "#\t-ab -za=%%d -zb=%%d\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -mb\t\t\t;make montage for layer zb\n" );
 	fprintf( f, "# -ab\t\t\t;align layer za to zb\n" );
 	fprintf( f, "# -za\t\t\t;layer za used only with -ab option\n" );
 	fprintf( f, "# -zb\t\t\t;required layer zb\n" );
-	fprintf( f, "# -scl=50\t\t;integer scale reduction\n" );
-	fprintf( f, "# -lgord=1\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -sdev=42\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -resmask\t\t;mask out resin\n" );
-	fprintf( f, "# -abwide=15\t;strips this many tiles wide on short axis\n" );
-	fprintf( f, "# -stpcorr=0.02\t;required min corr for alignment\n" );
 	fprintf( f, "# -abdbg\t\t;make diagnostic images and exit\n" );
 	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
@@ -285,9 +247,9 @@ static void WriteSubscapes( vector<int> &zlist )
 	for( int iz = 1; iz < nz; ++iz ) {
 
 		fprintf( f,
-		"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-		" scapeops %s -za=%d -zb=%d\n",
-		zlist[iz - 1],
+		"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch %d"
+		" scapeops %s -ab -za=%d -zb=%d\n",
+		zlist[iz - 1], scr.stripslots,
 		sopt, zlist[iz], zlist[iz - 1] );
 	}
 
@@ -297,14 +259,10 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# Just montage last layer\n" );
 
 	fprintf( f,
-	"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch 8"
-	" scapeops '%s' -idb=%s -mb -scl=%d -lgord=%d -sdev=%d%s"
-	" -zb=%d\n",
-	zlist[nz - 1],
-	gArgs.srcmons, idb.c_str(),
-	gArgs.scl, gArgs.lgord, gArgs.sdev,
-	(gArgs.resmask ? " -resmask" : ""),
-	zlist[nz - 1] );
+	"qsub -N sc-%d -j y -o out.txt -b y -cwd -V -pe batch %d"
+	" scapeops %s -zb=%d\n",
+	zlist[nz - 1], scr.stripslots,
+	sopt, zlist[nz - 1] );
 
 	fprintf( f, "\n" );
 
@@ -336,13 +294,16 @@ static void WriteLowresgo()
 	fprintf( f, "# Correct mistakes using 'Align with Manual Landmarks' feature\n" );
 	fprintf( f, "# and then Save result with the same name.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_lowres -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_lowres -z=i,j [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# -z=i,j\t\t;assemble layers in range z=[i..j]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
 	fprintf( f, "# -table\t\t;write debugging striptable.txt and exit\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_lowres -zmin=%d -zmax=%d\n",
+	fprintf( f, "cross_lowres -z=%d,%d\n",
 	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
@@ -374,13 +335,17 @@ static void WriteScafgo()
 	fprintf( f, "# serves both as the input for the block-block alignment, and\n" );
 	fprintf( f, "# as the starting guess for the final LSQ alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_scaffold srcmons -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_scaffold srcmons -z=i,j [options]\n" );
+	fprintf( f, "#\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# srcmons\t\t\t\t;collected independent montages\n" );
+	fprintf( f, "# -z=i,j\t\t\t\t;align layers in range z=[i..j]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -lowres=LowRes.xml\t\t;alternate coarse alignment reference\n" );
+	fprintf( f, "# -lowres=LowRes.xml\t;alternate coarse alignment reference\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_scaffold %s -zmin=%d -zmax=%d\n",
+	fprintf( f, "cross_scaffold %s -z=%d,%d\n",
 	gArgs.srcmons, gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
@@ -421,31 +386,21 @@ static void WriteCarvego()
 	fprintf( f, "# Purpose:\n" );
 	fprintf( f, "# Fourth step in cross-layer alignment.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Carve each scaffold layer into blocks of size bxb tiles\n" );
+	fprintf( f, "# Carve each scaffold layer into blocks of size crossblocksize\n" );
 	fprintf( f, "# and create new script 'bsub.sht' to distribute block-block\n" );
 	fprintf( f, "# alignment jobs to cluster.\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# > cross_carveblocks srcscaf -zmin=i -zmax=j [options]\n" );
+	fprintf( f, "# > cross_carveblocks srcscaf -script=scriptpath -z=i,j\n" );
 	fprintf( f, "#\n" );
-	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -b=10\t\t\t\t;ea. block roughly bXb tiles in area\n" );
-	fprintf( f, "# -nf\t\t\t\t;no foldmasks\n" );
-	fprintf( f, "# -scl=50\t\t\t;integer scale reduction\n" );
-	fprintf( f, "# -lgord=1\t\t\t;Legendre poly field-flat max int order\n" );
-	fprintf( f, "# -sdev=42\t\t\t;int: if > 0, img normed to mean=127, sd=sdev (recmd 42)\n" );
-	fprintf( f, "# -resmask\t\t\t;mask out resin\n" );
-	fprintf( f, "# -blkmincorr=0.45\t;required min corr for alignment\n" );
-	fprintf( f, "# -blknomcorr=0.50\t;nominal corr for alignment\n" );
-	fprintf( f, "# -xyconf=0.75\t\t;search radius = (1-conf)(blockwide)\n" );
-	fprintf( f, "# -maxDZ=10\t\t\t;layers still correlate at this z-index span\n" );
+	fprintf( f, "# Required:\n" );
+	fprintf( f, "# srcscaf\t\t\t\t;scaffold created by scafgo.sht\n" );
+	fprintf( f, "# -script=scriptpath\t;alignment pipeline params file\n" );
+	fprintf( f, "# -z=i,j\t\t\t\t;align layers in range z=[i..j]\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "cross_carveblocks %s -zmin=%d -zmax=%d%s -b=10 -scl=%d -lgord=%d -sdev=%d%s -blkmincorr=%g -blknomcorr=%g -xyconf=%g\n",
-	BuildScafPath( srcscaf ), gArgs.zmin, gArgs.zmax,
-	(gArgs.NoFolds ? " -nf" : ""),
-	gArgs.scl, gArgs.lgord, gArgs.sdev,
-	(gArgs.resmask ? " -resmask" : ""),
-	gArgs.blkmincorr, gArgs.blknomcorr, gArgs.xyconf );
+	fprintf( f, "cross_carveblocks %s -script=%s -z=%d,%d\n",
+	BuildScafPath( srcscaf ), gArgs.script,
+	gArgs.zmin, gArgs.zmax );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -469,6 +424,9 @@ int main( int argc, char* argv[] )
 	IDBFromTemp( idb, ".", flog );
 
 	if( idb.empty() )
+		exit( 42 );
+
+	if( !ReadScriptParams( scr, gArgs.script, flog ) )
 		exit( 42 );
 
 /* ---------------- */

@@ -1,4 +1,4 @@
-# Parameters for thumbnail and detailed mesh matching pipeline stages.
+# Parameters for 'ptest' FFT and deformable mesh image matching.
 #
 # _SL,_XL denote same-layer,cross-layer
 #
