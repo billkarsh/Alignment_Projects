@@ -8,7 +8,8 @@
 
 export MRC_TRIM=12
 
-nthr=4
+nproc=4
+nslot=4
 
 if (($# == 1))
 then
@@ -23,7 +24,7 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr
-		qsub -N makefm-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.fm -j $nthr EXTRA='""'
+		qsub -N makefm-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.fm -j $nproc EXTRA='""'
 		cd ..
 	fi
 done

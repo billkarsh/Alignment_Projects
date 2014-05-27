@@ -424,7 +424,7 @@ static void WriteCountsamedirsFile()
 /* WriteSSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteSSubNFile( int njobs )
+static void WriteSSubNFile()
 {
 	char	buf[2048];
 	FILE	*f;
@@ -443,7 +443,10 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=%d\n", njobs );
+	fprintf( f, "nproc=%d\n",
+	scr.makesamejparam );
+	fprintf( f, "nslot=%d\n",
+	scr.makesameslots );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -462,7 +465,7 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.same -j $nproc EXTRA='\"\"'\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
@@ -479,7 +482,7 @@ static void WriteSSubNFile( int njobs )
 /* WriteDSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteDSubNFile( int njobs )
+static void WriteDSubNFile()
 {
 	char	buf[2048];
 	FILE	*f;
@@ -498,7 +501,10 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=%d\n", njobs );
+	fprintf( f, "nproc=%d\n",
+	scr.makedownjparam );
+	fprintf( f, "nslot=%d\n",
+	scr.makedownslots );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -520,7 +526,7 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.down -j $nproc EXTRA='\"\"'\n" );
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
@@ -1275,8 +1281,8 @@ int main( int argc, char* argv[] )
 	WriteEviewFile();
 
 	WriteCountsamedirsFile();
-	WriteSSubNFile( scr.makesameslots );
-	WriteDSubNFile( scr.makedownslots );
+	WriteSSubNFile();
+	WriteDSubNFile();
 	WriteReportFiles();
 	WriteMSubFile();
 	WriteMReportFile();

@@ -106,12 +106,14 @@ bool ReadScriptParams(
 
 		GETPRM_SCR( &S.usingfoldmasks, "usingfoldmasks=%c" );
 		GETPRM_SCR( buf, "croprectfile=%s" ); S.croprectfile = buf;
+		GETPRM_SCR( &S.makefmjparam, "makefmjparam=%d" );
 		GETPRM_SCR( &S.makefmslots, "makefmslots=%d" );
 
 		GETPRM_SCR( &S.createauxdirs, "createauxdirs=%c" );
 		GETPRM_SCR( &S.montageblocksize, "montageblocksize=%d" );
 		GETPRM_SCR( &S.mintileolapfrac, "mintileolapfrac=%lf" );
 		GETPRM_SCR( &S.ignorecorners, "ignorecorners=%c" );
+		GETPRM_SCR( &S.makesamejparam, "makesamejparam=%d" );
 		GETPRM_SCR( &S.makesameslots, "makesameslots=%d" );
 
 		GETPRM_SCR( &S.crossscale, "crossscale=%d" );
@@ -135,6 +137,7 @@ bool ReadScriptParams(
 		GETPRM_SCR( &S.blockmaxdz, "blockmaxdz=%d" );
 		GETPRM_SCR( &S.blockslots, "blockslots=%d" );
 
+		GETPRM_SCR( &S.makedownjparam, "makedownjparam=%d" );
 		GETPRM_SCR( &S.makedownslots, "makedownslots=%d" );
 
 		GETPRM_SCR( &S.xmlpixeltype, "xmlpixeltype=%d" );
