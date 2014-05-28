@@ -104,6 +104,8 @@ bool ReadScriptParams(
 
 		fprintf( flog, "\n---- Script parameters ----\n" );
 
+		GETPRM_SCR( &S.slotspernode, "slotspernode=%d" );
+
 		GETPRM_SCR( &S.usingfoldmasks, "usingfoldmasks=%c" );
 		GETPRM_SCR( buf, "croprectfile=%s" ); S.croprectfile = buf;
 		GETPRM_SCR( &S.makefmjparam, "makefmjparam=%d" );

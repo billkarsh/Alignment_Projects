@@ -15,12 +15,12 @@ in the queue at once. Cost nominally $0.05/slot/hour.
 - See ip addresses for shares: > mount.
 - See host name: > hostname.
 
+- Log into any node, e.g.: > ssh h04u23.
+- Observe resource usage: > top.
+
 - ABComposite shows (BLUE pix) there are missed pixels in mappings
 from A to B. This is an off by one error in some decision about
 what's the interior.
-
-- Perhaps makemontages should read overlap requirements from
-matchparams, so one param file drives pipeline.
 
 - MOS needs better name handling (that is, ween off of string labels
 and onto idb z.id-rgn labels).
@@ -122,8 +122,6 @@ look more like:
 
 - Need to visualize the block results to look for block errors.
 - Bad block signs: ?{low R, low point cnt, some T consistency rule}?
-- Need blocks to connect to more distant layers.
-- Need blocks to connect to more proximal layers.
 - Need more threads all over.
 - Need scape painter to observe fm's (and cropping).
 - Need blocks to observe fm's.

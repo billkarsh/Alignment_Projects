@@ -244,7 +244,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	fprintf( f, "# -iters=2000\t\t;solve iterations\n" );
 	fprintf( f, "# -splitmin=1000\t;separate islands > splitmin tiles\n" );
 	fprintf( f, "# -zpernode=200\t\t;max layers per cluster node\n" );
-	fprintf( f, "# -maxthreads=1\t\t;thr/node if not mpi (16 if mpi)\n" );
+	fprintf( f, "# -maxthreads=1\t\t;maximum threads per node\n" );
 	fprintf( f, "# -local\t\t\t;run locally (no qsub) if 1 worker\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
@@ -255,8 +255,8 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 		fprintf( f, "lsq -temp=../ -zi=%d,%d"
 		" -prior=../cross_wkspc/X_A_BIN_scaf -untwist"
 		" -mode=A2A -Wr=R,0 -Etol=500 -iters=10000"
-		" -zpernode=200 -maxthreads=16\n",
-		gArgs.zmin, gArgs.zmax );
+		" -zpernode=200 -maxthreads=%d\n",
+		gArgs.zmin, gArgs.zmax, scr.slotspernode );
 	}
 
 	fprintf( f, "\n" );

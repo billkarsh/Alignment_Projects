@@ -10,6 +10,10 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
+# Cluster configuration
+#
+slotspernode=16       <typical 16>      "fixed slot count per cluster node"
+#
 # Image database (IDB) params
 #
 usingfoldmasks=N       <typical N>       "Y=Each tile gets foldmask image"

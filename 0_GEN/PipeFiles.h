@@ -29,7 +29,8 @@ typedef struct {
 			blockmincorr,
 			blocknomcorr,
 			blocknomcoverage;
-	int		usingfoldmasks,
+	int		slotspernode,
+			usingfoldmasks,
 			makefmjparam,
 			makefmslots,
 			createauxdirs,

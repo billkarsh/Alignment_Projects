@@ -24,7 +24,7 @@
 # -iters=2000		;solve iterations
 # -splitmin=1000	;separate islands > splitmin tiles
 # -zpernode=200		;max layers per cluster node
-# -maxthreads=1		;thr/node if not mpi (16 if mpi)
+# -maxthreads=1		;maximum threads per node
 # -local			;run locally (no qsub) if 1 worker
 
 
