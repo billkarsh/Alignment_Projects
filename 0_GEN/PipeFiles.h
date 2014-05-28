@@ -44,6 +44,7 @@ typedef struct {
 			stripwidth,
 			stripslots,
 			crossblocksize,
+			blockreqdz,
 			blockmaxdz,
 			blockslots,
 			makedownjparam,

@@ -159,7 +159,7 @@ static void WriteTestblockFile()
 	fprintf( f, "# Put this script into a Dx_y folder to try or debug block.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
+	fprintf( f, "# -evalalldz\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
@@ -197,7 +197,7 @@ static void WriteBSubFile()
 	fprintf( f, "# Do one block alignment job, data read from 'blockdat.txt'.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
+	fprintf( f, "# -evalalldz\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );

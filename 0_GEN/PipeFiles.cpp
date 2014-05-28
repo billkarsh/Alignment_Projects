@@ -134,6 +134,7 @@ bool ReadScriptParams(
 		GETPRM_SCR( &S.blockmincorr, "blockmincorr=%lf" );
 		GETPRM_SCR( &S.blocknomcorr, "blocknomcorr=%lf" );
 		GETPRM_SCR( &S.blocknomcoverage, "blocknomcoverage=%lf" );
+		GETPRM_SCR( &S.blockreqdz, "blockreqdz=%d" );
 		GETPRM_SCR( &S.blockmaxdz, "blockmaxdz=%d" );
 		GETPRM_SCR( &S.blockslots, "blockslots=%d" );
 

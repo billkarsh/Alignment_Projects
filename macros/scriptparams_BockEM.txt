@@ -50,6 +50,7 @@ blockxyconf=0.25       <typical 0.75>    "search radius = (1-conf)(blockwide)"
 blockmincorr=0.25      <typical 0.45>    "min required block match correlation"
 blocknomcorr=0.30      <typical 0.50>    "nominal block match correlation"
 blocknomcoverage=0.90  <typical 0.90>    "nominal block area frac matched"
+blockreqdz=1           <typical 1>       "connect to at least reqdz layers (<= maxdz)"
 blockmaxdz=10          <typical 10>      "max z-index span of useful correlation"
 blockslots=8           <typical 8>       "bsub.sht/cross_thisblock slots/threads per job"
 #
