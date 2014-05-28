@@ -1,0 +1,29 @@
+Here is the pe impi3 and attached are the start and stop scripts.  I think they are provided in the additional content for Univa for setting up a tightly integrated intel mpi parallel environment.
+
+qconf -sp impi3
+
+pe_name            impi3
+slots              9999
+user_lists         NONE
+xuser_lists        NONE
+start_proc_args    /sge/8.1.4/mpi/startmpi.sh -unique -catch_rsh $pe_hostfile
+stop_proc_args     /sge/8.1.4/mpi/stopmpi.sh
+allocation_rule    16
+control_slaves     TRUE
+job_is_first_task  FALSE
+urgency_slots      min
+accounting_summary FALSE
+
+
+We changed the allocation rule so that it always gives entire nodes.  The caveat is that should be the total number of slots on a node and they will always have to request in increments of that number otherwise it will never be scheduled.
+
+Best,
+Rob
+
+--
+Rob Lines
+Sr. HPC Engineer
+Janelia Farm/HHMI
+571-209-4658
+LinesR@janelia.hhmi.org
+
