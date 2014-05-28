@@ -1,3 +1,10 @@
+
+Certain materials in this folder fall under the "Sun Industry Standards Source License" which is now "retired, free and open source" as described in the wiki article:
+
+<http://en.wikipedia.org/wiki/Sun_Industry_Standards_Source_License.desktop>.
+
+==================================
+
 Rob Lines is the name of our cluster administrator at Janelia Farm. He put together this set of scripts to implement the grid engine parallel environment "-pe impi3 s" that our solver uses to start mpi jobs running on several whole cluster nodes at once. (The 's' parameter is given as slots = n_whole_nodes * slots_per_node).
 
 The materials in this folder should enable a grid engine admin to similarly implement this operation mode.
