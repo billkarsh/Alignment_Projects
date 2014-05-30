@@ -7,6 +7,7 @@
 #include	"Correlation.h"
 
 #include	<math.h>
+#include	<stdlib.h>
 
 
 /* --------------------------------------------------------------- */
@@ -373,9 +374,24 @@ static void TransformsAndCenters(
 
 		transforms.push_back( t );
 
-		centers.push_back(
-			Point(	(o0.x + o1.x + o2.x) / 3.0,
-					(o0.y + o1.y + o2.y) / 3.0 ) );
+		// Each center is initially just a triangle centroid,
+		// although any point interior to triangle will do.
+
+		double	cenx = (o0.x + o1.x + o2.x) / 3.0,
+				ceny = (o0.y + o1.y + o2.y) / 3.0;
+
+		// Now we jiggle along a line segment from centroid
+		// to vertex 0. The purpose is that in rare instances
+		// when affines are all the same because optimizer did
+		// nothing, if centers are also colinear, then solver
+		// matrices become degenerate. Jiggling avoids that.
+
+		double	seglenscl = double(rand()) / (10.0 * RAND_MAX);
+
+		cenx += seglenscl * (o0.x - cenx);
+		ceny += seglenscl * (o0.y - ceny);
+
+		centers.push_back( Point( cenx, ceny ) );
 	}
 }
 
