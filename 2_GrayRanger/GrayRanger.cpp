@@ -193,8 +193,8 @@ static void WriteScript( vector<int> &zlist )
 	for( int iz = 0; iz < nz; ++iz ) {
 
 		fprintf( f,
-		"qsub -N gr-%d -j y -o out.txt -b y -cwd -V -pe batch 4"
-		" GraRan1Lyr '%s' -z=%d %s\n",
+		"QSUB_1NODE.sht \"gr-%d\" \"-j y -o out.txt\" 4"
+		" \"GraRan1Lyr '%s' -z=%d %s\"\n",
 		zlist[iz], gArgs.infile, zlist[iz], sopt );
 	}
 

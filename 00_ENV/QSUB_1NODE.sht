@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Purpose:
+# Emit Sun Grid Engine qsub parallel-environment command
+# requesting <n> slots on single machine.
+#
+# > QSUB_1NODE.sht "jobname" "opt_params" slots "command"
+
+
+qsub -N $1 -cwd -V -b y $2 -pe batch $3 $4
+

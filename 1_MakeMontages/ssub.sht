@@ -29,7 +29,7 @@ do
 		for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
 		do
 			cd $jb
-			qsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.same -j $nproc EXTRA='""'
+			QSUB_1NODE.sht "q$jb-$lyr" "-o /dev/null" $nslot "make -f make.same -j $nproc EXTRA='""'"
 			cd ..
 		done
 

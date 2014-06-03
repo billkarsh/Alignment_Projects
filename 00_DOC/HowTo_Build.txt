@@ -31,7 +31,7 @@ Set path data
 
 (2) Edit your copy of aln_makefile_std_defs...
 (2a) Redefine PATH_SRCCODE to point to your copy of the source code.
-(2b) Redefine PATH_BIN to point to your choice from step (0).
+(2b) Redefine PATH_OUT to point to your choice from step (0).
 (2c) If you are not running on the HHMI/Janelia cluster, then you need to point the PATH_XXX variables to your local copies of library and include directories for {libtiff, libpng, zlib}. You will also need to do that for the fftw package, unless you can use Intel MKL support for FFT operations. MKL is prefered because the code is fully reentrant allowing more efficient multithreading.
 
 (3) All our make files have this include statement:
@@ -41,6 +41,8 @@ So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
 "export ALN_LOCAL_MAKE_PATH=/groups/~location_of_my_std_defs"
 
 (Example bash_profile edits below).
+
+(4) Copy file 00_ENV/QSUB_1NODE.sht to a directory defined in your PATH environment variable. This file defines how our software should submit 'qsub' commands to your local cluster. Edit this file to add any required parameters. You will probably want to edit the '-pe batch n' argument. In our case, 'batch' is the local pe_name of the script that allocates n slots on a single machine and then runs the target command in a parallel (but non-mpi) environment.
 
 //--- Retired ---
 // No longer depend upon SuperLU
@@ -69,6 +71,7 @@ export MRC_TRIM=12
 # Append paths to needed binaries
 PATH=$PATH:$HOME/bin
 PATH=$PATH:/groups/apig/tomo/lou_stuff/binaries
+PATH=$PATH:/groups/apig/tomo/commands
 export PATH
 
 # Set place to look for libpng14 library

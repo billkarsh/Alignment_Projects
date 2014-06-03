@@ -53,7 +53,7 @@ else
 fi
 
 
-#qsub -N del-$srcdir -cwd -V -b y -pe batch 8 "tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0"
+#QSUB_1NODE.sht "del-$srcdir" "" 8 "tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0"
 
-#qsub -N del-$srcdir -cwd -V -b y -pe batch 8 "tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop"
+#QSUB_1NODE.sht "del-$srcdir" "" 8 "tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop"
 

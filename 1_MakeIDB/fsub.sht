@@ -24,7 +24,7 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr
-		qsub -N makefm-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.fm -j $nproc EXTRA='""'
+		QSUB_1NODE.sht "makefm-$lyr" "-o /dev/null" $nslot "make -f make.fm -j $nproc EXTRA='""'"
 		cd ..
 	fi
 done

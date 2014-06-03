@@ -341,13 +341,13 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		else {	// qsub for desired slots
 
 			sprintf( buf,
-			"qsub -N lsqw -cwd -V -b y -pe batch %d"
-			" lsqw -nwks=%d -temp=%s"
+			"QSUB_1NODE.sht \"lsqw\" \"\" %d"
+			" \"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
 			" -mode=%s -Wr=%c,%g -Etol=%g -iters=%d"
 			" -splitmin=%d -maxthreads=%d"
 			" -zi=%d,%d -zo=%d,%d"
-			"%s",
+			"%s\"",
 			maxthreads,
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),

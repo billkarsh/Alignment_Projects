@@ -465,7 +465,7 @@ static void WriteSSubNFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.same -j $nproc EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\tQSUB_1NODE.sht \"q$jb-$lyr\" \"-o /dev/null\" $nslot \"make -f make.same -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
@@ -526,7 +526,7 @@ static void WriteDSubNFile()
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nslot make -f make.down -j $nproc EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\t\tQSUB_1NODE.sht \"q$jb-$lyr\" \"-o /dev/null\" $nslot \"make -f make.down -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
@@ -683,7 +683,7 @@ static void WriteMSubFile()
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr/montage\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 1 \"./runlsq.sht\"\n" );
+	fprintf( f, "\t\tQSUB_1NODE.sht \"mon-$lyr\" \"\" 1 \"./runlsq.sht\"\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tfi\n" );

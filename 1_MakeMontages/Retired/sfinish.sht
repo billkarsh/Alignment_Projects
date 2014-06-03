@@ -6,5 +6,5 @@
 # > ./sfinish.sht
 
 
-qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht
+QSUB_1NODE.sht "finish" "" 8 "./finish.sht"
 
