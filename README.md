@@ -1,4 +1,5 @@
 Aligner
 =======
 
-Aligner for large serial section image data
+Aligner for EM or optical serial section image data.
+
