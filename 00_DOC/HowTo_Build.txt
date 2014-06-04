@@ -42,7 +42,9 @@ So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
 
 (Example bash_profile edits below).
 
-(4) Copy file 00_ENV/QSUB_1NODE.sht to a directory defined in your PATH environment variable. This file defines how our software should submit 'qsub' commands to your local cluster. Edit this file to add any required parameters. You will probably want to edit the '-pe batch n' argument. In our case, 'batch' is the local pe_name of the script that allocates n slots on a single machine and then runs the target command in a parallel (but non-mpi) environment.
+(4) Copy files 00_ENV/QSUB_{1NODE,MNODE}.sht to a directory defined in your PATH environment variable. These files define how our software should submit 'qsub' commands to your local cluster grid engine. Edit them to add any installation specific parameters. In particular, you will probably need to edit variable 'pe_name' in QSUB_1NODE.sht. In our case, 'batch' is the local pe_name of the grid engine script that allocates n slots on a single machine and then runs the target command there.
+
+(5) MPI is not required unless you need to solve very large stacks on multiple machines. To enable that your system administrator must set up your grid engine with the requisite "impi3" parallel environment. Folder 00_impi3 contains resources for that.
 
 //--- Retired ---
 // No longer depend upon SuperLU

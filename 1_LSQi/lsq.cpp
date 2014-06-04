@@ -408,8 +408,8 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		// Submit request to run 'mpigo.sht' script
 
-		sprintf( buf, "qsub -N lsqmpi -cwd -V -b y -o sge.txt"
-		" -pe impi3 %d ./mpigo.sht", nwks * maxthreads );
+		sprintf( buf, "QSUB_MNODE.sht \"lsqmpi\" \"-o sge.txt\""
+		" %d \"./mpigo.sht\"", nwks * maxthreads );
 	}
 
 	printf( "Launch <>\n<%s>\n", buf );

@@ -2,9 +2,12 @@
 
 # Purpose:
 # Emit Sun Grid Engine qsub parallel-environment command
-# requesting <n> slots on single machine.
+# requesting "impi3" script that reserves whole nodes
+# for use by the solver.
 #
-# > QSUB_1NODE.sht "jobname" "opt_params" slots "command"
+# Note that parameter $3 = slots = nodes x slots/node
+#
+# > QSUB_MNODE.sht "jobname" "opt_params" slots "command"
 #
 # Aligner requires:
 # -N <jobname>	;jobname
@@ -24,9 +27,7 @@
 
 usr_params=""
 
-pe_name="batch"
-
 req_params="-cwd -V -b y"
 
-qsub -N $1 $req_params $usr_params $2 -pe $pe_name $3 $4
+qsub -N $1 $req_params $usr_params $2 -pe impi3 $3 $4
 
