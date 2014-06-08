@@ -139,7 +139,7 @@ INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$
 OTHERLIBS_STD := -pthread -l{jpeg,m,c,rt}
 
 # ==============================
-# Combine all standard libraries
+# combine all standard libraries
 # ==============================
 
 # IMPORTANT:

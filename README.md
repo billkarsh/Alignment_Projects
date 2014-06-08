@@ -13,10 +13,10 @@ Aligner
 
 - Runs on linux cluster using Sun Grid Engine API
 - Align 2 to billions of images
-- Approximately linear time/volume scaling
-- Two million 4MB images align in 8 man-hours or so
+- Approx. linear time/volume & mem/volume scaling
+- Two million 4MB images align in about 8 man-hours
 
-**Some forms of damage management:**
+**Handled forms of damage management:**
 
 - Missing tiles or whole sections
 - Fragmented / small / irregular sections
