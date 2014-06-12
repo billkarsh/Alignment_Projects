@@ -1,12 +1,45 @@
-Alignment Tool for large 3D-image data
-=======================================
+Aligner
+=======
 
-Affine alignment tool for large serial section / serial block-face EM image data developed at the Janelia Farm Research Campus. Designed for a Linux cluster with (Sun / Oracle / Univa) Grid Engine.
+### What it does well
 
-Please use the instructions in
+**Stitches together any mode of serial section image data:**
 
-Alignment_Projects / 00_DOC
+- TEM
+- Block-face SEM
+- Fluorescence Array Tomography
 
-to set it up on your cluster.
+**Fast and scalable:**
 
-The generated per-image tile affine transformations can then be used with FijiBento to render eg a registered single tif image stack for further processing.
+- Runs on linux cluster using Sun Grid Engine API
+- Align 2 to billions of images
+- Approx. linear time/volume & mem/volume scaling
+- Two million 4MB images align in about 8 man-hours
+
+**Handled forms of damage management:**
+
+- Missing tiles or whole sections
+- Fragmented / small / irregular sections
+- Burns, scars, foreign matter
+- Exposure inhomogeneity
+
+**Input:**
+
+- 8 or 16 bit TIF, PNG, MRC
+- Simple meta-data as text or TrakEM2 XML
+
+**Output:**
+
+- Basically 1 affine or homographic transform per image tile
+- Flexible output as text tables or TrakEM2 XML files
+
+### Limitations
+
+- One linear transform / tile; **_not an elastic aligner_**
+- Unfinished handling of geometry-altering folds and tears
+- All images in a data set must be of same fixed dimensions
+
+### Authorship
+
+Developed over several years at **HHMI/Janelia Research Campus**, originally by **Louis Scheffer**, and subsequently refined into current form by **Bill Karsh**. See reference ["Automated Alignment of Imperfect EM Images for Neural Reconstruction"](http://arxiv.org/abs/1304.6034).
+

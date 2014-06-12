@@ -10,11 +10,16 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
+# Cluster configuration
+#
+slotspernode=16       <typical 16>      "fixed slot count per cluster node"
+#
 # Image database (IDB) params
 #
 usingfoldmasks=N       <typical N>       "Y=Each tile gets foldmask image"
 croprectfile=          <path or blank>   "{cam,x0,y0,dx,dy} for ea. cam"
-makefmslots=4          <typical 4>       "'fsub'/make.fm slots/threads per job"
+makefmjparam=4         <typical 4>       "'fsub'/make.fm -j #concurrent_procs"
+makefmslots=4          <typical 4>       "'fsub'/make.fm slots per qsub (>= jparam)"
 #
 # Montaging (same-layer)
 #
@@ -22,7 +27,8 @@ createauxdirs=N        <typical N>       "Y=create special dirs for aux ptest in
 montageblocksize=8     <typical 8>       "montage work grid cell size^2 tiles"
 mintileolapfrac=0.01   <typical 0.02>    "min layout tile area frac for overlap"
 ignorecorners=Y        <typical N>       "Y=using row/col data, omit corner-corner pairs"
-makesameslots=4        <typical 4>       "'ssub'/make.same slots/threads per job"
+makesamejparam=4       <typical 4>       "'ssub'/make.same -j #concurrent_procs"
+makesameslots=4        <typical 4>       "'ssub'/make.same slots per qsub (>= jparam)"
 #
 # Cross-layer rendering of strips and blocks
 #
@@ -48,12 +54,14 @@ blockxyconf=0.25       <typical 0.75>    "search radius = (1-conf)(blockwide)"
 blockmincorr=0.25      <typical 0.45>    "min required block match correlation"
 blocknomcorr=0.30      <typical 0.50>    "nominal block match correlation"
 blocknomcoverage=0.90  <typical 0.90>    "nominal block area frac matched"
+blockreqdz=1           <typical 1>       "connect to at least reqdz layers (<= maxdz)"
 blockmaxdz=10          <typical 10>      "max z-index span of useful correlation"
 blockslots=8           <typical 8>       "bsub.sht/cross_thisblock slots/threads per job"
 #
 # Cross-layer tile-tile point-pair extraction
 #
-makedownslots=4        <typical 4>       "'dsub'/make.down slots/threads per job"
+makedownjparam=4       <typical 4>       "'dsub'/make.down -j #concurrent_procs"
+makedownslots=4        <typical 4>       "'dsub'/make.down slots per qsub (>= jparam)"
 #
 # TrakEM2 auto-generation
 #

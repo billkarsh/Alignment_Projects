@@ -130,12 +130,12 @@ public:
 	double		abctr;
 	const char	*script;
 	int			dbgz;
-	bool		alldz,
+	bool		evalalldz,
 				abdbg;
 public:
 	CArgs_scp()
 	: abctr(0), script(NULL),
-	  dbgz(-1), alldz(false), abdbg(false) {};
+	  dbgz(-1), evalalldz(false), abdbg(false) {};
 
 	void SetCmdLine( int argc, char* argv[] );
 };
@@ -197,8 +197,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			;
 		else if( GetArg( &dbgz, "-abdbg=%d", argv[i] ) )
 			abdbg = true;
-		else if( IsArg( "-alldz", argv[i] ) )
-			alldz = true;
+		else if( IsArg( "-evalalldz", argv[i] ) )
+			evalalldz = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
 		else {
@@ -795,9 +795,11 @@ static void KeepBest(
 		vector<Pair>	&p = P[ia];
 		double			sum = 0.0;
 		int				nb = p.size(),
-						ng = 0;	// count good b-tiles
+						ng = 0,	// count good b-tiles
+						nz = 0;	// count z's used
 
-		// cover tile with highest quality
+		// cover a-tile with highest quality,
+		// but include at least blockreqdz layers
 
 		do {
 
@@ -805,6 +807,10 @@ static void KeepBest(
 				break;
 
 			int	curz = p[ng].iz;
+
+			++nz;
+
+			// add in all b-tiles at curz
 
 			for( int ib = ng; ib < nb; ++ib ) {
 
@@ -817,7 +823,7 @@ static void KeepBest(
 				vZ[curz].used = 1;
 			}
 
-		} while( sum < kTileNomCvrg );
+		} while( sum < kTileNomCvrg || nz < scr.blockreqdz );
 
 		// kill the rest
 
@@ -1035,7 +1041,12 @@ static void LayerLoop()
 
 		// force measurement of all layers
 
-		if( gArgs.alldz )
+		if( gArgs.evalalldz )
+			continue;
+
+		// force measurement of at least blockreqdz layers
+
+		if( vZ.size() < scr.blockreqdz )
 			continue;
 
 		// done if satisfied now, or if unlikely to get better
@@ -1076,6 +1087,11 @@ int main( int argc, char* argv[] )
 
 	if( !ReadScriptParams( scr, gArgs.script, flog ) )
 		exit( 42 );
+
+	if( scr.blockreqdz < 1 )
+		scr.blockreqdz == 1;
+	else if( scr.blockreqdz > scr.blockmaxdz )
+		scr.blockreqdz = scr.blockmaxdz;
 
 	inv_scl = 1.0 / scr.crossscale;
 

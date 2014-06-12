@@ -183,7 +183,8 @@ static void FitAffine(
 
 // Solve
 
-	Solve_Quick( LHS, RHS, 6 );
+	printf( "Pipe: Aff solver returns: %d\n",
+		Solve_Quick( LHS, RHS, 6 ) );
 
 	TAffine	T( &RHS[0] );
 
@@ -308,7 +309,8 @@ static void FitHmgphy(
 
 // Solve
 
-	Solve_Quick( LHS, RHS, 8 );
+	printf( "Pipe: Hmg solver returns: %d\n",
+		Solve_Quick( LHS, RHS, 8 ) );
 
 	THmgphy	T( &RHS[0] );
 

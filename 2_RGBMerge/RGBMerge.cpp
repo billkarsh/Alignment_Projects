@@ -250,8 +250,8 @@ static void WriteScript( vector<int> &zlist )
 	for( int iz = 0; iz < nz; ++iz ) {
 
 		fprintf( f,
-		"qsub -N rgbm-%d -j y -o out.txt -b y -cwd -V -pe batch 4"
-		" RGBM1Lyr '%s' %s -z=%d %s\n",
+		"QSUB_1NODE.sht \"rgbm-%d\" \"-j y -o out.txt\" 4"
+		" \"RGBM1Lyr '%s' %s -z=%d %s\"\n",
 		zlist[iz], gArgs.infile, gArgs.tag, zlist[iz], sopt );
 	}
 

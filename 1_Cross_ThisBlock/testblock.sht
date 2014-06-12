@@ -4,7 +4,7 @@
 # Put this script into a Dx_y folder to try or debug block.
 #
 # Options:
-# -alldz			;force evaluation of all maxdz layers
+# -evalalldz		;force evaluation of all maxdz layers
 # -abdbg			;make diagnostic images and exit (Z^Z-1)
 # -abdbg=k			;make diagnostic images and exit (Z^k)
 # -abctr=0			;debug at this a-to-b angle
@@ -12,5 +12,5 @@
 
 export MRC_TRIM=12
 
-qsub -N x -cwd -V -b y -pe batch 8 cross_thisblock -script=../../scriptparams.txt
+QSUB_1NODE.sht "x" "" 8 "cross_thisblock -script=../../scriptparams.txt"
 

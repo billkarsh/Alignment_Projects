@@ -323,7 +323,7 @@ static void WriteSubmosFile()
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8 \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s > mos_$lyr.txt\"\n",
+	fprintf( f, "\t\tQSUB_1NODE.sht \"mos-$lyr\" \"\" 8 \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s > mos_$lyr.txt\"\n",
 	(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );
@@ -356,7 +356,10 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=%d\n", njobs );
+	fprintf( f, "nproc=%d\n",
+	njobs );
+	fprintf( f, "nslot=%d\n",
+	njobs );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -371,11 +374,11 @@ static void WriteSubNFile( int njobs )
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr/S0_0\n" );
-	fprintf( f, "\t\tqsub -N qS0_0-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tQSUB_1NODE.sht \"qS0_0-$lyr\" \"-o /dev/null\" $nslot \"make -f make.same -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\tif (($lyr > $1))\n" );
 	fprintf( f, "\t\tthen\n" );
 	fprintf( f, "\t\t\tcd ../D0_0\n" );
-	fprintf( f, "\t\t\tqsub -N qD0_0-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\tQSUB_1NODE.sht \"qD0_0-$lyr\" \"-o /dev/null\" $nslot \"make -f make.down -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\tfi\n" );
 	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tfi\n" );
@@ -518,7 +521,7 @@ static void WriteSFinishFile()
 	fprintf( f, "# > ./sfinish.sht\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht\n" );
+	fprintf( f, "QSUB_1NODE.sht \"finish\" \"\" 8 \"./finish.sht\"\n" );
 	fprintf( f, "\n" );
 
 	fclose( f );

@@ -42,7 +42,7 @@ public:
 				iters,			// solve iterations
 				splitmin,		// separate islands > splitmin tiles
 				zpernode,		// max layers per node
-				maxthreads;		// thr/node if not mpi
+				maxthreads;		// maximum threads per node
 	bool		catclr,			// remake point catalog
 				untwist,		// iff prior are affines
 				local;			// run locally (no qsub) if 1 worker
@@ -341,13 +341,13 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		else {	// qsub for desired slots
 
 			sprintf( buf,
-			"qsub -N lsqw -cwd -V -b y -pe batch %d"
-			" lsqw -nwks=%d -temp=%s"
+			"QSUB_1NODE.sht \"lsqw\" \"\" %d"
+			" \"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
 			" -mode=%s -Wr=%c,%g -Etol=%g -iters=%d"
 			" -splitmin=%d -maxthreads=%d"
 			" -zi=%d,%d -zo=%d,%d"
-			"%s",
+			"%s\"",
 			maxthreads,
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
@@ -393,13 +393,13 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		" lsqw -nwks=%d -temp=%s"
 		" -cache=%s -prior=%s"
 		" -mode=%s -Wr=%c,%g -Etol=%g -iters=%d"
-		" -splitmin=%d -maxthreads=16"
+		" -splitmin=%d -maxthreads=%d"
 		"%s\n",
 		nwks,
 		nwks, tempdir,
 		cachedir, (prior ? prior : ""),
 		mode, regtype, Wr, Etol, iters,
-		splitmin,
+		splitmin, maxthreads,
 		(untwist ? " -untwist" : "") );
 		fprintf( f, "\n" );
 
@@ -408,8 +408,8 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		// Submit request to run 'mpigo.sht' script
 
-		sprintf( buf, "qsub -N lsqmpi -cwd -V -b y -o sge.txt"
-		" -pe impi3 %d ./mpigo.sht", 16 * nwks );
+		sprintf( buf, "QSUB_MNODE.sht \"lsqmpi\" \"-o sge.txt\""
+		" %d \"./mpigo.sht\"", nwks * maxthreads );
 	}
 
 	printf( "Launch <>\n<%s>\n", buf );

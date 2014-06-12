@@ -20,7 +20,7 @@ static void WriteSFinishFile()
 	fprintf( f, "# > ./sfinish.sht\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "qsub -N finish -cwd -V -b y -pe batch 8 ./finish.sht\n" );
+	fprintf( f, "QSUB_1NODE.sht \"finish\" \"\" 8 \"./finish.sht\"\n" );
 	fprintf( f, "\n" );
 
 	fclose( f );
@@ -199,7 +199,7 @@ static void WriteSubmonFile()
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 8 \"./montage1.sht $lyr\"\n" );
+	fprintf( f, "\t\tQSUB_1NODE.sht \"mon-$lyr\" \"\" 8 \"./montage1.sht $lyr\"\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );
 	fprintf( f, "\n" );
@@ -266,7 +266,7 @@ static void WriteSubmosFile()
 	fprintf( f, "\techo $lyr\n" );
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tqsub -N mos-$lyr -cwd -V -b y -pe batch 8 \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s > mos_$lyr.txt\"\n",
+	fprintf( f, "\t\tQSUB_1NODE.sht \"mos-$lyr\" \"\" 8 \"mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp%s > mos_$lyr.txt\"\n",
 	(gArgs.NoFolds ? " -nf" : "") );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );

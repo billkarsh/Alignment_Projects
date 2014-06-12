@@ -1530,7 +1530,7 @@ int MeshCreateX(
 	}
 
 /* ----------------------------------------- */
-/* Reduce tri count while Atri > GBL.mch.MTA */
+/* Reduce tri count while Atri < GBL.mch.MTA */
 /* ----------------------------------------- */
 
 	if( GBL.A.z != GBL.B.z ) {

@@ -244,7 +244,7 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 	fprintf( f, "# -iters=2000\t\t;solve iterations\n" );
 	fprintf( f, "# -splitmin=1000\t;separate islands > splitmin tiles\n" );
 	fprintf( f, "# -zpernode=200\t\t;max layers per cluster node\n" );
-	fprintf( f, "# -maxthreads=1\t\t;thr/node if not mpi (16 if mpi)\n" );
+	fprintf( f, "# -maxthreads=1\t\t;maximum threads per node\n" );
 	fprintf( f, "# -local\t\t\t;run locally (no qsub) if 1 worker\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );
@@ -255,8 +255,8 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
 		fprintf( f, "lsq -temp=../ -zi=%d,%d"
 		" -prior=../cross_wkspc/X_A_BIN_scaf -untwist"
 		" -mode=A2A -Wr=R,0 -Etol=500 -iters=10000"
-		" -zpernode=200 -maxthreads=16\n",
-		gArgs.zmin, gArgs.zmax );
+		" -zpernode=200 -maxthreads=%d\n",
+		gArgs.zmin, gArgs.zmax, scr.slotspernode );
 	}
 
 	fprintf( f, "\n" );
@@ -424,7 +424,7 @@ static void WriteCountsamedirsFile()
 /* WriteSSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteSSubNFile( int njobs )
+static void WriteSSubNFile()
 {
 	char	buf[2048];
 	FILE	*f;
@@ -443,7 +443,10 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=%d\n", njobs );
+	fprintf( f, "nproc=%d\n",
+	scr.makesamejparam );
+	fprintf( f, "nslot=%d\n",
+	scr.makesameslots );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -462,7 +465,7 @@ static void WriteSSubNFile( int njobs )
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\tQSUB_1NODE.sht \"q$jb-$lyr\" \"-o /dev/null\" $nslot \"make -f make.same -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );
 	fprintf( f, "\n" );
@@ -479,7 +482,7 @@ static void WriteSSubNFile( int njobs )
 /* WriteDSubNFile ------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void WriteDSubNFile( int njobs )
+static void WriteDSubNFile()
 {
 	char	buf[2048];
 	FILE	*f;
@@ -498,7 +501,10 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=%d\n", njobs );
+	fprintf( f, "nproc=%d\n",
+	scr.makedownjparam );
+	fprintf( f, "nslot=%d\n",
+	scr.makedownslots );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
 	fprintf( f, "then\n" );
@@ -520,7 +526,7 @@ static void WriteDSubNFile( int njobs )
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tif [ -e make.down ]\n" );
 	fprintf( f, "\t\t\tthen\n" );
-	fprintf( f, "\t\t\t\tqsub -N q$jb-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\t\t\tQSUB_1NODE.sht \"q$jb-$lyr\" \"-o /dev/null\" $nslot \"make -f make.down -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\t\tfi\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\t\t\tcd ..\n" );
@@ -677,7 +683,7 @@ static void WriteMSubFile()
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr/montage\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "\t\tqsub -N mon-$lyr -cwd -V -b y -pe batch 1 \"./runlsq.sht\"\n" );
+	fprintf( f, "\t\tQSUB_1NODE.sht \"mon-$lyr\" \"\" 1 \"./runlsq.sht\"\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\t\tcd ../..\n" );
 	fprintf( f, "\tfi\n" );
@@ -1275,8 +1281,8 @@ int main( int argc, char* argv[] )
 	WriteEviewFile();
 
 	WriteCountsamedirsFile();
-	WriteSSubNFile( scr.makesameslots );
-	WriteDSubNFile( scr.makedownslots );
+	WriteSSubNFile();
+	WriteDSubNFile();
 	WriteReportFiles();
 	WriteMSubFile();
 	WriteMReportFile();

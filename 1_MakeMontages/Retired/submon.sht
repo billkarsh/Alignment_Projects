@@ -19,7 +19,7 @@ do
 	echo $lyr
 	if [ -d "$lyr" ]
 	then
-		qsub -N mon-$lyr -cwd -V -b y -pe batch 8 "./montage1.sht $lyr"
+		QSUB_1NODE.sht "mon-$lyr" "" 8 "./montage1.sht $lyr"
 	fi
 done
 

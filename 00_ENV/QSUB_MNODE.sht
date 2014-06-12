@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# Purpose:
+# Emit Sun Grid Engine qsub parallel-environment command
+# requesting "impi3" script that reserves whole nodes
+# for use by the solver.
+#
+# Note that parameter $3 = slots = nodes x slots/node
+#
+# > QSUB_MNODE.sht "jobname" "opt_params" slots "command"
+#
+# Aligner requires:
+# -N <jobname>	;jobname
+# -cwd			;execute in current working directory
+# -V			;pass current environment vars to job
+# -b y			;command $4 can be binary or script
+# -pe <name> n	;parallel environment to use, n slots
+#
+# Aligner code may also use $2 (opt_params) this way:
+# -o <name>		;name specific stdout file
+# -j y			;join stderr and stdout streams
+#
+# Set variable usr_params according to your local cluster
+# requirements and policies. For example, you may be able
+# to direct billing to a particular account.
+
+
+usr_params=""
+
+req_params="-cwd -V -b y"
+
+qsub -N $1 $req_params $usr_params $2 -pe impi3 $3 $4
+

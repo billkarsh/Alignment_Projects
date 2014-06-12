@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Purpose:
+# Emit Sun Grid Engine qsub parallel-environment command
+# requesting <n> slots on single machine.
+#
+# > QSUB_1NODE.sht "jobname" "opt_params" slots "command"
+#
+# Aligner requires:
+# -N <jobname>	;jobname
+# -cwd			;execute in current working directory
+# -V			;pass current environment vars to job
+# -b y			;command $4 can be binary or script
+# -pe <name> n	;parallel environment to use, n slots
+#
+# Aligner code may also use $2 (opt_params) this way:
+# -o <name>		;name specific stdout file
+# -j y			;join stderr and stdout streams
+#
+# Set variable usr_params according to your local cluster
+# requirements and policies. For example, you may be able
+# to direct billing to a particular account.
+
+
+usr_params=""
+
+pe_name="batch"
+
+req_params="-cwd -V -b y"
+
+qsub -N $1 $req_params $usr_params $2 -pe $pe_name $3 $4
+

@@ -159,7 +159,7 @@ static void WriteTestblockFile()
 	fprintf( f, "# Put this script into a Dx_y folder to try or debug block.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
+	fprintf( f, "# -evalalldz\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
@@ -167,7 +167,7 @@ static void WriteTestblockFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "qsub -N x -cwd -V -b y -pe batch %d cross_thisblock -script=%s\n",
+	fprintf( f, "QSUB_1NODE.sht \"x\" \"\" %d \"cross_thisblock -script=%s\"\n",
 	scr.blockslots, gArgs.script );
 	fprintf( f, "\n" );
 
@@ -197,7 +197,7 @@ static void WriteBSubFile()
 	fprintf( f, "# Do one block alignment job, data read from 'blockdat.txt'.\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# -alldz\t\t\t;force evaluation of all maxdz layers\n" );
+	fprintf( f, "# -evalalldz\t\t;force evaluation of all maxdz layers\n" );
 	fprintf( f, "# -abdbg\t\t\t;make diagnostic images and exit (Z^Z-1)\n" );
 	fprintf( f, "# -abdbg=k\t\t\t;make diagnostic images and exit (Z^k)\n" );
 	fprintf( f, "# -abctr=0\t\t\t;debug at this a-to-b angle\n" );
@@ -224,7 +224,7 @@ static void WriteBSubFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tqsub -N x$jb-$lyr -cwd -V -b y -pe batch %d cross_thisblock -script=%s\n",
+	fprintf( f, "\t\t\tQSUB_1NODE.sht \"x$jb-$lyr\" \"\" %d \"cross_thisblock -script=%s\"\n",
 	scr.blockslots, gArgs.script );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );

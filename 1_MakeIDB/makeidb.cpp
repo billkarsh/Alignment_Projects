@@ -261,7 +261,9 @@ static void WriteFSubFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "nthr=%d\n",
+	fprintf( f, "nproc=%d\n",
+	scr.makefmjparam );
+	fprintf( f, "nslot=%d\n",
 	scr.makefmslots );
 	fprintf( f, "\n" );
 	fprintf( f, "if (($# == 1))\n" );
@@ -277,7 +279,7 @@ static void WriteFSubFile()
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tqsub -N makefm-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.fm -j $nthr EXTRA='\"\"'\n" );
+	fprintf( f, "\t\tQSUB_1NODE.sht \"makefm-$lyr\" \"-o /dev/null\" $nslot \"make -f make.fm -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );

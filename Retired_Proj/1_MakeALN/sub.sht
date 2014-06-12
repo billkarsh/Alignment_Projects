@@ -9,7 +9,8 @@
 
 export MRC_TRIM=12
 
-nthr=4
+nproc=4
+nslot=4
 
 if (($# == 1))
 then
@@ -24,11 +25,11 @@ do
 	if [ -d "$lyr" ]
 	then
 		cd $lyr/S0_0
-		qsub -N qS0_0-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.same -j $nthr EXTRA='""'
+		QSUB_1NODE.sht "qS0_0-$lyr" "-o /dev/null" $nslot "make -f make.same -j $nproc EXTRA='""'"
 		if (($lyr > $1))
 		then
 			cd ../D0_0
-			qsub -N qD0_0-$lyr -cwd -o /dev/null -V -b y -pe batch $nthr make -f make.down -j $nthr EXTRA='""'
+			QSUB_1NODE.sht "qD0_0-$lyr" "-o /dev/null" $nslot "make -f make.down -j $nproc EXTRA='""'"
 		fi
 		cd ../..
 	fi
