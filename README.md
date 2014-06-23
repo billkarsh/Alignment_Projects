@@ -16,10 +16,11 @@ Aligner
 - Approx. linear time/volume & mem/volume scaling
 - Two million 4MB images align in about 8 man-hours
 
-**Handled forms of damage management:**
+**Handled pathologies:**
 
 - Missing tiles or whole sections
 - Fragmented / small / irregular sections
+- Arbitrarily rotated/translated sections
 - Burns, scars, foreign matter
 - Exposure inhomogeneity
 

@@ -11,7 +11,7 @@ Repo URL: <https://github.com/billkarsh/Alignment_Projects>
 * libtiff
 * libpng
 * zlib
-* One of: {intel MKL, fftw}
+* One of: {Intel MKL, fftw}
 
 ### Set Your Local Path Data
 
@@ -23,7 +23,7 @@ Repo URL: <https://github.com/billkarsh/Alignment_Projects>
 - Edit your copy of aln_makefile_std_defs...
 	* Set PATH_SRCCODE to your local copy of 'Alignment_Projects'.
 	* Set PATH_OUT to your choice from step (1).
-	* If not at Janelia, then you need to point the PATH_XXX variables to your local copies of library and include directories for {libtiff, libpng, zlib}. You will also need to do that for the fftw package, unless you can use Intel MKL support for FFT operations. MKL is prefered because the code is fully reentrant allowing more efficient multithreading.
+	* If not at Janelia, then you need to point the PATH_XXX variables to your local copies of library and include directories for {libtiff, libpng, zlib}. You will also need to do that for the fftw package, unless you can use Intel MKL support for FFT operations. MKL is preferred because the code is fully re-entrant allowing more efficient multithreading.
 	* Follow other instructions in aln_makefile_std_defs to link against libraries of your choice.
 
 

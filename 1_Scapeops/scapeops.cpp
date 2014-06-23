@@ -275,7 +275,9 @@ void CSuperscape::OrientLayer()
 
 	deg = TightestBBox( B, C );
 
-	if( B.R - B.L > B.T - B.B ) {
+	if( scr.stripsweepspan >= 180
+		&& scr.stripsweepstep
+		&& B.R - B.L > B.T - B.B ) {
 
 		// Make tall: rotate 90 degrees if wider than tall
 
