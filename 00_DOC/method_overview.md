@@ -279,7 +279,418 @@ Nevertheless, these ThmPair files serve a new important function. The block matc
 
 After the block-block phase completes (and is sanity checked) the user returns to the top level of the temp folder and runs the script `dsub.sht` which crawls into all the `Dx_y` subfolders and runs the make.down files within. Upon completion, all of the pts.same and pts.down files are in hand. It only remains to solve the full stack.
 
-### Solving the Stack
+### Iterative LSQ Solver
+
+The solver comprises two parts:
+
+* `1_LSQi` user interface part
+* `1_LSQw` worker part
+
+#### LSQi Interface Part
+
+LSQi primarily decides how to distribute the work onto one or many cluster nodes and then launches the job(s).
+
+LSQi first crawls the temp folder hierarchy looking for S-folders, D-folders and the ThmPair files within D-folders. From this scan it builds a catalog file that tabulates for each layer, the maximum x and y grid cell indices for S- and D-types and the list of all other layers that this layer connects to (below it). Workers use the grid extent info to figure out which pts.same and pts.down files they need to load. LSQi, itself, uses the layer connectivity data to determine how the problem separates into blocks of whole layers.
+
+Essentially, LSQi compares the number of layers you're solving for (zi=inner range) with parameter `-zpernode`. If zi fits within zpernode it's a single machine job and the next decision is whether to launch the work in-process on the current machine `(maxthreads=1` or `-local` option set) or to resubmit the job to the cluster to get the desired slot count.
+
+If zi exceeds zpernode then `nwks` machines will be used. A custom Grid Engine environment is needed to reserve the required cluster resources. We've provided a kit (`00_impi3`) to help the system administrator set up the needed scripts. Here's the [ReadMe](../00_impi3/ReadMe.md) from the kit that explains how LSQi sets up and launches the MPI-based cluster job.
+
+#### LSQw Worker
+
+##### Unified Multi/Single Processing Workflow
+
+LSQw always gets called with command line argument `-nwks=k` and this signals the code whether to start MPI and run in a multiprocessor fashion (nwks>1) or not. In all cases, the same source code does the work. This is managed in a simple way. Workers are numbered (global `wkid`) from 0 to n-1 and regardless of worker count, nwks, there is always wkid=0 who is implicitly designated the coordinator of all workers. The multi-worker and single worker flow are unified like this:
+
+```
+1. All workers (including 0) calculate your own share of the total
+2. If( nwks > 1 )
+		Wait for everyone else to catch up
+3. If( I'm not zero )
+		Send my results to zero
+   Else if( nwks > 1 )
+		Recv and consolidate results from others
+4. Continue
+```
+
+All MPI operations are abstracted/wrapped by files `1_LSQw::lsq_MPI.{cpp,h}`. As it turns out, very few MPI functions are needed to efficiently handle all data sharing:
+
+* MPIWaitForOthers(): A barrier (fence) that blocks until all workers reach same point
+* MPISend(): Synchronously send a byte array to specified worker
+* MPIRecv(): Synchronously recv a byte array from specified worker
+
+##### Bag of Calculators
+
+LSQw can be thought of as a collection of calculators. Several of them have the aforementioned structure/workflow, namely {calculate my part, consolidate at wkid=0}:
+
+* Bounds: Calculate bounding rectangle for solution
+* Dropout: Tabulate tiles lost for various reasons
+* Error: Tabulate point mapping errors, RMS, largest deviants
+* Magnitude: Calculate largest deviations of effective scale from unity
+* Split: Resolve/separate solution into its disconnected islands (if any)
+
+##### Untwist Calculator
+
+Another calculator `Untwist` improves the accuracy of an input scaffold. Remember the scaffold is generally created from rough alignment of scaled-down montages and that is done before block alignment, hence, before down connection points are known. However, by the time that the final stack solve is performed, all of the points are in hand and we can use them to find improved rigids between the layers. Applying the rigids to the whole stack involves cumulative products. The total correction Rk applied to layer k is the product of foregoing pairwise corrections (rj):
+
+`Rk = rk*rk-1*...*r1`.
+
+In this case, pairwise transforms are communicated among workers by writing the rigids to wkid-labeled disk files. In a subsequent phase, each worker parses the files from other workers with wkid lower than its own.
+
+##### Solve Calculator
+
+The solving itself is really just another calculator, but it has a unique data sharing structure. Again, each worker is responsible for solving the transforms for its own "inner" range `zi=i,j` of layers. The zi are non-overlapping. Each layer is solved by just one worker. However, each worker must carry points and transforms for an "outer" range of layers `zo=p,q` that the inner layers depend upon. At startup each worker reads the `ranges.txt` file that LSQi writes to determine the index ranges of layers it must exchange with the worker to its left or right.
+
+After each solve iteration a worker has updated its own zi layers, but it must get updated zo layers from its left/right neighbors. This is done in an orderly and simple manner by the `Updt()` method of the solution class: `XArray`. Here, 'odd' and 'even' refer to the worker wkids:
+
+```
+1. Odds send left,   evens recv from right
+2. Odds send right,  evens recv from left
+3. Evens send left,  odds recv from right
+4. Evens send right, odds recv from left
+```
+
+#### Manual Convergence & Start/Stop Operation
+
+The solver does not itself contain an automatic convergence mechanism. Rather, the vision for how the solver would be used is this:
+
+```
+1. Run for n1-thousand iters taking original scaffold 'X0' to solution X1
+2. Spot check errors and smoothness. If not satisfied...
+3. (Optionally modify parameters like -Wr or -Etol)...
+4. Run n2-thousand iters more taking X1 to X2.
+5. Back to (2): Evaluate and repeat as necessary.
+```
+
+The solver's `-mode=XXX` option specifies which operations to perform (which calculators to invoke) on this pass:
+
+* `-mode=catalog`: Just calculate the block/layer connectivity file `lsqcache/catalog.txt`.
+* `-mode=eval`: Calculate characteristics of solution X: {bounds, magnitudes, errors, drops}.
+* `-mode=A2A`: Solve for new affines from given affines (Xprev = `-prior=XXX`).
+* `-mode=A2H`: Solve for homographies from given affines.
+* `-mode=H2H`: Solve for homographies from given homographies.
+* `-mode=split`: Resolve X into its separate islands (typically the final operation).
+
+>Note that any of the solve modes {A2A, A2H, H2H} implicitly also run `eval` upon completion.
+
+#### Packed Storage Formats
+
+The start/stop/eval and internal iterative workflow suggested that care be taken to use efficient data representations to minimize both disk I/O and MPI data exchange. Compact data also facilitate tackling huge problems.
+
+##### Binary Point Data
+
+The correspondence points in pts.same and pts.down files need to be loaded for solve or evaluate operations and they are in human readable text formats in these files because that enables one to debug and possibly edit these critical data. However, they are never modified by the solver.
+
+To improve I/O performance, after LSQw has launched and determined its layer range it looks for a cached binary form of its required points data. The file has name pattern: `lsqcache/pnts_wkid_zi_zj.bin`. If the file does not exist it is created from the equivalent text-based points files.
+
+> Note: If you edit a text-based points file, remember to delete the cached binary file!
+
+By default LSQw will look for the cached {catalog, points} data in a local subdirectory (of PWD) with name `lsqcache`. You can override that path with `-cache=altpath/lsqcache`. I do that frequently in the following usage scenario:
+
+1. Solve **_normally_** in standard folder `temp/stack` with suggested `runlsq.sht`.
+2. For comparison, create folder `temp/stack2` with copy of that runlsq.sht...
+3. Edit `temp/stack2/runlsq.sht`
+	* to make experimental parameter changes,
+	* **and** to set `-lsqcache=../stack/lsqcache` to avoid remaking these data.
+
+##### Solution Folders 'X'
+
+The pipeline and solver generally represent collections of transforms as a folder with name pattern: `X_<A,H>_<BIN,TXT>[_optional-tag]`. For example, the cross-layer work begins by assembling (using `gathermons.sht`) all of the individual layer montages into a folder named `X_A_BIN_mons`.
+
+* **X**: always present, signifies solution (AX=B)
+* **A, H**: signifies affines (6 doubles) or homographies (8 doubles)
+* **BIN, TXT**: signifies binary or text data
+* Parsers that open these folders ignore anything following {BIN,TXT}
+
+###### Binary Folders
+
+Binary folders like `X_A_BIN` contain transform **and** flags files like this:
+
+* `X_A_2814.bin`: All affines for layer 2814.
+* `F_2814.bin`: All flag fields for those affines.
+
+All transforms get an 8-bit flag field with these bits:
+```
+enum RgnFlags {
+	fbDead		= 0x01,  // transform invalid
+	fbRead		= 0x02,  // no starting guess exists
+	fbPnts		= 0x04,  // too few pnts to solve
+	fbKill		= 0x08,  // ill behaved...dropped
+	fbCutd		= 0x10   // cross-layer links cut
+};
+```
+
+Most data within the pipeline and solver are organized at the highest level by layer number. Within a layer, transforms, flags and other solver data are indexed by their (id,rgn) doublet using a standard C++ `map<int,int>` device, one map per layer. The left-hand tile-id is associated with a cumulative count of subregions over all tile-id values lower than that. All indices are zero-based throughout the code. The schematic index calculation is then:
+
+`I(id,r) = map::find(id)->second + r - 1;`
+
+The map is calculated by function `0_GEN/PipeFiles.cpp::IDBGetIDRgnMap( map, idb, z )` which scans tabulated counts of regions (in `fm.same` files) within the IDB.
+
+###### Text Folders
+
+Text versions of solution folders, like `X_A_TXT`, contain only transform files like:
+
+* `X_A_2814.txt`: Affines for layer 2814.
+
+There is a file per layer, of course. Within a file, the lines are labeled affines, so read: `id rgn A0 A1 ...`. In this case the flags are implicit. A listed transform exists with no attached issues, so gets flag value zero. All unlisted transforms are missing in action, so get flag value 0x03.
+
+#### Solving Details & Parameters
+
+The schematic we gave earlier for solving is mostly true. There are a few minor modifications to describe in this section. To recap, the repetitive scheme is basically this:
+
+1. Hold all tforms and points fixed except one tform (Ta).
+2. Get an updated value for Ta by creating matrix equations with Ta(pa)=Tb(pb), for all point pairs having member pa belonging to Ta domain. This new Ta does not yet overwrite the previous Ta.
+3. Repeat the single tform solve for each tforms in turn.
+4. Now the collected new tforms replace the previous ones.
+5. Updated tforms (and flags) are exchanged with neighbor workers.
+6. Repeat this process for given number of iters.
+
+One of the most difficult parts of the pipeline to get right was the block-block matching. In part that's because the extant data had many problems including highly variable intensity from tile to tile and large amounts of beam damage. This would on occasion make a bad guess (Tab) that would be propagated in the make.down file to the ptest jobs for all tiles in the block and that would make bad points which causes catastrophic results in the solver as you can imagine.
+
+>Notes:
+
+>1. Ptest does not have a reliable independent way to validate the Tab guess it gets as input. Again, Tab combined with the matchparams::LIX parameter create a correlation peak search mask and the correlator **_will_** return the peak value from that disk, correct or not. If the wrong thumbnail starting transform is calculated, the ensuing mesh work will probably be wrong yet points may be reported. There are opportunities in ptest to trap a bad result of course, like the correlation thresholds or the limits of mesh deformation and so on, but these tests are often too permissive. Sometimes you will make the tests permissive to get solutions for perfectly good cases that would be missed otherwise. As always, balancing parameters is an art. The methods are robust only if the data are of good quality.
+
+>2. It can be maddening to track down which tile pairs are producing offending points because effects can be quite long range. Sometimes too, an errant tile may go unstable and be removed from the result only after it has already propagated mayhem to neighbors. Now, as you try to view the result the true offender isn't even in there.
+
+In the next few sections we look at a few tricks to keep the inherently oscillatory solving process from getting caught in a loop, and to identify cancers at an early stage and remove them surgically.
+
+##### Reducing Complexity
+
+The solver is really not that complicated. The whole solving apparatus is contained in the single smallish file `1_LSQw/lsq_Solve.cpp`. Moreover, it's much simpler than that once you understand that much of the code is simply duplicated six times over to optimize addressing performance for the three fundamental solving modes. More specifically the three main solving loops `{_A2A, _A2H, _H2H}` are all copy/paste clones of each other with some macro names changed and some values of '6' exchanged for '8'. That gets us a 3X complexity reduction.
+
+Next, each main solver has a matched companion, these are `{Cut_A2A, Cut_A2H, Cut_H2H}`. What happens in each main solver is that we first try to use all the points that connect this tile to others. If we incur a degenerate matrix or if the resulting transform looks excessively distorted our immediate suspicion is that the down connecting points may be bad due to a bad block-block match. Before giving up hope for this tform we call Cut_XXX which re-solves in the identical way, but using only in-layer connections, effectively "cutting" the tile's cross connections. That allows a tile to remain joined to its in-layer neighbors and move with them. It's not a perfect solution, but this way we can keep a tile in the set, marking it as "cutd" (cut downs) instead of writing it off as "killed". So you only need to understand _A2A to understand its five other copy/paste variants.
+
+##### Solving Data
+
+The global data we need are managed by `lsq_Globals` and consist of two main things:
+
+1. The master list of all points `vector<CorrPnt> vC;` loaded from the binary points files.
+2. The master list of all resident regions `vector<Rgns> vR;`
+
+vC is a giant single zero-based list of these structures:
+
+```
+class CorrPnt {
+public:
+	Point   p1, p2;
+	int     z1, z2,  // index into vR
+            i1, i2;  // index into vR[iz]
+	union {
+	int		used;
+	struct {
+	uint16	r1, r2;
+	};
+	};
+// methods not shown
+};
+```
+
+Basically there are two linked points, each in their resp. local image coords, and each is associated with a region indexed by a pair of indices (z, i). Here, index i is not a tile-id but the result of mapping i = I(id, rgn) as described above.
+
+Crucially, there is also a boolean `used` flag that marks this point as used Y/N. As solving progresses we may determine certain points to have too large an error to be included.
+
+The regions (**_regions, not affines_**) are grouped first by zero-based layer index, so everything for a layer is addressed by `vR[iz]`. Within a layer, the zero-based single index is used to get to a region. The Rgns region structure carries these data:
+
+```
+class Rgns {
+// The rgns for given layer
+// indexed by 0-based 'idx0'
+public:
+	vector<vector<int> >  pts;      // ea rgn's pts
+	vector<uint8>         flag;     // rgn flags
+	map<int,int>          m;        // map id -> idx0
+	int                   nr,       // num rgns
+                          z;        // common z
+// other members, methods not shown
+};
+```
+
+Each region has a list `pts` of indices into the master list vC of point-pairs. All vC[i] having either member p1 or p2 belonging to this region get listed (initially). So each vC[i] is referenced by two regions. As solving progresses we may determine some points to be bad and we mark `vC[i].used = false`, moreover, we may remove that point from the region's pts list for efficiency.
+
+The flags described earlier {fbRead, fbKill, ...} describe, hence, live with, the regions rather than the affines or homographies. Yes, they are exported with solutions to clarify whether a solution is valid or not.
+
+Each layer gets a mapping i = I(id, rgn) as described earlier. Each entry in the map is the cumulative count of regions for all tile-id (id) below this one. But that leaves open what the total count of regions is (including the highest tile-id) so we need to also carry `nr` the total count. That's used for sizing arrays and for loop limits.
+
+Finally, all indexing is converted to a zero-based scheme when LSQw initializes. The `z` member, however, is the real-world layer number which is needed for IDB lookups or reports.
+
+The other important data for solving are the source and destination lists of affines (or homographies) which are XArrays like this:
+
+```
+class XArray {
+public:
+	int						NE;
+	vector<vector<double> >	X;
+public:
+	void Resize( int ne );
+	void Load( const char *path );
+	void Save() const;
+private:
+	bool Send( int zlo, int zhi, int XorF, int toLorR );
+	bool Recv( int zlo, int zhi, int XorF, int fmLorR );
+public:
+	bool Updt();
+};
+```
+
+* `NE` is the number of elements (6 or 8).
+* 'X' is addressed first by zero-based layer `X[iz]` then by combined region index (i). The start of the elements for tform (i) is `X[iz][NE*i]`.
+
+##### Solving Algorithm (For Reals)
+
+At the highest level the solving function is this:
+
+```
+void Solve( XArray &Xsrc, XArray &Xdst, int iters )
+{
+// set some mode-dependent parameters
+// select mode proc, like _A2A
+// determine how many threads `nthr` to use
+
+// Iterate
+	Xs = &Xsrc;
+	Xd = &Xdst;
+	for( pass = 0; pass < iters; ++pass ) {
+		Do1Pass( proc );
+		// swap Xs<->Xd
+		XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
+	}
+}
+```
+
+Here's the essence of Do1Pass. Note that as we solve we may decide to mark points as not used and we may decide to mark regions too, but the data are shared by many threads, all working on their own assigned regions (affines) so we can't really change the flag data while the threads are running. Rather, each thread keeps a private list of marks `vthr[ithr]` where it pushes edit requests. After all threads complete, the lists are consolidated and the edits are executed by `UpdateFlags()`. Finally data are exchanged with neighbor workers:
+
+```
+static void Do1Pass( EZThreadproc proc )
+{
+// multithreaded phase
+	vthr.clear();
+	vthr.resize( nthr );
+
+	if( !EZThreads( proc, nthr, 1, "Solveproc" ) )
+		exit( 42 );
+
+// single-threaded phase
+	UpdateFlags();
+	vthr.clear();
+
+// synchronize
+	Xd->Updt();
+}
+```
+
+Finally we look at a proc, for example `_A2A`. This is (like all my threads) a Posix pthread function. This a good time to mention that all threaded work in the code base is done using my `0_GEN/EZThreads` package. The general design pattern I use to assign N workers to M tasks is this:
+
+* Reduce N until N <= M.
+* Each thread/worker gets a zero-based id = j.
+* Worker j works on tasks {j, j+N, j+N+N, ...} until j >= M.
+
+_A2A uses a helper class `Todo Q` to do indexing. What's the first region I should work on? What's the next? Here the tasks are the regions and they straddle layers, so advancing to the next region is done modulo the previous vR[iz].nr.
+
+Read the code itself along with the highlight commentary here:
+
+```
+static void* _A2A( void* ithr )
+{
+// Get the first region (Q.iz, Q.ir)
+do { // for each region
+
+// Make shorthand pointers and locals for my points list vp, point count np
+
+// If too few points to solve (np < 3) mark this region bad and skip it.
+
+// Create regularizer solution 'rgd', either translation or rigid. As we solve for
+// affines we also solve for the more constrained rgd solution that, for example,
+// can not shrink or skew. The output solution will be a component-wise admixture
+// of the affine and rgd in the user-specified  proportion. For example, option
+// -Wr=R,0.001 selects a rigid with weight 0.001.
+
+// Get ready to build the normal equation matrix 'AX=B' where the sought transform
+// components are X. A & B are termed the LHS and RHS matrices. Each point-pair
+// makes a new equation Ta(pa) = Tb(pb) which is a new row in a virtual overdetermined
+// matrix (more rows/points than variables). The AddConstraint_Quick() function builds
+// LHS & RHS one equation at a time by calculating the product of A-transpose with
+// the overdetermined A & B. When we 'Solve' RHS gets replaced by the solution X,
+// so we simply point RHS into the correct portion of Xdst.
+
+// For each point...
+
+// Do some preliminary sanity checking
+
+	// Skip if a !used point
+	
+	// Pick one of two functionally identical clauses according to whether p1 is
+	// in the target A region or p2 is inside A. Another 2X complexity reduction!!
+	
+	// Employ index caching to do the fewest array accesses.
+	// Make sure the 'other' point is in a valid region, or push an edit request.
+	// Pair the appropriate tform with its point and apply to make global points.
+	// Note that Ta and Tb are both the previous tforms, not yet the new solution
+	// for Ta.
+	
+	// Check the error: the distance between these global points. If the error exceeds
+	// command line option -Etol then do not use this point in the equations (but do
+	// not mark it as problematic). IMPORTANT: As we iterate, the whole system will
+	// tend to oscillate. Waves of change will wash back and forth through the volume.
+	// We do not want to reject any points until the waves have died down a bit,
+	// that is, until some number of iterations have completed. We call that ad hoc
+	// parameter 'editdelay'.
+
+// OK, we have a qualified point-pair...
+
+// Next, we'll apply an oscillation damping measure. Let's call the global points
+// from the previous iteration A = Ta(pa) and B = Tb(pb). Whereas we would normally
+// solve for a new Ta'(pa) like this:
+// Ta'(pa) = B, we instead do this:
+// Ta'(pa) = B' = Wb*B + (1-Wb)*A, for Wb < 1.
+// This is legal because prior to convergence the Ta and Tb are approximate, and
+// as we get close to convergence, of course this modification tends toward zero.
+// Its damping effect comes from effectively reducing the differences that the
+// new Ta need to accommodate. Convergence is dramatically quicker.
+
+// Now use the local pa and modified global B to add equations both for the
+// regularizer and for the affine, and count the number of used points (++nu).
+
+// Done with point loop
+
+// ----------------------------
+// Now solve and evaluate
+
+// If the number of equations (points) was too small, KILL this region.
+
+// Solve it...
+// If the solution is pathological, try resolving with cut down points.
+// Otherwise, solve for the regularizer and form the admixture.
+
+// If enough iters have been done (somewhat damped down) then measure the
+// 'squareness' of the transform, which means: Apply the tform to a right
+// angle and report the deviation from 90 degrees, really, |sin(90-angle)|.
+// If too deviant, again try resolving with cut down points.
+// Otherwise,
+// Check if the number of points used (nu) is fewer than the number listed (np)
+// and if so then cull unused points from our list (we're the only thread
+// currently using that list so we can do it now).
+
+} while (Q.Next());
+}
+```
+
+#### Solution Viewer
+
+The pipeline and solver work primarily with binary versions of solution data, and the final output from the solve is binary, e.g., `X_A_BIN`. When you want to inspect these data use the provided viewer tool `1_XView`. You can convert IDB or X_folder data to various forms of text or make a TrakEM2 xml file from it.
+
+#### Error Viewer
+
+The solver creates binary tables of final point errors and reports these in output folder `Error`. Use the provided viewer tool `1_EView` to histogram these data. The output is a text file that can be imported into Excel or other plot program. The parameters let you specify the bin width and maximum error size. There is an overflow row. The columns in the output are:
+
+* Error
+* Counts for all points
+* Counts for in-layer only
+* Counts for cross-layer only
+
+Moreover, you can histogram two Error folders at once, placing their respective result columns into one file for ready comparison in Excel. This is probably the most meaningful use of the error distribution: measuring if it has changed as a result of some intended improvement.
+
+Remember that outlier errors may cast doubt on the validity of a solution transform, but may just as easily cast doubt on the validity of the points found by ptest.
 
 _fin_
 

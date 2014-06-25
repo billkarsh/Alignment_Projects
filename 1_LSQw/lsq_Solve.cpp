@@ -1083,7 +1083,7 @@ static void* _H2H( void* ithr )
 /* UpdateFlags --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// A solving pass may encompass the following kinds edit
+// A solving pass may encompass the following kinds of edit
 // operations on tracking and flag data:
 //
 // - (1) Mark a rgn flag as cut or killed.
