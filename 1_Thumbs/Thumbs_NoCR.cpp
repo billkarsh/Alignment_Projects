@@ -49,7 +49,7 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 	S.SetNbMaxHt( GBL.ctx.NBMXHT );
 	S.SetSweepConstXY( true );
 	S.SetSweepPretweak( GBL.mch.PRETWEAK );
-	S.SetUseCorrR( false );
+	S.SetUseCorrR( true );
 	S.SetDisc( 0, 0, -1, -1 );
 
 /* ----------------------- */
