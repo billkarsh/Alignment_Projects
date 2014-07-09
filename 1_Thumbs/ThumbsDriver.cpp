@@ -44,7 +44,8 @@ int main( int argc, char* argv[] )
 /* Get images */
 /* ---------- */
 
-	PixPair	px;
+	PixPair		px;
+	CCropMask	CM, *pCM = &CM;
 
 	if( !px.Load(
 			GBL.A, GBL.B, GBL.idb,
@@ -66,8 +67,12 @@ int main( int argc, char* argv[] )
 /* Use foldmasks according to context */
 /* ---------------------------------- */
 
-	if( GBL.ctx.FLD == 'N' )
+	if( GBL.ctx.FLD == 'N'
+		&& !GBL.mch.PXRESMSK
+		&& !CM.IsFile( GBL.idb ) ) {
+
 		Thumbs_NoCR( px, stdout );
+	}
 	else {
 
 		/* --------------- */
@@ -82,28 +87,24 @@ int main( int argc, char* argv[] )
 
 		// Note that the foldmasks are always at full resolution.
 
-		{
-			CCropMask	CM, *pCM = &CM;
+		if( !CM.ReadIDB( GBL.idb ) )
+			pCM = NULL;
 
-			if( !CM.ReadIDB( GBL.idb ) )
-				pCM = NULL;
+		fold_mask_a =
+			GetFoldMask(
+				GBL.idb, GBL.A, GBL.arg.fma,
+				px.resmska, pCM,
+				px.wf, px.hf,
+				false, GBL.arg.Transpose,
+				GBL.arg.SingleFold );
 
-			fold_mask_a =
-				GetFoldMask(
-					GBL.idb, GBL.A, GBL.arg.fma,
-					px.resmska, pCM,
-					px.wf, px.hf,
-					false, GBL.arg.Transpose,
-					GBL.arg.SingleFold );
-
-			fold_mask_b =
-				GetFoldMask(
-					GBL.idb, GBL.B, GBL.arg.fmb,
-					px.resmskb, pCM,
-					px.wf, px.hf,
-					false, GBL.arg.Transpose,
-					GBL.arg.SingleFold );
-		}
+		fold_mask_b =
+			GetFoldMask(
+				GBL.idb, GBL.B, GBL.arg.fmb,
+				px.resmskb, pCM,
+				px.wf, px.hf,
+				false, GBL.arg.Transpose,
+				GBL.arg.SingleFold );
 
 		/* ----------------------- */
 		/* Convert to Conn regions */
