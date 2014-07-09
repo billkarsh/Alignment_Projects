@@ -1,6 +1,6 @@
 # Aligner Methods Overview
 
-### Basic Concepts: Regions & Connecting Points
+## Basic Concepts: Regions & Connecting Points
 
 Our world is composed of two basic building-blocks:
 
@@ -26,7 +26,7 @@ Note that each image can be paired with an 8-bit mask image of equal dimensions 
 
 >Note too, that effective management of foldmasks and rgn differentiation is only about half finished in the present version and is not recommended for use on critical data. Rather, choose the `-nf` (**_no folds_**) option wherever applicable in parameter files and command lines. The `-nf` mode does work as advertised.
 
-#### Points File Content
+### Points File Content
 
 As an alignment progresses it generates files of type `pts.same` and `pts.down` with the tabulated points-pairs. Here are some lines from a pts.down file, which collects matches from different layers.
 
@@ -43,7 +43,7 @@ There is always an A-image, listed first, being matched to a B-image. The coordi
 
 Note too that between a given image pair there are multiple point-pairs reported so that we can construct non-degenerate linear systems to solve for 6-parameter affines, and if desired, 8-parameter homographies.
 
-#### LSQ Solver
+### LSQ Solver
 
 The input data needed to solve for the desired affines are these:
 
@@ -53,7 +53,7 @@ The input data needed to solve for the desired affines are these:
 
 The solving algorithm is very simple. It looks like this:
 
-##### For each 'iteration' of the solver...
+#### For each 'iteration' of the solver...
 
 **_The Data_**
 
@@ -84,7 +84,7 @@ By the way, all of that can be (is) done in a massively parallel way. Solving is
 
 Finally, the last Xdst are written to disk as 'the solution', along with some metrics about the residual error distribution, how 'regular' the solution looks, and if we had to kick out image tiles because their transforms became implausibly distorted.
 
-### Systematic Workflow to Make Point-Pairs
+## Systematic Workflow to Make Point-Pairs
 
 To feed the end-game process, just described, that derives the final global transforms from points that link regions (images) to each other we employ the following key devices:
 
@@ -94,7 +94,7 @@ To feed the end-game process, just described, that derives the final global tran
 
 >The ptest program is such an important and complex workhorse that we devote a separate reference to it: [**ptest_reference**](ptest_reference.md). For the remainder of the workflow discussion let us just assume a magical black box taking image pairs to points tables.
 
-#### Main Workflow Steps
+### Main Workflow Steps
 
 Thus far we introduced a two-step process cartoon--
 
@@ -123,7 +123,7 @@ Each step is manually initiated by a designated bash script. Following each step
 
 The main workflow steps get more coverage in the following sections.
 
-#### IDB (A Structured Repository for Raw Data)
+### IDB (A Structured Repository for Raw Data)
 
 An alignment session begins with a user provided file of information about the images. It can be a text file or TrakEM2 XML file. A text layout line has the following fields:
 
@@ -156,7 +156,7 @@ Script `dbgo.sht (project 1_MakeIDB)` reformats the user layout into a new IDB f
 * _`Project 1_Tiny` builds pipeline component for mrc and foldmask operations._
 * File `0_GEN/PipeFiles.cpp` provides API to access these data using {z,id} key-pair.
 
-#### Workspace 'temp' (Universal Filing Scheme for Machines and Humans)
+### Workspace 'temp' (Universal Filing Scheme for Machines and Humans)
 
 The aligner produces copious output: scripts, tables, logs and so on. To make navigating these things easier for everybody we have created an organizational scheme that is assumed throughout the pipeline:
 
@@ -191,7 +191,7 @@ The folders become filled with logs and output data corresponding to the pipelin
 
 Workspace folder name, e.g. 'temp0', is just a local tradition and you can set any name you want in script `mongo.sht (project 1_MakeMontages)`.
 
-#### Same-Layer Work (Montaging)
+### Same-Layer Work (Montaging)
 
 Script `mongo.sht (project 1_MakeMontages)` not only creates a new 'temp0' workspace, it also uses the stage coordinates embedded in your initial layout file to determine which image pairs have sufficient overlap to list in a make.same script.
 
@@ -215,7 +215,7 @@ Montaging is highly reliable. If a pair of images in the same layer overlap and 
 
 We make all the montages ahead of any cross-layer work so that we can render them (and parts thereof) to deduce how the layers fit together. Once we understand how the layers match up, we will be able to run make.down jobs and get high quality pts.down data. **_In the end, the final solve uses all the pts.same and pts.down data to solve for all the transforms denovo_**. This is often a point of confusion, but the montage transforms only assist with rough cross-layer positioning. **_Montage transforms are not used in the final solve_**. No claim is made that this is fundamentally necessary or optimal. It is simply an accurate description of how the present method works.
 
-#### Cross-Layer Work (Strip Alignment)
+### Cross-Layer Work (Strip Alignment)
 
 Cross-layer work has two phases:
 
@@ -251,7 +251,7 @@ A real strength of this method is that a few misses do not matter because the us
 
 > Note: Blockface methods still benefit from software tweaking, but in that case you wouldn't want to waste time on a wide angle sweep looking for a strip angle you know is essentially zero. We've made the strip angle search parameters variables. In this case you may want to set `scriptparams::stripsweepspan=0` degrees and set `scriptparams::stripsweepstep=1` degree. This will skip the angle sweep and simply calculate the best translational components for zero degrees. The block-block refinement will further tweak that result in the usual way.
 
-#### Cross-Layer Work (Block Alignment)
+### Cross-Layer Work (Block Alignment)
 
 Whereas strip alignment roughly got the layers in the right place, what we want to get out of block-block alignment is sufficient improvement of the alignment in a grid of smallish neighborhoods to establish which tiles really pair with each other, and moreover, what their estimated Tab transforms are (this will assist ptest in selecting the correct peak from their correlation image).
 
@@ -279,14 +279,14 @@ Nevertheless, these ThmPair files serve a new important function. The block matc
 
 After the block-block phase completes (and is sanity checked) the user returns to the top level of the temp folder and runs the script `dsub.sht` which crawls into all the `Dx_y` subfolders and runs the make.down files within. Upon completion, all of the pts.same and pts.down files are in hand. It only remains to solve the full stack.
 
-### Iterative LSQ Solver
+## Iterative LSQ Solver
 
 The solver comprises two parts:
 
 * `1_LSQi` user interface part
 * `1_LSQw` worker part
 
-#### LSQi Interface Part
+### LSQi Interface Part
 
 LSQi primarily decides how to distribute the work onto one or many cluster nodes and then launches the job(s).
 
@@ -296,9 +296,9 @@ Essentially, LSQi compares the number of layers you're solving for (zi=inner ran
 
 If zi exceeds zpernode then `nwks` machines will be used. A custom Grid Engine environment is needed to reserve the required cluster resources. We've provided a kit (`00_impi3`) to help the system administrator set up the needed scripts. Here's the [ReadMe](../00_impi3/ReadMe.md) from the kit that explains how LSQi sets up and launches the MPI-based cluster job.
 
-#### LSQw Worker
+### LSQw Worker
 
-##### Unified Multi/Single Processing Workflow
+#### Unified Multi/Single Processing Workflow
 
 LSQw always gets called with command line argument `-nwks=k` and this signals the code whether to start MPI and run in a multiprocessor fashion (nwks>1) or not. In all cases, the same source code does the work. This is managed in a simple way. Workers are numbered (global `wkid`) from 0 to n-1 and regardless of worker count, nwks, there is always wkid=0 who is implicitly designated the coordinator of all workers. The multi-worker and single worker flow are unified like this:
 
@@ -319,7 +319,7 @@ All MPI operations are abstracted/wrapped by files `1_LSQw::lsq_MPI.{cpp,h}`. As
 * MPISend(): Synchronously send a byte array to specified worker
 * MPIRecv(): Synchronously recv a byte array from specified worker
 
-##### Bag of Calculators
+#### Bag of Calculators
 
 LSQw can be thought of as a collection of calculators. Several of them have the aforementioned structure/workflow, namely {calculate my part, consolidate at wkid=0}:
 
@@ -329,7 +329,7 @@ LSQw can be thought of as a collection of calculators. Several of them have the 
 * Magnitude: Calculate largest deviations of effective scale from unity
 * Split: Resolve/separate solution into its disconnected islands (if any)
 
-##### Untwist Calculator
+#### Untwist Calculator
 
 Another calculator `Untwist` improves the accuracy of an input scaffold. Remember the scaffold is generally created from rough alignment of scaled-down montages and that is done before block alignment, hence, before down connection points are known. However, by the time that the final stack solve is performed, all of the points are in hand and we can use them to find improved rigids between the layers. Applying the rigids to the whole stack involves cumulative products. The total correction Rk applied to layer k is the product of foregoing pairwise corrections (rj):
 
@@ -337,7 +337,7 @@ Another calculator `Untwist` improves the accuracy of an input scaffold. Remembe
 
 In this case, pairwise transforms are communicated among workers by writing the rigids to wkid-labeled disk files. In a subsequent phase, each worker parses the files from other workers with wkid lower than its own.
 
-##### Solve Calculator
+#### Solve Calculator
 
 The solving itself is really just another calculator, but it has a unique data sharing structure. Again, each worker is responsible for solving the transforms for its own "inner" range `zi=i,j` of layers. The zi are non-overlapping. Each layer is solved by just one worker. However, each worker must carry points and transforms for an "outer" range of layers `zo=p,q` that the inner layers depend upon. At startup each worker reads the `ranges.txt` file that LSQi writes to determine the index ranges of layers it must exchange with the worker to its left or right.
 
@@ -350,7 +350,7 @@ After each solve iteration a worker has updated its own zi layers, but it must g
 4. Evens send right, odds recv from left
 ```
 
-#### Manual Convergence & Start/Stop Operation
+### Manual Convergence & Start/Stop Operation
 
 The solver does not itself contain an automatic convergence mechanism. Rather, the vision for how the solver would be used is this:
 
@@ -373,11 +373,11 @@ The solver's `-mode=XXX` option specifies which operations to perform (which cal
 
 >Note that any of the solve modes {A2A, A2H, H2H} implicitly also run `eval` upon completion.
 
-#### Packed Storage Formats
+### Packed Storage Formats
 
 The start/stop/eval and internal iterative workflow suggested that care be taken to use efficient data representations to minimize both disk I/O and MPI data exchange. Compact data also facilitate tackling huge problems.
 
-##### Binary Point Data
+#### Binary Point Data
 
 The correspondence points in pts.same and pts.down files need to be loaded for solve or evaluate operations and they are in human readable text formats in these files because that enables one to debug and possibly edit these critical data. However, they are never modified by the solver.
 
@@ -393,7 +393,7 @@ By default LSQw will look for the cached {catalog, points} data in a local subdi
 	* to make experimental parameter changes,
 	* **and** to set `-lsqcache=../stack/lsqcache` to avoid remaking these data.
 
-##### Solution Folders 'X'
+#### Solution Folders 'X'
 
 The pipeline and solver generally represent collections of transforms as a folder with name pattern: `X_<A,H>_<BIN,TXT>[_optional-tag]`. For example, the cross-layer work begins by assembling (using `gathermons.sht`) all of the individual layer montages into a folder named `X_A_BIN_mons`.
 
@@ -402,7 +402,7 @@ The pipeline and solver generally represent collections of transforms as a folde
 * **BIN, TXT**: signifies binary or text data
 * Parsers that open these folders ignore anything following {BIN,TXT}
 
-###### Binary Folders
+##### Binary Folders
 
 Binary folders like `X_A_BIN` contain transform **and** flags files like this:
 
@@ -426,7 +426,7 @@ Most data within the pipeline and solver are organized at the highest level by l
 
 The map is calculated by function `0_GEN/PipeFiles.cpp::IDBGetIDRgnMap( map, idb, z )` which scans tabulated counts of regions (in `fm.same` files) within the IDB.
 
-###### Text Folders
+##### Text Folders
 
 Text versions of solution folders, like `X_A_TXT`, contain only transform files like:
 
@@ -434,7 +434,7 @@ Text versions of solution folders, like `X_A_TXT`, contain only transform files 
 
 There is a file per layer, of course. Within a file, the lines are labeled affines, so read: `id rgn A0 A1 ...`. In this case the flags are implicit. A listed transform exists with no attached issues, so gets flag value zero. All unlisted transforms are missing in action, so get flag value 0x03.
 
-#### Solving Details & Parameters
+### Solving Details & Parameters
 
 The schematic we gave earlier for solving is mostly true. There are a few minor modifications to describe in this section. To recap, the repetitive scheme is basically this:
 
@@ -455,13 +455,13 @@ One of the most difficult parts of the pipeline to get right was the block-block
 
 In the next few sections we look at a few tricks to keep the inherently oscillatory solving process from getting caught in a loop, and to identify cancers at an early stage and remove them surgically.
 
-##### Reducing Complexity
+#### Reducing Complexity
 
 The solver is really not that complicated. The whole solving apparatus is contained in the single smallish file `1_LSQw/lsq_Solve.cpp`. Moreover, it's much simpler than that once you understand that much of the code is simply duplicated six times over to optimize addressing performance for the three fundamental solving modes. More specifically the three main solving loops `{_A2A, _A2H, _H2H}` are all copy/paste clones of each other with some macro names changed and some values of '6' exchanged for '8'. That gets us a 3X complexity reduction.
 
 Next, each main solver has a matched companion, these are `{Cut_A2A, Cut_A2H, Cut_H2H}`. What happens in each main solver is that we first try to use all the points that connect this tile to others. If we incur a degenerate matrix or if the resulting transform looks excessively distorted our immediate suspicion is that the down connecting points may be bad due to a bad block-block match. Before giving up hope for this tform we call Cut_XXX which re-solves in the identical way, but using only in-layer connections, effectively "cutting" the tile's cross connections. That allows a tile to remain joined to its in-layer neighbors and move with them. It's not a perfect solution, but this way we can keep a tile in the set, marking it as "cutd" (cut downs) instead of writing it off as "killed". So you only need to understand _A2A to understand its five other copy/paste variants.
 
-##### Solving Data
+#### Solving Data
 
 The global data we need are managed by `lsq_Globals` and consist of two main things:
 
@@ -536,7 +536,7 @@ public:
 * `NE` is the number of elements (6 or 8).
 * 'X' is addressed first by zero-based layer `X[iz]` then by combined region index (i). The start of the elements for tform (i) is `X[iz][NE*i]`.
 
-##### Solving Algorithm (For Reals)
+#### Solving Algorithm (For Reals)
 
 At the highest level the solving function is this:
 
@@ -675,11 +675,11 @@ do { // for each region
 }
 ```
 
-#### Solution Viewer
+### Solution Viewer
 
 The pipeline and solver work primarily with binary versions of solution data, and the final output from the solve is binary, e.g., `X_A_BIN`. When you want to inspect these data use the provided viewer tool `1_XView`. You can convert IDB or X_folder data to various forms of text or make a TrakEM2 xml file from it.
 
-#### Error Viewer
+### Error Viewer
 
 The solver creates binary tables of final point errors and reports these in output folder `Error`. Use the provided viewer tool `1_EView` to histogram these data. The output is a text file that can be imported into Excel or other plot program. The parameters let you specify the bin width and maximum error size. There is an overflow row. The columns in the output are:
 

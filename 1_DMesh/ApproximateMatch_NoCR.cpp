@@ -12,7 +12,7 @@
 /* ApproximateMatch_NoCR ----------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Seek transform A->B composed as: Tsim * Tdfm * Tpretwk.
+// Seek transform A->B composed as: Trgd * Tdfm * Tpretwk.
 //
 // Return true and add one entry to guesses if successful.
 //

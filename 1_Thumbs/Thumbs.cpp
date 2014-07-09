@@ -12,7 +12,7 @@
 /* Thumbs -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Seek transform A->B composed as: Tsim * Tdfm * Tpretwk.
+// Seek transform A->B composed as: Trgd * Tdfm * Tpretwk.
 //
 // The output is an entry in the ThmPair_lyrA^lyrB.txt file.
 //
