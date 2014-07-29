@@ -15,14 +15,14 @@ The document format is pretty simple. I'll run through the algorithm without up-
 
 Appendices:
 
-* [General Source Code Anatomy](ptest_reference.md#general)
-* [Input Parameter Handling](ptest_reference.md#params)
-* [Output (Exhaustive List)](ptest_reference.md#output)
-* [Image Loading & Preprocessing](ptest_reference.md#image)
-* [Foldmasks and Connected Regions](ptest_reference.md#folds)
-* [Approximate FFT Matching](ptest_reference.md#approx)
-* [Notes on Mesh Creation](ptest_reference.md#mesh)
-* [Ptestx Environment (Try Folder)](ptest_reference.md#ptestx)
+* [General Source Code Anatomy](ptest_reference.md#general-source-code-anatomy)
+* [Input Parameter Handling](ptest_reference.md#input-parameter-handling)
+* [Output (Exhaustive List)](ptest_reference.md#output-exhaustive-list)
+* [Image Loading and Preprocessing](ptest_reference.md#image-loading-and-preprocessing)
+* [Foldmasks and Connected Regions](ptest_reference.md#foldmasks-and-connected-regions)
+* [Approximate FFT Matching](ptest_reference.md#approximate-fft-matching)
+* [Notes on Mesh Creation](ptest_reference.md#notes-on-mesh-creation)
+* [Ptestx Environment (Try Folder)](ptest_reference.md#ptestx-environment-try-folder)
 
 #### Disclaimer
 
@@ -147,7 +147,7 @@ Two matchparams override mesh behavior:
 
 ### Step 4 - Full Mesh Optimizer (tr_guess => Mesh of {Triangles, Centroids, Affines})
 
-Next we create a multi-triangle mesh within the intersection area. The original scheme Lou had was quite complex. It would surround the point cloud with a boundary-hugging polygon and proceed to carve out triangles from the border inward until the remaining area was exhausted. It was quite error-prone, especially with sparse or discontiguous point clouds. That method lives in file `1_DMesh/CreateMesh` along with the simpler brute force method that supplants it. The new method is discussed in appendix: [Notes on Mesh Creation](ptest_reference.md#mesh).
+Next we create a multi-triangle mesh within the intersection area. The original scheme Lou had was quite complex. It would surround the point cloud with a boundary-hugging polygon and proceed to carve out triangles from the border inward until the remaining area was exhausted. It was quite error-prone, especially with sparse or discontiguous point clouds. That method lives in file `1_DMesh/CreateMesh` along with the simpler brute force method that supplants it. The new method is discussed in appendix: [Notes on Mesh Creation](ptest_reference.md#notes-on-mesh-creation).
 
 The mesh is sent to the optimizer: `1_DMesh/ImproveMesh::ImproveMesh()`, which does the following:
 
@@ -188,7 +188,7 @@ In step (5) the procedure to convert control point changes to an affine is this:
 
 You will notice that `dmeshdriver::main()` expects `CalcTransforms()` to compute a 16-bit image called `rmap`. The pixels in this image are either zero, if not mapped from A to B, or are `10 + index of best affine to map with`. You can view this image (basically a depiction of the triangles) by using ptestx and setting `matchparams::GBL.mch.WMT=Y`. The image is then written to `.../temp/za/ia/zb.ib.map.tif`.
 
-The rmap image is also used to create RGB-composite `comp.png` and B-coverage `registered.png` (see [Output (Exhaustive List)](ptest_reference.md#output)).
+The rmap image is also used to create RGB-composite `comp.png` and B-coverage `registered.png` (see [Output (Exhaustive List)](ptest_reference.md#output-exhaustive-list)).
 
 ### Step 5 - QA Metrics
 
@@ -209,7 +209,7 @@ After the optimizer returns (in `1_DMesh/RegionToRegionMap::RegionToRegionMap()`
 * Close to User translation: User provides command-line expected translations `-XYexp=dx,dy`.
 	* Require difference of **_any_** triangle translation <= `matchparams::GBL.mch.DXY`.
 
-## <a id="general">General Source Code Anatomy</a>
+## <a name="general-source-code-anatomy"></a>General Source Code Anatomy
 
 Most of my sources have the following internal organization, reading from top to bottom:
 
@@ -252,7 +252,7 @@ Most main() functions begin with a call to **C_myglobals_::**`SetCmdLine()` whic
 * Parse and check command line parameters...
 * Turn those into C_myglobals_ member data.
 
-## <a id="params">Input Parameter Handling</a>
+## <a name="input-parameter-handling"></a>Input Parameter Handling
 
 Find ptest `main()` in file: `dmeshdriver.cpp`. The first task is to call the parameter parser: `CGBL_dmesh::SetCmdLine()`.
 
@@ -302,7 +302,7 @@ Even if you haven't given any explicit deformation via Tdfm or factors, there is
 
 A final precedence twist is that you can override the effective angle of Tab by setting option `-CTR=angle`; very useful for debugging.
 
-## <a id="output">Output (Exhaustive List)</a>
+## <a name="output-exhaustive-list"></a>Output (Exhaustive List)</a>
 
 #### Internal
 
@@ -337,7 +337,7 @@ Here's the roster of all externally visible ptest outputs:
 * file : `.../temp/za/S(D)x-y/corr_R_i.tif` : correlation Pearson-R (iff `-dbgcor` option)
 * file : `.../temp/za/S(D)x-y/corr_S_i.tif` : correlation Wetzel spectrally modified (iff `-dbgcor` option)
 
-## <a id="image">Image Loading & Preprocessing</a>
+## <a name="image-loading-and-processing"></a>Image Loading and Preprocessing
 
 ### Your Own Preprocessing
 
@@ -404,7 +404,7 @@ Take note that, whatever combination of operations is applied to the pixels, we 
 
 >Note: You'll see in `0_GEN/Maths` that we have several alternative ways of 'normalizing' wherein we prefer central values or the tails, and so on, groping for ways to enhance signal-to-background in R sums. This has not been fruitful in our hands.
 
-## <a id="folds">Foldmasks and Connected Regions</a>
+## <a name="foldmasks-and-connected-regions"></a>Foldmasks and Connected Regions
 
 After `dmeshdriver::main()` loads images, it calls local function `CalcTransforms()` which first loads and prepares the foldmasks, one for each of the two images, and then calls worker function `PipelineDeformableMap()`.
 
@@ -466,7 +466,7 @@ public:
 
 Fields {dx, dy, B} are archaic but still serve some older projects; sorry for that. Really, a region is just a set of image points and their common label.
 
-## <a id="approx">Approximate FFT Matching</a>
+## <a name="approximate-fft-matching"></a>Approximate FFT Matching
 
 ### Correlation Calculators
 
@@ -574,7 +574,7 @@ Pretweaks starts with a list of all five affine "deformations" {total scale, X-s
 
 Another parameter, `matchparams::TWEAKS`, activates the same mechanism, but this time, Pretweaks() is called after a best angle and translation are found. The idea is to fine tune the final affine before sending it on to the mesh calculator. Pretweaks() is fairly time consuming and the mesh apparatus subsumes all affine transformations, so I recommend keeping this off until proven necessary.
 
-## <a id="mesh">Notes on Mesh Creation</a>
+## <a name="notes-on-mesh-creation"></a>Notes on Mesh Creation
 
 My current mesh building method starts by erecting a regular grid of rectangles over the intersection bounding box. The initial grid cell size is given by your "mesh nominal length" `matchparams::MNL`. **_This value is used for same- and cross-layer cases._** We then adjust the dimensions down slightly so the rectangle mesh roughly circumscribes the bounding box. After one more step, these rectangles will each be split along the diagonal to become two triangles, but we have one more sizing step first.
 
@@ -612,7 +612,7 @@ Here's what one should do. Ten point pairs along an edge in the same-layer case 
 
 To adjust sizing for the cross-layer cases, note that the solver does not apply any explicit weighting factor for same-layer vs cross-layer point-pairs. Each point-pair constraint equation gets equal weight. If one wanted to apply a weight to a constraint equation, one would do that by multiplying all terms of that equation by a weight. Implicitly then, the same-layer and cross-layer contributions are differentially weighted according to how many constraints of each type we use. We know that same-layer matches are more reliable than cross-layer in most cases. **In practice, I shoot for a factor of two more same-layer than cross-layer points.** In this example, we get 64 same-layer triangles, so we want about 32 cross-layer triangles. Therefore we should set MTA = 6600 X 6600 / 32 = 1361250, but we can make that a round number like 1200000.
 
-## <a id="ptestx">Ptestx Environment (Try Folder)</a>
+## <a name="ptestx-environment-try-folder"></a>Ptestx Environment (Try Folder)
 
 Ptestx is a very simple helper tool for ptest. All it really does is create a `temp` folder structure, copy two needed input files there (matchparams and imageparams), change directory into the S- or D-folder and then call ptest with the remaining command line parameters. The parameters pertaining specifically to ptestx are:
 
@@ -674,7 +674,7 @@ When you run pgo.sht, you'll get a new temp folder inside your try folder. Dig d
 ptestx 1.4^1.8 -nf -clr -d=temp -prm=matchparams.txt -CTR=0 -dbgcor
 ```
 
-Now you'll get the thumbnail images the correlator uses (see [Output (Exhaustive List)](ptest_reference.md#output)).
+Now you'll get the thumbnail images the correlator uses (see [Output (Exhaustive List)](ptest_reference.md#output-exhaustive-list)).
 
 To make a change, edit your local copy of matchparams: `try/matchparams.txt` and run pgo.sht again.
 
