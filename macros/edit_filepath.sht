@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script edits the file_path tags in TrakEM2 xml files.
+# This script edits the file_path tags in TrakEM2 'xml' files, or, paths in 'txt' files.
 # It does simple substitutions at the start of the paths.
 #
 # For example, suppose the image files were originally like:
@@ -20,12 +20,12 @@
 #
 # And then run this script as follows:
 #
-# > ./edit_filepath.csh Myxmlfile.xml
+# > ./edit_filepath.sht Myxmlfile.xml
 #
 # Option (2) is to put the old and new strings on a very long command
 # line like this:
 #
-# > ./edit_filepath.csh Myxmlfile.xml '/groups/svoboda/arraytmgrphy/LM-Images/V91005p2Series/SerialImages' 'E://TIF_HEQ'
+# > ./edit_filepath.sht Myxmlfile.xml '/groups/svoboda/arraytmgrphy/LM-Images/V91005p2Series/SerialImages' 'E://TIF_HEQ'
 #
 # IMPORTANT:
 # In option (1) put double-quotes ("") around the strings.
@@ -61,5 +61,10 @@ fi
 
 
 # Do substitutions on all lines
-sed 's|file_path="'$old'|file_path="'$new'|' < $1 > $v2
+if [ $(echo $ext | tr '[:upper:]' '[:lower:]') == "xml" ]
+then
+	sed 's|file_path="'$old'|file_path="'$new'|' < $1 > $v2
+else
+	sed 's|'$old'|'$new'|' < $1 > $v2
+fi
 
