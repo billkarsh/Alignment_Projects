@@ -392,36 +392,8 @@ static double ApproxEarthMoversMetric(
 			int		dy		= rdist[y];
 			double	dist	= min( dx, dy );
 
-			if( dist < 0 ) {
-
-				printf(
-				"x %d, y %d, dx %d, dy %d, dist %f, d[x+w*y] %f\n",
-				x, y, dx, dy, dist, d[x + w*y] );
-			}
-
 			approx += dist * abs( d[x + w*y] );
 		}
-	}
-
-// this should never happen
-
-	if( approx < 0 ) {
-
-		printf(
-		"##Negative metric?  wi=%d, hi=%d"
-		"\nColumn dists: ", wi, hi );
-
-		for( int x = 1; x < w; ++x )
-			printf( "%d ", cdist[x] );
-
-		printf( "\nRow dists: " );
-
-		for( int y = 1; y < h; ++y )
-			printf( "%d ", rdist[y] );
-
-		printf( "\n" );
-
-		exit( 42 );
 	}
 
 // Normalize:

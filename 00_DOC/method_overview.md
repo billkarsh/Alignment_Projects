@@ -536,7 +536,7 @@ public:
 * `NE` is the number of elements (6 or 8).
 * 'X' is addressed first by zero-based layer `X[iz]` then by combined region index (i). The start of the elements for tform (i) is `X[iz][NE*i]`.
 
-#### Solving Algorithm (For Reals)
+#### Solving Algorithm
 
 At the highest level the solving function is this:
 
@@ -671,7 +671,7 @@ do { // for each region
 // and if so then cull unused points from our list (we're the only thread
 // currently using that list so we can do it now).
 
-} while (Q.Next());
+    } while (Q.Next());
 }
 ```
 
