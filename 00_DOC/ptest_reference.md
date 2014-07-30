@@ -200,7 +200,8 @@ After the optimizer returns (in `1_DMesh/RegionToRegionMap::RegionToRegionMap()`
 	* Require whole-mesh EMM < `1.10 X matchparams::GBL.mch.EMT`.
 * Fraction of "yellow" overlap pixels = **1/N X (count A-B values within 25%)**.
 	* Require yellow >= `matchparams::GBL.mch.FYL`.
-* Self-consistency: Calculate maximum spread, over all affines, of each affine component.
+* Self-consistency: Calculate maximum spread over triangles of {angle, affine components}.
+	* Require spread in effective angle <= `matchparams::GBL.mch.LDA` radians.
 	* Require spread in matrix-like components <= `matchparams::GBL.mch.LDR` radians.
 	* Require spread in translation components <= `matchparams::GBL.mch.LDC` pixels.
 * Close to Original: Average mesh affines, calculate difference from tr_guess.
