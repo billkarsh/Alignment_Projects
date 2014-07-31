@@ -127,13 +127,15 @@ The main workflow steps get more coverage in the following sections.
 
 An alignment session begins with a user provided file of information about the images. It can be a text file or TrakEM2 XML file. A text layout line has the following fields:
 
->Z tileID a00 a01 a02 a10 a11 a12 col row cam full_path
+```
+Z tileID a00 a01 a02 a10 a11 a12 col row cam full_path
+```
 
 * Z is 0-based layer index.
 	* All the images for a layer should be grouped together in a layout file.
 	* Listed Z's should never decrease.
 	* Z's need not be contiguous: we will automatically match across gaps.
-* TileID is 0-based and is unique within its layer.
+* TileID is a non-negative 32-bit integer and is unique within its layer.
 	* `Tip: ID's can be anything, but assigning, say, col*1000+row, makes navigating easier`.
 * Components of affine with 2D order like this:
 	* `.[ [a00 a01 a02]`
