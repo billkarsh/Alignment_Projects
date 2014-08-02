@@ -607,11 +607,23 @@ The matchparams were set to defaults from an unrelated data set, remember, these
 * MNL=300
 * MTA=10000
 
-The images were each 6600 X 6600 at full scale, and in this block-face example cross-layer images overlap each other almost completely. Let's first check that the mesh algorithm worked as advertised. Since 6600 is bigger than the linear size limit `MAX1DPIX = 2048` in CPixPair::Load(), each dimension would be halved twice, down to 1650 X 1650 which is consistent with the {Lx, Ly} reported above. Next, 6600 / MNL = 6600 / 300 = 22, which is the the number of grid cells created in each dimension. Finally, the average triangle in this mesh is 74 X 74 / 2 = 2738, which is greater than MTA/(scl X scl) = 10000/( 4 X 4) = 625.
+The images were each 6600 X 6600 at full scale, and in this block-face example cross-layer images overlap each other almost completely. Let's first check that the mesh algorithm worked as advertised. Since 6600 is bigger than the linear size limit `MAX1DPIX = 2048` in CPixPair::Load(), each dimension would be halved twice, down to 1650 X 1650 which is consistent with the {Lx, Ly} reported above. Next, 6600 / MNL = 6600 / 300 = 22, which is the the number of grid cells created in each dimension. Finally, the average triangle in this mesh is 74 X 74 / 2 = 2738, which is greater than MTA/(scl X scl) = 10000/(4 X 4) = 625.
 
-Here's what one should do. Ten point pairs along an edge in the same-layer case is adequate in most cases but these are huge images so I might go up to 16 points per edge. So in each dimension we only need 16 triangles, or 8 rectangles, so we should set MNL = 6600 / 8 = 825. Using this setting, an image in the interior of a volume gets 16 points/edge or 16 X 4 = 64 same-layer connection points.
+Here's what one should do. Ten point pairs along an edge in the same-layer case is adequate in most cases but these are huge images so I might go up to 16 points per edge. So in each dimension we only need 16 triangles, or 8 rectangles, so we should set MNL = 6600 / 8 = 825.
 
-To adjust sizing for the cross-layer cases, note that the solver does not apply any explicit weighting factor for same-layer vs cross-layer point-pairs. Each point-pair constraint equation gets equal weight. If one wanted to apply a weight to a constraint equation, one would do that by multiplying all terms of that equation by a weight. Implicitly then, the same-layer and cross-layer contributions are differentially weighted according to how many constraints of each type we use. We know that same-layer matches are more reliable than cross-layer in most cases. **In practice, I shoot for a factor of two more same-layer than cross-layer points.** In this example, we get 64 same-layer triangles, so we want about 32 cross-layer triangles. Therefore we should set MTA = 6600 X 6600 / 32 = 1361250, but we can make that a round number like 1200000.
+To adjust sizing for the cross-layer cases, note that the solver does not apply any explicit weighting factor for same-layer vs cross-layer point-pairs. Each point-pair constraint equation gets equal weight. If one wanted to apply a weight to a constraint equation, one would do that by multiplying all terms of that equation by a weight. Implicitly then, the same-layer and cross-layer contributions are differentially weighted according to how many constraints of each type we use. We can write the ratio of same- to cross-layer connections in a succinct way like this.
+
+```
+E = average number of same-layer edge connections.
+F = average number of face connections to one cross layer.
+R = desired balance of same/cross connections.
+
+R = (4 X E) / (2 X F), so,
+
+F = 2 X E / R.
+```
+
+For block-face imaging, the cross-layer matching is very good and we may be inclined to set R = 1. Then in this example we want each cross-layer pair to use 2 X 16 = 32 triangles, so we set MTA = 6600 X 6600 / 32 = 1361250, but we can make that a round number like 1200000. You are free to decide R, hence, MTA according to your beliefs about match quality.
 
 ## <a name="ptestx-environment-try-folder"></a>Ptestx Environment (Try Folder)
 
