@@ -7,6 +7,7 @@
 #include	"Maths.h"
 #include	"Geometry.h"
 #include	"CPicBase.h"
+#include	"Memory.h"
 
 #include	"numerical_recipes.h"
 
@@ -928,6 +929,7 @@ int main( int argc, char **argv )
 
 	WriteFOLDMAP2Entry( ncr );
 
+	VMStats( stdout );
 	return 0;
 }
 
