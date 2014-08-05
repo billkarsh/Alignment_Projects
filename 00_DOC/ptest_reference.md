@@ -329,7 +329,7 @@ Here's the roster of all externally visible ptest outputs:
 * file : `.../temp/za/ia/zb.ib.tf.txt` : the NTrans affines (iff `matchparams::WTT=Y`)
 * ---
 * file : `.../temp/za/S(D)x-y/comp.png` : RGB composite A on B result (iff `-v` option)
-* file : `.../temp/za/S(D)x-y/registered.png` : cumulatively superpose all A mappings to this B (iff `-v` option)
+* file : `.../temp/za/S(D)x-y/registered.png` : accumulate all A mappings to any B (iff `-v` option)
 * file : `.../temp/za/S(D)x-y/qual.tif` : intensity encodes A onto B match quality (iff `-v -heatmap` options)
 * ---
 * file : `.../temp/za/S(D)x-y/thmA_i.tif` : input raster to A-FFT (iff `-dbgcor` option)
