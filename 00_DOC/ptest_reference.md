@@ -338,7 +338,7 @@ Here's the roster of all externally visible ptest outputs:
 * file : `.../temp/za/S(D)x-y/corr_R_i.tif` : correlation Pearson-R (iff `-dbgcor` option)
 * file : `.../temp/za/S(D)x-y/corr_S_i.tif` : correlation Wetzel spectrally modified (iff `-dbgcor` option)
 
-## <a name="image-loading-and-processing"></a>Image Loading and Preprocessing
+## <a name="image-loading-and-preprocessing"></a>Image Loading and Preprocessing
 
 ### Your Own Preprocessing
 
