@@ -135,7 +135,7 @@ Z tileID a00 a01 a02 a10 a11 a12 col row cam full_path
 	* All the images for a layer should be grouped together in a layout file.
 	* Listed Z's should never decrease.
 	* Z's need not be contiguous: we will automatically match across gaps.
-* TileID is a non-negative 32-bit integer and is unique within its layer.
+* TileID is a non-negative signed 32-bit integer and is unique within its layer.
 	* `Tip: ID's can be anything, but assigning, say, col*1000+row, makes navigating easier`.
 * Components of affine with 2D order like this:
 	* `.[ [a00 a01 a02]`
@@ -146,7 +146,7 @@ Z tileID a00 a01 a02 a10 a11 a12 col row cam full_path
 	* If unavailable, these should be set each to -999.
 * cam is 0-based camera identifier for debugging.
 	* In a one-camera setup, use cam = 0.
-* Full absolute path to image.
+* Full rooted absolute path to image.
 	* Images may be accessed from a variety of working directories so must be absolute.
 	* Images can be TIF (8,16) PNG (8,16) MRC(16).
 
