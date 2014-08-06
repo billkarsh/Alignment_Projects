@@ -149,6 +149,7 @@ Z tileID a00 a01 a02 a10 a11 a12 col row cam full_path
 * Full rooted absolute path to image.
 	* Images may be accessed from a variety of working directories so must be absolute.
 	* Images can be TIF (8,16) PNG (8,16) MRC(16).
+* Spaces are space or tab.
 
 Script `dbgo.sht (project 1_MakeIDB)` reformats the user layout into a new IDB folder/file organization for efficient access by pipeline stages. The IDB device also has these features:
 
