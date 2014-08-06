@@ -488,10 +488,19 @@ bool CThmUtil::MakeThumbs(
 		thm.ap.size(), thm.reqArea, thm.scl );
 	}
 
+	if( thm.ap.size() < thm.reqArea ) {
+
+		fprintf( flog,
+		"FAIL: Thumbs: Small intersection %ld (required %ld).\n",
+		 thm.ap.size(), thm.reqArea );
+
+		return false;
+	}
+
 	if( !Normalize( thm.av ) ) {
 
 		fprintf( flog,
-		"Thumbs: Image A intersection region: stdev = 0.\n" );
+		"FAIL: Thumbs: Image A intersection region: stdev = 0.\n" );
 
 		return false;
 	}
@@ -499,7 +508,7 @@ bool CThmUtil::MakeThumbs(
 	if( !Normalize( thm.bv ) ) {
 
 		fprintf( flog,
-		"Thumbs: Image B intersection region: stdev = 0.\n" );
+		"FAIL: Thumbs: Image B intersection region: stdev = 0.\n" );
 
 		return false;
 	}
@@ -910,7 +919,6 @@ bool CThmUtil::Finish(
 				fprintf( flog, "revert.\n" );
 				S.SetTptwk( Tptwk );
 				best = CR0;
-return false;	// @@@ kill instead of revert
 			}
 			else
 				fprintf( flog, "keep.\n" );
