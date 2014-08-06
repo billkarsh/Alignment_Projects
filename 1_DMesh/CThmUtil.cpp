@@ -215,8 +215,15 @@ bool CThmUtil::SubI_ThisBox(
 
 // Enough points?
 
-	if( S.p.size() <= OLAP2D )
+	if( S.p.size() <= OLAP2D ) {
+
+		fprintf( flog,
+		"FAIL: SubI_ThisBox:"
+		" Small intersection %ld (required %ld).\n",
+		S.p.size(), OLAP2D );
+
 		return false;
+	}
 
 // Set SubI
 
@@ -412,7 +419,6 @@ bool CThmUtil::Crop(
 	if( !SubI_ThisBox( olp.a, *px.avs_aln, acr.pts, Ba ) ||
 		!SubI_ThisBox( olp.b, *px.bvs_aln, bcr.pts, Bb ) ) {
 
-		fprintf( flog, "Subimage: 2D overlap too small.\n" );
 		return false;
 	}
 
