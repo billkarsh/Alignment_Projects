@@ -40,6 +40,11 @@ Aligner
 - Unfinished handling of geometry-altering folds and tears
 - All images in a data set must be of same fixed dimensions
 
+### Documentation
+
+- Project folder **00_DOC** details installation and methods
+- [Alignment_Tutorial](https://github.com/billkarsh/Alignment_Tutorial) walks you through a real-world example
+
 ### Authorship
 
 Developed over several years at **HHMI/Janelia Research Campus**, originally by **Louis Scheffer**, and subsequently refined into current form by **Bill Karsh**. See reference ["Automated Alignment of Imperfect EM Images for Neural Reconstruction"](http://arxiv.org/abs/1304.6034).

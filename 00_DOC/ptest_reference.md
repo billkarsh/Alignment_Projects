@@ -369,7 +369,7 @@ After raster loading comes intensity flattening which we do by projecting the in
 
 #### Resin Masking
 
-For EM images, use `matchparams::PXRESMSK=Y` to enable the generation of mask images that discriminate tissue (mask value 1) from resin (0). We make masks with utility function `0_GEN/Maths::ResinMask8()`. The algorithm is entirely heuristic but has proven very effective on EM images from different labs/scopes here at Janelia:
+For EM images, use `matchparams::PXRESMSK=Y` to enable the generation of mask images that discriminate tissue (mask value 1) from resin (0). Resin is nasty for correlation based feature finding because we always normalize images first. Things that are very dark or very white like dirt are clipped off, yet resin produces middle values. The signal can easily be overwhelmed by resin as it matches to anything pretty well. However, the resmask procedure usefully identifies resin and we can exclude those areas. We make masks with utility function `0_GEN/Maths::ResinMask8()`. The algorithm is entirely heuristic but has proven very effective on EM images from different labs/scopes here at Janelia:
 
 1. Downsample by 8X or so.
 2. Apply Sobel edge filter 3 times to fill space with edges.
