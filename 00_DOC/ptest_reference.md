@@ -552,7 +552,7 @@ These modes not only specify the angle between the images, they also paint the c
 
 There remains a critical failure mode with the disc methods (modes M and N). The promise and the premise of these modes is that ptest does not, itself, have the proper perspective to judge the validity of the peak searching disc. The correlator always reports **_something_** from the disc...right or wrong, there is always a maximal value in there. So, if your inputs are wrong ptest can't tell. It would then use a bad starting guess for the mesh and could quite possibly report bogus points. To avoid that every effort should be made to use sensible values for parameters, here `LIMXY`, and whenever applicable, diligently check intermediate pipeline results because at each stage what comes out is only as good as what goes in.
 
-### Tweaks
+### <a name="Tweaks"></a>Tweaks
 
 #### Pre-tweaks
 
