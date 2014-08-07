@@ -431,7 +431,7 @@ Returning now to the loading of foldmasks...although labeling connected subregio
 
 Now comes a beautiful trick. Every image now has a mask where zero means the pixel is not used and non-zero means it is used. It is entirely consistent with this labeling scheme, to take the logical AND (product) of this mask with any other binary mask wherein zero and one similarly signify not/used. That's exactly how we use the resin masking option to knock out resin pixels. If `matchparams::PXRESMSK=Y` then px.Load() calculates its resmsk members making them non-empty and they are sent as parameters to GetFoldMask().
 
-### Rectangular Cropping Regions
+### <a name="rectangular-cropping-regions"></a>Rectangular Cropping Regions
 
 The same mask intersection method can be used to remove the margins of images; useful because the extreme periphery of images may suffer especially large aberrations. To invoke this mechanism, one creates a cropping file which is a simple text file having a line per referenced camera index with these fields (whitespace separated):
 
