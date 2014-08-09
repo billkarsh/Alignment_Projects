@@ -11,7 +11,7 @@
 # -z=i,j		;use data in range z=[i..j]
 #
 # Options:
-# [Error]		;second Error folder for comparison
+# [Error_B]		;second Error folder for comparison
 # -div=10		;bin width = 1/div
 # -lim=500		;nbins = div*lim + 1 (for oflo)
 

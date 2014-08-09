@@ -355,7 +355,7 @@ static void WriteEviewFile()
 	fprintf( f, "# -z=i,j\t\t;use data in range z=[i..j]\n" );
 	fprintf( f, "#\n" );
 	fprintf( f, "# Options:\n" );
-	fprintf( f, "# [Error]\t\t;second Error folder for comparison\n" );
+	fprintf( f, "# [Error_B]\t\t;second Error folder for comparison\n" );
 	fprintf( f, "# -div=10\t\t;bin width = 1/div\n" );
 	fprintf( f, "# -lim=500\t\t;nbins = div*lim + 1 (for oflo)\n" );
 	fprintf( f, "\n" );
