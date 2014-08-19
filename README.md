@@ -40,6 +40,11 @@ Aligner
 - Unfinished handling of geometry-altering folds and tears
 - All images in a data set must be of same fixed dimensions
 
+### Requirements
+
+- Linux cluster with (Sun / Oracle / Univa) Grid Engine.
+- [**Fiji**](http://fiji.sc/Fiji) + [**TrakEM2**](http://www.ini.uzh.ch/~acardona/trakem2.html): invaluable image and stack tools.
+
 ### Documentation
 
 - Project folder **00_DOC** details installation and methods
