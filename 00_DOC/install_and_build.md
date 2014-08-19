@@ -105,6 +105,14 @@ export I_MPI_USE_DYNAMIC_CONNECTIONS=0
 # ---------------------------------------------------------
 ```
 
+Here's the contents of our **INTEL2013.sh** setup script:
+
+```
+. /usr/local/intel-2013/bin/compilervars.sh intel64
+. /usr/local/intel-2013/impi/4.1.0.024/bin64/mpivars.sh intel64
+export INTEL_LICENSE_FILE="nnnnn@flexlm.int.janelia.org"
+```
+
 ### Build
 
 Project labeling scheme:
