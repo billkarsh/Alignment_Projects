@@ -16,7 +16,7 @@
 > ./topgo.sht
 > ./dbgo.sht
 // ---------------------------------------------
-// Iff using MRC images or if making foldmasks:
+// If using MRC images or if making foldmasks:
 >     cd idb    // within idb folder
 >    ./fsub.sht 0 2
 >    ./freport.sht
