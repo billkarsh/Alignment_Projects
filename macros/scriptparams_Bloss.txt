@@ -42,7 +42,7 @@ maskoutresin=N         <typical N>       "Y=remove resin pixels from EM renderin
 stripwidth=3           <typical 15>      "strips n tiles wide in short dimension (0 -> full)"
 stripsweepspan=360     <typical 360.0>   "strip angle sweep span (deg, 0 -> force 0)"
 stripsweepstep=5       <typical 5.0>     "strip sweep step size (deg, step > 0)"
-stripmincorr=0.02      <typical 0.02>    "strips 'fail' if correlation this low"
+stripmincorr=0.02      <typical 0.02>    "try bigger strips if correlation this low"
 stripslots=8           <typical 8>       "subscapes.sht/scapeops slots/threads per job"
 #
 # Cross-layer block-block refinement
