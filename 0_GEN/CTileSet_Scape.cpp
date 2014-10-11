@@ -380,6 +380,7 @@ void CTileSet::Scape_PaintTH( int nthr ) const
 // lgord	- Legendre poly max order.
 // sdnorm	- if > 0, image normalized to mean=127, sd=sdnorm.
 // resmask	- mask resin areas.
+// nthr		- thread count.
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
@@ -394,7 +395,8 @@ uint8* CTileSet::Scape(
 	int					bkval,
 	int					lgord,
 	int					sdnorm,
-	bool				resmask ) const
+	bool				resmask,
+	int					nthr ) const
 {
 	if( !vid.size() ) {
 		fprintf( flog, "Scape: Empty tile list.\n" );
@@ -419,7 +421,7 @@ uint8* CTileSet::Scape(
 		GP = new CPaintPrms( scp, ws, hs,
 					vTadj, vid, int(1/scale),
 					bkval, lgord, sdnorm, resmask );
-		Scape_PaintTH( 4 );
+		Scape_PaintTH( nthr );
 		delete GP;
 	}
 	else

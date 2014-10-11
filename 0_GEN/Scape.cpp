@@ -382,6 +382,7 @@ static void PaintTH( int nthr )
 // lgord	- Legendre poly max order.
 // sdnorm	- if > 0, image normalized to mean=127, sd=sdnorm.
 // resmask	- mask resin areas.
+// nthr		- thread count.
 //
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
@@ -399,6 +400,7 @@ uint8* Scape(
 	int				lgord,
 	int				sdnorm,
 	bool			resmask,
+	int				nthr,
 	FILE*			flog )
 {
 	if( !vTile.size() ) {
@@ -421,7 +423,7 @@ uint8* Scape(
 		GP = new CPaintPrms( scp, ws, hs,
 					vTile, int(1/scale), bkval,
 					lgord, sdnorm, resmask, flog );
-		PaintTH( 4 );
+		PaintTH( nthr );
 		delete GP;
 	}
 	else

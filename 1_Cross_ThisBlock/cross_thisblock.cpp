@@ -331,7 +331,7 @@ bool CSuperscape::MakeRasA()
 	ras = TS.Scape( ws, hs, x0, y0,
 			vID, inv_scl, 1, 0,
 			scr.legendremaxorder, scr.rendersdevcnts,
-			scr.maskoutresin );
+			scr.maskoutresin, scr.blockslots );
 
 	return (ras != NULL);
 }
@@ -370,7 +370,7 @@ bool CSuperscape::MakeRasB( const DBox &Abb )
 	ras = TS.Scape( ws, hs, x0, y0,
 			vid, inv_scl, 1, 0,
 			scr.legendremaxorder, scr.rendersdevcnts,
-			scr.maskoutresin );
+			scr.maskoutresin, scr.blockslots );
 
 	if( !ras ) {
 

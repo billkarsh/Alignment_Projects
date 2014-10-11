@@ -316,7 +316,7 @@ bool CSuperscape::MakeWholeRaster()
 	ras = TS.Scape( ws, hs, x0, y0,
 			vid, inv_scl, 1, 0,
 			scr.legendremaxorder, scr.rendersdevcnts,
-			scr.maskoutresin );
+			scr.maskoutresin, scr.stripslots );
 
 	return (ras != NULL);
 }
@@ -354,7 +354,7 @@ bool CSuperscape::MakeRasV()
 	ras = TS.Scape( ws, hs, x0, y0,
 			vid, inv_scl, 1, 0,
 			scr.legendremaxorder, scr.rendersdevcnts,
-			scr.maskoutresin );
+			scr.maskoutresin, scr.stripslots );
 
 	return (ras != NULL);
 }
@@ -392,7 +392,7 @@ bool CSuperscape::MakeRasH()
 	ras = TS.Scape( ws, hs, x0, y0,
 			vid, inv_scl, 1, 0,
 			scr.legendremaxorder, scr.rendersdevcnts,
-			scr.maskoutresin );
+			scr.maskoutresin, scr.stripslots );
 
 	return (ras != NULL);
 }

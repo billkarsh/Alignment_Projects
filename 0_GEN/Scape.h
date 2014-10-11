@@ -45,6 +45,7 @@ uint8* Scape(
 	int				lgord,
 	int				sdnorm,
 	bool			resmask,
+	int				nthr,
 	FILE*			flog );
 
 

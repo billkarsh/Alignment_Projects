@@ -171,7 +171,8 @@ public:
 		int					bkval,
 		int					lgord,
 		int					sdnorm,
-		bool				resmask ) const;
+		bool				resmask,
+		int					nthr ) const;
 };
 
 
