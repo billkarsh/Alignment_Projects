@@ -229,7 +229,8 @@ static void WriteSubscapes( vector<int> &zlist )
 	fprintf( f, "# -ab\t\t\t;align layer za to zb\n" );
 	fprintf( f, "# -za\t\t\t;layer za used only with -ab option\n" );
 	fprintf( f, "# -zb\t\t\t;required layer zb\n" );
-	fprintf( f, "# -abdbg\t\t;make diagnostic images and exit\n" );
+	fprintf( f, "# -abdbg\t\t;make diagnostic strip images and exit\n" );
+	fprintf( f, "# -abdbgfull\t;make diagnostic full images and exit\n" );
 	fprintf( f, "# -abctr=0\t\t;debug at this a-to-b angle\n" );
 	fprintf( f, "\n" );
 	fprintf( f, "\n" );

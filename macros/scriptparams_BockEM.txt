@@ -12,7 +12,7 @@
 #
 # Cluster configuration
 #
-slotspernode=16       <typical 16>      "fixed slot count per cluster node"
+slotspernode=16        <typical 16>      "fixed slot count per cluster node"
 #
 # Image database (IDB) params
 #
@@ -39,7 +39,7 @@ maskoutresin=Y         <typical N>       "Y=remove resin pixels from EM renderin
 #
 # Cross-layer strip-strip coarse alignment
 #
-stripwidth=12          <typical 15>      "strips n tiles wide in short dimension"
+stripwidth=12          <typical 15>      "strips n tiles wide in short dimension (0 -> full)"
 stripsweepspan=360     <typical 360.0>   "strip angle sweep span (deg, 0 -> force 0)"
 stripsweepstep=5       <typical 5.0>     "strip sweep step size (deg, step > 0)"
 stripmincorr=0.02      <typical 0.02>    "strips 'fail' if correlation this low"

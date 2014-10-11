@@ -25,7 +25,8 @@
 # -ab			;align layer za to zb
 # -za			;layer za used only with -ab option
 # -zb			;required layer zb
-# -abdbg		;make diagnostic images and exit
+# -abdbg		;make diagnostic strip images and exit
+# -abdbgfull	;make diagnostic full images and exit
 # -abctr=0		;debug at this a-to-b angle
 
 

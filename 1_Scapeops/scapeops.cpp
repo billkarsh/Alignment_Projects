@@ -113,7 +113,8 @@ public:
 				zb;
 	bool		ismb,
 				isab,
-				abdbg;
+				abdbg,
+				abdbgfull;
 
 public:
 	CArgs_scp()
@@ -126,6 +127,7 @@ public:
 		ismb		= false;
 		isab		= false;
 		abdbg		= false;
+		abdbgfull	= false;
 	};
 
 	void SetCmdLine( int argc, char* argv[] );
@@ -219,6 +221,8 @@ void CArgs_scp::SetCmdLine( int argc, char* argv[] )
 			isab = true;
 		else if( IsArg( "-abdbg", argv[i] ) )
 			abdbg = true;
+		else if( IsArg( "-abdbgfull", argv[i] ) )
+			abdbgfull = true;
 		else {
 			printf( "Did not understand option [%s].\n", argv[i] );
 			exit( 42 );
@@ -462,42 +466,14 @@ void CSuperscape::MakePoints( vector<double> &v, vector<Point> &p )
 }
 
 /* --------------------------------------------------------------- */
-/* MakeStripRasters ---------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-static void MakeStripRasters( CSuperscape &A, CSuperscape &B )
-{
-	char	buf[256];
-
-#if 1
-	A.MakeRasH();
-	sprintf( buf, "strips/A_%d.png", gArgs.za );
-	A.DrawRas( buf );
-
-	B.MakeRasV();
-	sprintf( buf, "strips/B_%d.png", gArgs.zb );
-	B.DrawRas( buf );
-#else
-// simple debugging - load existing image, but does
-// NOT acquire {x0,y0,B,...} meta data!!
-
-	sprintf( buf, "Astrip_%d.png", gArgs.za );
-	A.Load( buf, flog );
-
-	sprintf( buf, "Bstrip_%d.png", gArgs.zb );
-	B.Load( buf, flog );
-#endif
-}
-
-/* --------------------------------------------------------------- */
-/* NewAngProc ---------------------------------------------------- */
+/* StripAngProc -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 // At any given angle the corners of A and B strip coincide
 // and are at (0,0) in B-system. (Ox,Oy) brings center of A
 // coincident with center of B, so, Oxy = Bc - Rot(Ac).
 //
-static void NewAngProc(
+static void StripAngProc(
 	int		&Ox,
 	int		&Oy,
 	int		&Rx,
@@ -515,10 +491,196 @@ static void NewAngProc(
 }
 
 /* --------------------------------------------------------------- */
+/* AlignWithStrips ----------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static int AlignWithStrips(
+	CSuperscape	&A,
+	CSuperscape	&B,
+	clock_t		&t0 )
+{
+	ThmRec		thm;
+	CThmScan	S;
+	CorRec		best;
+	char		buf[256];
+	int			ok = true;
+
+	fprintf( flog, "\n---- Align strips ----\n" );
+
+	A.MakeRasH();
+	sprintf( buf, "strips/A_%d.png", gArgs.za );
+	A.DrawRas( buf );
+
+	B.MakeRasV();
+	sprintf( buf, "strips/B_%d.png", gArgs.zb );
+	B.DrawRas( buf );
+
+	t0 = StopTiming( flog, "MakeStrips", t0 );
+
+	A.MakePoints( thm.av, thm.ap );
+	A.WriteMeta( 'A', gArgs.za );
+
+	B.MakePoints( thm.bv, thm.bp );
+	B.WriteMeta( 'B', gArgs.zb );
+
+	thm.ftc.clear();
+	thm.reqArea	= int(gW * gH * inv_scl * inv_scl);
+	thm.olap1D	= int(gW * inv_scl * 0.5);
+	thm.scl		= 1;
+
+	S.Initialize( flog, best );
+	S.SetRThresh( scr.stripmincorr );
+	S.SetNbMaxHt( 0.99 );
+	S.SetSweepConstXY( false );
+	S.SetSweepPretweak( true );
+	S.SetSweepNThreads( scr.stripslots );
+	S.SetUseCorrR( true );
+	S.SetNewAngProc( StripAngProc );
+
+	gA = &A;
+	gB = &B;
+	gS = &S;
+
+	if( gArgs.abdbg ) {
+
+		//S.RFromAngle( best, gArgs.abctr, thm );
+		//S.Pretweaks( best.R, gArgs.abctr, thm );
+		dbgCor = true;
+		S.RFromAngle( best, gArgs.abctr, thm );
+	}
+	else {
+
+		if( scr.stripsweepspan && scr.stripsweepstep ) {
+
+			S.DenovoBestAngle( best,
+				0, scr.stripsweepspan / 2, scr.stripsweepstep,
+				thm, true );
+		}
+		else {
+			best.A = 0;
+			S.PeakHunt( best, 0, thm );
+		}
+
+		if( ok = best.R >= scr.stripmincorr ) {
+
+			best.T.Apply_R_Part( A.Opts );
+
+			best.X += B.Opts.x - A.Opts.x;
+			best.Y += B.Opts.y - A.Opts.y;
+
+			best.T.SetXY( best.X, best.Y );
+
+			fprintf( flog, "*T: [0,1,2,3,4,5] (strip-strip)\n" );
+			fprintf( flog, "[%f,%f,%f,%f,%f,%f]\n",
+			best.T.t[0], best.T.t[1], best.T.t[2],
+			best.T.t[3], best.T.t[4], best.T.t[5] );
+		}
+	}
+
+	t0 = StopTiming( flog, "Strips", t0 );
+
+	return ok;
+}
+
+/* --------------------------------------------------------------- */
+/* AlignFull ----------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void AlignFull(
+	CSuperscape	&A,
+	CSuperscape	&B,
+	CSuperscape	&M,
+	clock_t		&t0 )
+{
+	ThmRec		thm;
+	CThmScan	S;
+	CorRec		best;
+	char		buf[256];
+
+	fprintf( flog, "\n---- Align full montages ----\n" );
+
+	A.MakeWholeRaster();
+	sprintf( buf, "strips/AF_%d.png", gArgs.za );
+	A.DrawRas( buf );
+
+	if( gArgs.ismb ) {
+		B = M;
+		sprintf( buf, "montages/M_%d_0.png", gArgs.zb );
+		B.Load( buf, flog );
+	}
+	else
+		B.MakeWholeRaster();
+
+	sprintf( buf, "strips/BF_%d.png", gArgs.zb );
+	B.DrawRas( buf );
+
+	t0 = StopTiming( flog, "MakeFull", t0 );
+
+	A.MakePoints( thm.av, thm.ap );
+	A.WriteMeta( 'A', gArgs.za );
+
+	B.MakePoints( thm.bv, thm.bp );
+	B.WriteMeta( 'B', gArgs.zb );
+
+	thm.ftc.clear();
+	thm.reqArea	= int(gW * gH * inv_scl * inv_scl);
+	thm.olap1D	= int(gW * inv_scl);
+	thm.scl		= 1;
+
+	S.Initialize( flog, best );
+	S.SetRThresh( 0.02 );
+	S.SetNbMaxHt( 0.99 );
+	S.SetSweepConstXY( false );
+	S.SetSweepPretweak( true );
+	S.SetSweepNThreads( scr.stripslots );
+	S.SetUseCorrR( true );
+	S.SetDisc( 0, 0, -1, -1 );
+
+	gA = &A;
+	gB = &B;
+	gS = &S;
+
+	if( gArgs.abdbgfull ) {
+
+		//S.RFromAngle( best, gArgs.abctr, thm );
+		//S.Pretweaks( best.R, gArgs.abctr, thm );
+		dbgCor = true;
+		S.RFromAngle( best, gArgs.abctr, thm );
+	}
+	else {
+
+		if( scr.stripsweepspan && scr.stripsweepstep ) {
+
+			S.DenovoBestAngle( best,
+				0, scr.stripsweepspan / 2, scr.stripsweepstep,
+				thm, true );
+		}
+		else {
+			best.A = 0;
+			S.PeakHunt( best, 0, thm );
+		}
+
+		best.T.Apply_R_Part( A.Opts );
+
+		best.X += B.Opts.x - A.Opts.x;
+		best.Y += B.Opts.y - A.Opts.y;
+
+		best.T.SetXY( best.X, best.Y );
+
+		fprintf( flog, "*T: [0,1,2,3,4,5] (full-full)\n" );
+		fprintf( flog, "[%f,%f,%f,%f,%f,%f]\n",
+		best.T.t[0], best.T.t[1], best.T.t[2],
+		best.T.t[3], best.T.t[4], best.T.t[5] );
+	}
+
+	t0 = StopTiming( flog, "Full", t0 );
+}
+
+/* --------------------------------------------------------------- */
 /* ScapeStuff ---------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// The strip alignment from S.DenovoBestAngle (followed by SetXY)
+// The alignment from S.DenovoBestAngle (followed by SetXY)
 // produces a transform A->B = best.T for the scaled down scapes.
 // Here's how to convert that to a transform between the original
 // montages:
@@ -552,10 +714,7 @@ static void NewAngProc(
 static void ScapeStuff()
 {
 	clock_t		t0 = StartTiming();
-	CSuperscape	A, B;
-	ThmRec		thm;
-	CThmScan	S;
-	CorRec		best;
+	CSuperscape	A, B, M;
 
 	B.FindLayerIndices( gArgs.zb );
 	B.OrientLayer();
@@ -564,11 +723,14 @@ static void ScapeStuff()
 
 		char	buf[256];
 
+		fprintf( flog, "\n---- Paint montage ----\n" );
+
 		B.MakeWholeRaster();
 		sprintf( buf, "montages/M_%d_0.png", gArgs.zb );
 		B.DrawRas( buf );
 		B.KillRas();
 		B.WriteMeta( 'M', gArgs.zb );
+		M = B;	// reuse montage metadata in AlignFull
 		t0 = StopTiming( flog, "MakeMontage", t0 );
 	}
 
@@ -578,67 +740,12 @@ static void ScapeStuff()
 	A.FindLayerIndices( gArgs.za );
 	A.OrientLayer();
 
-	MakeStripRasters( A, B );
-	t0 = StopTiming( flog, "MakeStrips", t0 );
+	if( gArgs.abdbgfull ||
+		scr.stripwidth <= 0 ||
+		!AlignWithStrips( A, B, t0 ) ) {
 
-	A.MakePoints( thm.av, thm.ap );
-	A.WriteMeta( 'A', gArgs.za );
-
-	B.MakePoints( thm.bv, thm.bp );
-	B.WriteMeta( 'B', gArgs.zb );
-
-	thm.ftc.clear();
-	thm.reqArea	= int(gW * gH * inv_scl * inv_scl);
-	thm.olap1D	= int(gW * inv_scl * 0.5);
-	thm.scl		= 1;
-
-	S.Initialize( flog, best );
-	S.SetRThresh( scr.stripmincorr );
-	S.SetNbMaxHt( 0.99 );
-	S.SetSweepConstXY( false );
-	S.SetSweepPretweak( true );
-	S.SetSweepNThreads( scr.stripslots );
-	S.SetUseCorrR( true );
-	S.SetNewAngProc( NewAngProc );
-
-	gA = &A;
-	gB = &B;
-	gS = &S;
-
-	if( gArgs.abdbg ) {
-
-		//S.RFromAngle( best, gArgs.abctr, thm );
-		//S.Pretweaks( best.R, gArgs.abctr, thm );
-		dbgCor = true;
-		S.RFromAngle( best, gArgs.abctr, thm );
+		AlignFull( A, B, M, t0 );
 	}
-	else {
-
-		if( scr.stripsweepspan && scr.stripsweepstep ) {
-
-			S.DenovoBestAngle( best,
-				0, scr.stripsweepspan / 2, scr.stripsweepstep,
-				thm, true );
-		}
-		else {
-			best.A = 0;
-			S.PeakHunt( best, 0, thm );
-		}
-
-		best.T.Apply_R_Part( A.Opts );
-
-		best.X += B.Opts.x - A.Opts.x;
-		best.Y += B.Opts.y - A.Opts.y;
-
-		best.T.SetXY( best.X, best.Y );
-
-		fprintf( flog, "*T: [0,1,2,3,4,5] (strip-strip)\n" );
-		fprintf( flog, "[%f,%f,%f,%f,%f,%f]\n",
-		best.T.t[0], best.T.t[1], best.T.t[2],
-		best.T.t[3], best.T.t[4], best.T.t[5] );
-	}
-
-	t0 = StopTiming( flog, "Corr", t0 );
 }
 
 /* --------------------------------------------------------------- */
