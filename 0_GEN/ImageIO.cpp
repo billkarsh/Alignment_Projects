@@ -187,10 +187,10 @@ static void Raster8FromTif16Bit(
 	int				NB, nb, j;
 	uint16			fmt;
 
-// check for signed data if 16-bit
+// Check for signed data if 16-bit
 	TIFFGetField( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
 
-// read encoded strips
+// Read encoded strips
 	raw = (uint16*)malloc( npixels * sizeof(uint16) );
 
 	for( j = 0, NB = 0; NB < npixels * 2; NB += nb, ++j ) {
@@ -202,7 +202,8 @@ static void Raster8FromTif16Bit(
 	fprintf( flog,
 	"TIF(16): Last Encoded strip had %d bytes.\n", nb );
 
-// pixels -> doubles vector
+// Pixels -> doubles vector
+
 	if( fmt == SAMPLEFORMAT_INT ) {
 
 		for( j = 0; j < npixels; ++j )
@@ -220,17 +221,22 @@ static void Raster8FromTif16Bit(
 	Normalize( v );
 
 // Copy vector -> raster.
+// Apply optional background subtraction
 // Change mean to 127, std dev to 25 (or other as specified)
-	const char	*p	= getenv( "Convert16BitStdDev" );
-	double		std	= (p == NULL ? 25.0 : atof( p ));
+
+	const char	*p	= getenv( "Convert16BitBkgSub" );
+	double		bkg	= (p == NULL ? 0.0 : atof( p ));
+				 p  = getenv( "Convert16BitStdDev" );
+	double		std	= (p == NULL ? 25.0 : atof( p )),
+				mn	= 127.5 - bkg;
 
 	fprintf( flog,
-	"TIF(16): Converting intensity using a standard"
-	" deviation of %f\n", std );
+	"TIF(16): Converting intensity using bkg %f, stddev %f\n",
+	bkg, std );
 
 	for( j = 0; j < npixels; ++j ) {
 
-		int pix	= int(127.5 + v[j]*std);
+		int pix	= int(mn + v[j]*std);
 
 		if( pix < 0 )
 			pix = 0;
@@ -848,13 +854,17 @@ void CorrThmToTif8(
 	int						th,
 	FILE*					flog )
 {
+// Change mean to 127, std dev to 35 (or other as specified)
+
 	vector<uint8>	buf( tw * th );
+	const char		*p	= getenv( "Convert16BitStdDev" );
+	double			std	= (p == NULL ? 35.0 : atof( p ));
 
 	for( int i = 0; i < th; ++i ) {
 
 		for( int j = 0; j < tw; ++j ) {
 
-			int	pix = 127 + (int)(I[j + iw*i]*35.0);
+			int	pix = 127 + (int)(I[j + iw*i]*std);
 
 			if( pix < 0 )
 				pix = 0;
