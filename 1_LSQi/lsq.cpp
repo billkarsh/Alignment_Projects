@@ -324,17 +324,20 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		if( local || maxthreads <= 1 ) { // pass flow in-process
 
+			if( maxthreads < 1 )
+				maxthreads = 1;
+
 			sprintf( buf,
 			"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
 			" -mode=%s -Wr=%c,%g -Etol=%g -iters=%d"
-			" -splitmin=%d -maxthreads=1"
+			" -splitmin=%d -maxthreads=%d"
 			" -zi=%d,%d -zo=%d,%d"
 			"%s",
 			nwks, tempdir,
 			cachedir, (prior ? prior : ""),
 			mode, regtype, Wr, Etol, iters,
-			splitmin,
+			splitmin, maxthreads,
 			zilo, zihi, zolo, zohi,
 			(untwist ? " -untwist" : "") );
 		}
