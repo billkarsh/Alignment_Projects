@@ -6,7 +6,6 @@
 #include	"RegionToRegionMap.h"
 
 #include	"Disk.h"
-#include	"ImageIO.h"
 #include	"Inspect.h"
 #include	"LinEqu.h"
 
