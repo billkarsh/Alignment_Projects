@@ -507,11 +507,15 @@ static int AlignWithStrips(
 
 	fprintf( flog, "\n---- Align strips ----\n" );
 
-	A.MakeRasH();
+	if( !A.MakeRasH() )
+		return false;
+
 	sprintf( buf, "strips/A_%d.png", gArgs.za );
 	A.DrawRas( buf );
 
-	B.MakeRasV();
+	if( !B.MakeRasV() )
+		return false;
+
 	sprintf( buf, "strips/B_%d.png", gArgs.zb );
 	B.DrawRas( buf );
 
