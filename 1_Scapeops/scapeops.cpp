@@ -273,7 +273,7 @@ void CSuperscape::OrientLayer()
 			C.push_back( c[i] );
 	}
 
-// Rotate layer upright and translate to (0,0)
+// Rotate layer upright
 
 	TAffine	R;
 
