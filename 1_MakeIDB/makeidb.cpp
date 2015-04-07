@@ -118,7 +118,7 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 
 // parse command line args
 
-	if( argc < 5 ) {
+	if( argc < 4 ) {
 		printf( "Usage: makeidb <source-file>"
 		" -script=scriptpath -idb=idbpath -z=i,j.\n" );
 		exit( 42 );
