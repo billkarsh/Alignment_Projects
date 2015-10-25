@@ -499,7 +499,7 @@ The F-type calculator internally creates {F-image, R-image, A-image}. F and A ar
 
 #### S Method, S-Image
 
-In April of 2014 Stephan Saalfeld organized an [Alignment Hackathon](https://github.com/saalfeldlab/alignment-hackathon-2014-04/wiki) here at Janelia. I had the good fortune to talk with Art Wetzel (Pittsburgh Supercomputing Center) about his current research interests and learned that he was developing a new approach to alignment that relies heavily on FFT-based correlation over many length scales. I can't divulge much of this unpublished work, but Art convinced me I should try manipulating the power spectra of the FFTs used in correlation to emphasize feature size scales of relevance, hence, "S method." Art's simple trick, employed here, boosts signal to noise from 10% to 100% or more over the corresponding R-image depending upon content. `CorrImagesS()` is now our de facto standard. Unfortunately, the natural value range is very variable and I employ a hack to drive the reported values closer to [-1..1] so that one still specifies thresholds in matchparams and scriptparams files. This method internally generates {S-image, R-image, A-image}.
+In April of 2014 Stephan Saalfeld organized an [Alignment Hackathon](https://github.com/saalfeldlab/alignment-hackathon-2014-04/wiki) here at Janelia. I had the good fortune to talk with Art Wetzel (Pittsburgh Supercomputing Center) about his current research interests and learned that he was developing a new approach to alignment that relies heavily on FFT-based correlation over many length scales. I can't divulge much of this unpublished work, but Art convinced me I should try manipulating the power spectra of the FFTs used in correlation to emphasize feature size scales of relevance, hence, "S method." Art's simple trick, employed here, boosts signal to noise from 10% to 100% or more over the corresponding R-image depending upon content. `CorrImagesS()` is now our de facto standard. Unfortunately, the natural value range is very variable and I employ a hack to drive the reported values closer to [-1..1] so that one can still specify familiar thresholds in matchparams and scriptparams files. This method internally generates {S-image, R-image, A-image}.
 
 #### Ptestx
 
@@ -591,7 +591,7 @@ Lx Dx Nx:  1649    74.00  22
 Ly Dy Ny:  1649    74.00  22
 
 STAT: From 2722500 pts, got 968 triangles, 529 control points.
-Timer: MeshCreate took 10.380 seconds.
+Timer: MeshCreate took 0.000 seconds.
 ```
 
 * Lx, Ly are the dimensions of the (**scaled by px.scl**) intersection bounding box.
