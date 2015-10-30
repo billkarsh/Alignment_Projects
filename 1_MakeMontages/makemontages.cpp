@@ -1034,25 +1034,15 @@ void BlockSet::PartitionJobs( int is0, int isN )
 
 		if( scr.ignorecorners ) {
 
-			const char	*c, *n;
-
-			n = FileNamePtr( TS.vtil[a].name.c_str() );
-			c = strstr( n, "col" );
-			sscanf( c, "col%d_row%d", &cola, &rowa );
+			cola = TS.vtil[a].col;
+			rowa = TS.vtil[a].row;
 		}
 
 		for( int b = a + 1; b < isN; ++b ) {
 
 			if( scr.ignorecorners ) {
 
-				const char	*c, *n;
-				int			rowb, colb;
-
-				n = FileNamePtr( TS.vtil[b].name.c_str() );
-				c = strstr( n, "col" );
-				sscanf( c, "col%d_row%d", &colb, &rowb );
-
-				if( (rowb - rowa) * (colb - cola) != 0 )
+				if( (TS.vtil[b].row - rowa) * (TS.vtil[b].col - cola) != 0 )
 					continue;
 			}
 
