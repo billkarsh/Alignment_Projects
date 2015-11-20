@@ -669,13 +669,7 @@ void ImageFromValuesAndPoints(
 {
 // Size and zero destination image
 
-	if( I.size() ) {
-
-		I.resize( w * h );
-		memset( &I[0], 0, w * h * sizeof(double) );
-	}
-	else
-		I.resize( w * h, 0.0 );
+	I.assign( w * h, 0.0 );
 
 // Paint with points
 

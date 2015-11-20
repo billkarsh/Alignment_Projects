@@ -382,9 +382,7 @@ bool Rgns::Init( const string &idb, int iz, FILE *flog )
 	z			= iz;
 	nr			= IDBGetIDRgnMap( m, idb, z, flog );
 
-	flag.resize( nr );
-	memset( &flag[0], fmRead, nr );
-
+	flag.assign( nr, fmRead );
 	return (nr != 0);
 }
 

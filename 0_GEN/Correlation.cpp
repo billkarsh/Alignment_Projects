@@ -58,21 +58,9 @@ static void IntegrateImage(
 	double	t;
 	int		x, y, i, j, k, m, N = wS * hS;
 
-	if( S.size() ) {
-
-		S.resize(  N );
-		S2.resize( N );
-		nz.resize( N );
-
-		memset( &S[0],  0, N * sizeof(double) );
-		memset( &S2[0], 0, N * sizeof(double) );
-		memset( &nz[0], 0, N * sizeof(int) );
-	}
-	else {
-		S.resize(  N, 0.0 );
-		S2.resize( N, 0.0 );
-		nz.resize( N, 0 );
-	}
+	S.assign(  N, 0.0 );
+	S2.assign( N, 0.0 );
+	nz.assign( N, 0 );
 
 // first element
 	S[0]	= (t = I[0]);
@@ -125,15 +113,9 @@ static void IntegrateImage(
 	int						wI )
 {
 	double	t;
-	int		x, y, i, j, k, m, N = wS * hS;
+	int		x, y, i, j, k, m;
 
-	if( nz.size() ) {
-
-		nz.resize( N );
-		memset( &nz[0], 0, N * sizeof(int) );
-	}
-	else
-		nz.resize( N, 0 );
+	nz.assign( wS * hS, 0 );
 
 // first element
 	nz[0] = (I[0] != 0.0);
@@ -1436,12 +1418,7 @@ void GradDescStep(
 // Initialize
 
 	bnew.resize( nm );
-	dRdc.resize( nc );
-
-	Point	zero( 0.0, 0.0 );
-
-	for( int i = 0; i < nc; ++i )
-		dRdc[i] = zero;
+	dRdc.assign( nc, Point( 0.0, 0.0 ) );
 
 // Sum over all points in A
 

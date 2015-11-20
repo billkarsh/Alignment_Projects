@@ -96,10 +96,7 @@ int ReadRawMRCFile(
 	if( flog )
 		fprintf( flog, "MRC file has %d images.\n", nras );
 
-	vras.resize( nras );
-
-	for( int i = 0; i < nras; ++i )
-		vras[i] = NULL;
+	vras.assign( nras, NULL );
 
 	if( header[3] == 6 ) {	// shorts
 
