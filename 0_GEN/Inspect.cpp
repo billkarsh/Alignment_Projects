@@ -430,10 +430,7 @@ static void CorrView(
 
 // Create qual, a map that tells where the quality is OK
 
-	int		npix	= w * h;
-	uint8*	qual	= (uint8*)RasterAlloc( npix * sizeof(uint8) );
-
-	memset( qual, 0, npix );
+	vector<uint8> qual( w * h, 0 );
 
 // Do trial alignments of several small random patches
 
@@ -562,9 +559,7 @@ static void CorrView(
 		}
 	}
 
-	Raster8ToTif8( "qual.tif", qual, w, h );
-
-	RasterFree( qual );
+	Raster8ToTif8( "qual.tif", &qual[0], w, h );
 }
 
 /* --------------------------------------------------------------- */
