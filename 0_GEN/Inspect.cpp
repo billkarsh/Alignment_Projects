@@ -430,7 +430,7 @@ static void CorrView(
 
 // Create qual, a map that tells where the quality is OK
 
-	vector<uint8> qual( w * h );
+	vector<uint8> qual( w * h, 0 );
 
 // Do trial alignments of several small random patches
 
