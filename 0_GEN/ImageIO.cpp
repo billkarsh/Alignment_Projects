@@ -189,7 +189,7 @@ static void Raster8FromTif16Bit(
 	uint16			fmt;
 
 // Check for signed data if 16-bit
-	TIFFGetField( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
+	TIFFGetFieldDefaulted( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
 
 // Read encoded strips
 	raw = (uint16*)malloc( npixels * sizeof(uint16) );
@@ -386,6 +386,7 @@ uint8* Raster8FromTif(
 	uint8*	raster;
 	size_t	npixels;
 	uint16	bps, spp;
+	int ret;
 
 	fprintf( flog, "Raster8FromTif: Opening [%s].\n", name );
 
@@ -406,10 +407,20 @@ TIFFSetWarningHandler( oldEH );
 		exit( 42 );
 	}
 
-	TIFFGetField( tif, TIFFTAG_IMAGEWIDTH, &w );
-	TIFFGetField( tif, TIFFTAG_IMAGELENGTH, &h );
-	TIFFGetField( tif, TIFFTAG_BITSPERSAMPLE, &bps );
-	TIFFGetField( tif, TIFFTAG_SAMPLESPERPIXEL, &spp );
+	ret = TIFFGetField( tif, TIFFTAG_IMAGEWIDTH, &w );
+	if( !ret ) {
+		fprintf( flog,
+		"Raster8FromTif: Image width undefined.\n", name);
+		exit( 42 );
+	}
+	ret = TIFFGetField( tif, TIFFTAG_IMAGELENGTH, &h );
+	if( !ret ) {
+		fprintf( flog,
+		"Raster8FromTif: Image height undefined.\n", name);
+		exit( 42 );
+	}
+	TIFFGetFieldDefaulted( tif, TIFFTAG_BITSPERSAMPLE, &bps );
+	TIFFGetFieldDefaulted( tif, TIFFTAG_SAMPLESPERPIXEL, &spp );
 	npixels = w * h;
 
 	fprintf( flog,
@@ -471,6 +482,7 @@ uint16* Raster16FromTif16(
 	uint16*	raster;
 	size_t	npixels;
 	uint16	bps, spp, fmt;
+	int ret;
 
 #if GENEMEYERSTIFF
 // suppress exotic field warnings
@@ -489,11 +501,21 @@ TIFFSetWarningHandler( oldEH );
 		exit( 42 );
 	}
 
-	TIFFGetField( tif, TIFFTAG_IMAGEWIDTH, &w );
-	TIFFGetField( tif, TIFFTAG_IMAGELENGTH, &h );
-	TIFFGetField( tif, TIFFTAG_BITSPERSAMPLE, &bps );
-	TIFFGetField( tif, TIFFTAG_SAMPLESPERPIXEL, &spp );
-	TIFFGetField( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
+	ret = TIFFGetField( tif, TIFFTAG_IMAGEWIDTH, &w );
+	if( !ret ) {
+		fprintf( flog,
+		"Raster8FromTif: Image width undefined.\n", name);
+		exit( 42 );
+	}
+	ret = TIFFGetField( tif, TIFFTAG_IMAGELENGTH, &h );
+	if( !ret ) {
+		fprintf( flog,
+		"Raster8FromTif: Image height undefined.\n", name);
+		exit( 42 );
+	}
+	TIFFGetFieldDefaulted( tif, TIFFTAG_BITSPERSAMPLE, &bps );
+	TIFFGetFieldDefaulted( tif, TIFFTAG_SAMPLESPERPIXEL, &spp );
+	TIFFGetFieldDefaulted( tif, TIFFTAG_SAMPLEFORMAT, &fmt );
 	npixels = w * h;
 
 	fprintf( flog,
