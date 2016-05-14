@@ -8,6 +8,7 @@
 #include	"Memory.h"
 
 #include	<string.h>
+#include	<unistd.h>
 
 
 /* --------------------------------------------------------------- */
