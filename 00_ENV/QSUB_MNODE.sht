@@ -5,18 +5,22 @@
 # requesting "impi3" script that reserves whole nodes
 # for use by the solver.
 #
-# Note that parameter $3 = slots = nodes x slots/node
+# Note that parameter $4 = slots = nodes x slots/node
 #
-# > QSUB_MNODE.sht "jobname" "opt_params" slots "command"
+# > QSUB_MNODE.sht iclient "jobname" "opt_params" slots "command"
+#
+# iclient is an index identifying the context from which this script
+# has been called...It's used to select an execution time hint for
+# the scheduler (times in seconds).
 #
 # Aligner requires:
 # -N <jobname>	;jobname
 # -cwd			;execute in current working directory
 # -V			;pass current environment vars to job
-# -b y			;command $4 can be binary or script
+# -b y			;command $5 can be binary or script
 # -pe <name> n	;parallel environment to use, n slots
 #
-# Aligner code may also use $2 (opt_params) this way:
+# Aligner code may also use $3 (opt_params) this way:
 # -o <name>		;name specific stdout file
 # -j y			;join stderr and stdout streams
 #
@@ -25,9 +29,20 @@
 # to direct billing to a particular account.
 
 
-usr_params=""
-
 req_params="-cwd -V -b y"
 
-qsub -N $1 $req_params $usr_params $2 -pe impi3 $3 $4
+usr_params=""
+
+client_time[1]=$((10*3600))		;multinode solver
+
+selected_time=${client_time[$1]}
+
+if [ "$selected_time" != "" ]
+then
+  time_hint="-l d_rt=$selected_time"
+else
+  time_hint=""
+fi
+
+qsub $time_hint -N $2 $req_params $usr_params $3 -pe impi3 $4 $5
 

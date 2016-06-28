@@ -3,5 +3,5 @@
 # > ./subdel.sht dirname
 
 
-QSUB_1NODE.sht "del-$1" "" 1 "rm -rf "$1""
+QSUB_1NODE.sht 0 "del-$1" "" 1 "rm -rf "$1""
 

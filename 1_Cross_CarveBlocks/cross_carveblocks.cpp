@@ -167,7 +167,7 @@ static void WriteTestblockFile()
 	fprintf( f, "\n" );
 	fprintf( f, "export MRC_TRIM=12\n" );
 	fprintf( f, "\n" );
-	fprintf( f, "QSUB_1NODE.sht \"x\" \"\" %d \"cross_thisblock -script=%s\"\n",
+	fprintf( f, "QSUB_1NODE.sht 7 \"x\" \"\" %d \"cross_thisblock -script=%s\"\n",
 	scr.blockslots, gArgs.script );
 	fprintf( f, "\n" );
 
@@ -224,7 +224,7 @@ static void WriteBSubFile()
 	fprintf( f, "\t\tfor jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')\n" );
 	fprintf( f, "\t\tdo\n" );
 	fprintf( f, "\t\t\tcd $jb\n" );
-	fprintf( f, "\t\t\tQSUB_1NODE.sht \"x$jb-$lyr\" \"\" %d \"cross_thisblock -script=%s\"\n",
+	fprintf( f, "\t\t\tQSUB_1NODE.sht 7 \"x$jb-$lyr\" \"\" %d \"cross_thisblock -script=%s\"\n",
 	scr.blockslots, gArgs.script );
 	fprintf( f, "\t\t\tcd ..\n" );
 	fprintf( f, "\t\tdone\n" );

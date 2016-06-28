@@ -193,7 +193,7 @@ static void WriteScript( vector<int> &zlist )
 	for( int iz = 0; iz < nz; ++iz ) {
 
 		fprintf( f,
-		"QSUB_1NODE.sht \"gr-%d\" \"-j y -o out.txt\" 4"
+		"QSUB_1NODE.sht 31 \"gr-%d\" \"-j y -o out.txt\" 4"
 		" \"GraRan1Lyr '%s' -z=%d %s\"\n",
 		zlist[iz], gArgs.infile, zlist[iz], sopt );
 	}

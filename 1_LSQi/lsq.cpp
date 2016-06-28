@@ -344,7 +344,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 		else {	// qsub for desired slots
 
 			sprintf( buf,
-			"QSUB_1NODE.sht \"lsqw\" \"\" %d"
+			"QSUB_1NODE.sht 8 \"lsqw\" \"\" %d"
 			" \"lsqw -nwks=%d -temp=%s"
 			" -cache=%s -prior=%s"
 			" -mode=%s -Wr=%c,%g -Etol=%g -iters=%d"
@@ -411,7 +411,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
 
 		// Submit request to run 'mpigo.sht' script
 
-		sprintf( buf, "QSUB_MNODE.sht \"lsqmpi\" \"-o sge.txt\""
+		sprintf( buf, "QSUB_MNODE.sht 1 \"lsqmpi\" \"-o sge.txt\""
 		" %d \"./mpigo.sht\"", nwks * maxthreads );
 	}
 

@@ -4,16 +4,20 @@
 # Emit Sun Grid Engine qsub parallel-environment command
 # requesting <n> slots on single machine.
 #
-# > QSUB_1NODE.sht "jobname" "opt_params" slots "command"
+# > QSUB_1NODE.sht iclient "jobname" "opt_params" slots "command"
+#
+# iclient is an index identifying the context from which this script
+# has been called...It's used to select an execution time hint for
+# the scheduler (times in seconds).
 #
 # Aligner requires:
 # -N <jobname>	;jobname
 # -cwd			;execute in current working directory
 # -V			;pass current environment vars to job
-# -b y			;command $4 can be binary or script
+# -b y			;command $5 can be binary or script
 # -pe <name> n	;parallel environment to use, n slots
 #
-# Aligner code may also use $2 (opt_params) this way:
+# Aligner code may also use $3 (opt_params) this way:
 # -o <name>		;name specific stdout file
 # -j y			;join stderr and stdout streams
 #
@@ -22,11 +26,37 @@
 # to direct billing to a particular account.
 
 
+req_params="-cwd -V -b y"
+
 usr_params=""
 
 pe_name="batch"
 
-req_params="-cwd -V -b y"
+client_time[1]=$((5*3600))		;fsub (make.fm list)
+client_time[2]=$((5*3600))		;ssub (make.same list)
+client_time[3]=$((10*3600))		;dsub (make.down list)
+client_time[4]=$((20))			;msub (each lyr, fast)
+client_time[5]=$((6*3600))		;subscapes-midZ (each pair)
+client_time[6]=$((2*3600))		;subscapes-topZ
+client_time[7]=$((20*3600))		;bsub (each D-block)
+client_time[8]=$((5*3600))		;single-node solver
+client_time[9]=$((3600))		;finish (deprecated)
+client_time[10]=$((10*3600))	;submos (deprecated)
 
-qsub -N $1 $req_params $usr_params $2 -pe $pe_name $3 $4
+client_time[30]=$((10*3600))	;MRCSD1Lyr
+client_time[31]=$((10*3600))	;GrayRanger
+client_time[32]=$((10*3600))	;HEQLayers
+client_time[33]=$((10*3600))	;HistAll
+client_time[34]=$((10*3600))	;RGBMerge
+
+selected_time=${client_time[$1]}
+
+if [ "$selected_time" != "" ]
+then
+  time_hint="-l d_rt=$selected_time"
+else
+  time_hint=""
+fi
+
+qsub $time_hint -N $2 $req_params $usr_params $3 -pe $pe_name $4 $5
 

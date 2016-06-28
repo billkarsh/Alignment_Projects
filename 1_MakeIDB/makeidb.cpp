@@ -279,7 +279,7 @@ static void WriteFSubFile()
 	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
 	fprintf( f, "\tthen\n" );
 	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tQSUB_1NODE.sht \"makefm-$lyr\" \"-o /dev/null\" $nslot \"make -f make.fm -j $nproc EXTRA='\"\"'\"\n" );
+	fprintf( f, "\t\tQSUB_1NODE.sht 1 \"makefm-$lyr\" \"-o /dev/null\" $nslot \"make -f make.fm -j $nproc EXTRA='\"\"'\"\n" );
 	fprintf( f, "\t\tcd ..\n" );
 	fprintf( f, "\tfi\n" );
 	fprintf( f, "done\n" );

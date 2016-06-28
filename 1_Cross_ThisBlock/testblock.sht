@@ -12,5 +12,5 @@
 
 export MRC_TRIM=12
 
-QSUB_1NODE.sht "x" "" 8 "cross_thisblock -script=../../scriptparams.txt"
+QSUB_1NODE.sht 7 "x" "" 8 "cross_thisblock -script=../../scriptparams.txt"
 

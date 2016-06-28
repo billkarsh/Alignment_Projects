@@ -225,7 +225,7 @@ static void WriteScript( const vector<Picture> &vp )
 			int	chn = gArgs.chn[ic];
 
 			fprintf( f,
-			"QSUB_1NODE.sht \"hst-%d-%d\" \"-j y -o out.txt\" 1"
+			"QSUB_1NODE.sht 33 \"hst-%d-%d\" \"-j y -o out.txt\" 1"
 			" \"Hist1 '%s_%d.tif' 'HST_%d_%d_%d.bin'\"\n",
 			ip*nc+ic, np*nc,
 			P.fname.c_str(), chn, P.z, P.id, chn );

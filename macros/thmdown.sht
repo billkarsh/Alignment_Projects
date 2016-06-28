@@ -15,7 +15,7 @@ for i in $(seq $1 $last)
 do
 	echo $i
 	cd $i
-	QSUB_1NODE.sht "lou-d-$i" "-o /dev/null" $nslot "make -f thumbs.down -j $nproc EXTRA='""'"
+	QSUB_1NODE.sht 3 "lou-d-$i" "-o /dev/null" $nslot "make -f thumbs.down -j $nproc EXTRA='""'"
 	cd ..
 done
 
