@@ -33,7 +33,7 @@ req_params="-cwd -V -b y"
 
 usr_params=""
 
-client_time[1]=$((10*3600))		;multinode solver
+client_time[1]=$((10*60))		;multinode solver
 
 selected_time=${client_time[$1]}
 

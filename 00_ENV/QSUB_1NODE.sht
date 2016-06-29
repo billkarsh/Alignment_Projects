@@ -32,22 +32,22 @@ usr_params=""
 
 pe_name="batch"
 
-client_time[1]=$((5*3600))		;fsub (make.fm list)
-client_time[2]=$((5*3600))		;ssub (make.same list)
-client_time[3]=$((10*3600))		;dsub (make.down list)
+client_time[1]=$((5*60))		;fsub (make.fm list)
+client_time[2]=$((5*60))		;ssub (make.same list)
+client_time[3]=$((10*60))		;dsub (make.down list)
 client_time[4]=$((20))			;msub (each lyr, fast)
-client_time[5]=$((6*3600))		;subscapes-midZ (each pair)
-client_time[6]=$((2*3600))		;subscapes-topZ
-client_time[7]=$((20*3600))		;bsub (each D-block)
-client_time[8]=$((5*3600))		;single-node solver
-client_time[9]=$((3600))		;finish (deprecated)
-client_time[10]=$((10*3600))	;submos (deprecated)
+client_time[5]=$((6*60))		;subscapes-midZ (each pair)
+client_time[6]=$((2*60))		;subscapes-topZ
+client_time[7]=$((20*60))		;bsub (each D-block)
+client_time[8]=$((5*60))		;single-node solver
+client_time[9]=$((60))			;finish (deprecated)
+client_time[10]=$((10*60))		;submos (deprecated)
 
-client_time[30]=$((10*3600))	;MRCSD1Lyr
-client_time[31]=$((10*3600))	;GrayRanger
-client_time[32]=$((10*3600))	;HEQLayers
-client_time[33]=$((10*3600))	;HistAll
-client_time[34]=$((10*3600))	;RGBMerge
+client_time[30]=$((10*60))		;MRCSD1Lyr
+client_time[31]=$((10*60))		;GrayRanger
+client_time[32]=$((10*60))		;HEQLayers
+client_time[33]=$((10*60))		;HistAll
+client_time[34]=$((10*60))		;RGBMerge
 
 selected_time=${client_time[$1]}
 
