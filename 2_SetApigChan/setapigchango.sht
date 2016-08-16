@@ -1,0 +1,4 @@
+#!/bin/sh
+
+SetApigChan file.xml 0
+
