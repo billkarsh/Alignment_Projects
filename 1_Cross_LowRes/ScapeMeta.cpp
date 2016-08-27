@@ -23,6 +23,7 @@ static bool ReadLog1( CLog &L, int z )
 
 	FILE		*f = FileOpenOrDie( buf, "r" );
 	CLineScan	LS;
+	bool		gotM = false;
 
 	while( LS.Get( f ) > 0 ) {
 
@@ -41,6 +42,8 @@ static bool ReadLog1( CLog &L, int z )
 			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
 			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
 			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
+
+			gotM = true;
 		}
 		else if( key == 'A' ) {
 
@@ -74,7 +77,7 @@ static bool ReadLog1( CLog &L, int z )
 	}
 
 	fclose( f );
-	return true;
+	return gotM;
 }
 
 /* --------------------------------------------------------------- */
