@@ -38,7 +38,7 @@ Aligner
 
 - One linear transform / tile; **_not an elastic aligner_**
 - Unfinished handling of geometry-altering folds and tears
-- All images in a data set must be of same fixed dimensions
+- All images in a data set must share the same X and Y dimensions, though X need not equal Y
 
 ### Requirements
 
