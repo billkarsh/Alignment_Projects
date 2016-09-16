@@ -50,7 +50,7 @@ public:
 static CArgs_cross	gArgs;
 static ScriptParams	scr;
 static string		idb;
-static char			*gtopdir = "cross_wkspc";
+static const char	*gtopdir = "cross_wkspc";
 static FILE*		flog = NULL;
 
 

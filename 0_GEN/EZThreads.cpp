@@ -58,7 +58,9 @@ bool EZThreads(
 
 		for( int i = 1; i < nthr; ++i ) {
 
-			err = pthread_create( &vthr[i], &attr, proc, (void*)i );
+			err = pthread_create(
+					&vthr[i], &attr,
+					proc, reinterpret_cast<void*>(i) );
 
 			if( err ) {
 

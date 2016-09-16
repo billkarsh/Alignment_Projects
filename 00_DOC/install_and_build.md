@@ -91,8 +91,8 @@ fi
 
 
 # Use Intel compiler for MPI
-if [ -f /usr/local/INTEL2013.sh ]; then
-     . /usr/local/INTEL2013.sh
+if [ -f /usr/local/INTEL2016.sh ]; then
+     . /usr/local/INTEL2016.sh
 fi
 export I_MPI_DEBUG=0
 export I_MPI_RENDEZVOUS_RDMA_WRITE=1
@@ -107,11 +107,12 @@ export I_MPI_USE_DYNAMIC_CONNECTIONS=0
 # ---------------------------------------------------------
 ```
 
-Here's the contents of our **INTEL2013.sh** setup script:
+Here's the contents of our **INTEL2016.sh** setup script:
 
 ```
-. /usr/local/intel-2013/bin/compilervars.sh intel64
-. /usr/local/intel-2013/impi/4.1.0.024/bin64/mpivars.sh intel64
+. /usr/local/intel-2016/bin/compilervars.sh intel64
+. /usr/local/intel-2016/impi/5.1.3.181/bin64/mpivars.sh intel64
+. /usr/local/INTEL-2016/advisor_xe/advixe-vars.sh quiet
 export INTEL_LICENSE_FILE="nnnnn@flexlm.int.janelia.org"
 ```
 
