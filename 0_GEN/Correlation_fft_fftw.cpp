@@ -86,7 +86,10 @@ void IFT_2D(
 
 	fftw_plan	p;
 
-	p = fftw_plan_dft_c2r_2d( Nslow, Nfast, (double (*)[2])&in[0],
+	// fftw_plan_dft_c2r_2d() modifies input
+	const vector<CD>	_in = in;
+
+	p = fftw_plan_dft_c2r_2d( Nslow, Nfast, (double (*)[2])&_in[0],
 			&out[0], FFTW_ESTIMATE );
 
 	fftw_execute( p );
