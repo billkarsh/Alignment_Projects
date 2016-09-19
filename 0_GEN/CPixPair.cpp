@@ -219,7 +219,7 @@ bool PixPair::Load(
 	FILE*			flog,
 	bool			transpose )
 {
-	printf( "\n---- Image loading ----\n" );
+	fprintf( flog, "\n---- Image loading ----\n" );
 
 /* ----------------------------- */
 /* Load and sanity check rasters */
