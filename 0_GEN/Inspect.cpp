@@ -566,22 +566,28 @@ static void CorrView(
 /* RunCorrView --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// (1) Build copy of the B-image and save that as 'registered.png'.
-//		If 'registered.png' had already existed, the current B-image
+// (1) Build copy of the B-image and save that as png registered_file.
+//		If registered_file had already existed, the current B-image
 //		is added into that and then saved.
 //
-// (2) If heatmap is true, the current A-image and new B-image
+// (2) If registered_file omitted, default is './registered.png'.
+//
+// (3) If heatmap is true, the current A-image and new B-image
 //		are sent to CorrView.
 //
 void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
 	const TAffine*	tfs,
-	bool			heatmap )
+	bool			heatmap,
+	const char		*registered_file )
 {
 	FILE*	f;
 	uint8*	bpix;
 	int		k, w, h, npix;
+
+	if( !registered_file )
+		registered_file = "registered.png";
 
 	printf( "\n" );
 
@@ -591,23 +597,24 @@ void RunCorrView(
 
 // Read existing file...
 
-	if( f = fopen( "registered.png", "r" ) ) {
+	if( f = fopen( registered_file, "r" ) ) {
 
 		uint32	w2, h2;
 
 		fclose( f );
 
 		printf(
-		"RunTripleChk: Reading existing 'registered.png'.\n" );
+		"RunTripleChk: Reading existing registered_file [%s].\n",
+		registered_file );
 
-		bpix = Raster8FromPng( "registered.png", w2, h2 );
+		bpix = Raster8FromPng( registered_file, w2, h2 );
 	}
 	else {
 
 		// ... or create new black raster
 
 		printf(
-		"RunTripleChk: No existing 'registered.png'"
+		"RunTripleChk: No previous registered file"
 		" - creating one.\n" );
 
 		bpix = (uint8*)RasterAlloc( npix * sizeof(uint8) );
@@ -679,7 +686,7 @@ void RunCorrView(
 		}
 	}
 
-	Raster8ToPng8( "registered.png", bpix, w, h );
+	Raster8ToPng8( registered_file, bpix, w, h );
 
 // Triple check, by picking regions at random and
 // making sure they match.

@@ -32,6 +32,7 @@ void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
 	const TAffine*	tfs,
-	bool			heatmap );
+	bool			heatmap,
+	const char		*registered_file = NULL );
 
 
