@@ -1722,7 +1722,10 @@ void ImageGradients(
 // Note that image (I) has already been pre-processed
 // so has mean 0 and std 1.
 //
-bool IsLowContrast( const vector<double> &I, double std )
+bool IsLowContrast(
+	const vector<double>	&I,
+	double					std,
+	FILE					*flog )
 {
 	vector<double>	result;		// power as a function of scale
 	vector<double>	smaller;
@@ -1757,14 +1760,14 @@ bool IsLowContrast( const vector<double> &I, double std )
 	}
 
 // print powers
-	printf( "IsLowContrast: Amplitudes(%.2f):", std );
+	fprintf( flog, "IsLowContrast: Amplitudes(%.2f):", std );
 
 	int	nr = result.size();
 
 	for( i = 0; i < nr; ++i )
-		printf( " %.3f", result[i]*std );
+		fprintf( flog, " %.3f", result[i]*std );
 
-	printf( "\n" );
+	fprintf( flog, "\n" );
 
 // if the contrast is low in absolute terms ||
 // after reducing 128x128 to 4x4 ||

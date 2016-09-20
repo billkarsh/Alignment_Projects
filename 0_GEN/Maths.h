@@ -286,7 +286,10 @@ void ImageGradients(
 	const vector<Point>	&pts,
 	FILE				*flog );
 
-bool IsLowContrast( const vector<double> &I, double std );
+bool IsLowContrast(
+	const vector<double>	&I,
+	double					std,
+	FILE					*flog = stdout );
 
 void EmbedExtended8(
 	vector<uint8>	&dst,
