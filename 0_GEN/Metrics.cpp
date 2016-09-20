@@ -344,7 +344,8 @@ static void UnnormHaarTf2D( vector<double> &data, int w, int h )
 static double ApproxEarthMoversMetric(
 	vector<double>	&dd,
 	int				wi,
-	int				hi )
+	int				hi,
+	FILE*			flog )
 {
 // find powers of 2 that are big enough
 
@@ -405,7 +406,7 @@ static double ApproxEarthMoversMetric(
 
 	approx /= 2.0 * N * sqrt( N );
 
-	printf(
+	printf( flog,
 	"Approximate EM metric %f for %d points.\n",
 	approx, N );
 
@@ -474,7 +475,7 @@ double EarthMoversMetric(
 /* Measure */
 /* ------- */
 
-	return ApproxEarthMoversMetric( diff, Nx, Ny );
+	return ApproxEarthMoversMetric( diff, Nx, Ny, flog );
 }
 
 /* --------------------------------------------------------------- */
