@@ -406,7 +406,7 @@ static double ApproxEarthMoversMetric(
 
 	approx /= 2.0 * N * sqrt( N );
 
-	printf( flog,
+	fprintf( flog,
 	"Approximate EM metric %f for %d points.\n",
 	approx, N );
 
