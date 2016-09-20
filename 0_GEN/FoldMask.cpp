@@ -16,7 +16,11 @@
 /* PrintFoldmapHisto --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-static void PrintFoldmapHisto( const uint8* fm, int w, int h )
+static void PrintFoldmapHisto(
+	const uint8*	fm,
+	int				w,
+	int				h,
+	FILE			*flog )
 {
 	vector<int>	cts( 256, 0 );
 	int			i, n = w * h;
@@ -26,8 +30,10 @@ static void PrintFoldmapHisto( const uint8* fm, int w, int h )
 
 	for( i = 0; i < 256; ++i ) {
 
-		if( cts[i] )
-			printf( "Foldmask: value=%3d, count=%8d\n", i, cts[i] );
+		if( cts[i] ) {
+			fprintf( flog,
+			"Foldmask: value=%3d, count=%8d\n", i, cts[i] );
+		}
 	}
 }
 
@@ -47,7 +53,8 @@ uint8* GetFoldMask(
 	int					hf,
 	bool				nofile,
 	bool				transpose,
-	bool				force1rgn )
+	bool				force1rgn,
+	FILE				*flog )
 {
 	uint8*	mask;
 	int		np = wf * hf;
@@ -61,22 +68,22 @@ uint8* GetFoldMask(
 		Til2FM	t2f;
 
 		if( !forcepath ) {
-			IDBTil2FM( t2f, idb, P.z, P.id );
+			IDBTil2FM( t2f, idb, P.z, P.id, flog );
 			forcepath = t2f.path.c_str();
 		}
 
 		uint32	_w, _h;
 
-		mask = Raster8FromAny( forcepath, _w, _h, stdout, transpose );
+		mask = Raster8FromAny( forcepath, _w, _h, flog, transpose );
 
 		if( _w != wf || _h != hf ) {
 
-			printf(
+			fprintf( flog,
 			"GetFoldMask: Maps different size than input.\n" );
 			exit( 42 );
 		}
 
-		PrintFoldmapHisto( mask, wf, hf );
+		PrintFoldmapHisto( mask, wf, hf, flog );
 
 		// force one (non-fold) region
 
@@ -120,7 +127,8 @@ uint8* GetFoldMask(
 			}
 		}
 
-		printf( "Crop z %d id %d cam %d to x[%d %d) y[%d %d)\n",
+		fprintf( flog,
+		"Crop z %d id %d cam %d to x[%d %d) y[%d %d)\n",
 		P.z, P.id, P.t2i.cam, B.L, B.R, B.B, B.T );
 	}
 

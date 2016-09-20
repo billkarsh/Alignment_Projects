@@ -39,7 +39,8 @@ uint8* GetFoldMask(
 	int					hf,
 	bool				nofile,
 	bool				transpose,
-	bool				force1rgn );
+	bool				force1rgn,
+	FILE				*flog = stdout );
 
 void SetWithinSectionBorders( uint8* foldMask, int wf, int hf );
 
@@ -65,7 +66,7 @@ void ConnRgnsFromFoldMask(
 	int					hf,
 	int					scale,
 	uint32				minpts,
-	FILE				*flog );
+	FILE				*flog = stdout );
 
 void ConnRgnForce1( vector<ConnRegion> &cr, int ws, int hs );
 
