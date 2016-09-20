@@ -26,7 +26,8 @@ void ABOverlay(
 	const uint16*	rmap,
 	int				Ntrans,
 	const TAffine*	tfs,
-	const TAffine*	ifs );
+	const TAffine*	ifs,
+	const char		*comp_file = NULL );
 
 void RunCorrView(
 	const PixPair	&px,

@@ -159,7 +159,9 @@ void YellowView(
 /* ABOverlay ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Write out a diagnostic overlay image.
+// Write out a diagnostic overlay png (comp_file).
+//
+// If comp_file omitted, default is './comp.png'.
 //
 // A large black image is created to show A and B relative
 // to each other. A is shown unmodified in GREEN. Regions
@@ -172,7 +174,8 @@ void ABOverlay(
 	const uint16*	rmap,
 	int				Ntrans,
 	const TAffine*	tfs,
-	const TAffine*	ifs )
+	const TAffine*	ifs,
+	const char		*comp_file )
 {
 	int		w		= px.wf,
 			h		= px.hf,
@@ -185,6 +188,9 @@ void ABOverlay(
 			h2		= ymax - ymin + 1,
 			npix2	= w2 * h2;
 	int		bgaps	= 0;
+
+	if( !comp_file )
+		comp_file = "comp.png";
 
 // init overlay images
 
@@ -387,7 +393,7 @@ void ABOverlay(
 
 // Write it out
 //	Raster32ToTifRGBA( "comp.tif", &raster2[0], w2, h2 );
-	Raster32ToPngRGBA( "comp.png", &raster2[0], w2, h2 );
+	Raster32ToPngRGBA( comp_file, &raster2[0], w2, h2 );
 }
 
 /* --------------------------------------------------------------- */
