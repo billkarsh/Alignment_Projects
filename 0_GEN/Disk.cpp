@@ -30,7 +30,7 @@
 // In either case, the caller must call Release promptly both to
 // release the mutex and to clean up after Get().
 //
-bool CMutex::Get( const char *name )
+bool CMutex::Get( const char *name, FILE *flog )
 {
 // Prepend forward slash
 
