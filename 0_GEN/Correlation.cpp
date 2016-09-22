@@ -1924,8 +1924,7 @@ public:
 	void MakeF(
 		vector<double>			&F,
 		vector<uint8>			&A,
-		const vector<double>	&R,
-		FILE					*flog );
+		const vector<double>	&R );
 
 	bool OrderF(
 		vector<int>				&forder,
@@ -2192,16 +2191,16 @@ void CCorImg::MakeRandA(
 		char	simg[32];
 
 		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+		CorrThmToTif8( simg, i1, Nx, w1, h1, flog );
 
 		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+		CorrThmToTif8( simg, i2, Nx, w2, h2, flog );
 
 		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
-		Raster8ToTif8( simg, &A[0], wR, hR );
+		Raster8ToTif8( simg, &A[0], wR, hR, flog );
 
 		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &R[0], wR, hR );
+		RasterDblToTifFlt( simg, &R[0], wR, hR, flog );
 	}
 }
 
@@ -2373,19 +2372,19 @@ void CCorImg::MakeSandRandA(
 		char	simg[32];
 
 		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1 );
+		CorrThmToTif8( simg, i1, Nx, w1, h1, flog );
 
 		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2 );
+		CorrThmToTif8( simg, i2, Nx, w2, h2, flog );
 
 		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
-		Raster8ToTif8( simg, &A[0], wR, hR );
+		Raster8ToTif8( simg, &A[0], wR, hR, flog );
 
 		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &R[0], wR, hR );
+		RasterDblToTifFlt( simg, &R[0], wR, hR, flog );
 
 		sprintf( simg, "corr_S_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &S[0], wR, hR );
+		RasterDblToTifFlt( simg, &S[0], wR, hR, flog );
 	}
 }
 
@@ -2432,8 +2431,7 @@ void CCorImg::MakeSandRandA(
 void CCorImg::MakeF(
 	vector<double>			&F,
 	vector<uint8>			&A,
-	const vector<double>	&R,
-	FILE					*flog )
+	const vector<double>	&R )
 {
 	vector<CD>	kfft;
 	double		K[] = {
@@ -2508,7 +2506,7 @@ void CCorImg::MakeF(
 		char	simg[32];
 
 		sprintf( simg, "corr_F_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &F[0], wR, hR );
+		RasterDblToTifFlt( simg, &F[0], wR, hR, flog );
 	}
 }
 
@@ -3132,7 +3130,7 @@ double CorrImagesF(
 		LegalRgn, arglr, LegalCnt, arglc,
 		Ox, Oy, Rx, Ry, fft2 );
 
-	cc.MakeF( F, A, R, flog );
+	cc.MakeF( F, A, R );
 
 	if( !cc.OrderF( forder, F, A, R, mincor ) ||
 		!cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {

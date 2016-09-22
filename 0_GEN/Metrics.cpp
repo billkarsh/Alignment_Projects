@@ -170,13 +170,13 @@ static void MakeMetricImagesFFT(
 		char	fname[32];
 
 		sprintf( fname, "fft%d-a.tif", FFTFileIdx );
-		VectorDblToTif8( fname, i1, Nx, Ny );
+		VectorDblToTif8( fname, i1, Nx, Ny, flog );
 
 		sprintf( fname, "fft%d-b.tif", FFTFileIdx );
-		VectorDblToTif8( fname, i2, Nx, Ny );
+		VectorDblToTif8( fname, i2, Nx, Ny, flog );
 
 		sprintf( fname, "fft%d-d.tif", FFTFileIdx );
-		VectorDblToTif8( fname, diff, Nx, Ny );
+		VectorDblToTif8( fname, diff, Nx, Ny, flog );
 
 		++FFTFileIdx;
 
@@ -269,7 +269,7 @@ static void MakeMetricImagesEMM(
 		char	fname[32];
 
 		sprintf( fname, "fft%d-d.tif", FFTFileIdx );
-		VectorDblToTif8( fname, diff, Nx, Ny );
+		VectorDblToTif8( fname, diff, Nx, Ny, flog );
 
 		++FFTFileIdx;
 

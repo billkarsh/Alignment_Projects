@@ -257,7 +257,7 @@ static void FitAffine(
 // Paint
 
 #if FITDRAW
-	YellowView( px, T );
+	YellowView( px, T, flog );
 #endif
 }
 
@@ -384,7 +384,7 @@ static void FitHmgphy(
 // Paint
 
 #if FITDRAW
-	YellowView( px, T );
+	YellowView( px, T, flog );
 #endif
 }
 

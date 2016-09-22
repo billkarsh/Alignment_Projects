@@ -150,10 +150,10 @@ static void Trim( uint8* ras, uint32 &w, uint32 &h )
 
 // Experiment to kick out mostly agar images in Nathan data.
 //
-static bool HasTissue( const char *path )
+static bool HasTissue( const char *path, FILE *flog )
 {
 	uint32	w, h;
-	uint16	*ras = Raster16FromTif16( path, w, h );
+	uint16	*ras = Raster16FromTif16( path, w, h, flog );
 	int		N = w*h, nlow = 0;
 
 	for( int i = 0; i < N; ++i ) {
@@ -254,8 +254,8 @@ bool PixPair::Load(
 // Also we trim off some rows and columns to fix aperture and
 // odd sizing issues (if needed).
 //
-	//if( !HasTissue( A.t2i.path.c_str() ) ||
-	//	!HasTissue( B.t2i.path.c_str() ) ) {
+	//if( !HasTissue( A.t2i.path.c_str(), flog ) ||
+	//	!HasTissue( B.t2i.path.c_str(), flog ) ) {
 
 	//	goto exit;
 	//}
@@ -288,8 +288,8 @@ bool PixPair::Load(
 
 		Lens( _avf, LN, aras, wf, hf, order, A.t2i.cam );
 		Lens( _bvf, LN, bras, wf, hf, order, B.t2i.cam );
-		//VectorDblToTif8( "LensA.tif", _avf, wf, hf );
-		//VectorDblToTif8( "LensB.tif", _bvf, wf, hf );
+		//VectorDblToTif8( "LensA.tif", _avf, wf, hf, flog );
+		//VectorDblToTif8( "LensB.tif", _bvf, wf, hf, flog );
 	}
 	else {
 
@@ -335,8 +335,8 @@ bool PixPair::Load(
 			ResinMask8( resmskb, bras, wf, hf, true );
 		}
 
-		//Raster8ToTif8( "resinA.tif", &resmska[0], wf, hf );
-		//Raster8ToTif8( "resinB.tif", &resmskb[0], wf, hf );
+		//Raster8ToTif8( "resinA.tif", &resmska[0], wf, hf, flog );
+		//Raster8ToTif8( "resinB.tif", &resmskb[0], wf, hf, flog );
 
 #if 0
 // This section moves resin pixel values toward zero
@@ -390,7 +390,7 @@ bool PixPair::Load(
 // Experiment to apply spatial averaging to Nathan data...
 // Not needed if Nathan averages several (10) layers in z.
 //
-	//VectorDblToTif8( "PRE.tif", *avs_aln, ws, hs );
+	//VectorDblToTif8( "PRE.tif", *avs_aln, ws, hs, flog );
 	//{
 	//	double		K[] = {
 	//				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -418,7 +418,7 @@ bool PixPair::Load(
 
 	//	bDoG = 1;
 	//}
-	//VectorDblToTif8( "POST.tif", *avs_aln, ws, hs );
+	//VectorDblToTif8( "POST.tif", *avs_aln, ws, hs, flog );
 //-----------------------------------------------------------
 
 /* --------------------- */
@@ -470,8 +470,8 @@ bool PixPair::Load(
 
 #if 0
 	if( bDoG ) {
-		VectorDblToTif8( "DoGa.tif", *avs_aln, ws, hs );
-		VectorDblToTif8( "DoGb.tif", *bvs_aln, ws, hs );
+		VectorDblToTif8( "DoGa.tif", *avs_aln, ws, hs, flog );
+		VectorDblToTif8( "DoGb.tif", *bvs_aln, ws, hs, flog );
 	}
 #endif
 

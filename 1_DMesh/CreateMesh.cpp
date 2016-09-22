@@ -217,7 +217,7 @@ static bool FindLeftEdge(
 	fprintf( flog, "Can't find starting point??\n" );
 
 #ifdef CREATEMESH_WRITE_DEBUG_IMAGES
-	Raster8ToTif8( "Bogus3.tif", &map[0], w, h );
+	Raster8ToTif8( "Bogus3.tif", &map[0], w, h, flog );
 #endif
 
 	return false;
@@ -277,7 +277,7 @@ static bool GetBoundaryPoints(
 		fprintf( flog, "Input was an isolated pixel??\n" );
 
 #ifdef CREATEMESH_WRITE_DEBUG_IMAGES
-		Raster8ToTif8( "Bogus4.tif", &map[0], w, h );
+		Raster8ToTif8( "Bogus4.tif", &map[0], w, h, flog );
 #endif
 
 		return false;

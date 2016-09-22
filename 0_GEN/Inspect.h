@@ -15,11 +15,13 @@
 
 void YellowView(
 	const PixPair	&px,
-	const TAffine	&T );
+	const TAffine	&T,
+	FILE			*flog );
 
 void YellowView(
 	const PixPair	&px,
-	const THmgphy	&T );
+	const THmgphy	&T,
+	FILE			*flog );
 
 void ABOverlay(
 	const PixPair	&px,
@@ -27,6 +29,7 @@ void ABOverlay(
 	int				Ntrans,
 	const TAffine*	tfs,
 	const TAffine*	ifs,
+	FILE			*flog = stdout,
 	const char		*comp_file = NULL );
 
 void RunCorrView(
@@ -34,6 +37,7 @@ void RunCorrView(
 	const uint16*	rmap,
 	const TAffine*	tfs,
 	bool			heatmap,
+	FILE			*flog = stdout,
 	const char		*registered_file = NULL );
 
 

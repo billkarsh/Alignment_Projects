@@ -19,7 +19,8 @@
 
 void YellowView(
 	const PixPair	&px,
-	const TAffine	&T )
+	const TAffine	&T,
+	FILE			*flog )
 {
 	int		w		= px.wf,
 			h		= px.hf,
@@ -81,7 +82,7 @@ void YellowView(
 		}
 	}
 
-	Raster32ToPngRGBA( "Ylw_Aff.png", &raster2[0], w2, h2 );
+	Raster32ToPngRGBA( "Ylw_Aff.png", &raster2[0], w2, h2, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -90,7 +91,8 @@ void YellowView(
 
 void YellowView(
 	const PixPair	&px,
-	const THmgphy	&T )
+	const THmgphy	&T,
+	FILE			*flog )
 {
 	int		w		= px.wf,
 			h		= px.hf,
@@ -152,7 +154,7 @@ void YellowView(
 		}
 	}
 
-	Raster32ToPngRGBA( "Ylw_Hmg.png", &raster2[0], w2, h2 );
+	Raster32ToPngRGBA( "Ylw_Hmg.png", &raster2[0], w2, h2, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -175,6 +177,7 @@ void ABOverlay(
 	int				Ntrans,
 	const TAffine*	tfs,
 	const TAffine*	ifs,
+	FILE			*flog,
 	const char		*comp_file )
 {
 	int		w		= px.wf,
@@ -217,7 +220,7 @@ void ABOverlay(
 
 			if( mv >= Ntrans ) {
 
-				printf(
+				fprintf( flog,
 				"ABOverlay: ERROR - tform idx=%d, Ntrans=%d\n",
 				mv, Ntrans );
 
@@ -260,14 +263,14 @@ void ABOverlay(
 		ctr[i].x /= ncpts[i];
 		ctr[i].y /= ncpts[i];
 
-		printf(
+		fprintf( flog,
 			"ABOverlay: region %d, center (%f %f) in A,"
 			" npixels=%d\n",
 			i, ctr[i].x, ctr[i].y, ncpts[i] );
 
 		tfs[i].Transform( ctr[i] );
 
-		printf( "ABOverlay: Maps to (%f %f) in image B.\n",
+		fprintf( flog, "ABOverlay: Maps to (%f %f) in image B.\n",
 		ctr[i].x, ctr[i].y );
 	}
 
@@ -344,7 +347,7 @@ void ABOverlay(
 // Report bgaps = how many pixels in B are not in the image
 // (range) of some tfs.
 
-	printf(
+	fprintf( flog,
 	"ABOverlay: %d pixels in A-B overlap not from A.\n", bgaps );
 
 // Transfer bpix to the RED channel.
@@ -392,8 +395,8 @@ void ABOverlay(
 	}
 
 // Write it out
-//	Raster32ToTifRGBA( "comp.tif", &raster2[0], w2, h2 );
-	Raster32ToPngRGBA( comp_file, &raster2[0], w2, h2 );
+//	Raster32ToTifRGBA( "comp.tif", &raster2[0], w2, h2, flog );
+	Raster32ToPngRGBA( comp_file, &raster2[0], w2, h2, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -429,7 +432,8 @@ static void CorrView(
 	const uint8*	bpix,
 	uint32			w,
 	uint32			h,
-	const uint16*	rmap )
+	const uint16*	rmap,
+	FILE			*flog )
 {
 	const int	PATCH	= 15;	// radius of patch
 	const int	LOOK	= 47;	// how far to look (radius)
@@ -474,7 +478,7 @@ static void CorrView(
 		double	frac = nv / double(side*side);
 
 		if( frac < 0.1 ) {
-			printf(
+			fprintf( flog,
 			"CorrView: Too many dark pixels"
 			" (%d light of %d, %f) - skipped.\n",
 			nv, side*side, frac );
@@ -503,7 +507,8 @@ static void CorrView(
 		frac = nv / double(side*side);
 
 		if( frac < 0.2 ) {
-			printf( "CorrView: Too many dark pixels(2)"
+			fprintf( flog,
+			"CorrView: Too many dark pixels(2)"
 			" (%d light of %d, %f) - skipped.\n",
 			nv, side*side, frac );
 			continue;
@@ -515,7 +520,7 @@ static void CorrView(
 		vector<CD>	ftc;	// cache for Fourier transform
 
 		double co	= CorrPatches(
-						stdout, false, dx, dy,
+						flog, false, dx, dy,
 						pts1, vals1, pts2, vals2, 0, 0, 4000,
 						lr31x31, NULL, lcTRUE, NULL, ftc );
 
@@ -523,7 +528,8 @@ static void CorrView(
 		double	mean, std;
 		m.Stats( mean, std );
 
-		printf( "CorrView: pt %6d %6d ---> dx, dy= %6.2f, %6.2f,"
+		fprintf( flog,
+		"CorrView: pt %6d %6d ---> dx, dy= %6.2f, %6.2f,"
 		" d=%6.2f, corr %6.3f, std %6.2f\n\n",
 		x, y, dx, dy, d, co, std );
 
@@ -565,7 +571,7 @@ static void CorrView(
 		}
 	}
 
-	Raster8ToTif8( "qual.tif", &qual[0], w, h );
+	Raster8ToTif8( "qual.tif", &qual[0], w, h, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -586,6 +592,7 @@ void RunCorrView(
 	const uint16*	rmap,
 	const TAffine*	tfs,
 	bool			heatmap,
+	FILE			*flog,
 	const char		*registered_file )
 {
 	FILE*	f;
@@ -595,7 +602,7 @@ void RunCorrView(
 	if( !registered_file )
 		registered_file = "registered.png";
 
-	printf( "\n" );
+	fprintf( flog, "\n" );
 
 	w		= px.wf;
 	h		= px.hf;
@@ -609,17 +616,17 @@ void RunCorrView(
 
 		fclose( f );
 
-		printf(
+		fprintf( flog,
 		"RunTripleChk: Reading existing registered_file [%s].\n",
 		registered_file );
 
-		bpix = Raster8FromPng( registered_file, w2, h2 );
+		bpix = Raster8FromPng( registered_file, w2, h2, flog );
 	}
 	else {
 
 		// ... or create new black raster
 
-		printf(
+		fprintf( flog,
 		"RunTripleChk: No previous registered file"
 		" - creating one.\n" );
 
@@ -692,17 +699,17 @@ void RunCorrView(
 		}
 	}
 
-	Raster8ToPng8( registered_file, bpix, w, h );
+	Raster8ToPng8( registered_file, bpix, w, h, flog );
 
 // Triple check, by picking regions at random and
 // making sure they match.
 
 	if( heatmap )
-		CorrView( &(*px.avf_vfy)[0], bpix, w, h, rmap );
+		CorrView( &(*px.avf_vfy)[0], bpix, w, h, rmap, flog );
 
 	RasterFree( bpix );
 
-	printf( "\n" );
+	fprintf( flog, "\n" );
 }
 
 
