@@ -54,7 +54,7 @@ bool CMutex::Get( const char *name, FILE *flog )
 				S_IROTH | S_IWOTH, 1 );
 
 	if( mutex == SEM_FAILED ) {
-		fprintf( stderr,
+		fprintf( flog,
 		"Mutex failure: sem_open errno %d [%s].\n", errno, m_name );
 		return false;
 	}
@@ -64,7 +64,7 @@ bool CMutex::Get( const char *name, FILE *flog )
 	int	ok = !sem_wait( mutex );
 
 	if( !ok ) {
-		fprintf( stderr,
+		fprintf( flog,
 		"Mutex failure: sem_wait errno %d [%s].\n", errno, m_name );
 	}
 
