@@ -33,7 +33,7 @@ private:
 public:
 	CMutex() : mutex(SEM_FAILED) {}
 
-	bool Get( const char *name, FILE* flog=stderr );
+	bool Get( const char *name, FILE* flog = stderr );
 	void Release();
 };
 

@@ -18,9 +18,9 @@ public:
 	const char		*file;
 	TiXmlDocument	doc;
 public:
-	XML_TKEM( const char *file, FILE* flog=stdout )
+	XML_TKEM( const char *file, FILE* flog = stdout )
 		{Open( file, flog );};
-	void Open( const char *file, FILE* flog=stdout );
+	void Open( const char *file, FILE* flog = stdout );
 	void Save( const char *name, bool copyDTD );
 	TiXmlNode*		GetLayerset();
 	TiXmlElement*	GetFirstLayer();

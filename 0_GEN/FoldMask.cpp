@@ -180,7 +180,8 @@ void SetBoundsAndColors(
 	vector<ConnRegion>	&cr,
 	uint8*				foldMask,
 	int					wf,
-	int					hf )
+	int					hf,
+	FILE				*flog )
 {
 	int	np = wf * hf,
 		nr = cr.size();
@@ -189,7 +190,7 @@ void SetBoundsAndColors(
 	memset( foldMask, 0, np );
 
 // print region header
-	printf( "SetBnd&Clr: Big enough regions = %d:\n", nr );
+	fprintf( flog, "SetBnd&Clr: Big enough regions = %d:\n", nr );
 
 // for each region
 	for( int ir = 0; ir < nr; ++ir ) {
@@ -229,7 +230,8 @@ void SetBoundsAndColors(
 		}
 
 		// print this region
-		printf( "\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
+		fprintf( flog,
+			"\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
 			C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
 	}
 }
@@ -250,7 +252,8 @@ void SetBoundsAndColors(
 	int						wf,
 	int						hf,
 	double					thresh,
-	int						D )
+	int						D,
+	FILE					*flog )
 {
 	int	np = wf * hf,
 		nr = cr.size();
@@ -259,7 +262,7 @@ void SetBoundsAndColors(
 	memset( foldMask, 0, np );
 
 // print region header
-	printf( "SetBnd&Clr: Big enough regions = %d:\n", nr );
+	fprintf( flog, "SetBnd&Clr: Big enough regions = %d:\n", nr );
 
 // for each region
 	for( int ir = 0; ir < nr; ++ir ) {
@@ -313,7 +316,8 @@ void SetBoundsAndColors(
 		}
 
 		// print this region
-		printf( "\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
+		fprintf( flog,
+			"\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
 			C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
 	}
 }

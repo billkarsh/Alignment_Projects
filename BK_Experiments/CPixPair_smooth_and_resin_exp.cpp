@@ -449,9 +449,9 @@ bool PixPair::Load(
 //				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 //				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 //				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-//		Convolve( _avf, _avf, wf, hf, K, 11, 11, true, true, kfft );
+//		Convolve( _avf, _avf, wf, hf, K, 11, 11, true, true, kfft, flog );
 //		Normalize( _avf );
-//		Convolve( _bvf, _bvf, wf, hf, K, 11, 11, true, true, kfft );
+//		Convolve( _bvf, _bvf, wf, hf, K, 11, 11, true, true, kfft, flog );
 //		Normalize( _bvf );
 //}
 
@@ -470,9 +470,9 @@ bool PixPair::Load(
 				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 				1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-		Convolve( _avfflt, _avf, wf, hf, K, 11, 11, true, true, kfft );
+		Convolve( _avfflt, _avf, wf, hf, K, 11, 11, true, true, kfft, flog );
 		Normalize( _avfflt );
-		Convolve( _bvfflt, _bvf, wf, hf, K, 11, 11, true, true, kfft );
+		Convolve( _bvfflt, _bvf, wf, hf, K, 11, 11, true, true, kfft, flog );
 		Normalize( _bvfflt );
 
 		avs_aln = avf_aln = &_avfflt;
@@ -489,11 +489,11 @@ bool PixPair::Load(
 		int				dim = MakeDoGKernel( DoG, r1, r2, flog );
 
 		Convolve( _avfflt, _avf, wf, hf,
-			&DoG[0], dim, dim, true, true, kfft );
+			&DoG[0], dim, dim, true, true, kfft, flog );
 		Normalize( _avfflt );
 
 		Convolve( _bvfflt, _bvf, wf, hf,
-			&DoG[0], dim, dim, true, true, kfft );
+			&DoG[0], dim, dim, true, true, kfft, flog );
 		Normalize( _bvfflt );
 
 		avs_aln = avf_aln = &_avfflt;

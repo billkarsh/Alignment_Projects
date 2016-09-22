@@ -44,7 +44,8 @@ void Convolve(
 	int						hk,
 	bool					kIsSymmetric,
 	bool					preNormK,
-	vector<CD>				&kfft );
+	vector<CD>				&kfft,
+	FILE					*flog );
 
 /* --------------------------------------------------------------- */
 /* Correlation support ------------------------------------------- */

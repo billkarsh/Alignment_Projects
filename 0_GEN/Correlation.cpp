@@ -378,7 +378,8 @@ void Convolve(
 	int						hk,
 	bool					kIsSymmetric,
 	bool					preNormK,
-	vector<CD>				&kfft )
+	vector<CD>				&kfft,
+	FILE					*flog )
 {
 	int	Ns	= ws * hs,
 		Nk	= wk * hk,
@@ -386,6 +387,10 @@ void Convolve(
 		Ny	= FFTSize( hs, hk / (1 + kIsSymmetric) ),
 		Nxy	= Nx * Ny,
 		M	= Ny*(Nx/2+1);
+
+#ifdef ALN_USE_MKL
+	mkl_log = flog;
+#endif
 
 // Prepare K fft
 
@@ -966,6 +971,8 @@ double CorrPatches(
 // using MKL fft because that API is thread-safe; and don't
 // cache fft2.
 
+	mkl_log = flog;
+
 	vector<CD>	_fft2;
 
 	FFT_2D( _fft2, i2, Nx, Ny, false );
@@ -1201,6 +1208,10 @@ double CorrPatchToImage(
 			N		= (int)sqrt( Nsqr ),
 			i, M;
 	double	norm	= (double)np1 * Nsqr;
+
+#ifdef ALN_USE_MKL
+	mkl_log = stdout;
+#endif
 
 // Bounding box of ip1
 
@@ -1913,7 +1924,8 @@ public:
 	void MakeF(
 		vector<double>			&F,
 		vector<uint8>			&A,
-		const vector<double>	&R );
+		const vector<double>	&R,
+		FILE					*flog );
 
 	bool OrderF(
 		vector<int>				&forder,
@@ -2420,7 +2432,8 @@ void CCorImg::MakeSandRandA(
 void CCorImg::MakeF(
 	vector<double>			&F,
 	vector<uint8>			&A,
-	const vector<double>	&R )
+	const vector<double>	&R,
+	FILE					*flog )
 {
 	vector<CD>	kfft;
 	double		K[] = {
@@ -2431,7 +2444,7 @@ void CCorImg::MakeF(
 	int			ksize	= (int)sqrt( sizeof(K) / sizeof(double) );
 	int			grd		= ksize / 2;
 
-	Convolve( F, R, wR, hR, K, ksize, ksize, true, true, kfft );
+	Convolve( F, R, wR, hR, K, ksize, ksize, true, true, kfft, flog );
 
 // Zero invalid border of width = grd (guard band)
 
@@ -3100,6 +3113,10 @@ double CorrImagesF(
 	int				rx;
 	int				ry;
 
+#ifdef ALN_USE_MKL
+	mkl_log = flog;
+#endif
+
 	if( dbgCor )
 		verbose = true;
 
@@ -3115,7 +3132,7 @@ double CorrImagesF(
 		LegalRgn, arglr, LegalCnt, arglc,
 		Ox, Oy, Rx, Ry, fft2 );
 
-	cc.MakeF( F, A, R );
+	cc.MakeF( F, A, R, flog );
 
 	if( !cc.OrderF( forder, F, A, R, mincor ) ||
 		!cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {
@@ -3176,6 +3193,10 @@ double CorrImagesR(
 	vector<int>		order;
 	int				rx;
 	int				ry;
+
+#ifdef ALN_USE_MKL
+	mkl_log = flog;
+#endif
 
 	if( dbgCor )
 		verbose = true;
@@ -3255,6 +3276,10 @@ double CorrImagesS(
 	vector<int>		order;
 	int				rx;
 	int				ry;
+
+#ifdef ALN_USE_MKL
+	mkl_log = flog;
+#endif
 
 	if( dbgCor )
 		verbose = true;

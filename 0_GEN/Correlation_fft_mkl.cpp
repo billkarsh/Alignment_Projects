@@ -15,6 +15,8 @@
 /* Statics ------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+FILE	*mkl_log = stderr;
+
 
 
 
@@ -27,7 +29,9 @@
 static void MKLCheck( MKL_LONG status )
 {
 	if( status && !DftiErrorClass( status, DFTI_NO_ERROR ) ) {
-		printf( "MKL error [%s].\n", DftiErrorMessage( status ) );
+
+		fprintf( mkl_log,
+		"MKL error [%s].\n", DftiErrorMessage( status ) );
 		exit( 44 );
 	}
 }

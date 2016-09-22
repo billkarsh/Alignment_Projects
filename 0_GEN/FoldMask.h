@@ -48,7 +48,8 @@ void SetBoundsAndColors(
 	vector<ConnRegion>	&cr,
 	uint8*				foldMask,
 	int					wf,
-	int					hf );
+	int					hf,
+	FILE				*flog = stdout );
 
 void SetBoundsAndColors(
 	vector<ConnRegion>		&cr,
@@ -57,7 +58,8 @@ void SetBoundsAndColors(
 	int						wf,
 	int						hf,
 	double					thresh,
-	int						D );
+	int						D,
+	FILE					*flog = stdout );
 
 void ConnRgnsFromFoldMask(
 	vector<ConnRegion>	&cr,
