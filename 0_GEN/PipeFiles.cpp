@@ -179,29 +179,36 @@ exit:
 
 // Read parameter file governing thumbnail and mesh matching.
 //
-// The layer params specify an override file. E.g., if alr=5 and
-// blr=4 the search order (in alignment 'temp' directory) is first
-// 'matchparams_5_4.txt' then 'matchparams.txt' (no indices).
+// Path precedence:
+//
+// 1. Use explicit matchparamspath if given.
+// 2. Use (alr,blr) params to try loading override file from
+//		temp dir with name pattern 'matchparams_alr_blr.txt'.
+// 3. Load the standard temp/matchparams.txt.
 //
 bool ReadMatchParams(
 	MatchParams		&M,
 	int				alr,
 	int				blr,
+	const char		*matchparamspath,
 	FILE			*flog )
 {
-	char	name[256];
-	FILE	*f;
+	char	name[1024];
+	FILE	*f = NULL;
 	int		ok = false;
 
-	sprintf( name, "../../matchparams_%d_%d.txt", alr, blr );
-	f = fopen( name, "r" );
+	if( matchparamspath )
+		strcpy( name, matchparamspath );
+	else {
 
-	if( !f ) {
-		sprintf( name, "../../matchparams.txt" );
+		sprintf( name, "../../matchparams_%d_%d.txt", alr, blr );
 		f = fopen( name, "r" );
+
+		if( !f )
+			sprintf( name, "../../matchparams.txt" );
 	}
 
-	if( f ) {
+	if( f || (f = fopen( name, "r" )) ) {
 
 		fprintf( flog, "\n---- Match parameters ----\n" );
 
@@ -500,6 +507,7 @@ bool IDBT2IGet1(
 		t2i.row		= -999;
 		t2i.cam		= 0;
 		t2i.path	= forcepath;
+		fprintf( flog, "IDBT2IGet1: forcepath = [%s].\n", forcepath );
 		return true;
 	}
 
@@ -1277,6 +1285,8 @@ void CreateJobsDir(
 /* WriteThmPair -------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+// Note: Table writing bypassed if invalid tile ID.
+//
 void WriteThmPair(
 	const ThmPair	&tpr,
 	int				alr,
@@ -1286,6 +1296,9 @@ void WriteThmPair(
 	int				btl,
 	int				bcr )
 {
+	if( atl < 0 || btl < 0 )
+		return;
+
 	CMutex	M;
 	char	name[256];
 

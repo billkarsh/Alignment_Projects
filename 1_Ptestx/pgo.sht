@@ -16,6 +16,7 @@
 # {ima, imb, fma, fmb} override IDB.
 #
 # ptest Options:
+# -prm=path				;path to matchparams.txt file
 # -Tdfm=1,0,0,0,1,0		;deformation a to b
 # -Tab=1,0,0,0,1,0		;transform a to b
 # -SCALE=1.0			;a/b

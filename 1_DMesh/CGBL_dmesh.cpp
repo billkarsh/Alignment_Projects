@@ -74,13 +74,16 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 {
 // Parse args
 
-	char			*key;
+	const char		*key			= NULL,
+					*matchparams	= NULL;
 	vector<double>	vD;
 
 	for( int i = 1; i < argc; ++i ) {
 
 		if( argv[i][0] != '-' )
 			key = argv[i];
+		else if( GetArgStr( matchparams, "-prm=", argv[i] ) )
+			;
 		else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
 
 			if( 6 == vD.size() )
@@ -187,7 +190,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadMatchParams( mch, A.z, B.z ) )
+	if( !ReadMatchParams( mch, A.z, B.z, matchparams ) )
 		return false;
 
 // Which file params to use according to (same,cross) layer

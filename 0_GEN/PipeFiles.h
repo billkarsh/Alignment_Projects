@@ -222,6 +222,7 @@ bool ReadMatchParams(
 	MatchParams		&M,
 	int				alr,
 	int				blr,
+	const char		*matchparamspath = NULL,
 	FILE			*flog = stdout );
 
 void IDBFromTemp(
