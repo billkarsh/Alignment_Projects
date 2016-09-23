@@ -33,13 +33,15 @@ private:
 public:
 	typedef struct {
 		double		CTR;
-		const char	*fma,			// override idb paths
-					*fmb;
-		bool		Transpose,		// transpose all images
-					WithinSection,	// overlap within a section
-					Verbose,		// run inspect diagnostics
-					SingleFold,		// assign id=1 to all non-fold rgns
-					Heatmap;		// run CorrView
+		const char	*fma,				// override idb paths
+					*fmb,
+					*comp_png,			// override comp.png path
+					*registered_png;	// override registered.png path
+		bool		Transpose,			// transpose all images
+					WithinSection,		// overlap within a section
+					Verbose,			// run inspect diagnostics
+					SingleFold,			// assign id=1 to all non-fold rgns
+					Heatmap;			// run CorrView
 	} DriverArgs;
 
 	typedef struct {

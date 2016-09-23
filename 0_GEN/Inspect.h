@@ -29,15 +29,15 @@ void ABOverlay(
 	int				Ntrans,
 	const TAffine*	tfs,
 	const TAffine*	ifs,
-	FILE			*flog = stdout,
-	const char		*comp_file = NULL );
+	const char		*comp_png = NULL,
+	FILE			*flog = stdout );
 
 void RunCorrView(
 	const PixPair	&px,
 	const uint16*	rmap,
 	const TAffine*	tfs,
 	bool			heatmap,
-	FILE			*flog = stdout,
-	const char		*registered_file = NULL );
+	const char		*registered_png = NULL,
+	FILE			*flog = stdout );
 
 

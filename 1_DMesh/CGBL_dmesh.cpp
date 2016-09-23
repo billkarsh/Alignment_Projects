@@ -53,6 +53,8 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.CTR				= 999.0;
 	arg.fma				= NULL;
 	arg.fmb				= NULL;
+	arg.comp_png		= NULL;
+	arg.registered_png	= NULL;
 	arg.Transpose		= false;
 	arg.WithinSection	= false;
 	arg.Verbose			= false;
@@ -125,6 +127,10 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		else if( GetArgStr( arg.fma, "-fma=", argv[i] ) )
 			;
 		else if( GetArgStr( arg.fmb, "-fmb=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.comp_png, "-comp_png=", argv[i] ) )
+			;
+		else if( GetArgStr( arg.registered_png, "-registered_png=", argv[i] ) )
 			;
 		else if( IsArg( "-tr", argv[i] ) )
 			arg.Transpose = true;

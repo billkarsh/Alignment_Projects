@@ -30,6 +30,8 @@
 # -nf					;no folds (prefer -FLD=N)
 # -sf					;single fold
 # -v					;registered & comp images
+# -comp_png=path		;path to comp.png
+# -registered_png=path	;path to registered.png
 # -heatmap				;qual.tif
 # -dbgcor				;stop at correlation images
 # -Tmsh=1,0,0,0,1,0		;bypass thumbs, start mesh here

@@ -161,9 +161,9 @@ void YellowView(
 /* ABOverlay ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Write out a diagnostic overlay png (comp_file).
+// Write out a diagnostic overlay png (comp_png).
 //
-// If comp_file omitted, default is './comp.png'.
+// If comp_png omitted, default is './comp.png'.
 //
 // A large black image is created to show A and B relative
 // to each other. A is shown unmodified in GREEN. Regions
@@ -177,8 +177,8 @@ void ABOverlay(
 	int				Ntrans,
 	const TAffine*	tfs,
 	const TAffine*	ifs,
-	FILE			*flog,
-	const char		*comp_file )
+	const char		*comp_png,
+	FILE			*flog )
 {
 	int		w		= px.wf,
 			h		= px.hf,
@@ -192,8 +192,8 @@ void ABOverlay(
 			npix2	= w2 * h2;
 	int		bgaps	= 0;
 
-	if( !comp_file )
-		comp_file = "comp.png";
+	if( !comp_png )
+		comp_png = "comp.png";
 
 // init overlay images
 
@@ -395,8 +395,7 @@ void ABOverlay(
 	}
 
 // Write it out
-//	Raster32ToTifRGBA( "comp.tif", &raster2[0], w2, h2, flog );
-	Raster32ToPngRGBA( comp_file, &raster2[0], w2, h2, flog );
+	Raster32ToPngRGBA( comp_png, &raster2[0], w2, h2, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -578,11 +577,11 @@ static void CorrView(
 /* RunCorrView --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// (1) Build copy of the B-image and save that as png registered_file.
-//		If registered_file had already existed, the current B-image
+// (1) Build copy of the B-image and save that as png registered_png.
+//		If registered_png had already existed, the current B-image
 //		is added into that and then saved.
 //
-// (2) If registered_file omitted, default is './registered.png'.
+// (2) If registered_png omitted, default is './registered.png'.
 //
 // (3) If heatmap is true, the current A-image and new B-image
 //		are sent to CorrView.
@@ -592,15 +591,15 @@ void RunCorrView(
 	const uint16*	rmap,
 	const TAffine*	tfs,
 	bool			heatmap,
-	FILE			*flog,
-	const char		*registered_file )
+	const char		*registered_png,
+	FILE			*flog )
 {
 	FILE*	f;
 	uint8*	bpix;
 	int		k, w, h, npix;
 
-	if( !registered_file )
-		registered_file = "registered.png";
+	if( !registered_png )
+		registered_png = "registered.png";
 
 	fprintf( flog, "\n" );
 
@@ -610,17 +609,17 @@ void RunCorrView(
 
 // Read existing file...
 
-	if( f = fopen( registered_file, "r" ) ) {
+	if( f = fopen( registered_png, "r" ) ) {
 
 		uint32	w2, h2;
 
 		fclose( f );
 
 		fprintf( flog,
-		"RunTripleChk: Reading existing registered_file [%s].\n",
-		registered_file );
+		"RunTripleChk: Reading existing registered_png [%s].\n",
+		registered_png );
 
-		bpix = Raster8FromPng( registered_file, w2, h2, flog );
+		bpix = Raster8FromPng( registered_png, w2, h2, flog );
 	}
 	else {
 
@@ -699,7 +698,7 @@ void RunCorrView(
 		}
 	}
 
-	Raster8ToPng8( registered_file, bpix, w, h, flog );
+	Raster8ToPng8( registered_png, bpix, w, h, flog );
 
 // Triple check, by picking regions at random and
 // making sure they match.

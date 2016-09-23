@@ -306,9 +306,9 @@ int main( int argc, char* argv[] )
 
 	if( Ntrans && GBL.arg.Verbose ) {
 
-		ABOverlay( px, rmap, Ntrans, tfs, ifs );
+		ABOverlay( px, rmap, Ntrans, tfs, ifs, GBL.arg.comp_png );
 
-		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap );
+		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap, GBL.arg.registered_png );
 	}
 
 /* ------- */
