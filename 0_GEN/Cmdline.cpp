@@ -187,33 +187,38 @@ static void Tokenize(
 }
 
 
-static size_t WriteCallback( void *contents, size_t size, size_t nmemb, void *userp )
+static size_t WriteCallback( void *src, size_t size, size_t nmemb, void *dst )
 {
-    size_t	bytes = size * nmemb;
+	size_t	bytes = size * nmemb;
 
-	((std::string*)userp)->append( (char*)contents, bytes );
+	((std::string*)dst)->append( (char*)src, bytes );
 
 	return bytes;
 }
 
 
+#define	GETCOEFF( idx, name )											\
+	if( tokens2[0].find( name ) != std::string::npos )					\
+		{coeffs[idx] = strtod( tokens2[2].c_str(), NULL );}
+
+
+// BK: Needs example of expected input pattern.
+// BK: What are tokens2[0],[1],[2]??
+//
 bool GetArgListFromURL( vector<double> &v, const char *pat, char *argv )
 {
-    int	len = strlen( pat );
+	int	len = strlen( pat );
 
 	if( !strncmp( argv, pat, len ) ) {
-
-		static std::string	readBuffer;
 
 		char	*url = argv + len;
 
 		if( !strstr( url, "http:" ) )
 			return false;
 
+		std::string	readBuffer;
 		CURL		*easy_handle = curl_easy_init();
 		CURLcode	res;
-
-		readBuffer.clear();
 
 //		curl_easy_setopt( easy_handle, CURLOPT_VERBOSE, 1L );
 		curl_easy_setopt( easy_handle, CURLOPT_URL, url );
@@ -226,58 +231,22 @@ bool GetArgListFromURL( vector<double> &v, const char *pat, char *argv )
 		vector<string>	tokens;
 		double			coeffs[] = {0., 0., 0., 0., 0., 0.};
 
-		Tokenize( tokens, std::string(readBuffer) );
+		Tokenize( tokens, readBuffer );
 
 		for( int i = 0, n = tokens.size(); i < n; ++i )  {
 
 			vector<string>	tokens2;
 			Tokenize( tokens2, tokens[i], " " );
 
-			if( tokens2[0].find("imageRow") != std::string::npos ) {
-				const char	*my_str	= tokens2[2].c_str();
-				char		*pEnd;
-				double		value	= strtod( my_str, &pEnd );
-				coeffs[3] = value;
-			}
-
-			if( tokens2[0].find("imageCol") != std::string::npos ) {
-				const char	*my_str	= tokens2[2].c_str();
-				char		*pEnd;
-				double		value	= strtod( my_str, &pEnd );
-				coeffs[0] = value;
-			}
-
-			if( tokens2[0].find("minX") != std::string::npos ) {
-				const char	*my_str	= tokens2[2].c_str();
-				char		*pEnd;
-				double		value	= strtod( my_str, &pEnd );
-				coeffs[1] = value;
-			}
-
-			if( tokens2[0].find("minY") != std::string::npos ) {
-				const char	*my_str	= tokens2[2].c_str();
-				char		*pEnd;
-				double		value	= strtod( my_str, &pEnd );
-				coeffs[4] = value;
-			}
-
-			if( tokens2[0].find("stageX") != std::string::npos ) {
-				const char	*my_str	= tokens2[2].c_str();
-				char		*pEnd;
-				double		value	= strtod( my_str, &pEnd );
-				coeffs[2] = value;
-			}
-
-			if( tokens2[0].find("stageY") != std::string::npos ) {
-				const char	*my_str	= tokens2[2].c_str();
-				char		*pEnd;
-				double		value	= strtod( my_str, &pEnd );
-				coeffs[5] = value;
-			}
+			GETCOEFF( 3, "imageRow" );
+			GETCOEFF( 0, "imageCol" );
+			GETCOEFF( 1, "minX" );
+			GETCOEFF( 4, "minY" );
+			GETCOEFF( 2, "stageX" );
+			GETCOEFF( 5, "stageY" );
 		}
 
 		v.assign( coeffs, coeffs + 6 );
-		readBuffer.clear();
 		return true;
 	}
 
