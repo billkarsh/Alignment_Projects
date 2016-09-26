@@ -963,9 +963,6 @@ double CorrPatches(
 	vector<CD>		fft1;
 
 #ifdef ALN_USE_MKL
-// Janelia pthread_mutex_lock appears unreliable, so prefer
-// using MKL fft because that API is thread-safe; and don't
-// cache fft2.
 
 	vector<CD>	_fft2;
 
@@ -2101,9 +2098,6 @@ void CCorImg::MakeRandA(
 	vector<CD>		fft1;
 
 #ifdef ALN_USE_MKL
-// Janelia pthread_mutex_lock appears unreliable, so prefer
-// using MKL fft because that API is thread-safe; and don't
-// cache fft2.
 
 	vector<CD>	_fft2;
 
@@ -2240,9 +2234,6 @@ void CCorImg::MakeSandRandA(
 	vector<CD>		fft1;
 
 #ifdef ALN_USE_MKL
-// Janelia pthread_mutex_lock appears unreliable, so prefer
-// using MKL fft because that API is thread-safe; and don't
-// cache fft2.
 
 	vector<CD>	_fft2;
 
