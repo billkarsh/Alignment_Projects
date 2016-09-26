@@ -12,25 +12,14 @@
 
 
 /* --------------------------------------------------------------- */
-/* Statics ------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-FILE	*mkl_log = stderr;
-
-
-
-
-
-
-/* --------------------------------------------------------------- */
 /* MKLCheck ------------------------------------------------------ */
 /* --------------------------------------------------------------- */
 
-static void MKLCheck( MKL_LONG status )
+static void MKLCheck( MKL_LONG status, FILE *flog )
 {
 	if( status && !DftiErrorClass( status, DFTI_NO_ERROR ) ) {
 
-		fprintf( mkl_log,
+		fprintf( flog,
 		"MKL error [%s].\n", DftiErrorMessage( status ) );
 		exit( 44 );
 	}
@@ -44,7 +33,8 @@ static void _FFT_2D(
 	vector<CD>				&out,
 	const vector<double>	&in,
 	int						Nfast,
-	int						Nslow )
+	int						Nslow,
+	FILE					*flog )
 {
 	int	Nhlf = (Nfast/2 + 1), M = Nslow * Nhlf;
 
@@ -59,38 +49,38 @@ static void _FFT_2D(
 				DFTI_DOUBLE,
 				DFTI_REAL,
 				2, dim );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_NUMBER_OF_USER_THREADS,
 				1 );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_CONJUGATE_EVEN_STORAGE,
 				DFTI_COMPLEX_COMPLEX );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_OUTPUT_STRIDES,
 				stro );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_PLACEMENT,
 				DFTI_NOT_INPLACE );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiCommitDescriptor( h );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiComputeForward( h,
 				(double*)&in[0],
 				&out[0] );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiFreeDescriptor( &h );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -107,7 +97,8 @@ int FFT_2D(
 	const vector<double>	&in,
 	int						Nfast,
 	int						Nslow,
-	bool					cached )
+	bool					cached,
+	FILE					*flog )
 {
 	int	M = Nslow * (Nfast/2 + 1);
 
@@ -116,12 +107,12 @@ int FFT_2D(
 		pthread_mutex_lock( &mutex_fft );
 
 		if( out.size() != M )
-			_FFT_2D( out, in, Nfast, Nslow );
+			_FFT_2D( out, in, Nfast, Nslow, flog );
 
 		pthread_mutex_unlock( &mutex_fft );
 	}
 	else
-		_FFT_2D( out, in, Nfast, Nslow );
+		_FFT_2D( out, in, Nfast, Nslow, flog );
 
 	return M;
 }
@@ -139,7 +130,8 @@ void IFT_2D(
 	vector<double>			&out,
 	const vector<CD>		&in,
 	int						Nfast,
-	int						Nslow )
+	int						Nslow,
+	FILE					*flog )
 {
 	int	Nhlf = (Nfast/2 + 1);
 
@@ -155,43 +147,43 @@ void IFT_2D(
 				DFTI_DOUBLE,
 				DFTI_REAL,
 				2, dim );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_NUMBER_OF_USER_THREADS,
 				1 );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_CONJUGATE_EVEN_STORAGE,
 				DFTI_COMPLEX_COMPLEX );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_INPUT_STRIDES,
 				stri );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_OUTPUT_STRIDES,
 				stro );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiSetValue( h,
 				DFTI_PLACEMENT,
 				DFTI_NOT_INPLACE );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiCommitDescriptor( h );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiComputeBackward( h,
 				(double*)&in[0],
 				&out[0] );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 
 	status = DftiFreeDescriptor( &h );
-	MKLCheck( status );
+	MKLCheck( status, flog );
 }
 
 

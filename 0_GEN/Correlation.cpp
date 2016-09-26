@@ -388,10 +388,6 @@ void Convolve(
 		Nxy	= Nx * Ny,
 		M	= Ny*(Nx/2+1);
 
-#ifdef ALN_USE_MKL
-	mkl_log = flog;
-#endif
-
 // Prepare K fft
 
 	if( kfft.size() != M ) {
@@ -429,7 +425,7 @@ void Convolve(
 		}
 
 		// FFT
-		FFT_2D( kfft, KK, Nx, Ny, false );
+		FFT_2D( kfft, KK, Nx, Ny, false, flog );
 	}
 
 // Prepare src fft
@@ -439,14 +435,14 @@ void Convolve(
 
 	CopyRaster( &SS[0], Nx, &src[0], ws, ws, hs );
 
-	FFT_2D( sfft, SS, Nx, Ny, false );
+	FFT_2D( sfft, SS, Nx, Ny, false, flog );
 
 // Convolve
 
 	for( int i = 0; i < M; ++i )
 		sfft[i] *= kfft[i];
 
-	IFT_2D( SS, sfft, Nx, Ny );
+	IFT_2D( SS, sfft, Nx, Ny, flog );
 
 // Copy back
 
@@ -971,20 +967,18 @@ double CorrPatches(
 // using MKL fft because that API is thread-safe; and don't
 // cache fft2.
 
-	mkl_log = flog;
-
 	vector<CD>	_fft2;
 
-	FFT_2D( _fft2, i2, Nx, Ny, false );
-	FFT_2D( fft1, i1, Nx, Ny, false );
+	FFT_2D( _fft2, i2, Nx, Ny, false, flog );
+	FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
 	for( int i = 0; i < M; ++i )
 		fft1[i] = _fft2[i] * conj( fft1[i] );
 
 #else
 
-	FFT_2D( fft2, i2, Nx, Ny, true );
-	FFT_2D( fft1, i1, Nx, Ny, false );
+	FFT_2D( fft2, i2, Nx, Ny, true, flog );
+	FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
 	pthread_mutex_lock( &mutex_fft );
 
@@ -995,7 +989,7 @@ double CorrPatches(
 
 #endif
 
-	IFT_2D( rslt, fft1, Nx, Ny );
+	IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 // Create array indexed by 'size': int( 10 * log( overlap_size ) ).
 // Each element contains the best rslt[i] at that size index.
@@ -1208,10 +1202,6 @@ double CorrPatchToImage(
 			N		= (int)sqrt( Nsqr ),
 			i, M;
 	double	norm	= (double)np1 * Nsqr;
-
-#ifdef ALN_USE_MKL
-	mkl_log = stdout;
-#endif
 
 // Bounding box of ip1
 
@@ -2117,16 +2107,16 @@ void CCorImg::MakeRandA(
 
 	vector<CD>	_fft2;
 
-	FFT_2D( _fft2, i2, Nx, Ny, false );
-	FFT_2D( fft1, i1, Nx, Ny, false );
+	FFT_2D( _fft2, i2, Nx, Ny, false, flog );
+	FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
 	for( int i = 0; i < M; ++i )
 		fft1[i] = _fft2[i] * conj( fft1[i] );
 
 #else
 
-	FFT_2D( fft2, i2, Nx, Ny, true );
-	FFT_2D( fft1, i1, Nx, Ny, false );
+	FFT_2D( fft2, i2, Nx, Ny, true, flog );
+	FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
 	pthread_mutex_lock( &mutex_fft );
 
@@ -2137,7 +2127,7 @@ void CCorImg::MakeRandA(
 
 #endif
 
-	IFT_2D( rslt, fft1, Nx, Ny );
+	IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 // Prepare correlation calculator
 
@@ -2256,16 +2246,16 @@ void CCorImg::MakeSandRandA(
 
 	vector<CD>	_fft2;
 
-	FFT_2D( _fft2, i2, Nx, Ny, false );
-	FFT_2D( fft1, i1, Nx, Ny, false );
+	FFT_2D( _fft2, i2, Nx, Ny, false, flog );
+	FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
 	for( int i = 0; i < M; ++i )
 		fft1[i] = _fft2[i] * conj( fft1[i] );
 
 #else
 
-	FFT_2D( fft2, i2, Nx, Ny, true );
-	FFT_2D( fft1, i1, Nx, Ny, false );
+	FFT_2D( fft2, i2, Nx, Ny, true, flog );
+	FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
 	pthread_mutex_lock( &mutex_fft );
 
@@ -2276,7 +2266,7 @@ void CCorImg::MakeSandRandA(
 
 #endif
 
-	IFT_2D( rslt, fft1, Nx, Ny );
+	IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 // Prepare correlation calculator
 
@@ -2335,7 +2325,7 @@ void CCorImg::MakeSandRandA(
 			fft1[i] /= sqrt( mag );
 	}
 
-	IFT_2D( rslt, fft1, Nx, Ny );
+	IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 	S.resize( nR );
 
@@ -3111,10 +3101,6 @@ double CorrImagesF(
 	int				rx;
 	int				ry;
 
-#ifdef ALN_USE_MKL
-	mkl_log = flog;
-#endif
-
 	if( dbgCor )
 		verbose = true;
 
@@ -3191,10 +3177,6 @@ double CorrImagesR(
 	vector<int>		order;
 	int				rx;
 	int				ry;
-
-#ifdef ALN_USE_MKL
-	mkl_log = flog;
-#endif
 
 	if( dbgCor )
 		verbose = true;
@@ -3274,10 +3256,6 @@ double CorrImagesS(
 	vector<int>		order;
 	int				rx;
 	int				ry;
-
-#ifdef ALN_USE_MKL
-	mkl_log = flog;
-#endif
 
 	if( dbgCor )
 		verbose = true;

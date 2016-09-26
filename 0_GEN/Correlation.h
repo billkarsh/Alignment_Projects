@@ -22,13 +22,15 @@ int FFT_2D(
 	const vector<double>	&in,
 	int						Nfast,
 	int						Nslow,
-	bool					cached );
+	bool					cached,
+	FILE					*flog = stderr );
 
 void IFT_2D(
 	vector<double>			&out,
 	const vector<CD>		&in,
 	int						Nfast,
-	int						Nslow );
+	int						Nslow,
+	FILE					*flog = stderr );
 
 /* --------------------------------------------------------------- */
 /* Convolution --------------------------------------------------- */
