@@ -608,8 +608,7 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 			i1[3] = { 0, 1, 2 },
 			i2[3] = { 1, 0, 3 };
 
-	memset( RHS, 0, 4   * sizeof(double) );
-	memset( LHS, 0, 4*4 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 4 );
 
 	for( int i = 0; i < np; ++i ) {
 
@@ -657,8 +656,7 @@ TAffine CTileSet::AffineFromClix( const TSClix &clk )
 	int		i1[3] = { 0, 1, 2 },
 			i2[3] = { 3, 4, 5 };
 
-	memset( RHS, 0, 6   * sizeof(double) );
-	memset( LHS, 0, 6*6 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 6 );
 
 	for( int i = 0; i < np; ++i ) {
 

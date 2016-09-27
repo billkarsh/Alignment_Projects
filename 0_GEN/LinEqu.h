@@ -29,6 +29,11 @@ typedef vector<LHSElem>	LHSCol;
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+void Zero_Quick(
+	double			*LHS,
+	double			*RHS,
+	int				n );
+
 void AddConstraint_Quick(
 	double			*LHS,
 	double			*RHS,

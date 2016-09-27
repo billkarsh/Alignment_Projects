@@ -573,8 +573,7 @@ static void* _OnePass_HFromA( void* ithr )
 		TAffine	Tb;
 		int		lastb = -1;	// cache Tb
 
-		memset( RHS, 0, 8   * sizeof(double) );
-		memset( LHS, 0, 8*8 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 8 );
 
 		for( int j = 0; j < nc; ++j ) {
 
@@ -656,8 +655,7 @@ static void HFromH_SLOnly( double *RHS, int i, int ithr )
 	int		lastb	= -1,	// cache Tb
 			nSLc	= 0;
 
-	memset( RHS, 0, 8   * sizeof(double) );
-	memset( LHS, 0, 8*8 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 8 );
 
 	for( int j = 0; j < nc; ++j ) {
 
@@ -758,8 +756,7 @@ static void* _OnePass_HFromH( void* ithr )
 		THmgphy	Tb;
 		int		lastb	= -1;	// cache Tb
 
-		memset( RHS, 0, 8   * sizeof(double) );
-		memset( LHS, 0, 8*8 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 8 );
 
 		for( int j = 0; j < nc; ++j ) {
 

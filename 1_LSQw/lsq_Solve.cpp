@@ -252,8 +252,7 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 	TAffine*	Tb;
 	int			lastbi = -1;
 
-	memset( RHS, 0, 6   * sizeof(double) );
-	memset( LHS, 0, 6*6 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 6 );
 
 	// For each of its points...
 
@@ -365,8 +364,7 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 	TAffine*	Tb;
 	int			lastbi = -1;
 
-	memset( RHS, 0, 8   * sizeof(double) );
-	memset( LHS, 0, 8*8 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 8 );
 
 	// For each of its points...
 
@@ -476,8 +474,7 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 	THmgphy*	Tb;
 	int			lastbi = -1;
 
-	memset( RHS, 0, 8   * sizeof(double) );
-	memset( LHS, 0, 8*8 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 8 );
 
 	// For each of its points...
 
@@ -607,8 +604,7 @@ static void* _A2A( void* ithr )
 		int			lastbi,
 					lastbz	= -1;
 
-		memset( RHS, 0, 6   * sizeof(double) );
-		memset( LHS, 0, 6*6 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 6 );
 
 		// Sort the points so that cummulative rounding
 		// error tends to be same independent of nwks.
@@ -787,8 +783,7 @@ static void* _A2H( void* ithr )
 		int			lastbi,
 					lastbz	= -1;
 
-		memset( RHS, 0, 8   * sizeof(double) );
-		memset( LHS, 0, 8*8 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 8 );
 
 		// Sort the points so that cummulative rounding
 		// error tends to be same independent of nwks.
@@ -950,8 +945,7 @@ static void* _H2H( void* ithr )
 		int			lastbi,
 					lastbz	= -1;
 
-		memset( RHS, 0, 8   * sizeof(double) );
-		memset( LHS, 0, 8*8 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 8 );
 
 		// Sort the points so that cummulative rounding
 		// error tends to be same independent of nwks.

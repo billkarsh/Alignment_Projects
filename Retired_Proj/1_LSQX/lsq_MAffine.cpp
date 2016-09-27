@@ -1202,8 +1202,7 @@ void MAffine::OnePass(
 		double	LHS[6*6];
 		TAffine	Ta( &Xin[R.itr * NX] );
 
-		memset( RHS, 0, 6   * sizeof(double) );
-		memset( LHS, 0, 6*6 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 6 );
 
 		for( int j = 0; j < nc; ++j ) {
 
@@ -1269,8 +1268,7 @@ void MAffine::OnePass(
 	{
 		int	ne = nc - 1;	// omit top n
 
-		memset( RHS, 0, 6   * sizeof(double) );
-		memset( LHS, 0, 6*6 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 6 );
 
 		for( int j = 0; j < ne; ++j ) {
 
@@ -1375,8 +1373,7 @@ static void* _OnePass_AFromA( void* ithr )
 		TAffine	Tb;
 		int		lastb = -1;	// cache Tb
 
-		memset( RHS, 0, 6   * sizeof(double) );
-		memset( LHS, 0, 6*6 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 6 );
 
 		for( int j = 0; j < nc; ++j ) {
 
@@ -1451,8 +1448,7 @@ static void AFromA_SLOnly( double *RHS, int i, int ithr )
 	int		lastb	= -1,	// cache Tb
 			nSLc	= 0;
 
-	memset( RHS, 0, 6   * sizeof(double) );
-	memset( LHS, 0, 6*6 * sizeof(double) );
+	Zero_Quick( LHS, RHS, 6 );
 
 	for( int j = 0; j < nc; ++j ) {
 
@@ -1549,8 +1545,7 @@ static void* _OnePass_AFromA_stk( void* ithr )
 		TAffine*	Tb;
 		int			lastb = -1;	// cache Tb
 
-		memset( RHS, 0, 6   * sizeof(double) );
-		memset( LHS, 0, 6*6 * sizeof(double) );
+		Zero_Quick( LHS, RHS, 6 );
 
 		for( int j = 0; j < nc; ++j ) {
 
