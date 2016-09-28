@@ -39,8 +39,9 @@ public:
 					*registered_png;	// override registered.png path
 		bool		Transpose,			// transpose all images
 					WithinSection,		// overlap within a section
-					Verbose,			// run inspect diagnostics
 					SingleFold,			// assign id=1 to all non-fold rgns
+					JSON,				// output JSON format
+					Verbose,			// run inspect diagnostics
 					Heatmap;			// run CorrView
 	} DriverArgs;
 

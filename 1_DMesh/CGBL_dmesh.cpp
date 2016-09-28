@@ -57,8 +57,9 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.registered_png	= NULL;
 	arg.Transpose		= false;
 	arg.WithinSection	= false;
-	arg.Verbose			= false;
 	arg.SingleFold		= false;
+	arg.JSON			= false;
+	arg.Verbose			= false;
 	arg.Heatmap			= false;
 
 	A.z		= 0;
@@ -140,6 +141,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			_arg.FLD = 'N';
 		else if( IsArg( "-sf", argv[i] ) )
 			arg.SingleFold = true;
+		else if( IsArg( "-json", argv[i] ) )
+			arg.JSON = true;
 		else if( IsArg( "-v", argv[i] ) )
 			arg.Verbose = true;
 		else if( IsArg( "-heatmap", argv[i] ) )

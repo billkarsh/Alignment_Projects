@@ -903,9 +903,9 @@ void PipelineDeformableMap(
 		AB.Tabulate( px, vstat, maps,
 			fold_mask_a, fold_mask_b, wf, hf, flog );
 
-		//if( json_flag )
-		//	AB.WriteAs_JSON();
-		//else
+		if( GBL.arg.JSON )
+			AB.WriteAs_JSON();
+		else
 			AB.WriteAs_CPOINT2();
 
 		tr_array = (double*)malloc( Ntrans * 6 * sizeof(double) );
@@ -920,8 +920,8 @@ void PipelineDeformableMap(
 	}
 	else {
 
-		//if( json_flag )
-		//	Matches::WriteEmpty_JSON();
+		if( GBL.arg.JSON )
+			Matches::WriteEmpty_JSON();
 
 		memset( map_mask, 0, wf * hf * sizeof(uint16) );
 	}
