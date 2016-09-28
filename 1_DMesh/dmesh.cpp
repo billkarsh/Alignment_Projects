@@ -67,7 +67,15 @@ public:
 		int						hf,
 		FILE					*flog );
 	void WriteAs_CPOINT2();
+	void WriteAs_JSON();
+	static void WriteEmpty_JSON();
 private:
+	static bool GetMutex( CMutex &M, const char *tag, const char **sud );
+	static void JSON_head();
+	static void JSON_tail();
+	void JSON_ps();
+	void JSON_qs();
+	void JSON_ws();
 	int index( int &i0, int &iLim, int ra, int rb );
 	void FitAffine(
 		const PixPair	&px,
@@ -80,19 +88,6 @@ private:
 		int				brgn,
 		FILE			*flog );
 };
-
-/* --------------------------------------------------------------- */
-/* Globals ------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-/* --------------------------------------------------------------- */
-/* Statics ------------------------------------------------------- */
-/* --------------------------------------------------------------- */
-
-
-
-
-
 
 /* --------------------------------------------------------------- */
 /* Class Matches ------------------------------------------------- */
@@ -241,20 +236,10 @@ void Matches::WriteAs_CPOINT2()
 
 	const char	*sud;
 	CMutex		M;
-	char		name[256];
 
-// set pts file type and layer
+	if( GetMutex( M, "P", &sud ) ) {
 
-	if( GBL.A.z < GBL.B.z )
-		sud = "up";
-	else if( GBL.A.z == GBL.B.z )
-		sud = "same";
-	else
-		sud = "down";
-
-	sprintf( name, "%s_%d", sud, GBL.A.z );
-
-	if( M.Get( name ) ) {
+		char	name[256];
 
 		sprintf( name, "pts.%s", sud );
 		FILE *f = fopen( name, "a" );
@@ -279,6 +264,142 @@ void Matches::WriteAs_CPOINT2()
 	}
 
 	M.Release();
+}
+
+
+// Pattern:
+//
+// {
+//     "matches": {
+//         "p": [[a-x-values],[a-y-values]],
+//         "q": [[b-x-values],[b-y-values]],
+//         "w": [weights]
+//     }
+// }
+//
+// Note: value lists are comma-separated.
+//
+void Matches::WriteAs_JSON()
+{
+	CMutex	M;
+
+	if( GetMutex( M, "P", NULL ) ) {
+
+		JSON_head();
+
+		if( vM.size() ) {
+			JSON_ps();
+			JSON_qs();
+			JSON_ws();
+		}
+
+		JSON_tail();
+	}
+
+	M.Release();
+}
+
+
+void Matches::WriteEmpty_JSON()
+{
+	CMutex	M;
+
+	if( GetMutex( M, "P", NULL ) ) {
+
+		JSON_head();
+		JSON_tail();
+	}
+
+	M.Release();
+}
+
+
+bool Matches::GetMutex( CMutex &M, const char *tag, const char **sud )
+{
+	const char	*_sud;
+	char		name[256];
+
+	if( GBL.A.z < GBL.B.z )
+		_sud = "up";
+	else if( GBL.A.z == GBL.B.z )
+		_sud = "same";
+	else
+		_sud = "down";
+
+	sprintf( name, "%s_%d_%s", _sud, GBL.A.z, tag );
+
+	if( sud )
+		*sud = _sud;
+
+	return M.Get( name );
+}
+
+
+void Matches::JSON_head()
+{
+	printf( "{\n" );
+	printf( "    \"matches\": {\n" );
+}
+
+
+void Matches::JSON_tail()
+{
+	printf( "    }\n" );
+	printf( "}\n" );
+}
+
+
+void Matches::JSON_ps()
+{
+	int	n = vM.size();
+
+	printf( "        \"p\": [[" );
+
+		printf( "%.4f", vM[0].pa.x );
+		for( int i = 1; i < n; ++i )
+			printf( ",%.4f", vM[i].pa.x );
+
+	printf( "],[" );
+
+		printf( "%.4f", vM[0].pa.y );
+		for( int i = 1; i < n; ++i )
+			printf( ",%.4f", vM[i].pa.y );
+
+	printf( "]],\n" );
+}
+
+
+void Matches::JSON_qs()
+{
+	int	n = vM.size();
+
+	printf( "        \"q\": [[" );
+
+		printf( "%.4f", vM[0].pb.x );
+		for( int i = 1; i < n; ++i )
+			printf( ",%.4f", vM[i].pb.x );
+
+	printf( "],[" );
+
+		printf( "%.4f", vM[0].pb.y );
+		for( int i = 1; i < n; ++i )
+			printf( ",%.4f", vM[i].pb.y );
+
+	printf( "]],\n" );
+}
+
+
+void Matches::JSON_ws()
+{
+	int	n = vM.size();
+
+	printf( "        \"w\": [" );
+
+		printf( "%.4g", vM[0].weight );
+		for( int i = 1; i < n; ++i )
+			printf( ",%.4g", vM[i].weight );
+
+	printf( "]\n" );
 }
 
 
@@ -371,23 +492,12 @@ void Matches::FitAffine(
 
 #if FITTAB
 	{
-		CMutex		M;
-		char		name[256];
 		const char	*sud;
+		CMutex		M;
 
-		// set file type and layer
+		if( GetMutex( M, "A", &sud ) ) {
 
-		if( GBL.A.z < GBL.B.z )
-			sud = "up";
-		else if( GBL.A.z == GBL.B.z )
-			sud = "same";
-		else
-			sud = "down";
-
-		sprintf( name, "%s_%d_A", sud, GBL.A.z );
-
-		if( M.Get( name ) ) {
-
+			char	name[256];
 			sprintf( name, "aff.%s", sud );
 			FILE *f = fopen( name, "a" );
 
@@ -407,9 +517,9 @@ void Matches::FitAffine(
 				fflush( f );
 				fclose( f );
 			}
-
-			M.Release();
 		}
+
+		M.Release();
 	}
 #endif
 
@@ -491,23 +601,12 @@ void Matches::FitHmgphy(
 
 #if FITTAB
 	{
-		CMutex		M;
-		char		name[256];
 		const char	*sud;
+		CMutex		M;
 
-		// set file type and layer
+		if( GetMutex( M, "H", &sud ) ) {
 
-		if( GBL.A.z < GBL.B.z )
-			sud = "up";
-		else if( GBL.A.z == GBL.B.z )
-			sud = "same";
-		else
-			sud = "down";
-
-		sprintf( name, "%s_%d_H", sud, GBL.A.z );
-
-		if( M.Get( name ) ) {
-
+			char	name[256];
 			sprintf( name, "hmg.%s", sud );
 			FILE *f = fopen( name, "a" );
 
@@ -528,9 +627,9 @@ void Matches::FitHmgphy(
 				fflush( f );
 				fclose( f );
 			}
-
-			M.Release();
 		}
+
+		M.Release();
 	}
 #endif
 
@@ -804,7 +903,10 @@ void PipelineDeformableMap(
 		AB.Tabulate( px, vstat, maps,
 			fold_mask_a, fold_mask_b, wf, hf, flog );
 
-		AB.WriteAs_CPOINT2();
+		//if( json_flag )
+		//	AB.WriteAs_JSON();
+		//else
+			AB.WriteAs_CPOINT2();
 
 		tr_array = (double*)malloc( Ntrans * 6 * sizeof(double) );
 
@@ -816,8 +918,13 @@ void PipelineDeformableMap(
 
 		fprintf( flog, "\n" );
 	}
-	else
+	else {
+
+		//if( json_flag )
+		//	Matches::WriteEmpty_JSON();
+
 		memset( map_mask, 0, wf * hf * sizeof(uint16) );
+	}
 }
 
 
