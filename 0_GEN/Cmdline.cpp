@@ -202,8 +202,10 @@ static size_t WriteCallback( void *src, size_t size, size_t nmemb, void *dst )
 		{coeffs[idx] = strtod( tokens2[2].c_str(), NULL );}
 
 
-// BK: Needs example of expected input pattern.
-// BK: What are tokens2[0],[1],[2]??
+// These URLs are json encodings wherein:
+// - token[0] = name
+// - token[1] = ':'
+// - token[2] = value
 //
 bool GetArgListFromURL( vector<double> &v, const char *pat, char *argv )
 {
