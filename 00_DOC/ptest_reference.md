@@ -24,6 +24,12 @@ Appendices:
 * [Notes on Mesh Creation](ptest_reference.md#notes-on-mesh-creation)
 * [Ptestx Environment (Try Folder)](ptest_reference.md#ptestx-environment-try-folder)
 
+#### NEWS
+
+As of 09/29/2016 ptest has been modified such that point-pair output goes to stdout and all logging data go to stderr. The calling scripts now have the responsibility to name the destination files. This was done to plug ptest into an alternate pipeline here at Janelia.
+
+In addition, there are a few more options added to ptest for greater flexibility. You can find those summarized in `1_Ptestx/pgo.sht`. 
+
 #### Disclaimer
 
 This software is presented, **_as is_**, in the hopes that it may be useful to you--it has certainly allowed us to achieve very good quality alignment quickly and with only modest effort. Nevertheless, the software had been under active development right up to the time of its publication, hence, inevitably exposes a variety of flaws: {old experiments, deprecated parameters, incomplete logic and no doubt incorrect logic in some areas}. This (small amount of) baggage complicates the code by its presence, but the overtly wrong stuff can be bypassed by suitable parameter choices. On the whole I am comfortable claiming that the utility of this code far outweighs any embarrassment I may suffer.
@@ -665,13 +671,13 @@ The reason I had you run both dbgo.sht and mongo.sht first is that these create 
 ```
 ... etc ...
 4/1.10.map.tif:
-	ptest 1.4^1.10 -nf ${EXTRA}
+	ptest >>pts.same 2>pair_1.4^1.10.log 1.4^1.10 -nf ${EXTRA}
 
 4/1.8.map.tif:
-	ptest [[1.4^1.8 -nf]] ${EXTRA}
+	ptest >>pts.same 2>pair_1.4^1.8.log [[1.4^1.8 -nf]] ${EXTRA}
 
 3/1.9.map.tif:
-	ptest 1.3^1.9 -nf ${EXTRA}
+	ptest >>pts.same 2>pair_1.3^1.9.log 1.3^1.9 -nf ${EXTRA}
 ... etc ...
 ```
 
@@ -680,6 +686,8 @@ Now edit your local pgo.sht to read like this:
 ```
 ptestx 1.4^1.8 -nf -clr -d=temp -prm=matchparams.txt -v
 ```
+
+>*ptestx auto-generates the output file names and passes them to ptest.*
 
 When you run pgo.sht, you'll get a new temp folder inside your try folder. Dig down into `try/temp/1/S0_0` to find the pair_xxx.log file. If it ran to completion the S0_0 folder will also contain pts.same and comp.tif showing A in green, B in red and yellow where they overlap. If the job failed to complete, the log will indicate why (look for a line labeled by "FAIL:"). If the issue appears to be in the initial FFT stage, edit the pgo.sht script like this:
 
@@ -700,13 +708,13 @@ Returning to the main workflow, after **"Run Block-Block Alignment"**, the D- fo
 ```
 ... etc ...
 12/0.2.map.tif:
-	ptest 1.12^0.2 -Tab=1.003811,-0.027988,-1280.633680,0.023455,1.007369,-681.869390 -nf ${EXTRA}
+	ptest >>pts.down 2>pair_1.12^0.2.log 1.12^0.2 -Tab=1.003811,-0.027988,-1280.633680,0.023455,1.007369,-681.869390 -nf ${EXTRA}
 
 12/0.1.map.tif:
-	ptest [[1.12^0.1 -Tab=1.004147,-0.025540,-1279.945138,0.023444,1.007651,176.454982 -nf]] ${EXTRA}
+	ptest >>pts.down 2>pair_1.12^0.1.log [[1.12^0.1 -Tab=1.004147,-0.025540,-1279.945138,0.023444,1.007651,176.454982 -nf]] ${EXTRA}
 
 11/0.11.map.tif:
-	ptest 1.11^0.11 -Tab=1.003358,-0.027931,-155.192769,0.023796,1.006780,177.440927 -nf ${EXTRA}
+	ptest >>pts.down 2>pair_1.11^0.11.log 1.11^0.11 -Tab=1.003358,-0.027931,-155.192769,0.023796,1.006780,177.440927 -nf ${EXTRA}
 ... etc ...
 ```
 

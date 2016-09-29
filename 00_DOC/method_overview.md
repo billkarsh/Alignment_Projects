@@ -231,10 +231,10 @@ Typical make.same 'make rules' look like this:
 
 ```
 4/1.8.map.tif:
-	ptest 1.4^1.8 -nf ${EXTRA}
+	ptest >>pts.same 2>pair_1.4^1.8.log 1.4^1.8 -nf ${EXTRA}
 
 3/1.9.map.tif:
-	ptest 1.3^1.9 -nf ${EXTRA}
+	ptest >>pts.same 2>pair_1.3^1.9.log 1.3^1.9 -nf ${EXTRA}
 ```
 
 Note that makefiles like this will indeed be given to the make command and in the past we may have actually used features of the make system such as checking the build date of a target like '4/1.8.map.tif'. However, these days, all we really want to do with the make facility is simply list the ptest jobs to be executed, and use make's -j parameter to say for example: `make -f make.same -j 8`, that is, on a given cluster node, run this list of jobs, running no more than eight jobs at a time. Again, it's a device for load balancing and resource management; nothing more complicated than that.
