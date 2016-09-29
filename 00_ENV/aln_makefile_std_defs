@@ -135,7 +135,7 @@ INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$
 # m:		math
 # c:		c runtime
 # rt:		posix libraries (e.g. semaphore support)
-# curl:		url parser for Janelia command lines
+# curl:		libcurl parser for Janelia command lines
 
 USING_CURL := 0
 
