@@ -4,7 +4,10 @@
 
 #include	<string>
 
+#ifdef USE_CURL
 #include	<curl/curl.h>
+#endif
+
 #include	<stdlib.h>
 #include	<string.h>
 
@@ -166,6 +169,8 @@ bool GetArgList( vector<double> &v, const char *pat, char *argv )
 /* GetArgListFromURL --------------------------------------------- */
 /* --------------------------------------------------------------- */
 
+#ifdef USE_CURL
+
 static void Tokenize(
 	vector<string>	&tokens,
 	const string	&str,
@@ -254,5 +259,7 @@ bool GetArgListFromURL( vector<double> &v, const char *pat, char *argv )
 
 	return false;
 }
+
+#endif	// USE_CURL
 
 

@@ -135,8 +135,21 @@ INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$
 # m:		math
 # c:		c runtime
 # rt:		posix libraries (e.g. semaphore support)
+# curl:		url parser for Janelia command lines
+
+USING_CURL := 0
+
+ifeq ($(USING_CURL), 1)
+
+OTHERLIBS_STD := -pthread -l{jpeg,m,c,rt,curl}
+FLAGS_URL     := -DUSE_CURL
+
+else
 
 OTHERLIBS_STD := -pthread -l{jpeg,m,c,rt}
+FLAGS_URL     :=
+
+endif
 
 # ==============================
 # combine all standard libraries
@@ -176,7 +189,7 @@ CC := g++
 # --gc-sections:		garbage-collect unreferenced input sections
 # --strip-all:			omit symbols from output (makes smaller exe)
 
-CFLAGS := -pthread $(FLAGS_MKL) -DTIXML_USE_STL -O3 -fdata-sections -ffunction-sections
+CFLAGS := -pthread $(FLAGS_MKL) $(FLAGS_URL) -DTIXML_USE_STL -O3 -fdata-sections -ffunction-sections
 
 LFLAGS := -Wl,--gc-sections -Wl,--strip-all
 
@@ -184,7 +197,7 @@ OUTPUT = -o $(PATH_OUT)/$@
 
 # Enable following lines to debug with gdb or Valgrind
 
-#CFLAGS := -pthread $(FLAGS_MKL) -DTIXML_USE_STL -O0 -g
+#CFLAGS := -pthread $(FLAGS_MKL) $(FLAGS_URL) -DTIXML_USE_STL -O0 -g
 #LFLAGS :=
 
 # ==============
