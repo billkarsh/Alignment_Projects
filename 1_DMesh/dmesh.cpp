@@ -239,28 +239,19 @@ void Matches::WriteAs_CPOINT2()
 
 	if( GetMutex( M, "P", &sud ) ) {
 
-		char	name[256];
+		for( int i = 0; i < np; ++i ) {
 
-		sprintf( name, "pts.%s", sud );
-		FILE *f = fopen( name, "a" );
+			const Match	&m = vM[i];
 
-		if( f ) {
-
-			for( int i = 0; i < np; ++i ) {
-
-				const Match	&m = vM[i];
-
-				fprintf( f,
-				"CPOINT2"
-				" %d.%d-%d %f %f"
-				" %d.%d-%d %f %f\n",
-				GBL.A.z, GBL.A.id, m.ra, m.pa.x, m.pa.y,
-				GBL.B.z, GBL.B.id, m.rb, m.pb.x, m.pb.y );
-			}
-
-			fflush( f );
-			fclose( f );
+			printf(
+			"CPOINT2"
+			" %d.%d-%d %f %f"
+			" %d.%d-%d %f %f\n",
+			GBL.A.z, GBL.A.id, m.ra, m.pa.x, m.pa.y,
+			GBL.B.z, GBL.B.id, m.rb, m.pb.x, m.pb.y );
 		}
+
+		fflush( stdout );
 	}
 
 	M.Release();
@@ -346,6 +337,8 @@ void Matches::JSON_tail()
 {
 	printf( "    }\n" );
 	printf( "}\n" );
+
+	fflush( stdout );
 }
 
 

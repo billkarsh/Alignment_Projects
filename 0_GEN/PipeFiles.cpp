@@ -26,16 +26,48 @@ static T2ICache	_C1,
 /* OpenPairLog --------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-// Rename stdout using image labels
+// Rename stdout using image labels.
 //
 void OpenPairLog( int alr, int atl, int blr, int btl )
 {
 	char	slog[256];
 
-	sprintf( slog, "pair_%d.%d^%d.%d.log",
-		alr, atl, blr, btl );
-
+	sprintf( slog, "pair_%d.%d^%d.%d.log", alr, atl, blr, btl );
 	freopen( slog, "a", stdout );
+}
+
+/* --------------------------------------------------------------- */
+/* NamePtsFile --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Standard file capturing stdout from ptest.
+//
+char *NamePtsFile( char *buf, int alr, int blr )
+{
+	const char	*sud;
+
+	if( alr < blr )
+		sud = "up";
+	else if( alr == blr )
+		sud = "same";
+	else
+		sud = "down";
+
+	sprintf( buf, "pts.%s", sud );
+
+	return buf;
+}
+
+/* --------------------------------------------------------------- */
+/* NameLogFile --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+// Standard file capturing stderr from ptest.
+//
+char *NameLogFile( char *buf, int alr, int atl, int blr, int btl )
+{
+	sprintf( buf, "pair_%d.%d^%d.%d.log", alr, atl, blr, btl );
+	return buf;
 }
 
 /* --------------------------------------------------------------- */

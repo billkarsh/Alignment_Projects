@@ -992,37 +992,37 @@ static void BestVertex(
 
 		// require vc on interior side of va->vb
 		if( !L ) {
-			printf( "rjct: not L\n" );
+			fprintf( flog, "rjct: not L\n" );
 			continue;
 		}
 
 		// require small...
 		if( D >= Dbest ) {
-			printf( "rjct: big D\n" );
+			fprintf( flog, "rjct: big D\n" );
 			continue;
 		}
 
 		// ...but not too small
 		if( A <= GBL.mch.MTA ) {
-			printf( "rjct: sml A\n" );
+			fprintf( flog, "rjct: sml A\n" );
 			continue;
 		}
 
 		// don't cross any remaining edges
 		if( AnyCrossing( edges, va, vc ) ) {
-			printf( "rjct: crs va\n" );
+			fprintf( flog, "rjct: crs va\n" );
 			continue;
 		}
 
 		// ditto
 		if( AnyCrossing( edges, vb, vc ) ) {
-			printf( "rjct: crs vb\n" );
+			fprintf( flog, "rjct: crs vb\n" );
 			continue;
 		}
 
 		// don't enclose other vertices
 		if( AnyInside( va, vb, vc, edges, vinside ) ) {
-			printf( "rjct: any inside\n" );
+			fprintf( flog, "rjct: any inside\n" );
 			continue;
 		}
 
@@ -1030,7 +1030,7 @@ static void BestVertex(
 		type	= uv[i].type;
 		indx	= uv[i].indx;
 
-		printf( "keep: *\n" );
+		fprintf( flog, "keep: *\n" );
 	}
 }
 

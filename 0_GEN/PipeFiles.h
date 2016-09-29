@@ -213,6 +213,9 @@ public:
 
 void OpenPairLog( int alr, int atl, int blr, int btl );
 
+char *NamePtsFile( char *buf, int alr, int blr );
+char *NameLogFile( char *buf, int alr, int atl, int blr, int btl );
+
 bool ReadScriptParams(
 	ScriptParams	&S,
 	const char		*scriptpath,

@@ -68,7 +68,7 @@ static void CalcTransforms(
 /* Initialize data */
 /* --------------- */
 
-	printf( "\n---- Foldmaps ----\n" );
+	fprintf( stderr, "\n---- Foldmaps ----\n" );
 
 	wf		= px.wf;
 	hf		= px.hf;
@@ -104,9 +104,9 @@ static void CalcTransforms(
 
 	PipelineDeformableMap(
 		Ntrans, tr_array, rmap,
-		px, fold_mask_a, fold_mask_b, stdout );
+		px, fold_mask_a, fold_mask_b, stderr );
 
-	StopTiming( stdout, "Alignment", t0 );
+	StopTiming( stderr, "Alignment", t0 );
 
 	RasterFree( fold_mask_a );
 	RasterFree( fold_mask_b );
@@ -123,7 +123,7 @@ static void CalcTransforms(
 		Raster16ToTif8( sfile, rmap, wf, hf );
 	}
 
-	printf( "\nmain: Got %d mapping regions.\n", Ntrans );
+	fprintf( stderr, "\nmain: Got %d mapping regions.\n", Ntrans );
 
 /* ------------------------------- */
 /* Convert tform arrays to objects */
@@ -157,11 +157,11 @@ static void CalcTransforms(
 		tfs[i].FromMatlab();
 		ifs[i].InverseOf( tfs[i] );
 
-		printf( "main: Transform %3d: ", i );
-		tfs[i].TPrint();
+		fprintf( stderr, "main: Transform %3d: ", i );
+		tfs[i].TPrint( stderr );
 	}
 
-	printf( "\n" );
+	fprintf( stderr, "\n" );
 
 	if( f )
 		fclose( f );
@@ -176,8 +176,8 @@ static void CalcTransforms(
 
 static void Decomp( const TAffine &T, const char *label )
 {
-	printf( "main: %s: ", label );
-	T.TPrint();
+	fprintf( stderr, "main: %s: ", label );
+	T.TPrint( stderr );
 
 	double	r = T.GetRadians();
 	TAffine	R, D;
@@ -185,10 +185,10 @@ static void Decomp( const TAffine &T, const char *label )
 	R.NUSetRot( -r );
 	D = R * T;
 
-	printf(           "main: Degrees: %g\n", r*180/PI );
-	D.TPrint( stdout, "main: Residue: " );
+	fprintf(  stderr, "main: Degrees: %g\n", r*180/PI );
+	D.TPrint( stderr, "main: Residue: " );
 
-	printf( "\n" );
+	fprintf( stderr, "\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -250,7 +250,7 @@ int main( int argc, char* argv[] )
 			GBL.A, GBL.B, GBL.idb,
 			GBL.mch.PXLENS, GBL.mch.PXRESMSK, GBL.mch.PXBRO,
 			GBL.mch.PXDOG, GBL.mch.PXDOG_R1, GBL.mch.PXDOG_R2,
-			stdout, GBL.arg.Transpose ) ) {
+			stderr, GBL.arg.Transpose ) ) {
 
 		goto exit;
 	}
@@ -277,11 +277,12 @@ int main( int argc, char* argv[] )
 
 		clock_t	t1 = StartTiming();
 
-		InSectionOverlap( Npts, apts, bpts, px, stdout );
+		InSectionOverlap( Npts, apts, bpts, px, stderr );
 
-		StopTiming( stdout, "InSectionOverlap", t1 );
+		StopTiming( stderr, "InSectionOverlap", t1 );
 
-		printf( "main: InSectionOverlap returned %d points.\n", Npts );
+		fprintf( stderr,
+		"main: InSectionOverlap returned %d points.\n", Npts );
 
 		if( apts )
 			free( apts );
@@ -306,16 +307,18 @@ int main( int argc, char* argv[] )
 
 	if( Ntrans && GBL.arg.Verbose ) {
 
-		ABOverlay( px, rmap, Ntrans, tfs, ifs, GBL.arg.comp_png );
+		ABOverlay( px, rmap, Ntrans, tfs, ifs,
+			GBL.arg.comp_png, stderr );
 
-		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap, GBL.arg.registered_png );
+		RunCorrView( px, rmap, tfs, GBL.arg.Heatmap,
+			GBL.arg.registered_png, stderr );
 	}
 
 /* ------- */
 /* Cleanup */
 /* ------- */
 
-	printf( "main: Normal completion for dmesh run.\n" );
+	fprintf( stderr, "main: Normal completion for dmesh run.\n" );
 
 	if( ifs )
 		delete [] ifs;
@@ -327,8 +330,8 @@ int main( int argc, char* argv[] )
 		free( rmap );
 
 exit:
-	StopTiming( stdout, "Total", t0 );
-	VMStats( stdout );
+	StopTiming( stderr, "Total", t0 );
+	VMStats( stderr );
 
 	return 0;
 }

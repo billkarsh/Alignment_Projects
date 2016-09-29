@@ -844,6 +844,8 @@ static void WriteMakeFile(
 	const vector<BlkZ>			&vZ,
 	const vector<vector<Pair> >	&P )
 {
+    char	ptsbuf[32],
+			logbuf[32];
 	FILE	*f;
 	int		nz = vZ.size(), nused = 0;
 
@@ -903,8 +905,11 @@ static void WriteMakeFile(
 			T.FromAToB( T, b.T );
 
 			fprintf( f,
-			"\tptest %d.%d^%d.%d"
+			"\tptest >>%s 2>%s"
+			" %d.%d^%d.%d"
 			" -Tab=%f,%f,%f,%f,%f,%f%s ${EXTRA}\n\n",
+			NamePtsFile( ptsbuf, a.z, b.z ),
+			NameLogFile( logbuf, a.z, a.id, b.z, b.id ),
 			a.z, a.id, b.z, b.id,
 			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
 			option_nf );

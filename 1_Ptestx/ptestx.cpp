@@ -236,7 +236,9 @@ void CArgs_ptx::ALayer()
 
 void CArgs_ptx::Call_ptest()
 {
-	char	buf[2048];
+	char	buf[2048],
+			ptsbuf[32],
+			logbuf[32];
 	int		len, narg;
 
 // set jobs dir
@@ -246,7 +248,9 @@ void CArgs_ptx::Call_ptest()
 	chdir( buf );
 
 // build command line with any passon args
-	len  = sprintf( buf, "ptest" );
+	len  = sprintf( buf, "ptest >>%s 2>%s",
+			NamePtsFile( ptsbuf, z[0], z[1] ),
+			NameLogFile( logbuf, z[0], tile[0], z[1], tile[1] ) );
 	narg = passon.size();
 
 	for( int i = 0; i < narg; ++i )

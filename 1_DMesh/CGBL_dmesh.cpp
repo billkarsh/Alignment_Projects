@@ -92,7 +92,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			if( 6 == vD.size() )
 				_arg.Tdfm.push_back( TAffine( &vD[0] ) );
 			else {
-				printf(
+				fprintf( stderr,
 				"main: WARNING: Bad format in -Tdfm [%s].\n",
 				argv[i] );
 			}
@@ -102,7 +102,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			if( 6 == vD.size() )
 				_arg.Tab.push_back( TAffine( &vD[0] ) );
 			else {
-				printf(
+				fprintf( stderr,
 				"main: WARNING: Bad format in -Tab [%s].\n",
 				argv[i] );
 			}
@@ -154,7 +154,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			if( 6 == vD.size() )
 				Tmsh.push_back( TAffine( &vD[0] ) );
 			else {
-				printf(
+				fprintf( stderr,
 				"main: WARNING: Bad format in -Tmsh [%s].\n",
 				argv[i] );
 			}
@@ -164,13 +164,14 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			if( 2 == vD.size() )
 				XYexp.push_back( Point( vD[0], vD[1] ) );
 			else {
-				printf(
+				fprintf( stderr,
 				"main: WARNING: Bad format in -XYexp [%s].\n",
 				argv[i] );
 			}
 		}
 		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
+			fprintf( stderr,
+			"Did not understand option '%s'.\n", argv[i] );
 			return false;
 		}
 	}
@@ -182,24 +183,22 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 				&A.z, &A.id,
 				&B.z, &B.id )) ) {
 
-		printf( "main: Usage: ptest <za.ia^zb.ib>.\n" );
+		fprintf( stderr, "main: Usage: ptest <za.ia^zb.ib>.\n" );
 		return false;
 	}
 
 // Rename stdout using image labels
 
-	OpenPairLog( A.z, A.id, B.z, B.id );
-
-	printf( "\n---- dmesh start ----\n" );
+	fprintf( stderr, "\n---- dmesh start ----\n" );
 
 // Record start time
 
 	time_t	t0 = time( NULL );
-	printf( "main: Start: %s\n", ctime(&t0) );
+	fprintf( stderr, "main: Start: %s\n", ctime(&t0) );
 
 // Get default parameters
 
-	if( !ReadMatchParams( mch, A.z, B.z, matchparams ) )
+	if( !ReadMatchParams( mch, A.z, B.z, matchparams, stderr ) )
 		return false;
 
 // Which file params to use according to (same,cross) layer
@@ -258,7 +257,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Fetch Til2Img entries
 
-	printf( "\n---- Input images ----\n" );
+	fprintf( stderr, "\n---- Input images ----\n" );
 
 	IDBFromTemp( idb, "../../" );
 
@@ -268,14 +267,14 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		return false;
 	}
 
-	PrintTil2Img( stdout, 'A', A.t2i );
-	PrintTil2Img( stdout, 'B', B.t2i );
+	PrintTil2Img( stderr, 'A', A.t2i );
+	PrintTil2Img( stderr, 'B', B.t2i );
 
-	printf( "\n" );
+	fprintf( stderr, "\n" );
 
 // Commandline overrides
 
-	printf( "\n---- Command-line overrides ----\n" );
+	fprintf( stderr, "\n---- Command-line overrides ----\n" );
 
 	if( _arg.Tab.size() ) {
 
@@ -294,7 +293,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			LN.UpdateTFormLHS( Tab, B.t2i.cam, false );
 		}
 
-		Tab.TPrint( stdout, "Tab= " );
+		Tab.TPrint( stderr, "Tab= " );
 	}
 	else
 		Tab.FromAToB( A.t2i.T, B.t2i.T );
@@ -311,25 +310,25 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		if( _arg.SCALE != 999.0 ) {
 			cSCALE	= _arg.SCALE;
 			altTdfm	= true;
-			printf( "SCALE=%g\n", _arg.SCALE );
+			fprintf( stderr, "SCALE=%g\n", _arg.SCALE );
 		}
 
 		if( _arg.XSCALE != 999.0 ) {
 			cXSCALE	= _arg.XSCALE;
 			altTdfm	= true;
-			printf( "XSCALE=%g\n", _arg.XSCALE );
+			fprintf( stderr, "XSCALE=%g\n", _arg.XSCALE );
 		}
 
 		if( _arg.YSCALE != 999.0 ) {
 			cYSCALE	= _arg.YSCALE;
 			altTdfm	= true;
-			printf( "YSCALE=%g\n", _arg.YSCALE );
+			fprintf( stderr, "YSCALE=%g\n", _arg.YSCALE );
 		}
 
 		if( _arg.SKEW != 999.0 ) {
 			cSKEW	= _arg.SKEW;
 			altTdfm	= true;
-			printf( "SKEW=%g\n", _arg.SKEW );
+			fprintf( stderr, "SKEW=%g\n", _arg.SKEW );
 		}
 
 		if( altTdfm )
@@ -346,38 +345,38 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.Tdfm = R * ctx.Tdfm;
 	}
 
-	ctx.Tdfm.TPrint( stdout, "Tdfm=" );
+	ctx.Tdfm.TPrint( stderr, "Tdfm=" );
 
 	if( _arg.FLD ) {
 		ctx.FLD = _arg.FLD;
-		printf( "FLD=%c\n", _arg.FLD );
+		fprintf( stderr, "FLD=%c\n", _arg.FLD );
 	}
 
 	if( ctx.FLD == 'X' ) {
 		ctx.FLD = (GBL.A.z == GBL.B.z ? 'N' : 'Y');
-		printf( "FLD=%c (was X)\n", ctx.FLD );
+		fprintf( stderr, "FLD=%c (was X)\n", ctx.FLD );
 	}
 
 	if( _arg.MODE ) {
 		ctx.MODE = _arg.MODE;
-		printf( "MODE=%c\n", _arg.MODE );
+		fprintf( stderr, "MODE=%c\n", _arg.MODE );
 	}
 
 	if( ctx.MODE == 'Z' ) {
 		ctx.MODE = 'C';
 		arg.CTR = 0.0;
-		printf( "MODE=C (was Z)\n" );
+		fprintf( stderr, "MODE=C (was Z)\n" );
 	}
 	else if( ctx.MODE == 'M' ) {
 		ctx.MODE = 'N';
 		arg.CTR = 0.0;
-		printf( "MODE=N (was M)\n" );
+		fprintf( stderr, "MODE=N (was M)\n" );
 	}
 
 	if( arg.CTR != 999.0 )
-		printf( "CTR=%g\n", arg.CTR );
+		fprintf( stderr, "CTR=%g\n", arg.CTR );
 
-	printf( "\n" );
+	fprintf( stderr, "\n" );
 
 	return true;
 }

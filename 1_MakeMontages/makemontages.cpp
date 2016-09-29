@@ -888,7 +888,9 @@ static void WriteMakeFile(
 	int					iy,
 	const vector<Pair>	&P )
 {
-    char	name[2048];
+    char	name[2048],
+			ptsbuf[32],
+			logbuf[32];
 	FILE	*f;
 	int		np = P.size();
 
@@ -928,8 +930,12 @@ static void WriteMakeFile(
 		A.id, B.z, B.id );
 
 		fprintf( f,
-		"\t%s %d.%d^%d.%d%s ${EXTRA}\n\n",
-		gArgs.exenam, A.z, A.id, B.z, B.id, option_nf );
+		"\t%s >>%s 2>%s"
+		" %d.%d^%d.%d%s ${EXTRA}\n\n",
+		gArgs.exenam,
+		NamePtsFile( ptsbuf, A.z, B.z ),
+		NameLogFile( logbuf, A.z, A.id, B.z, B.id ),
+		A.z, A.id, B.z, B.id, option_nf );
 	}
 
 	fclose( f );
