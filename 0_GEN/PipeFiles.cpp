@@ -280,6 +280,7 @@ bool ReadMatchParams(
 		GETPRM_MCH( &M.TWEAKS, "TWEAKS=%c" );
 		GETPRM_MCH( &M.LIMXY_SL, "LIMXY_SL=%d" );
 		GETPRM_MCH( &M.LIMXY_XL, "LIMXY_XL=%d" );
+		GETPRM_MCH( &M.WTHMPR, "WTHMPR=%c" );
 
 		GETPRM_MCH( &M.OPT_SL, "OPT_SL=%c" );
 		GETPRM_MCH( &M.RIT_SL, "RIT_SL=%lf" );
@@ -321,6 +322,7 @@ bool ReadMatchParams(
 		M.TAB2DFM_SL	= (toupper( M.TAB2DFM_SL ) == 'Y');
 		M.TAB2DFM_XL	= (toupper( M.TAB2DFM_XL ) == 'Y');
 		M.TWEAKS		= (toupper( M.TWEAKS ) == 'Y');
+		M.WTHMPR		= (toupper( M.WTHMPR ) == 'Y');
 		M.OPT_SL		= (toupper( M.OPT_SL ) == 'Y');
 		M.ONE			= (toupper( M.ONE ) == 'Y');
 		M.EMM			= (toupper( M.EMM ) == 'Y');

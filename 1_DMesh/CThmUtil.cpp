@@ -850,6 +850,9 @@ bool CThmUtil::Check_LIMXY( const TAffine &Tbest )
 
 void CThmUtil::TabulateResult( const CorRec &best, int err )
 {
+	if( !WTHMPR )
+		return;
+
 	ThmPair	tpr;
 
 	tpr.T	= best.T;

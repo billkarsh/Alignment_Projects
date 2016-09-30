@@ -44,7 +44,8 @@ public:
 			RTRSH;
 	int		OLAP1D,
 			MODE,
-			LIMXY;
+			LIMXY,
+			WTHMPR;
 
 public:
 	CThmUtil(
@@ -68,11 +69,13 @@ public:
 		double	RTRSH,
 		int		OLAP1D,
 		int		MODE,
-		int		LIMXY )
+		int		LIMXY,
+		int		WTHMPR )
 		{
 			this->HFANGDN=HFANGDN; this->HFANGPR=HFANGPR;
 			this->RTRSH=RTRSH; this->OLAP1D=OLAP1D;
 			this->MODE=MODE; this->LIMXY=LIMXY;
+			this->WTHMPR=WTHMPR;
 		};
 
 	bool Echo( vector<TAffine> &guesses );

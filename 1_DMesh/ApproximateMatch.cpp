@@ -124,7 +124,8 @@ bool ApproximateMatch(
 
 	U.SetParams(
 		GBL.ctx.HFANGDN, GBL.ctx.HFANGPR, GBL.ctx.RTRSH,
-		GBL.ctx.OLAP1D, GBL.ctx.MODE, GBL.ctx.LIMXY );
+		GBL.ctx.OLAP1D, GBL.ctx.MODE, GBL.ctx.LIMXY,
+		GBL.mch.WTHMPR );
 
 /* ------------------- */
 /* Handle bypass modes */

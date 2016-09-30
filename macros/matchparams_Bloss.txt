@@ -48,6 +48,7 @@ RTRSH_XL=0.30      <default 0.3>      "R corr thresh"
 TWEAKS=N           <default N>        "Y=Try 8 near unity distortions"
 LIMXY_SL=100       <default 0>        "0 or Max XY delta from Tab"
 LIMXY_XL=300       <default 0>        "0 or Max XY delta from Tab"
+WTHMPR=Y           <default Y>        "Y=Write ThmPair_a^b.txt entries"
 #
 # Mesh params
 #

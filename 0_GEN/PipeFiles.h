@@ -108,6 +108,7 @@ typedef struct {
 			TWEAKS,
 			LIMXY_SL,
 			LIMXY_XL,
+			WTHMPR,
 			OPT_SL,
 			MNL,
 			MTA,

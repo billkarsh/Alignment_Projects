@@ -326,7 +326,7 @@ Here's the roster of all externally visible ptest outputs:
 **Always**
 
 * file : `.../temp/za/S(D)x_y/pair_za.ia^zb.ib.log` : crucial status and diagnostic data
-* file : `.../temp/za/S(D)x-y/ThmPair_za^zb.txt` : tabulates results of thumbnail FFT matching
+* file : `.../temp/za/S(D)x-y/ThmPair_za^zb.txt` : tabulates results of thumbnail FFT matching (iff `matchparams::WTHMPR=Y`)
 * file : `.../temp/za/S(D)x-y/pts.same(down)` : centroids of found triangles (A and B-coords)
 
 **Ptestx Diagnostic Options**

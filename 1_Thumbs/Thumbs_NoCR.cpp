@@ -38,7 +38,8 @@ bool Thumbs_NoCR( const PixPair &px, FILE* flog )
 
 	U.SetParams(
 		GBL.ctx.HFANGDN, GBL.ctx.HFANGPR, GBL.ctx.RTRSH,
-		GBL.ctx.OLAP1D, GBL.ctx.MODE, GBL.ctx.LIMXY );
+		GBL.ctx.OLAP1D, GBL.ctx.MODE, GBL.ctx.LIMXY,
+		GBL.mch.WTHMPR );
 
 	CThmScan	S;
 	CorRec		best;
