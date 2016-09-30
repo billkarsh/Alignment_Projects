@@ -121,6 +121,10 @@ void Matches::Tabulate(
 
 		trlim += tr0;
 
+		// Good points for this region pair
+
+		vector<Match>	vGood;
+
 		// For each A-triangle...
 
 		for( int itr = tr0; itr < trlim; ++itr ) {
@@ -141,8 +145,10 @@ void Matches::Tabulate(
 				if( ra <= 0 ) {
 
 					fprintf( flog,
-					"CPOINT2: A-centroid has bad mask value:"
-					" mask=%d @ (%d, %d).\n", ra, ix, iy );
+					"Tabulate: Rgn %d -> %d Tri %d:"
+					" A-centroid has bad mask value: mask=%d @ (%d, %d).\n",
+					vstat[istat].argn, vstat[istat].brgn, itr,
+					ra, ix, iy );
 
 					continue;
 				}
@@ -150,9 +156,10 @@ void Matches::Tabulate(
 				if( ra != vstat[istat].argn ) {
 
 					fprintf( flog,
-					"CPOINT2: A-centroid not in stat block:"
-					" mask=%d, stat.argn=%d.\n",
-					ra, vstat[istat].argn );
+					"Tabulate: Rgn %d -> %d Tri %d:"
+					" A-centroid not in stat block: mask=%d.\n",
+					vstat[istat].argn, vstat[istat].brgn, itr,
+					ra );
 
 					continue;
 				}
@@ -160,8 +167,10 @@ void Matches::Tabulate(
 			else {
 
 				fprintf( flog,
-				"CPOINT2: A-centroid out of A-image bounds"
-				" (%d, %d).\n", ix, iy );
+				"Tabulate: Rgn %d -> %d Tri %d:"
+				" A-centroid out of A-image bounds: (%d, %d).\n",
+				vstat[istat].argn, vstat[istat].brgn, itr,
+				ix, iy );
 
 				continue;
 			}
@@ -180,8 +189,10 @@ void Matches::Tabulate(
 				if( rb <= 0 ) {
 
 					fprintf( flog,
-					"CPOINT2: B-centroid has bad mask value:"
-					" mask=%d @ (%d, %d).\n", rb, ix, iy );
+					"Tabulate: Rgn %d -> %d Tri %d:"
+					" B-centroid has bad mask value: mask=%d @ (%d, %d).\n",
+					vstat[istat].argn, vstat[istat].brgn, itr,
+					rb, ix, iy );
 
 					continue;
 				}
@@ -189,9 +200,10 @@ void Matches::Tabulate(
 				if( rb != vstat[istat].brgn ) {
 
 					fprintf( flog,
-					"CPOINT2: B-centroid not in stat block:"
-					" mask=%d, stat.brgn=%d.\n",
-					rb, vstat[istat].brgn );
+					"Tabulate: Rgn %d -> %d Tri %d:"
+					" B-centroid not in stat block: mask=%d.\n",
+					vstat[istat].argn, vstat[istat].brgn, itr,
+					rb );
 
 					continue;
 				}
@@ -199,16 +211,40 @@ void Matches::Tabulate(
 			else {
 
 				fprintf( flog,
-				"CPOINT2: B-centroid out of B-image bounds"
-				" (%d, %d).\n", ix, iy );
+				"Tabulate: Rgn %d -> %d Tri %d:"
+				" B-centroid out of B-image bounds: (%d, %d).\n",
+				vstat[istat].argn, vstat[istat].brgn, itr,
+				ix, iy );
 
 				continue;
 			}
 
-			// Keeper
+			// It's good; set it aside
 
-			vM.push_back( Match( ra, rb, pa, pb ) );
+			vGood.push_back( Match( ra, rb, pa, pb ) );
 		}
+
+		// Keep good points only if sufficiently many...
+		// Although the mesh triangles have already passed sanity checks,
+		// a bad mapping at this stage should still raise doubts about
+		// whether the optimizer worked. We'll keep the good ones only
+		// if a clear majority of matches look good.
+
+		int	nG = vGood.size();
+
+		if( nG >= 0.80 * vstat[istat].ntri )
+			vM.insert( vM.end(), vGood.begin(), vGood.end() );
+		else
+			nG = 0;
+
+		fprintf( flog,
+		"Tabulate: Rgn %d -> %d:"
+		" Keeping %d of %d point-pairs.\n",
+		vstat[istat].argn, vstat[istat].brgn,
+		nG, vstat[istat].ntri );
+
+		if( !nG )
+			continue;
 
 		// Model the transforms obtained from point pairs
 
