@@ -19,6 +19,8 @@
 # -prm=path				;path to matchparams.txt
 # -Tdfm=1,0,0,0,1,0		;deformation a to b
 # -Tab=1,0,0,0,1,0		;transform a to b
+# -Ta=1,0,0,0,1,0		;alt Tab=Tb-inv * Ta
+# -Tb=1,0,0,0,1,0		;alt Tab=Tb-inv * Ta
 # -SCALE=1.0			;a/b
 # -XSCALE=1.0			;a/b
 # -YSCALE=1.0			;a/b

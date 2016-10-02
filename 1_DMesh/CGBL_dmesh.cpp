@@ -45,6 +45,7 @@ CGBL_dmesh::CGBL_dmesh()
 	_arg.XSCALE			= 999.0;
 	_arg.YSCALE			= 999.0;
 	_arg.SKEW			= 999.0;
+	_arg.matchparams	= NULL;
 	_arg.ima			= NULL;
 	_arg.imb			= NULL;
 	_arg.FLD			= 0;
@@ -77,15 +78,14 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 {
 // Parse args
 
-	const char		*key			= NULL,
-					*matchparams	= NULL;
+	const char		*key = NULL;
 	vector<double>	vD;
 
 	for( int i = 1; i < argc; ++i ) {
 
 		if( argv[i][0] != '-' )
 			key = argv[i];
-		else if( GetArgStr( matchparams, "-prm=", argv[i] ) )
+		else if( GetArgStr( _arg.matchparams, "-prm=", argv[i] ) )
 			;
 		else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
 
@@ -198,7 +198,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Get default parameters
 
-	if( !ReadMatchParams( mch, A.z, B.z, matchparams, stderr ) )
+	if( !ReadMatchParams( mch, A.z, B.z, _arg.matchparams, stderr ) )
 		return false;
 
 // Which file params to use according to (same,cross) layer
@@ -293,6 +293,22 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 			LN.UpdateTFormLHS( Tab, B.t2i.cam, false );
 		}
 
+		Tab.TPrint( stderr, "Tab= " );
+	}
+	else if( _arg.Ta.size() || _arg.Tb.size() ) {
+
+		TAffine	Ta, Tb;
+
+		if( _arg.Ta.size() )
+			Ta = _arg.Ta[0];
+
+		if( _arg.Tb.size() )
+			Tb = _arg.Tb[0];
+
+		Tab.FromAToB( Ta, Tb );
+
+		Ta.TPrint( stderr,  "Ta=  " );
+		Tb.TPrint( stderr,  "Tb=  " );
 		Tab.TPrint( stderr, "Tab= " );
 	}
 	else

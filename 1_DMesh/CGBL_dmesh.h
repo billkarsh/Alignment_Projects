@@ -19,12 +19,15 @@ class CGBL_dmesh {
 private:
 	typedef struct {
 		vector<TAffine>	Tdfm,
-						Tab;
+						Tab,
+						Ta,
+						Tb;
 		double			SCALE,
 						XSCALE,
 						YSCALE,
 						SKEW;
-		const char		*ima,	// override idb paths
+		const char		*matchparams,
+						*ima,			// override idb paths
 						*imb;
 		int				FLD,
 						MODE;
