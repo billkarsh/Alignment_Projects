@@ -14,16 +14,17 @@ CFLAGS += -DCREATEMESH_WRITE_DEBUG_IMAGES
 appname = ptest
 
 files =\
- dmeshdriver.cpp\
- CGBL_dmesh.cpp\
- CThmUtil.cpp\
  ApproximateMatch_NoCR.cpp\
  ApproximateMatch.cpp\
- dmesh.cpp\
- RegionToRegionMap.cpp\
+ CGBL_dmesh.cpp\
  CreateMesh.cpp\
+ CThmUtil.cpp\
+ dmesh.cpp\
+ dmeshdriver.cpp\
  ImproveMesh.cpp\
- InSectionOverlap.cpp
+ InSectionOverlap.cpp\
+ janelia.cpp\
+ RegionToRegionMap.cpp
 
 objs = ${files:.cpp=.o}
 

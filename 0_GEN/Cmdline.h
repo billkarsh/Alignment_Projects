@@ -16,6 +16,5 @@ bool GetArg( void *v, const char *pat, const char *argv );
 bool GetArgStr( const char* &s, const char *pat, char *argv );
 bool GetArgList( vector<int> &v, const char *pat, char *argv );
 bool GetArgList( vector<double> &v, const char *pat, char *argv );
-bool GetArgListFromURL( vector<double> &v, const char *pat, char *argv );
 
 
