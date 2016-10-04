@@ -80,20 +80,22 @@ static void CalcTransforms(
 	{
 		CCropMask	CM, *pCM = &CM;
 
-		if( !CM.ReadIDB( GBL.idb ) )
+		if( !CM.ReadIDB( GBL.idb, stderr ) )
 			pCM = NULL;
 
 		fold_mask_a = GetFoldMask(
 						GBL.idb, GBL.A, GBL.arg.fma,
 						px.resmska, pCM,
 						wf, hf, (GBL.ctx.FLD == 'N'),
-						GBL.arg.Transpose, GBL.arg.SingleFold );
+						GBL.arg.Transpose, GBL.arg.SingleFold,
+						stderr );
 
 		fold_mask_b = GetFoldMask(
 						GBL.idb, GBL.B, GBL.arg.fmb,
 						px.resmskb, pCM,
 						wf, hf, (GBL.ctx.FLD == 'N'),
-						GBL.arg.Transpose, GBL.arg.SingleFold );
+						GBL.arg.Transpose, GBL.arg.SingleFold,
+						stderr );
 	}
 
 /* ------------- */

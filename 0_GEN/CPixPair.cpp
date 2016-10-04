@@ -283,7 +283,7 @@ bool PixPair::Load(
 
 		CAffineLens	LN;
 
-		if( !LN.ReadIDB( idb ) )
+		if( !LN.ReadIDB( idb, flog ) )
 			goto exit;
 
 		Lens( _avf, LN, aras, wf, hf, order, A.t2i.cam );
