@@ -17,9 +17,12 @@ bool CCropMask::IsFile( const string &idb )
 {
 	if( isfile < 0 ) {
 
-		char	path[2048];
-		sprintf( path, "%s/crop.txt", idb.c_str() );
-		isfile = DskExists( path );
+		if( (isfile = !idb.empty()) ) {
+
+			char	path[2048];
+			sprintf( path, "%s/crop.txt", idb.c_str() );
+			isfile = DskExists( path );
+		}
 	}
 
 	return isfile;
@@ -36,7 +39,7 @@ bool CCropMask::ReadIDB( const string &idb, FILE* flog )
 // Exists?
 
 	if( !(isfile = !idb.empty()) )
-		return true;
+		return false;
 
 	char	path[2048];
 	sprintf( path, "%s/crop.txt", idb.c_str() );
@@ -48,7 +51,7 @@ bool CCropMask::ReadIDB( const string &idb, FILE* flog )
 // Exists?
 
 	if( !(isfile = (f != NULL)) )
-		return true;
+		return false;
 
 // Header
 
