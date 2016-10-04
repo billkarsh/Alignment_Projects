@@ -3,17 +3,18 @@
 #pragma once
 
 
-#include	<vector>
-using namespace std;
+#include	"PipeFiles.h"
 
 
 /* --------------------------------------------------------------- */
 /* Functions ----------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
-bool GetTileSpecFromURL(
-	vector<double>	&v,
-	const char		*pat,
-	char			*argv );
+#ifdef USE_CURL
+bool GetTileSpecFromURL( PicSpec &P, const char *pat, char *argv );
+#else
+bool GetTileSpecFromURL( PicSpec &P, const char *pat, char *argv )
+	{return false;}
+#endif
 
 

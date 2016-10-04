@@ -3,6 +3,7 @@
 #include	"CGBL_dmesh.h"
 
 #include	"Cmdline.h"
+#include	"janelia.h"
 #include	"File.h"
 #include	"CAffineLens.h"
 #include	"Debug.h"
@@ -15,6 +16,8 @@
 /* --------------------------------------------------------------- */
 /* Macros -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
+
+#define	ID_UNSET	-999
 
 /* --------------------------------------------------------------- */
 /* Types --------------------------------------------------------- */
@@ -34,6 +37,54 @@ CGBL_dmesh	GBL;
 
 
 
+
+/* --------------------------------------------------------------- */
+/* PrintUsage  --------------------------------------------------- */
+/* --------------------------------------------------------------- */
+
+static void PrintUsage()
+{
+	fprintf( stderr,
+	"\n"
+	"Usage: za.ia^zb.ib [ options ], where,\n"
+	"\n"
+	"    ia < 0 implies {za,ia} set via -jtilea option,\n"
+	"    ib < 0 implies {zb,ib} set via -jtileb option.\n"
+	"\n"
+	"    Options:\n"
+	"      -jtilea=<URL to tile-A JSON>\n"
+	"      -jtileb=<URL to tile-B JSON>\n"
+	"      -prm=<path to matchparams.txt>\n"
+	"      -Tdfm=<six comma-separated values>\n"
+	"      -Tab=<six comma-separated values>\n"
+	"      -Ta=<six comma-separated values>\n"
+	"      -Tb=<six comma-separated values>\n"
+	"      -SCALE=<value>\n"
+	"      -XSCALE=<value>\n"
+	"      -YSCALE=<value>\n"
+	"      -SKEW=<value>\n"
+	"      -ima=<path to image a>\n"
+	"      -imb=<path to image b>\n"
+	"      -fma=<path to foldmask a>\n"
+	"      -fmb=<path to foldmask b>\n"
+	"      -FLD=<Y=use, N=none, X=XL only>\n"
+	"      -MODE=<value, see matchparams.txt>\n"
+	"      -CTR=<value>\n"
+	"      -tr\n"
+	"      -ws\n"
+	"      -nf\n"
+	"      -sf\n"
+	"      -Tmsh=<six comma-separated values>\n"
+	"      -XYexp=<two comma-separated values>\n"
+	"      -json\n"
+	"      -v\n"
+	"      -comp_png=<path to comp.png>\n"
+	"      -registered_png=<path to registered.png>\n"
+	"      -heatmap\n"
+	"      -dbgcor\n"
+	"\n"
+	);
+}
 
 /* --------------------------------------------------------------- */
 /* Object management --------------------------------------------- */
@@ -64,10 +115,10 @@ CGBL_dmesh::CGBL_dmesh()
 	arg.Heatmap			= false;
 
 	A.z		= 0;
-	A.id	= 0;
+	A.id	= ID_UNSET;
 
 	B.z		= 0;
-	B.id	= 0;
+	B.id	= ID_UNSET;
 }
 
 /* --------------------------------------------------------------- */
@@ -85,8 +136,6 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 		if( argv[i][0] != '-' )
 			key = argv[i];
-		else if( GetArgStr( _arg.matchparams, "-prm=", argv[i] ) )
-			;
 		else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
 
 			if( 6 == vD.size() )
@@ -107,6 +156,26 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 				argv[i] );
 			}
 		}
+		else if( GetArgList( vD, "-Ta=", argv[i] ) ) {
+
+			if( 6 == vD.size() )
+				_arg.Ta.push_back( TAffine( &vD[0] ) );
+			else {
+				fprintf( stderr,
+				"main: WARNING: Bad format in -Ta [%s].\n",
+				argv[i] );
+			}
+		}
+		else if( GetArgList( vD, "-Tb=", argv[i] ) ) {
+
+			if( 6 == vD.size() )
+				_arg.Tb.push_back( TAffine( &vD[0] ) );
+			else {
+				fprintf( stderr,
+				"main: WARNING: Bad format in -Tb [%s].\n",
+				argv[i] );
+			}
+		}
 		else if( GetArg( &_arg.SCALE, "-SCALE=%lf", argv[i] ) )
 			;
 		else if( GetArg( &_arg.XSCALE, "-XSCALE=%lf", argv[i] ) )
@@ -114,6 +183,8 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		else if( GetArg( &_arg.YSCALE, "-YSCALE=%lf", argv[i] ) )
 			;
 		else if( GetArg( &_arg.SKEW, "-SKEW=%lf", argv[i] ) )
+			;
+		else if( GetArgStr( _arg.matchparams, "-prm=", argv[i] ) )
 			;
 		else if( GetArgStr( _arg.ima, "-ima=", argv[i] ) )
 			;
@@ -169,6 +240,10 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 				argv[i] );
 			}
 		}
+		else if( GetTileSpecFromURL( A, "-jtilea=", argv[i] ) )
+			;
+		else if( GetTileSpecFromURL( B, "-jtileb=", argv[i] ) )
+			;
 		else {
 			fprintf( stderr,
 			"Did not understand option '%s'.\n", argv[i] );
@@ -178,16 +253,30 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 // Decode labels in key
 
-	if( !key ||
-		(4 != sscanf( key, "%d.%d^%d.%d",
-				&A.z, &A.id,
-				&B.z, &B.id )) ) {
+	{
+		int	az, aid, bz, bid;
 
-		fprintf( stderr, "main: Usage: ptest <za.ia^zb.ib>.\n" );
-		return false;
+		if( !key ||
+			(4 != sscanf( key, "%d.%d^%d.%d", &az, &aid, &bz, &bid )) ) {
+
+			PrintUsage();
+			return false;
+		}
+		else {
+
+			if( A.id == ID_UNSET ) {
+				A.z		= az;
+				A.id	= aid;
+			}
+
+			if( B.id == ID_UNSET ) {
+				B.z		= bz;
+				B.id	= bid;
+			}
+		}
 	}
 
-// Rename stdout using image labels
+// Start logging
 
 	fprintf( stderr, "\n---- dmesh start ----\n" );
 
@@ -255,24 +344,35 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 		ctx.OPT		= true;
 	}
 
-// Fetch Til2Img entries
+// Fetch Til2Img entries (using image overrides)
 
 	fprintf( stderr, "\n---- Input images ----\n" );
 
-	IDBFromTemp( idb, "../../" );
+	if( A.id >= 0 || B.id >= 0 )
+		IDBFromTemp( idb, "../../", stderr );
 
-	if( !IDBT2IGet1( A.t2i, idb, A.z, A.id, _arg.ima ) ||
-		!IDBT2IGet1( B.t2i, idb, B.z, B.id, _arg.imb ) ) {
+	if( A.id >= 0 ) {
 
-		return false;
+		if( !IDBT2IGet1( A.t2i, idb, A.z, A.id, _arg.ima, stderr ) )
+			return false;
 	}
+	else if( _arg.ima )
+		A.t2i.path = _arg.ima;
+
+	if( B.id >= 0 ) {
+
+		if( !IDBT2IGet1( B.t2i, idb, B.z, B.id, _arg.imb, stderr ) )
+			return false;
+	}
+	else if( _arg.imb )
+		B.t2i.path = _arg.imb;
 
 	PrintTil2Img( stderr, 'A', A.t2i );
 	PrintTil2Img( stderr, 'B', B.t2i );
 
 	fprintf( stderr, "\n" );
 
-// Commandline overrides
+// Commandline parameter overrides
 
 	fprintf( stderr, "\n---- Command-line overrides ----\n" );
 
@@ -286,7 +386,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
 			CAffineLens	LN;
 
-			if( !LN.ReadIDB( idb ) )
+			if( !LN.ReadIDB( idb, stderr ) )
 				return false;
 
 			LN.UpdateTFormRHS( Tab, A.t2i.cam, true );

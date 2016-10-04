@@ -16,6 +16,8 @@
 # {ima, imb, fma, fmb} override IDB.
 #
 # ptest Options:
+# -jtilea=URL			;URL to tile-A JSON
+# -jtileb=URL			;URL to tile-B JSON
 # -prm=path				;path to matchparams.txt
 # -Tdfm=1,0,0,0,1,0		;deformation a to b
 # -Tab=1,0,0,0,1,0		;transform a to b
