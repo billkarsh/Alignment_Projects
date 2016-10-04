@@ -16,7 +16,7 @@
 /* --------------------------------------------------------------- */
 
 #define	SWAP( a, b )											\
-	{double temp = (a); (a) = (b); (b) = temp;}
+    {double temp = (a); (a) = (b); (b) = temp;}
 
 /* --------------------------------------------------------------- */
 /* Constants ----------------------------------------------------- */
@@ -34,12 +34,12 @@
 /* --------------------------------------------------------------- */
 
 void Zero_Quick(
-	double			*LHS,
-	double			*RHS,
-	int				n )
+    double			*LHS,
+    double			*RHS,
+    int				n )
 {
-	memset( LHS, 0, n*n * sizeof(double) );
-	memset( RHS, 0,   n * sizeof(double) );
+    memset( LHS, 0, n*n * sizeof(double) );
+    memset( RHS, 0,   n * sizeof(double) );
 }
 
 /* --------------------------------------------------------------- */
@@ -52,24 +52,24 @@ void Zero_Quick(
 // rows end-to-end in contiguous 1-D array.
 //
 void AddConstraint_Quick(
-	double			*LHS,
-	double			*RHS,
-	int				n,
-	int				nnz,
-	const int		*j_nnz,
-	const double	*Ai,
-	double			Bi )
+    double			*LHS,
+    double			*RHS,
+    int				n,
+    int				nnz,
+    const int		*j_nnz,
+    const double	*Ai,
+    double			Bi )
 {
-	for( int i = 0; i < nnz; ++i ) {
+    for( int i = 0; i < nnz; ++i ) {
 
-		int	ii = j_nnz[i],
-			ni = n * ii;
+        int	ii = j_nnz[i],
+            ni = n * ii;
 
-		for( int j = 0; j < nnz; ++j )
-			LHS[ni + j_nnz[j]] += Ai[i] * Ai[j];
+        for( int j = 0; j < nnz; ++j )
+            LHS[ni + j_nnz[j]] += Ai[i] * Ai[j];
 
-		RHS[ii] += Ai[i] * Bi;
-	}
+        RHS[ii] += Ai[i] * Bi;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -80,27 +80,27 @@ void AddConstraint_Quick(
 // but adds equation weighting factor.
 //
 void AddConstraint_QuickWt(
-	double			*LHS,
-	double			*RHS,
-	int				n,
-	int				nnz,
-	const int		*j_nnz,
-	const double	*Ai,
-	double			Bi,
-	double			Wt )
+    double			*LHS,
+    double			*RHS,
+    int				n,
+    int				nnz,
+    const int		*j_nnz,
+    const double	*Ai,
+    double			Bi,
+    double			Wt )
 {
-	Wt *= Wt;
+    Wt *= Wt;
 
-	for( int i = 0; i < nnz; ++i ) {
+    for( int i = 0; i < nnz; ++i ) {
 
-		int	ii = j_nnz[i],
-			ni = n * ii;
+        int	ii = j_nnz[i],
+            ni = n * ii;
 
-		for( int j = 0; j < nnz; ++j )
-			LHS[ni + j_nnz[j]] += Wt * Ai[i] * Ai[j];
+        for( int j = 0; j < nnz; ++j )
+            LHS[ni + j_nnz[j]] += Wt * Ai[i] * Ai[j];
 
-		RHS[ii] += Wt * Ai[i] * Bi;
-	}
+        RHS[ii] += Wt * Ai[i] * Bi;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -111,25 +111,25 @@ void AddConstraint_QuickWt(
 // New rows are added to LHS as needed.
 //
 static void AddToElem(
-	vector<LHSCol>	&LHS,
-	int				row,
-	int				col,
-	double			val )
+    vector<LHSCol>	&LHS,
+    int				row,
+    int				col,
+    double			val )
 {
-	LHSCol&	C  = LHS[col];
-	int		ne = C.size();
+    LHSCol&	C  = LHS[col];
+    int		ne = C.size();
 
-	for( int i = 0; i < ne; ++i ) {
+    for( int i = 0; i < ne; ++i ) {
 
-		if( C[i].row == row ) {
-			C[i].val += val;
-			return;
-		}
-	}
+        if( C[i].row == row ) {
+            C[i].val += val;
+            return;
+        }
+    }
 
 // Not found - Add
 
-	C.push_back( LHSElem( val, row ) );
+    C.push_back( LHSElem( val, row ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -179,26 +179,26 @@ static void AddToElem(
 // terms from eq-i.
 //
 void AddConstraint(
-	vector<LHSCol>	&LHS,
-	vector<double>	&RHS,
-	int				nnz,
-	const int		*j_nnz,
-	const double	*Ai,
-	double			Bi )
+    vector<LHSCol>	&LHS,
+    vector<double>	&RHS,
+    int				nnz,
+    const int		*j_nnz,
+    const double	*Ai,
+    double			Bi )
 {
-	for( int i = 0; i < nnz; ++i ) {
+    for( int i = 0; i < nnz; ++i ) {
 
-		int	ii = j_nnz[i];
+        int	ii = j_nnz[i];
 
-		for( int j = 0; j < nnz; ++j ) {
+        for( int j = 0; j < nnz; ++j ) {
 
-			int	jj = j_nnz[j];
+            int	jj = j_nnz[j];
 
-			AddToElem( LHS, ii, jj, Ai[i] * Ai[j] );
-		}
+            AddToElem( LHS, ii, jj, Ai[i] * Ai[j] );
+        }
 
-		RHS[ii] += Ai[i] * Bi;
-	}
+        RHS[ii] += Ai[i] * Bi;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -232,100 +232,100 @@ void AddConstraint(
  */
 
 static int MATludcmp(
-	double*		A,
-	int*		indx,
-	double*		d,
-	double*		vv,
-	int			n )
+    double*		A,
+    int*		indx,
+    double*		d,
+    double*		vv,
+    int			n )
 {
-	const double	TINY = 1e-20;
+    const double	TINY = 1e-20;
 
-	*d = 1.0;	// zero interchanges at start
+    *d = 1.0;	// zero interchanges at start
 
 // vv gets inv of biggest elem in each row
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		double	big = 0.0;
+        double	big = 0.0;
 
-		for( int j = 0; j < n; ++j ) {
+        for( int j = 0; j < n; ++j ) {
 
-			double	t;
+            double	t;
 
-			if( (t = fabs( A[n*i+j] )) > big )
-				big = t;
-		}
+            if( (t = fabs( A[n*i+j] )) > big )
+                big = t;
+        }
 
-		if( !big )
-			return false;
+        if( !big )
+            return false;
 
-		vv[i] = 1.0 / big;
-	}
+        vv[i] = 1.0 / big;
+    }
 
 // Crout's method: loop over cols
 
-	for( int j = 0; j < n; ++j ) {
+    for( int j = 0; j < n; ++j ) {
 
-		for( int i = 0; i < j; ++i ) {
+        for( int i = 0; i < j; ++i ) {
 
-			double	sum = A[n*i+j];
+            double	sum = A[n*i+j];
 
-			for( int k = 0; k < i; ++k )
-				sum -= A[n*i+k] * A[n*k+j];
+            for( int k = 0; k < i; ++k )
+                sum -= A[n*i+k] * A[n*k+j];
 
-			A[n*i+j] = sum;
-		}
+            A[n*i+j] = sum;
+        }
 
-		double	big = 0.0;
-		int		imx;
+        double	big = 0.0;
+        int		imx;
 
-		for( int i = j; i < n; ++i ) {
+        for( int i = j; i < n; ++i ) {
 
-			double	sum = A[n*i+j];
+            double	sum = A[n*i+j];
 
-			for( int k = 0; k < j; ++k )
-				sum -= A[n*i+k] * A[n*k+j];
+            for( int k = 0; k < j; ++k )
+                sum -= A[n*i+k] * A[n*k+j];
 
-			A[n*i+j] = sum;
+            A[n*i+j] = sum;
 
-			double	t;
+            double	t;
 
-			if( (t = vv[i] * fabs( sum )) >= big ) {
-				big = t;
-				imx = i;
-			}
-		}
+            if( (t = vv[i] * fabs( sum )) >= big ) {
+                big = t;
+                imx = i;
+            }
+        }
 
-		// interchange rows?
+        // interchange rows?
 
-		if( j != imx ) {
+        if( j != imx ) {
 
-			for( int k = 0; k < n; ++k ) {
+            for( int k = 0; k < n; ++k ) {
 
-				double	t	= A[n*imx+k];
-				A[n*imx+k]	= A[n*j+k];
-				A[n*j+k]	= t;
-			}
+                double	t	= A[n*imx+k];
+                A[n*imx+k]	= A[n*j+k];
+                A[n*j+k]	= t;
+            }
 
-			*d		= -*d;
-			vv[imx]	= vv[j];
-		}
+            *d		= -*d;
+            vv[imx]	= vv[j];
+        }
 
-		indx[j] = imx;
+        indx[j] = imx;
 
-		if( !A[n*j+j] )
-			A[n*j+j] = TINY;
+        if( !A[n*j+j] )
+            A[n*j+j] = TINY;
 
-		if( j != n - 1 ) {
+        if( j != n - 1 ) {
 
-			double	t = 1.0 / A[n*j+j];
+            double	t = 1.0 / A[n*j+j];
 
-			for( int i = j + 1; i < n; ++i )
-				A[n*i+j] *= t;
-		}
-	}
+            for( int i = j + 1; i < n; ++i )
+                A[n*i+j] *= t;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -356,40 +356,40 @@ static int MATludcmp(
  */
 
 static void MATlubksb(
-	double*			B,
-	const double*	A,
-	const int*		indx,
-	int				n )
+    double*			B,
+    const double*	A,
+    const int*		indx,
+    int				n )
 {
-	int	ii = -1;
+    int	ii = -1;
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		int		ip  = indx[i];
-		double	sum = B[ip];
+        int		ip  = indx[i];
+        double	sum = B[ip];
 
-		B[ip] = B[i];
+        B[ip] = B[i];
 
-		if( ii >= 0 ) {
+        if( ii >= 0 ) {
 
-			for( int j = ii; j < i; ++j )
-				sum -= A[n*i+j] * B[j];
-		}
-		else if( sum )
-			ii = i;
+            for( int j = ii; j < i; ++j )
+                sum -= A[n*i+j] * B[j];
+        }
+        else if( sum )
+            ii = i;
 
-		B[i] = sum;
-	}
+        B[i] = sum;
+    }
 
-	for( int i = n - 1; i >= 0; --i ) {
+    for( int i = n - 1; i >= 0; --i ) {
 
-		double	sum = B[i];
+        double	sum = B[i];
 
-		for( int j = i + 1; j < n; ++j )
-			sum -= A[n*i+j] * B[j];
+        for( int j = i + 1; j < n; ++j )
+            sum -= A[n*i+j] * B[j];
 
-		B[i] = sum / A[n*i+i];
-	}
+        B[i] = sum / A[n*i+i];
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -397,29 +397,29 @@ static void MATlubksb(
 /* --------------------------------------------------------------- */
 
 static void SolveDirectLU(
-	vector<double>			&X,
-	const vector<LHSCol>	&LHS,
-	const vector<double>	&RHS,
-	int						n )
+    vector<double>			&X,
+    const vector<LHSCol>	&LHS,
+    const vector<double>	&RHS,
+    int						n )
 {
-	double	A[n*n], vv[n], d;
-	int		indx[n];
+    double	A[n*n], vv[n], d;
+    int		indx[n];
 
-	memset( A, 0, n*n * sizeof(double) );
+    memset( A, 0, n*n * sizeof(double) );
 
-	for( int col = 0; col < n; ++col ) {
+    for( int col = 0; col < n; ++col ) {
 
-		const LHSCol&	C  = LHS[col];
-		int				ne = C.size();
+        const LHSCol&	C  = LHS[col];
+        int				ne = C.size();
 
-		for( int i = 0; i < ne; ++i )
-			A[n*C[i].row+col] = C[i].val;
-	}
+        for( int i = 0; i < ne; ++i )
+            A[n*C[i].row+col] = C[i].val;
+    }
 
-	X = RHS;
+    X = RHS;
 
-	MATludcmp( A, indx, &d, vv, n );
-	MATlubksb( &X[0], A, indx, n );
+    MATludcmp( A, indx, &d, vv, n );
+    MATlubksb( &X[0], A, indx, n );
 }
 
 /* --------------------------------------------------------------- */
@@ -458,135 +458,135 @@ static void SolveDirectLU(
  */
 
 static int MATGaussJ(
-	vector<vector<double> >	&A,
-	vector<vector<double> >	&B,
-	int						n,
-	int						m )
+    vector<vector<double> >	&A,
+    vector<vector<double> >	&B,
+    int						n,
+    int						m )
 {
-	double		*p1, *p2;
-	double		t, piv;
-	vector<int>	indxc( n ),
-				indxr( n ),
-				ipiv( n, 0 );
-	int			i, j, k, icol, irow, ok = true;
+    double		*p1, *p2;
+    double		t, piv;
+    vector<int>	indxc( n ),
+                indxr( n ),
+                ipiv( n, 0 );
+    int			i, j, k, icol, irow, ok = true;
 
-	for( i = 0; i < n; ++i ) {
+    for( i = 0; i < n; ++i ) {
 
-		piv = 0.0;
+        piv = 0.0;
 
-		for( j = 0; j < n; ++j ) {
+        for( j = 0; j < n; ++j ) {
 
-			if( ipiv[j] != 1 ) {
+            if( ipiv[j] != 1 ) {
 
-				p1 = &A[j][0];
+                p1 = &A[j][0];
 
-				for( k = 0; k < n; ++k ) {
+                for( k = 0; k < n; ++k ) {
 
-					if( !ipiv[k] ) {
+                    if( !ipiv[k] ) {
 
-						t = fabs( p1[k] );
+                        t = fabs( p1[k] );
 
-						if( t >= piv ) {
-							piv		= t;
-							irow	= j;
-							icol	= k;
-						}
-					}
-					else if( ipiv[k] > 1 ) {
-						ok = false;
-						goto exit;
-					}
-				}
-			}
-		}
+                        if( t >= piv ) {
+                            piv		= t;
+                            irow	= j;
+                            icol	= k;
+                        }
+                    }
+                    else if( ipiv[k] > 1 ) {
+                        ok = false;
+                        goto exit;
+                    }
+                }
+            }
+        }
 
-		++ipiv[icol];
+        ++ipiv[icol];
 
-		/* ---------------------------------- */
-		/* Swap rows to put pivot on diagonal */
-		/* ---------------------------------- */
+        /* ---------------------------------- */
+        /* Swap rows to put pivot on diagonal */
+        /* ---------------------------------- */
 
-		if( irow != icol ) {
+        if( irow != icol ) {
 
-			p1 = &A[irow][0];
-			p2 = &A[icol][0];
+            p1 = &A[irow][0];
+            p2 = &A[icol][0];
 
-			for( j = 0; j < n; ++j )
-				SWAP( p1[j], p2[j] );
+            for( j = 0; j < n; ++j )
+                SWAP( p1[j], p2[j] );
 
-			p1 = &B[irow][0];
-			p2 = &B[icol][0];
+            p1 = &B[irow][0];
+            p2 = &B[icol][0];
 
-			for( j = 0; j < m; ++j )
-				SWAP( p1[j], p2[j] );
-		}
+            for( j = 0; j < m; ++j )
+                SWAP( p1[j], p2[j] );
+        }
 
-		indxr[i]	= irow;
-		indxc[i]	= icol;
-		p1			= &A[icol][0];
-		p2			= &B[icol][0];
+        indxr[i]	= irow;
+        indxc[i]	= icol;
+        p1			= &A[icol][0];
+        p2			= &B[icol][0];
 
-		if( p1[icol] == 0.0 ) {
-			ok = false;
-			goto exit;
-		}
+        if( p1[icol] == 0.0 ) {
+            ok = false;
+            goto exit;
+        }
 
-		/* ------------------- */
-		/* Normalize pivot row */
-		/* ------------------- */
+        /* ------------------- */
+        /* Normalize pivot row */
+        /* ------------------- */
 
-		piv			= 1.0 / p1[icol];
-		p1[icol]	= 1.0;
+        piv			= 1.0 / p1[icol];
+        p1[icol]	= 1.0;
 
-		for( j = 0; j < n; ++j )
-			p1[j] *= piv;
+        for( j = 0; j < n; ++j )
+            p1[j] *= piv;
 
-		for( j = 0; j < m; ++j )
-			p2[j] *= piv;
+        for( j = 0; j < m; ++j )
+            p2[j] *= piv;
 
-		/* ------------ */
-		/* Ellimination */
-		/* ------------ */
+        /* ------------ */
+        /* Ellimination */
+        /* ------------ */
 
-		for( j = 0; j < n; ++j ) {
+        for( j = 0; j < n; ++j ) {
 
-			if( j != icol ) {
+            if( j != icol ) {
 
-				double	*p3	= &A[j][0];
-				double	t	= p3[icol];
+                double	*p3	= &A[j][0];
+                double	t	= p3[icol];
 
-				p3[icol] = 0.0;
+                p3[icol] = 0.0;
 
-				for( k = 0; k < n; ++k )
-					p3[k] -= p1[k] * t;
+                for( k = 0; k < n; ++k )
+                    p3[k] -= p1[k] * t;
 
-				p3 = &B[j][0];
+                p3 = &B[j][0];
 
-				for( k = 0; k < m; ++k )
-					p3[k] -= p2[k] * t;
-			}
-		}
-	}
+                for( k = 0; k < m; ++k )
+                    p3[k] -= p2[k] * t;
+            }
+        }
+    }
 
 /* ------------------------------- */
 /* Unswap columns in reverse order */
 /* ------------------------------- */
 
-	for( i = n - 1; i >= 0; --i ) {
+    for( i = n - 1; i >= 0; --i ) {
 
-		if( (irow = indxr[i]) != (icol = indxc[i]) ) {
+        if( (irow = indxr[i]) != (icol = indxc[i]) ) {
 
-			for( j = 0; j < n; ++j ) {
+            for( j = 0; j < n; ++j ) {
 
-				double	*p1 = &A[j][0];
+                double	*p1 = &A[j][0];
 
-				SWAP( p1[irow], p1[icol] );
-			}
-		}
-	}
+                SWAP( p1[irow], p1[icol] );
+            }
+        }
+    }
 
 exit:
-	return ok;
+    return ok;
 }
 
 /* --------------------------------------------------------------- */
@@ -594,34 +594,34 @@ exit:
 /* --------------------------------------------------------------- */
 
 static void SolveDirectGJ(
-	vector<double>			&X,
-	const vector<LHSCol>	&LHS,
-	const vector<double>	&RHS,
-	int						n )
+    vector<double>			&X,
+    const vector<LHSCol>	&LHS,
+    const vector<double>	&RHS,
+    int						n )
 {
-	vector<vector<double> >	a, b;
+    vector<vector<double> >	a, b;
 
-	a.resize( n );
-	b.resize( n );
+    a.resize( n );
+    b.resize( n );
 
-	for( int i = 0; i < n; ++i ) {
-		a[i].resize( n, 0 );
-		b[i].resize( 1, RHS[i] );
-	}
+    for( int i = 0; i < n; ++i ) {
+        a[i].resize( n, 0 );
+        b[i].resize( 1, RHS[i] );
+    }
 
-	for( int col = 0; col < n; ++col ) {
+    for( int col = 0; col < n; ++col ) {
 
-		const LHSCol&	C  = LHS[col];
-		int				ne = C.size();
+        const LHSCol&	C  = LHS[col];
+        int				ne = C.size();
 
-		for( int i = 0; i < ne; ++i )
-			a[C[i].row][col] = C[i].val;
-	}
+        for( int i = 0; i < ne; ++i )
+            a[C[i].row][col] = C[i].val;
+    }
 
-	MATGaussJ( a, b, n, 1 );
+    MATGaussJ( a, b, n, 1 );
 
-	for( int i = 0; i < n; ++i )
-		X[i] = b[i][0];
+    for( int i = 0; i < n; ++i )
+        X[i] = b[i][0];
 }
 
 /* --------------------------------------------------------------- */
@@ -635,19 +635,19 @@ static void SolveDirectGJ(
 // RHS directly in output X array to minimize data copying.
 //
 bool Solve_Quick(
-	double	*LHS,
-	double	*RHS,
-	int		n )
+    double	*LHS,
+    double	*RHS,
+    int		n )
 {
-	double	vv[n], d;
-	int		indx[n];
+    double	vv[n], d;
+    int		indx[n];
 
-	if( MATludcmp( LHS, indx, &d, vv, n ) ) {
-		MATlubksb( RHS, LHS, indx, n );
-		return true;
-	}
+    if( MATludcmp( LHS, indx, &d, vv, n ) ) {
+        MATlubksb( RHS, LHS, indx, n );
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -671,23 +671,23 @@ bool Solve_Quick(
 // 'slu_signal'.
 //
 void WriteSolveRead(
-	vector<double>			&X,
-	const vector<LHSCol>	&LHS,
-	const vector<double>	&RHS,
-	const char				*jobtag,
-	int						nproc,
-	bool					uniqueNames )
+    vector<double>			&X,
+    const vector<LHSCol>	&LHS,
+    const vector<double>	&RHS,
+    const char				*jobtag,
+    int						nproc,
+    bool					uniqueNames )
 {
-	int	nvars = RHS.size();
+    int	nvars = RHS.size();
 
 /* ------ */
 /* Direct */
 /* ------ */
 
-	if( nvars <= kMaxDirectN ) {
-		SolveDirectLU( X, LHS, RHS, nvars );
-		return;
-	}
+    if( nvars <= kMaxDirectN ) {
+        SolveDirectLU( X, LHS, RHS, nvars );
+        return;
+    }
 
 /* ----------------------------------- */
 /* Print equations into 'triples' file */
@@ -695,117 +695,117 @@ void WriteSolveRead(
 
 // Name files
 
-	char	iname[2048], oname[2048], buf[2048];
+    char	iname[2048], oname[2048], buf[2048];
 
-	if( uniqueNames ) {
+    if( uniqueNames ) {
 
-		int	pid = getpid();
+        int	pid = getpid();
 
-		gethostname( buf, sizeof(buf) );
+        gethostname( buf, sizeof(buf) );
 
-		sprintf( iname, "triples_%s_%d", buf, pid );
-		sprintf( oname, "results_%s_%d", buf, pid );
-	}
-	else {
-		strcpy( iname, "triples" );
-		strcpy( oname, "results" );
-	}
+        sprintf( iname, "triples_%s_%d", buf, pid );
+        sprintf( oname, "results_%s_%d", buf, pid );
+    }
+    else {
+        strcpy( iname, "triples" );
+        strcpy( oname, "results" );
+    }
 
 // Delete any previous results file
 
-	sprintf( buf, "rm -f %s", oname );
-	system( buf );
+    sprintf( buf, "rm -f %s", oname );
+    system( buf );
 
 // Open triples file
 
-	FILE	*f	= FileOpenOrDie( iname, "w" );
-	int		nnz	= 0;	// number of non-zero terms
+    FILE	*f	= FileOpenOrDie( iname, "w" );
+    int		nnz	= 0;	// number of non-zero terms
 
 // Header
 
-	for( int col = 0; col < nvars; ++col )
-		nnz += LHS[col].size();
+    for( int col = 0; col < nvars; ++col )
+        nnz += LHS[col].size();
 
-	fprintf( f, "%d %d\n", nvars, nnz );
+    fprintf( f, "%d %d\n", nvars, nnz );
 
 // LHS
 
-	for( int col = 0; col < nvars; ++col ) {
+    for( int col = 0; col < nvars; ++col ) {
 
-		const LHSCol&	C  = LHS[col];
-		int				ne = C.size();
+        const LHSCol&	C  = LHS[col];
+        int				ne = C.size();
 
-		for( int i = 0; i < ne; ++i ) {
+        for( int i = 0; i < ne; ++i ) {
 
-			int	row = C[i].row;
+            int	row = C[i].row;
 
-			// convert to 1 based indexing
+            // convert to 1 based indexing
 
-			fprintf( f, "%d %d %.16f\n",
-			row + 1, col + 1, C[i].val );
-		}
-	}
+            fprintf( f, "%d %d %.16f\n",
+            row + 1, col + 1, C[i].val );
+        }
+    }
 
 // RHS
 
-	for( int i = 0; i < nvars; ++i )
-		fprintf( f, "%.16f\n", RHS[i] );
+    for( int i = 0; i < nvars; ++i )
+        fprintf( f, "%.16f\n", RHS[i] );
 
 // Close
 
-	fclose( f );
+    fclose( f );
 
 /* ----- */
 /* Solve */
 /* ----- */
 
-	printf( "\n[[ Invoke solver: %s ]]\n", jobtag );
-	VMStats( stdout );
-	fflush( stdout );
+    printf( "\n[[ Invoke solver: %s ]]\n", jobtag );
+    VMStats( stdout );
+    fflush( stdout );
 
-	if( nproc == 1 ) {
+    if( nproc == 1 ) {
 
-		sprintf( buf, "SuperLUSymSolve -t -o=%s <%s", oname, iname );
-		system( buf );
-	}
-	else {
+        sprintf( buf, "SuperLUSymSolve -t -o=%s <%s", oname, iname );
+        system( buf );
+    }
+    else {
 
-		// remove signal file
-		system( "rm -f slu_signal" );
+        // remove signal file
+        system( "rm -f slu_signal" );
 
-		// submit mpi job
-		sprintf( buf,
-		"qsub -N %s -cwd -V -b y -pe impi %d"
-		" 'mpirun -np %d"
-		" SuperLUSymSolveMPI"
-		" -r=1 -c=%d -t -j=%s -o=%s -i=%s'",
-		jobtag, nproc, nproc, nproc, jobtag, oname, iname );
-		system( buf );
+        // submit mpi job
+        sprintf( buf,
+        "qsub -N %s -cwd -V -b y -pe impi %d"
+        " 'mpirun -np %d"
+        " SuperLUSymSolveMPI"
+        " -r=1 -c=%d -t -j=%s -o=%s -i=%s'",
+        jobtag, nproc, nproc, nproc, jobtag, oname, iname );
+        system( buf );
 
-		// await completion
-		for(;;) {
+        // await completion
+        for(;;) {
 
-			if( DskExists( "slu_signal" ) )
-				break;
+            if( DskExists( "slu_signal" ) )
+                break;
 
-			sleep( 2 );
-		}
-	}
+            sleep( 2 );
+        }
+    }
 
-	VMStats( stdout );
-	printf( "[[ Exit solver ]]\n\n" );
-	fflush( stdout );
+    VMStats( stdout );
+    printf( "[[ Exit solver ]]\n\n" );
+    fflush( stdout );
 
 /* ------------ */
 /* Read results */
 /* ------------ */
 
-	f = FileOpenOrDie( oname, "r" );
+    f = FileOpenOrDie( oname, "r" );
 
-	for( int i = 0; i < nvars; ++i )
-		fscanf( f, "%lf\n", &X[i] );
+    for( int i = 0; i < nvars; ++i )
+        fscanf( f, "%lf\n", &X[i] );
 
-	fclose( f );
+    fclose( f );
 }
 
 

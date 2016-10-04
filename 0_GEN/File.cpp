@@ -16,25 +16,25 @@
 /* --------------------------------------------------------------- */
 
 FILE *FileOpenOrDie(
-	const char	*name,
-	const char	*rw,
-	FILE		*flog )
+    const char	*name,
+    const char	*rw,
+    FILE		*flog )
 {
-	FILE	*f = fopen( name, rw );
+    FILE	*f = fopen( name, rw );
 
-	if( !f ) {
+    if( !f ) {
 
-		if( !flog )
-			flog = stdout;
+        if( !flog )
+            flog = stdout;
 
-		fprintf( flog,
-		"Can't open file [%s] for op [%s] errno [%d].\n",
-		name, rw, errno );
+        fprintf( flog,
+        "Can't open file [%s] for op [%s] errno [%d].\n",
+        name, rw, errno );
 
-		exit( 42 );
-	}
+        exit( 42 );
+    }
 
-	return f;
+    return f;
 }
 
 /* --------------------------------------------------------------- */
@@ -43,10 +43,10 @@ FILE *FileOpenOrDie(
 
 void FileScriptPerms( const char *path )
 {
-	char	buf[2048];
+    char	buf[2048];
 
-	sprintf( buf, "chmod ug=rwx,o=rx %s", path );
-	system( buf );
+    sprintf( buf, "chmod ug=rwx,o=rx %s", path );
+    system( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -55,14 +55,14 @@ void FileScriptPerms( const char *path )
 
 const char* FileNamePtr( const char *path )
 {
-	const char	*name;
+    const char	*name;
 
-	if( name = strrchr( path, '/' ) )
-		++name;
-	else
-		name = path;
+    if( name = strrchr( path, '/' ) )
+        ++name;
+    else
+        name = path;
 
-	return name;
+    return name;
 }
 
 /* --------------------------------------------------------------- */
@@ -71,12 +71,12 @@ const char* FileNamePtr( const char *path )
 
 const char* FileDotPtr( const char *path )
 {
-	const char	*dot;
+    const char	*dot;
 
-	if( !(dot = strrchr( path, '.' )) )
-		dot = path + strlen( path );
+    if( !(dot = strrchr( path, '.' )) )
+        dot = path + strlen( path );
 
-	return dot;
+    return dot;
 }
 
 /* --------------------------------------------------------------- */
@@ -85,13 +85,13 @@ const char* FileDotPtr( const char *path )
 
 char* FileCloneNamePart( const char *path )
 {
-	char		buf[2048];
-	const char	*name	= FileNamePtr( path ),
-				*dot	= FileDotPtr( name );
+    char		buf[2048];
+    const char	*name	= FileNamePtr( path ),
+                *dot	= FileDotPtr( name );
 
-	sprintf( buf, "%.*s", int(dot - name), name );
+    sprintf( buf, "%.*s", int(dot - name), name );
 
-	return strdup( buf );
+    return strdup( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -104,21 +104,21 @@ char* FileCloneNamePart( const char *path )
 //
 bool FileIsExt( const char *path, const char *ext )
 {
-	const char	*dot	= strrchr( path, '.' );
-	int			ne		= strlen( ext );
+    const char	*dot	= strrchr( path, '.' );
+    int			ne		= strlen( ext );
 
-	if( dot && strlen( dot ) == ne ) {
+    if( dot && strlen( dot ) == ne ) {
 
-		for( int i = 0; i < ne; ++i ) {
+        for( int i = 0; i < ne; ++i ) {
 
-			if( toupper( *++dot ) != toupper( *++ext ) )
-				return false;
-		}
+            if( toupper( *++dot ) != toupper( *++ext ) )
+                return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 

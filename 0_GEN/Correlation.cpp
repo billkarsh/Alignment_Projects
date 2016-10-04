@@ -47,106 +47,106 @@ static int _dbg_simgidx = 0;
 /* --------------------------------------------------------------- */
 
 static void IntegrateImage(
-	vector<double>			&S,
-	vector<double>			&S2,
-	vector<int>				&nz,
-	int						wS,
-	int						hS,
-	const vector<double>	&I,
-	int						wI )
+    vector<double>			&S,
+    vector<double>			&S2,
+    vector<int>				&nz,
+    int						wS,
+    int						hS,
+    const vector<double>	&I,
+    int						wI )
 {
-	double	t;
-	int		x, y, i, j, k, m, N = wS * hS;
+    double	t;
+    int		x, y, i, j, k, m, N = wS * hS;
 
-	S.assign(  N, 0.0 );
-	S2.assign( N, 0.0 );
-	nz.assign( N, 0 );
+    S.assign(  N, 0.0 );
+    S2.assign( N, 0.0 );
+    nz.assign( N, 0 );
 
 // first element
-	S[0]	= (t = I[0]);
-	S2[0]	= t * t;
-	nz[0]	= (t != 0.0);
+    S[0]	= (t = I[0]);
+    S2[0]	= t * t;
+    nz[0]	= (t != 0.0);
 
 // first row
-	for( x = 1; x < wS; ++x ) {
+    for( x = 1; x < wS; ++x ) {
 
-		S[x]	= S[x-1]  + (t = I[x]);
-		S2[x]	= S2[x-1] + t * t;
-		nz[x]	= nz[x-1] + (t != 0.0);
-	}
+        S[x]	= S[x-1]  + (t = I[x]);
+        S2[x]	= S2[x-1] + t * t;
+        nz[x]	= nz[x-1] + (t != 0.0);
+    }
 
 // first column
-	for( y = 1; y < hS; ++y ) {
+    for( y = 1; y < hS; ++y ) {
 
-		j = wS * y;
-		k = wI * y;
+        j = wS * y;
+        k = wI * y;
 
-		S[j]	= S[j-wS]  + (t = I[k]);
-		S2[j]	= S2[j-wS] + t * t;
-		nz[j]	= nz[j-wS] + (t != 0.0);
-	}
+        S[j]	= S[j-wS]  + (t = I[k]);
+        S2[j]	= S2[j-wS] + t * t;
+        nz[j]	= nz[j-wS] + (t != 0.0);
+    }
 
 // now all rows and columns
-	for( y = 1; y < hS; ++y ) {
+    for( y = 1; y < hS; ++y ) {
 
-		i = wS * y;
-		k = wI * y;
+        i = wS * y;
+        k = wI * y;
 
-		for( x = 1; x < wS; ++x ) {
+        for( x = 1; x < wS; ++x ) {
 
-			j = i + x;
-			m = k + x;
+            j = i + x;
+            m = k + x;
 
-			S[j]	= S[j-1]  + S[j-wS]  - S[j-wS-1]  + (t = I[m]);
-			S2[j]	= S2[j-1] + S2[j-wS] - S2[j-wS-1] + t * t;
-			nz[j]	= nz[j-1] + nz[j-wS] - nz[j-wS-1] + (t != 0.0);
-		}
-	}
+            S[j]	= S[j-1]  + S[j-wS]  - S[j-wS-1]  + (t = I[m]);
+            S2[j]	= S2[j-1] + S2[j-wS] - S2[j-wS-1] + t * t;
+            nz[j]	= nz[j-1] + nz[j-wS] - nz[j-wS-1] + (t != 0.0);
+        }
+    }
 }
 
 
 static void IntegrateImage(
-	vector<int>				&nz,
-	int						wS,
-	int						hS,
-	const vector<double>	&I,
-	int						wI )
+    vector<int>				&nz,
+    int						wS,
+    int						hS,
+    const vector<double>	&I,
+    int						wI )
 {
-	double	t;
-	int		x, y, i, j, k, m;
+    double	t;
+    int		x, y, i, j, k, m;
 
-	nz.assign( wS * hS, 0 );
+    nz.assign( wS * hS, 0 );
 
 // first element
-	nz[0] = (I[0] != 0.0);
+    nz[0] = (I[0] != 0.0);
 
 // first row
-	for( x = 1; x < wS; ++x )
-		nz[x] = nz[x-1] + (I[x] != 0.0);
+    for( x = 1; x < wS; ++x )
+        nz[x] = nz[x-1] + (I[x] != 0.0);
 
 // first column
-	for( y = 1; y < hS; ++y ) {
+    for( y = 1; y < hS; ++y ) {
 
-		j = wS * y;
-		k = wI * y;
+        j = wS * y;
+        k = wI * y;
 
-		nz[j] = nz[j-wS] + (I[k] != 0.0);
-	}
+        nz[j] = nz[j-wS] + (I[k] != 0.0);
+    }
 
 // now all rows and columns
-	for( y = 1; y < hS; ++y ) {
+    for( y = 1; y < hS; ++y ) {
 
-		i = wS * y;
-		k = wI * y;
+        i = wS * y;
+        k = wI * y;
 
-		for( x = 1; x < wS; ++x ) {
+        for( x = 1; x < wS; ++x ) {
 
-			j = i + x;
-			m = k + x;
+            j = i + x;
+            m = k + x;
 
-			nz[j] = nz[j-1] + nz[j-wS] - nz[j-wS-1] + (I[m] != 0.0);
-		}
-	}
+            nz[j] = nz[j-1] + nz[j-wS] - nz[j-wS-1] + (I[m] != 0.0);
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -158,22 +158,22 @@ static void IntegrateImage(
 // Inverts IntegrateImage bookkeeping.
 //
 static double IntegralTable(
-	vector<double>	&t,
-	int				wS,
-	const IBox		&B )
+    vector<double>	&t,
+    int				wS,
+    const IBox		&B )
 {
-	double	rslt = t[B.R + wS*B.T];
+    double	rslt = t[B.R + wS*B.T];
 
-	if( B.L > 0 )
-		rslt -= t[B.L-1 + wS*B.T];
+    if( B.L > 0 )
+        rslt -= t[B.L-1 + wS*B.T];
 
-	if( B.B > 0 )
-		rslt -= t[B.R + wS*(B.B-1)];
+    if( B.B > 0 )
+        rslt -= t[B.R + wS*(B.B-1)];
 
-	if( B.L > 0 && B.B > 0 )
-		rslt += t[(B.L-1) + wS*(B.B-1)];
+    if( B.L > 0 && B.B > 0 )
+        rslt += t[(B.L-1) + wS*(B.B-1)];
 
-	return rslt;
+    return rslt;
 }
 
 
@@ -182,22 +182,22 @@ static double IntegralTable(
 // Inverts IntegrateImage bookkeeping.
 //
 static int IntegralTable(
-	vector<int>		&t,
-	int				wS,
-	const IBox		&B )
+    vector<int>		&t,
+    int				wS,
+    const IBox		&B )
 {
-	int		rslt = t[B.R + wS*B.T];
+    int		rslt = t[B.R + wS*B.T];
 
-	if( B.L > 0 )
-		rslt -= t[B.L-1 + wS*B.T];
+    if( B.L > 0 )
+        rslt -= t[B.L-1 + wS*B.T];
 
-	if( B.B > 0 )
-		rslt -= t[B.R + wS*(B.B-1)];
+    if( B.B > 0 )
+        rslt -= t[B.R + wS*(B.B-1)];
 
-	if( B.L > 0 && B.B > 0 )
-		rslt += t[(B.L-1) + wS*(B.B-1)];
+    if( B.L > 0 && B.B > 0 )
+        rslt += t[(B.L-1) + wS*(B.B-1)];
 
-	return rslt;
+    return rslt;
 }
 
 /* --------------------------------------------------------------- */
@@ -208,55 +208,55 @@ static int IntegralTable(
 // the definition. Not efficient - only for debugging.
 //
 static double DebugLinearCorr(
-	FILE			*flog,
-	vector<double>	&I1,
-	vector<double>	&I2,
-	int				wI,
-	const IBox		&B1,
-	const IBox		&B2 )
+    FILE			*flog,
+    vector<double>	&I1,
+    vector<double>	&I2,
+    int				wI,
+    const IBox		&B1,
+    const IBox		&B2 )
 {
-	double	suma	= 0.0,
-			sumb	= 0.0;
-	int		nx		= B1.R-B1.L+1;
-	int		ny		= B1.T-B1.B+1;
-	int		x, y;
+    double	suma	= 0.0,
+            sumb	= 0.0;
+    int		nx		= B1.R-B1.L+1;
+    int		ny		= B1.T-B1.B+1;
+    int		x, y;
 
-	for( x = 0; x < nx; ++x ) {
+    for( x = 0; x < nx; ++x ) {
 
-		for( y = 0; y < ny; ++y ) {
+        for( y = 0; y < ny; ++y ) {
 
-			suma += I1[B1.L+x + wI*(B1.B+y)];
-			sumb += I2[B2.L+x + wI*(B2.B+y)];
-		}
-	}
+            suma += I1[B1.L+x + wI*(B1.B+y)];
+            sumb += I2[B2.L+x + wI*(B2.B+y)];
+        }
+    }
 
-	double	avga	= suma/nx/ny;
-	double	avgb	= sumb/nx/ny;
-	double	sumn	= 0.0,
-			sumd1	= 0.0,
-			sumd2	= 0.0;
+    double	avga	= suma/nx/ny;
+    double	avgb	= sumb/nx/ny;
+    double	sumn	= 0.0,
+            sumd1	= 0.0,
+            sumd2	= 0.0;
 
-	for( x = 0; x < nx; ++x ) {
+    for( x = 0; x < nx; ++x ) {
 
-		for( y = 0; y < ny; ++y ) {
+        for( y = 0; y < ny; ++y ) {
 
-			double	va = I1[B1.L+x + wI*(B1.B+y)] - avga;
-			double	vb = I2[B2.L+x + wI*(B2.B+y)] - avgb;
+            double	va = I1[B1.L+x + wI*(B1.B+y)] - avga;
+            double	vb = I2[B2.L+x + wI*(B2.B+y)] - avgb;
 
-			sumn	+= va * vb;
-			sumd1	+= va * va;
-			sumd2	+= vb * vb;
-		}
-	}
+            sumn	+= va * vb;
+            sumd1	+= va * va;
+            sumd2	+= vb * vb;
+        }
+    }
 
-	double	prod	= sumd1 * sumd2;
-	double	rslt	= (prod < 1.0e-9 ? 0.0 : sumn/sqrt(prod));
+    double	prod	= sumd1 * sumd2;
+    double	rslt	= (prod < 1.0e-9 ? 0.0 : sumn/sqrt(prod));
 
-	fprintf( flog,
-	"\nDebugLinearCorr: s %f %f, a %f %f, ss %f %f %f, r %f\n",
-	suma, sumb, avga, avgb, sumn, sumd1, sumd2, rslt );
+    fprintf( flog,
+    "\nDebugLinearCorr: s %f %f, a %f %f, ss %f %f %f, r %f\n",
+    suma, sumb, avga, avgb, sumn, sumd1, sumd2, rslt );
 
-	return rslt;
+    return rslt;
 }
 
 /* --------------------------------------------------------------- */
@@ -266,16 +266,16 @@ static double DebugLinearCorr(
 // Get FFT value at signed (x,y) coordinate.
 //
 static double LookFFT(
-	const double	*fr,
-	int				nx,
-	int				ny,
-	int				x,
-	int				y )
+    const double	*fr,
+    int				nx,
+    int				ny,
+    int				x,
+    int				y )
 {
-	if( x < 0 ) x += nx;
-	if( y < 0 ) y += ny;
+    if( x < 0 ) x += nx;
+    if( y < 0 ) y += ny;
 
-	return fr[x + nx*y] / (nx * ny);
+    return fr[x + nx*y] / (nx * ny);
 }
 
 /* --------------------------------------------------------------- */
@@ -285,16 +285,16 @@ static double LookFFT(
 // Get FFT value at signed (x,y) coordinate (no normalization).
 //
 static double LkFFT(
-	const double	*fr,
-	int				nx,
-	int				ny,
-	int				x,
-	int				y )
+    const double	*fr,
+    int				nx,
+    int				ny,
+    int				x,
+    int				y )
 {
-	if( x < 0 ) x += nx;
-	if( y < 0 ) y += ny;
+    if( x < 0 ) x += nx;
+    if( y < 0 ) y += ny;
 
-	return fr[x + nx*y];
+    return fr[x + nx*y];
 }
 
 /* --------------------------------------------------------------- */
@@ -343,7 +343,7 @@ static double LkFFT(
 //
 int FFTSize( int n1, int n2 )
 {
-	return CeilPow2( n1 + n2 - 1 );
+    return CeilPow2( n1 + n2 - 1 );
 }
 
 /* --------------------------------------------------------------- */
@@ -355,7 +355,7 @@ int FFTSize( int n1, int n2 )
 //
 int FFTSizeSQR( int w1, int h1, int w2, int h2 )
 {
-	return CeilPow2( max( w1 + w2, h1 + h2 ) - 1 );
+    return CeilPow2( max( w1 + w2, h1 + h2 ) - 1 );
 }
 
 /* --------------------------------------------------------------- */
@@ -369,91 +369,91 @@ int FFTSizeSQR( int w1, int h1, int w2, int h2 )
 // dst can be same as src if desired.
 //
 void Convolve(
-	vector<double>			&dst,
-	const vector<double>	&src,
-	int						ws,
-	int						hs,
-	const double			*K,
-	int						wk,
-	int						hk,
-	bool					kIsSymmetric,
-	bool					preNormK,
-	vector<CD>				&kfft,
-	FILE					*flog )
+    vector<double>			&dst,
+    const vector<double>	&src,
+    int						ws,
+    int						hs,
+    const double			*K,
+    int						wk,
+    int						hk,
+    bool					kIsSymmetric,
+    bool					preNormK,
+    vector<CD>				&kfft,
+    FILE					*flog )
 {
-	int	Ns	= ws * hs,
-		Nk	= wk * hk,
-		Nx	= FFTSize( ws, wk / (1 + kIsSymmetric) ),
-		Ny	= FFTSize( hs, hk / (1 + kIsSymmetric) ),
-		Nxy	= Nx * Ny,
-		M	= Ny*(Nx/2+1);
+    int	Ns	= ws * hs,
+        Nk	= wk * hk,
+        Nx	= FFTSize( ws, wk / (1 + kIsSymmetric) ),
+        Ny	= FFTSize( hs, hk / (1 + kIsSymmetric) ),
+        Nxy	= Nx * Ny,
+        M	= Ny*(Nx/2+1);
 
 // Prepare K fft
 
-	if( kfft.size() != M ) {
+    if( kfft.size() != M ) {
 
-		// workspace image
-		vector<double>	KK( Nxy, 0.0 );
-		double			nrm = 1.0;
+        // workspace image
+        vector<double>	KK( Nxy, 0.0 );
+        double			nrm = 1.0;
 
-		// normalization
-		if( preNormK ) {
+        // normalization
+        if( preNormK ) {
 
-			nrm = 0.0;
+            nrm = 0.0;
 
-			for( int i = 0; i < Nk; ++i )
-				nrm += K[i];
+            for( int i = 0; i < Nk; ++i )
+                nrm += K[i];
 
-			if( !nrm )
-				nrm = 1.0;
-		}
+            if( !nrm )
+                nrm = 1.0;
+        }
 
-		// load workspace
-		int	w2 = wk / 2,
-			h2 = hk / 2;
+        // load workspace
+        int	w2 = wk / 2,
+            h2 = hk / 2;
 
-		for( int i = -h2; i <= h2; ++i ) {
+        for( int i = -h2; i <= h2; ++i ) {
 
-			int	y = (i >= 0 ? i : Ny + i);
+            int	y = (i >= 0 ? i : Ny + i);
 
-			for( int j = -w2; j <= w2; ++j ) {
+            for( int j = -w2; j <= w2; ++j ) {
 
-				int	x = (j >= 0 ? j : Nx + j);
+                int	x = (j >= 0 ? j : Nx + j);
 
-				KK[x + Nx*y] = K[j+w2 + wk*(i+h2)] / nrm;
-			}
-		}
+                KK[x + Nx*y] = K[j+w2 + wk*(i+h2)] / nrm;
+            }
+        }
 
-		// FFT
-		FFT_2D( kfft, KK, Nx, Ny, false, flog );
-	}
+        // FFT
+        FFT_2D( kfft, KK, Nx, Ny, false, flog );
+    }
 
 // Prepare src fft
 
-	vector<double>	SS( Nxy, 0.0 );
-	vector<CD>		sfft;
+    vector<double>	SS( Nxy, 0.0 );
+    vector<CD>		sfft;
 
-	CopyRaster( &SS[0], Nx, &src[0], ws, ws, hs );
+    CopyRaster( &SS[0], Nx, &src[0], ws, ws, hs );
 
-	FFT_2D( sfft, SS, Nx, Ny, false, flog );
+    FFT_2D( sfft, SS, Nx, Ny, false, flog );
 
 // Convolve
 
-	for( int i = 0; i < M; ++i )
-		sfft[i] *= kfft[i];
+    for( int i = 0; i < M; ++i )
+        sfft[i] *= kfft[i];
 
-	IFT_2D( SS, sfft, Nx, Ny, flog );
+    IFT_2D( SS, sfft, Nx, Ny, flog );
 
 // Copy back
 
-	dst.resize( Ns );
+    dst.resize( Ns );
 
-	CopyRaster( &dst[0], ws, &SS[0], Nx, ws, hs );
+    CopyRaster( &dst[0], ws, &SS[0], Nx, ws, hs );
 
 // Normalize
 
-	for( int i = 0; i < Ns; ++i )
-		dst[i] /= Nxy;
+    for( int i = 0; i < Ns; ++i )
+        dst[i] /= Nxy;
 }
 
 /* --------------------------------------------------------------- */
@@ -480,40 +480,40 @@ void Convolve(
 // of the sampling distance.
 //
 void ParabPeakFFT(
-	double			&xpk,
-	double			&ypk,
-	int				d,
-	const double	*I,
-	int				nx,
-	int				ny )
+    double			&xpk,
+    double			&ypk,
+    int				d,
+    const double	*I,
+    int				nx,
+    int				ny )
 {
-	int		ix = (int)xpk,
-			iy = (int)ypk;
-	double	z1 = LkFFT( I, nx, ny, ix, iy ),
-			z0,
-			z2;
+    int		ix = (int)xpk,
+            iy = (int)ypk;
+    double	z1 = LkFFT( I, nx, ny, ix, iy ),
+            z0,
+            z2;
 
-	if( ix - d >= 0 &&
-		ix + d < nx &&
-		(z0 = LkFFT( I, nx, ny, ix - d, iy )) &&
-		(z2 = LkFFT( I, nx, ny, ix + d, iy )) ) {
+    if( ix - d >= 0 &&
+        ix + d < nx &&
+        (z0 = LkFFT( I, nx, ny, ix - d, iy )) &&
+        (z2 = LkFFT( I, nx, ny, ix + d, iy )) ) {
 
-		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+        z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
-		if( fabs( z0 ) <= 8 * d )
-			xpk += z0;
-	}
+        if( fabs( z0 ) <= 8 * d )
+            xpk += z0;
+    }
 
-	if( iy - d >= 0 &&
-		iy + d < ny &&
-		(z0 = LkFFT( I, nx, ny, ix, iy - d )) &&
-		(z2 = LkFFT( I, nx, ny, ix, iy + d )) ) {
+    if( iy - d >= 0 &&
+        iy + d < ny &&
+        (z0 = LkFFT( I, nx, ny, ix, iy - d )) &&
+        (z2 = LkFFT( I, nx, ny, ix, iy + d )) ) {
 
-		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+        z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
-		if( fabs( z0 ) <= 8 * d )
-			ypk += z0;
-	}
+        if( fabs( z0 ) <= 8 * d )
+            ypk += z0;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -521,43 +521,43 @@ void ParabPeakFFT(
 /* --------------------------------------------------------------- */
 
 void PrintCorLandscape(
-	double			biggest,
-	int				bigx,
-	int				bigy,
-	int				Ox,
-	int				Oy,
-	int				radius,
-	int				lim,
-	int				step,
-	const double	*I,
-	int				nx,
-	int				ny,
-	double			norm,
-	FILE			*flog )
+    double			biggest,
+    int				bigx,
+    int				bigy,
+    int				Ox,
+    int				Oy,
+    int				radius,
+    int				lim,
+    int				step,
+    const double	*I,
+    int				nx,
+    int				ny,
+    double			norm,
+    FILE			*flog )
 {
-	fprintf( flog,
-		"Landscape: Max %f at (%d, %d); Ox Oy radius = %d %d %d\n",
-		biggest, bigx, bigy, Ox, Oy, radius );
+    fprintf( flog,
+        "Landscape: Max %f at (%d, %d); Ox Oy radius = %d %d %d\n",
+        biggest, bigx, bigy, Ox, Oy, radius );
 
-	for( int iy = -lim; iy <= lim; iy += step ) {
+    for( int iy = -lim; iy <= lim; iy += step ) {
 
-		int	ay = bigy + iy;
+        int	ay = bigy + iy;
 
-		if( ay < 0 )
-			ay += ny;
+        if( ay < 0 )
+            ay += ny;
 
-		for( int ix = -lim; ix <= lim; ix += step ) {
+        for( int ix = -lim; ix <= lim; ix += step ) {
 
-			int	ax = bigx + ix;
+            int	ax = bigx + ix;
 
-			if( ax < 0 )
-				ax += nx;
+            if( ax < 0 )
+                ax += nx;
 
-			fprintf( flog, "%12.6f ", I[ax + nx*ay]/norm );
-		}
+            fprintf( flog, "%12.6f ", I[ax + nx*ay]/norm );
+        }
 
-		fprintf( flog, "\n" );
-	}
+        fprintf( flog, "\n" );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -567,22 +567,22 @@ void PrintCorLandscape(
 // Return linear correlation coefficient.
 //
 double RVectors(
-	const vector<double>	&a,
-	const vector<double>	&b )
+    const vector<double>	&a,
+    const vector<double>	&b )
 {
-	double	A = 0.0, B = 0.0, AA = 0.0, BB = 0.0, AB = 0.0;
-	int		n = a.size();
+    double	A = 0.0, B = 0.0, AA = 0.0, BB = 0.0, AB = 0.0;
+    int		n = a.size();
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		A	+= a[i];
-		B	+= b[i];
-		AA	+= a[i] * a[i];
-		BB	+= b[i] * b[i];
-		AB	+= a[i] * b[i];
-	}
+        A	+= a[i];
+        B	+= b[i];
+        AA	+= a[i] * a[i];
+        BB	+= b[i] * b[i];
+        AB	+= a[i] * b[i];
+    }
 
-	return (n*AB - A*B) / sqrt( (n*AA - A*A) * (n*BB - B*B) );
+    return (n*AB - A*B) / sqrt( (n*AA - A*A) * (n*BB - B*B) );
 }
 
 /* --------------------------------------------------------------- */
@@ -592,171 +592,171 @@ double RVectors(
 class CLinCorr {
 
 private:
-	vector<double>	I1,    I2,
-					i1sum, i1sum2,
-					i2sum, i2sum2;
-	vector<int>		i1nz,  i2nz;
-	FILE			*flog;
-	int				w1,  h1,
-					w2,  h2,
-					Nx,  Nxy;
-	IBox			OL1, OL2;
-	double*			rslt;
-	int				ir,
-					dx,  dy,
-					olw, olh,
-					i1c, i2c;
+    vector<double>	I1,    I2,
+                    i1sum, i1sum2,
+                    i2sum, i2sum2;
+    vector<int>		i1nz,  i2nz;
+    FILE			*flog;
+    int				w1,  h1,
+                    w2,  h2,
+                    Nx,  Nxy;
+    IBox			OL1, OL2;
+    double*			rslt;
+    int				ir,
+                    dx,  dy,
+                    olw, olh,
+                    i1c, i2c;
 
 public:
-	void Initialize(
-		FILE					*flog,
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny );
+    void Initialize(
+        FILE					*flog,
+        const vector<double>	&I1,
+        int						w1,
+        int						h1,
+        const vector<double>	&I2,
+        int						w2,
+        int						h2,
+        int						Nx,
+        int						Ny );
 
-	int CheckSize(
-		vector<double>	&rslt,
-		int				irslt,
-		EvalType		LegalRgn,
-		void*			arglr,
-		int				dx,
-		int				dy );
+    int CheckSize(
+        vector<double>	&rslt,
+        int				irslt,
+        EvalType		LegalRgn,
+        void*			arglr,
+        int				dx,
+        int				dy );
 
-	int CheckDensity(
-		EvalType		LegalCnt,
-		void*			arglc );
+    int CheckDensity(
+        EvalType		LegalCnt,
+        void*			arglc );
 
-	double GetCorr();
-	int    SizeIndex();
+    double GetCorr();
+    int    SizeIndex();
 };
 
 
 void CLinCorr::Initialize(
-		FILE					*flog,
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny )
+        FILE					*flog,
+        const vector<double>	&I1,
+        int						w1,
+        int						h1,
+        const vector<double>	&I2,
+        int						w2,
+        int						h2,
+        int						Nx,
+        int						Ny )
 {
-	this->I1	= I1;
-	this->I2	= I2;
-	this->flog	= flog;
-	this->w1	= w1;
-	this->h1	= h1;
-	this->w2	= w2;
-	this->h2	= h2;
-	this->Nx	= Nx;
-	Nxy			= Nx * Ny;
+    this->I1	= I1;
+    this->I2	= I2;
+    this->flog	= flog;
+    this->w1	= w1;
+    this->h1	= h1;
+    this->w2	= w2;
+    this->h2	= h2;
+    this->Nx	= Nx;
+    Nxy			= Nx * Ny;
 
-	IntegrateImage( i1sum, i1sum2, i1nz, w1, h1, I1, Nx );
-	IntegrateImage( i2sum, i2sum2, i2nz, w2, h2, I2, Nx );
+    IntegrateImage( i1sum, i1sum2, i1nz, w1, h1, I1, Nx );
+    IntegrateImage( i2sum, i2sum2, i2nz, w2, h2, I2, Nx );
 }
 
 
 int CLinCorr::CheckSize(
-	vector<double>	&rslt,
-	int				irslt,
-	EvalType		LegalRgn,
-	void*			arglr,
-	int				dx,
-	int				dy )
+    vector<double>	&rslt,
+    int				irslt,
+    EvalType		LegalRgn,
+    void*			arglr,
+    int				dx,
+    int				dy )
 {
-	int		ok = true;
+    int		ok = true;
 
-	this->rslt	= &rslt[0];
-	ir			= irslt;
-	this->dx	= dx;
-	this->dy	= dy;
+    this->rslt	= &rslt[0];
+    ir			= irslt;
+    this->dx	= dx;
+    this->dy	= dy;
 
-	BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
+    BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
 
 // Large enough overlap?
 
-	olw = OL1.R - OL1.L + 1;
-	olh = OL1.T - OL1.B + 1;
+    olw = OL1.R - OL1.L + 1;
+    olh = OL1.T - OL1.B + 1;
 
-	if( LegalRgn && !LegalRgn( olw, olh, arglr ) ) {
+    if( LegalRgn && !LegalRgn( olw, olh, arglr ) ) {
 
-		rslt[ir]	= 0.0;
-		ok			= false;
-	}
+        rslt[ir]	= 0.0;
+        ok			= false;
+    }
 
-	return ok;
+    return ok;
 }
 
 
 int CLinCorr::CheckDensity(
-	EvalType		LegalCnt,
-	void*			arglc )
+    EvalType		LegalCnt,
+    void*			arglc )
 {
-	int		ok = true;
+    int		ok = true;
 
-	i1c = IntegralTable( i1nz, w1, OL1 );
-	i2c = IntegralTable( i2nz, w2, OL2 );
+    i1c = IntegralTable( i1nz, w1, OL1 );
+    i2c = IntegralTable( i2nz, w2, OL2 );
 
-	if( LegalCnt && !LegalCnt( i1c, i2c, arglc ) ) {
+    if( LegalCnt && !LegalCnt( i1c, i2c, arglc ) ) {
 
-		rslt[ir]	= 0.0;
-		ok			= false;
-	}
+        rslt[ir]	= 0.0;
+        ok			= false;
+    }
 
-	return ok;
+    return ok;
 }
 
 
 double CLinCorr::GetCorr()
 {
-	double	n = olw * olh;
+    double	n = olw * olh;
 
-	double	im1sum	= IntegralTable( i1sum,  w1, OL1 );
-	double	im1sum2	= IntegralTable( i1sum2, w1, OL1 );
-	double	im2sum	= IntegralTable( i2sum,  w2, OL2 );
-	double	im2sum2	= IntegralTable( i2sum2, w2, OL2 );
+    double	im1sum	= IntegralTable( i1sum,  w1, OL1 );
+    double	im1sum2	= IntegralTable( i1sum2, w1, OL1 );
+    double	im2sum	= IntegralTable( i2sum,  w2, OL2 );
+    double	im2sum2	= IntegralTable( i2sum2, w2, OL2 );
 
-	double	num	= n * rslt[ir] / Nxy - im1sum * im2sum;
-	double	d1	= n * im1sum2 - im1sum * im1sum;
-	double	d2	= n * im2sum2 - im2sum * im2sum;
-	double	d	= d1 * d2;
-	double	r	= (d < n * n * 1.0E-9 ? 0.0 : num / sqrt( d ));
+    double	num	= n * rslt[ir] / Nxy - im1sum * im2sum;
+    double	d1	= n * im1sum2 - im1sum * im1sum;
+    double	d2	= n * im2sum2 - im2sum * im2sum;
+    double	d	= d1 * d2;
+    double	r	= (d < n * n * 1.0E-9 ? 0.0 : num / sqrt( d ));
 
-	if( abs( r ) > 1.0001 ) {
+    if( abs( r ) > 1.0001 ) {
 
-		fprintf( flog,
-		"NormCorr: Very odd - ir=%d rslt[i]=%f olap_area=%ld\n",
-		ir, r, (long)n );
+        fprintf( flog,
+        "NormCorr: Very odd - ir=%d rslt[i]=%f olap_area=%ld\n",
+        ir, r, (long)n );
 
-		fprintf( flog,
-		"NormCorr: shift %d %d, i1 (%d %d) to (%d %d),"
-		" i2 (%d %d) to (%d %d).\n",
-		dx, dy,
-		OL1.L, OL1.B, OL1.R, OL1.T,
-		OL2.L, OL2.B, OL2.R, OL2.T );
+        fprintf( flog,
+        "NormCorr: shift %d %d, i1 (%d %d) to (%d %d),"
+        " i2 (%d %d) to (%d %d).\n",
+        dx, dy,
+        OL1.L, OL1.B, OL1.R, OL1.T,
+        OL2.L, OL2.B, OL2.R, OL2.T );
 
-		fprintf( flog,
-		"NormCorr: sums:      %f %f %f %f\n"
-		"NormCorr: num d1 d2: %f %f %f\n",
-		im1sum, im1sum2, im2sum, im2sum2, num, d1, d2 );
+        fprintf( flog,
+        "NormCorr: sums:      %f %f %f %f\n"
+        "NormCorr: num d1 d2: %f %f %f\n",
+        im1sum, im1sum2, im2sum, im2sum2, num, d1, d2 );
 
-		DebugLinearCorr( flog, I1, I2, Nx, OL1, OL2 );
-		exit(44);
-	}
+        DebugLinearCorr( flog, I1, I2, Nx, OL1, OL2 );
+        exit(44);
+    }
 
-	return rslt[ir] = r;
+    return rslt[ir] = r;
 }
 
 
 int CLinCorr::SizeIndex()
 {
-	return (int)(10.0 * log( max( 1, min(i1c,i2c) ) ));
+    return (int)(10.0 * log( max( 1, min(i1c,i2c) ) ));
 }
 
 /* --------------------------------------------------------------- */
@@ -766,124 +766,124 @@ int CLinCorr::SizeIndex()
 class CCrossCorr {
 
 private:
-	vector<int>		i1nz,  i2nz;
-	int				w1,  h1,
-					w2,  h2,
-					Nxy;
-	IBox			OL1, OL2;
-	double*			rslt;
-	int				ir,
-					i1c, i2c;
+    vector<int>		i1nz,  i2nz;
+    int				w1,  h1,
+                    w2,  h2,
+                    Nxy;
+    IBox			OL1, OL2;
+    double*			rslt;
+    int				ir,
+                    i1c, i2c;
 
 public:
-	void Initialize(
-		FILE					*flog,
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny );
+    void Initialize(
+        FILE					*flog,
+        const vector<double>	&I1,
+        int						w1,
+        int						h1,
+        const vector<double>	&I2,
+        int						w2,
+        int						h2,
+        int						Nx,
+        int						Ny );
 
-	int CheckSize(
-		vector<double>	&rslt,
-		int				irslt,
-		EvalType		LegalRgn,
-		void*			arglr,
-		int				dx,
-		int				dy );
+    int CheckSize(
+        vector<double>	&rslt,
+        int				irslt,
+        EvalType		LegalRgn,
+        void*			arglr,
+        int				dx,
+        int				dy );
 
-	int CheckDensity(
-		EvalType		LegalCnt,
-		void*			arglc );
+    int CheckDensity(
+        EvalType		LegalCnt,
+        void*			arglc );
 
-	double GetCorr();
-	int    SizeIndex();
+    double GetCorr();
+    int    SizeIndex();
 };
 
 
 void CCrossCorr::Initialize(
-		FILE					*flog,
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny )
+        FILE					*flog,
+        const vector<double>	&I1,
+        int						w1,
+        int						h1,
+        const vector<double>	&I2,
+        int						w2,
+        int						h2,
+        int						Nx,
+        int						Ny )
 {
-	this->w1	= w1;
-	this->h1	= h1;
-	this->w2	= w2;
-	this->h2	= h2;
-	Nxy			= Nx * Ny;
+    this->w1	= w1;
+    this->h1	= h1;
+    this->w2	= w2;
+    this->h2	= h2;
+    Nxy			= Nx * Ny;
 
-	IntegrateImage( i1nz, w1, h1, I1, Nx );
-	IntegrateImage( i2nz, w2, h2, I2, Nx );
+    IntegrateImage( i1nz, w1, h1, I1, Nx );
+    IntegrateImage( i2nz, w2, h2, I2, Nx );
 }
 
 
 int CCrossCorr::CheckSize(
-	vector<double>	&rslt,
-	int				irslt,
-	EvalType		LegalRgn,
-	void*			arglr,
-	int				dx,
-	int				dy )
+    vector<double>	&rslt,
+    int				irslt,
+    EvalType		LegalRgn,
+    void*			arglr,
+    int				dx,
+    int				dy )
 {
-	int		olw, olh, ok = true;
+    int		olw, olh, ok = true;
 
-	this->rslt	= &rslt[0];
-	ir			= irslt;
+    this->rslt	= &rslt[0];
+    ir			= irslt;
 
-	BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
+    BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
 
 // Large enough overlap?
 
-	olw = OL1.R - OL1.L + 1;
-	olh = OL1.T - OL1.B + 1;
+    olw = OL1.R - OL1.L + 1;
+    olh = OL1.T - OL1.B + 1;
 
-	if( LegalRgn && !LegalRgn( olw, olh, arglr ) ) {
+    if( LegalRgn && !LegalRgn( olw, olh, arglr ) ) {
 
-		rslt[ir]	= 0.0;
-		ok			= false;
-	}
+        rslt[ir]	= 0.0;
+        ok			= false;
+    }
 
-	return ok;
+    return ok;
 }
 
 
 int CCrossCorr::CheckDensity(
-	EvalType		LegalCnt,
-	void*			arglc )
+    EvalType		LegalCnt,
+    void*			arglc )
 {
-	int		ok = true;
+    int		ok = true;
 
-	i1c = IntegralTable( i1nz, w1, OL1 );
-	i2c = IntegralTable( i2nz, w2, OL2 );
+    i1c = IntegralTable( i1nz, w1, OL1 );
+    i2c = IntegralTable( i2nz, w2, OL2 );
 
-	if( LegalCnt && !LegalCnt( i1c, i2c, arglc ) ) {
+    if( LegalCnt && !LegalCnt( i1c, i2c, arglc ) ) {
 
-		rslt[ir]	= 0.0;
-		ok			= false;
-	}
+        rslt[ir]	= 0.0;
+        ok			= false;
+    }
 
-	return ok;
+    return ok;
 }
 
 
 double CCrossCorr::GetCorr()
 {
-	return rslt[ir] /= (double)Nxy * i1c;
+    return rslt[ir] /= (double)Nxy * i1c;
 }
 
 
 int CCrossCorr::SizeIndex()
 {
-	return (int)(10.0 * log( max( 1, min(i1c,i2c) ) ));
+    return (int)(10.0 * log( max( 1, min(i1c,i2c) ) ));
 }
 
 /* --------------------------------------------------------------- */
@@ -899,274 +899,274 @@ int CCrossCorr::SizeIndex()
 // the correct size it is used. Otherwise recomputed here.
 //
 double CorrPatches(
-	FILE					*flog,
-	int						verbose,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	int						Ox,
-	int						Oy,
-	int						radius,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	vector<CD>				&fft2 )
+    FILE					*flog,
+    int						verbose,
+    double					&dx,
+    double					&dy,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<Point>		&ip2,
+    const vector<double>	&iv2,
+    int						Ox,
+    int						Oy,
+    int						radius,
+    EvalType				LegalRgn,
+    void*					arglr,
+    EvalType				LegalCnt,
+    void*					arglc,
+    vector<CD>				&fft2 )
 {
 // Bounding boxes of point lists
 
-	IBox	B1, B2;
-	int		w1, h1, w2, h2;
+    IBox	B1, B2;
+    int		w1, h1, w2, h2;
 
-	BBoxFromPoints( B1, ip1 );
-	BBoxFromPoints( B2, ip2 );
+    BBoxFromPoints( B1, ip1 );
+    BBoxFromPoints( B2, ip2 );
 
-	w1 = B1.R - B1.L + 1;
-	h1 = B1.T - B1.B + 1;
+    w1 = B1.R - B1.L + 1;
+    h1 = B1.T - B1.B + 1;
 
-	w2 = B2.R - B2.L + 1;
-	h2 = B2.T - B2.B + 1;
+    w2 = B2.R - B2.L + 1;
+    h2 = B2.T - B2.B + 1;
 
-	if( verbose ) {
+    if( verbose ) {
 
-		fprintf( flog,
-		"NormCorr: region size is [%d %d] in x, [%d %d] in y.\n",
-		B1.L, B1.R, B1.B, B1.T );
+        fprintf( flog,
+        "NormCorr: region size is [%d %d] in x, [%d %d] in y.\n",
+        B1.L, B1.R, B1.B, B1.T );
 
-		fprintf( flog,
-		"NormCorr: target size is [%d %d] in x, [%d %d] in y.\n",
-		B2.L, B2.R, B2.B, B2.T );
-	}
+        fprintf( flog,
+        "NormCorr: target size is [%d %d] in x, [%d %d] in y.\n",
+        B2.L, B2.R, B2.B, B2.T );
+    }
 
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	Nx	= FFTSize( w1, w2 ),
-		Ny	= FFTSize( h1, h2 ),
-		M	= Ny*(Nx/2+1);
+    int	Nx	= FFTSize( w1, w2 ),
+        Ny	= FFTSize( h1, h2 ),
+        M	= Ny*(Nx/2+1);
 
-	if( verbose )
-		fprintf( flog, "NormCorr: Nx = %d, Ny = %d\n", Nx, Ny );
+    if( verbose )
+        fprintf( flog, "NormCorr: Nx = %d, Ny = %d\n", Nx, Ny );
 
 // Create images from point lists.
 
-	vector<double>	i1, i2;
+    vector<double>	i1, i2;
 
-	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
-	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
+    ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
+    ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
 
 // FFTs and lags
 
-	vector<double>	rslt;
-	vector<CD>		fft1;
+    vector<double>	rslt;
+    vector<CD>		fft1;
 
 #ifdef ALN_USE_MKL
 
-	vector<CD>	_fft2;
+    vector<CD>	_fft2;
 
-	FFT_2D( _fft2, i2, Nx, Ny, false, flog );
-	FFT_2D( fft1, i1, Nx, Ny, false, flog );
+    FFT_2D( _fft2, i2, Nx, Ny, false, flog );
+    FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
-	for( int i = 0; i < M; ++i )
-		fft1[i] = _fft2[i] * conj( fft1[i] );
+    for( int i = 0; i < M; ++i )
+        fft1[i] = _fft2[i] * conj( fft1[i] );
 
 #else
 
-	FFT_2D( fft2, i2, Nx, Ny, true, flog );
-	FFT_2D( fft1, i1, Nx, Ny, false, flog );
+    FFT_2D( fft2, i2, Nx, Ny, true, flog );
+    FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
-	pthread_mutex_lock( &mutex_fft );
+    pthread_mutex_lock( &mutex_fft );
 
-	for( int i = 0; i < M; ++i )
-		fft1[i] = fft2[i] * conj( fft1[i] );
+    for( int i = 0; i < M; ++i )
+        fft1[i] = fft2[i] * conj( fft1[i] );
 
-	pthread_mutex_unlock( &mutex_fft );
+    pthread_mutex_unlock( &mutex_fft );
 
 #endif
 
-	IFT_2D( rslt, fft1, Nx, Ny, flog );
+    IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 // Create array indexed by 'size': int( 10 * log( overlap_size ) ).
 // Each element contains the best rslt[i] at that size index.
 // The idea is to look for correlation peaks that are nearly
 // as good as the best, but that derive from larger overlaps.
 
-	int lmax = (int)(10.0*log(double(Nx*Ny))) + 1;
-	vector<double>	max_by_size( lmax, 0.0 );
+    int lmax = (int)(10.0*log(double(Nx*Ny))) + 1;
+    vector<double>	max_by_size( lmax, 0.0 );
 
 // Prepare correlation calculator
 
-	CLinCorr	ccalc;	// uses Pearson's r
+    CLinCorr	ccalc;	// uses Pearson's r
 //	CCrossCorr	ccalc;	// uses 1/n * SUM(a*b)
 
-	ccalc.Initialize( flog, i1, w1, h1, i2, w2, h2, Nx, Ny );
+    ccalc.Initialize( flog, i1, w1, h1, i2, w2, h2, Nx, Ny );
 
 // Now for the conventional biggest
 
-	double	biggest	= -1.0E30;
-	int		bigx	= -1,
-			bigy	= -1,
-			nnegx	= w1 - 1,
-			nnegy	= h1 - 1,
-			nposx	= w2,
-			nposy	= h2,
-			rsqr	= radius * radius;
+    double	biggest	= -1.0E30;
+    int		bigx	= -1,
+            bigy	= -1,
+            nnegx	= w1 - 1,
+            nnegy	= h1 - 1,
+            nposx	= w2,
+            nposy	= h2,
+            rsqr	= radius * radius;
 
-	for( int iy = 0; iy < Ny; ++iy ) {
+    for( int iy = 0; iy < Ny; ++iy ) {
 
-		int	dy, y = iy;
+        int	dy, y = iy;
 
-		if( y >= Ny - nnegy )	// negative zone
-			y -= Ny;
-		else if( y >= nposy ) {	// dead zone
-			memset( &rslt[Nx*iy], 0, Nx*sizeof(double) );
-			continue;
-		}
+        if( y >= Ny - nnegy )	// negative zone
+            y -= Ny;
+        else if( y >= nposy ) {	// dead zone
+            memset( &rslt[Nx*iy], 0, Nx*sizeof(double) );
+            continue;
+        }
 
-		dy = y - Oy;
+        dy = y - Oy;
 
-		for( int ix = 0; ix < Nx; ++ix ) {
+        for( int ix = 0; ix < Nx; ++ix ) {
 
-			int	dx, x = ix, i = ix+Nx*iy;
+            int	dx, x = ix, i = ix+Nx*iy;
 
-			if( x >= Nx - nnegx )	// negative zone
-				x -= Nx;
-			else if( x >= nposx )	// dead zone
-				goto skip;
+            if( x >= Nx - nnegx )	// negative zone
+                x -= Nx;
+            else if( x >= nposx )	// dead zone
+                goto skip;
 
-			dx = x - Ox;
+            dx = x - Ox;
 
-			if( dx*dx + dy*dy > rsqr ) {
+            if( dx*dx + dy*dy > rsqr ) {
 skip:
-				rslt[i] = 0.0;
-				continue;
-			}
+                rslt[i] = 0.0;
+                continue;
+            }
 
-			// Linear correlation coeff for pixel {x, y}
+            // Linear correlation coeff for pixel {x, y}
 
-			if( !ccalc.CheckSize( rslt, i, LegalRgn, arglr, x, y ) )
-				continue;
+            if( !ccalc.CheckSize( rslt, i, LegalRgn, arglr, x, y ) )
+                continue;
 
-			if( !ccalc.CheckDensity( LegalCnt, arglc ) )
-				continue;
+            if( !ccalc.CheckDensity( LegalCnt, arglc ) )
+                continue;
 
-			double	r = ccalc.GetCorr();
+            double	r = ccalc.GetCorr();
 
-			if( r > biggest ) {
-				biggest	= r;
-				bigx	= x;
-				bigy	= y;
-			}
+            if( r > biggest ) {
+                biggest	= r;
+                bigx	= x;
+                bigy	= y;
+            }
 
-			// Update max_by_size
+            // Update max_by_size
 
-			int im = ccalc.SizeIndex();
+            int im = ccalc.SizeIndex();
 
-			if( r > max_by_size[im] )
-				max_by_size[im] = r;
-		}
-	}
+            if( r > max_by_size[im] )
+                max_by_size[im] = r;
+        }
+    }
 
 // Reports
 
-	if( biggest < -2.0 ) {
+    if( biggest < -2.0 ) {
 
-		if( verbose ) {
+        if( verbose ) {
 
-			fprintf( flog,
-			"NormCorr: No legal subregions at all...\n" );
+            fprintf( flog,
+            "NormCorr: No legal subregions at all...\n" );
 
-			fprintf( flog,
-			"NormCorr: Maximum correlation of %f at [%d,%d].\n",
-			0.0, 0, 0 );
-		}
+            fprintf( flog,
+            "NormCorr: Maximum correlation of %f at [%d,%d].\n",
+            0.0, 0, 0 );
+        }
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	if( verbose ) {
+    if( verbose ) {
 
-		PrintCorLandscape( biggest, bigx, bigy, Ox, Oy, radius,
-		3, 1, &rslt[0], Nx, Ny, 1.0, flog );
+        PrintCorLandscape( biggest, bigx, bigy, Ox, Oy, radius,
+        3, 1, &rslt[0], Nx, Ny, 1.0, flog );
 
-		fprintf( flog, "----v-center-v---\n" );
-		PrintCorLandscape( biggest, 32, 32, Ox, Oy, radius,
-		3, 1, &rslt[0], Nx, Ny, 1.0, flog );
-	}
+        fprintf( flog, "----v-center-v---\n" );
+        PrintCorLandscape( biggest, 32, 32, Ox, Oy, radius,
+        3, 1, &rslt[0], Nx, Ny, 1.0, flog );
+    }
 
 // For debugging, print the results of correlation by region size.
 // If we find a larger region with a correlation almost as good,
 // that's potentially a better match.
 
-	double	bc		= -10.0;		// biggest correlation
-	int		we		= 0;			// which entry had it?
-	int		nmax	= max_by_size.size();
+    double	bc		= -10.0;		// biggest correlation
+    int		we		= 0;			// which entry had it?
+    int		nmax	= max_by_size.size();
 
-	for( int i = 0; i < nmax; ++i ) {
+    for( int i = 0; i < nmax; ++i ) {
 
-		if( max_by_size[i] > bc ) {
+        if( max_by_size[i] > bc ) {
 
-			bc = max_by_size[i];
-			we = i;
-		}
-	}
+            bc = max_by_size[i];
+            we = i;
+        }
+    }
 
 // Now print the entries with bigger size and comparable correlation
 // Mpy by 64 to get into pixel counts in the 2K working image.
 
-	double PT = 0.8 * bc;	// Print threshold
+    double PT = 0.8 * bc;	// Print threshold
 
-	for( int i = we + 1; i < nmax; ++i ) {
+    for( int i = we + 1; i < nmax; ++i ) {
 
-		if( max_by_size[i] >= PT ) {
+        if( max_by_size[i] >= PT ) {
 
-			int i1 = (int)ceil(  64.0 * exp( i/10.0 ) );
-			int i2 = (int)floor( 64.0 * exp( (i+1)/10.0 ) );
+            int i1 = (int)ceil(  64.0 * exp( i/10.0 ) );
+            int i2 = (int)floor( 64.0 * exp( (i+1)/10.0 ) );
 
-			fprintf( flog,
-			"NormCorr: Possible bigger area match:"
-			" %8d - %8d : %8.2f\n", i1, i2, max_by_size[i] );
-		}
-	}
+            fprintf( flog,
+            "NormCorr: Possible bigger area match:"
+            " %8d - %8d : %8.2f\n", i1, i2, max_by_size[i] );
+        }
+    }
 
-	fprintf( flog,
-	"NormCorr: Maximum correlation of %f at [%d,%d].\n",
-	biggest, bigx, bigy );
+    fprintf( flog,
+    "NormCorr: Maximum correlation of %f at [%d,%d].\n",
+    biggest, bigx, bigy );
 
 // Local peak test
 
 #if 0
-	double limit = 0.9 * biggest;
+    double limit = 0.9 * biggest;
 
-	for( int x = -w1 + 1; x < w2 - 1; ++x ) {
-		for( int y = -h1 + 1; y < h2 - 1; ++y ) {
-			double a = LkFFT( rslt, Nx, Ny, x, y );
-			if( a > limit &&
-				a > LkFFT( rslt, Nx, Ny, x-1, y ) &&
-				a > LkFFT( rslt, Nx, Ny, x+1, y ) &&
-				a > LkFFT( rslt, Nx, Ny, x, y-1 ) &&
-				a > LkFFT( rslt, Nx, Ny, x, y+1 ) ) {
+    for( int x = -w1 + 1; x < w2 - 1; ++x ) {
+        for( int y = -h1 + 1; y < h2 - 1; ++y ) {
+            double a = LkFFT( rslt, Nx, Ny, x, y );
+            if( a > limit &&
+                a > LkFFT( rslt, Nx, Ny, x-1, y ) &&
+                a > LkFFT( rslt, Nx, Ny, x+1, y ) &&
+                a > LkFFT( rslt, Nx, Ny, x, y-1 ) &&
+                a > LkFFT( rslt, Nx, Ny, x, y+1 ) ) {
 
-				fprintf( flog,
-				"NormCorr: Local max at %d %d, value %f\n",
-				x, y, a );
-			}
-		}
-	}
+                fprintf( flog,
+                "NormCorr: Local max at %d %d, value %f\n",
+                x, y, a );
+            }
+        }
+    }
 #endif
 
 // Interpolate peak
 
-	dx = bigx;
-	dy = bigy;
-	ParabPeakFFT( dx, dy, 1, &rslt[0], Nx, Ny );
+    dx = bigx;
+    dy = bigy;
+    ParabPeakFFT( dx, dy, 1, &rslt[0], Nx, Ny );
 
-	dx += B2.L - B1.L;
-	dy += B2.B - B1.B;
+    dx += B2.L - B1.L;
+    dy += B2.B - B1.B;
 
-	return biggest;
+    return biggest;
 }
 
 /* --------------------------------------------------------------- */
@@ -1184,174 +1184,174 @@ skip:
 // insection areas is unreliable. CorrPatches is preferred.
 //
 double CorrPatchToImage(
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<double>	&i2,
-	int						Ox,
-	int						Oy,
-	int						radius,
-	bool					bFilter )
+    double					&dx,
+    double					&dy,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<double>	&i2,
+    int						Ox,
+    int						Oy,
+    int						radius,
+    bool					bFilter )
 {
-	int		Nsqr	= i2.size(),
-			np1		= ip1.size(),
-			N		= (int)sqrt( Nsqr ),
-			i, M;
-	double	norm	= (double)np1 * Nsqr;
+    int		Nsqr	= i2.size(),
+            np1		= ip1.size(),
+            N		= (int)sqrt( Nsqr ),
+            i, M;
+    double	norm	= (double)np1 * Nsqr;
 
 // Bounding box of ip1
 
-	IBox	B1;
-	int		w1, h1;
+    IBox	B1;
+    int		w1, h1;
 
-	BBoxFromPoints( B1, ip1 );
+    BBoxFromPoints( B1, ip1 );
 
-	w1 = B1.R - B1.L + 1;
-	h1 = B1.T - B1.B + 1;
+    w1 = B1.R - B1.L + 1;
+    h1 = B1.T - B1.B + 1;
 
 // Effective {w2,h2} of caller-embedded i2 data
 
-	int		w2 = 0, h2 = 0;
+    int		w2 = 0, h2 = 0;
 
-	for( i = 0; i < Nsqr; ++i ) {
+    for( i = 0; i < Nsqr; ++i ) {
 
-		if( i2[i] != 0.0 ) {
+        if( i2[i] != 0.0 ) {
 
-			int	y = i / N;
-			int	x = i - N * y;
+            int	y = i / N;
+            int	x = i - N * y;
 
-			if( y > h2 )
-				h2 = y;
+            if( y > h2 )
+                h2 = y;
 
-			if( x > w2 )
-				w2 = x;
-		}
-	}
+            if( x > w2 )
+                w2 = x;
+        }
+    }
 
-	++w2;
-	++h2;
+    ++w2;
+    ++h2;
 
 // Image1 from point list
 
-	vector<double>	i1( Nsqr, 0.0 );
+    vector<double>	i1( Nsqr, 0.0 );
 
-	for( i = 0; i < np1; ++i ) {
+    for( i = 0; i < np1; ++i ) {
 
-		int	x = (int)ip1[i].x;
-		int	y = (int)ip1[i].y;
+        int	x = (int)ip1[i].x;
+        int	y = (int)ip1[i].y;
 
-		i1[x + N*y] = iv1[i];
-	}
+        i1[x + N*y] = iv1[i];
+    }
 
 // FFTs and lags
 
-	vector<double>	rslt;
-	vector<CD>		fft1, fft2;
+    vector<double>	rslt;
+    vector<CD>		fft1, fft2;
 
-	M =	FFT_2D( fft2, i2, N, N, false );
-		FFT_2D( fft1, i1, N, N, false );
+    M =	FFT_2D( fft2, i2, N, N, false );
+        FFT_2D( fft1, i1, N, N, false );
 
-	if( bFilter ) {
+    if( bFilter ) {
 
-		// an experiment to filter out high freq noise
+        // an experiment to filter out high freq noise
 
-		int	yrow = N/2 + 1;
+        int	yrow = N/2 + 1;
 
-		for( i = 0; i < M; ++i ) {
+        for( i = 0; i < M; ++i ) {
 
-			double	rad2, filt;
-			int		x = i / yrow;
-			int		y = i - yrow*x;
+            double	rad2, filt;
+            int		x = i / yrow;
+            int		y = i - yrow*x;
 
-			// note that y never exceeds 2048
+            // note that y never exceeds 2048
 
-			if( x >= N/2 )
-				x -= N;
+            if( x >= N/2 )
+                x -= N;
 
-			// keep first 30 harmonics or so...
+            // keep first 30 harmonics or so...
 
-			rad2 = ((double)x*x + (double)y*y) / 10000.0;
+            rad2 = ((double)x*x + (double)y*y) / 10000.0;
 
-			if( rad2 > 10.0 )
-				filt = 0.0;
-			else
-				filt = exp( -rad2 );
+            if( rad2 > 10.0 )
+                filt = 0.0;
+            else
+                filt = exp( -rad2 );
 
-			fft1[i] = fft2[i] * conj( fft1[i] ) * filt;
-		}
-	}
-	else {
+            fft1[i] = fft2[i] * conj( fft1[i] ) * filt;
+        }
+    }
+    else {
 
-		for( i = 0; i < M; ++i )
-			fft1[i] = fft2[i] * conj( fft1[i] );
-	}
+        for( i = 0; i < M; ++i )
+            fft1[i] = fft2[i] * conj( fft1[i] );
+    }
 
-	IFT_2D( rslt, fft1, N, N );
+    IFT_2D( rslt, fft1, N, N );
 
 // Max lag
 
-	double	biggest	= -1.0E30;
-	int		bigx	= -1;
-	int		bigy	= -1;
-	int		rsqr	= radius * radius;
+    double	biggest	= -1.0E30;
+    int		bigx	= -1;
+    int		bigy	= -1;
+    int		rsqr	= radius * radius;
 
-	for( i = 0; i < Nsqr; ++i ) {
+    for( i = 0; i < Nsqr; ++i ) {
 
-		int	y = i / N;
-		int	x = i - N * y;
-		int	dx, dy;
+        int	y = i / N;
+        int	x = i - N * y;
+        int	dx, dy;
 
-		if( y > N - h1 )	// negative zone
-			y -= N;
-		else if( y >= h2 )	// dead zone
-			continue;
+        if( y > N - h1 )	// negative zone
+            y -= N;
+        else if( y >= h2 )	// dead zone
+            continue;
 
-		if( x > N - w1 )	// negative zone
-			x -= N;
-		else if( x >= w2 )	// dead zone
-			continue;
+        if( x > N - w1 )	// negative zone
+            x -= N;
+        else if( x >= w2 )	// dead zone
+            continue;
 
-		dx = x - Ox;
-		dy = y - Oy;
+        dx = x - Ox;
+        dy = y - Oy;
 
-		if( dx*dx + dy*dy > rsqr )
-			continue;
+        if( dx*dx + dy*dy > rsqr )
+            continue;
 
-		if( rslt[i] > biggest ) {
+        if( rslt[i] > biggest ) {
 
-			biggest	= rslt[i];
-			bigx	= x;
-			bigy	= y;
-		}
-	}
+            biggest	= rslt[i];
+            bigx	= x;
+            bigy	= y;
+        }
+    }
 
-	biggest /= norm;
+    biggest /= norm;
 
-	if( biggest > 1.0001 ) {
+    if( biggest > 1.0001 ) {
 
-		printf( "FindCor: Very odd - norm-rslt x y %f %d %d\n",
-			biggest, bigx, bigy );
-		exit( 44 );
-	}
+        printf( "FindCor: Very odd - norm-rslt x y %f %d %d\n",
+            biggest, bigx, bigy );
+        exit( 44 );
+    }
 
 // Reports
 
-	PrintCorLandscape( biggest, bigx, bigy, Ox, Oy, radius,
-		3, 1, &rslt[0], N, N, norm, stdout );
+    PrintCorLandscape( biggest, bigx, bigy, Ox, Oy, radius,
+        3, 1, &rslt[0], N, N, norm, stdout );
 
-	printf( "FindCor: Maximum correlation %f at (%d, %d).\n",
-		biggest, bigx, bigy );
+    printf( "FindCor: Maximum correlation %f at (%d, %d).\n",
+        biggest, bigx, bigy );
 
 // Interpolate peak
 
-	dx = bigx;
-	dy = bigy;
-	ParabPeakFFT( dx, dy, 1, &rslt[0], N, N );
+    dx = bigx;
+    dy = bigy;
+    ParabPeakFFT( dx, dy, 1, &rslt[0], N, N );
 
-	printf( "FindCor: Interpolated max at (%.3f, %.3f).\n", dx, dy );
+    printf( "FindCor: Interpolated max at (%.3f, %.3f).\n", dx, dy );
 
-	return biggest;
+    return biggest;
 }
 
 /* --------------------------------------------------------------- */
@@ -1401,81 +1401,81 @@ double CorrPatchToImage(
 // = SUMi(ai * dbi/dx * am(i,k)).
 //
 void GradDescStep(
-	vector<double>					&bnew,
-	vector<Point>					&dRdc,
-	const vector<Point>				&ac,
-	const vector<vector<double> >	&am,
-	const vector<double>			&av,
-	const vector<double>			&bimg,
-	int								w,
-	int								h )
+    vector<double>					&bnew,
+    vector<Point>					&dRdc,
+    const vector<Point>				&ac,
+    const vector<vector<double> >	&am,
+    const vector<double>			&av,
+    const vector<double>			&bimg,
+    int								w,
+    int								h )
 {
-	int		nm = am.size();
-	int		nc = ac.size();
+    int		nm = am.size();
+    int		nc = ac.size();
 
 // Initialize
 
-	bnew.resize( nm );
-	dRdc.assign( nc, Point( 0.0, 0.0 ) );
+    bnew.resize( nm );
+    dRdc.assign( nc, Point( 0.0, 0.0 ) );
 
 // Sum over all points in A
 
-	for( int i = 0; i < nm; ++i ) {
+    for( int i = 0; i < nm; ++i ) {
 
-		double	x = 0.0, y = 0.0;
+        double	x = 0.0, y = 0.0;
 
-		for( int j = 0; j < nc; ++j ) {
-			x += am[i][j]*ac[j].x;
-			y += am[i][j]*ac[j].y;
-		}
+        for( int j = 0; j < nc; ++j ) {
+            x += am[i][j]*ac[j].x;
+            y += am[i][j]*ac[j].y;
+        }
 
-		// the 4 points surrounding (x,y)
+        // the 4 points surrounding (x,y)
 
-		if( x <  0.0	||
-			x >= w - 1	||
-			y <  0.0	||
-			y >= h - 1 ) {
+        if( x <  0.0	||
+            x >= w - 1	||
+            y <  0.0	||
+            y >= h - 1 ) {
 
-			bnew[i] = 0.0;	// anything outside bimg is 0.0
-			continue;
-		}
+            bnew[i] = 0.0;	// anything outside bimg is 0.0
+            continue;
+        }
 
-		int	xl = (int)x;
-		int	xr = xl + 1;
-		int	yl = (int)y;
-		int	yu = yl + 1;
+        int	xl = (int)x;
+        int	xr = xl + 1;
+        int	yl = (int)y;
+        int	yu = yl + 1;
 
-		// interpolate
+        // interpolate
 
-		double alpha	= x - xl;
-		double beta		= y - yl;
-		double ll		= bimg[w*yl + xl];
-		double ul		= bimg[w*yu + xl];
-		double ur		= bimg[w*yu + xr];
-		double lr		= bimg[w*yl + xr];
-		double t		= lr - ll;
-		double u		= ul - ll;
-		double v		= ll - lr - ul + ur;
+        double alpha	= x - xl;
+        double beta		= y - yl;
+        double ll		= bimg[w*yl + xl];
+        double ul		= bimg[w*yu + xl];
+        double ur		= bimg[w*yu + xr];
+        double lr		= bimg[w*yl + xr];
+        double t		= lr - ll;
+        double u		= ul - ll;
+        double v		= ll - lr - ul + ur;
 
-		bnew[i] = ll + alpha * t + beta * u + alpha*beta * v;
+        bnew[i] = ll + alpha * t + beta * u + alpha*beta * v;
 
-		// dbi/dx
+        // dbi/dx
 
-		double dbdx = t +  beta * v;
-		double dbdy = u + alpha * v;
+        double dbdx = t +  beta * v;
+        double dbdy = u + alpha * v;
 
-		// dR/dc
+        // dR/dc
 
-		dbdx *= av[i];
-		dbdy *= av[i];
+        dbdx *= av[i];
+        dbdy *= av[i];
 
-		for( int j = 0; j < nc; ++j ) {
-			dRdc[j].x += am[i][j]*dbdx;
-			dRdc[j].y += am[i][j]*dbdy;
-		}
-	}
+        for( int j = 0; j < nc; ++j ) {
+            dRdc[j].x += am[i][j]*dbdx;
+            dRdc[j].y += am[i][j]*dbdy;
+        }
+    }
 
-	NormalizeNonZeros( bnew );
+    NormalizeNonZeros( bnew );
 }
 
 /* --------------------------------------------------------------- */
@@ -1491,51 +1491,51 @@ void GradDescStep(
 // Returns the number of non-zero pixels, if requested.
 //
 double CorrVectors(
-	FILE					*flog,
-	const vector<double>	&a,
-	const vector<double>	&b,
-	int						*nnz )
+    FILE					*flog,
+    const vector<double>	&a,
+    const vector<double>	&b,
+    int						*nnz )
 {
-	double	sum2	= 0.0;
-	int		nz		= 0;	// number of 0 entries
-	int		N		= a.size();
+    double	sum2	= 0.0;
+    int		nz		= 0;	// number of 0 entries
+    int		N		= a.size();
 
-	if( !flog )
-		flog = stdout;
+    if( !flog )
+        flog = stdout;
 
-	if( N != b.size() ) {
-		fprintf( flog,
-		"CorrVectors: Sizes differ! %d %ld\n", N, b.size() );
-		exit( 42 );
-	}
+    if( N != b.size() ) {
+        fprintf( flog,
+        "CorrVectors: Sizes differ! %d %ld\n", N, b.size() );
+        exit( 42 );
+    }
 
-	for( int i = 0; i < N; ++i ) {
+    for( int i = 0; i < N; ++i ) {
 
-		double	prod = a[i]*b[i];
+        double	prod = a[i]*b[i];
 
-		sum2 += prod;
+        sum2 += prod;
 
-		if( fabs( prod ) < 1.0E-8 )
-			++nz;
-	}
+        if( fabs( prod ) < 1.0E-8 )
+            ++nz;
+    }
 
-	if( !isfinite( sum2 ) ) {
-		fprintf( flog,
-		"CorrVectors: Likely all zero pixels, corr sum = %g"
-		" ... returning corr = zero.\n", sum2 );
+    if( !isfinite( sum2 ) ) {
+        fprintf( flog,
+        "CorrVectors: Likely all zero pixels, corr sum = %g"
+        " ... returning corr = zero.\n", sum2 );
 
-		nz		= N;
-		sum2	= 0.0;
-	}
+        nz		= N;
+        sum2	= 0.0;
+    }
 
 //	fprintf( flog, "CorrVectors: %d of %d were small.\n", nz, N );
 
-	N -= nz;
+    N -= nz;
 
-	if( nnz )
-		*nnz = N;
+    if( nnz )
+        *nnz = N;
 
-	return (N ? sum2 / N : 0.0);
+    return (N ? sum2 / N : 0.0);
 }
 
 /* --------------------------------------------------------------- */
@@ -1544,36 +1544,36 @@ double CorrVectors(
 
 static void PrintControlPoints( FILE *flog, const vector<Point> &c )
 {
-	int		nc = c.size();
+    int		nc = c.size();
 
-	fprintf( flog, "\nControl points:" );
+    fprintf( flog, "\nControl points:" );
 
-	for( int i = 0; i < nc; ++i )
-		fprintf( flog, "(%.3f %.3f) ", c[i].x, c[i].y );
+    for( int i = 0; i < nc; ++i )
+        fprintf( flog, "(%.3f %.3f) ", c[i].x, c[i].y );
 
-	fprintf( flog, "\n" );
+    fprintf( flog, "\n" );
 }
 
 
 static void PrintPixels(
-	FILE	*flog,
-	const vector<vector<double> >	&am,
-	const vector<double>			&av,
-	const vector<double>			&bnew )
+    FILE	*flog,
+    const vector<vector<double> >	&am,
+    const vector<double>			&av,
+    const vector<double>			&bnew )
 {
-	int	nm = am.size();
+    int	nm = am.size();
 
-	for( int i = 0; i < nm; ++i ) {
+    for( int i = 0; i < nm; ++i ) {
 
-		int	nc = am[i].size();
+        int	nc = am[i].size();
 
-		fprintf( flog, "---i=%d\n", i );
+        fprintf( flog, "---i=%d\n", i );
 
-		for( int j = 0; j < nc; ++j )
-			fprintf( flog, "%.4f ", am[i][j] );
+        for( int j = 0; j < nc; ++j )
+            fprintf( flog, "%.4f ", am[i][j] );
 
-		fprintf( flog, "\n av=%f bnew=%f\n", av[i], bnew[i] );
-	}
+        fprintf( flog, "\n av=%f bnew=%f\n", av[i], bnew[i] );
+    }
 }
 
 
@@ -1603,121 +1603,121 @@ static void PrintPixels(
 // as a function of changes in control points (mesh distortion).
 //
 double ImproveControlPts(
-	vector<Point>					&ac,
-	const vector<vector<double> >	&am,
-	const vector<double>			&av,
-	const vector<double>			&bimg,
-	int								w,
-	int								h,
-	FILE							*flog,
-	const char						*describe,
-	double							iniThresh,
-	double							finThresh )
+    vector<Point>					&ac,
+    const vector<vector<double> >	&am,
+    const vector<double>			&av,
+    const vector<double>			&bimg,
+    int								w,
+    int								h,
+    FILE							*flog,
+    const char						*describe,
+    double							iniThresh,
+    double							finThresh )
 {
-	vector<double>	bnew;
-	vector<Point>	dRdc;
-	double			corr, corr_last;
-	int				nc		= ac.size(),
-					inarow	= 0;
+    vector<double>	bnew;
+    vector<Point>	dRdc;
+    double			corr, corr_last;
+    int				nc		= ac.size(),
+                    inarow	= 0;
 
 // Initial state
 
-	GradDescStep( bnew, dRdc, ac, am, av, bimg, w, h );
-	corr_last = corr = CorrVectors( flog, av, bnew );
+    GradDescStep( bnew, dRdc, ac, am, av, bimg, w, h );
+    corr_last = corr = CorrVectors( flog, av, bnew );
 
-	fprintf( flog,
-	"STAT: ImproveCpt: Initial %s correlation %f (%ld pixels).\n",
-	describe, corr, av.size() );
+    fprintf( flog,
+    "STAT: ImproveCpt: Initial %s correlation %f (%ld pixels).\n",
+    describe, corr, av.size() );
 
 // Plausibility check
 
-	if( corr < iniThresh ) {
+    if( corr < iniThresh ) {
 
-		fprintf( flog,
-		"FAIL: ImproveCpt: Correlation %f less than %f at start.\n",
-		corr, iniThresh );
+        fprintf( flog,
+        "FAIL: ImproveCpt: Correlation %f less than %f at start.\n",
+        corr, iniThresh );
 
-		PrintControlPoints( flog, ac );
-		//PrintPixels( flog, am, av, bnew );
+        PrintControlPoints( flog, ac );
+        //PrintPixels( flog, am, av, bnew );
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
 // Skip optimizing if finThresh < 0
 
-	if( finThresh < 0 ) {
+    if( finThresh < 0 ) {
 
-		fprintf( flog,
-		"STAT: ImproveCpt: Skipping optimizer; final corr %f\n",
-		corr );
+        fprintf( flog,
+        "STAT: ImproveCpt: Skipping optimizer; final corr %f\n",
+        corr );
 
-		return corr;
-	}
+        return corr;
+    }
 
 // Try to tweak the control points for a good match
 
-	for( double step = 10.0; step > 0.05; ) {
+    for( double step = 10.0; step > 0.05; ) {
 
 //		PrintControlPoints( flog, ac );
 
-		fprintf( flog, "corr=%f\tstep=%f\n", corr, step );
+        fprintf( flog, "corr=%f\tstep=%f\n", corr, step );
 
-		// compute gradient length factor S(step size)
+        // compute gradient length factor S(step size)
 
-		double	S = 0.0;
+        double	S = 0.0;
 
-		for( int i = 0; i < nc; ++i )
-			S += dRdc[i].RSqr();
+        for( int i = 0; i < nc; ++i )
+            S += dRdc[i].RSqr();
 
-		if( !S ) {
-			fprintf( flog, "*** ALL DERIVS ZERO.\n" );
-			break;
-		}
+        if( !S ) {
+            fprintf( flog, "*** ALL DERIVS ZERO.\n" );
+            break;
+        }
 
-		S = step / sqrt( S );
+        S = step / sqrt( S );
 
-		// update control points and correlation
+        // update control points and correlation
 
-		vector<Point>	ac_new = ac;
-		vector<Point>	dRdc_new;
-		double			c_new;
+        vector<Point>	ac_new = ac;
+        vector<Point>	dRdc_new;
+        double			c_new;
 
-		for( int i = 0; i < nc; ++i ) {
-			ac_new[i].x += S * dRdc[i].x;
-			ac_new[i].y += S * dRdc[i].y;
-		}
+        for( int i = 0; i < nc; ++i ) {
+            ac_new[i].x += S * dRdc[i].x;
+            ac_new[i].y += S * dRdc[i].y;
+        }
 
-		// new spot better?
+        // new spot better?
 
-		GradDescStep( bnew, dRdc_new, ac_new, am, av, bimg, w, h );
-		c_new = CorrVectors( flog, av, bnew );
+        GradDescStep( bnew, dRdc_new, ac_new, am, av, bimg, w, h );
+        c_new = CorrVectors( flog, av, bnew );
 
-		if( c_new > corr ) {
+        if( c_new > corr ) {
 
-			ac			= ac_new;
-			dRdc		= dRdc_new;
-			corr_last	= corr;
-			corr		= c_new;
-		}
-		else
-			step /= 2.0;
+            ac			= ac_new;
+            dRdc		= dRdc_new;
+            corr_last	= corr;
+            corr		= c_new;
+        }
+        else
+            step /= 2.0;
 
-		// converged?
+        // converged?
 
-		if( step <= 2.0 && corr - corr_last < 0.0001 ) {
+        if( step <= 2.0 && corr - corr_last < 0.0001 ) {
 
-			if( ++inarow >= 3 )
-				break;
-		}
-		else
-			inarow = 0;
-	}
+            if( ++inarow >= 3 )
+                break;
+        }
+        else
+            inarow = 0;
+    }
 
-	fprintf( flog,
-	"STAT: ImproveCpt: Final %s correlation %f, (threshold %f).\n",
-	describe, corr, finThresh );
+    fprintf( flog,
+    "STAT: ImproveCpt: Final %s correlation %f, (threshold %f).\n",
+    describe, corr, finThresh );
 
-	return corr;
+    return corr;
 }
 
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1732,116 +1732,116 @@ double ImproveControlPts(
 class RCalc {
 
 private:
-	vector<double>	i1sum, i1sum2,
-					i2sum, i2sum2;
-	vector<int>		i1nz,  i2nz;
-	int				w1,  h1,
-					w2,  h2,
-					Nx,  Ny,
-					Nxy;
-	IBox			OL1, OL2;
-	int				olw, olh;
+    vector<double>	i1sum, i1sum2,
+                    i2sum, i2sum2;
+    vector<int>		i1nz,  i2nz;
+    int				w1,  h1,
+                    w2,  h2,
+                    Nx,  Ny,
+                    Nxy;
+    IBox			OL1, OL2;
+    int				olw, olh;
 
 public:
-	void Initialize(
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny );
+    void Initialize(
+        const vector<double>	&I1,
+        int						w1,
+        int						h1,
+        const vector<double>	&I2,
+        int						w2,
+        int						h2,
+        int						Nx,
+        int						Ny );
 
-	bool Valid(
-		EvalType	LegalRgn,
-		void*		arglr,
-		EvalType	LegalCnt,
-		void*		arglc,
-		int			dx,
-		int			dy );
+    bool Valid(
+        EvalType	LegalRgn,
+        void*		arglr,
+        EvalType	LegalCnt,
+        void*		arglc,
+        int			dx,
+        int			dy );
 
-	double CalcR( double rslt );
+    double CalcR( double rslt );
 
-	inline double CalcS( double rslt )
-		{return rslt / Nxy;};
+    inline double CalcS( double rslt )
+        {return rslt / Nxy;};
 };
 
 
 void RCalc::Initialize(
-		const vector<double>	&I1,
-		int						w1,
-		int						h1,
-		const vector<double>	&I2,
-		int						w2,
-		int						h2,
-		int						Nx,
-		int						Ny )
+        const vector<double>	&I1,
+        int						w1,
+        int						h1,
+        const vector<double>	&I2,
+        int						w2,
+        int						h2,
+        int						Nx,
+        int						Ny )
 {
-	this->w1	= w1;
-	this->h1	= h1;
-	this->w2	= w2;
-	this->h2	= h2;
-	this->Nx	= Nx;
-	this->Ny	= Ny;
-	Nxy			= Nx * Ny;
+    this->w1	= w1;
+    this->h1	= h1;
+    this->w2	= w2;
+    this->h2	= h2;
+    this->Nx	= Nx;
+    this->Ny	= Ny;
+    Nxy			= Nx * Ny;
 
-	IntegrateImage( i1sum, i1sum2, i1nz, w1, h1, I1, Nx );
-	IntegrateImage( i2sum, i2sum2, i2nz, w2, h2, I2, Nx );
+    IntegrateImage( i1sum, i1sum2, i1nz, w1, h1, I1, Nx );
+    IntegrateImage( i2sum, i2sum2, i2nz, w2, h2, I2, Nx );
 }
 
 
 bool RCalc::Valid(
-		EvalType	LegalRgn,
-		void*		arglr,
-		EvalType	LegalCnt,
-		void*		arglc,
-		int			dx,
-		int			dy )
+        EvalType	LegalRgn,
+        void*		arglr,
+        EvalType	LegalCnt,
+        void*		arglc,
+        int			dx,
+        int			dy )
 {
-	int		ok = true;
+    int		ok = true;
 
-	BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
+    BoxesFromShifts( OL1, OL2, w1, h1, w2, h2, dx, dy );
 
 // Large enough overlap?
 
-	olw = OL1.R - OL1.L + 1;
-	olh = OL1.T - OL1.B + 1;
+    olw = OL1.R - OL1.L + 1;
+    olh = OL1.T - OL1.B + 1;
 
-	if( LegalRgn && !LegalRgn( olw, olh, arglr ) )
-		ok = false;
+    if( LegalRgn && !LegalRgn( olw, olh, arglr ) )
+        ok = false;
 
 // Large enough density of non-zero values?
 
-	if( LegalCnt ) {
+    if( LegalCnt ) {
 
-		int	i1c = IntegralTable( i1nz, w1, OL1 );
-		int	i2c = IntegralTable( i2nz, w2, OL2 );
+        int	i1c = IntegralTable( i1nz, w1, OL1 );
+        int	i2c = IntegralTable( i2nz, w2, OL2 );
 
-		if( !LegalCnt( i1c, i2c, arglc ) )
-			ok = false;
-	}
+        if( !LegalCnt( i1c, i2c, arglc ) )
+            ok = false;
+    }
 
-	return ok;
+    return ok;
 }
 
 
 double RCalc::CalcR( double rslt )
 {
-	double	n = olw * olh;
+    double	n = olw * olh;
 
-	double	im1sum	= IntegralTable( i1sum,  w1, OL1 );
-	double	im1sum2	= IntegralTable( i1sum2, w1, OL1 );
-	double	im2sum	= IntegralTable( i2sum,  w2, OL2 );
-	double	im2sum2	= IntegralTable( i2sum2, w2, OL2 );
+    double	im1sum	= IntegralTable( i1sum,  w1, OL1 );
+    double	im1sum2	= IntegralTable( i1sum2, w1, OL1 );
+    double	im2sum	= IntegralTable( i2sum,  w2, OL2 );
+    double	im2sum2	= IntegralTable( i2sum2, w2, OL2 );
 
-	double	num	= n * rslt / Nxy - im1sum * im2sum;
-	double	d1	= n * im1sum2 - im1sum * im1sum;
-	double	d2	= n * im2sum2 - im2sum * im2sum;
-	double	d	= d1 * d2;
-	double	r	= (d < n * n * 1.0E-9 ? 0.0 : num / sqrt( d ));
+    double	num	= n * rslt / Nxy - im1sum * im2sum;
+    double	d1	= n * im1sum2 - im1sum * im1sum;
+    double	d2	= n * im2sum2 - im2sum * im2sum;
+    double	d	= d1 * d2;
+    double	r	= (d < n * n * 1.0E-9 ? 0.0 : num / sqrt( d ));
 
-	return (r > -1.0 && r < 1.0 ? r : 0.0);
+    return (r > -1.0 && r < 1.0 ? r : 0.0);
 }
 
 /* --------------------------------------------------------------- */
@@ -1851,95 +1851,95 @@ double RCalc::CalcR( double rslt )
 class CCorImg {
 
 private:
-	FILE	*flog;
-	int		verbose;
-	IBox	B1, B2;
-	int		w1, h1, w2, h2,
-			nnegx, nposx,
-			nnegy, nposy,
-			cx, cy, wR, hR, nR;
+    FILE	*flog;
+    int		verbose;
+    IBox	B1, B2;
+    int		w1, h1, w2, h2,
+            nnegx, nposx,
+            nnegy, nposy,
+            cx, cy, wR, hR, nR;
 
 public:
-	bool SetDims(
-		FILE					*iflog,
-		int						iverbose,
-		const vector<Point>		&ip1,
-		const vector<Point>		&ip2 );
+    bool SetDims(
+        FILE					*iflog,
+        int						iverbose,
+        const vector<Point>		&ip1,
+        const vector<Point>		&ip2 );
 
-	void MaskA(
-		vector<uint8>			&A,
-		int						Ox,
-		int						Oy,
-		int						Rx,
-		int						Ry );
+    void MaskA(
+        vector<uint8>			&A,
+        int						Ox,
+        int						Oy,
+        int						Rx,
+        int						Ry );
 
-	void MakeRandA(
-		vector<double>			&R,
-		vector<uint8>			&A,
-		const vector<Point>		&ip1,
-		const vector<double>	&iv1,
-		const vector<Point>		&ip2,
-		const vector<double>	&iv2,
-		EvalType				LegalRgn,
-		void*					arglr,
-		EvalType				LegalCnt,
-		void*					arglc,
-		int						Ox,
-		int						Oy,
-		int						Rx,
-		int						Ry,
-		vector<CD>				&fft2 );
+    void MakeRandA(
+        vector<double>			&R,
+        vector<uint8>			&A,
+        const vector<Point>		&ip1,
+        const vector<double>	&iv1,
+        const vector<Point>		&ip2,
+        const vector<double>	&iv2,
+        EvalType				LegalRgn,
+        void*					arglr,
+        EvalType				LegalCnt,
+        void*					arglc,
+        int						Ox,
+        int						Oy,
+        int						Rx,
+        int						Ry,
+        vector<CD>				&fft2 );
 
-	void MakeSandRandA(
-		vector<double>			&S,
-		vector<double>			&R,
-		vector<uint8>			&A,
-		const vector<Point>		&ip1,
-		const vector<double>	&iv1,
-		const vector<Point>		&ip2,
-		const vector<double>	&iv2,
-		EvalType				LegalRgn,
-		void*					arglr,
-		EvalType				LegalCnt,
-		void*					arglc,
-		int						Ox,
-		int						Oy,
-		int						Rx,
-		int						Ry,
-		vector<CD>				&fft2 );
+    void MakeSandRandA(
+        vector<double>			&S,
+        vector<double>			&R,
+        vector<uint8>			&A,
+        const vector<Point>		&ip1,
+        const vector<double>	&iv1,
+        const vector<Point>		&ip2,
+        const vector<double>	&iv2,
+        EvalType				LegalRgn,
+        void*					arglr,
+        EvalType				LegalCnt,
+        void*					arglc,
+        int						Ox,
+        int						Oy,
+        int						Rx,
+        int						Ry,
+        vector<CD>				&fft2 );
 
-	void MakeF(
-		vector<double>			&F,
-		vector<uint8>			&A,
-		const vector<double>	&R );
+    void MakeF(
+        vector<double>			&F,
+        vector<uint8>			&A,
+        const vector<double>	&R );
 
-	bool OrderF(
-		vector<int>				&forder,
-		const vector<double>	&F,
-		const vector<uint8>		&A,
-		const vector<double>	&R,
-		double					mincor );
+    bool OrderF(
+        vector<int>				&forder,
+        const vector<double>	&F,
+        const vector<uint8>		&A,
+        const vector<double>	&R,
+        double					mincor );
 
-	bool FPeak(
-		int						&rx,
-		int						&ry,
-		const vector<int>		&forder,
-		const vector<double>	&F,
-		const vector<double>	&R,
-		double					nbmaxht );
+    bool FPeak(
+        int						&rx,
+        int						&ry,
+        const vector<int>		&forder,
+        const vector<double>	&F,
+        const vector<double>	&R,
+        double					nbmaxht );
 
-	void SimpleMax(
-		int						&rx,
-		int						&ry,
-		const vector<int>		&forder );
+    void SimpleMax(
+        int						&rx,
+        int						&ry,
+        const vector<int>		&forder );
 
-	double ReturnR(
-		double					&dx,
-		double					&dy,
-		int						rx,
-		int						ry,
-		const vector<double>	&Rreport,
-		const vector<double>	&Rtweak );
+    double ReturnR(
+        double					&dx,
+        double					&dy,
+        int						rx,
+        int						ry,
+        const vector<double>	&Rreport,
+        const vector<double>	&Rtweak );
 };
 
 /* --------------------------------------------------------------- */
@@ -1947,59 +1947,59 @@ public:
 /* --------------------------------------------------------------- */
 
 bool CCorImg::SetDims(
-	FILE					*iflog,
-	int						iverbose,
-	const vector<Point>		&ip1,
-	const vector<Point>		&ip2 )
+    FILE					*iflog,
+    int						iverbose,
+    const vector<Point>		&ip1,
+    const vector<Point>		&ip2 )
 {
-	flog	= iflog;
-	verbose	= iverbose;
+    flog	= iflog;
+    verbose	= iverbose;
 
-	BBoxFromPoints( B1, ip1 );
-	BBoxFromPoints( B2, ip2 );
+    BBoxFromPoints( B1, ip1 );
+    BBoxFromPoints( B2, ip2 );
 
-	w1 = B1.R - B1.L + 1;
-	h1 = B1.T - B1.B + 1;
+    w1 = B1.R - B1.L + 1;
+    h1 = B1.T - B1.B + 1;
 
-	w2 = B2.R - B2.L + 1;
-	h2 = B2.T - B2.B + 1;
+    w2 = B2.R - B2.L + 1;
+    h2 = B2.T - B2.B + 1;
 
-	nnegx = w1 - 1;
-	nposx = w2;
-	nnegy = h1 - 1;
-	nposy = h2;
+    nnegx = w1 - 1;
+    nposx = w2;
+    nnegy = h1 - 1;
+    nposy = h2;
 
-	cx = nnegx,
-	cy = nnegy,
-	wR = nnegx + nposx,
-	hR = nnegy + nposy,
-	nR = wR * hR;
+    cx = nnegx,
+    cy = nnegy,
+    wR = nnegx + nposx,
+    hR = nnegy + nposy,
+    nR = wR * hR;
 
-	if( verbose ) {
+    if( verbose ) {
 
-		fprintf( flog,
-		"Corr: Region size is [%d %d] in x, [%d %d] in y.\n",
-		B1.L, B1.R, B1.B, B1.T );
+        fprintf( flog,
+        "Corr: Region size is [%d %d] in x, [%d %d] in y.\n",
+        B1.L, B1.R, B1.B, B1.T );
 
-		fprintf( flog,
-		"Corr: Target size is [%d %d] in x, [%d %d] in y.\n",
-		B2.L, B2.R, B2.B, B2.T );
-	}
+        fprintf( flog,
+        "Corr: Target size is [%d %d] in x, [%d %d] in y.\n",
+        B2.L, B2.R, B2.B, B2.T );
+    }
 
 // Need enough room to apply typical kernel
 
-	const int mindelta = 11/2 + 1;
+    const int mindelta = 11/2 + 1;
 
-	if( nnegx < mindelta || nposx < mindelta ||
-		nnegy < mindelta || nposy < mindelta ) {
+    if( nnegx < mindelta || nposx < mindelta ||
+        nnegy < mindelta || nposy < mindelta ) {
 
-		if( verbose )
-			fprintf( flog, "Corr: Too small to evaluate.\n" );
+        if( verbose )
+            fprintf( flog, "Corr: Too small to evaluate.\n" );
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -2009,48 +2009,48 @@ bool CCorImg::SetDims(
 // Oval described as x^2 + (a^2)*(y^2) = Rx^2, where a = Rx/Ry.
 //
 void CCorImg::MaskA(
-	vector<uint8>			&A,
-	int						Ox,
-	int						Oy,
-	int						Rx,
-	int						Ry )
+    vector<uint8>			&A,
+    int						Ox,
+    int						Oy,
+    int						Rx,
+    int						Ry )
 {
-	if( Rx <= 0 || Ry <= 0 )
-		return;
+    if( Rx <= 0 || Ry <= 0 )
+        return;
 
-	Ox += B1.L - B2.L + cx;
-	Oy += B1.B - B2.B + cy;
+    Ox += B1.L - B2.L + cx;
+    Oy += B1.B - B2.B + cy;
 
-	int	xmin = Ox - Rx,
-		xmax = Ox + Rx,
-		ymin = Oy - Ry,
-		ymax = Oy + Ry;
+    int	xmin = Ox - Rx,
+        xmax = Ox + Rx,
+        ymin = Oy - Ry,
+        ymax = Oy + Ry;
 
-	double	rx2 = Rx * Rx,
-			asq = rx2 / ((double)Ry * Ry);
+    double	rx2 = Rx * Rx,
+            asq = rx2 / ((double)Ry * Ry);
 
-	for( int i = 0; i < nR; ++i ) {
+    for( int i = 0; i < nR; ++i ) {
 
-		int	y = i / wR;
+        int	y = i / wR;
 
-		if( y < ymin || y > ymax ) {
-			A[i] = 0;
-			continue;
-		}
+        if( y < ymin || y > ymax ) {
+            A[i] = 0;
+            continue;
+        }
 
-		int	x = i - wR * y;
+        int	x = i - wR * y;
 
-		if( x < xmin || x > xmax ) {
-			A[i] = 0;
-			continue;
-		}
+        if( x < xmin || x > xmax ) {
+            A[i] = 0;
+            continue;
+        }
 
-		x -= Ox;
-		y -= Oy;
+        x -= Ox;
+        y -= Oy;
 
-		if( x*x + asq*y*y > rx2 )
-			A[i] = 0;
-	}
+        if( x*x + asq*y*y > rx2 )
+            A[i] = 0;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -2058,134 +2058,134 @@ void CCorImg::MaskA(
 /* --------------------------------------------------------------- */
 
 void CCorImg::MakeRandA(
-	vector<double>			&R,
-	vector<uint8>			&A,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	int						Ox,
-	int						Oy,
-	int						Rx,
-	int						Ry,
-	vector<CD>				&fft2 )
+    vector<double>			&R,
+    vector<uint8>			&A,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<Point>		&ip2,
+    const vector<double>	&iv2,
+    EvalType				LegalRgn,
+    void*					arglr,
+    EvalType				LegalCnt,
+    void*					arglc,
+    int						Ox,
+    int						Oy,
+    int						Rx,
+    int						Ry,
+    vector<CD>				&fft2 )
 {
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	Nx, Ny, M;
+    int	Nx, Ny, M;
 
-	Nx = FFTSize( w1, w2 ),
-	Ny = FFTSize( h1, h2 ),
-	M  = Ny*(Nx/2+1);
+    Nx = FFTSize( w1, w2 ),
+    Ny = FFTSize( h1, h2 ),
+    M  = Ny*(Nx/2+1);
 
-	if( verbose )
-		fprintf( flog, "Corr: Nx = %d, Ny = %d\n", Nx, Ny );
+    if( verbose )
+        fprintf( flog, "Corr: Nx = %d, Ny = %d\n", Nx, Ny );
 
 // Create images from point lists
 
-	vector<double>	i1, i2;
+    vector<double>	i1, i2;
 
-	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
-	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
+    ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
+    ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
 
 // FFTs and lags
 
-	vector<double>	rslt;
-	vector<CD>		fft1;
+    vector<double>	rslt;
+    vector<CD>		fft1;
 
 #ifdef ALN_USE_MKL
 
-	vector<CD>	_fft2;
+    vector<CD>	_fft2;
 
-	FFT_2D( _fft2, i2, Nx, Ny, false, flog );
-	FFT_2D( fft1, i1, Nx, Ny, false, flog );
+    FFT_2D( _fft2, i2, Nx, Ny, false, flog );
+    FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
-	for( int i = 0; i < M; ++i )
-		fft1[i] = _fft2[i] * conj( fft1[i] );
+    for( int i = 0; i < M; ++i )
+        fft1[i] = _fft2[i] * conj( fft1[i] );
 
 #else
 
-	FFT_2D( fft2, i2, Nx, Ny, true, flog );
-	FFT_2D( fft1, i1, Nx, Ny, false, flog );
+    FFT_2D( fft2, i2, Nx, Ny, true, flog );
+    FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
-	pthread_mutex_lock( &mutex_fft );
+    pthread_mutex_lock( &mutex_fft );
 
-	for( int i = 0; i < M; ++i )
-		fft1[i] = fft2[i] * conj( fft1[i] );
+    for( int i = 0; i < M; ++i )
+        fft1[i] = fft2[i] * conj( fft1[i] );
 
-	pthread_mutex_unlock( &mutex_fft );
+    pthread_mutex_unlock( &mutex_fft );
 
 #endif
 
-	IFT_2D( rslt, fft1, Nx, Ny, flog );
+    IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 // Prepare correlation calculator
 
-	RCalc	calc;
+    RCalc	calc;
 
-	calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
+    calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
 
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
 // of any sign.
 
-	R.resize( nR );
-	A.resize( nR );
+    R.resize( nR );
+    A.resize( nR );
 
-	double	vmin = 1e7, vmax = -1e7;
+    double	vmin = 1e7, vmax = -1e7;
 
-	for( int y = -nnegy; y < nposy; ++y ) {
+    for( int y = -nnegy; y < nposy; ++y ) {
 
-		int	iy = Nx * (y >= 0 ? y : Ny + y);
+        int	iy = Nx * (y >= 0 ? y : Ny + y);
 
-		for( int x = -nnegx; x < nposx; ++x ) {
+        for( int x = -nnegx; x < nposx; ++x ) {
 
-			int	ix = (x >= 0 ? x : Nx + x);
-			int	ir = cx+x + wR*(cy+y);
+            int	ix = (x >= 0 ? x : Nx + x);
+            int	ir = cx+x + wR*(cy+y);
 
-			A[ir] = calc.Valid( LegalRgn, arglr,
-						LegalCnt, arglc, x, y );
+            A[ir] = calc.Valid( LegalRgn, arglr,
+                        LegalCnt, arglc, x, y );
 
-			R[ir] = calc.CalcR( rslt[ix+iy] );
+            R[ir] = calc.CalcR( rslt[ix+iy] );
 
-			if( R[ir] < vmin )
-				vmin = R[ir];
+            if( R[ir] < vmin )
+                vmin = R[ir];
 
-			if( R[ir] > vmax )
-				vmax = R[ir];
-		}
-	}
+            if( R[ir] > vmax )
+                vmax = R[ir];
+        }
+    }
 
-	if( dbgCor )
-		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
+    if( dbgCor )
+        fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
 
-	if( verbose ) {
-		fprintf( flog,
-		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
-	}
+    if( verbose ) {
+        fprintf( flog,
+        "Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
+    }
 
-	MaskA( A, Ox, Oy, Rx, Ry );
+    MaskA( A, Ox, Oy, Rx, Ry );
 
-	if( dbgCor ) {
+    if( dbgCor ) {
 
-		char	simg[32];
+        char	simg[32];
 
-		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1, flog );
+        sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+        CorrThmToTif8( simg, i1, Nx, w1, h1, flog );
 
-		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2, flog );
+        sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+        CorrThmToTif8( simg, i2, Nx, w2, h2, flog );
 
-		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
-		Raster8ToTif8( simg, &A[0], wR, hR, flog );
+        sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
+        Raster8ToTif8( simg, &A[0], wR, hR, flog );
 
-		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &R[0], wR, hR, flog );
-	}
+        sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
+        RasterDblToTifFlt( simg, &R[0], wR, hR, flog );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -2193,180 +2193,180 @@ void CCorImg::MakeRandA(
 /* --------------------------------------------------------------- */
 
 void CCorImg::MakeSandRandA(
-	vector<double>			&S,
-	vector<double>			&R,
-	vector<uint8>			&A,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	int						Ox,
-	int						Oy,
-	int						Rx,
-	int						Ry,
-	vector<CD>				&fft2 )
+    vector<double>			&S,
+    vector<double>			&R,
+    vector<uint8>			&A,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<Point>		&ip2,
+    const vector<double>	&iv2,
+    EvalType				LegalRgn,
+    void*					arglr,
+    EvalType				LegalCnt,
+    void*					arglc,
+    int						Ox,
+    int						Oy,
+    int						Rx,
+    int						Ry,
+    vector<CD>				&fft2 )
 {
 // Get array sizes (Nx,Ny) and FFT size M
 
-	int	Nx, Ny, M;
+    int	Nx, Ny, M;
 
-	Nx = FFTSize( w1, w2 ),
-	Ny = FFTSize( h1, h2 ),
-	M  = Ny*(Nx/2+1);
+    Nx = FFTSize( w1, w2 ),
+    Ny = FFTSize( h1, h2 ),
+    M  = Ny*(Nx/2+1);
 
-	if( verbose )
-		fprintf( flog, "Corr: Nx = %d, Ny = %d\n", Nx, Ny );
+    if( verbose )
+        fprintf( flog, "Corr: Nx = %d, Ny = %d\n", Nx, Ny );
 
 // Create images from point lists
 
-	vector<double>	i1, i2;
+    vector<double>	i1, i2;
 
-	ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
-	ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
+    ImageFromValuesAndPoints( i1, Nx, Ny, iv1, ip1, B1.L, B1.B );
+    ImageFromValuesAndPoints( i2, Nx, Ny, iv2, ip2, B2.L, B2.B );
 
 // FFTs and lags
 
-	vector<double>	rslt;
-	vector<CD>		fft1;
+    vector<double>	rslt;
+    vector<CD>		fft1;
 
 #ifdef ALN_USE_MKL
 
-	vector<CD>	_fft2;
+    vector<CD>	_fft2;
 
-	FFT_2D( _fft2, i2, Nx, Ny, false, flog );
-	FFT_2D( fft1, i1, Nx, Ny, false, flog );
+    FFT_2D( _fft2, i2, Nx, Ny, false, flog );
+    FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
-	for( int i = 0; i < M; ++i )
-		fft1[i] = _fft2[i] * conj( fft1[i] );
+    for( int i = 0; i < M; ++i )
+        fft1[i] = _fft2[i] * conj( fft1[i] );
 
 #else
 
-	FFT_2D( fft2, i2, Nx, Ny, true, flog );
-	FFT_2D( fft1, i1, Nx, Ny, false, flog );
+    FFT_2D( fft2, i2, Nx, Ny, true, flog );
+    FFT_2D( fft1, i1, Nx, Ny, false, flog );
 
-	pthread_mutex_lock( &mutex_fft );
+    pthread_mutex_lock( &mutex_fft );
 
-	for( int i = 0; i < M; ++i )
-		fft1[i] = fft2[i] * conj( fft1[i] );
+    for( int i = 0; i < M; ++i )
+        fft1[i] = fft2[i] * conj( fft1[i] );
 
-	pthread_mutex_unlock( &mutex_fft );
+    pthread_mutex_unlock( &mutex_fft );
 
 #endif
 
-	IFT_2D( rslt, fft1, Nx, Ny, flog );
+    IFT_2D( rslt, fft1, Nx, Ny, flog );
 
 // Prepare correlation calculator
 
-	RCalc	calc;
+    RCalc	calc;
 
-	calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
+    calc.Initialize( i1, w1, h1, i2, w2, h2, Nx, Ny );
 
 // Reorganize valid entries of rslt image so that (dx,dy)=(0,0)
 // is at the image center and (cx,cy)+(dx,dy) indexes all pixels
 // of any sign.
 
-	R.resize( nR );
-	A.resize( nR );
+    R.resize( nR );
+    A.resize( nR );
 
-	double	vmin = 1e7, vmax = -1e7;
+    double	vmin = 1e7, vmax = -1e7;
 
-	for( int y = -nnegy; y < nposy; ++y ) {
+    for( int y = -nnegy; y < nposy; ++y ) {
 
-		int	iy = Nx * (y >= 0 ? y : Ny + y);
+        int	iy = Nx * (y >= 0 ? y : Ny + y);
 
-		for( int x = -nnegx; x < nposx; ++x ) {
+        for( int x = -nnegx; x < nposx; ++x ) {
 
-			int	ix = (x >= 0 ? x : Nx + x);
-			int	ir = cx+x + wR*(cy+y);
+            int	ix = (x >= 0 ? x : Nx + x);
+            int	ir = cx+x + wR*(cy+y);
 
-			A[ir] = calc.Valid( LegalRgn, arglr,
-						LegalCnt, arglc, x, y );
+            A[ir] = calc.Valid( LegalRgn, arglr,
+                        LegalCnt, arglc, x, y );
 
-			R[ir] = calc.CalcR( rslt[ix+iy] );
+            R[ir] = calc.CalcR( rslt[ix+iy] );
 
-			if( R[ir] < vmin )
-				vmin = R[ir];
+            if( R[ir] < vmin )
+                vmin = R[ir];
 
-			if( R[ir] > vmax )
-				vmax = R[ir];
-		}
-	}
+            if( R[ir] > vmax )
+                vmax = R[ir];
+        }
+    }
 
-	if( dbgCor )
-		fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
+    if( dbgCor )
+        fprintf( flog, "Corr: Center = (%d %d).\n", cx, cy );
 
-	if( verbose ) {
-		fprintf( flog,
-		"Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
-	}
+    if( verbose ) {
+        fprintf( flog,
+        "Corr: R image range [%11.6f %11.6f].\n", vmin, vmax );
+    }
 
-	MaskA( A, Ox, Oy, Rx, Ry );
+    MaskA( A, Ox, Oy, Rx, Ry );
 
 // Create S =========================================
 
-	for( int i = 0; i < M; ++i ) {
+    for( int i = 0; i < M; ++i ) {
 
-		double	mag = abs( fft1[i] );
+        double	mag = abs( fft1[i] );
 
-		if( mag > 1e-10 )
-			fft1[i] /= sqrt( mag );
-	}
+        if( mag > 1e-10 )
+            fft1[i] /= sqrt( mag );
+    }
 
-	IFT_2D( rslt, fft1, Nx, Ny, flog );
+    IFT_2D( rslt, fft1, Nx, Ny, flog );
 
-	S.resize( nR );
+    S.resize( nR );
 
-	vmin = 1e7, vmax = -1e7;
+    vmin = 1e7, vmax = -1e7;
 
-	for( int y = -nnegy; y < nposy; ++y ) {
+    for( int y = -nnegy; y < nposy; ++y ) {
 
-		int	iy = Nx * (y >= 0 ? y : Ny + y);
+        int	iy = Nx * (y >= 0 ? y : Ny + y);
 
-		for( int x = -nnegx; x < nposx; ++x ) {
+        for( int x = -nnegx; x < nposx; ++x ) {
 
-			int	ix = (x >= 0 ? x : Nx + x);
-			int	ir = cx+x + wR*(cy+y);
+            int	ix = (x >= 0 ? x : Nx + x);
+            int	ir = cx+x + wR*(cy+y);
 
-			S[ir] = calc.CalcS( rslt[ix+iy] );
+            S[ir] = calc.CalcS( rslt[ix+iy] );
 
-			if( S[ir] < vmin )
-				vmin = S[ir];
+            if( S[ir] < vmin )
+                vmin = S[ir];
 
-			if( S[ir] > vmax )
-				vmax = S[ir];
-		}
-	}
+            if( S[ir] > vmax )
+                vmax = S[ir];
+        }
+    }
 
-	if( verbose ) {
-		fprintf( flog,
-		"Corr: S image range [%11.6f %11.6f].\n", vmin, vmax );
-	}
+    if( verbose ) {
+        fprintf( flog,
+        "Corr: S image range [%11.6f %11.6f].\n", vmin, vmax );
+    }
 
 // ==================================================
 
-	if( dbgCor ) {
+    if( dbgCor ) {
 
-		char	simg[32];
+        char	simg[32];
 
-		sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i1, Nx, w1, h1, flog );
+        sprintf( simg, "thmA_%d.tif", _dbg_simgidx );
+        CorrThmToTif8( simg, i1, Nx, w1, h1, flog );
 
-		sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
-		CorrThmToTif8( simg, i2, Nx, w2, h2, flog );
+        sprintf( simg, "thmB_%d.tif", _dbg_simgidx );
+        CorrThmToTif8( simg, i2, Nx, w2, h2, flog );
 
-		sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
-		Raster8ToTif8( simg, &A[0], wR, hR, flog );
+        sprintf( simg, "corr_A_%d.tif", _dbg_simgidx );
+        Raster8ToTif8( simg, &A[0], wR, hR, flog );
 
-		sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &R[0], wR, hR, flog );
+        sprintf( simg, "corr_R_%d.tif", _dbg_simgidx );
+        RasterDblToTifFlt( simg, &R[0], wR, hR, flog );
 
-		sprintf( simg, "corr_S_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &S[0], wR, hR, flog );
-	}
+        sprintf( simg, "corr_S_%d.tif", _dbg_simgidx );
+        RasterDblToTifFlt( simg, &S[0], wR, hR, flog );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -2410,85 +2410,85 @@ void CCorImg::MakeSandRandA(
 //-1, -1, -1, -1, -1, -1, -1, -1, -1};
 
 void CCorImg::MakeF(
-	vector<double>			&F,
-	vector<uint8>			&A,
-	const vector<double>	&R )
+    vector<double>			&F,
+    vector<uint8>			&A,
+    const vector<double>	&R )
 {
-	vector<CD>	kfft;
-	double		K[] = {
-				-1, -1, -1,
-				-1,  9, -1,
-				-1, -1, -1};
-	double		vmax;
-	int			ksize	= (int)sqrt( sizeof(K) / sizeof(double) );
-	int			grd		= ksize / 2;
+    vector<CD>	kfft;
+    double		K[] = {
+                -1, -1, -1,
+                -1,  9, -1,
+                -1, -1, -1};
+    double		vmax;
+    int			ksize	= (int)sqrt( sizeof(K) / sizeof(double) );
+    int			grd		= ksize / 2;
 
-	Convolve( F, R, wR, hR, K, ksize, ksize, true, true, kfft, flog );
+    Convolve( F, R, wR, hR, K, ksize, ksize, true, true, kfft, flog );
 
 // Zero invalid border of width = grd (guard band)
 
-	if( grd < 2 )
-		grd = 2;
+    if( grd < 2 )
+        grd = 2;
 
-	// top & bottom
-	{
-		int	nz = grd * wR;
+    // top & bottom
+    {
+        int	nz = grd * wR;
 
-		memset( &A[0], 0, nz * sizeof(uint8) );
-		memset( &A[nR - nz], 0, nz * sizeof(uint8) );
+        memset( &A[0], 0, nz * sizeof(uint8) );
+        memset( &A[nR - nz], 0, nz * sizeof(uint8) );
 
-		memset( &F[0], 0, nz * sizeof(double) );
-		memset( &F[nR - nz], 0, nz * sizeof(double) );
-	}
+        memset( &F[0], 0, nz * sizeof(double) );
+        memset( &F[nR - nz], 0, nz * sizeof(double) );
+    }
 
-	// left & right
-	for( int y = grd; y < hR - grd; ++y ) {
+    // left & right
+    for( int y = grd; y < hR - grd; ++y ) {
 
-		for( int x = 0; x < grd; ++x ) {
+        for( int x = 0; x < grd; ++x ) {
 
-			int	i = x + wR*y;
+            int	i = x + wR*y;
 
-			A[i] = 0;
-			F[i] = 0.0;
+            A[i] = 0;
+            F[i] = 0.0;
 
-			i = wR - 1 - x + wR*y;
+            i = wR - 1 - x + wR*y;
 
-			A[i] = 0;
-			F[i] = 0.0;
-		}
-	}
+            A[i] = 0;
+            F[i] = 0.0;
+        }
+    }
 
 // Normalize the filtered image, keep positive only
 
-	vmax = 1e-7;
+    vmax = 1e-7;
 
-	for( int i = 0; i < nR; ++i ) {
+    for( int i = 0; i < nR; ++i ) {
 
-		if( F[i] > vmax )
-			vmax = F[i];
-	}
+        if( F[i] > vmax )
+            vmax = F[i];
+    }
 
-	for( int i = 0; i < nR; ++i ) {
+    for( int i = 0; i < nR; ++i ) {
 
-		if( F[i] > 0.0 )
-			F[i] /= vmax;
-		else
-			F[i] = 0.0;
-	}
+        if( F[i] > 0.0 )
+            F[i] /= vmax;
+        else
+            F[i] = 0.0;
+    }
 
-	if( verbose ) {
-		fprintf( flog,
-		"Corr: F image range [%11.6f %11.6f] before renorm.\n",
-		0.0, vmax );
-	}
+    if( verbose ) {
+        fprintf( flog,
+        "Corr: F image range [%11.6f %11.6f] before renorm.\n",
+        0.0, vmax );
+    }
 
-	if( dbgCor ) {
+    if( dbgCor ) {
 
-		char	simg[32];
+        char	simg[32];
 
-		sprintf( simg, "corr_F_%d.tif", _dbg_simgidx );
-		RasterDblToTifFlt( simg, &F[0], wR, hR, flog );
-	}
+        sprintf( simg, "corr_F_%d.tif", _dbg_simgidx );
+        RasterDblToTifFlt( simg, &F[0], wR, hR, flog );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -2497,75 +2497,75 @@ void CCorImg::MakeF(
 
 class CSort_F_Dec {
 public:
-	const vector<double>	&F;
+    const vector<double>	&F;
 public:
-	CSort_F_Dec( const vector<double> &F )
-		: F(F) {};
-	bool operator() ( int a, int b )
-		{return F[a] > F[b];};
+    CSort_F_Dec( const vector<double> &F )
+        : F(F) {};
+    bool operator() ( int a, int b )
+        {return F[a] > F[b];};
 };
 
 
 bool CCorImg::OrderF(
-	vector<int>				&forder,
-	const vector<double>	&F,
-	const vector<uint8>		&A,
-	const vector<double>	&R,
-	double					mincor )
+    vector<int>				&forder,
+    const vector<double>	&F,
+    const vector<uint8>		&A,
+    const vector<double>	&R,
+    double					mincor )
 {
 // List F pixels in A
 
-	forder.reserve( nR );
+    forder.reserve( nR );
 
-	if( mincor > 0.0 ) {
+    if( mincor > 0.0 ) {
 
-		for( int i = 0; i < nR; ++i ) {
-			if( A[i] && R[i] > mincor )
-				forder.push_back( i );
-		}
-	}
-	else {
+        for( int i = 0; i < nR; ++i ) {
+            if( A[i] && R[i] > mincor )
+                forder.push_back( i );
+        }
+    }
+    else {
 
-		for( int i = 0; i < nR; ++i ) {
-			if( A[i] )
-				forder.push_back( i );
-		}
-	}
+        for( int i = 0; i < nR; ++i ) {
+            if( A[i] )
+                forder.push_back( i );
+        }
+    }
 
 // Check non-empty
 
-	if( !forder.size() ) {
+    if( !forder.size() ) {
 
-		if( verbose )
-			fprintf( flog, "Corr: No peak candidates.\n" );
+        if( verbose )
+            fprintf( flog, "Corr: No peak candidates.\n" );
 
-		return false;
-	}
+        return false;
+    }
 
 // Sort by decreasing F
 
-	CSort_F_Dec	sorter( F );
+    CSort_F_Dec	sorter( F );
 
-	sort( forder.begin(), forder.end(), sorter );
+    sort( forder.begin(), forder.end(), sorter );
 
-	if( dbgCor ) {
+    if( dbgCor ) {
 
-		int	ndbg = forder.size();
-		if( ndbg > 40 )
-			ndbg = 40;
+        int	ndbg = forder.size();
+        if( ndbg > 40 )
+            ndbg = 40;
 
-		fprintf( flog, "top %d by F:\n", ndbg );
+        fprintf( flog, "top %d by F:\n", ndbg );
 
-		for( int i = 0; i < ndbg; ++i ) {
-			int	k	= forder[i];
-			int	y0	= k / wR;
-			int	x0	= k - wR * y0;
-			fprintf( flog, "F %.3f R %.3f (x,y)=(%d,%d)\n",
-				F[k], R[k], x0, y0 );
-		}
-	}
+        for( int i = 0; i < ndbg; ++i ) {
+            int	k	= forder[i];
+            int	y0	= k / wR;
+            int	x0	= k - wR * y0;
+            fprintf( flog, "F %.3f R %.3f (x,y)=(%d,%d)\n",
+                F[k], R[k], x0, y0 );
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -2578,357 +2578,357 @@ bool CCorImg::OrderF(
 //
 #if 1
 bool CCorImg::FPeak(
-	int						&rx,
-	int						&ry,
-	const vector<int>		&forder,
-	const vector<double>	&F,
-	const vector<double>	&R,
-	double					nbmaxht )
+    int						&rx,
+    int						&ry,
+    const vector<int>		&forder,
+    const vector<double>	&F,
+    const vector<double>	&R,
+    double					nbmaxht )
 {
 /* ---------------------------------------------------- */
 /* For efficiency, mask innermost peak areas as visited */
 /* ---------------------------------------------------- */
 
-	vector<uint8>	mask( nR, 0 );
+    vector<uint8>	mask( nR, 0 );
 
 /* --------------------------------------- */
 /* For each peak candidate (highest first) */
 /* --------------------------------------- */
 
-	int	nO = forder.size();
+    int	nO = forder.size();
 
-	for( int i = 0; i < nO; ++i ) {
+    for( int i = 0; i < nO; ++i ) {
 
-		int		ri	= BIG,
-				k	= forder[i],
-				ro, rm;
+        int		ri	= BIG,
+                k	= forder[i],
+                ro, rm;
 
-		if( mask[k] )
-			continue;
+        if( mask[k] )
+            continue;
 
-		/* ----------------------- */
-		/* Candidate {rx, ry, fpk} */
-		/* ----------------------- */
+        /* ----------------------- */
+        /* Candidate {rx, ry, fpk} */
+        /* ----------------------- */
 
-		double	fpk	= F[k],
-				tol = nbmaxht * fpk;
+        double	fpk	= F[k],
+                tol = nbmaxht * fpk;
 
-		ry	= k / wR;
-		rx	= k - wR * ry;
+        ry	= k / wR;
+        rx	= k - wR * ry;
 
-		/* ------------------------------------------- */
-		/* Scan for inner radius ri (pk ht down by 2x) */
-		/* ------------------------------------------- */
+        /* ------------------------------------------- */
+        /* Scan for inner radius ri (pk ht down by 2x) */
+        /* ------------------------------------------- */
 
-		// We select the minimum ri from each of four major
-		// scan directions. Originally we used the average
-		// over the four directions and this had a problem
-		// when the peak (even though compact) rides atop an
-		// extended ridge (from a fold) or extended patch
-		// (due to resin). In such cases the rate of falloff
-		// could be very slow along the ridge, biasing the
-		// peak size estimate.
+        // We select the minimum ri from each of four major
+        // scan directions. Originally we used the average
+        // over the four directions and this had a problem
+        // when the peak (even though compact) rides atop an
+        // extended ridge (from a fold) or extended patch
+        // (due to resin). In such cases the rate of falloff
+        // could be very slow along the ridge, biasing the
+        // peak size estimate.
 
 //up:
-		for( int y = ry - 1; y >= 0; --y ) {
-			if( F[rx + wR*y] <= 0.5*fpk ) {
-				ri = min( ri, ry - y );
-				goto down;
-			}
-		}
+        for( int y = ry - 1; y >= 0; --y ) {
+            if( F[rx + wR*y] <= 0.5*fpk ) {
+                ri = min( ri, ry - y );
+                goto down;
+            }
+        }
 
-		goto ri_close;
+        goto ri_close;
 
 down:
-		for( int y = ry + 1; y < hR; ++y ) {
-			if( F[rx + wR*y] <= 0.5*fpk ) {
-				ri = min( ri, y - ry );
-				goto left;
-			}
-		}
+        for( int y = ry + 1; y < hR; ++y ) {
+            if( F[rx + wR*y] <= 0.5*fpk ) {
+                ri = min( ri, y - ry );
+                goto left;
+            }
+        }
 
-		goto ri_close;
+        goto ri_close;
 
 left:
-		for( int x = rx - 1; x >= 0; --x ) {
-			if( F[x + wR*ry] <= 0.5*fpk ) {
-				ri = min( ri, rx - x );
-				goto right;
-			}
-		}
+        for( int x = rx - 1; x >= 0; --x ) {
+            if( F[x + wR*ry] <= 0.5*fpk ) {
+                ri = min( ri, rx - x );
+                goto right;
+            }
+        }
 
-		goto ri_close;
+        goto ri_close;
 
 right:
-		for( int x = rx + 1; x < wR; ++x ) {
-			if( F[x + wR*ry] <= 0.5*fpk ) {
-				ri = min( ri, x - rx );
-				goto set_ri;
-			}
-		}
+        for( int x = rx + 1; x < wR; ++x ) {
+            if( F[x + wR*ry] <= 0.5*fpk ) {
+                ri = min( ri, x - rx );
+                goto set_ri;
+            }
+        }
 
 ri_close:
-		if( verbose ) {
-			fprintf( flog,
-			"Ri_edge F=%.3f R=%.3f (%4d,%4d)\n",
-			fpk, R[k], rx, ry );
-		}
+        if( verbose ) {
+            fprintf( flog,
+            "Ri_edge F=%.3f R=%.3f (%4d,%4d)\n",
+            fpk, R[k], rx, ry );
+        }
 
-		continue;
+        continue;
 
 set_ri:
-		// noise
-		if( ri <= 1 && R[k] < 0.1 ) {
+        // noise
+        if( ri <= 1 && R[k] < 0.1 ) {
 
-			if( verbose ) {
-				fprintf( flog,
-				"Micropk F=%.3f R=%.3f (%4d,%4d)\n",
-				fpk, R[k], rx, ry );
-			}
+            if( verbose ) {
+                fprintf( flog,
+                "Micropk F=%.3f R=%.3f (%4d,%4d)\n",
+                fpk, R[k], rx, ry );
+            }
 
-			continue;
-		}
+            continue;
+        }
 
-		/* ----------------------- */
-		/* Set outer guard band ro */
-		/* ----------------------- */
+        /* ----------------------- */
+        /* Set outer guard band ro */
+        /* ----------------------- */
 
-		ro = 3 * ri;
+        ro = 3 * ri;
 
-		if( ry - ro < 0 || ry + ro >= hR ||
-			rx - ro < 0 || rx + ro >= wR ) {
+        if( ry - ro < 0 || ry + ro >= hR ||
+            rx - ro < 0 || rx + ro >= wR ) {
 
-			if( verbose ) {
-				fprintf( flog,
-				"Ro_edge F=%.3f R=%.3f (%4d,%4d):"
-				" (ri,ro)=(%4d,%4d)\n",
-				fpk, R[k], rx, ry,
-				ri, ro );
-			}
+            if( verbose ) {
+                fprintf( flog,
+                "Ro_edge F=%.3f R=%.3f (%4d,%4d):"
+                " (ri,ro)=(%4d,%4d)\n",
+                fpk, R[k], rx, ry,
+                ri, ro );
+            }
 
-			continue;
-		}
+            continue;
+        }
 
-		/* ------------------------- */
-		/* Mask out core peak region */
-		/* ------------------------- */
+        /* ------------------------- */
+        /* Mask out core peak region */
+        /* ------------------------- */
 
-		if( (rm = ri/3) < 1 )
-			rm = 1;
+        if( (rm = ri/3) < 1 )
+            rm = 1;
 
-		for( int y = ry - rm; y <= ry + rm; ++y ) {
-			for( int x = rx - rm; x <= rx + rm; ++x )
-				mask[x + wR*y] = 1;
-		}
+        for( int y = ry - rm; y <= ry + rm; ++y ) {
+            for( int x = rx - rm; x <= rx + rm; ++x )
+                mask[x + wR*y] = 1;
+        }
 
-		/* ----------------------------------------- */
-		/* Any pixel > tol in region between ri, ro? */
-		/* ----------------------------------------- */
+        /* ----------------------------------------- */
+        /* Any pixel > tol in region between ri, ro? */
+        /* ----------------------------------------- */
 
-		for( int y = ry - ro; y <= ry + ro; ++y ) {
+        for( int y = ry - ro; y <= ry + ro; ++y ) {
 
-			for( int x = rx - ro; x <= rx + ro; ++x ) {
+            for( int x = rx - ro; x <= rx + ro; ++x ) {
 
-				// ignore inner region
-				if( y >= ry - ri && y <= ry + ri &&
-					x >= rx - ri && x <= rx + ri ) {
+                // ignore inner region
+                if( y >= ry - ri && y <= ry + ri &&
+                    x >= rx - ri && x <= rx + ri ) {
 
-					continue;
-				}
+                    continue;
+                }
 
-				if( F[x + wR*y] > tol ) {
+                if( F[x + wR*y] > tol ) {
 
-					if( verbose ) {
+                    if( verbose ) {
 
-						fprintf( flog,
-						"Hi_neib F=%.3f R=%.3f (%4d,%4d):"
-						" (ri,ro)=(%4d,%4d)"
-						" neib%%=%.3f @ (%4d,%4d)\n",
-						fpk, R[k], rx, ry,
-						ri, ro,
-						F[x + wR*y]/fpk, x, y );
-					}
+                        fprintf( flog,
+                        "Hi_neib F=%.3f R=%.3f (%4d,%4d):"
+                        " (ri,ro)=(%4d,%4d)"
+                        " neib%%=%.3f @ (%4d,%4d)\n",
+                        fpk, R[k], rx, ry,
+                        ri, ro,
+                        F[x + wR*y]/fpk, x, y );
+                    }
 
-					goto next_i;
-				}
-			}
-		}
+                    goto next_i;
+                }
+            }
+        }
 
-		// tested all - good.
-		return true;
+        // tested all - good.
+        return true;
 
 next_i:;
-	}
+    }
 
-	if( verbose )
-		fprintf( flog, "Corr: All peaks rejected.\n" );
+    if( verbose )
+        fprintf( flog, "Corr: All peaks rejected.\n" );
 
-	return false;
+    return false;
 }
 #endif
 
 #if 0
 bool CCorImg::FPeak(
-	int						&rx,
-	int						&ry,
-	const vector<int>		&forder,
-	const vector<double>	&F,
-	const vector<double>	&R,
-	double					nbmaxht )
+    int						&rx,
+    int						&ry,
+    const vector<int>		&forder,
+    const vector<double>	&F,
+    const vector<double>	&R,
+    double					nbmaxht )
 {
 /* ---------------------------------------------------- */
 /* For efficiency, mask innermost peak areas as visited */
 /* ---------------------------------------------------- */
 
-	vector<uint8>	mask( nR, 0 );
+    vector<uint8>	mask( nR, 0 );
 
 /* --------------------------------------- */
 /* For each peak candidate (highest first) */
 /* --------------------------------------- */
 
-	int	nO = forder.size();
+    int	nO = forder.size();
 
-	for( int i = 0; i < nO; ++i ) {
+    for( int i = 0; i < nO; ++i ) {
 
-		int		ri	= 0,
-				k	= forder[i],
-				ro, rm, bl, br, bb, bt;
+        int		ri	= 0,
+                k	= forder[i],
+                ro, rm, bl, br, bb, bt;
 
-		if( mask[k] )
-			continue;
+        if( mask[k] )
+            continue;
 
-		/* ----------------------- */
-		/* Candidate {rx, ry, fpk} */
-		/* ----------------------- */
+        /* ----------------------- */
+        /* Candidate {rx, ry, fpk} */
+        /* ----------------------- */
 
-		double	fpk	= F[k],
-				tol = nbmaxht * fpk;
+        double	fpk	= F[k],
+                tol = nbmaxht * fpk;
 
-		ry	= k / wR;
-		rx	= k - wR * ry;
+        ry	= k / wR;
+        rx	= k - wR * ry;
 
-		/* ------------------------------------------- */
-		/* Scan for inner radius ri (pk ht down by 2x) */
-		/* ------------------------------------------- */
+        /* ------------------------------------------- */
+        /* Scan for inner radius ri (pk ht down by 2x) */
+        /* ------------------------------------------- */
 
 up:
-		for( int y = ry - 1; y >= 0; --y ) {
-			if( F[rx + wR*y] <= 0.5*fpk ) {
-				ri += ry - y;
-				goto down;
-			}
-		}
+        for( int y = ry - 1; y >= 0; --y ) {
+            if( F[rx + wR*y] <= 0.5*fpk ) {
+                ri += ry - y;
+                goto down;
+            }
+        }
 
-		continue;
+        continue;
 
 down:
-		for( int y = ry + 1; y < hR; ++y ) {
-			if( F[rx + wR*y] <= 0.5*fpk ) {
-				ri += y - ry;
-				goto left;
-			}
-		}
+        for( int y = ry + 1; y < hR; ++y ) {
+            if( F[rx + wR*y] <= 0.5*fpk ) {
+                ri += y - ry;
+                goto left;
+            }
+        }
 
-		continue;
+        continue;
 
 left:
-		for( int x = rx - 1; x >= 0; --x ) {
-			if( F[x + wR*ry] <= 0.5*fpk ) {
-				ri += rx - x;
-				goto right;
-			}
-		}
+        for( int x = rx - 1; x >= 0; --x ) {
+            if( F[x + wR*ry] <= 0.5*fpk ) {
+                ri += rx - x;
+                goto right;
+            }
+        }
 
-		continue;
+        continue;
 
 right:
-		for( int x = rx + 1; x < wR; ++x ) {
-			if( F[x + wR*ry] <= 0.5*fpk ) {
-				ri += x - rx;
-				goto set_ri;
-			}
-		}
+        for( int x = rx + 1; x < wR; ++x ) {
+            if( F[x + wR*ry] <= 0.5*fpk ) {
+                ri += x - rx;
+                goto set_ri;
+            }
+        }
 
-		continue;
+        continue;
 
 set_ri:
-		ri /= 4;
+        ri /= 4;
 
-		// noise
-		if( ri <= 1 && R[k] < 0.1 )
-			continue;
+        // noise
+        if( ri <= 1 && R[k] < 0.1 )
+            continue;
 
-		/* ------------------------- */
-		/* Mask out core peak region */
-		/* ------------------------- */
+        /* ------------------------- */
+        /* Mask out core peak region */
+        /* ------------------------- */
 
-		if( (rm = ri/3) < 1 )
-			rm = 1;
+        if( (rm = ri/3) < 1 )
+            rm = 1;
 
-		bb = max( ry - rm, 0 );
-		bt = min( ry + rm, hR - 1 );
-		bl = max( rx - rm, 0 );
-		br = min( rx + rm, wR - 1 );
+        bb = max( ry - rm, 0 );
+        bt = min( ry + rm, hR - 1 );
+        bl = max( rx - rm, 0 );
+        br = min( rx + rm, wR - 1 );
 
-		for( int y = bb; y <= bt; ++y ) {
-			for( int x = bl; x <= br; ++x )
-				mask[x + wR*y] = 1;
-		}
+        for( int y = bb; y <= bt; ++y ) {
+            for( int x = bl; x <= br; ++x )
+                mask[x + wR*y] = 1;
+        }
 
-		/* ----------------------- */
-		/* Set outer guard band ro */
-		/* ----------------------- */
+        /* ----------------------- */
+        /* Set outer guard band ro */
+        /* ----------------------- */
 
-		ro = 3 * ri;
+        ro = 3 * ri;
 
-		bb = max( ry - ro, 0 );
-		bt = min( ry + ro, hR - 1 );
-		bl = max( rx - ro, 0 );
-		br = min( rx + ro, wR - 1 );
+        bb = max( ry - ro, 0 );
+        bt = min( ry + ro, hR - 1 );
+        bl = max( rx - ro, 0 );
+        br = min( rx + ro, wR - 1 );
 
-		/* ----------------------------------------- */
-		/* Any pixel > tol in region between ri, ro? */
-		/* ----------------------------------------- */
+        /* ----------------------------------------- */
+        /* Any pixel > tol in region between ri, ro? */
+        /* ----------------------------------------- */
 
-		for( int y = bb; y <= bt; ++y ) {
+        for( int y = bb; y <= bt; ++y ) {
 
-			for( int x = bl; x <= br; ++x ) {
+            for( int x = bl; x <= br; ++x ) {
 
-				// ignore inner region
-				if( y >= ry - ri && y <= ry + ri &&
-					x >= rx - ri && x <= rx + ri ) {
+                // ignore inner region
+                if( y >= ry - ri && y <= ry + ri &&
+                    x >= rx - ri && x <= rx + ri ) {
 
-					continue;
-				}
+                    continue;
+                }
 
-				if( F[x + wR*y] > tol ) {
+                if( F[x + wR*y] > tol ) {
 
-					if( verbose ) {
+                    if( verbose ) {
 
-						fprintf( flog,
-						"Reject F=%.3f R=%.3f (%4d,%4d):"
-						" (ri,ro)=(%4d,%4d)"
-						" neib%%=%.3f @ (%4d,%4d)\n",
-						fpk, R[k], rx, ry,
-						ri, ro,
-						F[x + wR*y]/fpk, x, y );
-					}
+                        fprintf( flog,
+                        "Reject F=%.3f R=%.3f (%4d,%4d):"
+                        " (ri,ro)=(%4d,%4d)"
+                        " neib%%=%.3f @ (%4d,%4d)\n",
+                        fpk, R[k], rx, ry,
+                        ri, ro,
+                        F[x + wR*y]/fpk, x, y );
+                    }
 
-					goto next_i;
-				}
-			}
-		}
+                    goto next_i;
+                }
+            }
+        }
 
-		// tested all - good.
-		return true;
+        // tested all - good.
+        return true;
 
 next_i:;
-	}
+    }
 
-	if( verbose )
-		fprintf( flog, "Corr: All peaks rejected.\n" );
+    if( verbose )
+        fprintf( flog, "Corr: All peaks rejected.\n" );
 
-	return false;
+    return false;
 }
 #endif
 
@@ -2937,14 +2937,14 @@ next_i:;
 /* --------------------------------------------------------------- */
 
 void CCorImg::SimpleMax(
-	int						&rx,
-	int						&ry,
-	const vector<int>		&forder )
+    int						&rx,
+    int						&ry,
+    const vector<int>		&forder )
 {
-	int	k = forder[0];
+    int	k = forder[0];
 
-	ry	= k / wR;
-	rx	= k - wR * ry;
+    ry	= k / wR;
+    rx	= k - wR * ry;
 }
 
 /* --------------------------------------------------------------- */
@@ -2973,40 +2973,40 @@ void CCorImg::SimpleMax(
 // of the sampling distance.
 //
 static void ParabPeak(
-	double			&xpk,
-	double			&ypk,
-	int				d,
-	const double	*I,
-	int				w,
-	int				h )
+    double			&xpk,
+    double			&ypk,
+    int				d,
+    const double	*I,
+    int				w,
+    int				h )
 {
-	int		ix = (int)xpk,
-			iy = (int)ypk;
-	double	z1 = I[ix + w*iy],
-			z0,
-			z2;
+    int		ix = (int)xpk,
+            iy = (int)ypk;
+    double	z1 = I[ix + w*iy],
+            z0,
+            z2;
 
-	if( ix - d >= 0 &&
-		ix + d <  w &&
-		(z0 = I[ix-d + w*iy]) > 0.0 &&
-		(z2 = I[ix+d + w*iy]) > 0.0 ) {
+    if( ix - d >= 0 &&
+        ix + d <  w &&
+        (z0 = I[ix-d + w*iy]) > 0.0 &&
+        (z2 = I[ix+d + w*iy]) > 0.0 ) {
 
-		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+        z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
-		if( fabs( z0 ) <= 8 * d )
-			xpk += z0;
-	}
+        if( fabs( z0 ) <= 8 * d )
+            xpk += z0;
+    }
 
-	if( iy - d >= 0 &&
-		iy + d <  h &&
-		(z0 = I[ix + w*(iy-d)]) > 0.0 &&
-		(z2 = I[ix + w*(iy+d)]) > 0.0 ) {
+    if( iy - d >= 0 &&
+        iy + d <  h &&
+        (z0 = I[ix + w*(iy-d)]) > 0.0 &&
+        (z2 = I[ix + w*(iy+d)]) > 0.0 ) {
 
-		z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
+        z0 = d * (z0 - z2) / (2 * (z0 + z2 - z1 - z1));
 
-		if( fabs( z0 ) <= 8 * d )
-			ypk += z0;
-	}
+        if( fabs( z0 ) <= 8 * d )
+            ypk += z0;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -3014,32 +3014,32 @@ static void ParabPeak(
 /* --------------------------------------------------------------- */
 
 double CCorImg::ReturnR(
-	double					&dx,
-	double					&dy,
-	int						rx,
-	int						ry,
-	const vector<double>	&Rreport,
-	const vector<double>	&Rtweak )
+    double					&dx,
+    double					&dy,
+    int						rx,
+    int						ry,
+    const vector<double>	&Rreport,
+    const vector<double>	&Rtweak )
 {
-	double	bigR = Rreport[rx + wR*ry];
+    double	bigR = Rreport[rx + wR*ry];
 
-	if( verbose ) {
-		fprintf( flog,
-		"Corr: Max corr %f at [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
-		bigR, rx - cx, ry - cy, rx, ry );
-	}
+    if( verbose ) {
+        fprintf( flog,
+        "Corr: Max corr %f at [dx,dy]=[%d,%d] (x,y)=(%d,%d).\n",
+        bigR, rx - cx, ry - cy, rx, ry );
+    }
 
-	dx = rx;
-	dy = ry;
-	ParabPeak( dx, dy, 1, &Rtweak[0], wR, hR );
+    dx = rx;
+    dy = ry;
+    ParabPeak( dx, dy, 1, &Rtweak[0], wR, hR );
 
-	dx += B2.L - B1.L - cx;
-	dy += B2.B - B1.B - cy;
+    dx += B2.L - B1.L - cx;
+    dy += B2.B - B1.B - cy;
 
-	if( dbgCor )
-		 ++_dbg_simgidx;
+    if( dbgCor )
+         ++_dbg_simgidx;
 
-	return bigR;
+    return bigR;
 }
 
 /* --------------------------------------------------------------- */
@@ -3064,61 +3064,61 @@ double CCorImg::ReturnR(
 // Version using F and well isolated F peak.
 //
 double CorrImagesF(
-	FILE					*flog,
-	int						verbose,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	double					mincor,
-	double					nbmaxht,
-	int						Ox,
-	int						Oy,
-	int						Rx,
-	int						Ry,
-	vector<CD>				&fft2 )
+    FILE					*flog,
+    int						verbose,
+    double					&dx,
+    double					&dy,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<Point>		&ip2,
+    const vector<double>	&iv2,
+    EvalType				LegalRgn,
+    void*					arglr,
+    EvalType				LegalCnt,
+    void*					arglc,
+    double					mincor,
+    double					nbmaxht,
+    int						Ox,
+    int						Oy,
+    int						Rx,
+    int						Ry,
+    vector<CD>				&fft2 )
 {
-	CCorImg			cc;
-	vector<double>	R;
-	vector<uint8>	A;
-	vector<double>	F;
-	vector<int>		forder;
-	int				rx;
-	int				ry;
+    CCorImg			cc;
+    vector<double>	R;
+    vector<uint8>	A;
+    vector<double>	F;
+    vector<int>		forder;
+    int				rx;
+    int				ry;
 
-	if( dbgCor )
-		verbose = true;
+    if( dbgCor )
+        verbose = true;
 
-	if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
+    if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
 
-		dx	= 0.0;
-		dy	= 0.0;
+        dx	= 0.0;
+        dy	= 0.0;
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
-		LegalRgn, arglr, LegalCnt, arglc,
-		Ox, Oy, Rx, Ry, fft2 );
+    cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
+        LegalRgn, arglr, LegalCnt, arglc,
+        Ox, Oy, Rx, Ry, fft2 );
 
-	cc.MakeF( F, A, R );
+    cc.MakeF( F, A, R );
 
-	if( !cc.OrderF( forder, F, A, R, mincor ) ||
-		!cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {
+    if( !cc.OrderF( forder, F, A, R, mincor ) ||
+        !cc.FPeak( rx, ry, forder, F, R, nbmaxht ) ) {
 
-		dx	= 0.0;
-		dy	= 0.0;
+        dx	= 0.0;
+        dy	= 0.0;
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	return cc.ReturnR( dx, dy, rx, ry, R, R );
+    return cc.ReturnR( dx, dy, rx, ry, R, R );
 }
 
 /* --------------------------------------------------------------- */
@@ -3142,60 +3142,60 @@ double CorrImagesF(
 // Version using straight max R.
 //
 double CorrImagesR(
-	FILE					*flog,
-	int						verbose,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	double					mincor,
-	double					nbmaxht,
-	int						Ox,
-	int						Oy,
-	int						Rx,
-	int						Ry,
-	vector<CD>				&fft2 )
+    FILE					*flog,
+    int						verbose,
+    double					&dx,
+    double					&dy,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<Point>		&ip2,
+    const vector<double>	&iv2,
+    EvalType				LegalRgn,
+    void*					arglr,
+    EvalType				LegalCnt,
+    void*					arglc,
+    double					mincor,
+    double					nbmaxht,
+    int						Ox,
+    int						Oy,
+    int						Rx,
+    int						Ry,
+    vector<CD>				&fft2 )
 {
-	CCorImg			cc;
-	vector<double>	R;
-	vector<uint8>	A;
-	vector<int>		order;
-	int				rx;
-	int				ry;
+    CCorImg			cc;
+    vector<double>	R;
+    vector<uint8>	A;
+    vector<int>		order;
+    int				rx;
+    int				ry;
 
-	if( dbgCor )
-		verbose = true;
+    if( dbgCor )
+        verbose = true;
 
-	if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
+    if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
 
-		dx	= 0.0;
-		dy	= 0.0;
+        dx	= 0.0;
+        dy	= 0.0;
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
-		LegalRgn, arglr, LegalCnt, arglc,
-		Ox, Oy, Rx, Ry, fft2 );
+    cc.MakeRandA( R, A, ip1, iv1, ip2, iv2,
+        LegalRgn, arglr, LegalCnt, arglc,
+        Ox, Oy, Rx, Ry, fft2 );
 
-	// actually orders R, here
-	if( !cc.OrderF( order, R, A, R, mincor ) ) {
+    // actually orders R, here
+    if( !cc.OrderF( order, R, A, R, mincor ) ) {
 
-		dx	= 0.0;
-		dy	= 0.0;
+        dx	= 0.0;
+        dy	= 0.0;
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	cc.SimpleMax( rx, ry, order );
+    cc.SimpleMax( rx, ry, order );
 
-	return cc.ReturnR( dx, dy, rx, ry, R, R );
+    return cc.ReturnR( dx, dy, rx, ry, R, R );
 }
 
 /* --------------------------------------------------------------- */
@@ -3220,59 +3220,59 @@ double CorrImagesR(
 // by Art Wetzel, followed by straight max S.
 //
 double CorrImagesS(
-	FILE					*flog,
-	int						verbose,
-	double					&dx,
-	double					&dy,
-	const vector<Point>		&ip1,
-	const vector<double>	&iv1,
-	const vector<Point>		&ip2,
-	const vector<double>	&iv2,
-	EvalType				LegalRgn,
-	void*					arglr,
-	EvalType				LegalCnt,
-	void*					arglc,
-	double					mincor,
-	double					nbmaxht,
-	int						Ox,
-	int						Oy,
-	int						Rx,
-	int						Ry,
-	vector<CD>				&fft2 )
+    FILE					*flog,
+    int						verbose,
+    double					&dx,
+    double					&dy,
+    const vector<Point>		&ip1,
+    const vector<double>	&iv1,
+    const vector<Point>		&ip2,
+    const vector<double>	&iv2,
+    EvalType				LegalRgn,
+    void*					arglr,
+    EvalType				LegalCnt,
+    void*					arglc,
+    double					mincor,
+    double					nbmaxht,
+    int						Ox,
+    int						Oy,
+    int						Rx,
+    int						Ry,
+    vector<CD>				&fft2 )
 {
-	CCorImg			cc;
-	vector<double>	R;
-	vector<uint8>	A;
-	vector<double>	S;
-	vector<int>		order;
-	int				rx;
-	int				ry;
+    CCorImg			cc;
+    vector<double>	R;
+    vector<uint8>	A;
+    vector<double>	S;
+    vector<int>		order;
+    int				rx;
+    int				ry;
 
-	if( dbgCor )
-		verbose = true;
+    if( dbgCor )
+        verbose = true;
 
-	if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
+    if( !cc.SetDims( flog, verbose, ip1, ip2 ) ) {
 
-		dx	= 0.0;
-		dy	= 0.0;
+        dx	= 0.0;
+        dy	= 0.0;
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	cc.MakeSandRandA( S, R, A, ip1, iv1, ip2, iv2,
-		LegalRgn, arglr, LegalCnt, arglc,
-		Ox, Oy, Rx, Ry, fft2 );
+    cc.MakeSandRandA( S, R, A, ip1, iv1, ip2, iv2,
+        LegalRgn, arglr, LegalCnt, arglc,
+        Ox, Oy, Rx, Ry, fft2 );
 
-	// actually orders S, here
-	if( !cc.OrderF( order, S, A, R, mincor ) ) {
+    // actually orders S, here
+    if( !cc.OrderF( order, S, A, R, mincor ) ) {
 
-		dx	= 0.0;
-		dy	= 0.0;
+        dx	= 0.0;
+        dy	= 0.0;
 
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	cc.SimpleMax( rx, ry, order );
+    cc.SimpleMax( rx, ry, order );
 
 // S is really better than R for comparing different cases,
 // say sweeps for strips or blocks. So we return S directly.
@@ -3282,11 +3282,11 @@ double CorrImagesS(
 // size estimator sqrt( area ). Finally, arbitrary factor 10
 // scales result "roughly" into range [-1, 1].
 
-	double	mn, sd, r = cc.ReturnR( dx, dy, rx, ry, S, S );
+    double	mn, sd, r = cc.ReturnR( dx, dy, rx, ry, S, S );
 
-	Stats( S, mn, sd );
+    Stats( S, mn, sd );
 
-	return 10.0 * (r - mn) / (sd * sqrt( S.size() ));
+    return 10.0 * (r - mn) / (sd * sqrt( S.size() ));
 }
 
 

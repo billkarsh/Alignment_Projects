@@ -44,8 +44,8 @@ using namespace std;
 
 uint32 SuperFastHash( const char * data, int len )
 {
-	uint32 hash = len, tmp;
-	int rem;
+    uint32 hash = len, tmp;
+    int rem;
 
     if (len <= 0 || data == NULL) return 0;
 
@@ -96,12 +96,12 @@ uint32 SuperFastHash( const char * data, int len )
 //
 int CeilPow2( int n )
 {
-	int	p = 1;
+    int	p = 1;
 
-	while( p < n )
-		p *= 2;
+    while( p < n )
+        p *= 2;
 
-	return p;
+    return p;
 }
 
 /* --------------------------------------------------------------- */
@@ -110,17 +110,17 @@ int CeilPow2( int n )
 
 void MeanStd::Stats( double &avg, double &std )
 {
-	avg	= sum;
-	std	= 0.0;
+    avg	= sum;
+    std	= 0.0;
 
-	if( n > 1 ) {
-		avg /= n;
+    if( n > 1 ) {
+        avg /= n;
 #ifdef TINYSTAT
-		std  = sqrt( fmax( sum2 - n*avg*avg, 0.0 ) / n );
+        std  = sqrt( fmax( sum2 - n*avg*avg, 0.0 ) / n );
 #else
-		std  = sqrt( fmax( sum2 - n*avg*avg, 0.0 ) / (n - 1.0) );
+        std  = sqrt( fmax( sum2 - n*avg*avg, 0.0 ) / (n - 1.0) );
 #endif
-	}
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -131,25 +131,25 @@ void MeanStd::Stats( double &avg, double &std )
 //
 void Stats( const vector<double> &v, double &avg, double &std )
 {
-	MeanStd	m;
-	int		n = v.size();
+    MeanStd	m;
+    int		n = v.size();
 
-	for( int i = 0; i < n; ++i )
-		m.Element( v[i] );
+    for( int i = 0; i < n; ++i )
+        m.Element( v[i] );
 
-	m.Stats( avg, std );
+    m.Stats( avg, std );
 }
 
 // Finds statistics on an array of N uint8
 //
 void Stats( const uint8 *v, int N, double &avg, double &std )
 {
-	MeanStd	m;
+    MeanStd	m;
 
-	for( int i = 0; i < N; ++i )
-		m.Element( v[i] );
+    for( int i = 0; i < N; ++i )
+        m.Element( v[i] );
 
-	m.Stats( avg, std );
+    m.Stats( avg, std );
 }
 
 /* --------------------------------------------------------------- */
@@ -159,26 +159,26 @@ void Stats( const uint8 *v, int N, double &avg, double &std )
 // Finds statistics on uint8 raster
 //
 void StatsRasterNonZeros(
-	const uint8*	raster,
-	int				npix,
-	double			&avg,
-	double			&std )
+    const uint8*	raster,
+    int				npix,
+    double			&avg,
+    double			&std )
 {
-	MeanStd	m;
+    MeanStd	m;
 
-	for( int i = 0; i < npix; ++i ) {
+    for( int i = 0; i < npix; ++i ) {
 
-		if( raster[i] )
-			m.Element( raster[i] );
-	}
+        if( raster[i] )
+            m.Element( raster[i] );
+    }
 
-	m.Stats( avg, std );
+    m.Stats( avg, std );
 
-	printf( "RasterStats: %d nonzero, %f percent.\n",
-		m.HowMany(), m.HowMany() * 100.0 / npix );
+    printf( "RasterStats: %d nonzero, %f percent.\n",
+        m.HowMany(), m.HowMany() * 100.0 / npix );
 
-	printf( "RasterStats: For nonzeros: mean = %f, std dev = %f,\n",
-		avg, std );
+    printf( "RasterStats: For nonzeros: mean = %f, std dev = %f,\n",
+        avg, std );
 }
 
 /* --------------------------------------------------------------- */
@@ -191,24 +191,24 @@ void StatsRasterNonZeros(
 //
 double Normalize( vector<double> &v )
 {
-	double	avg, std;
-	int		n = v.size();
+    double	avg, std;
+    int		n = v.size();
 
-	Stats( v, avg, std );
+    Stats( v, avg, std );
 
-	//printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
+    //printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		v[i] = (v[i] - avg) / std;
+        v[i] = (v[i] - avg) / std;
 
-		// Experiment to apply +/- 3 stdev cutoff
-		//
-		//if( v[i] < -3 || v[i] > 3 )
-		//	v[i] = 0;
-	}
+        // Experiment to apply +/- 3 stdev cutoff
+        //
+        //if( v[i] < -3 || v[i] > 3 )
+        //	v[i] = 0;
+    }
 
-	return std;
+    return std;
 }
 
 
@@ -218,21 +218,21 @@ double Normalize( vector<double> &v )
 //
 double Normalize( double *a, int n )
 {
-	MeanStd	m;
-	double	avg, std;
-	int		i;
+    MeanStd	m;
+    double	avg, std;
+    int		i;
 
-	for( i = 0; i < n; ++i )
-		m.Element( a[i] );
+    for( i = 0; i < n; ++i )
+        m.Element( a[i] );
 
-	m.Stats( avg, std );
+    m.Stats( avg, std );
 
-	//printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
+    //printf( "Normalize: Average=%f, std dev=%f\n", avg, std );
 
-	for( i = 0; i < n; ++i )
-		a[i] = (a[i] - avg) / std;
+    for( i = 0; i < n; ++i )
+        a[i] = (a[i] - avg) / std;
 
-	return std;
+    return std;
 }
 
 /* --------------------------------------------------------------- */
@@ -246,25 +246,25 @@ double Normalize( double *a, int n )
 //
 double NormalizeNonZeros( vector<double> &v )
 {
-	MeanStd	m;
-	double	avg, std;
-	int		n = v.size();
+    MeanStd	m;
+    double	avg, std;
+    int		n = v.size();
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		if( v[i] )
-			m.Element( v[i] );
-	}
+        if( v[i] )
+            m.Element( v[i] );
+    }
 
-	m.Stats( avg, std );
+    m.Stats( avg, std );
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		if( v[i] )
-			v[i] = (v[i] - avg) / std;
-	}
+        if( v[i] )
+            v[i] = (v[i] - avg) / std;
+    }
 
-	return std;
+    return std;
 }
 
 /* --------------------------------------------------------------- */
@@ -277,27 +277,27 @@ double NormalizeNonZeros( vector<double> &v )
 //
 double CoNormalize( vector<double> &v1, vector<double> &v2 )
 {
-	MeanStd	m;
-	double	avg, std;
-	int		i, n1 = v1.size(), n2 = v2.size();
+    MeanStd	m;
+    double	avg, std;
+    int		i, n1 = v1.size(), n2 = v2.size();
 
-	for( i = 0; i < n1; ++i )
-		m.Element( v1[i] );
+    for( i = 0; i < n1; ++i )
+        m.Element( v1[i] );
 
-	for( i = 0; i < n2; ++i )
-		m.Element( v2[i] );
+    for( i = 0; i < n2; ++i )
+        m.Element( v2[i] );
 
-	m.Stats( avg, std );
+    m.Stats( avg, std );
 
-	//printf( "CoNormalize: Average=%f, std dev=%f\n", avg, std );
+    //printf( "CoNormalize: Average=%f, std dev=%f\n", avg, std );
 
-	for( i = 0; i < n1; ++i )
-		v1[i] = (v1[i] - avg) / std;
+    for( i = 0; i < n1; ++i )
+        v1[i] = (v1[i] - avg) / std;
 
-	for( i = 0; i < n2; ++i )
-		v2[i] = (v2[i] - avg) / std;
+    for( i = 0; i < n2; ++i )
+        v2[i] = (v2[i] - avg) / std;
 
-	return std;
+    return std;
 }
 
 /* --------------------------------------------------------------- */
@@ -310,38 +310,38 @@ double CoNormalize( vector<double> &v1, vector<double> &v2 )
 // Recommend calling CoNormalize again afterward.
 //
 void CoUpperTail(
-	vector<double>	&v1,
-	vector<double>	&v2,
-	double			nsigma )
+    vector<double>	&v1,
+    vector<double>	&v2,
+    double			nsigma )
 {
-	MeanStd	m;
-	double	avg, std;
-	int		i, n1 = v1.size(), n2 = v2.size();
+    MeanStd	m;
+    double	avg, std;
+    int		i, n1 = v1.size(), n2 = v2.size();
 
-	for( i = 0; i < n1; ++i )
-		m.Element( v1[i] );
+    for( i = 0; i < n1; ++i )
+        m.Element( v1[i] );
 
-	for( i = 0; i < n2; ++i )
-		m.Element( v2[i] );
+    for( i = 0; i < n2; ++i )
+        m.Element( v2[i] );
 
-	m.Stats( avg, std );
-	nsigma = avg + std * nsigma;
+    m.Stats( avg, std );
+    nsigma = avg + std * nsigma;
 
-	for( i = 0; i < n1; ++i ) {
+    for( i = 0; i < n1; ++i ) {
 
-		if( v1[i] >= nsigma )
-			v1[i] = (v1[i] - avg) / std;
-		else
-			v1[i] = 0.0;
-	}
+        if( v1[i] >= nsigma )
+            v1[i] = (v1[i] - avg) / std;
+        else
+            v1[i] = 0.0;
+    }
 
-	for( i = 0; i < n2; ++i ) {
+    for( i = 0; i < n2; ++i ) {
 
-		if( v2[i] >= nsigma )
-			v2[i] = (v2[i] - avg) / std;
-		else
-			v2[i] = 0.0;
-	}
+        if( v2[i] >= nsigma )
+            v2[i] = (v2[i] - avg) / std;
+        else
+            v2[i] = 0.0;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -354,38 +354,38 @@ void CoUpperTail(
 // Recommend calling CoNormalize again afterward.
 //
 void CoExcludeMiddle(
-	vector<double>	&v1,
-	vector<double>	&v2,
-	double			nsigma )
+    vector<double>	&v1,
+    vector<double>	&v2,
+    double			nsigma )
 {
-	MeanStd	m;
-	double	avg, std;
-	int		i, n1 = v1.size(), n2 = v2.size();
+    MeanStd	m;
+    double	avg, std;
+    int		i, n1 = v1.size(), n2 = v2.size();
 
-	for( i = 0; i < n1; ++i )
-		m.Element( v1[i] );
+    for( i = 0; i < n1; ++i )
+        m.Element( v1[i] );
 
-	for( i = 0; i < n2; ++i )
-		m.Element( v2[i] );
+    for( i = 0; i < n2; ++i )
+        m.Element( v2[i] );
 
-	m.Stats( avg, std );
-	nsigma *= std;
+    m.Stats( avg, std );
+    nsigma *= std;
 
-	for( i = 0; i < n1; ++i ) {
+    for( i = 0; i < n1; ++i ) {
 
-		if( fabs( v1[i] - avg ) >= nsigma )
-			v1[i] = (v1[i] - avg) / std;
-		else
-			v1[i] = 0.0;
-	}
+        if( fabs( v1[i] - avg ) >= nsigma )
+            v1[i] = (v1[i] - avg) / std;
+        else
+            v1[i] = 0.0;
+    }
 
-	for( i = 0; i < n2; ++i ) {
+    for( i = 0; i < n2; ++i ) {
 
-		if( fabs( v2[i] - avg ) >= nsigma )
-			v2[i] = (v2[i] - avg) / std;
-		else
-			v2[i] = 0.0;
-	}
+        if( fabs( v2[i] - avg ) >= nsigma )
+            v2[i] = (v2[i] - avg) / std;
+        else
+            v2[i] = 0.0;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -396,17 +396,17 @@ void CoExcludeMiddle(
 //
 int FirstNonzero( const double *v, int n )
 {
-	int	idx = -1;
+    int	idx = -1;
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		if( v[i] ) {
-			idx	= i;
-			break;
-		}
-	}
+        if( v[i] ) {
+            idx	= i;
+            break;
+        }
+    }
 
-	return idx;
+    return idx;
 }
 
 /* --------------------------------------------------------------- */
@@ -415,18 +415,18 @@ int FirstNonzero( const double *v, int n )
 
 int IndexOfMaxVal( const double *v, int n )
 {
-	double	max = v[0];
-	int		idx = 0;
+    double	max = v[0];
+    int		idx = 0;
 
-	for( int i = 1; i < n; ++i ) {
+    for( int i = 1; i < n; ++i ) {
 
-		if( v[i] > max ) {
-			max	= v[i];
-			idx	= i;
-		}
-	}
+        if( v[i] > max ) {
+            max	= v[i];
+            idx	= i;
+        }
+    }
 
-	return idx;
+    return idx;
 }
 
 /* --------------------------------------------------------------- */
@@ -435,17 +435,17 @@ int IndexOfMaxVal( const double *v, int n )
 
 double MedianVal( vector<double> &V )
 {
-	int	n = V.size();
+    int	n = V.size();
 
-	if( !n )
-		return 0.0;
+    if( !n )
+        return 0.0;
 
-	sort( V.begin(), V.end() );
+    sort( V.begin(), V.end() );
 
-	if( n & 1 )
-		return V[n/2];
-	else
-		return (V[n/2 - 1] + V[n/2]) / 2.0;
+    if( n & 1 )
+        return V[n/2];
+    else
+        return (V[n/2 - 1] + V[n/2]) / 2.0;
 }
 
 /* --------------------------------------------------------------- */
@@ -455,55 +455,55 @@ double MedianVal( vector<double> &V )
 // Fit data pairs (x,y) to line on interval [i0,ilim).
 //
 void LineFit(
-	double			*icpt,
-	double			*slope,
-	double			*lincor,
-	const double	*x,
-	const double	*y,
-	int				i0,
-	int				ilim )
+    double			*icpt,
+    double			*slope,
+    double			*lincor,
+    const double	*x,
+    const double	*y,
+    int				i0,
+    int				ilim )
 {
-	double	r, varX, varY,
-			n		= 0.0,
-			sumX	= 0.0,
-			sumY	= 0.0,
-			sumXX	= 0.0,
-			sumYY	= 0.0,
-			sumXY	= 0.0;
+    double	r, varX, varY,
+            n		= 0.0,
+            sumX	= 0.0,
+            sumY	= 0.0,
+            sumXX	= 0.0,
+            sumYY	= 0.0,
+            sumXY	= 0.0;
 
 /* --------------------------- */
 /* Collect sums over [i0,ilim) */
 /* --------------------------- */
 
-	for( int i = i0; i < ilim; ++i ) {
+    for( int i = i0; i < ilim; ++i ) {
 
-		double	X = x[i],
-				Y = y[i];
+        double	X = x[i],
+                Y = y[i];
 
-		sumX	+= X;
-		sumY	+= Y;
-		sumXX	+= X * X;
-		sumYY	+= Y * Y;
-		sumXY	+= X * Y;
-		++n;
-	}
+        sumX	+= X;
+        sumY	+= Y;
+        sumXX	+= X * X;
+        sumYY	+= Y * Y;
+        sumXY	+= X * Y;
+        ++n;
+    }
 
 /* --------------- */
 /* Compute results */
 /* --------------- */
 
-	r		= n * sumXY - sumX * sumY;
-	varX	= n * sumXX - sumX * sumX;
-	varY	= n * sumYY - sumY * sumY;
+    r		= n * sumXY - sumX * sumY;
+    varX	= n * sumXX - sumX * sumX;
+    varY	= n * sumYY - sumY * sumY;
 
-	if( icpt )
-		*icpt = (sumXX * sumY - sumX * sumXY) / varX;
+    if( icpt )
+        *icpt = (sumXX * sumY - sumX * sumXY) / varX;
 
-	if( slope )
-		*slope = r / varX;
+    if( slope )
+        *slope = r / varX;
 
-	if( lincor )
-		*lincor = r / sqrt( varX * varY );
+    if( lincor )
+        *lincor = r / sqrt( varX * varY );
 }
 
 /* --------------------------------------------------------------- */
@@ -511,33 +511,33 @@ void LineFit(
 /* --------------------------------------------------------------- */
 
 void Histogram(
-	double			&uflo,
-	double			&oflo,
-	double			*bins,
-	int				nbins,
-	double			datamin,
-	double			datamax,
-	const uint16	*data,
-	int				ndata,
-	bool			breset )
+    double			&uflo,
+    double			&oflo,
+    double			*bins,
+    int				nbins,
+    double			datamin,
+    double			datamax,
+    const uint16	*data,
+    int				ndata,
+    bool			breset )
 {
-	double	dtob = nbins / (datamax - datamin);
+    double	dtob = nbins / (datamax - datamin);
 
-	if( breset ) {
-		uflo	= 0.0;
-		oflo	= 0.0;
-		memset( bins, 0, nbins * sizeof(double) );
-	}
+    if( breset ) {
+        uflo	= 0.0;
+        oflo	= 0.0;
+        memset( bins, 0, nbins * sizeof(double) );
+    }
 
-	for( int i = 0; i < ndata; ++i ) {
+    for( int i = 0; i < ndata; ++i ) {
 
-		if( data[i] < datamin )
-			++uflo;
-		else if( data[i] >= datamax )
-			++oflo;
-		else
-			++bins[int((data[i] - datamin)*dtob)];
-	}
+        if( data[i] < datamin )
+            ++uflo;
+        else if( data[i] >= datamax )
+            ++oflo;
+        else
+            ++bins[int((data[i] - datamin)*dtob)];
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -548,26 +548,26 @@ void Histogram(
 // count over [0..I] is >= frac * total.
 //
 int PercentileBin(
-	const double	*bins,
-	int				nbins,
-	double			frac )
+    const double	*bins,
+    int				nbins,
+    double			frac )
 {
-	double	cnts = 0.0, sum = 0.0;
+    double	cnts = 0.0, sum = 0.0;
 
-	for( int i = 0; i < nbins; ++i )
-		cnts += bins[i];
+    for( int i = 0; i < nbins; ++i )
+        cnts += bins[i];
 
-	cnts *= frac;
+    cnts *= frac;
 
-	for( int i = 0; i < nbins; ++i ) {
+    for( int i = 0; i < nbins; ++i ) {
 
-		sum += bins[i];
+        sum += bins[i];
 
-		if( sum >= cnts )
-			return i;
-	}
+        if( sum >= cnts )
+            return i;
+    }
 
-	return nbins - 1;
+    return nbins - 1;
 }
 
 /* --------------------------------------------------------------- */
@@ -581,73 +581,73 @@ int PercentileBin(
 // Returns -1 if histogram empty.
 //
 double IsoDataThresh(
-	const double	*bins,
-	int				nbins,
-	double			datamin,
-	double			datamax )
+    const double	*bins,
+    int				nbins,
+    double			datamin,
+    double			datamax )
 {
-	double	bwid = (datamax - datamin) / nbins;
-	double	nlo, dlo, nhi, dhi, T, err;
-	int		ilo, ihi;
+    double	bwid = (datamax - datamin) / nbins;
+    double	nlo, dlo, nhi, dhi, T, err;
+    int		ilo, ihi;
 
-	ilo = FirstNonzero( bins, nbins );
-	ihi = -1;
+    ilo = FirstNonzero( bins, nbins );
+    ihi = -1;
 
 // find lowest non-zero bin
 
-	if( ilo < 0 )
-		return -1.0;
+    if( ilo < 0 )
+        return -1.0;
 
 // find highest non-zero bin
 
-	for( int i = nbins - 1; i >= ilo; --i ) {
+    for( int i = nbins - 1; i >= ilo; --i ) {
 
-		if( bins[i] ) {
-			ihi = i;
-			break;
-		}
-	}
+        if( bins[i] ) {
+            ihi = i;
+            break;
+        }
+    }
 
-	if( ihi == ilo )
-		return BINVAL( ilo );
+    if( ihi == ilo )
+        return BINVAL( ilo );
 
 // start with all data on high side
 
-	dlo	= 0.0;
-	nlo	= 0.0;
-	dhi	= 0.0;
-	nhi	= 0.0;
-	err = 1e30;
+    dlo	= 0.0;
+    nlo	= 0.0;
+    dhi	= 0.0;
+    nhi	= 0.0;
+    err = 1e30;
 
-	for( int i = ilo; i <= ihi; ++i ) {
-		dhi += bins[i];
-		nhi += bins[i] * BINVAL( i );
-	}
+    for( int i = ilo; i <= ihi; ++i ) {
+        dhi += bins[i];
+        nhi += bins[i] * BINVAL( i );
+    }
 
 // for each thresh slide one bin to left
 
-	for( int i = ilo; i < ihi; ++i ) {
+    for( int i = ilo; i < ihi; ++i ) {
 
-		double	q, t;
+        double	q, t;
 
-		q    = bins[i];
-		dlo += q;
-		dhi -= q;
+        q    = bins[i];
+        dlo += q;
+        dhi -= q;
 
-		q   *= BINVAL( i );
-		nlo += q;
-		nhi -= q;
+        q   *= BINVAL( i );
+        nlo += q;
+        nhi -= q;
 
-		t = 0.5*(nlo/dlo + nhi/dhi);
-		q = fabs( BINVAL( i + 1 ) - t );
+        t = 0.5*(nlo/dlo + nhi/dhi);
+        q = fabs( BINVAL( i + 1 ) - t );
 
-		if( q < err ) {
-			T	= t;
-			err	= q;
-		}
-	}
+        if( q < err ) {
+            T	= t;
+            err	= q;
+        }
+    }
 
-	return T;
+    return T;
 }
 
 /* --------------------------------------------------------------- */
@@ -660,72 +660,72 @@ double IsoDataThresh(
 // Returns -1 if histogram empty.
 //
 double MinSepThresh(
-	const double	*bins,
-	int				nbins,
-	double			datamin,
-	double			datamax )
+    const double	*bins,
+    int				nbins,
+    double			datamin,
+    double			datamax )
 {
-	double	bwid = (datamax - datamin) / nbins;
-	double	nlo, dlo, nhi, dhi, T, sep;
-	int		ilo, ihi;
+    double	bwid = (datamax - datamin) / nbins;
+    double	nlo, dlo, nhi, dhi, T, sep;
+    int		ilo, ihi;
 
-	ilo = FirstNonzero( bins, nbins );
-	ihi = -1;
+    ilo = FirstNonzero( bins, nbins );
+    ihi = -1;
 
 // find lowest non-zero bin
 
-	if( ilo < 0 )
-		return -1.0;
+    if( ilo < 0 )
+        return -1.0;
 
 // find highest non-zero bin
 
-	for( int i = nbins - 1; i >= ilo; --i ) {
+    for( int i = nbins - 1; i >= ilo; --i ) {
 
-		if( bins[i] ) {
-			ihi = i;
-			break;
-		}
-	}
+        if( bins[i] ) {
+            ihi = i;
+            break;
+        }
+    }
 
-	if( ihi == ilo )
-		return BINVAL( ilo );
+    if( ihi == ilo )
+        return BINVAL( ilo );
 
 // start with all data on high side
 
-	dlo	= 0.0;
-	nlo	= 0.0;
-	dhi	= 0.0;
-	nhi	= 0.0;
-	sep = 1e30;
+    dlo	= 0.0;
+    nlo	= 0.0;
+    dhi	= 0.0;
+    nhi	= 0.0;
+    sep = 1e30;
 
-	for( int i = ilo; i <= ihi; ++i ) {
-		dhi += bins[i];
-		nhi += bins[i] * BINVAL( i );
-	}
+    for( int i = ilo; i <= ihi; ++i ) {
+        dhi += bins[i];
+        nhi += bins[i] * BINVAL( i );
+    }
 
 // for each thresh slide one bin to left
 
-	for( int i = ilo; i < ihi; ++i ) {
+    for( int i = ilo; i < ihi; ++i ) {
 
-		double	q, t;
+        double	q, t;
 
-		q    = bins[i];
-		dlo += q;
-		dhi -= q;
+        q    = bins[i];
+        dlo += q;
+        dhi -= q;
 
-		q   *= BINVAL( i );
-		nlo += q;
-		nhi -= q;
+        q   *= BINVAL( i );
+        nlo += q;
+        nhi -= q;
 
-		q = fabs( nlo/dlo - nhi/dhi );
+        q = fabs( nlo/dlo - nhi/dhi );
 
-		if( q < sep ) {
-			T	= nlo/dlo + nhi/dhi;
-			sep	= q;
-		}
-	}
+        if( q < sep ) {
+            T	= nlo/dlo + nhi/dhi;
+            sep	= q;
+        }
+    }
 
-	return T * 0.5;
+    return T * 0.5;
 }
 
 /* --------------------------------------------------------------- */
@@ -738,76 +738,76 @@ double MinSepThresh(
 // Returns -1 if histogram empty.
 //
 double OtsuThresh(
-	const double	*bins,
-	int				nbins,
-	double			datamin,
-	double			datamax )
+    const double	*bins,
+    int				nbins,
+    double			datamin,
+    double			datamax )
 {
-	double	bwid = (datamax - datamin) / nbins;
-	double	tlo, slo, nlo, thi, shi, nhi, T, var;
-	int		ilo, ihi;
+    double	bwid = (datamax - datamin) / nbins;
+    double	tlo, slo, nlo, thi, shi, nhi, T, var;
+    int		ilo, ihi;
 
-	ilo = FirstNonzero( bins, nbins );
-	ihi = -1;
+    ilo = FirstNonzero( bins, nbins );
+    ihi = -1;
 
 // find lowest non-zero bin
 
-	if( ilo < 0 )
-		return -1.0;
+    if( ilo < 0 )
+        return -1.0;
 
 // find highest non-zero bin
 
-	for( int i = nbins - 1; i >= ilo; --i ) {
+    for( int i = nbins - 1; i >= ilo; --i ) {
 
-		if( bins[i] ) {
-			ihi = i;
-			break;
-		}
-	}
+        if( bins[i] ) {
+            ihi = i;
+            break;
+        }
+    }
 
-	if( ihi == ilo )
-		return BINVAL( ilo );
+    if( ihi == ilo )
+        return BINVAL( ilo );
 
 // start with all data on high side
 
-	nlo	= 0.0;
-	slo	= 0.0;
-	nhi	= 0.0;
-	shi	= 0.0;
-	var	= 0;
+    nlo	= 0.0;
+    slo	= 0.0;
+    nhi	= 0.0;
+    shi	= 0.0;
+    var	= 0;
 
-	for( int i = ilo; i <= ihi; ++i ) {
-		nhi	+= bins[i];
-		shi	+= bins[i] * BINVAL( i );
-	}
+    for( int i = ilo; i <= ihi; ++i ) {
+        nhi	+= bins[i];
+        shi	+= bins[i] * BINVAL( i );
+    }
 
 // for each thresh slide one bin to left
 
-	for( int i = ilo; i < ihi; ++i ) {
+    for( int i = ilo; i < ihi; ++i ) {
 
-		double	q;
+        double	q;
 
-		q	 = bins[i];
-		nlo	+= q;
-		nhi	-= q;
+        q	 = bins[i];
+        nlo	+= q;
+        nhi	-= q;
 
-		q	*= BINVAL( i );
-		slo	+= q;
-		shi	-= q;
+        q	*= BINVAL( i );
+        slo	+= q;
+        shi	-= q;
 
-		tlo	 = slo / nlo;
-		thi	 = shi / nhi;
+        tlo	 = slo / nlo;
+        thi	 = shi / nhi;
 
-		q	 = tlo - thi;
-		q	*= nlo * nhi * q;
+        q	 = tlo - thi;
+        q	*= nlo * nhi * q;
 
-		if( q > var ) {
-			T	= tlo + thi;
-			var	= q;
-		}
-	}
+        if( q > var ) {
+            T	= tlo + thi;
+            var	= q;
+        }
+    }
 
-	return T * 0.5;
+    return T * 0.5;
 }
 
 /* --------------------------------------------------------------- */
@@ -816,17 +816,17 @@ double OtsuThresh(
 
 void PrintVectorAsMat( FILE* f, const vector<double> &v, int w )
 {
-	int		n = v.size();
+    int		n = v.size();
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		if( !(i % w) )
-			fprintf( f, "\n" );
+        if( !(i % w) )
+            fprintf( f, "\n" );
 
-		fprintf( f, "%5.1f", v[i] );
-	}
+        fprintf( f, "%5.1f", v[i] );
+    }
 
-	fprintf( f, "\n" );
+    fprintf( f, "\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -835,13 +835,13 @@ void PrintVectorAsMat( FILE* f, const vector<double> &v, int w )
 
 void Print3x3Matrix( FILE* f, const double a[3][3] )
 {
-	for( int i = 0; i < 3; ++i ) {
+    for( int i = 0; i < 3; ++i ) {
 
-		for( int j = 0; j < 3; ++j )
-			fprintf( f, "%12.6f ", a[i][j] );
+        for( int j = 0; j < 3; ++j )
+            fprintf( f, "%12.6f ", a[i][j] );
 
-		fprintf( f, "\n" );
-	}
+        fprintf( f, "\n" );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -855,24 +855,24 @@ void Print3x3Matrix( FILE* f, const double a[3][3] )
 //
 double Invert3x3Rowlist( double i[9], const double a[9] )
 {
-	double	det = a[0]*a[4]*a[8]
-				+ a[1]*a[5]*a[6]
-				+ a[3]*a[7]*a[2]
-				- a[2]*a[4]*a[6]
-				- a[1]*a[3]*a[8]
-				- a[5]*a[7]*a[0];
+    double	det = a[0]*a[4]*a[8]
+                + a[1]*a[5]*a[6]
+                + a[3]*a[7]*a[2]
+                - a[2]*a[4]*a[6]
+                - a[1]*a[3]*a[8]
+                - a[5]*a[7]*a[0];
 
-	i[0] =  (a[4]*a[8] - a[5]*a[7]) / det;
-	i[3] = -(a[3]*a[8] - a[5]*a[6]) / det;
-	i[6] =  (a[3]*a[7] - a[4]*a[6]) / det;
-	i[1] = -(a[1]*a[8] - a[2]*a[7]) / det;
-	i[4] =  (a[0]*a[8] - a[2]*a[6]) / det;
-	i[7] = -(a[0]*a[7] - a[1]*a[6]) / det;
-	i[2] =  (a[1]*a[5] - a[2]*a[4]) / det;
-	i[5] = -(a[0]*a[5] - a[2]*a[3]) / det;
-	i[8] =  (a[0]*a[4] - a[1]*a[3]) / det;
+    i[0] =  (a[4]*a[8] - a[5]*a[7]) / det;
+    i[3] = -(a[3]*a[8] - a[5]*a[6]) / det;
+    i[6] =  (a[3]*a[7] - a[4]*a[6]) / det;
+    i[1] = -(a[1]*a[8] - a[2]*a[7]) / det;
+    i[4] =  (a[0]*a[8] - a[2]*a[6]) / det;
+    i[7] = -(a[0]*a[7] - a[1]*a[6]) / det;
+    i[2] =  (a[1]*a[5] - a[2]*a[4]) / det;
+    i[5] = -(a[0]*a[5] - a[2]*a[3]) / det;
+    i[8] =  (a[0]*a[4] - a[1]*a[3]) / det;
 
-	return det;
+    return det;
 }
 
 /* --------------------------------------------------------------- */
@@ -881,24 +881,24 @@ double Invert3x3Rowlist( double i[9], const double a[9] )
 
 double Invert3x3Matrix( double i[3][3], const double a[3][3] )
 {
-	double	det = a[0][0]*a[1][1]*a[2][2]
-				+ a[0][1]*a[1][2]*a[2][0]
-				+ a[1][0]*a[2][1]*a[0][2]
-				- a[0][2]*a[1][1]*a[2][0]
-				- a[0][1]*a[1][0]*a[2][2]
-				- a[1][2]*a[2][1]*a[0][0];
+    double	det = a[0][0]*a[1][1]*a[2][2]
+                + a[0][1]*a[1][2]*a[2][0]
+                + a[1][0]*a[2][1]*a[0][2]
+                - a[0][2]*a[1][1]*a[2][0]
+                - a[0][1]*a[1][0]*a[2][2]
+                - a[1][2]*a[2][1]*a[0][0];
 
-	i[0][0] =  (a[1][1]*a[2][2] - a[1][2]*a[2][1]) / det;
-	i[1][0] = -(a[1][0]*a[2][2] - a[1][2]*a[2][0]) / det;
-	i[2][0] =  (a[1][0]*a[2][1] - a[1][1]*a[2][0]) / det;
-	i[0][1] = -(a[0][1]*a[2][2] - a[0][2]*a[2][1]) / det;
-	i[1][1] =  (a[0][0]*a[2][2] - a[0][2]*a[2][0]) / det;
-	i[2][1] = -(a[0][0]*a[2][1] - a[0][1]*a[2][0]) / det;
-	i[0][2] =  (a[0][1]*a[1][2] - a[0][2]*a[1][1]) / det;
-	i[1][2] = -(a[0][0]*a[1][2] - a[0][2]*a[1][0]) / det;
-	i[2][2] =  (a[0][0]*a[1][1] - a[0][1]*a[1][0]) / det;
+    i[0][0] =  (a[1][1]*a[2][2] - a[1][2]*a[2][1]) / det;
+    i[1][0] = -(a[1][0]*a[2][2] - a[1][2]*a[2][0]) / det;
+    i[2][0] =  (a[1][0]*a[2][1] - a[1][1]*a[2][0]) / det;
+    i[0][1] = -(a[0][1]*a[2][2] - a[0][2]*a[2][1]) / det;
+    i[1][1] =  (a[0][0]*a[2][2] - a[0][2]*a[2][0]) / det;
+    i[2][1] = -(a[0][0]*a[2][1] - a[0][1]*a[2][0]) / det;
+    i[0][2] =  (a[0][1]*a[1][2] - a[0][2]*a[1][1]) / det;
+    i[1][2] = -(a[0][0]*a[1][2] - a[0][2]*a[1][0]) / det;
+    i[2][2] =  (a[0][0]*a[1][1] - a[0][1]*a[1][0]) / det;
 
-	return det;
+    return det;
 }
 
 /* --------------------------------------------------------------- */
@@ -907,52 +907,52 @@ double Invert3x3Matrix( double i[3][3], const double a[3][3] )
 
 double Invert4x4Matrix( double i[4][4], const double a[4][4] )
 {
-	double	det = a[0][3]*a[1][2]*a[2][1]*a[3][0]
-				- a[0][2]*a[1][3]*a[2][1]*a[3][0]
-				- a[0][3]*a[1][1]*a[2][2]*a[3][0]
-				+ a[0][1]*a[1][3]*a[2][2]*a[3][0]
-				+ a[0][2]*a[1][1]*a[2][3]*a[3][0]
-				- a[0][1]*a[1][2]*a[2][3]*a[3][0]
-				- a[0][3]*a[1][2]*a[2][0]*a[3][1]
-				+ a[0][2]*a[1][3]*a[2][0]*a[3][1]
-				+ a[0][3]*a[1][0]*a[2][2]*a[3][1]
-				- a[0][0]*a[1][3]*a[2][2]*a[3][1]
-				- a[0][2]*a[1][0]*a[2][3]*a[3][1]
-				+ a[0][0]*a[1][2]*a[2][3]*a[3][1]
-				+ a[0][3]*a[1][1]*a[2][0]*a[3][2]
-				- a[0][1]*a[1][3]*a[2][0]*a[3][2]
-				- a[0][3]*a[1][0]*a[2][1]*a[3][2]
-				+ a[0][0]*a[1][3]*a[2][1]*a[3][2]
-				+ a[0][1]*a[1][0]*a[2][3]*a[3][2]
-				- a[0][0]*a[1][1]*a[2][3]*a[3][2]
-				- a[0][2]*a[1][1]*a[2][0]*a[3][3]
-				+ a[0][1]*a[1][2]*a[2][0]*a[3][3]
-				+ a[0][2]*a[1][0]*a[2][1]*a[3][3]
-				- a[0][0]*a[1][2]*a[2][1]*a[3][3]
-				- a[0][1]*a[1][0]*a[2][2]*a[3][3]
-				+ a[0][0]*a[1][1]*a[2][2]*a[3][3];
+    double	det = a[0][3]*a[1][2]*a[2][1]*a[3][0]
+                - a[0][2]*a[1][3]*a[2][1]*a[3][0]
+                - a[0][3]*a[1][1]*a[2][2]*a[3][0]
+                + a[0][1]*a[1][3]*a[2][2]*a[3][0]
+                + a[0][2]*a[1][1]*a[2][3]*a[3][0]
+                - a[0][1]*a[1][2]*a[2][3]*a[3][0]
+                - a[0][3]*a[1][2]*a[2][0]*a[3][1]
+                + a[0][2]*a[1][3]*a[2][0]*a[3][1]
+                + a[0][3]*a[1][0]*a[2][2]*a[3][1]
+                - a[0][0]*a[1][3]*a[2][2]*a[3][1]
+                - a[0][2]*a[1][0]*a[2][3]*a[3][1]
+                + a[0][0]*a[1][2]*a[2][3]*a[3][1]
+                + a[0][3]*a[1][1]*a[2][0]*a[3][2]
+                - a[0][1]*a[1][3]*a[2][0]*a[3][2]
+                - a[0][3]*a[1][0]*a[2][1]*a[3][2]
+                + a[0][0]*a[1][3]*a[2][1]*a[3][2]
+                + a[0][1]*a[1][0]*a[2][3]*a[3][2]
+                - a[0][0]*a[1][1]*a[2][3]*a[3][2]
+                - a[0][2]*a[1][1]*a[2][0]*a[3][3]
+                + a[0][1]*a[1][2]*a[2][0]*a[3][3]
+                + a[0][2]*a[1][0]*a[2][1]*a[3][3]
+                - a[0][0]*a[1][2]*a[2][1]*a[3][3]
+                - a[0][1]*a[1][0]*a[2][2]*a[3][3]
+                + a[0][0]*a[1][1]*a[2][2]*a[3][3];
 
-	i[0][0] = (-a[1][3]*a[2][2]*a[3][1] + a[1][2]*a[2][3]*a[3][1] + a[1][3]*a[2][1]*a[3][2] - a[1][1]*a[2][3]*a[3][2] - a[1][2]*a[2][1]*a[3][3] + a[1][1]*a[2][2]*a[3][3]) / det;
-	i[0][1] = ( a[0][3]*a[2][2]*a[3][1] - a[0][2]*a[2][3]*a[3][1] - a[0][3]*a[2][1]*a[3][2] + a[0][1]*a[2][3]*a[3][2] + a[0][2]*a[2][1]*a[3][3] - a[0][1]*a[2][2]*a[3][3]) / det;
-	i[0][2] = (-a[0][3]*a[1][2]*a[3][1] + a[0][2]*a[1][3]*a[3][1] + a[0][3]*a[1][1]*a[3][2] - a[0][1]*a[1][3]*a[3][2] - a[0][2]*a[1][1]*a[3][3] + a[0][1]*a[1][2]*a[3][3]) / det;
-	i[0][3] = ( a[0][3]*a[1][2]*a[2][1] - a[0][2]*a[1][3]*a[2][1] - a[0][3]*a[1][1]*a[2][2] + a[0][1]*a[1][3]*a[2][2] + a[0][2]*a[1][1]*a[2][3] - a[0][1]*a[1][2]*a[2][3]) / det;
+    i[0][0] = (-a[1][3]*a[2][2]*a[3][1] + a[1][2]*a[2][3]*a[3][1] + a[1][3]*a[2][1]*a[3][2] - a[1][1]*a[2][3]*a[3][2] - a[1][2]*a[2][1]*a[3][3] + a[1][1]*a[2][2]*a[3][3]) / det;
+    i[0][1] = ( a[0][3]*a[2][2]*a[3][1] - a[0][2]*a[2][3]*a[3][1] - a[0][3]*a[2][1]*a[3][2] + a[0][1]*a[2][3]*a[3][2] + a[0][2]*a[2][1]*a[3][3] - a[0][1]*a[2][2]*a[3][3]) / det;
+    i[0][2] = (-a[0][3]*a[1][2]*a[3][1] + a[0][2]*a[1][3]*a[3][1] + a[0][3]*a[1][1]*a[3][2] - a[0][1]*a[1][3]*a[3][2] - a[0][2]*a[1][1]*a[3][3] + a[0][1]*a[1][2]*a[3][3]) / det;
+    i[0][3] = ( a[0][3]*a[1][2]*a[2][1] - a[0][2]*a[1][3]*a[2][1] - a[0][3]*a[1][1]*a[2][2] + a[0][1]*a[1][3]*a[2][2] + a[0][2]*a[1][1]*a[2][3] - a[0][1]*a[1][2]*a[2][3]) / det;
 
-	i[1][0] = ( a[1][3]*a[2][2]*a[3][0] - a[1][2]*a[2][3]*a[3][0] - a[1][3]*a[2][0]*a[3][2] + a[1][0]*a[2][3]*a[3][2] + a[1][2]*a[2][0]*a[3][3] - a[1][0]*a[2][2]*a[3][3]) / det;
-	i[1][1] = (-a[0][3]*a[2][2]*a[3][0] + a[0][2]*a[2][3]*a[3][0] + a[0][3]*a[2][0]*a[3][2] - a[0][0]*a[2][3]*a[3][2] - a[0][2]*a[2][0]*a[3][3] + a[0][0]*a[2][2]*a[3][3]) / det;
-	i[1][2] = ( a[0][3]*a[1][2]*a[3][0] - a[0][2]*a[1][3]*a[3][0] - a[0][3]*a[1][0]*a[3][2] + a[0][0]*a[1][3]*a[3][2] + a[0][2]*a[1][0]*a[3][3] - a[0][0]*a[1][2]*a[3][3]) / det;
-	i[1][3] = (-a[0][3]*a[1][2]*a[2][0] + a[0][2]*a[1][3]*a[2][0] + a[0][3]*a[1][0]*a[2][2] - a[0][0]*a[1][3]*a[2][2] - a[0][2]*a[1][0]*a[2][3] + a[0][0]*a[1][2]*a[2][3]) / det;
+    i[1][0] = ( a[1][3]*a[2][2]*a[3][0] - a[1][2]*a[2][3]*a[3][0] - a[1][3]*a[2][0]*a[3][2] + a[1][0]*a[2][3]*a[3][2] + a[1][2]*a[2][0]*a[3][3] - a[1][0]*a[2][2]*a[3][3]) / det;
+    i[1][1] = (-a[0][3]*a[2][2]*a[3][0] + a[0][2]*a[2][3]*a[3][0] + a[0][3]*a[2][0]*a[3][2] - a[0][0]*a[2][3]*a[3][2] - a[0][2]*a[2][0]*a[3][3] + a[0][0]*a[2][2]*a[3][3]) / det;
+    i[1][2] = ( a[0][3]*a[1][2]*a[3][0] - a[0][2]*a[1][3]*a[3][0] - a[0][3]*a[1][0]*a[3][2] + a[0][0]*a[1][3]*a[3][2] + a[0][2]*a[1][0]*a[3][3] - a[0][0]*a[1][2]*a[3][3]) / det;
+    i[1][3] = (-a[0][3]*a[1][2]*a[2][0] + a[0][2]*a[1][3]*a[2][0] + a[0][3]*a[1][0]*a[2][2] - a[0][0]*a[1][3]*a[2][2] - a[0][2]*a[1][0]*a[2][3] + a[0][0]*a[1][2]*a[2][3]) / det;
 
-	i[2][0] = (-a[1][3]*a[2][1]*a[3][0] + a[1][1]*a[2][3]*a[3][0] + a[1][3]*a[2][0]*a[3][1] - a[1][0]*a[2][3]*a[3][1] - a[1][1]*a[2][0]*a[3][3] + a[1][0]*a[2][1]*a[3][3]) / det;
-	i[2][1] = ( a[0][3]*a[2][1]*a[3][0] - a[0][1]*a[2][3]*a[3][0] - a[0][3]*a[2][0]*a[3][1] + a[0][0]*a[2][3]*a[3][1] + a[0][1]*a[2][0]*a[3][3] - a[0][0]*a[2][1]*a[3][3]) / det;
-	i[2][2] = (-a[0][3]*a[1][1]*a[3][0] + a[0][1]*a[1][3]*a[3][0] + a[0][3]*a[1][0]*a[3][1] - a[0][0]*a[1][3]*a[3][1] - a[0][1]*a[1][0]*a[3][3] + a[0][0]*a[1][1]*a[3][3]) / det;
-	i[2][3] = ( a[0][3]*a[1][1]*a[2][0] - a[0][1]*a[1][3]*a[2][0] - a[0][3]*a[1][0]*a[2][1] + a[0][0]*a[1][3]*a[2][1] + a[0][1]*a[1][0]*a[2][3] - a[0][0]*a[1][1]*a[2][3]) / det;
+    i[2][0] = (-a[1][3]*a[2][1]*a[3][0] + a[1][1]*a[2][3]*a[3][0] + a[1][3]*a[2][0]*a[3][1] - a[1][0]*a[2][3]*a[3][1] - a[1][1]*a[2][0]*a[3][3] + a[1][0]*a[2][1]*a[3][3]) / det;
+    i[2][1] = ( a[0][3]*a[2][1]*a[3][0] - a[0][1]*a[2][3]*a[3][0] - a[0][3]*a[2][0]*a[3][1] + a[0][0]*a[2][3]*a[3][1] + a[0][1]*a[2][0]*a[3][3] - a[0][0]*a[2][1]*a[3][3]) / det;
+    i[2][2] = (-a[0][3]*a[1][1]*a[3][0] + a[0][1]*a[1][3]*a[3][0] + a[0][3]*a[1][0]*a[3][1] - a[0][0]*a[1][3]*a[3][1] - a[0][1]*a[1][0]*a[3][3] + a[0][0]*a[1][1]*a[3][3]) / det;
+    i[2][3] = ( a[0][3]*a[1][1]*a[2][0] - a[0][1]*a[1][3]*a[2][0] - a[0][3]*a[1][0]*a[2][1] + a[0][0]*a[1][3]*a[2][1] + a[0][1]*a[1][0]*a[2][3] - a[0][0]*a[1][1]*a[2][3]) / det;
 
-	i[3][0] = ( a[1][2]*a[2][1]*a[3][0] - a[1][1]*a[2][2]*a[3][0] - a[1][2]*a[2][0]*a[3][1] + a[1][0]*a[2][2]*a[3][1] + a[1][1]*a[2][0]*a[3][2] - a[1][0]*a[2][1]*a[3][2]) / det;
-	i[3][1] = (-a[0][2]*a[2][1]*a[3][0] + a[0][1]*a[2][2]*a[3][0] + a[0][2]*a[2][0]*a[3][1] - a[0][0]*a[2][2]*a[3][1] - a[0][1]*a[2][0]*a[3][2] + a[0][0]*a[2][1]*a[3][2]) / det;
-	i[3][2] = ( a[0][2]*a[1][1]*a[3][0] - a[0][1]*a[1][2]*a[3][0] - a[0][2]*a[1][0]*a[3][1] + a[0][0]*a[1][2]*a[3][1] + a[0][1]*a[1][0]*a[3][2] - a[0][0]*a[1][1]*a[3][2]) / det;
-	i[3][3] = (-a[0][2]*a[1][1]*a[2][0] + a[0][1]*a[1][2]*a[2][0] + a[0][2]*a[1][0]*a[2][1] - a[0][0]*a[1][2]*a[2][1] - a[0][1]*a[1][0]*a[2][2] + a[0][0]*a[1][1]*a[2][2]) / det;
+    i[3][0] = ( a[1][2]*a[2][1]*a[3][0] - a[1][1]*a[2][2]*a[3][0] - a[1][2]*a[2][0]*a[3][1] + a[1][0]*a[2][2]*a[3][1] + a[1][1]*a[2][0]*a[3][2] - a[1][0]*a[2][1]*a[3][2]) / det;
+    i[3][1] = (-a[0][2]*a[2][1]*a[3][0] + a[0][1]*a[2][2]*a[3][0] + a[0][2]*a[2][0]*a[3][1] - a[0][0]*a[2][2]*a[3][1] - a[0][1]*a[2][0]*a[3][2] + a[0][0]*a[2][1]*a[3][2]) / det;
+    i[3][2] = ( a[0][2]*a[1][1]*a[3][0] - a[0][1]*a[1][2]*a[3][0] - a[0][2]*a[1][0]*a[3][1] + a[0][0]*a[1][2]*a[3][1] + a[0][1]*a[1][0]*a[3][2] - a[0][0]*a[1][1]*a[3][2]) / det;
+    i[3][3] = (-a[0][2]*a[1][1]*a[2][0] + a[0][1]*a[1][2]*a[2][0] + a[0][2]*a[1][0]*a[2][1] - a[0][0]*a[1][2]*a[2][1] - a[0][1]*a[1][0]*a[2][2] + a[0][0]*a[1][1]*a[2][2]) / det;
 
-	return det;
+    return det;
 }
 
 /* --------------------------------------------------------------- */
@@ -960,40 +960,40 @@ double Invert4x4Matrix( double i[4][4], const double a[4][4] )
 /* --------------------------------------------------------------- */
 
 void LegPolyCreate(
-	vector<vector<double> >	&L,
-	int						maxOrder,
-	int						nSamples )
+    vector<vector<double> >	&L,
+    int						maxOrder,
+    int						nSamples )
 {
-	double	n = nSamples, n_1 = n - 1;
-	int		io, is;
+    double	n = nSamples, n_1 = n - 1;
+    int		io, is;
 
-	L.resize( maxOrder + 1 );
+    L.resize( maxOrder + 1 );
 
-	for( io = 0; io <= maxOrder; ++io )
-		L[io].resize( nSamples );
+    for( io = 0; io <= maxOrder; ++io )
+        L[io].resize( nSamples );
 
-	for( is = 0; is < nSamples; ++is ) {
+    for( is = 0; is < nSamples; ++is ) {
 
-		double	x = (2.0 * is - n_1) / n;	// x in range (-1,1)
+        double	x = (2.0 * is - n_1) / n;	// x in range (-1,1)
 
-		switch( maxOrder ) {
+        switch( maxOrder ) {
 
-			default:
-				L[6][is] = 0.0625 * (231.0*x*x*x*x*x*x - 315.0*x*x*x*x + 105.0*x*x - 5.0);
-			case 5:
-				L[5][is] = 0.125 * (63.0*x*x*x*x*x - 70.0*x*x*x + 15.0*x);
-			case 4:
-				L[4][is] = 0.125 * (35.0*x*x*x*x - 30.0*x*x + 3.0);
-			case 3:
-				L[3][is] = 2.5*x*x*x - 1.5*x;
-			case 2:
-				L[2][is] = 1.5*x*x - 0.5;
-			case 1:
-				L[1][is] = x;
-			case 0:
-				L[0][is] = 1.0;
-		}
-	}
+            default:
+                L[6][is] = 0.0625 * (231.0*x*x*x*x*x*x - 315.0*x*x*x*x + 105.0*x*x - 5.0);
+            case 5:
+                L[5][is] = 0.125 * (63.0*x*x*x*x*x - 70.0*x*x*x + 15.0*x);
+            case 4:
+                L[4][is] = 0.125 * (35.0*x*x*x*x - 30.0*x*x + 3.0);
+            case 3:
+                L[3][is] = 2.5*x*x*x - 1.5*x;
+            case 2:
+                L[2][is] = 1.5*x*x - 0.5;
+            case 1:
+                L[1][is] = x;
+            case 0:
+                L[0][is] = 1.0;
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1004,84 +1004,84 @@ void LegPolyCreate(
 // and remove those components. Place results in vals.
 //
 void LegPolyFlatten(
-	vector<double>		&vals,
-	const uint8*		src,
-	int					w,
-	int					h,
-	int					maxOrder )
+    vector<double>		&vals,
+    const uint8*		src,
+    int					w,
+    int					h,
+    int					maxOrder )
 {
 // Copy indicated points to vals
 
-	int		npts = w * h;
+    int		npts = w * h;
 
-	vals.resize( npts );
+    vals.resize( npts );
 
-	for( int i = 0; i < npts; ++i )
-		vals[i] = src[i];
+    for( int i = 0; i < npts; ++i )
+        vals[i] = src[i];
 
 // Correct vals
 
-	if( maxOrder > 0 ) {
+    if( maxOrder > 0 ) {
 
-		// Create Legendre basis polynomials
+        // Create Legendre basis polynomials
 
-		vector<vector<double> > xpolys;
-		vector<vector<double> > ypolys;
+        vector<vector<double> > xpolys;
+        vector<vector<double> > ypolys;
 
-		LegPolyCreate( xpolys, maxOrder, w );
-		LegPolyCreate( ypolys, maxOrder, h );
+        LegPolyCreate( xpolys, maxOrder, w );
+        LegPolyCreate( ypolys, maxOrder, h );
 
-		// Remove projections onto polys up to maxOrder
+        // Remove projections onto polys up to maxOrder
 
-		for( int xo = 0; xo <= maxOrder; ++xo ) {
+        for( int xo = 0; xo <= maxOrder; ++xo ) {
 
-			const double*	XP = &xpolys[xo][0];
+            const double*	XP = &xpolys[xo][0];
 
-			for( int yo = 0; yo <= maxOrder; ++yo ) {
+            for( int yo = 0; yo <= maxOrder; ++yo ) {
 
-				// the (0,0) term is just normalization
-				// which we do later anyway
+                // the (0,0) term is just normalization
+                // which we do later anyway
 
-				if( xo + yo == 0 )
-					continue;
+                if( xo + yo == 0 )
+                    continue;
 
-				const double*	YP = &ypolys[yo][0];
+                const double*	YP = &ypolys[yo][0];
 
-				// get projection coefficient
+                // get projection coefficient
 
-				double	coef = 0.0, norm = 0.0;
+                double	coef = 0.0, norm = 0.0;
 
-				for( int i = 0; i < npts; ++i ) {
+                for( int i = 0; i < npts; ++i ) {
 
-					int		y = i / w,
-							x = i - w * y;
-					double	F = XP[x] * YP[y];
+                    int		y = i / w,
+                            x = i - w * y;
+                    double	F = XP[x] * YP[y];
 
-					coef	+= F * vals[i];
-					norm	+= F * F;
-				}
+                    coef	+= F * vals[i];
+                    norm	+= F * F;
+                }
 
-				coef /= norm;
+                coef /= norm;
 
-				//printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
-				//	xo, yo, coef );
+                //printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
+                //	xo, yo, coef );
 
-				// now remove that component
+                // now remove that component
 
-				for( int i = 0; i < npts; ++i ) {
+                for( int i = 0; i < npts; ++i ) {
 
-					int		y = i / w,
-							x = i - w * y;
+                    int		y = i / w,
+                            x = i - w * y;
 
-					vals[i] -= coef * XP[x] * YP[y];
-				}
-			}
-		}
-	}
+                    vals[i] -= coef * XP[x] * YP[y];
+                }
+            }
+        }
+    }
 
 // Final normalization
 
-	Normalize( vals );
+    Normalize( vals );
 }
 
 /* --------------------------------------------------------------- */
@@ -1092,106 +1092,106 @@ void LegPolyFlatten(
 // and remove those components. Place results in vals.
 //
 void LegPolyFlatten(
-	vector<double>		&vals,
-	const uint16*		src,
-	int					w,
-	int					h,
-	int					maxOrder,
-	int					offset )
+    vector<double>		&vals,
+    const uint16*		src,
+    int					w,
+    int					h,
+    int					maxOrder,
+    int					offset )
 {
 // Copy indicated points to vals and make value hist
 
-	vector<uint32>	hist( 65536, 0 );
-	int				npts = w * h, thresh = 0;
+    vector<uint32>	hist( 65536, 0 );
+    int				npts = w * h, thresh = 0;
 
-	vals.resize( npts );
+    vals.resize( npts );
 
-	for( int i = 0; i < npts; ++i ) {
+    for( int i = 0; i < npts; ++i ) {
 
-		vals[i] = src[i];
-		++hist[src[i]];
-	}
+        vals[i] = src[i];
+        ++hist[src[i]];
+    }
 
 // Threshold for fitting poly = mode + offset
 
-	uint32	pk = hist[0];
+    uint32	pk = hist[0];
 
-	for( int i = 1; i < 65536; ++i ) {
+    for( int i = 1; i < 65536; ++i ) {
 
-		if( hist[i] > pk ) {
-			thresh	= i;
-			pk		= hist[i];
-		}
-	}
+        if( hist[i] > pk ) {
+            thresh	= i;
+            pk		= hist[i];
+        }
+    }
 
-	thresh += offset;
+    thresh += offset;
 
 // Correct vals
 
-	if( maxOrder > 0 ) {
+    if( maxOrder > 0 ) {
 
-		// Create Legendre basis polynomials
+        // Create Legendre basis polynomials
 
-		vector<vector<double> > xpolys;
-		vector<vector<double> > ypolys;
+        vector<vector<double> > xpolys;
+        vector<vector<double> > ypolys;
 
-		LegPolyCreate( xpolys, maxOrder, w );
-		LegPolyCreate( ypolys, maxOrder, h );
+        LegPolyCreate( xpolys, maxOrder, w );
+        LegPolyCreate( ypolys, maxOrder, h );
 
-		// Remove projections onto polys up to maxOrder
+        // Remove projections onto polys up to maxOrder
 
-		for( int xo = 0; xo <= maxOrder; ++xo ) {
+        for( int xo = 0; xo <= maxOrder; ++xo ) {
 
-			const double*	XP = &xpolys[xo][0];
+            const double*	XP = &xpolys[xo][0];
 
-			for( int yo = 0; yo <= maxOrder; ++yo ) {
+            for( int yo = 0; yo <= maxOrder; ++yo ) {
 
-				// the (0,0) term is just normalization
-				// which we do later anyway
+                // the (0,0) term is just normalization
+                // which we do later anyway
 
-				if( xo + yo == 0 )
-					continue;
+                if( xo + yo == 0 )
+                    continue;
 
-				const double*	YP = &ypolys[yo][0];
+                const double*	YP = &ypolys[yo][0];
 
-				// get projection coefficient
+                // get projection coefficient
 
-				double	coef = 0.0, norm = 0.0;
+                double	coef = 0.0, norm = 0.0;
 
-				for( int i = 0; i < npts; ++i ) {
+                for( int i = 0; i < npts; ++i ) {
 
-					if( src[i] <= thresh ) {
+                    if( src[i] <= thresh ) {
 
-						int		y = i / w,
-								x = i - w * y;
-						double	F = XP[x] * YP[y];
+                        int		y = i / w,
+                                x = i - w * y;
+                        double	F = XP[x] * YP[y];
 
-						coef	+= F * vals[i];
-						norm	+= F * F;
-					}
-				}
+                        coef	+= F * vals[i];
+                        norm	+= F * F;
+                    }
+                }
 
-				coef /= norm;
+                coef /= norm;
 
-				//printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
-				//	xo, yo, coef );
+                //printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
+                //	xo, yo, coef );
 
-				// now remove that component
+                // now remove that component
 
-				for( int i = 0; i < npts; ++i ) {
+                for( int i = 0; i < npts; ++i ) {
 
-					int		y = i / w,
-							x = i - w * y;
+                    int		y = i / w,
+                            x = i - w * y;
 
-					vals[i] -= coef * XP[x] * YP[y];
-				}
-			}
-		}
-	}
+                    vals[i] -= coef * XP[x] * YP[y];
+                }
+            }
+        }
+    }
 
 // Final normalization
 
-	Normalize( vals );
+    Normalize( vals );
 }
 
 /* --------------------------------------------------------------- */
@@ -1202,87 +1202,87 @@ void LegPolyFlatten(
 // polynomials and remove those components. Place results in vals.
 //
 void LegPolyFlatten(
-	vector<double>		&vals,
-	const vector<Point>	&pts,
-	const uint8*		src,
-	int					w,
-	int					h,
-	int					maxOrder )
+    vector<double>		&vals,
+    const vector<Point>	&pts,
+    const uint8*		src,
+    int					w,
+    int					h,
+    int					maxOrder )
 {
 // Copy indicated points to vals
 
-	int		npts = pts.size();
+    int		npts = pts.size();
 
-	vals.resize( npts );
+    vals.resize( npts );
 
-	for( int i = 0; i < npts; ++i ) {
+    for( int i = 0; i < npts; ++i ) {
 
-		int	x = (int)pts[i].x,
-			y = (int)pts[i].y;
+        int	x = (int)pts[i].x,
+            y = (int)pts[i].y;
 
-		vals[i] = src[x + w * y];
-	}
+        vals[i] = src[x + w * y];
+    }
 
 // Correct vals
 
-	if( maxOrder > 0 ) {
+    if( maxOrder > 0 ) {
 
-		// Create Legendre basis polynomials
+        // Create Legendre basis polynomials
 
-		vector<vector<double> > xpolys;
-		vector<vector<double> > ypolys;
+        vector<vector<double> > xpolys;
+        vector<vector<double> > ypolys;
 
-		LegPolyCreate( xpolys, maxOrder, w );
-		LegPolyCreate( ypolys, maxOrder, h );
+        LegPolyCreate( xpolys, maxOrder, w );
+        LegPolyCreate( ypolys, maxOrder, h );
 
-		// Remove projections onto polys up to maxOrder
+        // Remove projections onto polys up to maxOrder
 
-		for( int xo = 0; xo <= maxOrder; ++xo ) {
+        for( int xo = 0; xo <= maxOrder; ++xo ) {
 
-			const double*	XP = &xpolys[xo][0];
+            const double*	XP = &xpolys[xo][0];
 
-			for( int yo = 0; yo <= maxOrder; ++yo ) {
+            for( int yo = 0; yo <= maxOrder; ++yo ) {
 
-				// the (0,0) term is just normalization
-				// which we do later anyway
+                // the (0,0) term is just normalization
+                // which we do later anyway
 
-				if( xo + yo == 0 )
-					continue;
+                if( xo + yo == 0 )
+                    continue;
 
-				const double*	YP = &ypolys[yo][0];
+                const double*	YP = &ypolys[yo][0];
 
-				// get projection coefficient
+                // get projection coefficient
 
-				double	coef = 0.0, norm = 0.0;
+                double	coef = 0.0, norm = 0.0;
 
-				for( int i = 0; i < npts; ++i ) {
+                for( int i = 0; i < npts; ++i ) {
 
-					double F =
-					XP[(int)pts[i].x] * YP[(int)pts[i].y];
+                    double F =
+                    XP[(int)pts[i].x] * YP[(int)pts[i].y];
 
-					coef	+= F * vals[i];
-					norm	+= F * F;
-				}
+                    coef	+= F * vals[i];
+                    norm	+= F * F;
+                }
 
-				coef /= norm;
+                coef /= norm;
 
-				//printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
-				//	xo, yo, coef );
+                //printf( "LegFlatten: xo=%d yo=%d cof=%f\n",
+                //	xo, yo, coef );
 
-				// now remove that component
+                // now remove that component
 
-				for( int i = 0; i < npts; ++i ) {
+                for( int i = 0; i < npts; ++i ) {
 
-					vals[i] -= coef *
-					XP[(int)pts[i].x] * YP[(int)pts[i].y];
-				}
-			}
-		}
-	}
+                    vals[i] -= coef *
+                    XP[(int)pts[i].x] * YP[(int)pts[i].y];
+                }
+            }
+        }
+    }
 
 // Final normalization
 
-	Normalize( vals );
+    Normalize( vals );
 }
 
 /* --------------------------------------------------------------- */
@@ -1290,17 +1290,17 @@ void LegPolyFlatten(
 /* --------------------------------------------------------------- */
 
 void CopyRaster(
-	double*			D,
-	int				wD,
-	const double*	S,
-	int				wS,
-	int				wCopy,
-	int				hCopy )
+    double*			D,
+    int				wD,
+    const double*	S,
+    int				wS,
+    int				wCopy,
+    int				hCopy )
 {
-	int		N = wCopy * sizeof(double);
+    int		N = wCopy * sizeof(double);
 
-	for( int i = 0; i < hCopy; ++i, D += wD, S += wS )
-		memcpy( D, S, N );
+    for( int i = 0; i < hCopy; ++i, D += wD, S += wS )
+        memcpy( D, S, N );
 }
 
 /* --------------------------------------------------------------- */
@@ -1313,54 +1313,54 @@ void CopyRaster(
 // bounding box is (0,0).
 //
 void DecimateVector(
-	vector<Point>	&p,
-	vector<double>	&v,
-	int				w,
-	int				h,
-	int				lbin )
+    vector<Point>	&p,
+    vector<double>	&v,
+    int				w,
+    int				h,
+    int				lbin )
 {
 // Sum vector data into value and count rasters
 // New dims set to lowest multiple of lbin.
 
-	w = (w + lbin - 1) / lbin;
-	h = (h + lbin - 1) / lbin;
+    w = (w + lbin - 1) / lbin;
+    h = (h + lbin - 1) / lbin;
 
-	int				nr = w * h,
-					np = p.size();
-	vector<double>	vr( nr, 0.0 );
-	vector<uint8>	cr( nr, 0 );
+    int				nr = w * h,
+                    np = p.size();
+    vector<double>	vr( nr, 0.0 );
+    vector<uint8>	cr( nr, 0 );
 
-	for( int ip = 0; ip < np; ++ip ) {
+    for( int ip = 0; ip < np; ++ip ) {
 
-		int	x	= int(p[ip].x) / lbin,
-			y	= int(p[ip].y) / lbin,
-			ir	= x + w*y;
+        int	x	= int(p[ip].x) / lbin,
+            y	= int(p[ip].y) / lbin,
+            ir	= x + w*y;
 
-		vr[ir] += v[ip];
-		++cr[ir];
-	}
+        vr[ir] += v[ip];
+        ++cr[ir];
+    }
 
 // Gather and average raster points having non-zero counts
 
-	int		k = 0;
+    int		k = 0;
 
-	for( int ir = 0; ir < nr; ++ir ) {
+    for( int ir = 0; ir < nr; ++ir ) {
 
-		int		cnt;
+        int		cnt;
 
-		if( cnt = cr[ir] ) {
+        if( cnt = cr[ir] ) {
 
-			int	y = ir / w,
-				x = ir - w * y;
+            int	y = ir / w,
+                x = ir - w * y;
 
-			v[k] = vr[ir] / cnt;
-			p[k] = Point( x, y );
-			++k;
-		}
-	}
+            v[k] = vr[ir] / cnt;
+            p[k] = Point( x, y );
+            ++k;
+        }
+    }
 
-	p.resize( k );
-	v.resize( k );
+    p.resize( k );
+    v.resize( k );
 }
 
 /* --------------------------------------------------------------- */
@@ -1368,40 +1368,40 @@ void DecimateVector(
 /* --------------------------------------------------------------- */
 
 double InterpolatePixel(
-	double					x,
-	double					y,
-	const uint8*			image,
-	int						w )
+    double					x,
+    double					y,
+    const uint8*			image,
+    int						w )
 {
-	int		ix		= (int)x;
-	int		iy		= (int)y;
-	int		i		= ix + w * iy;
-	double	alpha	= x - ix;
-	double	beta	= y - iy;
+    int		ix		= (int)x;
+    int		iy		= (int)y;
+    int		i		= ix + w * iy;
+    double	alpha	= x - ix;
+    double	beta	= y - iy;
 
-	return	(1.0-alpha)*(1.0-beta)*image[i] +
-		        (alpha)*(1.0-beta)*image[i + 1] +
-			(1.0-alpha)*(    beta)*image[i + w] +
-			    (alpha)*(    beta)*image[i + 1 + w];
+    return	(1.0-alpha)*(1.0-beta)*image[i] +
+                (alpha)*(1.0-beta)*image[i + 1] +
+            (1.0-alpha)*(    beta)*image[i + w] +
+                (alpha)*(    beta)*image[i + 1 + w];
 }
 
 
 double InterpolatePixel(
-	double					x,
-	double					y,
-	const vector<double>	&image,
-	int						w )
+    double					x,
+    double					y,
+    const vector<double>	&image,
+    int						w )
 {
-	int		ix		= (int)x;
-	int		iy		= (int)y;
-	int		i		= ix + w * iy;
-	double	alpha	= x - ix;
-	double	beta	= y - iy;
+    int		ix		= (int)x;
+    int		iy		= (int)y;
+    int		i		= ix + w * iy;
+    double	alpha	= x - ix;
+    double	beta	= y - iy;
 
-	return	(1.0-alpha)*(1.0-beta)*image[i] +
-		        (alpha)*(1.0-beta)*image[i + 1] +
-			(1.0-alpha)*(    beta)*image[i + w] +
-			    (alpha)*(    beta)*image[i + 1 + w];
+    return	(1.0-alpha)*(1.0-beta)*image[i] +
+                (alpha)*(1.0-beta)*image[i + 1] +
+            (1.0-alpha)*(    beta)*image[i + w] +
+                (alpha)*(    beta)*image[i + 1 + w];
 }
 
 /* --------------------------------------------------------------- */
@@ -1409,137 +1409,137 @@ double InterpolatePixel(
 /* --------------------------------------------------------------- */
 
 double SafeInterp(
-	double					x,
-	double					y,
-	const uint8*			image,
-	int						w,
-	int						h )
+    double					x,
+    double					y,
+    const uint8*			image,
+    int						w,
+    int						h )
 {
-	int		ix		= (int)floor( x );
-	int		iy		= (int)floor( y );
-	int		i		= ix + w * iy;
-	double	alpha	= x - ix;
-	double	beta	= y - iy;
-	double	val		= 0.0;
+    int		ix		= (int)floor( x );
+    int		iy		= (int)floor( y );
+    int		i		= ix + w * iy;
+    double	alpha	= x - ix;
+    double	beta	= y - iy;
+    double	val		= 0.0;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			val += (1.0-alpha)*(1.0-beta)*image[i];
+        if( iy >= 0 && iy < h )
+            val += (1.0-alpha)*(1.0-beta)*image[i];
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			val += (1.0-alpha)*beta*image[i + w];
+        if( iy >= 0 && iy < h )
+            val += (1.0-alpha)*beta*image[i + w];
 
-		--iy;
-	}
+        --iy;
+    }
 
-	++ix;
-	++i;
+    ++ix;
+    ++i;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			val += alpha*(1.0-beta)*image[i];
+        if( iy >= 0 && iy < h )
+            val += alpha*(1.0-beta)*image[i];
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			val += alpha*beta*image[i + w];
-	}
+        if( iy >= 0 && iy < h )
+            val += alpha*beta*image[i + w];
+    }
 
-	return val;
+    return val;
 }
 
 
 double SafeInterp(
-	double					x,
-	double					y,
-	const uint16*			image,
-	int						w,
-	int						h )
+    double					x,
+    double					y,
+    const uint16*			image,
+    int						w,
+    int						h )
 {
-	int		ix		= (int)floor( x );
-	int		iy		= (int)floor( y );
-	int		i		= ix + w * iy;
-	double	alpha	= x - ix;
-	double	beta	= y - iy;
-	double	val		= 0.0;
+    int		ix		= (int)floor( x );
+    int		iy		= (int)floor( y );
+    int		i		= ix + w * iy;
+    double	alpha	= x - ix;
+    double	beta	= y - iy;
+    double	val		= 0.0;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			val += (1.0-alpha)*(1.0-beta)*image[i];
+        if( iy >= 0 && iy < h )
+            val += (1.0-alpha)*(1.0-beta)*image[i];
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			val += (1.0-alpha)*beta*image[i + w];
+        if( iy >= 0 && iy < h )
+            val += (1.0-alpha)*beta*image[i + w];
 
-		--iy;
-	}
+        --iy;
+    }
 
-	++ix;
-	++i;
+    ++ix;
+    ++i;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			val += alpha*(1.0-beta)*image[i];
+        if( iy >= 0 && iy < h )
+            val += alpha*(1.0-beta)*image[i];
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			val += alpha*beta*image[i + w];
-	}
+        if( iy >= 0 && iy < h )
+            val += alpha*beta*image[i + w];
+    }
 
-	return val;
+    return val;
 }
 
 
 double SafeInterp(
-	double					x,
-	double					y,
-	const double*			image,
-	int						w,
-	int						h )
+    double					x,
+    double					y,
+    const double*			image,
+    int						w,
+    int						h )
 {
-	int		ix		= (int)floor( x );
-	int		iy		= (int)floor( y );
-	int		i		= ix + w * iy;
-	double	alpha	= x - ix;
-	double	beta	= y - iy;
-	double	val		= 0.0;
+    int		ix		= (int)floor( x );
+    int		iy		= (int)floor( y );
+    int		i		= ix + w * iy;
+    double	alpha	= x - ix;
+    double	beta	= y - iy;
+    double	val		= 0.0;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			val += (1.0-alpha)*(1.0-beta)*image[i];
+        if( iy >= 0 && iy < h )
+            val += (1.0-alpha)*(1.0-beta)*image[i];
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			val += (1.0-alpha)*beta*image[i + w];
+        if( iy >= 0 && iy < h )
+            val += (1.0-alpha)*beta*image[i + w];
 
-		--iy;
-	}
+        --iy;
+    }
 
-	++ix;
-	++i;
+    ++ix;
+    ++i;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			val += alpha*(1.0-beta)*image[i];
+        if( iy >= 0 && iy < h )
+            val += alpha*(1.0-beta)*image[i];
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			val += alpha*beta*image[i + w];
-	}
+        if( iy >= 0 && iy < h )
+            val += alpha*beta*image[i + w];
+    }
 
-	return val;
+    return val;
 }
 
 /* --------------------------------------------------------------- */
@@ -1547,45 +1547,45 @@ double SafeInterp(
 /* --------------------------------------------------------------- */
 
 void DistributePixel(
-	double			x,
-	double			y,
-	double			val,
-	float*			image,
-	int				w,
-	int				h )
+    double			x,
+    double			y,
+    double			val,
+    float*			image,
+    int				w,
+    int				h )
 {
-	int		ix		= (int)floor( x );
-	int		iy		= (int)floor( y );
-	int		i		= ix + w * iy;
-	double	alpha	= x - ix;
-	double	beta	= y - iy;
+    int		ix		= (int)floor( x );
+    int		iy		= (int)floor( y );
+    int		i		= ix + w * iy;
+    double	alpha	= x - ix;
+    double	beta	= y - iy;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			image[i] += (1.0-alpha)*(1.0-beta)*val;
+        if( iy >= 0 && iy < h )
+            image[i] += (1.0-alpha)*(1.0-beta)*val;
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			image[i + w] += (1.0-alpha)*beta*val;
+        if( iy >= 0 && iy < h )
+            image[i + w] += (1.0-alpha)*beta*val;
 
-		--iy;
-	}
+        --iy;
+    }
 
-	++ix;
-	++i;
+    ++ix;
+    ++i;
 
-	if( ix >= 0 && ix < w ) {
+    if( ix >= 0 && ix < w ) {
 
-		if( iy >= 0 && iy < h )
-			image[i] += alpha*(1.0-beta)*val;
+        if( iy >= 0 && iy < h )
+            image[i] += alpha*(1.0-beta)*val;
 
-		++iy;
+        ++iy;
 
-		if( iy >= 0 && iy < h )
-			image[i + w] += alpha*beta*val;
-	}
+        if( iy >= 0 && iy < h )
+            image[i + w] += alpha*beta*val;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1599,57 +1599,57 @@ void DistributePixel(
 template<class T>
 static double _CubicInterp( const T *data, double x )
 {
-	double	a = data[0];
-	double	b = data[1];
-	double	c = data[2];
-	double	d = data[3];
-	double	x2 = x*x;
-	double	x3 = x2*x;
+    double	a = data[0];
+    double	b = data[1];
+    double	c = data[2];
+    double	d = data[3];
+    double	x2 = x*x;
+    double	x3 = x2*x;
 
-	return	x3 * (-0.5*a + 1.5*b - 1.5*c + 0.5*d) +
-			x2 * (a - 2.5*b + 2.0*c - 0.5*d) +
-			 x * (-0.5*a + 0.5*c) +
-			 b;
+    return	x3 * (-0.5*a + 1.5*b - 1.5*c + 0.5*d) +
+            x2 * (a - 2.5*b + 2.0*c - 0.5*d) +
+             x * (-0.5*a + 0.5*c) +
+             b;
 }
 
 
 double BiCubicInterp( const double* image, int w, Point p )
 {
-	int		x	= int(p.x);
-	int		y	= int(p.y);
-	double	dx	= p.x - x;
-	int		n	= (x-1) + w*(y-1);
-	double	yi[4];
+    int		x	= int(p.x);
+    int		y	= int(p.y);
+    double	dx	= p.x - x;
+    int		n	= (x-1) + w*(y-1);
+    double	yi[4];
 
-	yi[0] = _CubicInterp( image + n, dx );	// interpolate in X
-	n += w;									// move up a line
-	yi[1] = _CubicInterp( image + n, dx );	// interpolate in X
-	n += w;									// etc.
-	yi[2] = _CubicInterp( image + n, dx );
-	n += w;
-	yi[3] = _CubicInterp( image + n, dx );
+    yi[0] = _CubicInterp( image + n, dx );	// interpolate in X
+    n += w;									// move up a line
+    yi[1] = _CubicInterp( image + n, dx );	// interpolate in X
+    n += w;									// etc.
+    yi[2] = _CubicInterp( image + n, dx );
+    n += w;
+    yi[3] = _CubicInterp( image + n, dx );
 
-	return _CubicInterp( yi, p.y - y );		// Now interpolate in y
+    return _CubicInterp( yi, p.y - y );		// Now interpolate in y
 }
 
 
 double BiCubicInterp( const uint8* image, int w, Point p )
 {
-	int		x	= int(p.x);
-	int		y	= int(p.y);
-	double	dx	= p.x - x;
-	int		n	= (x-1) + w*(y-1);
-	double	yi[4];
+    int		x	= int(p.x);
+    int		y	= int(p.y);
+    double	dx	= p.x - x;
+    int		n	= (x-1) + w*(y-1);
+    double	yi[4];
 
-	yi[0] = _CubicInterp( image + n, dx );	// interpolate in X
-	n += w;									// move up a line
-	yi[1] = _CubicInterp( image + n, dx );	// interpolate in X
-	n += w;									// etc.
-	yi[2] = _CubicInterp( image + n, dx );
-	n += w;
-	yi[3] = _CubicInterp( image + n, dx );
+    yi[0] = _CubicInterp( image + n, dx );	// interpolate in X
+    n += w;									// move up a line
+    yi[1] = _CubicInterp( image + n, dx );	// interpolate in X
+    n += w;									// etc.
+    yi[2] = _CubicInterp( image + n, dx );
+    n += w;
+    yi[3] = _CubicInterp( image + n, dx );
 
-	return _CubicInterp( yi, p.y - y );		// Now interpolate in y
+    return _CubicInterp( yi, p.y - y );		// Now interpolate in y
 }
 
 
@@ -1657,10 +1657,10 @@ double BiCubicInterp( const uint8* image, int w, Point p )
 //
 static void TestInterp()
 {
-	double	d[4] = {2,4,2,3};
+    double	d[4] = {2,4,2,3};
 
-	for( double x=-1; x<=2.01; x += 0.5 )
-		printf( "%f -> %f\n", x, _CubicInterp( d, x ) );
+    for( double x=-1; x<=2.01; x += 0.5 )
+        printf( "%f -> %f\n", x, _CubicInterp( d, x ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -1672,46 +1672,46 @@ static void TestInterp()
 // Uses standard fit to line with free {slope, intercept}.
 //
 void ImageGradients(
-	double				&slopex,
-	double				&slopey,
-	const vector<uint8>	&image,
-	int					w,
-	const vector<Point>	&pts,
-	FILE				*flog )
+    double				&slopex,
+    double				&slopey,
+    const vector<uint8>	&image,
+    int					w,
+    const vector<Point>	&pts,
+    FILE				*flog )
 {
-	double	sum_p	= 0.0;
-	double	sum_xp	= 0.0;
-	double	sum_x	= 0.0;
-	double	sum_x2	= 0.0;
-	double	sum_yp	= 0.0;
-	double	sum_y	= 0.0;
-	double	sum_y2	= 0.0;
-	int		N		= pts.size();
+    double	sum_p	= 0.0;
+    double	sum_xp	= 0.0;
+    double	sum_x	= 0.0;
+    double	sum_x2	= 0.0;
+    double	sum_yp	= 0.0;
+    double	sum_y	= 0.0;
+    double	sum_y2	= 0.0;
+    int		N		= pts.size();
 
-	for( int i = 0; i < N; ++i ) {
+    for( int i = 0; i < N; ++i ) {
 
-		int	ix		= int(pts[i].x);
-		int	iy		= int(pts[i].y);
-		int	pixel	= image[ix + w*iy];
+        int	ix		= int(pts[i].x);
+        int	iy		= int(pts[i].y);
+        int	pixel	= image[ix + w*iy];
 
-		sum_p	+= pixel;
-		sum_xp	+= ix*pixel;
-		sum_x	+= ix;
-		sum_x2	+= ix*ix;
-		sum_yp	+= iy*pixel;
-		sum_y	+= iy;
-		sum_y2	+= iy*iy;
-	}
+        sum_p	+= pixel;
+        sum_xp	+= ix*pixel;
+        sum_x	+= ix;
+        sum_x2	+= ix*ix;
+        sum_yp	+= iy*pixel;
+        sum_y	+= iy;
+        sum_y2	+= iy*iy;
+    }
 
-	double	avgx = sum_x / N;
-	slopex = (sum_xp - avgx * sum_p) / (sum_x2 - avgx * sum_x);
+    double	avgx = sum_x / N;
+    slopex = (sum_xp - avgx * sum_p) / (sum_x2 - avgx * sum_x);
 
-	double	avgy = sum_y / N;
-	slopey = (sum_yp - avgy * sum_p) / (sum_y2 - avgy * sum_y);
+    double	avgy = sum_y / N;
+    slopey = (sum_yp - avgy * sum_p) / (sum_y2 - avgy * sum_y);
 
-	fprintf( flog,
-	"Gradients: Slope bias per 1000 pixels: x %f, y %f\n",
-	slopex*1000.0, slopey*1000.0 );
+    fprintf( flog,
+    "Gradients: Slope bias per 1000 pixels: x %f, y %f\n",
+    slopex*1000.0, slopey*1000.0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -1723,60 +1723,60 @@ void ImageGradients(
 // so has mean 0 and std 1.
 //
 bool IsLowContrast(
-	const vector<double>	&I,
-	double					std,
-	FILE					*flog )
+    const vector<double>	&I,
+    double					std,
+    FILE					*flog )
 {
-	vector<double>	result;		// power as a function of scale
-	vector<double>	smaller;
-	vector<double>	tmp = I;
-	int				i, x, y, whlf, w, lowcon = false;
+    vector<double>	result;		// power as a function of scale
+    vector<double>	smaller;
+    vector<double>	tmp = I;
+    int				i, x, y, whlf, w, lowcon = false;
 
-	result.reserve( 8 );
+    result.reserve( 8 );
 
-	for( w = 128; w > 1; w = whlf ) {
+    for( w = 128; w > 1; w = whlf ) {
 
-		// sum squares at current size
-		double mean, lstd;
-		Stats( tmp, mean, lstd );
-		result.push_back( lstd );
+        // sum squares at current size
+        double mean, lstd;
+        Stats( tmp, mean, lstd );
+        result.push_back( lstd );
 
-		// make a 1/2-size copy
-		whlf = w / 2;
-		smaller.resize( whlf * whlf );
+        // make a 1/2-size copy
+        whlf = w / 2;
+        smaller.resize( whlf * whlf );
 
-		for( y = 0; y < whlf; ++y ) {
+        for( y = 0; y < whlf; ++y ) {
 
-			for( x = 0; x < whlf; ++x ) {
+            for( x = 0; x < whlf; ++x ) {
 
-				int		n = 2 * (x + w*y);
+                int		n = 2 * (x + w*y);
 
-				smaller[x + whlf * y] =
-				(tmp[n] + tmp[n+1] + tmp[n+w] + tmp[n+w+1]) / 4.0;
-			}
-		}
+                smaller[x + whlf * y] =
+                (tmp[n] + tmp[n+1] + tmp[n+w] + tmp[n+w+1]) / 4.0;
+            }
+        }
 
-		tmp	= smaller;
-	}
+        tmp	= smaller;
+    }
 
 // print powers
-	fprintf( flog, "IsLowContrast: Amplitudes(%.2f):", std );
+    fprintf( flog, "IsLowContrast: Amplitudes(%.2f):", std );
 
-	int	nr = result.size();
+    int	nr = result.size();
 
-	for( i = 0; i < nr; ++i )
-		fprintf( flog, " %.3f", result[i]*std );
+    for( i = 0; i < nr; ++i )
+        fprintf( flog, " %.3f", result[i]*std );
 
-	fprintf( flog, "\n" );
+    fprintf( flog, "\n" );
 
 // if the contrast is low in absolute terms ||
 // after reducing 128x128 to 4x4 ||
 // some other test??
 
-	if( result[0] < 0.30 || result[5]*std < 2.0 )
-		lowcon = true;
+    if( result[0] < 0.30 || result[5]*std < 2.0 )
+        lowcon = true;
 
-	return lowcon;
+    return lowcon;
 }
 
 /* --------------------------------------------------------------- */
@@ -1799,51 +1799,51 @@ bool IsLowContrast(
 // c c | c x y z
 //
 void EmbedExtended8(
-	vector<uint8>	&dst,
-	const uint8		*src,
-	int				w,
-	int				h,
-	int				r )
+    vector<uint8>	&dst,
+    const uint8		*src,
+    int				w,
+    int				h,
+    int				r )
 {
-	int	W = w + 2 * r,
-		H = h + 2 * r,
-		n = w * h,
-		N = W * H;
+    int	W = w + 2 * r,
+        H = h + 2 * r,
+        n = w * h,
+        N = W * H;
 
-	dst.resize( N );
+    dst.resize( N );
 
 // Build top and bottom rows
-	for( int i = 0; i < r; ++i ) {
-		dst[i]			= src[0];		// T-L
-		dst[W - r + i]	= src[w - 1];	// T-R
-		dst[N - W + i]	= src[n - w];	// B-L
-		dst[N - r + i]	= src[n - 1];	// B-R
-	}
+    for( int i = 0; i < r; ++i ) {
+        dst[i]			= src[0];		// T-L
+        dst[W - r + i]	= src[w - 1];	// T-R
+        dst[N - W + i]	= src[n - w];	// B-L
+        dst[N - r + i]	= src[n - 1];	// B-R
+    }
 
-	memcpy( &dst[r], &src[0], w * sizeof(uint8) );
-	memcpy( &dst[N - W + r], &src[n - w], w * sizeof(uint8) );
+    memcpy( &dst[r], &src[0], w * sizeof(uint8) );
+    memcpy( &dst[N - W + r], &src[n - w], w * sizeof(uint8) );
 
 // Propagate those down/up
-	for( int i = 1; i <= r; ++i ) {
-		memcpy( &dst[W*i], &dst[0], W * sizeof(uint8) );
-		memcpy( &dst[N - W*(i+1)], &dst[N - W], W * sizeof(uint8) );
-	}
+    for( int i = 1; i <= r; ++i ) {
+        memcpy( &dst[W*i], &dst[0], W * sizeof(uint8) );
+        memcpy( &dst[N - W*(i+1)], &dst[N - W], W * sizeof(uint8) );
+    }
 
 // Now do inner rows
-	for( int y = 1; y < h - 1; ++y ) {
+    for( int y = 1; y < h - 1; ++y ) {
 
-		int	R0 = W*(r + y),
-			r0 = w*y,
-			sL = src[r0],
-			sR = src[r0 + w - 1];
+        int	R0 = W*(r + y),
+            r0 = w*y,
+            sL = src[r0],
+            sR = src[r0 + w - 1];
 
-		for( int i = 0; i < r; ++i ) {
-			dst[R0 + i]			= sL;
-			dst[R0 + W - r + i]	= sR;
-		}
+        for( int i = 0; i < r; ++i ) {
+            dst[R0 + i]			= sL;
+            dst[R0 + W - r + i]	= sR;
+        }
 
-		memcpy( &dst[R0 + r], &src[r0], w * sizeof(uint8) );
-	}
+        memcpy( &dst[R0 + r], &src[r0], w * sizeof(uint8) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1851,16 +1851,16 @@ void EmbedExtended8(
 /* --------------------------------------------------------------- */
 
 void ExtractEmbedded8(
-	uint8			*dst,
-	const uint8		*src,
-	int				w,
-	int				h,
-	int				r )
+    uint8			*dst,
+    const uint8		*src,
+    int				w,
+    int				h,
+    int				r )
 {
-	int	W = w + 2 * r;
+    int	W = w + 2 * r;
 
-	for( int y = 0; y < h; ++y )
-		memcpy( &dst[w*y], &src[r + W*(r+y)], w * sizeof(uint8) );
+    for( int y = 0; y < h; ++y )
+        memcpy( &dst[w*y], &src[r + W*(r+y)], w * sizeof(uint8) );
 }
 
 /* --------------------------------------------------------------- */
@@ -1871,35 +1871,35 @@ void ExtractEmbedded8(
 // On exit:		reduced  dst w' x h'.
 //
 void Downsample8(
-	vector<uint8>	&dst,
-	const uint8		*src,
-	int				&w,
-	int				&h,
-	int				scl )
+    vector<uint8>	&dst,
+    const uint8		*src,
+    int				&w,
+    int				&h,
+    int				scl )
 {
-	int	ws = w / scl,
-		hs = h / scl,
-		ns = scl * scl;
+    int	ws = w / scl,
+        hs = h / scl,
+        ns = scl * scl;
 
-	dst.resize( ws * hs );
+    dst.resize( ws * hs );
 
-	for( int y = 0; y < hs; ++y ) {
+    for( int y = 0; y < hs; ++y ) {
 
-		for( int x = 0; x < ws; ++x ) {
+        for( int x = 0; x < ws; ++x ) {
 
-			int	sum = 0;
+            int	sum = 0;
 
-			for( int dy = 0; dy < scl; ++dy ) {
-				for( int dx = 0; dx < scl; ++dx )
-					sum += src[x*scl+dx + w*(y*scl+dy)];
-			}
+            for( int dy = 0; dy < scl; ++dy ) {
+                for( int dx = 0; dx < scl; ++dx )
+                    sum += src[x*scl+dx + w*(y*scl+dy)];
+            }
 
-			dst[x + ws*y] = sum / ns;
-		}
-	}
+            dst[x + ws*y] = sum / ns;
+        }
+    }
 
-	w = ws;
-	h = hs;
+    w = ws;
+    h = hs;
 }
 
 /* --------------------------------------------------------------- */
@@ -1914,60 +1914,60 @@ void Downsample8(
 // clones of those edges.
 //
 void Upsize8(
-	vector<uint8>	&dst,
-	const uint8		*src,
-	int				wd,
-	int				hd,
-	int				ws,
-	int				hs )
+    vector<uint8>	&dst,
+    const uint8		*src,
+    int				wd,
+    int				hd,
+    int				ws,
+    int				hs )
 {
-	int	scl = wd / ws,
-		rmw = wd - scl * ws,
-		rmh = hd - scl * hs;
+    int	scl = wd / ws,
+        rmw = wd - scl * ws,
+        rmh = hd - scl * hs;
 
-	dst.resize( wd * hd );
+    dst.resize( wd * hd );
 
 // Interior
 
-	for( int y = 0; y < hs; ++y ) {
+    for( int y = 0; y < hs; ++y ) {
 
-		for( int x = 0; x < ws; ++x ) {
+        for( int x = 0; x < ws; ++x ) {
 
-			uint8	px = src[x + ws*y];
+            uint8	px = src[x + ws*y];
 
-			for( int dy = 0; dy < scl; ++dy ) {
-				for( int dx = 0; dx < scl; ++dx )
-					dst[x*scl+dx + wd*(y*scl+dy)] = px;
-			}
-		}
-	}
+            for( int dy = 0; dy < scl; ++dy ) {
+                for( int dx = 0; dx < scl; ++dx )
+                    dst[x*scl+dx + wd*(y*scl+dy)] = px;
+            }
+        }
+    }
 
 // Extend right
 
-	if( rmw ) {
+    if( rmw ) {
 
-		int	wb = scl * ws,
-			hb = scl * hs;
+        int	wb = scl * ws,
+            hb = scl * hs;
 
-		for( int y = 0; y < hb; ++y ) {
+        for( int y = 0; y < hb; ++y ) {
 
-			int	sR = dst[wb - 1 + wd*y];
+            int	sR = dst[wb - 1 + wd*y];
 
-			for( int r = 0; r < rmw; ++r )
-				dst[wb + r + wd*y] = sR;
-		}
-	}
+            for( int r = 0; r < rmw; ++r )
+                dst[wb + r + wd*y] = sR;
+        }
+    }
 
 // Extend down
 
-	if( rmh ) {
+    if( rmh ) {
 
-		int	hb = scl * hs,
-			sz = wd*(hb - 1);
+        int	hb = scl * hs,
+            sz = wd*(hb - 1);
 
-		for( int r = 0; r < rmh; ++r )
-			memcpy( &dst[wd*(hb + r)], &dst[sz], wd * sizeof(uint8) );
-	}
+        for( int r = 0; r < rmh; ++r )
+            memcpy( &dst[wd*(hb + r)], &dst[sz], wd * sizeof(uint8) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1992,35 +1992,35 @@ void Upsize8(
 // Dst can be same array as src.
 //
 void Sobel8(
-	uint8			*dst,
-	const uint8		*src,
-	int				w,
-	int				h )
+    uint8			*dst,
+    const uint8		*src,
+    int				w,
+    int				h )
 {
-	vector<uint8>	tmp;
-	EmbedExtended8( tmp, src, w, h, 1 );
+    vector<uint8>	tmp;
+    EmbedExtended8( tmp, src, w, h, 1 );
 
-	int	W = w + 2;
+    int	W = w + 2;
 
-	for( int y = 0; y < h; ++y ) {
+    for( int y = 0; y < h; ++y ) {
 
-		for( int x = 0; x < w; ++x ) {
+        for( int x = 0; x < w; ++x ) {
 
-			int	C = 1 + x + W*(1 + y),
-				dx, dy;
+            int	C = 1 + x + W*(1 + y),
+                dx, dy;
 
-			dx = tmp[C+1-W] - tmp[C-1-W]
-					+ 2*(tmp[C+1] - tmp[C-1])
-					+ tmp[C+1+W] - tmp[C-1+W];
+            dx = tmp[C+1-W] - tmp[C-1-W]
+                    + 2*(tmp[C+1] - tmp[C-1])
+                    + tmp[C+1+W] - tmp[C-1+W];
 
-			dy = tmp[C+1-W] - tmp[C+1+W]
-					+ 2*(tmp[C-W] - tmp[C+W])
-					+ tmp[C-1-W] - tmp[C-1+W];
+            dy = tmp[C+1-W] - tmp[C+1+W]
+                    + 2*(tmp[C-W] - tmp[C+W])
+                    + tmp[C-1-W] - tmp[C-1+W];
 
-			dx = (int)sqrt( dx*dx + dy*dy );
-			dst[x+w*y] = (dx <= 255 ? dx : 255);
-		}
-	}
+            dx = (int)sqrt( dx*dx + dy*dy );
+            dst[x+w*y] = (dx <= 255 ? dx : 255);
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -2033,48 +2033,48 @@ void Sobel8(
 // Dst can be same array as src.
 //
 void Median8(
-	uint8			*dst,
-	const uint8		*src,
-	int				w,
-	int				h,
-	int				r )
+    uint8			*dst,
+    const uint8		*src,
+    int				w,
+    int				h,
+    int				r )
 {
-	vector<uint8>	tmp;
-	EmbedExtended8( tmp, src, w, h, r );
+    vector<uint8>	tmp;
+    EmbedExtended8( tmp, src, w, h, r );
 
-	int			kw	= 2*r + 1,
-				n	= kw * kw,
-				W	= w + 2 * r;
-	vector<int>	hist( 256 );
+    int			kw	= 2*r + 1,
+                n	= kw * kw,
+                W	= w + 2 * r;
+    vector<int>	hist( 256 );
 
-	n /= 2;
+    n /= 2;
 
-	for( int y = r; y < h + r; ++y ) {
+    for( int y = r; y < h + r; ++y ) {
 
-		for( int x = r; x < w + r; ++x ) {
+        for( int x = r; x < w + r; ++x ) {
 
-			// histogram kernel values
+            // histogram kernel values
 
-			memset( &hist[0], 0, 256*sizeof(int) );
+            memset( &hist[0], 0, 256*sizeof(int) );
 
-			for( int ky = y - r; ky <= y + r; ++ky ) {
-				for( int kx = x - r; kx <= x + r; ++kx )
-					++hist[tmp[kx + W*ky]];
-			}
+            for( int ky = y - r; ky <= y + r; ++ky ) {
+                for( int kx = x - r; kx <= x + r; ++kx )
+                    ++hist[tmp[kx + W*ky]];
+            }
 
-			// accumulate half integrated area
+            // accumulate half integrated area
 
-			int	area = 0;
+            int	area = 0;
 
-			for( int i = 0; i < 256; ++i ) {
+            for( int i = 0; i < 256; ++i ) {
 
-				if( (area += hist[i]) >= n ) {
-					dst[(x-r) + w*(y-r)] = i;
-					break;
-				}
-			}
-		}
-	}
+                if( (area += hist[i]) >= n ) {
+                    dst[(x-r) + w*(y-r)] = i;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -2085,23 +2085,23 @@ void Median8(
 // with values: {0, 1} = {resin, tissue}.
 //
 void ResinMask8(
-	vector<uint8>	&msk,
-	const uint8		*src,
-	int				w,
-	int				h,
-	bool			samelayer )
+    vector<uint8>	&msk,
+    const uint8		*src,
+    int				w,
+    int				h,
+    bool			samelayer )
 {
-	vector<uint8>	tmp;
-	int				ws = w, hs = h;
+    vector<uint8>	tmp;
+    int				ws = w, hs = h;
 
 // Crunch down
 
-	Downsample8( tmp, src, ws, hs, 8 );
+    Downsample8( tmp, src, ws, hs, 8 );
 
 // Fatten all object edges
 
-	for( int i = 0; i < 3; ++i )
-		Sobel8( &tmp[0], &tmp[0], ws, hs );
+    for( int i = 0; i < 3; ++i )
+        Sobel8( &tmp[0], &tmp[0], ws, hs );
 
 // Smooth
 // For same layer matching, tiny resin spots are useful
@@ -2110,29 +2110,29 @@ void ResinMask8(
 // to appear in both layers, and a larger kernel will
 // help wash them out.
 
-	Median8( &tmp[0], &tmp[0], ws, hs, (samelayer ? 5 : 20) );
+    Median8( &tmp[0], &tmp[0], ws, hs, (samelayer ? 5 : 20) );
 
 // Threshold
 
-	int	n = ws * hs,
-		t = (samelayer ? 100 : 160);
+    int	n = ws * hs,
+        t = (samelayer ? 100 : 160);
 
-	for( int i = 0; i < n; ++i )
-		tmp[i] = (tmp[i] >= t ? 1 : 0);
+    for( int i = 0; i < n; ++i )
+        tmp[i] = (tmp[i] >= t ? 1 : 0);
 
 // Resize
 
-	Upsize8( msk, &tmp[0], w, h, ws, hs );
+    Upsize8( msk, &tmp[0], w, h, ws, hs );
 
 // Additionally, remove saturated pixels
 
-	n = w * h;
+    n = w * h;
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		if( !src[i] || src[i] == 255 )
-			msk[i] = 0;
-	}
+        if( !src[i] || src[i] == 255 )
+            msk[i] = 0;
+    }
 }
 
 

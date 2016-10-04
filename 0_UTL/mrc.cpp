@@ -17,13 +17,13 @@ using namespace std;
 
 void FreeMRC( vector<uint16*> &vras )
 {
-	int	nras = vras.size();
+    int	nras = vras.size();
 
-	for( int i = 0; i < nras; ++i ) {
+    for( int i = 0; i < nras; ++i ) {
 
-		if( vras[i] )
-			free( vras[i] );
-	}
+        if( vras[i] )
+            free( vras[i] );
+    }
 }
 
 
@@ -31,164 +31,164 @@ static void Transpose( vector<uint16*> &vras, uint32 &w, uint32 &h )
 {
 // swap pixels
 
-	int	nr = vras.size(), np = w * h;
+    int	nr = vras.size(), np = w * h;
 
-	for( int ir = 0; ir < nr; ++ir ) {
+    for( int ir = 0; ir < nr; ++ir ) {
 
-		uint16	*raster = vras[ir];
+        uint16	*raster = vras[ir];
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			int	t;
-			int	y = i / w,
-				x = i - w * y,
-				k = y + h * x;
+            int	t;
+            int	y = i / w,
+                x = i - w * y,
+                k = y + h * x;
 
-			t			= raster[k];
-			raster[k]	= raster[i];
-			raster[i]	= t;
-		}
-	}
+            t			= raster[k];
+            raster[k]	= raster[i];
+            raster[i]	= t;
+        }
+    }
 
 // swap w and h
 
-	uint32	t;
+    uint32	t;
 
-	t = w;
-	w = h;
-	h = t;
+    t = w;
+    w = h;
+    h = t;
 }
 
 
 int ReadRawMRCFile(
-	vector<uint16*>	&vras,
-	const char*		name,
-	uint32			&w,
-	uint32			&h,
-	FILE*			flog,
-	bool			transpose )
+    vector<uint16*>	&vras,
+    const char*		name,
+    uint32			&w,
+    uint32			&h,
+    FILE*			flog,
+    bool			transpose )
 {
-	if( flog )
-		fprintf( flog, "Opening MRC file '%s'.\n", name );
+    if( flog )
+        fprintf( flog, "Opening MRC file '%s'.\n", name );
 
 // read the first 1024 bytes - the header
 
-	FILE	*fp = FileOpenOrDie( name, "r", flog );
-	int		header[256], nras = 0, np;
-	size_t	items = fread( header, sizeof(int), 256, fp );
+    FILE	*fp = FileOpenOrDie( name, "r", flog );
+    int		header[256], nras = 0, np;
+    size_t	items = fread( header, sizeof(int), 256, fp );
 
 // swap the words
 
-	//for( int i = 0; i < 256; ++i )
-	//header[i] = (header[i] << 16) | ((header[i] >> 16) & 0xFFFF);
+    //for( int i = 0; i < 256; ++i )
+    //header[i] = (header[i] << 16) | ((header[i] >> 16) & 0xFFFF);
 
-	if( flog ) {
-		fprintf( flog, "Header: %d %d %d %d %d %d %d %d\n",
-			header[0], header[1], header[2], header[3],
-			header[4], header[5], header[6], header[7] );
-	}
+    if( flog ) {
+        fprintf( flog, "Header: %d %d %d %d %d %d %d %d\n",
+            header[0], header[1], header[2], header[3],
+            header[4], header[5], header[6], header[7] );
+    }
 
-	w		= header[0];
-	h		= header[1];
-	nras	= header[2];
-	np		= w * h;
+    w		= header[0];
+    h		= header[1];
+    nras	= header[2];
+    np		= w * h;
 
-	if( flog )
-		fprintf( flog, "MRC file has %d images.\n", nras );
+    if( flog )
+        fprintf( flog, "MRC file has %d images.\n", nras );
 
-	vras.assign( nras, NULL );
+    vras.assign( nras, NULL );
 
-	if( header[3] == 6 ) {	// shorts
+    if( header[3] == 6 ) {	// shorts
 
-		for( int i = 0; i < nras; ++i ) {
+        for( int i = 0; i < nras; ++i ) {
 
-			vras[i] = (uint16*)malloc( np * sizeof(uint16) );
+            vras[i] = (uint16*)malloc( np * sizeof(uint16) );
 
-			if( !vras[i] ) {
+            if( !vras[i] ) {
 
-				if( !flog )
-					flog = stdout;
+                if( !flog )
+                    flog = stdout;
 
-				fprintf( flog, "Read MRC malloc failed.\n" );
-				exit( 42 );
-			}
+                fprintf( flog, "Read MRC malloc failed.\n" );
+                exit( 42 );
+            }
 
-			items = fread( vras[i], sizeof(uint16), np, fp );
+            items = fread( vras[i], sizeof(uint16), np, fp );
 
-			if( items != np ) {
+            if( items != np ) {
 
-				if( !flog )
-					flog = stdout;
+                if( !flog )
+                    flog = stdout;
 
-				fprintf( flog, "Read MRC data read failed.\n" );
-				exit( 42 );
-			}
-		}
-	}
-	else if ( header[3] == 2 ) {	// floats
+                fprintf( flog, "Read MRC data read failed.\n" );
+                exit( 42 );
+            }
+        }
+    }
+    else if ( header[3] == 2 ) {	// floats
 
-		for( int i = 0; i < nras; ++i ) {
+        for( int i = 0; i < nras; ++i ) {
 
-			float*	rasf = (float*)malloc( np * sizeof(float) );
+            float*	rasf = (float*)malloc( np * sizeof(float) );
 
-			if( !rasf ) {
+            if( !rasf ) {
 
-				if( !flog )
-					flog = stdout;
+                if( !flog )
+                    flog = stdout;
 
-				fprintf( flog, "Read MRC malloc failed.\n" );
-				exit( 42 );
-			}
+                fprintf( flog, "Read MRC malloc failed.\n" );
+                exit( 42 );
+            }
 
-			items = fread( rasf, sizeof(float), np, fp );
+            items = fread( rasf, sizeof(float), np, fp );
 
-			if( items != np ) {
+            if( items != np ) {
 
-				if( !flog )
-					flog = stdout;
+                if( !flog )
+                    flog = stdout;
 
-				fprintf( flog, "Read MRC data read failed.\n" );
-				exit( 42 );
-			}
+                fprintf( flog, "Read MRC data read failed.\n" );
+                exit( 42 );
+            }
 
-			// convert to uint16
+            // convert to uint16
 
-			vras[i] = (uint16*)malloc( np * sizeof(uint16) );
+            vras[i] = (uint16*)malloc( np * sizeof(uint16) );
 
-			uint16*	ras16 = vras[i];
+            uint16*	ras16 = vras[i];
 
-			if( !ras16 ) {
+            if( !ras16 ) {
 
-				if( !flog )
-					flog = stdout;
+                if( !flog )
+                    flog = stdout;
 
-				fprintf( flog, "Read MRC malloc failed.\n" );
-				exit( 42 );
-			}
+                fprintf( flog, "Read MRC malloc failed.\n" );
+                exit( 42 );
+            }
 
-			for( int k = 0; k < np; ++k )
-				ras16[k] = int(rasf[k]);
+            for( int k = 0; k < np; ++k )
+                ras16[k] = int(rasf[k]);
 
-			free( rasf );
-		}
-	}
-	else {
+            free( rasf );
+        }
+    }
+    else {
 
-		if( !flog )
-			flog = stdout;
+        if( !flog )
+            flog = stdout;
 
-		fprintf( flog,
-		"Reading MRC file; expected mode 6 or 2, got %d\n",
-		header[3] );
-		exit( 42 );
-	}
+        fprintf( flog,
+        "Reading MRC file; expected mode 6 or 2, got %d\n",
+        header[3] );
+        exit( 42 );
+    }
 
-	fclose( fp );
+    fclose( fp );
 
-	if( transpose )
-		Transpose( vras, w, h );
+    if( transpose )
+        Transpose( vras, w, h );
 
-	return nras;
+    return nras;
 }
 
 
@@ -202,9 +202,9 @@ VecDoub y,s;  // create the y array (same data but double), and the s array
 double sum = 0.0;  // used for checking for plausibility later
 int	nx = x.size();
 for( int i = 0; i < nx; ++i ) {
-	y.push_back( histo[i] );
-	s.push_back( 1.0 );
-	sum += histo[i];
+    y.push_back( histo[i] );
+    s.push_back( 1.0 );
+    sum += histo[i];
 }
 
 // Remove over-represented bins at the extremes.  Sum/y.size() is what you would expect with a uniform
@@ -248,86 +248,86 @@ for(int pass=0; pass < 3 && try_again; pass++) {
         printf("--- try %d gaussians, max %d ---\n", N, Ngauss);
         a.resize(N*3);
         // find the biggest peak in the residual, and add that
-	double biggest = 0.0;
-	int    bigi = 0;  // just to avoid warnings
-	int	nr = residual.size();
-	for( int i = 0; i < nr; ++i ) {
-		double	mag = abs( residual[i] );
-		if( mag > biggest ) {
-			biggest	= mag;
-			bigi	= i;
-		}
-	}
-	printf("Biggest remaining residual has peak of %f at x=%f\n", biggest, x[bigi]);
+    double biggest = 0.0;
+    int    bigi = 0;  // just to avoid warnings
+    int	nr = residual.size();
+    for( int i = 0; i < nr; ++i ) {
+        double	mag = abs( residual[i] );
+        if( mag > biggest ) {
+            biggest	= mag;
+            bigi	= i;
+        }
+    }
+    printf("Biggest remaining residual has peak of %f at x=%f\n", biggest, x[bigi]);
         peaks[N] = bigi;
         if( N >= 2 && peaks[N] == peaks[N-1] ) {
-	    printf("*** Odd - peak not removed by fitting?  Assume outlier and re-fit\n");
+        printf("*** Odd - peak not removed by fitting?  Assume outlier and re-fit\n");
             if( bigi > 0 && bigi < x.size()-1 )
-		y[bigi] = (y[bigi-1] + y[bigi+1])/2.0; // set to average, if possible
+        y[bigi] = (y[bigi-1] + y[bigi+1])/2.0; // set to average, if possible
             else
                 y[bigi] = 0;                           // otherwise set to 0
             try_again = true;
             }
-	a[(N-1)*3  ] = residual[bigi] * 0.99;
-	a[(N-1)*3+1] = x[bigi];
-	a[(N-1)*3+2] = init_width;  // initial width usually 1000 for EM images
-	//for(int i=0; i<a.size(); i++)
-	    //printf("a[%d] = %f\n", i, a[i]);
-	Fitmrq f(x,y,s,  a, fgauss);
-	try {
-	    f.fit();
+    a[(N-1)*3  ] = residual[bigi] * 0.99;
+    a[(N-1)*3+1] = x[bigi];
+    a[(N-1)*3+2] = init_width;  // initial width usually 1000 for EM images
+    //for(int i=0; i<a.size(); i++)
+        //printf("a[%d] = %f\n", i, a[i]);
+    Fitmrq f(x,y,s,  a, fgauss);
+    try {
+        f.fit();
             }
         catch (int) {
             printf("Caught exception in fit\n");
-	    for(int i=0; i<a.size(); i++)
-	        printf("a[%d] = %f\n", i, a[i]);
+        for(int i=0; i<a.size(); i++)
+            printf("a[%d] = %f\n", i, a[i]);
             if( N == 2 ) { // the two gaussian fit failed.  Need a backup; first see if
                           // one gaussian fit was reasonable. See if peak is within the
                           // data bounds and amplitude is OK
                 if( x[0] < a[1] && a[1] < x[x.size()-1] && a[0] > 0 && a[0] < sum ) {
-		    rmin = a[1] - 4/sqrt(2.0)*abs(a[2]);
-		    rmax = a[1] + 4/sqrt(2.0)*abs(a[2]);
-		    rmin = max(rmin, x[0]);  // rmin should not be smaller than the first x
-		    rmax = min(rmax, x[x.size()-1]);  // and rmax not off the top end
-		    printf("Reverting to 1 gaussian fit, +- 4 sigma: %f %f\n", rmin, rmax);
-		    }
+            rmin = a[1] - 4/sqrt(2.0)*abs(a[2]);
+            rmax = a[1] + 4/sqrt(2.0)*abs(a[2]);
+            rmin = max(rmin, x[0]);  // rmin should not be smaller than the first x
+            rmax = min(rmax, x[x.size()-1]);  // and rmax not off the top end
+            printf("Reverting to 1 gaussian fit, +- 4 sigma: %f %f\n", rmin, rmax);
+            }
                 else {
                     rmin = x[0];
                     rmax = x[x.size()-1];
                     printf("One gaussian fit looked bad, too. Use full range: %f %f\n", rmin, rmax);
                     }
-		return;
-		}
-	    }
-	rmin =  1.0e30;
-	rmax = -1.0e30;
-	printf("after fit:\n");
-	for(int i=0; i<a.size(); i += 3) {
-	    double top = f.a[i+1] + 4/sqrt(2)*abs(f.a[i+2]);  // four sigma (sqrt(2) since width un-normalized
-	    rmax = max(rmax, top);
-	    double bot = f.a[i+1] - 4/sqrt(2)*abs(f.a[i+2]);  // four sigma (sqrt(2) since width un-normalized
-	    rmin = min(rmin, bot);
-	    printf("i=%d: %16.1f * exp( ((x-%7.1f)/%6.1f)^2 ) range [%7.1f %7.1f]\n", i, f.a[i], f.a[i+1], f.a[i+2], bot, top);
-	    }
-	char fname[10];
-	sprintf(fname,"pl%d", N);  // pl1, pl2, etc. for plot files
-	FILE *fp = fopen(fname,"w");
-	MeanStd m;
-	int	nx = x.size();
-	for( int i = 0; i < nx; ++i ) {
-		double yy = ygauss( x[i], f.a );
-		if( fp )  // if we cannot write, that's OK
-		fprintf(fp,"%f %f %f\n", x[i], yy, y[i]);
-		residual[i] = y[i] - yy;
-		m.Element(residual[i]);
-	}
-	double mean, std;
-	m.Stats(mean, std);
-	printf("Residuals: mean %f, RMS about mean %f\n", mean, std);
-	a = f.a;
-	if( fp )
-		fclose( fp );
-	}
+        return;
+        }
+        }
+    rmin =  1.0e30;
+    rmax = -1.0e30;
+    printf("after fit:\n");
+    for(int i=0; i<a.size(); i += 3) {
+        double top = f.a[i+1] + 4/sqrt(2)*abs(f.a[i+2]);  // four sigma (sqrt(2) since width un-normalized
+        rmax = max(rmax, top);
+        double bot = f.a[i+1] - 4/sqrt(2)*abs(f.a[i+2]);  // four sigma (sqrt(2) since width un-normalized
+        rmin = min(rmin, bot);
+        printf("i=%d: %16.1f * exp( ((x-%7.1f)/%6.1f)^2 ) range [%7.1f %7.1f]\n", i, f.a[i], f.a[i+1], f.a[i+2], bot, top);
+        }
+    char fname[10];
+    sprintf(fname,"pl%d", N);  // pl1, pl2, etc. for plot files
+    FILE *fp = fopen(fname,"w");
+    MeanStd m;
+    int	nx = x.size();
+    for( int i = 0; i < nx; ++i ) {
+        double yy = ygauss( x[i], f.a );
+        if( fp )  // if we cannot write, that's OK
+        fprintf(fp,"%f %f %f\n", x[i], yy, y[i]);
+        residual[i] = y[i] - yy;
+        m.Element(residual[i]);
+    }
+    double mean, std;
+    m.Stats(mean, std);
+    printf("Residuals: mean %f, RMS about mean %f\n", mean, std);
+    a = f.a;
+    if( fp )
+        fclose( fp );
+    }
     }
 rmin = max(rmin, x[0]);  // rmin should not be smaller than the first x
 rmax = min(rmax, x[x.size()-1]);  // and rmax not off the top end
@@ -346,7 +346,7 @@ int trim = 20;  // should make this a parameter
 
 char *s = getenv("MRC_TRIM");
 if( s )
-	trim = atoi( s );
+    trim = atoi( s );
 
 printf("Trimming %d pixels from each edge of MRC picture.\n", trim);
 // trim the edges off the picture
@@ -368,12 +368,12 @@ for(int x=0; x<neww; x++)
         int pix = raster[trim + x + (trim+y)*w];
         minval = min(minval, pix);
         maxval = max(maxval, pix);
-	vals[x+neww*y] = pix;
+    vals[x+neww*y] = pix;
         Overall.Element(pix);
         int sx = (x*SQ)/neww;
         int sy = (y*SQ)/newh;
         Checkerboard[sx][sy].Element(pix);
-	}
+    }
 
 w = neww;     // now modify values for caller
 h = newh;
@@ -389,9 +389,9 @@ vector<double>mids(256);
 int nnz = 0;  // number of non-zero values
 int	nh = histo.size();
 for( int i = 0; i < nh; ++i ) {
-	mids[i] = (i+0.5)*(maxval+1-minval)/256.0 + minval;
-	//printf("%f %d\n", mids[i], histo[i]);
-	nnz += (histo[i] > 0);
+    mids[i] = (i+0.5)*(maxval+1-minval)/256.0 + minval;
+    //printf("%f %d\n", mids[i], histo[i]);
+    nnz += (histo[i] > 0);
 }
 bool UseGaussians = true;
 printf("Number of distinct pixel values: %d\n", nnz);
@@ -433,11 +433,11 @@ for(int y=0; y<SQ; y++) {
 MeanStd ohc;  // ohc == Only high contrast
 for(int x=0; x<neww; x++)
     for(int y=0; y < newh; y++) {
-	int sx = (x*SQ)/neww;
+    int sx = (x*SQ)/neww;
         int sy = (y*SQ)/newh;
         if( ss[sx][sy] > highest_contrast/2.0 )  // at least 1/4 of the of the highest contrast square
-	    ohc.Element(vals[x+neww*y]);
-	}
+        ohc.Element(vals[x+neww*y]);
+    }
 double ohc_mean, ohc_std;
 ohc.Stats(ohc_mean, ohc_std);
 printf("Using only high contrast squares with %d pixels, mean=%f, std=%f\n", ohc.HowMany(), ohc_mean, ohc_std);
@@ -463,58 +463,58 @@ return rast;
 
 
 uint8* ReadAnMRCFile(
-	const char*		name,
-	uint32			&w,
-	uint32			&h,
-	FILE*			flog,
-	bool			transpose,
-	int				Ngauss )
+    const char*		name,
+    uint32			&w,
+    uint32			&h,
+    FILE*			flog,
+    bool			transpose,
+    int				Ngauss )
 {
-	uint8*			result;
-	vector<uint16*>	vras;
-	int				nras;
+    uint8*			result;
+    vector<uint16*>	vras;
+    int				nras;
 
-	fprintf( flog, "Using %d gaussian normalization.\n", Ngauss );
+    fprintf( flog, "Using %d gaussian normalization.\n", Ngauss );
 
-	nras = ReadRawMRCFile( vras, name, w, h, flog, transpose );
+    nras = ReadRawMRCFile( vras, name, w, h, flog, transpose );
 
-	if( nras > 1 )
-		fprintf( flog, "Only reading first MRC image of %d\n", nras );
+    if( nras > 1 )
+        fprintf( flog, "Only reading first MRC image of %d\n", nras );
 
-	result = NormalizeMRCImage( vras[0], w, h, Ngauss );
+    result = NormalizeMRCImage( vras[0], w, h, Ngauss );
 
-	FreeMRC( vras );
+    FreeMRC( vras );
 
-	return result;
+    return result;
 }
 
 
 
 int ReadMultiImageMRCFile(
-	vector<uint8*>	&vras,
-	const char*		name,
-	uint32			&w,
-	uint32			&h,
-	FILE*			flog,
-	bool			transpose,
-	int				Ngauss )
+    vector<uint8*>	&vras,
+    const char*		name,
+    uint32			&w,
+    uint32			&h,
+    FILE*			flog,
+    bool			transpose,
+    int				Ngauss )
 {
-	vector<uint16*>	vras16;
-	int				nras;
+    vector<uint16*>	vras16;
+    int				nras;
 
-	nras = ReadRawMRCFile( vras16, name, w, h, flog, transpose );
+    nras = ReadRawMRCFile( vras16, name, w, h, flog, transpose );
 
-	vector<uint8*>	result( nras );
+    vector<uint8*>	result( nras );
 
-	for( int i = 0; i < nras; ++i ) {
+    for( int i = 0; i < nras; ++i ) {
 
-		fprintf( flog, "\n----- Normalizing MRC image %d\n", i );
-		vras[i] = NormalizeMRCImage( vras16[i], w, h, Ngauss );
-	}
+        fprintf( flog, "\n----- Normalizing MRC image %d\n", i );
+        vras[i] = NormalizeMRCImage( vras16[i], w, h, Ngauss );
+    }
 
-	FreeMRC( vras16 );
+    FreeMRC( vras16 );
 
-	return nras;
+    return nras;
 }
 
 

@@ -14,12 +14,12 @@
 
 enum TAffineNearUnityConsts {
 // near unity transform selectors
-	tafnuScl	= 0,
-	tafnuXScl	= 1,
-	tafnuYScl	= 2,
-	tafnuXSkw	= 3,
-	tafnuYSkw	= 4,
-	tafnuRot	= 5
+    tafnuScl	= 0,
+    tafnuXScl	= 1,
+    tafnuYScl	= 2,
+    tafnuXSkw	= 3,
+    tafnuYSkw	= 4,
+    tafnuRot	= 5
 };
 
 /* --------------------------------------------------------------- */
@@ -38,93 +38,93 @@ enum TAffineNearUnityConsts {
 class TAffine {
 
 public:
-	double	t[6];
+    double	t[6];
 
 public:
-	TAffine()
-		{NUSetOne();};
+    TAffine()
+        {NUSetOne();};
 
-	TAffine( const TAffine &rhs )
-		{CopyIn( rhs );};
+    TAffine( const TAffine &rhs )
+        {CopyIn( rhs );};
 
-	TAffine( const double *src )
-		{CopyIn( src );};
+    TAffine( const double *src )
+        {CopyIn( src );};
 
-	TAffine( double a, double b, double c,
-			 double d, double e, double f )
-		{t[0]=a; t[1]=b; t[2]=c;
-		 t[3]=d; t[4]=e; t[5]=f;};
+    TAffine( double a, double b, double c,
+             double d, double e, double f )
+        {t[0]=a; t[1]=b; t[2]=c;
+         t[3]=d; t[4]=e; t[5]=f;};
 
-	void CopyIn( const TAffine &src )
-		{for( int i = 0; i < 6; ++i ) t[i] = src.t[i];};
+    void CopyIn( const TAffine &src )
+        {for( int i = 0; i < 6; ++i ) t[i] = src.t[i];};
 
-	void CopyIn( const double *src )
-		{for( int i = 0; i < 6; ++i ) t[i] = src[i];};
+    void CopyIn( const double *src )
+        {for( int i = 0; i < 6; ++i ) t[i] = src[i];};
 
-	void CopyOut( double *dst ) const
-		{for( int i = 0; i < 6; ++i ) dst[i] = t[i];};
+    void CopyOut( double *dst ) const
+        {for( int i = 0; i < 6; ++i ) dst[i] = t[i];};
 
-	inline void SetXY( double dx, double dy )
-		{t[2] = dx; t[5] = dy;};
+    inline void SetXY( double dx, double dy )
+        {t[2] = dx; t[5] = dy;};
 
-	inline void AddXY( double dx, double dy )
-		{t[2] += dx; t[5] += dy;};
+    inline void AddXY( double dx, double dy )
+        {t[2] += dx; t[5] += dy;};
 
-	inline void MulXY( double f )
-		{t[2] *= f; t[5] *= f;};
+    inline void MulXY( double f )
+        {t[2] *= f; t[5] *= f;};
 
-	void ToMatlab()
-		{double b=t[1], c=t[2], d=t[3], e=t[4];
-		 t[1]=d; t[2]=b; t[3]=e; t[4]=c;};
+    void ToMatlab()
+        {double b=t[1], c=t[2], d=t[3], e=t[4];
+         t[1]=d; t[2]=b; t[3]=e; t[4]=c;};
 
-	void FromMatlab()
-		{double b=t[2], c=t[4], d=t[1], e=t[3];
-		 t[1]=b; t[2]=c; t[3]=d; t[4]=e;};
+    void FromMatlab()
+        {double b=t[2], c=t[4], d=t[1], e=t[3];
+         t[1]=b; t[2]=c; t[3]=d; t[4]=e;};
 
-	double det() const
-		{return t[0]*t[4] - t[1]*t[3];};
+    double det() const
+        {return t[0]*t[4] - t[1]*t[3];};
 
-	void NUSetOne()
-		{NUSetScl( 1.0 );};
+    void NUSetOne()
+        {NUSetScl( 1.0 );};
 
-	void NUSetScl( double a );
-	void NUSetXScl( double a );
-	void NUSetYScl( double a );
-	void NUSetXSkw( double a );
-	void NUSetYSkw( double a );
-	void NUSetRot( double r );
+    void NUSetScl( double a );
+    void NUSetXScl( double a );
+    void NUSetYScl( double a );
+    void NUSetXSkw( double a );
+    void NUSetYSkw( double a );
+    void NUSetRot( double r );
 
-	void NUSelect( int sel, double a );
+    void NUSelect( int sel, double a );
 
-	void ComposeDfm(
-		double	scl,
-		double	xscl,
-		double	yscl,
-		double	xskw,
-		double	yskw );
+    void ComposeDfm(
+        double	scl,
+        double	xscl,
+        double	yscl,
+        double	xskw,
+        double	yskw );
 
-	void SetCWRot( double deg, const Point &pivot );
+    void SetCWRot( double deg, const Point &pivot );
 
-	void FromAToB( const TAffine &a, const TAffine &b );
+    void FromAToB( const TAffine &a, const TAffine &b );
 
-	void InverseOf( const TAffine &a );
+    void InverseOf( const TAffine &a );
 
-	TAffine operator * ( const TAffine& rhs ) const;
+    TAffine operator * ( const TAffine& rhs ) const;
 
-	void ScanTrackEM2( const char *s );
+    void ScanTrackEM2( const char *s );
 
-	void TPrint( FILE *f = NULL, const char *s = NULL ) const;
-	void TPrintAsParam( FILE *f, bool newline = false ) const;
+    void TPrint( FILE *f = NULL, const char *s = NULL ) const;
+    void TPrintAsParam( FILE *f, bool newline = false ) const;
 
-	double EffArea() const;
-	double GetRadians() const;
-	double Squareness() const;
+    double EffArea() const;
+    double GetRadians() const;
+    double Squareness() const;
 
-	void Transform( Point &p ) const;
-	void Transform( vector<Point> &v ) const;
+    void Transform( Point &p ) const;
+    void Transform( vector<Point> &v ) const;
 
-	void Apply_R_Part( Point &p ) const;
-	void Apply_R_Part( vector<Point> &v ) const;
+    void Apply_R_Part( Point &p ) const;
+    void Apply_R_Part( vector<Point> &v ) const;
 };
 
 

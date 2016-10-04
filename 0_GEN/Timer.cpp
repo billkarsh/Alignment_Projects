@@ -15,7 +15,7 @@
 
 void Yield_usec( int microsec )
 {
-	usleep( microsec );
+    usleep( microsec );
 }
 
 /* --------------------------------------------------------------- */
@@ -24,9 +24,9 @@ void Yield_usec( int microsec )
 
 clock_t StartTiming()
 {
-	struct tms	T;
+    struct tms	T;
 
-	return times( &T );
+    return times( &T );
 }
 
 /* --------------------------------------------------------------- */
@@ -35,8 +35,8 @@ clock_t StartTiming()
 
 double DeltaSeconds( clock_t start )
 {
-	return
-	double(StartTiming() - start) / sysconf(_SC_CLK_TCK);
+    return
+    double(StartTiming() - start) / sysconf(_SC_CLK_TCK);
 }
 
 /* --------------------------------------------------------------- */
@@ -45,10 +45,10 @@ double DeltaSeconds( clock_t start )
 
 clock_t StopTiming( FILE *flog, const char *msg, clock_t start )
 {
-	fprintf( flog, "Timer: %s took %.3f seconds.\n",
-	msg, DeltaSeconds( start ) );
+    fprintf( flog, "Timer: %s took %.3f seconds.\n",
+    msg, DeltaSeconds( start ) );
 
-	return StartTiming();
+    return StartTiming();
 }
 
 

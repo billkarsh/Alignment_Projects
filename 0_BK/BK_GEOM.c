@@ -35,8 +35,8 @@
 
 void GEOMInsetU16Box1Pixel( U16BoxPtr dstBox, U16BoxPtr srcBox )
 {
-	*(UInt32*)&dstBox->top = *(UInt32*)&srcBox->top + 0x10001;
-	*(UInt32*)&dstBox->bottom = *(UInt32*)&srcBox->bottom - 0x10001;
+    *(UInt32*)&dstBox->top = *(UInt32*)&srcBox->top + 0x10001;
+    *(UInt32*)&dstBox->bottom = *(UInt32*)&srcBox->bottom - 0x10001;
 }
 
 
@@ -61,33 +61,33 @@ void GEOMInsetU16Box1Pixel( U16BoxPtr dstBox, U16BoxPtr srcBox )
  */
 
 void GEOMOutsetU16Box(
-	U16BoxPtr	dstBox,
-	U16BoxPtr	srcBox,
-	int			hLim,
-	int			vLim,
-	int			outset )
+    U16BoxPtr	dstBox,
+    U16BoxPtr	srcBox,
+    int			hLim,
+    int			vLim,
+    int			outset )
 {
-	int		temp;
+    int		temp;
 
-	if( (temp = srcBox->top) > outset )
-		dstBox->top = temp - outset;
-	else
-		dstBox->top = 0;
+    if( (temp = srcBox->top) > outset )
+        dstBox->top = temp - outset;
+    else
+        dstBox->top = 0;
 
-	if( (temp = srcBox->left) > outset )
-		dstBox->left = temp - outset;
-	else
-		dstBox->left = 0;
+    if( (temp = srcBox->left) > outset )
+        dstBox->left = temp - outset;
+    else
+        dstBox->left = 0;
 
-	if( (temp = srcBox->bottom + outset) <= vLim )
-		dstBox->bottom = temp;
-	else
-		dstBox->bottom = vLim;
+    if( (temp = srcBox->bottom + outset) <= vLim )
+        dstBox->bottom = temp;
+    else
+        dstBox->bottom = vLim;
 
-	if( (temp = srcBox->right + outset) <= hLim )
-		dstBox->right = temp;
-	else
-		dstBox->right = hLim;
+    if( (temp = srcBox->right + outset) <= hLim )
+        dstBox->right = temp;
+    else
+        dstBox->right = hLim;
 }
 
 
@@ -110,27 +110,27 @@ void GEOMOutsetU16Box(
  */
 
 void GEOMU16PatchBox(
-	U16BoxPtr	dstBox,
-	U16BoxPtr	srcBox,
-	int			hLim,
-	int			vLim )
+    U16BoxPtr	dstBox,
+    U16BoxPtr	srcBox,
+    int			hLim,
+    int			vLim )
 {
-	int		temp;
+    int		temp;
 
-	dstBox->top    = srcBox->top;
-	dstBox->left   = BitToWord( srcBox->left ) * WordBits;
+    dstBox->top    = srcBox->top;
+    dstBox->left   = BitToWord( srcBox->left ) * WordBits;
 
-	if( (temp = srcBox->bottom) <= vLim )
-		dstBox->bottom = temp;
-	else
-		dstBox->bottom = vLim;
+    if( (temp = srcBox->bottom) <= vLim )
+        dstBox->bottom = temp;
+    else
+        dstBox->bottom = vLim;
 
-	if( (temp = srcBox->right) >= hLim )
-		dstBox->right = hLim;
-	else if( !temp )
-		dstBox->right = 0;
-	else
-		dstBox->right = (BitToWord( temp - 1 ) + 1) * WordBits;
+    if( (temp = srcBox->right) >= hLim )
+        dstBox->right = hLim;
+    else if( !temp )
+        dstBox->right = 0;
+    else
+        dstBox->right = (BitToWord( temp - 1 ) + 1) * WordBits;
 }
 
 
@@ -152,28 +152,28 @@ void GEOMU16PatchBox(
  */
 
 int GEOMU16BoxIntersection(
-	U16BoxPtr		outBox,
-	const U16BoxPtr	box1,
-	const U16BoxPtr	box2 )
+    U16BoxPtr		outBox,
+    const U16BoxPtr	box1,
+    const U16BoxPtr	box2 )
 {
-	int		temp;
+    int		temp;
 
-	*outBox = *box1;
+    *outBox = *box1;
 
-	if( (temp = box2->top) > box1->top )
-		outBox->top = temp;
+    if( (temp = box2->top) > box1->top )
+        outBox->top = temp;
 
-	if( (temp = box2->left) > box1->left )
-		outBox->left = temp;
+    if( (temp = box2->left) > box1->left )
+        outBox->left = temp;
 
-	if( (temp = box2->bottom) < box1->bottom )
-		outBox->bottom = temp;
+    if( (temp = box2->bottom) < box1->bottom )
+        outBox->bottom = temp;
 
-	if( (temp = box2->right) < box1->right )
-		outBox->right = temp;
+    if( (temp = box2->right) < box1->right )
+        outBox->right = temp;
 
-	return (outBox->top  < outBox->bottom &&
-			outBox->left < outBox->right);
+    return (outBox->top  < outBox->bottom &&
+            outBox->left < outBox->right);
 }
 
 
@@ -187,25 +187,25 @@ int GEOMU16BoxIntersection(
  */
 
 void GEOMU16BoxUnion(
-	U16BoxPtr		outBox,
-	const U16BoxPtr	box1,
-	const U16BoxPtr	box2 )
+    U16BoxPtr		outBox,
+    const U16BoxPtr	box1,
+    const U16BoxPtr	box2 )
 {
-	int		temp;
+    int		temp;
 
-	*outBox = *box1;
+    *outBox = *box1;
 
-	if( (temp = box2->top) < box1->top )
-		outBox->top = temp;
+    if( (temp = box2->top) < box1->top )
+        outBox->top = temp;
 
-	if( (temp = box2->left) < box1->left )
-		outBox->left = temp;
+    if( (temp = box2->left) < box1->left )
+        outBox->left = temp;
 
-	if( (temp = box2->bottom) > box1->bottom )
-		outBox->bottom = temp;
+    if( (temp = box2->bottom) > box1->bottom )
+        outBox->bottom = temp;
 
-	if( (temp = box2->right) > box1->right )
-		outBox->right = temp;
+    if( (temp = box2->right) > box1->right )
+        outBox->right = temp;
 }
 
 
@@ -228,34 +228,34 @@ void GEOMU16BoxUnion(
 
 int GEOMPinSubrect( RECT *r, const RECT *R )
 {
-	int		dx, dy, moved = 0;
+    int		dx, dy, moved = 0;
 
-	dx	= r->right - r->left;
-	dy	= r->bottom - r->top;
+    dx	= r->right - r->left;
+    dy	= r->bottom - r->top;
 
-	if( r->left < R->left ) {
-		r->left		= R->left;
-		r->right	= R->left + dx;
-		moved		= 1;
-	}
-	else if( r->right > R->right ) {
-		r->right	= R->right;
-		r->left		= R->right - dx;
-		moved		= 1;
-	}
+    if( r->left < R->left ) {
+        r->left		= R->left;
+        r->right	= R->left + dx;
+        moved		= 1;
+    }
+    else if( r->right > R->right ) {
+        r->right	= R->right;
+        r->left		= R->right - dx;
+        moved		= 1;
+    }
 
-	if( r->top < R->top ) {
-		r->top		= R->top;
-		r->bottom	= R->top + dy;
-		moved		+= 2;
-	}
-	else if( r->bottom > R->bottom ) {
-		r->bottom	= R->bottom;
-		r->top		= R->bottom - dy;
-		moved		+= 2;
-	}
+    if( r->top < R->top ) {
+        r->top		= R->top;
+        r->bottom	= R->top + dy;
+        moved		+= 2;
+    }
+    else if( r->bottom > R->bottom ) {
+        r->bottom	= R->bottom;
+        r->top		= R->bottom - dy;
+        moved		+= 2;
+    }
 
-	return moved;
+    return moved;
 }
 
 #endif	/* WIN32 */
@@ -278,18 +278,18 @@ int GEOMPinSubrect( RECT *r, const RECT *R )
 
 FP32 GEOMSegLen( int dx, int dy )
 {
-	if( dx < 0 )
-		dx = -dx;
+    if( dx < 0 )
+        dx = -dx;
 
-	if( dy < 0 )
-		dy = -dy;
+    if( dy < 0 )
+        dy = -dy;
 
-	if( dx < dy )
-		return (dy + (dx * dx) / (2.0F * dy));
-	else if( dy < dx )
-		return (dx + (dy * dy) / (2.0F * dx));
-	else
-		return dx * 1.4142F;
+    if( dx < dy )
+        return (dy + (dx * dx) / (2.0F * dy));
+    else if( dy < dx )
+        return (dx + (dy * dy) / (2.0F * dx));
+    else
+        return dx * 1.4142F;
 }
 
 

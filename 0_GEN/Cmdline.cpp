@@ -28,7 +28,7 @@
 //
 bool IsArg( const char *pat, const char *argv )
 {
-	return !strcmp( argv, pat );
+    return !strcmp( argv, pat );
 }
 
 /* --------------------------------------------------------------- */
@@ -50,7 +50,7 @@ bool IsArg( const char *pat, const char *argv )
 //
 bool GetArg( void *v, const char *pat, const char *argv )
 {
-	return 1 == sscanf( argv, pat, v );
+    return 1 == sscanf( argv, pat, v );
 }
 
 /* --------------------------------------------------------------- */
@@ -72,15 +72,15 @@ bool GetArg( void *v, const char *pat, const char *argv )
 //
 bool GetArgStr( const char* &s, const char *pat, char *argv )
 {
-	int	len = strlen( pat );
+    int	len = strlen( pat );
 
-	if( !strncmp( argv, pat, len ) ) {
+    if( !strncmp( argv, pat, len ) ) {
 
-		s = argv + len;
-		return true;
-	}
+        s = argv + len;
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -102,23 +102,23 @@ bool GetArgStr( const char* &s, const char *pat, char *argv )
 //
 bool GetArgList( vector<int> &v, const char *pat, char *argv )
 {
-	int	len = strlen( pat );
+    int	len = strlen( pat );
 
-	if( !strncmp( argv, pat, len ) ) {
+    if( !strncmp( argv, pat, len ) ) {
 
-		char	*s = strtok( argv + len, ":;, " );
+        char	*s = strtok( argv + len, ":;, " );
 
-		v.clear();
+        v.clear();
 
-		while( s ) {
-			v.push_back( atoi( s ) );
-			s = strtok( NULL, ":;, " );
-		}
+        while( s ) {
+            v.push_back( atoi( s ) );
+            s = strtok( NULL, ":;, " );
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 // Read double argument list from command line.
@@ -136,23 +136,23 @@ bool GetArgList( vector<int> &v, const char *pat, char *argv )
 //
 bool GetArgList( vector<double> &v, const char *pat, char *argv )
 {
-	int	len = strlen( pat );
+    int	len = strlen( pat );
 
-	if( !strncmp( argv, pat, len ) ) {
+    if( !strncmp( argv, pat, len ) ) {
 
-		char	*s = strtok( argv + len, ":;, " );
+        char	*s = strtok( argv + len, ":;, " );
 
-		v.clear();
+        v.clear();
 
-		while( s ) {
-			v.push_back( atof( s ) );
-			s = strtok( NULL, ":;, " );
-		}
+        while( s ) {
+            v.push_back( atof( s ) );
+            s = strtok( NULL, ":;, " );
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 

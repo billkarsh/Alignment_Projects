@@ -21,10 +21,10 @@ Repo URL: <https://github.com/billkarsh/Alignment_Projects>
 - Copy file **00_ENV/aln_makefile_std_defs** to some directory of yours that is outside of the git folder, so updates to git will not overwrite your custom path data.
 
 - Edit your copy of aln_makefile_std_defs...
-	* Set PATH_SRCCODE to your local copy of 'Alignment_Projects'.
-	* Set PATH_OUT to your choice from step (1).
-	* If not at Janelia, then you need to point the PATH_XXX variables to your local copies of library and include directories for {libtiff, libpng, zlib}. You will also need to do that for the fftw package, unless you can use Intel MKL support for FFT operations. MKL is preferred because the code is fully re-entrant allowing more efficient multithreading.
-	* Follow other instructions in aln_makefile_std_defs to link against libraries of your choice.
+    * Set PATH_SRCCODE to your local copy of 'Alignment_Projects'.
+    * Set PATH_OUT to your choice from step (1).
+    * If not at Janelia, then you need to point the PATH_XXX variables to your local copies of library and include directories for {libtiff, libpng, zlib}. You will also need to do that for the fftw package, unless you can use Intel MKL support for FFT operations. MKL is preferred because the code is fully re-entrant allowing more efficient multithreading.
+    * Follow other instructions in aln_makefile_std_defs to link against libraries of your choice.
 
 
 - All our make files have this include statement: `include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs`. So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
@@ -86,7 +86,7 @@ Here's what that looks like at Janelia:
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
+    . /etc/bashrc
 fi
 
 

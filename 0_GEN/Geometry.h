@@ -15,12 +15,12 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 double SegPointDist(
-	int		x0,
-	int		y0,
-	int		x1,
-	int		y1,
-	int		x2,
-	int		y2 );
+    int		x0,
+    int		y0,
+    int		x1,
+    int		y1,
+    int		x2,
+    int		y2 );
 
 /* --------------------------------------------------------------- */
 /* Boxes --------------------------------------------------------- */
@@ -31,14 +31,14 @@ void BBoxFromPoints( IBox &B, const vector<Point> &pts );
 void BBoxFromPoints( DBox &B, const vector<Point> &pts );
 
 void BoxesFromShifts(
-	IBox	&B1,
-	IBox	&B2,
-	int		w,
-	int		h,
-	int		w2,
-	int		h2,
-	int		x,
-	int		y );
+    IBox	&B1,
+    IBox	&B2,
+    int		w,
+    int		h,
+    int		w2,
+    int		h2,
+    int		x,
+    int		y );
 
 int TightestBBox( DBox &B, const vector<Point> &pts );
 
@@ -47,49 +47,49 @@ int TightestBBox( DBox &B, const vector<Point> &pts );
 /* --------------------------------------------------------------- */
 
 int Propagate(
-	vector<double>	&v,
-	int				w,
-	int				h,
-	int				first,
-	double			tmin,
-	double			tmax,
-	double			set_to );
+    vector<double>	&v,
+    int				w,
+    int				h,
+    int				first,
+    double			tmin,
+    double			tmax,
+    double			set_to );
 
 int Propagate(
-	vector<Point>	&plist,
-	vector<double>	&v,
-	int				w,
-	int				h,
-	int				first,
-	double			thresh,
-	double			set_to );
+    vector<Point>	&plist,
+    vector<double>	&v,
+    int				w,
+    int				h,
+    int				first,
+    double			thresh,
+    double			set_to );
 
 int MapBlobRng(
-	vector<uint8>			&map,
-	const vector<double>	&I,
-	int						w,
-	int						h,
-	int						first,
-	double					tmin,
-	double					tmax );
+    vector<uint8>			&map,
+    const vector<double>	&I,
+    int						w,
+    int						h,
+    int						first,
+    double					tmin,
+    double					tmax );
 
 int MapBlobRng(
-	vector<uint8>	&map,
-	const uint8		*I,
-	int				w,
-	int				h,
-	int				first,
-	int				tmin,
-	int				tmax );
+    vector<uint8>	&map,
+    const uint8		*I,
+    int				w,
+    int				h,
+    int				first,
+    int				tmin,
+    int				tmax );
 
 int MapBlobVar(
-	vector<uint8>	&map,
-	const uint8		*I,
-	int				w,
-	int				h,
-	int				first,
-	int				size,
-	int				tol );
+    vector<uint8>	&map,
+    const uint8		*I,
+    int				w,
+    int				h,
+    int				first,
+    int				size,
+    int				tol );
 
 void DilateMap1Pix( vector<uint8> &map, int w, int h );
 void ErodeMap1Pix( vector<uint8> &map, int w, int h );
@@ -99,36 +99,36 @@ void ErodeMap1Pix( vector<uint8> &map, int w, int h );
 /* --------------------------------------------------------------- */
 
 void PixelListFromPolygon(
-	vector<Point>			&Plist,
-	const vector<Point>		&Pgon );
+    vector<Point>			&Plist,
+    const vector<Point>		&Pgon );
 
 /* --------------------------------------------------------------- */
 /* Images -------------------------------------------------------- */
 /* --------------------------------------------------------------- */
 
 void ImageFromValuesAndPoints(
-	vector<double>			&I,
-	int						w,
-	int						h,
-	const vector<double>	&v,
-	const vector<Point>		&plist,
-	int						xmin,
-	int						ymin );
+    vector<double>			&I,
+    int						w,
+    int						h,
+    const vector<double>	&v,
+    const vector<Point>		&plist,
+    int						xmin,
+    int						ymin );
 
 void ValuesFromImageAndPoints(
-	vector<double>			&v,
-	const uint8*			raster,
-	int						w,
-	const vector<Point>		&plist );
+    vector<double>			&v,
+    const uint8*			raster,
+    int						w,
+    const vector<Point>		&plist );
 
 void ValuesFromImageAndPoints(
-	vector<double>			&v,
-	double					&dvx,
-	double					&dvy,
-	const vector<double>	&raster,
-	int						w,
-	const vector<Point>		&plist,
-	const vector<double>	&spv );
+    vector<double>			&v,
+    double					&dvx,
+    double					&dvy,
+    const vector<double>	&raster,
+    int						w,
+    const vector<Point>		&plist,
+    const vector<double>	&spv );
 
 /* --------------------------------------------------------------- */
 /* Meshes -------------------------------------------------------- */
@@ -137,145 +137,145 @@ void ValuesFromImageAndPoints(
 class vertex {
 
 public:
-	int	x, y;	// coordinates
-	int	orig;	// index in original array @@@ not used
-	int	dir;	// compass-pt direction to next vertex
+    int	x, y;	// coordinates
+    int	orig;	// index in original array @@@ not used
+    int	dir;	// compass-pt direction to next vertex
 
 public:
-	vertex()
-	: x(0), y(0), orig(0), dir(0) {};
+    vertex()
+    : x(0), y(0), orig(0), dir(0) {};
 
-	vertex( int x, int y )
-	: x(x), y(y), orig(0), dir(0) {};
+    vertex( int x, int y )
+    : x(x), y(y), orig(0), dir(0) {};
 
-	vertex( int x, int y, int dir )
-	: x(x), y(y), orig(0), dir(dir) {};
+    vertex( int x, int y, int dir )
+    : x(x), y(y), orig(0), dir(dir) {};
 
-	vertex( const vertex &v )
-	: x(v.x), y(v.y), orig(v.orig), dir(v.dir) {};
+    vertex( const vertex &v )
+    : x(v.x), y(v.y), orig(v.orig), dir(v.dir) {};
 
-	bool operator == ( const vertex &rhs ) const
-		{return x == rhs.x && y == rhs.y;};
+    bool operator == ( const vertex &rhs ) const
+        {return x == rhs.x && y == rhs.y;};
 
-	bool operator < ( const vertex &rhs ) const
-		{return x < rhs.x || (x == rhs.x && y < rhs.y);};
+    bool operator < ( const vertex &rhs ) const
+        {return x < rhs.x || (x == rhs.x && y < rhs.y);};
 
-	int   IDistSqr( const vertex& rhs ) const;
-	double DistSqr( const vertex& rhs ) const;
+    int   IDistSqr( const vertex& rhs ) const;
+    double DistSqr( const vertex& rhs ) const;
 };
 
 
 class lineseg {
 
 public:
-	vertex	v[2];
+    vertex	v[2];
 
 public:
-	lineseg( const vertex &v1, const vertex &v2 )
-		{v[0] = v1; v[1] = v2;};
+    lineseg( const vertex &v1, const vertex &v2 )
+        {v[0] = v1; v[1] = v2;};
 
-	lineseg( int x0, int y0, int x1, int y1 )
-		{v[0].x = x0; v[0].y = y0; v[1].x = x1; v[1].y = y1;};
+    lineseg( int x0, int y0, int x1, int y1 )
+        {v[0].x = x0; v[0].y = y0; v[1].x = x1; v[1].y = y1;};
 
-	bool operator == ( const lineseg &rhs ) const
-		{return v[0] == rhs.v[0] && v[1] == rhs.v[1];};
+    bool operator == ( const lineseg &rhs ) const
+        {return v[0] == rhs.v[0] && v[1] == rhs.v[1];};
 
-	double LenSqr() const
-		{return v[1].DistSqr( v[0] );};
+    double LenSqr() const
+        {return v[1].DistSqr( v[0] );};
 };
 
 
 class triangle {
 
 public:
-	double	a[3][3];	// matrix turning point (x,y,1) into
-						//   a barycentric representation
-						//   (linear combination of vertices)
-	int		v[3];		// indices into vector of control points
+    double	a[3][3];	// matrix turning point (x,y,1) into
+                        //   a barycentric representation
+                        //   (linear combination of vertices)
+    int		v[3];		// indices into vector of control points
 
 public:
-	double Area( const vector<Point> &ctl ) const;
+    double Area( const vector<Point> &ctl ) const;
 };
 
 
 double SegPointDist(
-	const vertex	&v0,
-	const vertex	&v1,
-	const vertex	&v2 );
+    const vertex	&v0,
+    const vertex	&v1,
+    const vertex	&v2 );
 
 bool LeftSide( const Point &a, const Point &b, const Point &c );
 bool LeftSide( const vertex &a, const vertex &b, const vertex &c );
 
 bool LinesCross(
-	const vertex	&p1,
-	const vertex	&p2,
-	const vertex	&p3,
-	const vertex	&p4 );
+    const vertex	&p1,
+    const vertex	&p2,
+    const vertex	&p3,
+    const vertex	&p4 );
 
 int ClosedSegIsects(
-	vertex			&pi,
-	vertex			&pj,
-	const vertex	&p1,
-	const vertex	&p2,
-	vertex			p3,
-	vertex			p4 );
+    vertex			&pi,
+    vertex			&pj,
+    const vertex	&p1,
+    const vertex	&p2,
+    vertex			p3,
+    vertex			p4 );
 
 bool OpenSegsCross(
-	const vertex	&p1,
-	const vertex	&p2,
-	const vertex	&p3,
-	const vertex	&p4 );
+    const vertex	&p1,
+    const vertex	&p2,
+    const vertex	&p3,
+    const vertex	&p4 );
 
 bool AnyCrossing(
-	const vector<lineseg>	&s,
-	const vertex			&a,
-	const vertex			&b );
+    const vector<lineseg>	&s,
+    const vertex			&a,
+    const vertex			&b );
 
 int CountCrossings(
-	const vector<lineseg>	&s,
-	const vertex			&a,
-	const vertex			&b );
+    const vector<lineseg>	&s,
+    const vertex			&a,
+    const vertex			&b );
 
 bool IsSubseg(
-	stack<lineseg>	&stk,
-	const lineseg	&e,
-	const lineseg	&W );
+    stack<lineseg>	&stk,
+    const lineseg	&e,
+    const lineseg	&W );
 
 bool InTriangle(
-	const vertex	&va,
-	const vertex	&vb,
-	const vertex	&vc,
-	const vertex	&p );
+    const vertex	&va,
+    const vertex	&vb,
+    const vertex	&vc,
+    const vertex	&p );
 
 bool AnyInside(
-	const vertex			&va,
-	const vertex			&vb,
-	const vertex			&vc,
-	const vector<lineseg>	&s,
-	const vector<vertex>	&ips );
+    const vertex			&va,
+    const vertex			&vb,
+    const vertex			&vc,
+    const vector<lineseg>	&s,
+    const vector<vertex>	&ips );
 
 double AreaOfTriangle(
-	const Point		&v0,
-	const Point		&v1,
-	const Point		&v2 );
+    const Point		&v0,
+    const Point		&v1,
+    const Point		&v2 );
 
 double AreaOfTriangle(
-	const vertex	&v0,
-	const vertex	&v1,
-	const vertex	&v2 );
+    const vertex	&v0,
+    const vertex	&v1,
+    const vertex	&v2 );
 
 int BestTriangle(
-	const vector<triangle>	&T,
-	const vector<vertex>	&C,
-	const Point				&p );
+    const vector<triangle>	&T,
+    const vector<vertex>	&C,
+    const Point				&p );
 
 double AreaOfPolygon( const vector<lineseg> &edges );
 
 void RemoveFromMap(
-	vector<uint8>	&map,
-	int				w,
-	int				h,
-	const vertex	&v,
-	int				dist );
+    vector<uint8>	&map,
+    int				w,
+    int				h,
+    const vertex	&v,
+    int				dist );
 
 

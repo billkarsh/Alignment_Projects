@@ -28,30 +28,30 @@ static int FFTFileIdx = 0;
 /* --------------------------------------------------------------- */
 
 static bool MeanSqrDiff(
-	const vector<double>	&av,
-	const vector<double>	&bv,
-	const char				*msg,
-	FILE*					flog )
+    const vector<double>	&av,
+    const vector<double>	&bv,
+    const char				*msg,
+    FILE*					flog )
 {
-	double	sum	= 0.0;
-	int		na	= av.size();
+    double	sum	= 0.0;
+    int		na	= av.size();
 
-	if( !na ) {
-		fprintf( flog, "Metrics: No data?\n" );
-		return false;
-	}
+    if( !na ) {
+        fprintf( flog, "Metrics: No data?\n" );
+        return false;
+    }
 
-	for( int i = 0; i < na; ++i ) {
+    for( int i = 0; i < na; ++i ) {
 
-		double	d = av[i] - bv[i];
+        double	d = av[i] - bv[i];
 
-		sum += d*d;
-	}
+        sum += d*d;
+    }
 
-	fprintf( flog,
-	"Metrics: %s: Mean square difference %f\n", msg, sum/na );
+    fprintf( flog,
+    "Metrics: %s: Mean square difference %f\n", msg, sum/na );
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -66,29 +66,29 @@ static bool MeanSqrDiff(
 // the transformed points and a pointer to newpts is returned.
 //
 static const vector<Point>* SmallestFootprint(
-	vector<Point>			&newpts,
-	const vector<Point>		&pts,
-	const char				*msg,
-	FILE*					flog )
+    vector<Point>			&newpts,
+    const vector<Point>		&pts,
+    const char				*msg,
+    FILE*					flog )
 {
-	DBox	B;
-	int		deg = TightestBBox( B, pts );
+    DBox	B;
+    int		deg = TightestBBox( B, pts );
 
-	fprintf( flog,
-	"Metrics: %s: Smallest footprint deg=%d, area=%g\n",
-	msg, deg, (B.R - B.L) * (B.T - B.B) );
+    fprintf( flog,
+    "Metrics: %s: Smallest footprint deg=%d, area=%g\n",
+    msg, deg, (B.R - B.L) * (B.T - B.B) );
 
-	if( deg == 0 )
-		return &pts;
-	else {
+    if( deg == 0 )
+        return &pts;
+    else {
 
-		TAffine	T;
+        TAffine	T;
 
-		T.NUSetRot( deg*PI/180 );
-		T.Apply_R_Part( newpts = pts );
+        T.NUSetRot( deg*PI/180 );
+        T.Apply_R_Part( newpts = pts );
 
-		return &newpts;
-	}
+        return &newpts;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -100,99 +100,99 @@ static const vector<Point>* SmallestFootprint(
 // - Optionally write image files.
 //
 static void MakeMetricImagesFFT(
-	vector<double>			&i1,
-	vector<double>			&i2,
-	vector<double>			&diff,
-	int						&Nx,
-	int						&Ny,
-	const vector<Point>		&pts,
-	const vector<double>	&av,
-	const vector<double>	&bv,
-	bool					write_images,
-	const char				*msg,
-	FILE*					flog )
+    vector<double>			&i1,
+    vector<double>			&i2,
+    vector<double>			&diff,
+    int						&Nx,
+    int						&Ny,
+    const vector<Point>		&pts,
+    const vector<double>	&av,
+    const vector<double>	&bv,
+    bool					write_images,
+    const char				*msg,
+    FILE*					flog )
 {
 /* ---------- */
 /* Initialize */
 /* ---------- */
 
-	i1.clear();
-	i2.clear();
-	diff.clear();
-	Nx	= 0;
-	Ny	= 0;
+    i1.clear();
+    i2.clear();
+    diff.clear();
+    Nx	= 0;
+    Ny	= 0;
 
 /* -------------------- */
 /* Set image dimensions */
 /* -------------------- */
 
-	IBox	B;
+    IBox	B;
 
-	BBoxFromPoints( B, pts );
+    BBoxFromPoints( B, pts );
 
-	Nx = CeilPow2( B.R - B.L + 1 );
-	Ny = CeilPow2( B.T - B.B + 1 );
+    Nx = CeilPow2( B.R - B.L + 1 );
+    Ny = CeilPow2( B.T - B.B + 1 );
 
-	int	N2 = Nx * Ny;
+    int	N2 = Nx * Ny;
 
-	fprintf( flog,
-	"MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d\n",
-	B.L, B.R, B.B, B.T, Nx, Ny );
+    fprintf( flog,
+    "MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d\n",
+    B.L, B.R, B.B, B.T, Nx, Ny );
 
 /* ----------- */
 /* Fill images */
 /* ----------- */
 
-	i1.resize( N2, 0.0 );
-	i2.resize( N2, 0.0 );
-	diff.resize( N2 );
+    i1.resize( N2, 0.0 );
+    i2.resize( N2, 0.0 );
+    diff.resize( N2 );
 
-	int	np = pts.size();
+    int	np = pts.size();
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		double	x = pts[i].x - B.L,
-				y = pts[i].y - B.B;
+        double	x = pts[i].x - B.L,
+                y = pts[i].y - B.B;
 
-		DistributePixel( x, y, av[i], i1, Nx, Ny );
-		DistributePixel( x, y, bv[i], i2, Nx, Ny );
-	}
+        DistributePixel( x, y, av[i], i1, Nx, Ny );
+        DistributePixel( x, y, bv[i], i2, Nx, Ny );
+    }
 
-	for( int i = 0; i < N2; ++i )
-		diff[i] = i1[i] - i2[i];
+    for( int i = 0; i < N2; ++i )
+        diff[i] = i1[i] - i2[i];
 
 /* ------------ */
 /* Write images */
 /* ------------ */
 
-	if( write_images ) {
+    if( write_images ) {
 
-		char	fname[32];
+        char	fname[32];
 
-		sprintf( fname, "fft%d-a.tif", FFTFileIdx );
-		VectorDblToTif8( fname, i1, Nx, Ny, flog );
+        sprintf( fname, "fft%d-a.tif", FFTFileIdx );
+        VectorDblToTif8( fname, i1, Nx, Ny, flog );
 
-		sprintf( fname, "fft%d-b.tif", FFTFileIdx );
-		VectorDblToTif8( fname, i2, Nx, Ny, flog );
+        sprintf( fname, "fft%d-b.tif", FFTFileIdx );
+        VectorDblToTif8( fname, i2, Nx, Ny, flog );
 
-		sprintf( fname, "fft%d-d.tif", FFTFileIdx );
-		VectorDblToTif8( fname, diff, Nx, Ny, flog );
+        sprintf( fname, "fft%d-d.tif", FFTFileIdx );
+        VectorDblToTif8( fname, diff, Nx, Ny, flog );
 
-		++FFTFileIdx;
+        ++FFTFileIdx;
 
-		double	e1 = 0.0, e2 = 0.0, ed = 0.0;
+        double	e1 = 0.0, e2 = 0.0, ed = 0.0;
 
-		for( int i = 0; i < N2; ++i ) {
+        for( int i = 0; i < N2; ++i ) {
 
-			e1 += i1[i]*i1[i];
-			e2 += i2[i]*i2[i];
-			ed += diff[i]*diff[i];
-		}
+            e1 += i1[i]*i1[i];
+            e2 += i2[i]*i2[i];
+            ed += diff[i]*diff[i];
+        }
 
-		fprintf( flog,
-		"MetricImages: Energies (1,2,dif) %f %f %f\n",
-		e1, e2, ed );
-	}
+        fprintf( flog,
+        "MetricImages: Energies (1,2,dif) %f %f %f\n",
+        e1, e2, ed );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -204,82 +204,82 @@ static void MakeMetricImagesFFT(
 // - Optionally write image file.
 //
 static void MakeMetricImagesEMM(
-	vector<double>			&diff,
-	int						&Nx,
-	int						&Ny,
-	const vector<Point>		&pts,
-	const vector<double>	&av,
-	const vector<double>	&bv,
-	bool					write_images,
-	const char				*msg,
-	FILE*					flog )
+    vector<double>			&diff,
+    int						&Nx,
+    int						&Ny,
+    const vector<Point>		&pts,
+    const vector<double>	&av,
+    const vector<double>	&bv,
+    bool					write_images,
+    const char				*msg,
+    FILE*					flog )
 {
 /* ---------- */
 /* Initialize */
 /* ---------- */
 
-	diff.clear();
-	Nx	= 0;
-	Ny	= 0;
+    diff.clear();
+    Nx	= 0;
+    Ny	= 0;
 
 /* -------------------- */
 /* Set image dimensions */
 /* -------------------- */
 
-	IBox	B;
+    IBox	B;
 
-	BBoxFromPoints( B, pts );
+    BBoxFromPoints( B, pts );
 
-	Nx = B.R - B.L + 1;
-	Ny = B.T - B.B + 1;
+    Nx = B.R - B.L + 1;
+    Ny = B.T - B.B + 1;
 
 // make even
 
-	Nx += (Nx & 1);
-	Ny += (Ny & 1);
+    Nx += (Nx & 1);
+    Ny += (Ny & 1);
 
-	int	N2 = Nx * Ny;
+    int	N2 = Nx * Ny;
 
-	fprintf( flog,
-	"MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d\n",
-	B.L, B.R, B.B, B.T, Nx, Ny );
+    fprintf( flog,
+    "MetricImages: Range x %d %d, y %d %d, use Nx=%d, Ny=%d\n",
+    B.L, B.R, B.B, B.T, Nx, Ny );
 
 /* ----------- */
 /* Fill images */
 /* ----------- */
 
-	diff.resize( N2, 0.0 );
+    diff.resize( N2, 0.0 );
 
-	int	np = pts.size();
+    int	np = pts.size();
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		double	x = pts[i].x - B.L,
-				y = pts[i].y - B.B;
+        double	x = pts[i].x - B.L,
+                y = pts[i].y - B.B;
 
-		DistributePixel( x, y, av[i] - bv[i], diff, Nx, Ny );
-	}
+        DistributePixel( x, y, av[i] - bv[i], diff, Nx, Ny );
+    }
 
 /* ------------ */
 /* Write images */
 /* ------------ */
 
-	if( write_images ) {
+    if( write_images ) {
 
-		char	fname[32];
+        char	fname[32];
 
-		sprintf( fname, "fft%d-d.tif", FFTFileIdx );
-		VectorDblToTif8( fname, diff, Nx, Ny, flog );
+        sprintf( fname, "fft%d-d.tif", FFTFileIdx );
+        VectorDblToTif8( fname, diff, Nx, Ny, flog );
 
-		++FFTFileIdx;
+        ++FFTFileIdx;
 
-		double	ed = 0.0;
+        double	ed = 0.0;
 
-		for( int i = 0; i < N2; ++i )
-			ed += diff[i]*diff[i];
+        for( int i = 0; i < N2; ++i )
+            ed += diff[i]*diff[i];
 
-		fprintf( flog, "MetricImages: Energies (dif) %f\n", ed );
-	}
+        fprintf( flog, "MetricImages: Energies (dif) %f\n", ed );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -290,22 +290,22 @@ static void MakeMetricImagesEMM(
 //
 static void UnnormHaarTf( double *data, int n )
 {
-	vector<double>	tmp( n );
+    vector<double>	tmp( n );
 
-	while( n > 1 ) {
+    while( n > 1 ) {
 
-		n /= 2;
+        n /= 2;
 
-		for( int i = 0; i < n; ++i ) {
+        for( int i = 0; i < n; ++i ) {
 
-			int	k = 2 * i;
+            int	k = 2 * i;
 
-			tmp[i]		= data[k] + data[k+1];
-			tmp[i+n]	= data[k] - data[k+1];
-		}
+            tmp[i]		= data[k] + data[k+1];
+            tmp[i+n]	= data[k] - data[k+1];
+        }
 
-		memcpy( &data[0], &tmp[0], n * 2 * sizeof(double) );
-	}
+        memcpy( &data[0], &tmp[0], n * 2 * sizeof(double) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -316,25 +316,25 @@ static void UnnormHaarTf2D( vector<double> &data, int w, int h )
 {
 // transform every row
 
-	for( int y = 0; y < h; ++y )
-		UnnormHaarTf( &data[w*y], w );
+    for( int y = 0; y < h; ++y )
+        UnnormHaarTf( &data[w*y], w );
 
 //	PrintVectorAsMat( stdout, data, w );
 
 // now every column
 
-	vector<double>	col( h );
+    vector<double>	col( h );
 
-	for( int x = 0; x < w; ++x ) {
+    for( int x = 0; x < w; ++x ) {
 
-		for( int y = 0; y < h; ++y )
-			col[y] = data[x + w*y];
+        for( int y = 0; y < h; ++y )
+            col[y] = data[x + w*y];
 
-		UnnormHaarTf( &col[0], h );
+        UnnormHaarTf( &col[0], h );
 
-		for( int y = 0; y < h; ++y )
-			data[x + w*y] = col[y];
-	}
+        for( int y = 0; y < h; ++y )
+            data[x + w*y] = col[y];
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -342,75 +342,75 @@ static void UnnormHaarTf2D( vector<double> &data, int w, int h )
 /* --------------------------------------------------------------- */
 
 static double ApproxEarthMoversMetric(
-	vector<double>	&dd,
-	int				wi,
-	int				hi,
-	FILE*			flog )
+    vector<double>	&dd,
+    int				wi,
+    int				hi,
+    FILE*			flog )
 {
 // find powers of 2 that are big enough
 
-	int	w = CeilPow2( wi ),
-		h = CeilPow2( hi );
+    int	w = CeilPow2( wi ),
+        h = CeilPow2( hi );
 
-	vector<double>	d( w*h, 0.0 );
+    vector<double>	d( w*h, 0.0 );
 
-	CopyRaster( &d[0], w, &dd[0], wi, wi, hi );
+    CopyRaster( &d[0], w, &dd[0], wi, wi, hi );
 
-	UnnormHaarTf2D( d, w, h );
+    UnnormHaarTf2D( d, w, h );
 
 //	PrintVectorAsMat( stdout, d, 8 );
 
-	vector<int>	cdist( w, 1 );
-	vector<int>	rdist( h, 1 );
-	int			mask;
+    vector<int>	cdist( w, 1 );
+    vector<int>	rdist( h, 1 );
+    int			mask;
 
-	mask = w >> 1;  // only works for w = 2^n
+    mask = w >> 1;  // only works for w = 2^n
 
-	for( int x = 1; x < w; ++x ) {
+    for( int x = 1; x < w; ++x ) {
 
-		for( int tmp = x; !(tmp & mask); tmp <<= 1 )
-			cdist[x] <<= 1;
-	}
+        for( int tmp = x; !(tmp & mask); tmp <<= 1 )
+            cdist[x] <<= 1;
+    }
 
-	mask = h >> 1;  // only works for h = 2^n
+    mask = h >> 1;  // only works for h = 2^n
 
-	for( int y = 1; y < h; ++y ) {
+    for( int y = 1; y < h; ++y ) {
 
-		for( int tmp = y; !(tmp & mask); tmp <<= 1 )
-			rdist[y] <<= 1;
-	}
+        for( int tmp = y; !(tmp & mask); tmp <<= 1 )
+            rdist[y] <<= 1;
+    }
 
 // use of 1 as lower bound is right;
 // do not care about sums, only differences
 
-	double	approx = 0.0;  // approximate Earth Mover's metric
+    double	approx = 0.0;  // approximate Earth Mover's metric
 
-	for( int x = 1; x < w; ++x ) {
+    for( int x = 1; x < w; ++x ) {
 
-		for( int y = 1; y < h; ++y ) {
+        for( int y = 1; y < h; ++y ) {
 
-			int		dx		= cdist[x];
-			int		dy		= rdist[y];
-			double	dist	= min( dx, dy );
+            int		dx		= cdist[x];
+            int		dy		= rdist[y];
+            double	dist	= min( dx, dy );
 
-			approx += dist * abs( d[x + w*y] );
-		}
-	}
+            approx += dist * abs( d[x + w*y] );
+        }
+    }
 
 // Normalize:
 // - divide by 2 deltas per move unit.
 // - divide by N pixels (per pixel cost).
 // - divide by Poisson noise on area N.
 
-	int		N = wi * hi;
+    int		N = wi * hi;
 
-	approx /= 2.0 * N * sqrt( N );
+    approx /= 2.0 * N * sqrt( N );
 
-	fprintf( flog,
-	"Approximate EM metric %f for %d points.\n",
-	approx, N );
+    fprintf( flog,
+    "Approximate EM metric %f for %d points.\n",
+    approx, N );
 
-	return approx;
+    return approx;
 }
 
 /* --------------------------------------------------------------- */
@@ -418,21 +418,21 @@ static double ApproxEarthMoversMetric(
 /* --------------------------------------------------------------- */
 
 static CD FFT_r2c_lookup(
-	vector<CD>	&c,
-	int			Nx,
-	int			Ny,
-	int			x,
-	int			y )
+    vector<CD>	&c,
+    int			Nx,
+    int			Ny,
+    int			x,
+    int			y )
 {
-	int M = Nx/2+1;
+    int M = Nx/2+1;
 
-	if( x < 0 ) x += Nx;
-	if( y < 0 ) y += Ny;
+    if( x < 0 ) x += Nx;
+    if( y < 0 ) y += Ny;
 
-	if( x > Nx/2 )
-		return conj( c[(Nx-x) + M*y] );
+    if( x > Nx/2 )
+        return conj( c[(Nx-x) + M*y] );
 
-	return c[x + M*y];
+    return c[x + M*y];
 }
 
 /* --------------------------------------------------------------- */
@@ -440,42 +440,42 @@ static CD FFT_r2c_lookup(
 /* --------------------------------------------------------------- */
 
 double EarthMoversMetric(
-	const vector<Point>		&pts,
-	const vector<double>	&av,
-	const vector<double>	&bv,
-	bool					write_images,
-	const char				*msg,
-	FILE*					flog )
+    const vector<Point>		&pts,
+    const vector<double>	&av,
+    const vector<double>	&bv,
+    bool					write_images,
+    const char				*msg,
+    FILE*					flog )
 {
 /* ----------------------- */
 /* Report difference power */
 /* ----------------------- */
 
-	if( !MeanSqrDiff( av, bv, msg, flog ) )
-		return 0.0;
+    if( !MeanSqrDiff( av, bv, msg, flog ) )
+        return 0.0;
 
 /* ----------- */
 /* Make images */
 /* ----------- */
 
-	vector<double>	diff;
-	int				Nx, Ny;
+    vector<double>	diff;
+    int				Nx, Ny;
 
-	{
-		const vector<Point>	*pbest;
-		vector<Point>		altpts;
+    {
+        const vector<Point>	*pbest;
+        vector<Point>		altpts;
 
-		pbest = SmallestFootprint( altpts, pts, msg, flog );
+        pbest = SmallestFootprint( altpts, pts, msg, flog );
 
-		MakeMetricImagesEMM( diff, Nx, Ny,
-			*pbest, av, bv, write_images, msg, flog );
-	}
+        MakeMetricImagesEMM( diff, Nx, Ny,
+            *pbest, av, bv, write_images, msg, flog );
+    }
 
 /* ------- */
 /* Measure */
 /* ------- */
 
-	return ApproxEarthMoversMetric( diff, Nx, Ny, flog );
+    return ApproxEarthMoversMetric( diff, Nx, Ny, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -515,37 +515,37 @@ double EarthMoversMetric(
 // wvlen (in pixels) sets a minimum feature size (roughly).
 //
 double FourierMatch(
-	const vector<Point>		&pts,
-	const vector<double>	&av,
-	const vector<double>	&bv,
-	int						wvlen,
-	bool					write_images,
-	const char				*msg,
-	FILE*					flog )
+    const vector<Point>		&pts,
+    const vector<double>	&av,
+    const vector<double>	&bv,
+    int						wvlen,
+    bool					write_images,
+    const char				*msg,
+    FILE*					flog )
 {
 /* ----------------------- */
 /* Report difference power */
 /* ----------------------- */
 
-	if( !MeanSqrDiff( av, bv, msg, flog ) )
-		return 0.0;
+    if( !MeanSqrDiff( av, bv, msg, flog ) )
+        return 0.0;
 
 /* ----------- */
 /* Make images */
 /* ----------- */
 
-	vector<double>	i1, i2, diff;
-	int				Nx, Ny;
+    vector<double>	i1, i2, diff;
+    int				Nx, Ny;
 
-	{
-		const vector<Point>	*pbest;
-		vector<Point>		altpts;
+    {
+        const vector<Point>	*pbest;
+        vector<Point>		altpts;
 
-		pbest = SmallestFootprint( altpts, pts, msg, flog );
+        pbest = SmallestFootprint( altpts, pts, msg, flog );
 
-		MakeMetricImagesFFT( i1, i2, diff, Nx, Ny,
-			*pbest, av, bv, write_images, msg, flog );
-	}
+        MakeMetricImagesFFT( i1, i2, diff, Nx, Ny,
+            *pbest, av, bv, write_images, msg, flog );
+    }
 
 /* ----------- */
 /* Image power */
@@ -566,29 +566,29 @@ double FourierMatch(
 //
 // Since wvlen = Nx/elem; then elem = Nx/wvlen.
 
-	vector<CD>	i1fft, i2fft, dfft;
-	double		total = 0.0, dot = 0.0;
-	int			xlim = Nx/wvlen, ylim = Ny/wvlen;
+    vector<CD>	i1fft, i2fft, dfft;
+    double		total = 0.0, dot = 0.0;
+    int			xlim = Nx/wvlen, ylim = Ny/wvlen;
 
-	FFT_2D( i1fft,  i1, Nx, Ny, false );
-	FFT_2D( i2fft,  i2, Nx, Ny, false );
-	FFT_2D( dfft, diff, Nx, Ny, false );
+    FFT_2D( i1fft,  i1, Nx, Ny, false );
+    FFT_2D( i2fft,  i2, Nx, Ny, false );
+    FFT_2D( dfft, diff, Nx, Ny, false );
 
-	for( int x = -xlim; x <= xlim; ++x ) {
+    for( int x = -xlim; x <= xlim; ++x ) {
 
-		for( int y = -ylim; y <= ylim; ++y ) {
+        for( int y = -ylim; y <= ylim; ++y ) {
 
-			CD	v1 = FFT_r2c_lookup( i1fft, Nx, Ny, x, y ),
-				v2 = FFT_r2c_lookup( i2fft, Nx, Ny, x, y );
+            CD	v1 = FFT_r2c_lookup( i1fft, Nx, Ny, x, y ),
+                v2 = FFT_r2c_lookup( i2fft, Nx, Ny, x, y );
 
-			total	+= sqrt( norm( v1 ) * norm( v2 ) );
-			dot		+= v1.real()*v2.real() + v1.imag()*v2.imag();
-		}
-	}
+            total	+= sqrt( norm( v1 ) * norm( v2 ) );
+            dot		+= v1.real()*v2.real() + v1.imag()*v2.imag();
+        }
+    }
 
-	dot /= total;
+    dot /= total;
 
-	fprintf( flog, "FFT: norm-dot %f, energy %f\n", dot, total );
+    fprintf( flog, "FFT: norm-dot %f, energy %f\n", dot, total );
 
 /* --------------------------------*/
 /* Difference power: make spectrum */
@@ -600,61 +600,61 @@ double FourierMatch(
 // that in a seriously bad mismatch, diff will get large features
 // and the spectrum would be shifted out to long wavelength.
 
-	int				M		= Nx/2 + 1;
-	int				maxf	= int(sqrt( Nx*Nx + Ny*Ny )/2.0) + 1;
-	vector<double>	pspectrum( maxf, 0.0 );
+    int				M		= Nx/2 + 1;
+    int				maxf	= int(sqrt( Nx*Nx + Ny*Ny )/2.0) + 1;
+    vector<double>	pspectrum( maxf, 0.0 );
 
-	for( int x = 1; x < M; ++x ) {
+    for( int x = 1; x < M; ++x ) {
 
-		double	wavex = double(Nx)/x;
+        double	wavex = double(Nx)/x;
 
-		for( int y = 1; y < Ny; ++y ) {
+        for( int y = 1; y < Ny; ++y ) {
 
-			double	wavey = double(Ny)/(y > Ny/2 ? Ny-y : y);
-			double	wave  = sqrt( wavex*wavex + wavey*wavey );
+            double	wavey = double(Ny)/(y > Ny/2 ? Ny-y : y);
+            double	wave  = sqrt( wavex*wavex + wavey*wavey );
 
-			int	iwave = int(wave);
+            int	iwave = int(wave);
 
-			if( iwave > maxf - 1 )
-				iwave = maxf - 1;
+            if( iwave > maxf - 1 )
+                iwave = maxf - 1;
 
-			pspectrum[iwave] += norm( dfft[x + M*y] );
-		}
-	}
+            pspectrum[iwave] += norm( dfft[x + M*y] );
+        }
+    }
 
 /* --------------------------------------------------- */
 /* Difference power: where cum power exceeds threshold */
 /* --------------------------------------------------- */
 
-	const double thresh = 0.50;	// fraction of total power
+    const double thresh = 0.50;	// fraction of total power
 
-	double	tot = 0.0, cum = 0.0;
-	int		i;
+    double	tot = 0.0, cum = 0.0;
+    int		i;
 
 // tot = total power
 
-	for( i = 0; i < maxf; ++i )
-		tot += pspectrum[i];
+    for( i = 0; i < maxf; ++i )
+        tot += pspectrum[i];
 
 // repeat summing, but only up to tot*thresh
 
-	for( i = 0; cum < tot * thresh && i < maxf; ++i ) {
+    for( i = 0; cum < tot * thresh && i < maxf; ++i ) {
 
-		cum += pspectrum[i];
+        cum += pspectrum[i];
 
-		// report progress periodically
-		if( i && !(i % 10) ) {
-			fprintf( flog,
-			"FFT: %s: cum frac to %d = %f\n", msg, i, cum/tot );
-		}
-	}
+        // report progress periodically
+        if( i && !(i % 10) ) {
+            fprintf( flog,
+            "FFT: %s: cum frac to %d = %f\n", msg, i, cum/tot );
+        }
+    }
 
-	fprintf( flog,
-	"FFT: %s: Cum power exceeds %2d%% of %f"
-	" at index %d/%d (frac %f).\n",
-	msg, int(thresh*100.0), tot, i, maxf, cum/tot );
+    fprintf( flog,
+    "FFT: %s: Cum power exceeds %2d%% of %f"
+    " at index %d/%d (frac %f).\n",
+    msg, int(thresh*100.0), tot, i, maxf, cum/tot );
 
-	return dot;
+    return dot;
 }
 
 /* --------------------------------------------------------------- */
@@ -672,37 +672,37 @@ double FourierMatch(
 // passing them here.
 //
 double PercentYellow(
-	const vector<double>	&a,
-	const vector<double>	&b,
-	FILE*					flog )
+    const vector<double>	&a,
+    const vector<double>	&b,
+    FILE*					flog )
 {
-	int yellow, red, green, N = a.size();
+    int yellow, red, green, N = a.size();
 
-	for( double tol = 1.05; tol < 1.255; tol += 0.05 ) {
+    for( double tol = 1.05; tol < 1.255; tol += 0.05 ) {
 
-		yellow	= 0;
-		red		= 0;
-		green	= 0;
+        yellow	= 0;
+        red		= 0;
+        green	= 0;
 
-		for( int i = 0; i < N; ++i ) {
+        for( int i = 0; i < N; ++i ) {
 
-			int	pa = 127 + int(a[i]*35.0);
-			int	pb = 127 + int(b[i]*35.0);
+            int	pa = 127 + int(a[i]*35.0);
+            int	pb = 127 + int(b[i]*35.0);
 
-			if( pa > tol * pb )
-				++red;
-			else if( pa * tol < pb )
-				++green;
-			else
-				++yellow;
-		}
+            if( pa > tol * pb )
+                ++red;
+            else if( pa * tol < pb )
+                ++green;
+            else
+                ++yellow;
+        }
 
-		fprintf( flog,
-		"%%Yellow: Tol %6.2f  red %6.1f  yellow %6.1f  green %6.1f\n",
-		tol, 100.0*red/N, 100.0*yellow/N, 100.0*green/N );
-	}
+        fprintf( flog,
+        "%%Yellow: Tol %6.2f  red %6.1f  yellow %6.1f  green %6.1f\n",
+        tol, 100.0*red/N, 100.0*yellow/N, 100.0*green/N );
+    }
 
-	return (double)yellow / N;
+    return (double)yellow / N;
 }
 
 

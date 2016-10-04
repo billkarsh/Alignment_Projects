@@ -30,9 +30,9 @@ extern "C" {
 
 typedef struct {
 
-	FP64	icpt,
-			slope,
-			linCor;
+    FP64	icpt,
+            slope,
+            linCor;
 
 } STATLinFitRec, *STATLinFitPtr;
 
@@ -53,10 +53,10 @@ UInt32 STATIndexOfMaxValueUInt16( const UInt16 *array, UInt32 N );
 UInt32 STATIndexOfMaxValueUInt32( const UInt32 *array, UInt32 N );
 
 UInt32 STATPercentileBinUInt32(
-	const UInt32	*hist,
-	UInt32			nBins,
-	UInt32			nCounts,
-	FP64			frac );
+    const UInt32	*hist,
+    UInt32			nBins,
+    UInt32			nCounts,
+    FP64			frac );
 
 /* --------------------------------------------------------------- */
 /* Floating-point ------------------------------------------------ */
@@ -65,27 +65,27 @@ UInt32 STATPercentileBinUInt32(
 FP32 STATSigma32( FP32 N, FP32 meanX, FP32 sumX2 );
 
 FP32 STATAveFP32(
-	const FP32		*pFirstVal,
-	UInt32			recBytes,
-	UInt32			N );
+    const FP32		*pFirstVal,
+    UInt32			recBytes,
+    UInt32			N );
 
 FP32 STATMinMaxFP32(
-	FP32			*minVal,
-	const FP32		*pFirstVal,
-	UInt32			recBytes,
-	UInt32			N );
+    FP32			*minVal,
+    const FP32		*pFirstVal,
+    UInt32			recBytes,
+    UInt32			N );
 
 FP32 STATAveAndSDInRangeFP32(
-	FP32			*stdDev,
-	const FP32		*array,
-	UInt32			i0,
-	UInt32			iLim );
+    FP32			*stdDev,
+    const FP32		*array,
+    UInt32			i0,
+    UInt32			iLim );
 
 FP32 STATWindowedMaxFP32(
-	const FP32		*array,
-	UInt32			i0,
-	UInt32			iLim,
-	UInt32			windowSize );
+    const FP32		*array,
+    UInt32			i0,
+    UInt32			iLim,
+    UInt32			windowSize );
 
 FP32 STATMedianFP32( FP32 *array, FP32 *wrkspc, UInt32 N );
 
@@ -98,33 +98,33 @@ int STATTukeyWtsFP32( FP32 *w, FP32 *r, FP32 *wrkspc, UInt32 N );
 int STATBisquareWtsFP32( FP32 *w, FP32 *r, FP32 *wrkspc, UInt32 N );
 
 void STATSlopeFit32XY(
-	STATLinFitPtr	L,
-	const FP32		*x,
-	const FP32		*y,
-	UInt32			i0,
-	UInt32			iLim );
+    STATLinFitPtr	L,
+    const FP32		*x,
+    const FP32		*y,
+    UInt32			i0,
+    UInt32			iLim );
 
 void STATLinFit32XY(
-	STATLinFitPtr	L,
-	const FP32		*x,
-	const FP32		*y,
-	UInt32			i0,
-	UInt32			iLim );
+    STATLinFitPtr	L,
+    const FP32		*x,
+    const FP32		*y,
+    UInt32			i0,
+    UInt32			iLim );
 
 void STATLinFit64XY(
-	STATLinFitPtr	L,
-	const FP64		*x,
-	const FP64		*y,
-	UInt32			i0,
-	UInt32			iLim );
+    STATLinFitPtr	L,
+    const FP64		*x,
+    const FP64		*y,
+    UInt32			i0,
+    UInt32			iLim );
 
 void STATLinFit32Y(
-	STATLinFitPtr	L,
-	FP32			x0,
-	FP32			dx,
-	const FP32		*y,
-	UInt32			i0,
-	UInt32			iLim );
+    STATLinFitPtr	L,
+    FP32			x0,
+    FP32			dx,
+    const FP32		*y,
+    UInt32			i0,
+    UInt32			iLim );
 
 #if defined(__cplusplus)
 }

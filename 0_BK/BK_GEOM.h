@@ -30,27 +30,27 @@ extern "C" {
 void GEOMInsetU16Box1Pixel( U16BoxPtr dstBox, U16BoxPtr srcBox );
 
 void GEOMOutsetU16Box(
-	U16BoxPtr	dstBox,
-	U16BoxPtr	srcBox,
-	int			hLim,
-	int			vLim,
-	int			outset );
+    U16BoxPtr	dstBox,
+    U16BoxPtr	srcBox,
+    int			hLim,
+    int			vLim,
+    int			outset );
 
 void GEOMU16PatchBox(
-	U16BoxPtr	dstBox,
-	U16BoxPtr	srcBox,
-	int			hLim,
-	int			vLim );
+    U16BoxPtr	dstBox,
+    U16BoxPtr	srcBox,
+    int			hLim,
+    int			vLim );
 
 int GEOMU16BoxIntersection(
-	U16BoxPtr		outBox,
-	const U16BoxPtr	box1,
-	const U16BoxPtr	box2 );
+    U16BoxPtr		outBox,
+    const U16BoxPtr	box1,
+    const U16BoxPtr	box2 );
 
 void GEOMU16BoxUnion(
-	U16BoxPtr		outBox,
-	const U16BoxPtr	box1,
-	const U16BoxPtr	box2 );
+    U16BoxPtr		outBox,
+    const U16BoxPtr	box1,
+    const U16BoxPtr	box2 );
 
 #if defined(WIN32)
 int GEOMPinSubrect( RECT *r, const RECT *R );

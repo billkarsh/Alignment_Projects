@@ -7,23 +7,23 @@ A practical example with additional discussion is available here: [Alignment_Tut
 **Headings:**
 
 * [Basic Concepts: Regions and Connecting Points](method_overview.md#basic-concepts-regions-and-connecting-points)
-	* [Points File Content](method_overview.md#points-file-content)
-	* [LSQ Solver](method_overview.md#lsq-solver)
+    * [Points File Content](method_overview.md#points-file-content)
+    * [LSQ Solver](method_overview.md#lsq-solver)
 * [Systematic Workflow to Make Point-Pairs](method_overview.md#systematic-workflow-to-make-point-pairs)
-	* [Main Workflow Steps](method_overview.md#main-workflow-steps)
-	* [IDB (A Structured Repository for Raw Data)](method_overview.md#idb-a-structured-repository-for-raw-data)
-	* [Workspace 'temp' (Universal Filing Scheme for Machines and Humans)](method_overview.md#workspace-temp-universal-filing-scheme-for-machines-and-humans)
-	* [Same-Layer Work (Montaging)](method_overview.md#same-layer-work-montaging)
-	* [Cross-Layer Work (Strip Alignment)](method_overview.md#cross-layer-work-strip-alignment)
-	* [Cross-Layer Work (Block Alignment)](method_overview.md#cross-layer-work-block-alignment)
+    * [Main Workflow Steps](method_overview.md#main-workflow-steps)
+    * [IDB (A Structured Repository for Raw Data)](method_overview.md#idb-a-structured-repository-for-raw-data)
+    * [Workspace 'temp' (Universal Filing Scheme for Machines and Humans)](method_overview.md#workspace-temp-universal-filing-scheme-for-machines-and-humans)
+    * [Same-Layer Work (Montaging)](method_overview.md#same-layer-work-montaging)
+    * [Cross-Layer Work (Strip Alignment)](method_overview.md#cross-layer-work-strip-alignment)
+    * [Cross-Layer Work (Block Alignment)](method_overview.md#cross-layer-work-block-alignment)
 * [Iterative LSQ Solver](method_overview.md#iterative-lsq-solver)
-	* [LSQi Interface Part](method_overview.md#lsqi-interface-part)
-	* [LSQw Worker](method_overview.md#lsqw-worker)
-	* [Manual Convergence and Start/Stop Operation](method_overview.md#manual-convergence-and-Start-stop-operation)
-	* [Packed Storage Formats](method_overview.md#packed-storage-formats)
-	* [Solving Details and Parameters](method_overview.md#solving-details-and-parameters)
-	* [Solution Viewer](method_overview.md#solution-viewer)
-	* [Error Viewer](method_overview.md#error-viewer)
+    * [LSQi Interface Part](method_overview.md#lsqi-interface-part)
+    * [LSQw Worker](method_overview.md#lsqw-worker)
+    * [Manual Convergence and Start/Stop Operation](method_overview.md#manual-convergence-and-Start-stop-operation)
+    * [Packed Storage Formats](method_overview.md#packed-storage-formats)
+    * [Solving Details and Parameters](method_overview.md#solving-details-and-parameters)
+    * [Solution Viewer](method_overview.md#solution-viewer)
+    * [Error Viewer](method_overview.md#error-viewer)
 
 
 ## <a name="basic-concepts-regions-and-connecting-points"></a>Basic Concepts: Regions and Connecting Points
@@ -158,24 +158,24 @@ Z tileID a00 a01 a02 a10 a11 a12 col row cam full_path
 ```
 
 * Z is 0-based layer index.
-	* All the images for a layer should be grouped together in a layout file.
-	* Listed Z's should never decrease.
-	* Z's need not be contiguous: we will automatically match across gaps.
-	* Z need not start at 0 (set desired `-z=i,j` range in topgo.sht).
+    * All the images for a layer should be grouped together in a layout file.
+    * Listed Z's should never decrease.
+    * Z's need not be contiguous: we will automatically match across gaps.
+    * Z need not start at 0 (set desired `-z=i,j` range in topgo.sht).
 * TileID is a non-negative signed 32-bit integer and is unique within its layer.
-	* `Tip: ID's can be anything, but assigning, say, col*1000+row, makes navigating easier`.
+    * `Tip: ID's can be anything, but assigning, say, col*1000+row, makes navigating easier`.
 * Components of affine with 2D order like this:
-	* `.[ [a00 a01 a02]`
-	* `.. [a10 a11 a12] ]`.
-	* Equiv 1D labeling like this: [a0 a1 a2 a3 a4 a5] = [a00 a01 a02 a10 a11 a12].
-	* Most often, [a0 a1 a3 a4] = identity [1 0 0 1] and [a2 a5] = image [left top].
+    * `.[ [a00 a01 a02]`
+    * `.. [a10 a11 a12] ]`.
+    * Equiv 1D labeling like this: [a0 a1 a2 a3 a4 a5] = [a00 a01 a02 a10 a11 a12].
+    * Most often, [a0 a1 a3 a4] = identity [1 0 0 1] and [a2 a5] = image [left top].
 * col and row are 0-based col and row indices for human debugging.
-	* If unavailable, these should be set each to -999.
+    * If unavailable, these should be set each to -999.
 * cam is 0-based camera identifier for debugging.
-	* In a one-camera setup, use cam = 0.
+    * In a one-camera setup, use cam = 0.
 * Full rooted absolute path to image.
-	* Images may be accessed from a variety of working directories so must be absolute.
-	* Images can be TIF (8,16) PNG (8,16) MRC(16).
+    * Images may be accessed from a variety of working directories so must be absolute.
+    * Images can be TIF (8,16) PNG (8,16) MRC(16).
 * Spaces are space or tab.
 
 Script `dbgo.sht (project 1_MakeIDB)` reformats the user layout into a new IDB folder/file organization for efficient access by pipeline stages. The IDB device also has these features:
@@ -191,31 +191,31 @@ Script `dbgo.sht (project 1_MakeIDB)` reformats the user layout into a new IDB f
 The aligner produces copious output: scripts, tables, logs and so on. To make navigating these things easier for everybody we have created an organizational scheme that is assumed throughout the pipeline:
 
 * Top-level project folder/
-	* topmost scripts.
-	* prms/ (alignment parameter files)
-	* idb/
-	* temp0/ (version 0 workspace)
-		* copies of current matchparams.txt and scriptparams.txt
-		* same-layer scripts
-		* down scripts
-		* 0/ (everything for layer 0)
-			* // ------------------------------------------------
-			* // Iff `scriptparams::createauxdirs=Y`
-			* 0/ (auxdir for debug info from matching z.id=0.0 onto others)
-			* 1/ (auxdir for debug info from matching z.id=0.1 onto others)
-			* etc.
-			* // ------------------------------------------------
-			* S0_0/ (workspace for same-layer block (x,y)=(0,0))
-			* S0_1/ (ditto for block (0,1))
-			* etc.
-			* montage/ (workspace for solving layer 0 montage)
-			* D0_0/ (workspace for down-layer block (x,y)=(0,0))
-			* D0_1/ (ditto for block (0,1))
-			* etc.
-		* 1/ (ditto for layer 1)
-		* n/ (ditto for layer n)
-		* cross_wkspc/ (strip and block intermediate alignment)
-		* stack/ (workspace for solving final stack)
+    * topmost scripts.
+    * prms/ (alignment parameter files)
+    * idb/
+    * temp0/ (version 0 workspace)
+        * copies of current matchparams.txt and scriptparams.txt
+        * same-layer scripts
+        * down scripts
+        * 0/ (everything for layer 0)
+            * // ------------------------------------------------
+            * // Iff `scriptparams::createauxdirs=Y`
+            * 0/ (auxdir for debug info from matching z.id=0.0 onto others)
+            * 1/ (auxdir for debug info from matching z.id=0.1 onto others)
+            * etc.
+            * // ------------------------------------------------
+            * S0_0/ (workspace for same-layer block (x,y)=(0,0))
+            * S0_1/ (ditto for block (0,1))
+            * etc.
+            * montage/ (workspace for solving layer 0 montage)
+            * D0_0/ (workspace for down-layer block (x,y)=(0,0))
+            * D0_1/ (ditto for block (0,1))
+            * etc.
+        * 1/ (ditto for layer 1)
+        * n/ (ditto for layer n)
+        * cross_wkspc/ (strip and block intermediate alignment)
+        * stack/ (workspace for solving final stack)
 
 The folders become filled with logs and output data corresponding to the pipeline stage currently running.
 
@@ -231,10 +231,10 @@ Typical make.same 'make rules' look like this:
 
 ```
 4/1.8.map.tif:
-	ptest >>pts.same 2>pair_1.4^1.8.log 1.4^1.8 -nf ${EXTRA}
+    ptest >>pts.same 2>pair_1.4^1.8.log 1.4^1.8 -nf ${EXTRA}
 
 3/1.9.map.tif:
-	ptest >>pts.same 2>pair_1.3^1.9.log 1.3^1.9 -nf ${EXTRA}
+    ptest >>pts.same 2>pair_1.3^1.9.log 1.3^1.9 -nf ${EXTRA}
 ```
 
 Note that makefiles like this will indeed be given to the make command and in the past we may have actually used features of the make system such as checking the build date of a target like '4/1.8.map.tif'. However, these days, all we really want to do with the make facility is simply list the ptest jobs to be executed, and use make's -j parameter to say for example: `make -f make.same -j 8`, that is, on a given cluster node, run this list of jobs, running no more than eight jobs at a time. Again, it's a device for load balancing and resource management; nothing more complicated than that.
@@ -260,10 +260,10 @@ Very often in serial section work there are layers that got turned around at som
 
 1. For every pair of adjacent montages (A onto B below).
 2. Use the `1_Scapeops` component to:
-	* Paint all of B.
-	* Paint a horizontal strip through the middle of A.
-	* Paint a vertical strip through the middle of B.
-	* Make a wide angle sweep of strip A against B and log the best rigid transform.
+    * Paint all of B.
+    * Paint a horizontal strip through the middle of A.
+    * Paint a vertical strip through the middle of B.
+    * Make a wide angle sweep of strip A against B and log the best rigid transform.
 3. Now use the rigids to compose a low resolution stack with 1 image/layer (as TraKEM2).
 4. Have the user open, inspect and amend that result.
 5. Re-expand the saved result, transferring the rigids to all tiles => scaffold.
@@ -335,11 +335,11 @@ LSQw always gets called with command line argument `-nwks=k` and this signals th
 ```
 1. All workers (including 0) calculate your own share of the total
 2. If( nwks > 1 )
-		Wait for everyone else to catch up
+        Wait for everyone else to catch up
 3. If( I'm not zero )
-		Send my results to zero
+        Send my results to zero
    Else if( nwks > 1 )
-		Recv and consolidate results from others
+        Recv and consolidate results from others
 4. Continue
 ```
 
@@ -420,8 +420,8 @@ By default LSQw will look for the cached {catalog, points} data in a local subdi
 1. Solve **_normally_** in standard folder `temp/stack` with suggested `runlsq.sht`.
 2. For comparison, create folder `temp/stack2` with copy of that runlsq.sht...
 3. Edit `temp/stack2/runlsq.sht`
-	* to make experimental parameter changes,
-	* **and** to set `-lsqcache=../stack/lsqcache` to avoid remaking these data.
+    * to make experimental parameter changes,
+    * **and** to set `-lsqcache=../stack/lsqcache` to avoid remaking these data.
 
 #### Solution Folders 'X'
 
@@ -442,11 +442,11 @@ Binary folders like `X_A_BIN` contain transform **and** flags files like this:
 All transforms get an 8-bit flag field with these bits:
 ```
 enum RgnFlags {
-	fbDead		= 0x01,  // transform invalid
-	fbRead		= 0x02,  // no starting guess exists
-	fbPnts		= 0x04,  // too few pnts to solve
-	fbKill		= 0x08,  // ill behaved...dropped
-	fbCutd		= 0x10   // cross-layer links cut
+    fbDead		= 0x01,  // transform invalid
+    fbRead		= 0x02,  // no starting guess exists
+    fbPnts		= 0x04,  // too few pnts to solve
+    fbKill		= 0x08,  // ill behaved...dropped
+    fbCutd		= 0x10   // cross-layer links cut
 };
 ```
 
@@ -503,15 +503,15 @@ vC is a giant single zero-based list of these structures:
 ```
 class CorrPnt {
 public:
-	Point   p1, p2;
-	int     z1, z2,  // index into vR
+    Point   p1, p2;
+    int     z1, z2,  // index into vR
             i1, i2;  // index into vR[iz]
-	union {
-	int		used;
-	struct {
-	uint16	r1, r2;
-	};
-	};
+    union {
+    int		used;
+    struct {
+    uint16	r1, r2;
+    };
+    };
 // methods not shown
 };
 ```
@@ -527,10 +527,10 @@ class Rgns {
 // The rgns for given layer
 // indexed by 0-based 'idx0'
 public:
-	vector<vector<int> >  pts;      // ea rgn's pts
-	vector<uint8>         flag;     // rgn flags
-	map<int,int>          m;        // map id -> idx0
-	int                   nr,       // num rgns
+    vector<vector<int> >  pts;      // ea rgn's pts
+    vector<uint8>         flag;     // rgn flags
+    map<int,int>          m;        // map id -> idx0
+    int                   nr,       // num rgns
                           z;        // common z
 // other members, methods not shown
 };
@@ -549,17 +549,17 @@ The other important data for solving are the source and destination lists of aff
 ```
 class XArray {
 public:
-	int						NE;
-	vector<vector<double> >	X;
+    int						NE;
+    vector<vector<double> >	X;
 public:
-	void Resize( int ne );
-	void Load( const char *path );
-	void Save() const;
+    void Resize( int ne );
+    void Load( const char *path );
+    void Save() const;
 private:
-	bool Send( int zlo, int zhi, int XorF, int toLorR );
-	bool Recv( int zlo, int zhi, int XorF, int fmLorR );
+    bool Send( int zlo, int zhi, int XorF, int toLorR );
+    bool Recv( int zlo, int zhi, int XorF, int fmLorR );
 public:
-	bool Updt();
+    bool Updt();
 };
 ```
 
@@ -578,13 +578,13 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 // determine how many threads `nthr` to use
 
 // Iterate
-	Xs = &Xsrc;
-	Xd = &Xdst;
-	for( pass = 0; pass < iters; ++pass ) {
-		Do1Pass( proc );
-		// swap Xs<->Xd
-		XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
-	}
+    Xs = &Xsrc;
+    Xd = &Xdst;
+    for( pass = 0; pass < iters; ++pass ) {
+        Do1Pass( proc );
+        // swap Xs<->Xd
+        XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
+    }
 }
 ```
 
@@ -594,18 +594,18 @@ Here's the essence of Do1Pass. Note that as we solve we may decide to mark point
 static void Do1Pass( EZThreadproc proc )
 {
 // multithreaded phase
-	vthr.clear();
-	vthr.resize( nthr );
+    vthr.clear();
+    vthr.resize( nthr );
 
-	if( !EZThreads( proc, nthr, 1, "Solveproc" ) )
-		exit( 42 );
+    if( !EZThreads( proc, nthr, 1, "Solveproc" ) )
+        exit( 42 );
 
 // single-threaded phase
-	UpdateFlags();
-	vthr.clear();
+    UpdateFlags();
+    vthr.clear();
 
 // synchronize
-	Xd->Updt();
+    Xd->Updt();
 }
 ```
 
@@ -647,24 +647,24 @@ do { // for each region
 
 // Do some preliminary sanity checking
 
-	// Skip if a !used point
-	
-	// Pick one of two functionally identical clauses according to whether p1 is
-	// in the target A region or p2 is inside A. Another 2X complexity reduction!!
-	
-	// Employ index caching to do the fewest array accesses.
-	// Make sure the 'other' point is in a valid region, or push an edit request.
-	// Pair the appropriate tform with its point and apply to make global points.
-	// Note that Ta and Tb are both the previous tforms, not yet the new solution
-	// for Ta.
-	
-	// Check the error: the distance between these global points. If the error exceeds
-	// command line option -Etol then do not use this point in the equations (but do
-	// not mark it as problematic). IMPORTANT: As we iterate, the whole system will
-	// tend to oscillate. Waves of change will wash back and forth through the volume.
-	// We do not want to reject any points until the waves have died down a bit,
-	// that is, until some number of iterations have completed. We call that ad hoc
-	// parameter 'editdelay'.
+    // Skip if a !used point
+
+    // Pick one of two functionally identical clauses according to whether p1 is
+    // in the target A region or p2 is inside A. Another 2X complexity reduction!!
+
+    // Employ index caching to do the fewest array accesses.
+    // Make sure the 'other' point is in a valid region, or push an edit request.
+    // Pair the appropriate tform with its point and apply to make global points.
+    // Note that Ta and Tb are both the previous tforms, not yet the new solution
+    // for Ta.
+
+    // Check the error: the distance between these global points. If the error exceeds
+    // command line option -Etol then do not use this point in the equations (but do
+    // not mark it as problematic). IMPORTANT: As we iterate, the whole system will
+    // tend to oscillate. Waves of change will wash back and forth through the volume.
+    // We do not want to reject any points until the waves have died down a bit,
+    // that is, until some number of iterations have completed. We call that ad hoc
+    // parameter 'editdelay'.
 
 // OK, we have a qualified point-pair...
 

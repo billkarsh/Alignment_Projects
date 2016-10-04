@@ -12,12 +12,12 @@
 /* --------------------------------------------------------------- */
 
 /*	Build Notes
-	-----------
+    -----------
 
-	(1) Disk.h includes <semaphore.h>. There appears to be a
-	conflict if <semaphore.h> follows "numerical_recipes.h".
+    (1) Disk.h includes <semaphore.h>. There appears to be a
+    conflict if <semaphore.h> follows "numerical_recipes.h".
 
-	(2) To link against posix library, use 'g++ -lrt'.
+    (2) To link against posix library, use 'g++ -lrt'.
 */
 
 /* --------------------------------------------------------------- */
@@ -27,14 +27,14 @@
 class CMutex {
 
 private:
-	sem_t	*mutex;
-	char	m_name[256];
+    sem_t	*mutex;
+    char	m_name[256];
 
 public:
-	CMutex() : mutex(SEM_FAILED) {}
+    CMutex() : mutex(SEM_FAILED) {}
 
-	bool Get( const char *name, FILE* flog = stderr );
-	void Release();
+    bool Get( const char *name, FILE* flog = stderr );
+    void Release();
 };
 
 /* --------------------------------------------------------------- */

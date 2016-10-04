@@ -15,57 +15,57 @@
 /* --------------------------------------------------------------- */
 
 /*
-	Coordinates
-	-----------
-	     ^+Z
-	     |
-	     |
-	     /--->+X   +theta rotates +X toward +Y (clockwise)
-	  +Y/
+    Coordinates
+    -----------
+         ^+Z
+         |
+         |
+         /--->+X   +theta rotates +X toward +Y (clockwise)
+      +Y/
 
-	Individual images lie in the XY-plane, but unlike usual math
-	conventions the Y-axis is negated, so increases 'downward'.
+    Individual images lie in the XY-plane, but unlike usual math
+    conventions the Y-axis is negated, so increases 'downward'.
 
-	Z-coordinates usually start at zero and increase upward. The
-	standard perspective is looking down on a stack.
+    Z-coordinates usually start at zero and increase upward. The
+    standard perspective is looking down on a stack.
 
-	Because the Y-axis is negated, positive angles cause a CW
-	rather than a CCW rotation.
+    Because the Y-axis is negated, positive angles cause a CW
+    rather than a CCW rotation.
 
-	Some portions of this code body refer to boxes or bounds or
-	bounding boxes wherein the sides are {L,R,B,T}. X increases
-	from left to right in the usual way. Y increases from bottom
-	to top, but again, the bottom of a box appears higher on a
-	computer screen because Y runs downward.
+    Some portions of this code body refer to boxes or bounds or
+    bounding boxes wherein the sides are {L,R,B,T}. X increases
+    from left to right in the usual way. Y increases from bottom
+    to top, but again, the bottom of a box appears higher on a
+    computer screen because Y runs downward.
 
-	2D transformations map a region (such as a whole image) from
-	local region coords to an abstract global coordinate space.
+    2D transformations map a region (such as a whole image) from
+    local region coords to an abstract global coordinate space.
 
-	In our code, the 6 affine transform elements are interpreted
-	as follows:
+    In our code, the 6 affine transform elements are interpreted
+    as follows:
 
-		x'   |t0  t1|   x     t2
-		   = |      | *    +
-		y'   |t3  t4|   y     t5
+        x'   |t0  t1|   x     t2
+           = |      | *    +
+        y'   |t3  t4|   y     t5
 
-	In Matlab, our 6 elements are filled by column into one array
-	as follows:
+    In Matlab, our 6 elements are filled by column into one array
+    as follows:
 
-		{t0, t3, t1, t4, t2, t5}.
+        {t0, t3, t1, t4, t2, t5}.
 
-	In ImageJ (including TrakEM2) the elements in source code
-	are the following:
+    In ImageJ (including TrakEM2) the elements in source code
+    are the following:
 
-		x'   |m00  m01|   x     m02
-		   = |        | *    +
-		y'   |m10  m11|   y     m12
+        x'   |m00  m01|   x     m02
+           = |        | *    +
+        y'   |m10  m11|   y     m12
 
-	In a TrackEM2 XML file transform attributes are written
-	"matrix(m00,m10,m01,m11,m02,m12)".
+    In a TrackEM2 XML file transform attributes are written
+    "matrix(m00,m10,m01,m11,m02,m12)".
 
-	We use a standard order for compounding operations. Let
-	X=xskew, Y=yskew, S=scaling, P=pretweak, R=rot+trans.
-	Then, D = S(YX), and T = R(DP).
+    We use a standard order for compounding operations. Let
+    X=xskew, Y=yskew, S=scaling, P=pretweak, R=rot+trans.
+    Then, D = S(YX), and T = R(DP).
 */
 
 /* --------------------------------------------------------------- */
@@ -75,63 +75,63 @@
 // pos a enlarges
 void TAffine::NUSetScl( double a )
 {
-	t[0] = a; t[1] = 0; t[2] = 0;
-	t[3] = 0; t[4] = a; t[5] = 0;
+    t[0] = a; t[1] = 0; t[2] = 0;
+    t[3] = 0; t[4] = a; t[5] = 0;
 }
 
 
 // pos a enlarges
 void TAffine::NUSetXScl( double a )
 {
-	t[0] = a; t[1] = 0; t[2] = 0;
-	t[3] = 0; t[4] = 1; t[5] = 0;
+    t[0] = a; t[1] = 0; t[2] = 0;
+    t[3] = 0; t[4] = 1; t[5] = 0;
 }
 
 
 // pos a enlarges
 void TAffine::NUSetYScl( double a )
 {
-	t[0] = 1; t[1] = 0; t[2] = 0;
-	t[3] = 0; t[4] = a; t[5] = 0;
+    t[0] = 1; t[1] = 0; t[2] = 0;
+    t[3] = 0; t[4] = a; t[5] = 0;
 }
 
 
 // pos a tips right
 void TAffine::NUSetXSkw( double a )
 {
-	t[0] = 1; t[1] = a; t[2] = 0;
-	t[3] = 0; t[4] = 1; t[5] = 0;
+    t[0] = 1; t[1] = a; t[2] = 0;
+    t[3] = 0; t[4] = 1; t[5] = 0;
 }
 
 
 // pos a tips up
 void TAffine::NUSetYSkw( double a )
 {
-	t[0] = 1; t[1] = 0; t[2] = 0;
-	t[3] = a; t[4] = 1; t[5] = 0;
+    t[0] = 1; t[1] = 0; t[2] = 0;
+    t[3] = a; t[4] = 1; t[5] = 0;
 }
 
 
 // pos r rotates CW
 void TAffine::NUSetRot( double r )
 {
-	double	c = cos( r ), s = sin( r );
+    double	c = cos( r ), s = sin( r );
 
-	t[0] = c; t[1] = -s; t[2] = 0;
-	t[3] = s; t[4] =  c; t[5] = 0;
+    t[0] = c; t[1] = -s; t[2] = 0;
+    t[3] = s; t[4] =  c; t[5] = 0;
 }
 
 
 void TAffine::NUSelect( int sel, double a )
 {
-	switch( sel ) {
-		case tafnuXScl:	NUSetXScl( a );	break;
-		case tafnuYScl:	NUSetYScl( a );	break;
-		case tafnuXSkw:	NUSetXSkw( a );	break;
-		case tafnuYSkw:	NUSetYSkw( a );	break;
-		case tafnuRot:	NUSetRot( a );	break;
-		default:		NUSetScl( a );	break;
-	}
+    switch( sel ) {
+        case tafnuXScl:	NUSetXScl( a );	break;
+        case tafnuYScl:	NUSetYScl( a );	break;
+        case tafnuXSkw:	NUSetXSkw( a );	break;
+        case tafnuYSkw:	NUSetYSkw( a );	break;
+        case tafnuRot:	NUSetRot( a );	break;
+        default:		NUSetScl( a );	break;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -142,21 +142,21 @@ void TAffine::NUSelect( int sel, double a )
 // Tdfm = Scale.(Yskew.Xskew)
 //
 void TAffine::ComposeDfm(
-	double	scl,
-	double	xscl,
-	double	yscl,
-	double	xskw,
-	double	yskw )
+    double	scl,
+    double	xscl,
+    double	yscl,
+    double	xskw,
+    double	yskw )
 {
-	TAffine	S, Y, X;
+    TAffine	S, Y, X;
 
-	X.NUSetXSkw( xskw );
-	Y.NUSetYSkw( yskw );
+    X.NUSetXSkw( xskw );
+    Y.NUSetYSkw( yskw );
 
-	S.t[0] = xscl*scl; S.t[1] = 0;        S.t[2] = 0;
-	S.t[3] = 0;        S.t[4] = yscl*scl; S.t[5] = 0;
+    S.t[0] = xscl*scl; S.t[1] = 0;        S.t[2] = 0;
+    S.t[3] = 0;        S.t[4] = yscl*scl; S.t[5] = 0;
 
-	*this = S * (Y * X);
+    *this = S * (Y * X);
 }
 
 /* --------------------------------------------------------------- */
@@ -170,11 +170,11 @@ void TAffine::ComposeDfm(
 //
 void TAffine::SetCWRot( double deg, const Point &pivot )
 {
-	Point	Prot = pivot;
+    Point	Prot = pivot;
 
-	NUSetRot( deg*PI/180 );
-	Apply_R_Part( Prot );
-	AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
+    NUSetRot( deg*PI/180 );
+    Apply_R_Part( Prot );
+    AddXY( pivot.x - Prot.x, pivot.y - Prot.y );
 }
 
 /* --------------------------------------------------------------- */
@@ -185,10 +185,10 @@ void TAffine::SetCWRot( double deg, const Point &pivot )
 //
 void TAffine::FromAToB( const TAffine &a, const TAffine &b )
 {
-	TAffine	binv;
+    TAffine	binv;
 
-	binv.InverseOf( b );
-	*this = binv * a;
+    binv.InverseOf( b );
+    *this = binv * a;
 }
 
 /* --------------------------------------------------------------- */
@@ -197,17 +197,17 @@ void TAffine::FromAToB( const TAffine &a, const TAffine &b )
 
 void TAffine::InverseOf( const TAffine &a )
 {
-	double	det = 1 / a.det();
+    double	det = 1 / a.det();
 
 // simple inverse of matrix part
-	t[0] =  a.t[4]*det;
-	t[1] = -a.t[1]*det;
-	t[3] = -a.t[3]*det;
-	t[4] =  a.t[0]*det;
+    t[0] =  a.t[4]*det;
+    t[1] = -a.t[1]*det;
+    t[3] = -a.t[3]*det;
+    t[4] =  a.t[0]*det;
 
 // apply inverse to translation and negate
-	t[2] = -(t[0]*a.t[2] + t[1]*a.t[5]);
-	t[5] = -(t[3]*a.t[2] + t[4]*a.t[5]);
+    t[2] = -(t[0]*a.t[2] + t[1]*a.t[5]);
+    t[5] = -(t[3]*a.t[2] + t[4]*a.t[5]);
 }
 
 /* --------------------------------------------------------------- */
@@ -219,16 +219,16 @@ void TAffine::InverseOf( const TAffine &a )
 
 TAffine TAffine::operator * ( const TAffine& rhs ) const
 {
-	TAffine	r;
+    TAffine	r;
 
-	r.t[0] = L(0)*R(0) + L(1)*R(3);
-	r.t[1] = L(0)*R(1) + L(1)*R(4);
-	r.t[2] = L(0)*R(2) + L(1)*R(5) + L(2);
-	r.t[3] = L(3)*R(0) + L(4)*R(3);
-	r.t[4] = L(3)*R(1) + L(4)*R(4);
-	r.t[5] = L(3)*R(2) + L(4)*R(5) + L(5);
+    r.t[0] = L(0)*R(0) + L(1)*R(3);
+    r.t[1] = L(0)*R(1) + L(1)*R(4);
+    r.t[2] = L(0)*R(2) + L(1)*R(5) + L(2);
+    r.t[3] = L(3)*R(0) + L(4)*R(3);
+    r.t[4] = L(3)*R(1) + L(4)*R(4);
+    r.t[5] = L(3)*R(2) + L(4)*R(5) + L(5);
 
-	return r;
+    return r;
 }
 
 /* --------------------------------------------------------------- */
@@ -237,8 +237,8 @@ TAffine TAffine::operator * ( const TAffine& rhs ) const
 
 void TAffine::ScanTrackEM2( const char *s )
 {
-	sscanf( s, "matrix(%lf,%lf,%lf,%lf,%lf,%lf",
-		&t[0], &t[3], &t[1], &t[4], &t[2], &t[5] );
+    sscanf( s, "matrix(%lf,%lf,%lf,%lf,%lf,%lf",
+        &t[0], &t[3], &t[1], &t[4], &t[2], &t[5] );
 }
 
 /* --------------------------------------------------------------- */
@@ -247,11 +247,11 @@ void TAffine::ScanTrackEM2( const char *s )
 
 void TAffine::TPrint( FILE *f, const char *s ) const
 {
-	if( !f )
-		f = stdout;
+    if( !f )
+        f = stdout;
 
-	fprintf( f, "%s%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
-		(s ? s : ""), t[0], t[1], t[2], t[3], t[4], t[5] );
+    fprintf( f, "%s%7.4f %7.4f %8.2f   %7.4f %7.4f %8.2f\n",
+        (s ? s : ""), t[0], t[1], t[2], t[3], t[4], t[5] );
 }
 
 /* --------------------------------------------------------------- */
@@ -260,9 +260,9 @@ void TAffine::TPrint( FILE *f, const char *s ) const
 
 void TAffine::TPrintAsParam( FILE *f, bool newline ) const
 {
-	fprintf( f, " -TRA=%.4f,%.4f,%.2f,%.4f,%.4f,%.2f%c",
-		t[0], t[1], t[2], t[3], t[4], t[5],
-		(newline ? '\n' : ' ') );
+    fprintf( f, " -TRA=%.4f,%.4f,%.2f,%.4f,%.4f,%.2f%c",
+        t[0], t[1], t[2], t[3], t[4], t[5],
+        (newline ? '\n' : ' ') );
 }
 
 /* --------------------------------------------------------------- */
@@ -275,26 +275,26 @@ void TAffine::TPrintAsParam( FILE *f, bool newline ) const
 //
 double TAffine::EffArea() const
 {
-	vector<Point>	v;
+    vector<Point>	v;
 
-	v.push_back( Point(0,0) );
-	v.push_back( Point(1,0) );
-	v.push_back( Point(1,1) );
-	v.push_back( Point(0,1) );
+    v.push_back( Point(0,0) );
+    v.push_back( Point(1,0) );
+    v.push_back( Point(1,1) );
+    v.push_back( Point(0,1) );
 
-	Transform( v );
+    Transform( v );
 
-	double	A = 0;
+    double	A = 0;
 
-	for( int i = 0; i < 4; ++i ) {
+    for( int i = 0; i < 4; ++i ) {
 
-		const Point&	a = v[i];
-		const Point&	b = v[(i+1)%4];
+        const Point&	a = v[i];
+        const Point&	b = v[(i+1)%4];
 
-		A += (a.x - b.x) * (a.y + b.y);
-	}
+        A += (a.x - b.x) * (a.y + b.y);
+    }
 
-	return fabs( A * 0.5 );
+    return fabs( A * 0.5 );
 }
 
 /* --------------------------------------------------------------- */
@@ -316,42 +316,42 @@ double TAffine::EffArea() const
 //
 double TAffine::GetRadians() const
 {
-	double	P[4] = {t[0], t[1], t[3], t[4]};
+    double	P[4] = {t[0], t[1], t[3], t[4]};
 
-	for( int iter = 0; iter < 100; ++iter ) {
+    for( int iter = 0; iter < 100; ++iter ) {
 
-		// N = Trp(Pinv)
-		double	d = 1/(P[0]*P[3] - P[1]*P[2]);
-		double	N[4] = {P[3]*d, -P[2]*d, -P[1]*d, P[0]*d};
+        // N = Trp(Pinv)
+        double	d = 1/(P[0]*P[3] - P[1]*P[2]);
+        double	N[4] = {P[3]*d, -P[2]*d, -P[1]*d, P[0]*d};
 
-		// N = (P + N)/2
-		N[0] = (P[0] + N[0]) * 0.5;
-		N[1] = (P[1] + N[1]) * 0.5;
-		N[2] = (P[2] + N[2]) * 0.5;
-		N[3] = (P[3] + N[3]) * 0.5;
+        // N = (P + N)/2
+        N[0] = (P[0] + N[0]) * 0.5;
+        N[1] = (P[1] + N[1]) * 0.5;
+        N[2] = (P[2] + N[2]) * 0.5;
+        N[3] = (P[3] + N[3]) * 0.5;
 
-		// max( N - P )
-		d = fabs( N[0] - P[0] );
-		d = fmax( d, fabs( N[1] - P[1] ) );
-		d = fmax( d, fabs( N[2] - P[2] ) );
-		d = fmax( d, fabs( N[3] - P[3] ) );
+        // max( N - P )
+        d = fabs( N[0] - P[0] );
+        d = fmax( d, fabs( N[1] - P[1] ) );
+        d = fmax( d, fabs( N[2] - P[2] ) );
+        d = fmax( d, fabs( N[3] - P[3] ) );
 
-		// converged?
-		if( d < 1e-7 ) {
+        // converged?
+        if( d < 1e-7 ) {
 
-			//printf( "i=%d, %f  %f  %f  %f\n",
-			//iter, N[0], N[1], N[2], N[3] );
+            //printf( "i=%d, %f  %f  %f  %f\n",
+            //iter, N[0], N[1], N[2], N[3] );
 
-			return atan2( N[2], N[0] );
-		}
+            return atan2( N[2], N[0] );
+        }
 
-		// P = N;
-		P[0] = N[0]; P[1] = N[1]; P[2] = N[2]; P[3] = N[3];
-	}
+        // P = N;
+        P[0] = N[0]; P[1] = N[1]; P[2] = N[2]; P[3] = N[3];
+    }
 
 // fall back on standard crude estimator
 
-	return atan2( t[3], t[0] );
+    return atan2( t[3], t[0] );
 }
 
 /* --------------------------------------------------------------- */
@@ -368,11 +368,11 @@ double TAffine::GetRadians() const
 //
 double TAffine::Squareness() const
 {
-	double	c = (t[0]*t[1] + t[3]*t[4]) /
-		sqrt(   (t[0]*t[0] + t[3]*t[3]) *
-		        (t[1]*t[1] + t[4]*t[4]) );
+    double	c = (t[0]*t[1] + t[3]*t[4]) /
+        sqrt(   (t[0]*t[0] + t[3]*t[3]) *
+                (t[1]*t[1] + t[4]*t[4]) );
 
-	return (c >= 0.0 ? c : -c);
+    return (c >= 0.0 ? c : -c);
 }
 
 /* --------------------------------------------------------------- */
@@ -381,20 +381,20 @@ double TAffine::Squareness() const
 
 void TAffine::Transform( Point &p ) const
 {
-	double	x = p.x*t[0] + p.y*t[1] + t[2];
-	double	y = p.x*t[3] + p.y*t[4] + t[5];
+    double	x = p.x*t[0] + p.y*t[1] + t[2];
+    double	y = p.x*t[3] + p.y*t[4] + t[5];
 
-	p.x = x;
-	p.y = y;
+    p.x = x;
+    p.y = y;
 }
 
 
 void TAffine::Transform( vector<Point> &v ) const
 {
-	int		N = v.size();
+    int		N = v.size();
 
-	for( int i = 0; i < N; ++i )
-		Transform( v[i] );
+    for( int i = 0; i < N; ++i )
+        Transform( v[i] );
 }
 
 /* --------------------------------------------------------------- */
@@ -406,20 +406,20 @@ void TAffine::Transform( vector<Point> &v ) const
 //
 void TAffine::Apply_R_Part( Point &p ) const
 {
-	double	x = p.x*t[0] + p.y*t[1];
-	double	y = p.x*t[3] + p.y*t[4];
+    double	x = p.x*t[0] + p.y*t[1];
+    double	y = p.x*t[3] + p.y*t[4];
 
-	p.x = x;
-	p.y = y;
+    p.x = x;
+    p.y = y;
 }
 
 
 void TAffine::Apply_R_Part( vector<Point> &v ) const
 {
-	int		N = v.size();
+    int		N = v.size();
 
-	for( int i = 0; i < N; ++i )
-		Apply_R_Part( v[i] );
+    for( int i = 0; i < N; ++i )
+        Apply_R_Part( v[i] );
 }
 
 

@@ -34,23 +34,23 @@
  */
 
 void BMAPConvertDepth8To1(
-	UInt32				*dstMap,
-	const UInt8			*srcMap,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*dstMap,
+    const UInt8			*srcMap,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	word, nWords, W;
-	int		b;
+    UInt32	word, nWords, W;
+    int		b;
 
-	nWords = BitToWord( vPix * hPix );
+    nWords = BitToWord( vPix * hPix );
 
-	for( word = 0; word < nWords; ++word ) {
+    for( word = 0; word < nWords; ++word ) {
 
-		for( b = 0; b < WordBits; ++b, W <<= 1 )
-			W |= *srcMap++ & 1;
+        for( b = 0; b < WordBits; ++b, W <<= 1 )
+            W |= *srcMap++ & 1;
 
-		dstMap[word] = W;
-	}
+        dstMap[word] = W;
+    }
 }
 
 
@@ -72,24 +72,24 @@ void BMAPConvertDepth8To1(
  */
 
 void BMAPConvertDepth1To8(
-	UInt8				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	UInt8				oneAs8bit )
+    UInt8				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    UInt8				oneAs8bit )
 {
-	UInt32	word, nWords, W;
-	int		b;
+    UInt32	word, nWords, W;
+    int		b;
 
-	nWords	= BitToWord( vPix * hPix );
+    nWords	= BitToWord( vPix * hPix );
 
-	for( word = 0; word < nWords; ++word ) {
+    for( word = 0; word < nWords; ++word ) {
 
-		W = *srcMap++;
+        W = *srcMap++;
 
-		for( b = 0; b < WordBits; ++b, W <<= 1, ++dstMap )
-			*dstMap	= (UInt8)(oneAs8bit & SignExtHiBit32( W ));
-	}
+        for( b = 0; b < WordBits; ++b, W <<= 1, ++dstMap )
+            *dstMap	= (UInt8)(oneAs8bit & SignExtHiBit32( W ));
+    }
 }
 
 

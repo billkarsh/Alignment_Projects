@@ -17,10 +17,10 @@
 /* --------------------------------------------------------------- */
 
 #define	Mask32_ZerosLeftOf( left )								\
-	(((UInt32)-1) >> WordRem( left ))
+    (((UInt32)-1) >> WordRem( left ))
 
 #define	Mask32_ZerosRightOf( right )							\
-	(((UInt32)-1) << (AllButOneBit - WordRem( right )))
+    (((UInt32)-1) << (AllButOneBit - WordRem( right )))
 
 
 
@@ -44,18 +44,18 @@
  */
 
 void BMAPOrMaps(
-	UInt32				*orMap,
-	UInt32				*mapA,
-	UInt32				*mapB,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*orMap,
+    UInt32				*mapA,
+    UInt32				*mapB,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	word, nWords;
+    UInt32	word, nWords;
 
-	nWords = BitToWord( vPix * hPix );
+    nWords = BitToWord( vPix * hPix );
 
-	for( word = 0; word < nWords; ++word )
-		*orMap++ = *mapA++ | *mapB++;
+    for( word = 0; word < nWords; ++word )
+        *orMap++ = *mapA++ | *mapB++;
 }
 
 
@@ -76,18 +76,18 @@ void BMAPOrMaps(
  */
 
 void BMAPXorMaps(
-	UInt32				*xorMap,
-	UInt32				*mapA,
-	UInt32				*mapB,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*xorMap,
+    UInt32				*mapA,
+    UInt32				*mapB,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	word, nWords;
+    UInt32	word, nWords;
 
-	nWords = BitToWord( vPix * hPix );
+    nWords = BitToWord( vPix * hPix );
 
-	for( word = 0; word < nWords; ++word )
-		*xorMap++ = *mapA++ ^ *mapB++;
+    for( word = 0; word < nWords; ++word )
+        *xorMap++ = *mapA++ ^ *mapB++;
 }
 
 
@@ -108,18 +108,18 @@ void BMAPXorMaps(
  */
 
 void BMAPAndMaps(
-	UInt32				*andMap,
-	UInt32				*mapA,
-	UInt32				*mapB,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*andMap,
+    UInt32				*mapA,
+    UInt32				*mapB,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	word, nWords;
+    UInt32	word, nWords;
 
-	nWords = BitToWord( vPix * hPix );
+    nWords = BitToWord( vPix * hPix );
 
-	for( word = 0; word < nWords; ++word )
-		*andMap++ = *mapA++ & *mapB++;
+    for( word = 0; word < nWords; ++word )
+        *andMap++ = *mapA++ & *mapB++;
 }
 
 
@@ -141,18 +141,18 @@ void BMAPAndMaps(
  */
 
 void BMAPBicMaps(
-	UInt32				*bicMap,
-	UInt32				*mapA,
-	UInt32				*mapB,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*bicMap,
+    UInt32				*mapA,
+    UInt32				*mapB,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	word, nWords;
+    UInt32	word, nWords;
 
-	nWords = BitToWord( vPix * hPix );
+    nWords = BitToWord( vPix * hPix );
 
-	for( word = 0; word < nWords; ++word )
-		*bicMap++ = *mapA++ & ~*mapB++;
+    for( word = 0; word < nWords; ++word )
+        *bicMap++ = *mapA++ & ~*mapB++;
 }
 
 
@@ -167,56 +167,56 @@ void BMAPBicMaps(
  */
 
 int BMAPPatchArea(
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pRow;
-	UInt32	rowBytes, w;
-	int		v, h, hL, hR, top, left, bot, right, area;
+    UInt32	*pRow;
+    UInt32	rowBytes, w;
+    int		v, h, hL, hR, top, left, bot, right, area;
 
-	area		= 0;
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    area		= 0;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	rowBytes	= BitToByte( hPix );
-	hL			= BitToWord( left );
-	hR			= BitToWord( right - 1 );
-	pRow		= (UInt32*)((char*)map + rowBytes * top);
+    rowBytes	= BitToByte( hPix );
+    hL			= BitToWord( left );
+    hR			= BitToWord( right - 1 );
+    pRow		= (UInt32*)((char*)map + rowBytes * top);
 
-	for( v = top; v < bot;
-		++v,
-		pRow = (UInt32*)((char*)pRow + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pRow = (UInt32*)((char*)pRow + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h ) {
+        for( h = hL; h <= hR; ++h ) {
 
-			w = pRow[h];
+            w = pRow[h];
 
-			while( w ) {
+            while( w ) {
 
-				area += w & 1;
-				w >>= 1;
-			}
-		}
-	}
+                area += w & 1;
+                w >>= 1;
+            }
+        }
+    }
 
 exit:
-	return area;
+    return area;
 }
 
 
@@ -230,48 +230,48 @@ exit:
  */
 
 void BMAPZeroPatch(
-	UInt32				*dstMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst;
-	UInt32	rowBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst;
+    UInt32	rowBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] = 0;
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] = 0;
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -286,48 +286,48 @@ exit:
  */
 
 void BMAPFillPatch(
-	UInt32				*dstMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst;
-	UInt32	rowBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst;
+    UInt32	rowBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] = -1;
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] = -1;
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -341,52 +341,52 @@ exit:
  */
 
 void BMAPCopyPatch(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + startBytes);
-	pSrc	= (UInt32*)((char*)srcMap + startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + startBytes);
+    pSrc	= (UInt32*)((char*)srcMap + startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes),
-		pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes),
+        pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] = pSrc[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] = pSrc[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -400,52 +400,52 @@ exit:
  */
 
 void BMAPInvertPatch(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + startBytes);
-	pSrc	= (UInt32*)((char*)srcMap + startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + startBytes);
+    pSrc	= (UInt32*)((char*)srcMap + startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes),
-		pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes),
+        pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] = ~pSrc[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] = ~pSrc[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -460,52 +460,52 @@ exit:
  */
 
 void BMAPOrPatch(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + startBytes);
-	pSrc	= (UInt32*)((char*)srcMap + startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + startBytes);
+    pSrc	= (UInt32*)((char*)srcMap + startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes),
-		pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes),
+        pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] |= pSrc[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] |= pSrc[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -520,52 +520,52 @@ exit:
  */
 
 void BMAPXorPatch(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + startBytes);
-	pSrc	= (UInt32*)((char*)srcMap + startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + startBytes);
+    pSrc	= (UInt32*)((char*)srcMap + startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes),
-		pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes),
+        pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] ^= pSrc[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] ^= pSrc[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -579,55 +579,55 @@ exit:
  */
 
 void BMAPXorNewPatch(
-	UInt32				*xorMap,
-	const UInt32		*mapA,
-	const UInt32		*mapB,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*xorMap,
+    const UInt32		*mapA,
+    const UInt32		*mapB,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc1, *pSrc2;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc1, *pSrc2;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)xorMap	+ startBytes);
-	pSrc1	= (UInt32*)((char*)mapA		+ startBytes);
-	pSrc2	= (UInt32*)((char*)mapB		+ startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)xorMap	+ startBytes);
+    pSrc1	= (UInt32*)((char*)mapA		+ startBytes);
+    pSrc2	= (UInt32*)((char*)mapB		+ startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst  = (UInt32*)((char*)pDst + rowBytes),
-		pSrc1 = (UInt32*)((char*)pSrc1 + rowBytes),
-		pSrc2 = (UInt32*)((char*)pSrc2 + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst  = (UInt32*)((char*)pDst + rowBytes),
+        pSrc1 = (UInt32*)((char*)pSrc1 + rowBytes),
+        pSrc2 = (UInt32*)((char*)pSrc2 + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] = pSrc1[h] ^ pSrc2[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] = pSrc1[h] ^ pSrc2[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -642,52 +642,52 @@ exit:
  */
 
 void BMAPAndPatch(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + startBytes);
-	pSrc	= (UInt32*)((char*)srcMap + startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + startBytes);
+    pSrc	= (UInt32*)((char*)srcMap + startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes),
-		pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes),
+        pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] &= pSrc[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] &= pSrc[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -702,52 +702,52 @@ exit:
  */
 
 void BMAPBicPatch(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + startBytes);
-	pSrc	= (UInt32*)((char*)srcMap + startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap + startBytes);
+    pSrc	= (UInt32*)((char*)srcMap + startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst = (UInt32*)((char*)pDst + rowBytes),
-		pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst = (UInt32*)((char*)pDst + rowBytes),
+        pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] &= ~pSrc[h];
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] &= ~pSrc[h];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -765,55 +765,55 @@ exit:
  */
 
 void BMAPBicDifPatch(
-	UInt32				*dstMap,
-	const UInt32		*mapA,
-	const UInt32		*mapB,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*mapA,
+    const UInt32		*mapB,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc1, *pSrc2;
-	UInt32	rowBytes, startBytes;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc1, *pSrc2;
+    UInt32	rowBytes, startBytes;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	startBytes	= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    startBytes	= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap	+ startBytes);
-	pSrc1	= (UInt32*)((char*)mapA		+ startBytes);
-	pSrc2	= (UInt32*)((char*)mapB		+ startBytes);
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    pDst	= (UInt32*)((char*)dstMap	+ startBytes);
+    pSrc1	= (UInt32*)((char*)mapA		+ startBytes);
+    pSrc2	= (UInt32*)((char*)mapB		+ startBytes);
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	for( v = top; v < bot;
-		++v,
-		pDst  = (UInt32*)((char*)pDst + rowBytes),
-		pSrc1 = (UInt32*)((char*)pSrc1 + rowBytes),
-		pSrc2 = (UInt32*)((char*)pSrc2 + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        pDst  = (UInt32*)((char*)pDst + rowBytes),
+        pSrc1 = (UInt32*)((char*)pSrc1 + rowBytes),
+        pSrc2 = (UInt32*)((char*)pSrc2 + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h )
-			pDst[h] &= ~(pSrc1[h] ^ pSrc2[h]);
-	}
+        for( h = hL; h <= hR; ++h )
+            pDst[h] &= ~(pSrc1[h] ^ pSrc2[h]);
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -827,81 +827,81 @@ exit:
  */
 
 void BMAPZeroBox(
-	UInt32				*dstMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst;
-	UInt32	rowBytes, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst;
+    UInt32	rowBytes, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
+    pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
-	LMask	= ~LMask;
-	RMask	= ~RMask;
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
+    LMask	= ~LMask;
+    RMask	= ~RMask;
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes) ) {
 
-			pDst[hL] &= LMask;
+            pDst[hL] &= LMask;
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] = 0;
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] = 0;
 
-			pDst[hR] &= RMask;
-		}
-	}
-	else {
+            pDst[hR] &= RMask;
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		LMask	|= RMask;
+        pDst	+= hL;
+        LMask	|= RMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes) ) {
 
-			*pDst &= LMask;
-		}
-	}
+            *pDst &= LMask;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -915,79 +915,79 @@ exit:
  */
 
 void BMAPFillBox(
-	UInt32				*dstMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst;
-	UInt32	rowBytes, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst;
+    UInt32	rowBytes, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
+    pDst	= (UInt32*)((char*)dstMap + rowBytes * top);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes) ) {
 
-			pDst[hL] |= LMask;
+            pDst[hL] |= LMask;
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] = -1;
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] = -1;
 
-			pDst[hR] |= RMask;
-		}
-	}
-	else {
+            pDst[hR] |= RMask;
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		LMask	&= RMask;
+        pDst	+= hL;
+        LMask	&= RMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes) ) {
 
-			*pDst |= LMask;
-		}
-	}
+            *pDst |= LMask;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1001,89 +1001,89 @@ exit:
  */
 
 void BMAPCopyBox(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, W, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, W, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	W			= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    W			= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + W);
-	pSrc	= (UInt32*)((char*)srcMap + W);
+    pDst	= (UInt32*)((char*)dstMap + W);
+    pSrc	= (UInt32*)((char*)srcMap + W);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			W			= pDst[hL];
-			pDst[hL] 	= (W & ~LMask) | (pSrc[hL] & LMask);
+            W			= pDst[hL];
+            pDst[hL] 	= (W & ~LMask) | (pSrc[hL] & LMask);
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] = pSrc[h];
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] = pSrc[h];
 
-			W			= pDst[hR];
-			pDst[hR]	= (W & ~RMask) | (pSrc[hR] & RMask);
-		}
-	}
-	else {
+            W			= pDst[hR];
+            pDst[hR]	= (W & ~RMask) | (pSrc[hR] & RMask);
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		pSrc	+= hL;
-		LMask	&= RMask;
-		RMask	= ~LMask;
+        pDst	+= hL;
+        pSrc	+= hL;
+        LMask	&= RMask;
+        RMask	= ~LMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			W		= *pDst;
-			*pDst	= (W & RMask) | (*pSrc & LMask);
-		}
-	}
+            W		= *pDst;
+            *pDst	= (W & RMask) | (*pSrc & LMask);
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1097,85 +1097,85 @@ exit:
  */
 
 void BMAPOrBox(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, W, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, W, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	W			= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    W			= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + W);
-	pSrc	= (UInt32*)((char*)srcMap + W);
+    pDst	= (UInt32*)((char*)dstMap + W);
+    pSrc	= (UInt32*)((char*)srcMap + W);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			pDst[hL] |= pSrc[hL] & LMask;
+            pDst[hL] |= pSrc[hL] & LMask;
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] |= pSrc[h];
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] |= pSrc[h];
 
-			pDst[hR] |= pSrc[hR] & RMask;
-		}
-	}
-	else {
+            pDst[hR] |= pSrc[hR] & RMask;
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		pSrc	+= hL;
-		LMask	&= RMask;
+        pDst	+= hL;
+        pSrc	+= hL;
+        LMask	&= RMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			*pDst |= *pSrc & LMask;
-		}
-	}
+            *pDst |= *pSrc & LMask;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1189,85 +1189,85 @@ exit:
  */
 
 void BMAPXorBox(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, W, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, W, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	W			= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    W			= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + W);
-	pSrc	= (UInt32*)((char*)srcMap + W);
+    pDst	= (UInt32*)((char*)dstMap + W);
+    pSrc	= (UInt32*)((char*)srcMap + W);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			pDst[hL] ^= pSrc[hL] & LMask;
+            pDst[hL] ^= pSrc[hL] & LMask;
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] ^= pSrc[h];
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] ^= pSrc[h];
 
-			pDst[hR] ^= pSrc[hR] & RMask;
-		}
-	}
-	else {
+            pDst[hR] ^= pSrc[hR] & RMask;
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		pSrc	+= hL;
-		LMask	&= RMask;
+        pDst	+= hL;
+        pSrc	+= hL;
+        LMask	&= RMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			*pDst ^= *pSrc & LMask;
-		}
-	}
+            *pDst ^= *pSrc & LMask;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1281,87 +1281,87 @@ exit:
  */
 
 void BMAPAndBox(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, W, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, W, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	W			= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    W			= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + W);
-	pSrc	= (UInt32*)((char*)srcMap + W);
+    pDst	= (UInt32*)((char*)dstMap + W);
+    pSrc	= (UInt32*)((char*)srcMap + W);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
-	LMask	= ~LMask;
-	RMask	= ~RMask;
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
+    LMask	= ~LMask;
+    RMask	= ~RMask;
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			pDst[hL] &= pSrc[hL] | LMask;
+            pDst[hL] &= pSrc[hL] | LMask;
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] &= pSrc[h];
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] &= pSrc[h];
 
-			pDst[hR] &= pSrc[hR] | RMask;
-		}
-	}
-	else {
+            pDst[hR] &= pSrc[hR] | RMask;
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		pSrc	+= hL;
-		LMask	|= RMask;
+        pDst	+= hL;
+        pSrc	+= hL;
+        LMask	|= RMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			*pDst &= *pSrc | LMask;
-		}
-	}
+            *pDst &= *pSrc | LMask;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1375,87 +1375,87 @@ exit:
  */
 
 void BMAPBicBox(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*pDst, *pSrc;
-	UInt32	rowBytes, W, LMask, RMask;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*pDst, *pSrc;
+    UInt32	rowBytes, W, LMask, RMask;
+    int		v, h, hL, hR, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	W			= rowBytes * top;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    W			= rowBytes * top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	pDst	= (UInt32*)((char*)dstMap + W);
-	pSrc	= (UInt32*)((char*)srcMap + W);
+    pDst	= (UInt32*)((char*)dstMap + W);
+    pSrc	= (UInt32*)((char*)srcMap + W);
 
-	--right;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right );
-	LMask	= Mask32_ZerosLeftOf( left );
-	RMask	= Mask32_ZerosRightOf( right );
-	LMask	= ~LMask;
-	RMask	= ~RMask;
+    --right;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right );
+    LMask	= Mask32_ZerosLeftOf( left );
+    RMask	= Mask32_ZerosRightOf( right );
+    LMask	= ~LMask;
+    RMask	= ~RMask;
 
-	if( hL < hR ) {
+    if( hL < hR ) {
 
-		/* ------------------ */
-		/* At least two words */
-		/* ------------------ */
+        /* ------------------ */
+        /* At least two words */
+        /* ------------------ */
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			pDst[hL] &= ~pSrc[hL] | LMask;
+            pDst[hL] &= ~pSrc[hL] | LMask;
 
-			for( h = hL + 1; h < hR; ++h )
-				pDst[h] &= ~pSrc[h];
+            for( h = hL + 1; h < hR; ++h )
+                pDst[h] &= ~pSrc[h];
 
-			pDst[hR] &= ~pSrc[hR] | RMask;
-		}
-	}
-	else {
+            pDst[hR] &= ~pSrc[hR] | RMask;
+        }
+    }
+    else {
 
-		/* ------------------------ */
-		/* All bits within one word */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All bits within one word */
+        /* ------------------------ */
 
-		pDst	+= hL;
-		pSrc	+= hL;
-		LMask	|= RMask;
+        pDst	+= hL;
+        pSrc	+= hL;
+        LMask	|= RMask;
 
-		for( v = top; v < bot;
-			++v,
-			pDst = (UInt32*)((char*)pDst + rowBytes),
-			pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
+        for( v = top; v < bot;
+            ++v,
+            pDst = (UInt32*)((char*)pDst + rowBytes),
+            pSrc = (UInt32*)((char*)pSrc + rowBytes) ) {
 
-			*pDst &= ~*pSrc | LMask;
-		}
-	}
+            *pDst &= ~*pSrc | LMask;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1489,75 +1489,75 @@ exit:
  */
 
 void BMAPInsetMap_1Pixel(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	*dst, *src1, *src2, *src3;
-	UInt32	prevLSB, W;
-	int		h, v, nWords;
+    UInt32	*dst, *src1, *src2, *src3;
+    UInt32	prevLSB, W;
+    int		h, v, nWords;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	nWords	= BitToWord( hPix );
-	dst		= dstMap;
-	src1	= (UInt32*)srcMap;
-	src2	= src1 + nWords;
-	src3	= src2 + nWords;
+    nWords	= BitToWord( hPix );
+    dst		= dstMap;
+    src1	= (UInt32*)srcMap;
+    src2	= src1 + nWords;
+    src3	= src2 + nWords;
 
 /* ------------ */
 /* Zero top row */
 /* ------------ */
 
-	for( h = 0; h < nWords; ++h )
-		*dst++ = 0;
+    for( h = 0; h < nWords; ++h )
+        *dst++ = 0;
 
 /* ------------- */
 /* Interior rows */
 /* ------------- */
 
-	--nWords;
+    --nWords;
 
-	for( v = 2; v < (int)vPix; ++v ) {
+    for( v = 2; v < (int)vPix; ++v ) {
 
-		/* ------------------------ */
-		/* All but last word on row */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All but last word on row */
+        /* ------------------------ */
 
-		prevLSB = 0;
+        prevLSB = 0;
 
-		for( h = 0; h < nWords; ++h ) {
+        for( h = 0; h < nWords; ++h ) {
 
-			W		= *src2++;
-			*dst++	= W
-						& ((W >> 1) | (prevLSB << AllButOneBit))
-						& ((W << 1) | (*src2 >> AllButOneBit))
-						& *src1++
-						& *src3++;
-			prevLSB	= W & 1;
-		}
+            W		= *src2++;
+            *dst++	= W
+                        & ((W >> 1) | (prevLSB << AllButOneBit))
+                        & ((W << 1) | (*src2 >> AllButOneBit))
+                        & *src1++
+                        & *src3++;
+            prevLSB	= W & 1;
+        }
 
-		/* --------- */
-		/* Last word */
-		/* --------- */
+        /* --------- */
+        /* Last word */
+        /* --------- */
 
-		W		= *src2++;
-		*dst++	= W
-					& ((W >> 1) | (prevLSB << AllButOneBit))
-					&  (W << 1)
-					& *src1++
-					& *src3++;
-	}
+        W		= *src2++;
+        *dst++	= W
+                    & ((W >> 1) | (prevLSB << AllButOneBit))
+                    &  (W << 1)
+                    & *src1++
+                    & *src3++;
+    }
 
 /* --------------- */
 /* Zero bottom row */
 /* --------------- */
 
-	for( h = 0; h <= nWords; ++h )
-		*dst++ = 0;
+    for( h = 0; h <= nWords; ++h )
+        *dst++ = 0;
 }
 
 
@@ -1580,31 +1580,31 @@ void BMAPInsetMap_1Pixel(
  */
 
 int BMAPInsetMap_NPixels(
-	UInt32				*dstMap0,
-	UInt32				*dstMap1,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	UInt32				nPixels )
+    UInt32				*dstMap0,
+    UInt32				*dstMap1,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    UInt32				nPixels )
 {
-	if( !nPixels-- ) {
-		MEMCopyMap( dstMap1, srcMap, hPix, vPix );
-		goto exit;
-	}
+    if( !nPixels-- ) {
+        MEMCopyMap( dstMap1, srcMap, hPix, vPix );
+        goto exit;
+    }
 
-	BMAPInsetMap_1Pixel( dstMap0, srcMap, hPix, vPix );
+    BMAPInsetMap_1Pixel( dstMap0, srcMap, hPix, vPix );
 
-	while( nPixels >= 2 ) {
-		BMAPInsetMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
-		BMAPInsetMap_1Pixel( dstMap0, dstMap1, hPix, vPix );
-		nPixels -= 2;
-	}
+    while( nPixels >= 2 ) {
+        BMAPInsetMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
+        BMAPInsetMap_1Pixel( dstMap0, dstMap1, hPix, vPix );
+        nPixels -= 2;
+    }
 
-	if( nPixels )
-		BMAPInsetMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
+    if( nPixels )
+        BMAPInsetMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
 
 exit:
-	return (nPixels & 1);
+    return (nPixels & 1);
 }
 
 
@@ -1634,153 +1634,153 @@ exit:
  */
 
 void BMAPTraceMap_1Pixel(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	*dst, *src1, *src2, *src3;
-	UInt32	W1, W2, W3, prvLSB1, prvLSB2, prvLSB3;
-	int		v, h, nWords;
+    UInt32	*dst, *src1, *src2, *src3;
+    UInt32	W1, W2, W3, prvLSB1, prvLSB2, prvLSB3;
+    int		v, h, nWords;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	nWords	= BitToWord( hPix );
-	dst		= dstMap;
-	src1	= (UInt32*)srcMap;
-	src2	= src1;
-	src3	= src1 + nWords;
+    nWords	= BitToWord( hPix );
+    dst		= dstMap;
+    src1	= (UInt32*)srcMap;
+    src2	= src1;
+    src3	= src1 + nWords;
 
-	--nWords;
+    --nWords;
 
 /* ------- */
 /* Top row */
 /* ------- */
 
-	/* ------------------------ */
-	/* All but last word on row */
-	/* ------------------------ */
+    /* ------------------------ */
+    /* All but last word on row */
+    /* ------------------------ */
 
-	prvLSB2 = 0;
-	prvLSB3 = 0;
+    prvLSB2 = 0;
+    prvLSB3 = 0;
 
-	for( h = 0; h < nWords; ++h ) {
+    for( h = 0; h < nWords; ++h ) {
 
-		W2		= *src2++;
-		W3		= *src3++;
-		*dst++	= W2
-					| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-					| (W2 << 1) | (*src2 >> AllButOneBit)
-					| W3
-					| (W3 >> 1) | (prvLSB3 << AllButOneBit)
-					| (W3 << 1) | (*src3 >> AllButOneBit);
-		prvLSB2	= W2 & 1;
-		prvLSB3	= W3 & 1;
-	}
+        W2		= *src2++;
+        W3		= *src3++;
+        *dst++	= W2
+                    | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                    | (W2 << 1) | (*src2 >> AllButOneBit)
+                    | W3
+                    | (W3 >> 1) | (prvLSB3 << AllButOneBit)
+                    | (W3 << 1) | (*src3 >> AllButOneBit);
+        prvLSB2	= W2 & 1;
+        prvLSB3	= W3 & 1;
+    }
 
-	/* --------- */
-	/* Last word */
-	/* --------- */
+    /* --------- */
+    /* Last word */
+    /* --------- */
 
-	W2		= *src2++;
-	W3		= *src3++;
-	*dst++	= W2
-				| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-				| (W2 << 1)
-				| W3
-				| (W3 >> 1) | (prvLSB3 << AllButOneBit)
-				| (W3 << 1);
+    W2		= *src2++;
+    W3		= *src3++;
+    *dst++	= W2
+                | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                | (W2 << 1)
+                | W3
+                | (W3 >> 1) | (prvLSB3 << AllButOneBit)
+                | (W3 << 1);
 
 /* ------------- */
 /* Interior rows */
 /* ------------- */
 
-	for( v = 2; v < (int)vPix; ++v ) {
+    for( v = 2; v < (int)vPix; ++v ) {
 
-		/* ------------------------ */
-		/* All but last word on row */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All but last word on row */
+        /* ------------------------ */
 
-		prvLSB1 = 0;
-		prvLSB2 = 0;
-		prvLSB3 = 0;
+        prvLSB1 = 0;
+        prvLSB2 = 0;
+        prvLSB3 = 0;
 
-		for( h = 0; h < nWords; ++h ) {
+        for( h = 0; h < nWords; ++h ) {
 
-			W1		= *src1++;
-			W2		= *src2++;
-			W3		= *src3++;
-			*dst++	= W1
-						| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-						| (W1 << 1) | (*src1 >> AllButOneBit)
-						| W2
-						| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-						| (W2 << 1) | (*src2 >> AllButOneBit)
-						| W3
-						| (W3 >> 1) | (prvLSB3 << AllButOneBit)
-						| (W3 << 1) | (*src3 >> AllButOneBit);
-			prvLSB1	= W1 & 1;
-			prvLSB2	= W2 & 1;
-			prvLSB3	= W3 & 1;
-		}
+            W1		= *src1++;
+            W2		= *src2++;
+            W3		= *src3++;
+            *dst++	= W1
+                        | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                        | (W1 << 1) | (*src1 >> AllButOneBit)
+                        | W2
+                        | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                        | (W2 << 1) | (*src2 >> AllButOneBit)
+                        | W3
+                        | (W3 >> 1) | (prvLSB3 << AllButOneBit)
+                        | (W3 << 1) | (*src3 >> AllButOneBit);
+            prvLSB1	= W1 & 1;
+            prvLSB2	= W2 & 1;
+            prvLSB3	= W3 & 1;
+        }
 
-		/* --------- */
-		/* Last word */
-		/* --------- */
+        /* --------- */
+        /* Last word */
+        /* --------- */
 
-		W1		= *src1++;
-		W2		= *src2++;
-		W3		= *src3++;
-		*dst++	= W1
-					| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-					| (W1 << 1)
-					| W2
-					| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-					| (W2 << 1)
-					| W3
-					| (W3 >> 1) | (prvLSB3 << AllButOneBit)
-					| (W3 << 1);
-	}
+        W1		= *src1++;
+        W2		= *src2++;
+        W3		= *src3++;
+        *dst++	= W1
+                    | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                    | (W1 << 1)
+                    | W2
+                    | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                    | (W2 << 1)
+                    | W3
+                    | (W3 >> 1) | (prvLSB3 << AllButOneBit)
+                    | (W3 << 1);
+    }
 
 /* ---------- */
 /* Bottom row */
 /* ---------- */
 
-	/* ------------------------ */
-	/* All but last word on row */
-	/* ------------------------ */
+    /* ------------------------ */
+    /* All but last word on row */
+    /* ------------------------ */
 
-	prvLSB1 = 0;
-	prvLSB2 = 0;
+    prvLSB1 = 0;
+    prvLSB2 = 0;
 
-	for( h = 0; h < nWords; ++h ) {
+    for( h = 0; h < nWords; ++h ) {
 
-		W1		= *src1++;
-		W2		= *src2++;
-		*dst++	= W1
-					| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-					| (W1 << 1) | (*src1 >> AllButOneBit)
-					| W2
-					| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-					| (W2 << 1) | (*src2 >> AllButOneBit);
-		prvLSB1	= W1 & 1;
-		prvLSB2	= W2 & 1;
-	}
+        W1		= *src1++;
+        W2		= *src2++;
+        *dst++	= W1
+                    | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                    | (W1 << 1) | (*src1 >> AllButOneBit)
+                    | W2
+                    | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                    | (W2 << 1) | (*src2 >> AllButOneBit);
+        prvLSB1	= W1 & 1;
+        prvLSB2	= W2 & 1;
+    }
 
-	/* --------- */
-	/* Last word */
-	/* --------- */
+    /* --------- */
+    /* Last word */
+    /* --------- */
 
-	W1		= *src1;
-	W2		= *src2;
-	*dst	= W1
-				| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-				| (W1 << 1)
-				| W2
-				| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-				| (W2 << 1);
+    W1		= *src1;
+    W2		= *src2;
+    *dst	= W1
+                | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                | (W1 << 1)
+                | W2
+                | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                | (W2 << 1);
 }
 
 
@@ -1803,31 +1803,31 @@ void BMAPTraceMap_1Pixel(
  */
 
 int BMAPTraceMap_NPixels(
-	UInt32				*dstMap0,
-	UInt32				*dstMap1,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	UInt32				nPixels )
+    UInt32				*dstMap0,
+    UInt32				*dstMap1,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    UInt32				nPixels )
 {
-	if( !nPixels-- ) {
-		MEMCopyMap( dstMap1, srcMap, hPix, vPix );
-		goto exit;
-	}
+    if( !nPixels-- ) {
+        MEMCopyMap( dstMap1, srcMap, hPix, vPix );
+        goto exit;
+    }
 
-	BMAPTraceMap_1Pixel( dstMap0, srcMap, hPix, vPix );
+    BMAPTraceMap_1Pixel( dstMap0, srcMap, hPix, vPix );
 
-	while( nPixels >= 2 ) {
-		BMAPTraceMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
-		BMAPTraceMap_1Pixel( dstMap0, dstMap1, hPix, vPix );
-		nPixels -= 2;
-	}
+    while( nPixels >= 2 ) {
+        BMAPTraceMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
+        BMAPTraceMap_1Pixel( dstMap0, dstMap1, hPix, vPix );
+        nPixels -= 2;
+    }
 
-	if( nPixels )
-		BMAPTraceMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
+    if( nPixels )
+        BMAPTraceMap_1Pixel( dstMap1, dstMap0, hPix, vPix );
 
 exit:
-	return (nPixels & 1);
+    return (nPixels & 1);
 }
 
 
@@ -1856,93 +1856,93 @@ exit:
  */
 
 void BMAPInsetPatch_1Pixel(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*dst, *src1, *src2, *src3;
-	UInt32	rowBytes, W, prevLSB;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*dst, *src1, *src2, *src3;
+    UInt32	rowBytes, W, prevLSB;
+    int		v, h, hL, hR, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	++top;
-	--bot;
+    ++top;
+    --bot;
 
-	W		= rowBytes * top;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    W		= rowBytes * top;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	dst		= (UInt32*)((char*)dstMap + W);
-	src2	= (UInt32*)((char*)srcMap + W);
-	src1	= (UInt32*)((char*)src2 - rowBytes);
-	src3	= (UInt32*)((char*)src2 + rowBytes);
+    dst		= (UInt32*)((char*)dstMap + W);
+    src2	= (UInt32*)((char*)srcMap + W);
+    src1	= (UInt32*)((char*)src2 - rowBytes);
+    src3	= (UInt32*)((char*)src2 + rowBytes);
 
 /* ------------- */
 /* Interior rows */
 /* ------------- */
 
-	for( v = top; v < bot;
-		++v,
-		dst  = (UInt32*)((char*)dst + rowBytes),
-		src1 = (UInt32*)((char*)src1 + rowBytes),
-		src2 = (UInt32*)((char*)src2 + rowBytes),
-		src3 = (UInt32*)((char*)src3 + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v,
+        dst  = (UInt32*)((char*)dst + rowBytes),
+        src1 = (UInt32*)((char*)src1 + rowBytes),
+        src2 = (UInt32*)((char*)src2 + rowBytes),
+        src3 = (UInt32*)((char*)src3 + rowBytes) ) {
 
-		/* ------------------------ */
-		/* All but last word on row */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All but last word on row */
+        /* ------------------------ */
 
-		prevLSB = 0;
+        prevLSB = 0;
 
-		for( h = hL; h < hR; ++h ) {
+        for( h = hL; h < hR; ++h ) {
 
-			W		= src2[h];
-			dst[h]	= W
-						& ((W >> 1) | (prevLSB << AllButOneBit))
-						& ((W << 1) | (src2[h + 1] >> AllButOneBit))
-						& src1[h]
-						& src3[h];
-			prevLSB	= W & 1;
-		}
+            W		= src2[h];
+            dst[h]	= W
+                        & ((W >> 1) | (prevLSB << AllButOneBit))
+                        & ((W << 1) | (src2[h + 1] >> AllButOneBit))
+                        & src1[h]
+                        & src3[h];
+            prevLSB	= W & 1;
+        }
 
-		/* --------- */
-		/* Last word */
-		/* --------- */
+        /* --------- */
+        /* Last word */
+        /* --------- */
 
-		W		= src2[hR];
-		dst[hR]	= W
-					& ((W >> 1) | (prevLSB << AllButOneBit))
-					&  (W << 1)
-					& src1[hR]
-					& src3[hR];
-	}
+        W		= src2[hR];
+        dst[hR]	= W
+                    & ((W >> 1) | (prevLSB << AllButOneBit))
+                    &  (W << 1)
+                    & src1[hR]
+                    & src3[hR];
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1970,32 +1970,32 @@ exit:
  */
 
 int BMAPInsetPatch_NPixels(
-	UInt32				*dstMap0,
-	UInt32				*dstMap1,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	UInt32				nPixels,
-	const U16BoxPtr		box )
+    UInt32				*dstMap0,
+    UInt32				*dstMap1,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    UInt32				nPixels,
+    const U16BoxPtr		box )
 {
-	if( !nPixels-- ) {
-		BMAPCopyPatch( dstMap1, srcMap, hPix, vPix, box );
-		goto exit;
-	}
+    if( !nPixels-- ) {
+        BMAPCopyPatch( dstMap1, srcMap, hPix, vPix, box );
+        goto exit;
+    }
 
-	BMAPInsetPatch_1Pixel( dstMap0, srcMap, hPix, vPix, box );
+    BMAPInsetPatch_1Pixel( dstMap0, srcMap, hPix, vPix, box );
 
-	while( nPixels >= 2 ) {
-		BMAPInsetPatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
-		BMAPInsetPatch_1Pixel( dstMap0, dstMap1, hPix, vPix, box );
-		nPixels -= 2;
-	}
+    while( nPixels >= 2 ) {
+        BMAPInsetPatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
+        BMAPInsetPatch_1Pixel( dstMap0, dstMap1, hPix, vPix, box );
+        nPixels -= 2;
+    }
 
-	if( nPixels )
-		BMAPInsetPatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
+    if( nPixels )
+        BMAPInsetPatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
 
 exit:
-	return (nPixels & 1);
+    return (nPixels & 1);
 }
 
 
@@ -2040,185 +2040,185 @@ exit:
  */
 
 void BMAPTracePatch_1Pixel(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	*dst, *src1, *src2, *src3;
-	UInt32	rowBytes, W1, W2, W3, prvLSB1, prvLSB2, prvLSB3;
-	int		v, h, hL, hR, top, left, bot, right;
+    UInt32	*dst, *src1, *src2, *src3;
+    UInt32	rowBytes, W1, W2, W3, prvLSB1, prvLSB2, prvLSB3;
+    int		v, h, hL, hR, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	rowBytes	= BitToByte( hPix );
+    rowBytes	= BitToByte( hPix );
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	--bot;
+    --bot;
 
-	W1		= rowBytes * top;
-	hL		= BitToWord( left );
-	hR		= BitToWord( right - 1 );
+    W1		= rowBytes * top;
+    hL		= BitToWord( left );
+    hR		= BitToWord( right - 1 );
 
-	dst		= (UInt32*)((char*)dstMap + W1);
-	src1	= (UInt32*)((char*)srcMap + W1);
-	src2	= (UInt32*)((char*)src1 + rowBytes);
-	src3	= (UInt32*)((char*)src2 + rowBytes);
+    dst		= (UInt32*)((char*)dstMap + W1);
+    src1	= (UInt32*)((char*)srcMap + W1);
+    src2	= (UInt32*)((char*)src1 + rowBytes);
+    src3	= (UInt32*)((char*)src2 + rowBytes);
 
 /* ------- */
 /* Top row */
 /* ------- */
 
-	/* ------------------------ */
-	/* All but last word on row */
-	/* ------------------------ */
+    /* ------------------------ */
+    /* All but last word on row */
+    /* ------------------------ */
 
-	prvLSB1 = 0;
-	prvLSB2 = 0;
+    prvLSB1 = 0;
+    prvLSB2 = 0;
 
-	for( h = hL; h < hR; ++h ) {
+    for( h = hL; h < hR; ++h ) {
 
-		W1		= src1[h];
-		W2		= src2[h];
-		dst[h]	= W1
-					| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-					| (W1 << 1) | (src1[h + 1] >> AllButOneBit)
-					| W2
-					| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-					| (W2 << 1) | (src2[h + 1] >> AllButOneBit);
-		prvLSB1	= W1 & 1;
-		prvLSB2	= W2 & 1;
-	}
+        W1		= src1[h];
+        W2		= src2[h];
+        dst[h]	= W1
+                    | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                    | (W1 << 1) | (src1[h + 1] >> AllButOneBit)
+                    | W2
+                    | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                    | (W2 << 1) | (src2[h + 1] >> AllButOneBit);
+        prvLSB1	= W1 & 1;
+        prvLSB2	= W2 & 1;
+    }
 
-	/* --------- */
-	/* Last word */
-	/* --------- */
+    /* --------- */
+    /* Last word */
+    /* --------- */
 
-	W1		= src1[hR];
-	W2		= src2[hR];
-	dst[hR]	= W1
-				| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-				| (W1 << 1)
-				| W2
-				| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-				| (W2 << 1);
+    W1		= src1[hR];
+    W2		= src2[hR];
+    dst[hR]	= W1
+                | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                | (W1 << 1)
+                | W2
+                | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                | (W2 << 1);
 
-	dst = (UInt32*)((char*)dst + rowBytes);
+    dst = (UInt32*)((char*)dst + rowBytes);
 
 /* ------------- */
 /* Interior rows */
 /* ------------- */
 
-	for( v = top + 1; v < bot; ++v,
-		dst  = (UInt32*)((char*)dst + rowBytes),
-		src1 = (UInt32*)((char*)src1 + rowBytes),
-		src2 = (UInt32*)((char*)src2 + rowBytes),
-		src3 = (UInt32*)((char*)src3 + rowBytes) ) {
+    for( v = top + 1; v < bot; ++v,
+        dst  = (UInt32*)((char*)dst + rowBytes),
+        src1 = (UInt32*)((char*)src1 + rowBytes),
+        src2 = (UInt32*)((char*)src2 + rowBytes),
+        src3 = (UInt32*)((char*)src3 + rowBytes) ) {
 
-		/* ------------------------ */
-		/* All but last word on row */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* All but last word on row */
+        /* ------------------------ */
 
-		prvLSB1 = 0;
-		prvLSB2 = 0;
-		prvLSB3 = 0;
+        prvLSB1 = 0;
+        prvLSB2 = 0;
+        prvLSB3 = 0;
 
-		for( h = hL; h < hR; ++h ) {
+        for( h = hL; h < hR; ++h ) {
 
-			W1		= src1[h];
-			W2		= src2[h];
-			W3		= src3[h];
-			dst[h]	= W1
-						| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-						| (W1 << 1) | (src1[h + 1] >> AllButOneBit)
-						| W2
-						| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-						| (W2 << 1) | (src2[h + 1] >> AllButOneBit)
-						| W3
-						| (W3 >> 1) | (prvLSB3 << AllButOneBit)
-						| (W3 << 1) | (src3[h + 1] >> AllButOneBit);
-			prvLSB1	= W1 & 1;
-			prvLSB2	= W2 & 1;
-			prvLSB3	= W3 & 1;
-		}
+            W1		= src1[h];
+            W2		= src2[h];
+            W3		= src3[h];
+            dst[h]	= W1
+                        | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                        | (W1 << 1) | (src1[h + 1] >> AllButOneBit)
+                        | W2
+                        | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                        | (W2 << 1) | (src2[h + 1] >> AllButOneBit)
+                        | W3
+                        | (W3 >> 1) | (prvLSB3 << AllButOneBit)
+                        | (W3 << 1) | (src3[h + 1] >> AllButOneBit);
+            prvLSB1	= W1 & 1;
+            prvLSB2	= W2 & 1;
+            prvLSB3	= W3 & 1;
+        }
 
-		/* --------- */
-		/* Last word */
-		/* --------- */
+        /* --------- */
+        /* Last word */
+        /* --------- */
 
-		W1		= src1[hR];
-		W2		= src2[hR];
-		W3		= src3[hR];
-		dst[hR]	= W1
-					| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-					| (W1 << 1)
-					| W2
-					| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-					| (W2 << 1)
-					| W3
-					| (W3 >> 1) | (prvLSB3 << AllButOneBit)
-					| (W3 << 1);
-	}
+        W1		= src1[hR];
+        W2		= src2[hR];
+        W3		= src3[hR];
+        dst[hR]	= W1
+                    | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                    | (W1 << 1)
+                    | W2
+                    | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                    | (W2 << 1)
+                    | W3
+                    | (W3 >> 1) | (prvLSB3 << AllButOneBit)
+                    | (W3 << 1);
+    }
 
 /* ---------- */
 /* Bottom row */
 /* ---------- */
 
-	/* ------------------------ */
-	/* All but last word on row */
-	/* ------------------------ */
+    /* ------------------------ */
+    /* All but last word on row */
+    /* ------------------------ */
 
-	prvLSB1 = 0;
-	prvLSB2 = 0;
+    prvLSB1 = 0;
+    prvLSB2 = 0;
 
-	for( h = hL; h < hR; ++h ) {
+    for( h = hL; h < hR; ++h ) {
 
-		W1		= src1[h];
-		W2		= src2[h];
-		dst[h]	= W1
-					| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-					| (W1 << 1) | (src1[h + 1] >> AllButOneBit)
-					| W2
-					| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-					| (W2 << 1) | (src2[h + 1] >> AllButOneBit);
-		prvLSB1	= W1 & 1;
-		prvLSB2	= W2 & 1;
-	}
+        W1		= src1[h];
+        W2		= src2[h];
+        dst[h]	= W1
+                    | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                    | (W1 << 1) | (src1[h + 1] >> AllButOneBit)
+                    | W2
+                    | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                    | (W2 << 1) | (src2[h + 1] >> AllButOneBit);
+        prvLSB1	= W1 & 1;
+        prvLSB2	= W2 & 1;
+    }
 
-	/* --------- */
-	/* Last word */
-	/* --------- */
+    /* --------- */
+    /* Last word */
+    /* --------- */
 
-	W1		= src1[hR];
-	W2		= src2[hR];
-	dst[hR]	= W1
-				| (W1 >> 1) | (prvLSB1 << AllButOneBit)
-				| (W1 << 1)
-				| W2
-				| (W2 >> 1) | (prvLSB2 << AllButOneBit)
-				| (W2 << 1);
+    W1		= src1[hR];
+    W2		= src2[hR];
+    dst[hR]	= W1
+                | (W1 >> 1) | (prvLSB1 << AllButOneBit)
+                | (W1 << 1)
+                | W2
+                | (W2 >> 1) | (prvLSB2 << AllButOneBit)
+                | (W2 << 1);
 
 exit:
-	return;
+    return;
 }
 
 
@@ -2262,32 +2262,32 @@ exit:
  */
 
 int BMAPTracePatch_NPixels(
-	UInt32				*dstMap0,
-	UInt32				*dstMap1,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	UInt32				nPixels,
-	const U16BoxPtr		box )
+    UInt32				*dstMap0,
+    UInt32				*dstMap1,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    UInt32				nPixels,
+    const U16BoxPtr		box )
 {
-	if( !nPixels-- ) {
-		BMAPCopyPatch( dstMap1, srcMap, hPix, vPix, box );
-		goto exit;
-	}
+    if( !nPixels-- ) {
+        BMAPCopyPatch( dstMap1, srcMap, hPix, vPix, box );
+        goto exit;
+    }
 
-	BMAPTracePatch_1Pixel( dstMap0, srcMap, hPix, vPix, box );
+    BMAPTracePatch_1Pixel( dstMap0, srcMap, hPix, vPix, box );
 
-	while( nPixels >= 2 ) {
-		BMAPTracePatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
-		BMAPTracePatch_1Pixel( dstMap0, dstMap1, hPix, vPix, box );
-		nPixels -= 2;
-	}
+    while( nPixels >= 2 ) {
+        BMAPTracePatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
+        BMAPTracePatch_1Pixel( dstMap0, dstMap1, hPix, vPix, box );
+        nPixels -= 2;
+    }
 
-	if( nPixels )
-		BMAPTracePatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
+    if( nPixels )
+        BMAPTracePatch_1Pixel( dstMap1, dstMap0, hPix, vPix, box );
 
 exit:
-	return (nPixels & 1);
+    return (nPixels & 1);
 }
 
 
@@ -2308,66 +2308,66 @@ exit:
  */
 
 int BMAPGetSeedPatch(
-	UInt32				*hSeed,
-	UInt32				*vSeed,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box,
-	UInt32				top )
+    UInt32				*hSeed,
+    UInt32				*vSeed,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box,
+    UInt32				top )
 {
-	UInt32	*pRow;
-	UInt32	rowBytes, w;
-	int		v, h, hL, hR, left, bot, right, found;
+    UInt32	*pRow;
+    UInt32	rowBytes, w;
+    int		v, h, hL, hR, left, bot, right, found;
 
-	found		= false;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
-	*hSeed		= left;
-	*vSeed		= top;
+    found		= false;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
+    *hSeed		= left;
+    *vSeed		= top;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( (int)top >= bot )
-		goto exit;
+    if( (int)top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	rowBytes	= BitToByte( hPix );
-	hL			= BitToWord( left );
-	hR			= BitToWord( right - 1 );
-	pRow		= (UInt32*)((char*)map + rowBytes * top);
+    rowBytes	= BitToByte( hPix );
+    hL			= BitToWord( left );
+    hR			= BitToWord( right - 1 );
+    pRow		= (UInt32*)((char*)map + rowBytes * top);
 
-	for( v = top; v < bot;
-		++v, pRow = (UInt32*)((char*)pRow + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v, pRow = (UInt32*)((char*)pRow + rowBytes) ) {
 
-		for( h = hL; h <= hR; ++h ) {
+        for( h = hL; h <= hR; ++h ) {
 
-			if( w = pRow[h] ) {
+            if( w = pRow[h] ) {
 
-				*vSeed = v;
+                *vSeed = v;
 
-				for( v = 0; v < WordBits; ++v, w <<= 1 ) {
+                for( v = 0; v < WordBits; ++v, w <<= 1 ) {
 
-					if( IsHiBitSet32( w ) ) {
+                    if( IsHiBitSet32( w ) ) {
 
-						*hSeed	= h * WordBits + v;
-						found	= true;
-						goto exit;
-					}
-				}
-			}
-		}
-	}
+                        *hSeed	= h * WordBits + v;
+                        found	= true;
+                        goto exit;
+                    }
+                }
+            }
+        }
+    }
 
 exit:
-	return found;
+    return found;
 }
 
 
@@ -2439,165 +2439,165 @@ exit:
  */
 
 UInt32 BMAPBucketTool(
-	U16BoxPtr			rgnBox,
-	UInt32				*map,
-	BMAPBucketPtr		stackBase,
-	int					hPix,
-	int					vPix,
-	int					hSeed,
-	int					vSeed )
+    U16BoxPtr			rgnBox,
+    UInt32				*map,
+    BMAPBucketPtr		stackBase,
+    int					hPix,
+    int					vPix,
+    int					hSeed,
+    int					vSeed )
 {
-	BMAPBucketPtr	stack;
-	UInt32			*thisRow;
-	UInt32			rowBytes, w, mask, area;
-	int				hIndx, top, left, bot, right;
+    BMAPBucketPtr	stack;
+    UInt32			*thisRow;
+    UInt32			rowBytes, w, mask, area;
+    int				hIndx, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
-	hIndx		= BitToWord( hSeed );
-	mask		= BMAP_HToMask( hSeed );
-	thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
-	stack		= stackBase;
-	w			= thisRow[hIndx];
-	top			= vSeed;
-	left		= hSeed;
-	bot			= -1;
-	right		= -1;
-	area		= 0;
-	--hPix;
-	--vPix;
+    rowBytes	= BitToByte( hPix );
+    hIndx		= BitToWord( hSeed );
+    mask		= BMAP_HToMask( hSeed );
+    thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
+    stack		= stackBase;
+    w			= thisRow[hIndx];
+    top			= vSeed;
+    left		= hSeed;
+    bot			= -1;
+    right		= -1;
+    area		= 0;
+    --hPix;
+    --vPix;
 
-	if( w & mask ) {
+    if( w & mask ) {
 
-		thisRow[hIndx]	= w ^ mask;
-		bot				= vSeed;
-		right			= hSeed;
-		area			= 1;
+        thisRow[hIndx]	= w ^ mask;
+        bot				= vSeed;
+        right			= hSeed;
+        area			= 1;
 
-		goto start;
+        goto start;
 
-		do {
+        do {
 
-			/* --- */
-			/* Pop */
-			/* --- */
+            /* --- */
+            /* Pop */
+            /* --- */
 
-			--stack;
-			++area;
-			vSeed	= stack->vSeed;
-			hSeed	= stack->hSeed;
-			thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
+            --stack;
+            ++area;
+            vSeed	= stack->vSeed;
+            hSeed	= stack->hSeed;
+            thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
 
-			/* ----- */
-			/* Above */
-			/* ----- */
+            /* ----- */
+            /* Above */
+            /* ----- */
 start:
-			if( vSeed ) {
+            if( vSeed ) {
 
-				thisRow = (UInt32*)((char*)thisRow - rowBytes);
+                thisRow = (UInt32*)((char*)thisRow - rowBytes);
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed - 1;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed - 1;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed <= top )
-						top = vSeed - 1;
-				}
+                    if( (int)vSeed <= top )
+                        top = vSeed - 1;
+                }
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
-			}
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
+            }
 
-			/* ---- */
-			/* Left */
-			/* ---- */
+            /* ---- */
+            /* Left */
+            /* ---- */
 
-			if( hSeed ) {
+            if( hSeed ) {
 
-				--hSeed;
+                --hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed < left )
-						left = hSeed;
-				}
+                    if( (int)hSeed < left )
+                        left = hSeed;
+                }
 
-				++hSeed;
-			}
+                ++hSeed;
+            }
 
-			/* ----- */
-			/* Right */
-			/* ----- */
+            /* ----- */
+            /* Right */
+            /* ----- */
 
-			if( hSeed < hPix ) {
+            if( hSeed < hPix ) {
 
-				++hSeed;
+                ++hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed > right )
-						right = hSeed;
-				}
+                    if( (int)hSeed > right )
+                        right = hSeed;
+                }
 
-				--hSeed;
-			}
+                --hSeed;
+            }
 
-			/* ----- */
-			/* Below */
-			/* ----- */
+            /* ----- */
+            /* Below */
+            /* ----- */
 
-			if( vSeed < vPix ) {
+            if( vSeed < vPix ) {
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed + 1;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed + 1;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed >= bot )
-						bot = vSeed + 1;
-				}
-			}
+                    if( (int)vSeed >= bot )
+                        bot = vSeed + 1;
+                }
+            }
 
-		} while( stack > stackBase );
-	}
+        } while( stack > stackBase );
+    }
 
-	rgnBox->top		= top;
-	rgnBox->left	= left;
-	rgnBox->bottom	= bot + 1;
-	rgnBox->right	= right + 1;
+    rgnBox->top		= top;
+    rgnBox->left	= left;
+    rgnBox->bottom	= bot + 1;
+    rgnBox->right	= right + 1;
 
-	return area;
+    return area;
 }
 
 
@@ -2612,292 +2612,292 @@ start:
  */
 
 UInt32 BMAPBucketTool8Way(
-	U16BoxPtr			rgnBox,
-	UInt32				*map,
-	BMAPBucketPtr		stackBase,
-	int					hPix,
-	int					vPix,
-	int					hSeed,
-	int					vSeed )
+    U16BoxPtr			rgnBox,
+    UInt32				*map,
+    BMAPBucketPtr		stackBase,
+    int					hPix,
+    int					vPix,
+    int					hSeed,
+    int					vSeed )
 {
-	BMAPBucketPtr	stack;
-	UInt32			*thisRow;
-	UInt32			rowBytes, w, mask, area;
-	int				hIndx, top, left, bot, right;
+    BMAPBucketPtr	stack;
+    UInt32			*thisRow;
+    UInt32			rowBytes, w, mask, area;
+    int				hIndx, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
-	hIndx		= BitToWord( hSeed );
-	mask		= BMAP_HToMask( hSeed );
-	thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
-	stack		= stackBase;
-	w			= thisRow[hIndx];
-	top			= vSeed;
-	left		= hSeed;
-	bot			= -1;
-	right		= -1;
-	area		= 0;
-	--hPix;
-	--vPix;
+    rowBytes	= BitToByte( hPix );
+    hIndx		= BitToWord( hSeed );
+    mask		= BMAP_HToMask( hSeed );
+    thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
+    stack		= stackBase;
+    w			= thisRow[hIndx];
+    top			= vSeed;
+    left		= hSeed;
+    bot			= -1;
+    right		= -1;
+    area		= 0;
+    --hPix;
+    --vPix;
 
-	if( w & mask ) {
+    if( w & mask ) {
 
-		thisRow[hIndx]	= w ^ mask;
-		bot				= vSeed;
-		right			= hSeed;
-		area			= 1;
+        thisRow[hIndx]	= w ^ mask;
+        bot				= vSeed;
+        right			= hSeed;
+        area			= 1;
 
-		goto start;
+        goto start;
 
-		do {
+        do {
 
-			/* --- */
-			/* Pop */
-			/* --- */
+            /* --- */
+            /* Pop */
+            /* --- */
 
-			--stack;
-			++area;
-			vSeed	= stack->vSeed;
-			hSeed	= stack->hSeed;
-			thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
+            --stack;
+            ++area;
+            vSeed	= stack->vSeed;
+            hSeed	= stack->hSeed;
+            thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
 
-			/* ----- */
-			/* Above */
-			/* ----- */
+            /* ----- */
+            /* Above */
+            /* ----- */
 start:
-			if( vSeed ) {
+            if( vSeed ) {
 
-				thisRow = (UInt32*)((char*)thisRow - rowBytes);
-				--vSeed;
+                thisRow = (UInt32*)((char*)thisRow - rowBytes);
+                --vSeed;
 
-				/* ------------ */
-				/* Above - left */
-				/* ------------ */
+                /* ------------ */
+                /* Above - left */
+                /* ------------ */
 
-				if( hSeed ) {
+                if( hSeed ) {
 
-					--hSeed;
+                    --hSeed;
 
-					hIndx	= BitToWord( hSeed );
-					mask	= BMAP_HToMask( hSeed );
-					w		= thisRow[hIndx];
+                    hIndx	= BitToWord( hSeed );
+                    mask	= BMAP_HToMask( hSeed );
+                    w		= thisRow[hIndx];
 
-					if( w & mask ) {	/* clear and push */
+                    if( w & mask ) {	/* clear and push */
 
-						thisRow[hIndx]	= w ^ mask;
-						stack->vSeed	= vSeed;
-						stack->hSeed	= hSeed;
-						++stack;
+                        thisRow[hIndx]	= w ^ mask;
+                        stack->vSeed	= vSeed;
+                        stack->hSeed	= hSeed;
+                        ++stack;
 
-						if( (int)hSeed < left )
-							left = hSeed;
+                        if( (int)hSeed < left )
+                            left = hSeed;
 
-						if( (int)vSeed < top )
-							top = vSeed;
-					}
+                        if( (int)vSeed < top )
+                            top = vSeed;
+                    }
 
-					++hSeed;
-				}
+                    ++hSeed;
+                }
 
-				/* ----------- */
-				/* Above - mid */
-				/* ----------- */
+                /* ----------- */
+                /* Above - mid */
+                /* ----------- */
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed < top )
-						top = vSeed;
-				}
+                    if( (int)vSeed < top )
+                        top = vSeed;
+                }
 
-				/* ------------- */
-				/* Above - right */
-				/* ------------- */
+                /* ------------- */
+                /* Above - right */
+                /* ------------- */
 
-				if( hSeed < hPix ) {
+                if( hSeed < hPix ) {
 
-					++hSeed;
+                    ++hSeed;
 
-					hIndx	= BitToWord( hSeed );
-					mask	= BMAP_HToMask( hSeed );
-					w		= thisRow[hIndx];
+                    hIndx	= BitToWord( hSeed );
+                    mask	= BMAP_HToMask( hSeed );
+                    w		= thisRow[hIndx];
 
-					if( w & mask ) {	/* clear and push */
+                    if( w & mask ) {	/* clear and push */
 
-						thisRow[hIndx]	= w ^ mask;
-						stack->vSeed	= vSeed;
-						stack->hSeed	= hSeed;
-						++stack;
+                        thisRow[hIndx]	= w ^ mask;
+                        stack->vSeed	= vSeed;
+                        stack->hSeed	= hSeed;
+                        ++stack;
 
-						if( (int)hSeed > right )
-							right = hSeed;
+                        if( (int)hSeed > right )
+                            right = hSeed;
 
-						if( (int)vSeed < top )
-							top = vSeed;
-					}
+                        if( (int)vSeed < top )
+                            top = vSeed;
+                    }
 
-					--hSeed;
-				}
+                    --hSeed;
+                }
 
-				++vSeed;
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
-			}
+                ++vSeed;
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
+            }
 
-			/* ---- */
-			/* Left */
-			/* ---- */
+            /* ---- */
+            /* Left */
+            /* ---- */
 
-			if( hSeed ) {
+            if( hSeed ) {
 
-				--hSeed;
+                --hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed < left )
-						left = hSeed;
-				}
+                    if( (int)hSeed < left )
+                        left = hSeed;
+                }
 
-				++hSeed;
-			}
+                ++hSeed;
+            }
 
-			/* ----- */
-			/* Right */
-			/* ----- */
+            /* ----- */
+            /* Right */
+            /* ----- */
 
-			if( hSeed < hPix ) {
+            if( hSeed < hPix ) {
 
-				++hSeed;
+                ++hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed > right )
-						right = hSeed;
-				}
+                    if( (int)hSeed > right )
+                        right = hSeed;
+                }
 
-				--hSeed;
-			}
+                --hSeed;
+            }
 
-			/* ----- */
-			/* Below */
-			/* ----- */
+            /* ----- */
+            /* Below */
+            /* ----- */
 
-			if( vSeed < vPix ) {
+            if( vSeed < vPix ) {
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
-				++vSeed;
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
+                ++vSeed;
 
-				/* ------------ */
-				/* Below - left */
-				/* ------------ */
+                /* ------------ */
+                /* Below - left */
+                /* ------------ */
 
-				if( hSeed ) {
+                if( hSeed ) {
 
-					--hSeed;
+                    --hSeed;
 
-					hIndx	= BitToWord( hSeed );
-					mask	= BMAP_HToMask( hSeed );
-					w		= thisRow[hIndx];
+                    hIndx	= BitToWord( hSeed );
+                    mask	= BMAP_HToMask( hSeed );
+                    w		= thisRow[hIndx];
 
-					if( w & mask ) {	/* clear and push */
+                    if( w & mask ) {	/* clear and push */
 
-						thisRow[hIndx]	= w ^ mask;
-						stack->vSeed	= vSeed;
-						stack->hSeed	= hSeed;
-						++stack;
+                        thisRow[hIndx]	= w ^ mask;
+                        stack->vSeed	= vSeed;
+                        stack->hSeed	= hSeed;
+                        ++stack;
 
-						if( (int)hSeed < left )
-							left = hSeed;
+                        if( (int)hSeed < left )
+                            left = hSeed;
 
-						if( (int)vSeed > bot )
-							bot = vSeed;
-					}
+                        if( (int)vSeed > bot )
+                            bot = vSeed;
+                    }
 
-					++hSeed;
-				}
+                    ++hSeed;
+                }
 
-				/* ----------- */
-				/* Below - mid */
-				/* ----------- */
+                /* ----------- */
+                /* Below - mid */
+                /* ----------- */
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed > bot )
-						bot = vSeed;
-				}
+                    if( (int)vSeed > bot )
+                        bot = vSeed;
+                }
 
-				/* ------------- */
-				/* Below - right */
-				/* ------------- */
+                /* ------------- */
+                /* Below - right */
+                /* ------------- */
 
-				if( hSeed < hPix ) {
+                if( hSeed < hPix ) {
 
-					++hSeed;
+                    ++hSeed;
 
-					hIndx	= BitToWord( hSeed );
-					mask	= BMAP_HToMask( hSeed );
-					w		= thisRow[hIndx];
+                    hIndx	= BitToWord( hSeed );
+                    mask	= BMAP_HToMask( hSeed );
+                    w		= thisRow[hIndx];
 
-					if( w & mask ) {	/* clear and push */
+                    if( w & mask ) {	/* clear and push */
 
-						thisRow[hIndx]	= w ^ mask;
-						stack->vSeed	= vSeed;
-						stack->hSeed	= hSeed;
-						++stack;
+                        thisRow[hIndx]	= w ^ mask;
+                        stack->vSeed	= vSeed;
+                        stack->hSeed	= hSeed;
+                        ++stack;
 
-						if( (int)hSeed > right )
-							right = hSeed;
+                        if( (int)hSeed > right )
+                            right = hSeed;
 
-						if( (int)vSeed > bot )
-							bot = vSeed;
-					}
+                        if( (int)vSeed > bot )
+                            bot = vSeed;
+                    }
 
-					--hSeed;
-				}
-			}
+                    --hSeed;
+                }
+            }
 
-		} while( stack > stackBase );
-	}
+        } while( stack > stackBase );
+    }
 
-	rgnBox->top		= top;
-	rgnBox->left	= left;
-	rgnBox->bottom	= bot + 1;
-	rgnBox->right	= right + 1;
+    rgnBox->top		= top;
+    rgnBox->left	= left;
+    rgnBox->bottom	= bot + 1;
+    rgnBox->right	= right + 1;
 
-	return area;
+    return area;
 }
 
 
@@ -2933,166 +2933,166 @@ start:
  */
 
 UInt32 BMAPBoxedBucketTool(
-	U16BoxPtr			rgnBox,
-	UInt32				*map,
-	BMAPBucketPtr		stackBase,
-	int					hPix,
-	int					vPix,
-	int					hSeed,
-	int					vSeed,
-	const U16BoxPtr		box )
+    U16BoxPtr			rgnBox,
+    UInt32				*map,
+    BMAPBucketPtr		stackBase,
+    int					hPix,
+    int					vPix,
+    int					hSeed,
+    int					vSeed,
+    const U16BoxPtr		box )
 {
-	BMAPBucketPtr	stack;
-	UInt32			*thisRow;
-	UInt32			rowBytes, w, mask, area;
-	int				hIndx, top, left, bot, right;
+    BMAPBucketPtr	stack;
+    UInt32			*thisRow;
+    UInt32			rowBytes, w, mask, area;
+    int				hIndx, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
-	hIndx		= BitToWord( hSeed );
-	mask		= BMAP_HToMask( hSeed );
-	thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
-	stack		= stackBase;
-	w			= thisRow[hIndx];
-	top			= vSeed;
-	left		= hSeed;
-	bot			= -1;
-	right		= -1;
-	area		= 0;
-	hPix		= box->right  - 1;
-	vPix		= box->bottom - 1;
+    rowBytes	= BitToByte( hPix );
+    hIndx		= BitToWord( hSeed );
+    mask		= BMAP_HToMask( hSeed );
+    thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
+    stack		= stackBase;
+    w			= thisRow[hIndx];
+    top			= vSeed;
+    left		= hSeed;
+    bot			= -1;
+    right		= -1;
+    area		= 0;
+    hPix		= box->right  - 1;
+    vPix		= box->bottom - 1;
 
-	if( w & mask ) {
+    if( w & mask ) {
 
-		thisRow[hIndx]	= w ^ mask;
-		bot				= vSeed;
-		right			= hSeed;
-		area			= 1;
+        thisRow[hIndx]	= w ^ mask;
+        bot				= vSeed;
+        right			= hSeed;
+        area			= 1;
 
-		goto start;
+        goto start;
 
-		do {
+        do {
 
-			/* --- */
-			/* Pop */
-			/* --- */
+            /* --- */
+            /* Pop */
+            /* --- */
 
-			--stack;
-			++area;
-			vSeed	= stack->vSeed;
-			hSeed	= stack->hSeed;
-			thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
+            --stack;
+            ++area;
+            vSeed	= stack->vSeed;
+            hSeed	= stack->hSeed;
+            thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
 
-			/* ----- */
-			/* Above */
-			/* ----- */
+            /* ----- */
+            /* Above */
+            /* ----- */
 start:
-			if( vSeed > box->top ) {
+            if( vSeed > box->top ) {
 
-				thisRow = (UInt32*)((char*)thisRow - rowBytes);
+                thisRow = (UInt32*)((char*)thisRow - rowBytes);
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed - 1;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed - 1;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed <= top )
-						top = vSeed - 1;
-				}
+                    if( (int)vSeed <= top )
+                        top = vSeed - 1;
+                }
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
-			}
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
+            }
 
-			/* ---- */
-			/* Left */
-			/* ---- */
+            /* ---- */
+            /* Left */
+            /* ---- */
 
-			if( hSeed > box->left ) {
+            if( hSeed > box->left ) {
 
-				--hSeed;
+                --hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed < left )
-						left = hSeed;
-				}
+                    if( (int)hSeed < left )
+                        left = hSeed;
+                }
 
-				++hSeed;
-			}
+                ++hSeed;
+            }
 
-			/* ----- */
-			/* Right */
-			/* ----- */
+            /* ----- */
+            /* Right */
+            /* ----- */
 
-			if( hSeed < hPix ) {
+            if( hSeed < hPix ) {
 
-				++hSeed;
+                ++hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed > right )
-						right = hSeed;
-				}
+                    if( (int)hSeed > right )
+                        right = hSeed;
+                }
 
-				--hSeed;
-			}
+                --hSeed;
+            }
 
-			/* ----- */
-			/* Below */
-			/* ----- */
+            /* ----- */
+            /* Below */
+            /* ----- */
 
-			if( vSeed < vPix ) {
+            if( vSeed < vPix ) {
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed + 1;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed + 1;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed >= bot )
-						bot = vSeed + 1;
-				}
-			}
+                    if( (int)vSeed >= bot )
+                        bot = vSeed + 1;
+                }
+            }
 
-		} while( stack > stackBase );
-	}
+        } while( stack > stackBase );
+    }
 
-	rgnBox->top		= top;
-	rgnBox->left	= left;
-	rgnBox->bottom	= bot + 1;
-	rgnBox->right	= right + 1;
+    rgnBox->top		= top;
+    rgnBox->left	= left;
+    rgnBox->bottom	= bot + 1;
+    rgnBox->right	= right + 1;
 
-	return area;
+    return area;
 }
 
 
@@ -3131,177 +3131,177 @@ start:
  */
 
 UInt32 BMAPBoxCGArea(
-	BMAPBoxCGPtr		rgn,
-	UInt32				*map,
-	BMAPBucketPtr		stackBase,
-	int					hPix,
-	int					vPix,
-	int					hSeed,
-	int					vSeed )
+    BMAPBoxCGPtr		rgn,
+    UInt32				*map,
+    BMAPBucketPtr		stackBase,
+    int					hPix,
+    int					vPix,
+    int					hSeed,
+    int					vSeed )
 {
-	BMAPBucketPtr	stack;
-	UInt32			*thisRow;
-	UInt32			rowBytes, w, mask, area, xC, yC;
-	int				hIndx, top, left, bot, right;
+    BMAPBucketPtr	stack;
+    UInt32			*thisRow;
+    UInt32			rowBytes, w, mask, area, xC, yC;
+    int				hIndx, top, left, bot, right;
 
-	rowBytes	= BitToByte( hPix );
-	hIndx		= BitToWord( hSeed );
-	mask		= BMAP_HToMask( hSeed );
-	thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
-	stack		= stackBase;
-	w			= thisRow[hIndx];
-	top			= vSeed;
-	left		= hSeed;
-	bot			= -1;
-	right		= -1;
-	xC			= 0;
-	yC			= 0;
-	area		= 0;
-	--hPix;
-	--vPix;
+    rowBytes	= BitToByte( hPix );
+    hIndx		= BitToWord( hSeed );
+    mask		= BMAP_HToMask( hSeed );
+    thisRow		= (UInt32*)((char*)map + rowBytes * vSeed);
+    stack		= stackBase;
+    w			= thisRow[hIndx];
+    top			= vSeed;
+    left		= hSeed;
+    bot			= -1;
+    right		= -1;
+    xC			= 0;
+    yC			= 0;
+    area		= 0;
+    --hPix;
+    --vPix;
 
-	if( w & mask ) {
+    if( w & mask ) {
 
-		thisRow[hIndx]	= w ^ mask;
-		yC				= vSeed;
-		bot				= vSeed;
-		xC				= hSeed;
-		right			= hSeed;
-		area			= 1;
+        thisRow[hIndx]	= w ^ mask;
+        yC				= vSeed;
+        bot				= vSeed;
+        xC				= hSeed;
+        right			= hSeed;
+        area			= 1;
 
-		goto start;
+        goto start;
 
-		do {
+        do {
 
-			/* --- */
-			/* Pop */
-			/* --- */
+            /* --- */
+            /* Pop */
+            /* --- */
 
-			--stack;
-			++area;
-			vSeed	= stack->vSeed;
-			hSeed	= stack->hSeed;
-			thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
+            --stack;
+            ++area;
+            vSeed	= stack->vSeed;
+            hSeed	= stack->hSeed;
+            thisRow	= (UInt32*)((char*)map + rowBytes * vSeed);
 
-			yC += vSeed;
-			xC += hSeed;
+            yC += vSeed;
+            xC += hSeed;
 
-			/* ----- */
-			/* Above */
-			/* ----- */
+            /* ----- */
+            /* Above */
+            /* ----- */
 start:
-			if( vSeed ) {
+            if( vSeed ) {
 
-				thisRow = (UInt32*)((char*)thisRow - rowBytes);
+                thisRow = (UInt32*)((char*)thisRow - rowBytes);
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed - 1;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed - 1;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed <= top )
-						top = vSeed - 1;
-				}
+                    if( (int)vSeed <= top )
+                        top = vSeed - 1;
+                }
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
-			}
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
+            }
 
-			/* ---- */
-			/* Left */
-			/* ---- */
+            /* ---- */
+            /* Left */
+            /* ---- */
 
-			if( hSeed ) {
+            if( hSeed ) {
 
-				--hSeed;
+                --hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed < left )
-						left = hSeed;
-				}
+                    if( (int)hSeed < left )
+                        left = hSeed;
+                }
 
-				++hSeed;
-			}
+                ++hSeed;
+            }
 
-			/* ----- */
-			/* Right */
-			/* ----- */
+            /* ----- */
+            /* Right */
+            /* ----- */
 
-			if( hSeed < hPix ) {
+            if( hSeed < hPix ) {
 
-				++hSeed;
+                ++hSeed;
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)hSeed > right )
-						right = hSeed;
-				}
+                    if( (int)hSeed > right )
+                        right = hSeed;
+                }
 
-				--hSeed;
-			}
+                --hSeed;
+            }
 
-			/* ----- */
-			/* Below */
-			/* ----- */
+            /* ----- */
+            /* Below */
+            /* ----- */
 
-			if( vSeed < vPix ) {
+            if( vSeed < vPix ) {
 
-				thisRow = (UInt32*)((char*)thisRow + rowBytes);
+                thisRow = (UInt32*)((char*)thisRow + rowBytes);
 
-				hIndx	= BitToWord( hSeed );
-				mask	= BMAP_HToMask( hSeed );
-				w		= thisRow[hIndx];
+                hIndx	= BitToWord( hSeed );
+                mask	= BMAP_HToMask( hSeed );
+                w		= thisRow[hIndx];
 
-				if( w & mask ) {	/* clear and push */
+                if( w & mask ) {	/* clear and push */
 
-					thisRow[hIndx]	= w ^ mask;
-					stack->vSeed	= vSeed + 1;
-					stack->hSeed	= hSeed;
-					++stack;
+                    thisRow[hIndx]	= w ^ mask;
+                    stack->vSeed	= vSeed + 1;
+                    stack->hSeed	= hSeed;
+                    ++stack;
 
-					if( (int)vSeed >= bot )
-						bot = vSeed + 1;
-				}
-			}
+                    if( (int)vSeed >= bot )
+                        bot = vSeed + 1;
+                }
+            }
 
-		} while( stack > stackBase );
-	}
+        } while( stack > stackBase );
+    }
 
-	rgn->box.top	= top;
-	rgn->box.left	= left;
-	rgn->box.bottom	= bot + 1;
-	rgn->box.right	= right + 1;
+    rgn->box.top	= top;
+    rgn->box.left	= left;
+    rgn->box.bottom	= bot + 1;
+    rgn->box.right	= right + 1;
 
-	if( area ) {
-		rgn->centroid.x = (int)(xC / area);
-		rgn->centroid.y = (int)(yC / area);
-	}
+    if( area ) {
+        rgn->centroid.x = (int)(xC / area);
+        rgn->centroid.y = (int)(yC / area);
+    }
 
-	return area;
+    return area;
 }
 
 

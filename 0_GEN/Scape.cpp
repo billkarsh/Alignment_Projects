@@ -14,73 +14,73 @@
 /* --------------------------------------------------------------- */
 
 static void AdjustBounds(
-	uint32			&ws,
-	uint32			&hs,
-	double			&x0,
-	double			&y0,
-	vector<ScpTile>	&vTile,
-	int				wi,
-	int				hi,
-	double			scale,
-	int				szmult )
+    uint32			&ws,
+    uint32			&hs,
+    double			&x0,
+    double			&y0,
+    vector<ScpTile>	&vTile,
+    int				wi,
+    int				hi,
+    double			scale,
+    int				szmult )
 {
 // maximum extents over all image corners
 
-	vector<Point>	cnr;
-	double			xmin, xmax, ymin, ymax;
-	int				nt = vTile.size();
+    vector<Point>	cnr;
+    double			xmin, xmax, ymin, ymax;
+    int				nt = vTile.size();
 
-	xmin =  BIGD;
-	xmax = -BIGD;
-	ymin =  BIGD;
-	ymax = -BIGD;
+    xmin =  BIGD;
+    xmax = -BIGD;
+    ymin =  BIGD;
+    ymax = -BIGD;
 
-	Set4Corners( cnr, wi, hi );
+    Set4Corners( cnr, wi, hi );
 
-	for( int i = 0; i < nt; ++i ) {
+    for( int i = 0; i < nt; ++i ) {
 
-		vector<Point>	c( 4 );
-		memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
-		vTile[i].t2g.Transform( c );
+        vector<Point>	c( 4 );
+        memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
+        vTile[i].t2g.Transform( c );
 
-		for( int k = 0; k < 4; ++k ) {
-			xmin = fmin( xmin, c[k].x );
-			xmax = fmax( xmax, c[k].x );
-			ymin = fmin( ymin, c[k].y );
-			ymax = fmax( ymax, c[k].y );
-		}
-	}
+        for( int k = 0; k < 4; ++k ) {
+            xmin = fmin( xmin, c[k].x );
+            xmax = fmax( xmax, c[k].x );
+            ymin = fmin( ymin, c[k].y );
+            ymax = fmax( ymax, c[k].y );
+        }
+    }
 
 // scale, and expand out to integer bounds
 
-	x0 = xmin * scale;
-	y0 = ymin * scale;
-	ws = (int)ceil( (xmax - xmin + 1) * scale );
-	hs = (int)ceil( (ymax - ymin + 1) * scale );
+    x0 = xmin * scale;
+    y0 = ymin * scale;
+    ws = (int)ceil( (xmax - xmin + 1) * scale );
+    hs = (int)ceil( (ymax - ymin + 1) * scale );
 
 // ensure dims divisible by szmult
 
-	int	rem;
+    int	rem;
 
-	if( rem = ws % szmult )
-		ws += szmult - rem;
+    if( rem = ws % szmult )
+        ws += szmult - rem;
 
-	if( rem = hs % szmult )
-		hs += szmult - rem;
+    if( rem = hs % szmult )
+        hs += szmult - rem;
 
 // propagate new dims
 
-	TAffine	A;
+    TAffine	A;
 
-	A.NUSetScl( scale );
+    A.NUSetScl( scale );
 
-	for( int i = 0; i < nt; ++i ) {
+    for( int i = 0; i < nt; ++i ) {
 
-		TAffine	&T = vTile[i].t2g;
+        TAffine	&T = vTile[i].t2g;
 
-		T = A * T;
-		T.AddXY( -x0, -y0 );
-	}
+        T = A * T;
+        T.AddXY( -x0, -y0 );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -96,45 +96,45 @@ static void AdjustBounds(
 // the scape coords to exceed [0,ws); [0,hs).
 //
 static void ScanLims(
-	int				&x0,
-	int				&xL,
-	int				&y0,
-	int				&yL,
-	int				ws,
-	int				hs,
-	const TAffine	&T,
-	int				wi,
-	int				hi )
+    int				&x0,
+    int				&xL,
+    int				&y0,
+    int				&yL,
+    int				ws,
+    int				hs,
+    const TAffine	&T,
+    int				wi,
+    int				hi )
 {
-	double	xmin, xmax, ymin, ymax;
+    double	xmin, xmax, ymin, ymax;
 
-	xmin =  BIGD;
-	xmax = -BIGD;
-	ymin =  BIGD;
-	ymax = -BIGD;
+    xmin =  BIGD;
+    xmax = -BIGD;
+    ymin =  BIGD;
+    ymax = -BIGD;
 
-	vector<Point>	cnr( 4 );
+    vector<Point>	cnr( 4 );
 
 // generous box (outset 1 pixel) for scanning
 
-	cnr[0] = Point( -1.0, -1.0 );
-	cnr[1] = Point(   wi, -1.0 );
-	cnr[2] = Point(   wi,   hi );
-	cnr[3] = Point( -1.0,   hi );
+    cnr[0] = Point( -1.0, -1.0 );
+    cnr[1] = Point(   wi, -1.0 );
+    cnr[2] = Point(   wi,   hi );
+    cnr[3] = Point( -1.0,   hi );
 
-	T.Transform( cnr );
+    T.Transform( cnr );
 
-	for( int k = 0; k < 4; ++k ) {
-		xmin = fmin( xmin, cnr[k].x );
-		xmax = fmax( xmax, cnr[k].x );
-		ymin = fmin( ymin, cnr[k].y );
-		ymax = fmax( ymax, cnr[k].y );
-	}
+    for( int k = 0; k < 4; ++k ) {
+        xmin = fmin( xmin, cnr[k].x );
+        xmax = fmax( xmax, cnr[k].x );
+        ymin = fmin( ymin, cnr[k].y );
+        ymax = fmax( ymax, cnr[k].y );
+    }
 
-	x0 = max( 0, (int)floor( xmin ) );
-	y0 = max( 0, (int)floor( ymin ) );
-	xL = min( ws, (int)ceil( xmax ) );
-	yL = min( hs, (int)ceil( ymax ) );
+    x0 = max( 0, (int)floor( xmin ) );
+    y0 = max( 0, (int)floor( ymin ) );
+    xL = min( ws, (int)ceil( xmax ) );
+    yL = min( hs, (int)ceil( ymax ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -143,43 +143,43 @@ static void ScanLims(
 
 static void Downsample( uint8 *ras, int &w, int &h, int iscl )
 {
-	int	n  = iscl * iscl,
-		ws = (int)ceil( (double)w / iscl ),
-		hs = (int)ceil( (double)h / iscl ),
-		w0 = w,
-		xo, yo, xr, yr;
+    int	n  = iscl * iscl,
+        ws = (int)ceil( (double)w / iscl ),
+        hs = (int)ceil( (double)h / iscl ),
+        w0 = w,
+        xo, yo, xr, yr;
 
-	yr = iscl - h % iscl;
-	xr = iscl - w % iscl;
+    yr = iscl - h % iscl;
+    xr = iscl - w % iscl;
 
-	for( int iy = 0; iy < hs; ++iy ) {
+    for( int iy = 0; iy < hs; ++iy ) {
 
-		yo = 0;
+        yo = 0;
 
-		if( iy == hs - 1 )
-			yo = yr;
+        if( iy == hs - 1 )
+            yo = yr;
 
-		for( int ix = 0; ix < ws; ++ix ) {
+        for( int ix = 0; ix < ws; ++ix ) {
 
-			double	sum = 0.0;
+            double	sum = 0.0;
 
-			xo = 0;
+            xo = 0;
 
-			if( ix == ws - 1 )
-				xo = xr;
+            if( ix == ws - 1 )
+                xo = xr;
 
-			for( int dy = 0; dy < iscl; ++dy ) {
+            for( int dy = 0; dy < iscl; ++dy ) {
 
-				for( int dx = 0; dx < iscl; ++dx )
-					sum += ras[ix*iscl-xo+dx + w0*(iy*iscl-yo+dy)];
-			}
+                for( int dx = 0; dx < iscl; ++dx )
+                    sum += ras[ix*iscl-xo+dx + w0*(iy*iscl-yo+dy)];
+            }
 
-			ras[ix+ws*iy] = int(sum / n);
-		}
-	}
+            ras[ix+ws*iy] = int(sum / n);
+        }
+    }
 
-	w = ws;
-	h = hs;
+    w = ws;
+    h = hs;
 }
 
 /* --------------------------------------------------------------- */
@@ -192,24 +192,24 @@ static void NormRas( uint8 *r, int w, int h, int lgord, int sdnorm )
 {
 // flatfield & convert to doubles
 
-	int				n = w * h;
-	vector<double>	v;
+    int				n = w * h;
+    vector<double>	v;
 
-	LegPolyFlatten( v, r, w, h, lgord );
+    LegPolyFlatten( v, r, w, h, lgord );
 
 // rescale to mean=127, sd=sdnorm
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		int	pix = 127 + int(v[i] * sdnorm);
+        int	pix = 127 + int(v[i] * sdnorm);
 
-		if( pix < 0 )
-			pix = 0;
-		else if( pix > 255 )
-			pix = 255;
+        if( pix < 0 )
+            pix = 0;
+        else if( pix > 255 )
+            pix = 255;
 
-		r[i] = pix;
-	}
+        r[i] = pix;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -219,38 +219,38 @@ static void NormRas( uint8 *r, int w, int h, int lgord, int sdnorm )
 class CPaintPrms {
 // Parameters for _Paint()
 public:
-	uint8					*scp;
-	uint32					ws;
-	uint32					hs;
-	const vector<ScpTile>	&vTile;
-	int						iscl;
-	int						bkval;
-	int						lgord;
-	int						sdnorm;
-	bool					resmask;
-	FILE					*flog;
+    uint8					*scp;
+    uint32					ws;
+    uint32					hs;
+    const vector<ScpTile>	&vTile;
+    int						iscl;
+    int						bkval;
+    int						lgord;
+    int						sdnorm;
+    bool					resmask;
+    FILE					*flog;
 public:
-	CPaintPrms(
-		uint8					*scp,
-		uint32					ws,
-		uint32					hs,
-		const vector<ScpTile>	&vTile,
-		int						iscl,
-		int						bkval,
-		int						lgord,
-		int						sdnorm,
-		bool					resmask,
-		FILE					*flog )
-	: scp(scp), ws(ws), hs(hs),
-	vTile(vTile), iscl(iscl), bkval(bkval),
-	lgord(lgord), sdnorm(sdnorm),
-	resmask(resmask), flog(flog)
-	{};
+    CPaintPrms(
+        uint8					*scp,
+        uint32					ws,
+        uint32					hs,
+        const vector<ScpTile>	&vTile,
+        int						iscl,
+        int						bkval,
+        int						lgord,
+        int						sdnorm,
+        bool					resmask,
+        FILE					*flog )
+    : scp(scp), ws(ws), hs(hs),
+    vTile(vTile), iscl(iscl), bkval(bkval),
+    lgord(lgord), sdnorm(sdnorm),
+    resmask(resmask), flog(flog)
+    {};
 };
 
 class CThrdat {
 public:
-	int	i0, ilim;
+    int	i0, ilim;
 };
 
 static const CPaintPrms	*GP;
@@ -258,111 +258,111 @@ static vector<CThrdat>	vthr;
 
 void* _Paint( void *ithr )
 {
-	CThrdat	&me = vthr[(long)ithr];
+    CThrdat	&me = vthr[(long)ithr];
 
-	for( int i = me.i0; i < me.ilim; ++i ) {
+    for( int i = me.i0; i < me.ilim; ++i ) {
 
-		vector<uint8>	msk;
-		uint8*			src;
-		TAffine			inv;
-		uint32			w,  h;
-		int				x0, xL, y0, yL,
-						wL, hL,
-						wi, hi;
+        vector<uint8>	msk;
+        uint8*			src;
+        TAffine			inv;
+        uint32			w,  h;
+        int				x0, xL, y0, yL,
+                        wL, hL,
+                        wi, hi;
 
-		src = Raster8FromAny(
-				GP->vTile[i].name.c_str(),
-				w, h, GP->flog );
+        src = Raster8FromAny(
+                GP->vTile[i].name.c_str(),
+                w, h, GP->flog );
 
-		if( GP->resmask )
-			ResinMask8( msk, src, w, h, false );
+        if( GP->resmask )
+            ResinMask8( msk, src, w, h, false );
 
-		if( GP->sdnorm > 0 )
-			NormRas( src, w, h, GP->lgord, GP->sdnorm );
+        if( GP->sdnorm > 0 )
+            NormRas( src, w, h, GP->lgord, GP->sdnorm );
 
-		if( GP->resmask ) {
+        if( GP->resmask ) {
 
-			int	n = w * h;
+            int	n = w * h;
 
-			for( int j = 0; j < n; ++j ) {
-				if( !msk[j] )
-					src[j] = GP->bkval;
-			}
-		}
+            for( int j = 0; j < n; ++j ) {
+                if( !msk[j] )
+                    src[j] = GP->bkval;
+            }
+        }
 
-		ScanLims( x0, xL, y0, yL,
-			GP->ws, GP->hs, GP->vTile[i].t2g, w, h );
-		wi = w;
-		hi = h;
+        ScanLims( x0, xL, y0, yL,
+            GP->ws, GP->hs, GP->vTile[i].t2g, w, h );
+        wi = w;
+        hi = h;
 
-		inv.InverseOf( GP->vTile[i].t2g );
+        inv.InverseOf( GP->vTile[i].t2g );
 
-		if( GP->iscl > 1 ) {	// Scaling down
+        if( GP->iscl > 1 ) {	// Scaling down
 
-			// actually downsample src image
-			Downsample( src, wi, hi, GP->iscl );
+            // actually downsample src image
+            Downsample( src, wi, hi, GP->iscl );
 
-			// and point at the new pixels
-			TAffine	A;
-			A.NUSetScl( 1.0/GP->iscl );
-			inv = A * inv;
-		}
+            // and point at the new pixels
+            TAffine	A;
+            A.NUSetScl( 1.0/GP->iscl );
+            inv = A * inv;
+        }
 
-		wL = wi - 1;
-		hL = hi - 1;
+        wL = wi - 1;
+        hL = hi - 1;
 
-		for( int iy = y0; iy < yL; ++iy ) {
+        for( int iy = y0; iy < yL; ++iy ) {
 
-			for( int ix = x0; ix < xL; ++ix ) {
+            for( int ix = x0; ix < xL; ++ix ) {
 
-				Point	p( ix, iy );
+                Point	p( ix, iy );
 
-				inv.Transform( p );
+                inv.Transform( p );
 
-				if( p.x >= 0 && p.x < wL &&
-					p.y >= 0 && p.y < hL ) {
+                if( p.x >= 0 && p.x < wL &&
+                    p.y >= 0 && p.y < hL ) {
 
-					int	pix =
-					(int)SafeInterp( p.x, p.y, src, wi, hi );
+                    int	pix =
+                    (int)SafeInterp( p.x, p.y, src, wi, hi );
 
-					if( pix != GP->bkval )
-						GP->scp[ix+GP->ws*iy] = pix;
-				}
-			}
-		}
+                    if( pix != GP->bkval )
+                        GP->scp[ix+GP->ws*iy] = pix;
+                }
+            }
+        }
 
-		RasterFree( src );
-	}
+        RasterFree( src );
+    }
 
-	return NULL;
+    return NULL;
 }
 
 
 static void PaintTH( int nthr )
 {
-	int	nt = GP->vTile.size(),	// tiles total
-		nb;						// tiles per thread
+    int	nt = GP->vTile.size(),	// tiles total
+        nb;						// tiles per thread
 
-	if( nthr > nt )
-		nthr = nt;
+    if( nthr > nt )
+        nthr = nt;
 
-	nb = nt / nthr;
+    nb = nt / nthr;
 
-	vthr.resize( nthr );
+    vthr.resize( nthr );
 
-	vthr[0].i0		= 0;
-	vthr[0].ilim	= nb;
+    vthr[0].i0		= 0;
+    vthr[0].ilim	= nb;
 
-	for( int i = 1; i < nthr; ++i ) {
-		CThrdat	&C = vthr[i];
-		C.i0	= vthr[i-1].ilim;
-		C.ilim	= (i == nthr-1 ? nt : C.i0 + nb);
-	}
+    for( int i = 1; i < nthr; ++i ) {
+        CThrdat	&C = vthr[i];
+        C.i0	= vthr[i-1].ilim;
+        C.ilim	= (i == nthr-1 ? nt : C.i0 + nb);
+    }
 
-	if( !EZThreads( _Paint, nthr, 2, "_Paint", GP->flog ) )
-		exit( 42 );
+    if( !EZThreads( _Paint, nthr, 2, "_Paint", GP->flog ) )
+        exit( 42 );
 
-	vthr.clear();
+    vthr.clear();
 }
 
 /* --------------------------------------------------------------- */
@@ -387,49 +387,49 @@ static void PaintTH( int nthr )
 // Caller must dispose of scape with ImageIO::RasterFree().
 //
 uint8* Scape(
-	uint32			&ws,
-	uint32			&hs,
-	double			&x0,
-	double			&y0,
-	vector<ScpTile>	&vTile,
-	int				wi,
-	int				hi,
-	double			scale,
-	int				szmult,
-	int				bkval,
-	int				lgord,
-	int				sdnorm,
-	bool			resmask,
-	int				nthr,
-	FILE*			flog )
+    uint32			&ws,
+    uint32			&hs,
+    double			&x0,
+    double			&y0,
+    vector<ScpTile>	&vTile,
+    int				wi,
+    int				hi,
+    double			scale,
+    int				szmult,
+    int				bkval,
+    int				lgord,
+    int				sdnorm,
+    bool			resmask,
+    int				nthr,
+    FILE*			flog )
 {
-	if( !vTile.size() ) {
-		fprintf( flog, "Scape: Empty tile list.\n" );
-		return NULL;
-	}
+    if( !vTile.size() ) {
+        fprintf( flog, "Scape: Empty tile list.\n" );
+        return NULL;
+    }
 
-	AdjustBounds( ws, hs, x0, y0, vTile, wi, hi, scale, szmult );
+    AdjustBounds( ws, hs, x0, y0, vTile, wi, hi, scale, szmult );
 
-	int		ns		= ws * hs;
-	uint8	*scp	= (uint8*)RasterAlloc( ns );
+    int		ns		= ws * hs;
+    uint8	*scp	= (uint8*)RasterAlloc( ns );
 
-	if( scp ) {
+    if( scp ) {
 
-		if( sdnorm > 0 )
-			bkval = 127;
+        if( sdnorm > 0 )
+            bkval = 127;
 
-		memset( scp, bkval, ns );
+        memset( scp, bkval, ns );
 
-		GP = new CPaintPrms( scp, ws, hs,
-					vTile, int(1/scale), bkval,
-					lgord, sdnorm, resmask, flog );
-		PaintTH( nthr );
-		delete GP;
-	}
-	else
-		fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );
+        GP = new CPaintPrms( scp, ws, hs,
+                    vTile, int(1/scale), bkval,
+                    lgord, sdnorm, resmask, flog );
+        PaintTH( nthr );
+        delete GP;
+    }
+    else
+        fprintf( flog, "Scape: Alloc failed (%d x %d).\n", ws, hs );
 
-	return scp;
+    return scp;
 }
 
 

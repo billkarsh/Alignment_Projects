@@ -39,30 +39,30 @@
 class CLineScan {
 
 public:
-	char	*line;		// pointer to buffer with read chars
-	size_t	bufsize;	// cur physical size of line buffer
+    char	*line;		// pointer to buffer with read chars
+    size_t	bufsize;	// cur physical size of line buffer
 
 public:
-	CLineScan() : line(NULL), bufsize(0) {};
-	virtual ~CLineScan()	{Release();};
+    CLineScan() : line(NULL), bufsize(0) {};
+    virtual ~CLineScan()	{Release();};
 
-	void Release()
-		{
-			if( line ) {
-				free( line );
-				line = NULL;
-				bufsize = 0;
-			}
-		};
+    void Release()
+        {
+            if( line ) {
+                free( line );
+                line = NULL;
+                bufsize = 0;
+            }
+        };
 
-	// Return num chars read including newline
-	// ( <= 0 implies exhausted lines or error).
-	//
-	// Note getline will realloc line buffer and
-	// update bufsize if input size requires it.
-	//
-	int Get( FILE *f )
-		{return getline( &line, &bufsize, f );};
+    // Return num chars read including newline
+    // ( <= 0 implies exhausted lines or error).
+    //
+    // Note getline will realloc line buffer and
+    // update bufsize if input size requires it.
+    //
+    int Get( FILE *f )
+        {return getline( &line, &bufsize, f );};
 };
 
 /* --------------------------------------------------------------- */
@@ -70,9 +70,9 @@ public:
 /* --------------------------------------------------------------- */
 
 FILE *FileOpenOrDie(
-	const char	*name,
-	const char	*rw,
-	FILE		*flog = NULL );
+    const char	*name,
+    const char	*rw,
+    FILE		*flog = NULL );
 
 void FileScriptPerms( const char *path );
 

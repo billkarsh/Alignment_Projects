@@ -17,24 +17,24 @@
 /* --------------------------------------------------------------- */
 
 static void PrintFoldmapHisto(
-	const uint8*	fm,
-	int				w,
-	int				h,
-	FILE			*flog )
+    const uint8*	fm,
+    int				w,
+    int				h,
+    FILE			*flog )
 {
-	vector<int>	cts( 256, 0 );
-	int			i, n = w * h;
+    vector<int>	cts( 256, 0 );
+    int			i, n = w * h;
 
-	for( i = 0; i < n; ++i )
-		++cts[fm[i]];
+    for( i = 0; i < n; ++i )
+        ++cts[fm[i]];
 
-	for( i = 0; i < 256; ++i ) {
+    for( i = 0; i < 256; ++i ) {
 
-		if( cts[i] ) {
-			fprintf( flog,
-			"Foldmask: value=%3d, count=%8d\n", i, cts[i] );
-		}
-	}
+        if( cts[i] ) {
+            fprintf( flog,
+            "Foldmask: value=%3d, count=%8d\n", i, cts[i] );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -44,95 +44,95 @@ static void PrintFoldmapHisto(
 // Load or create a foldmask (always full size).
 //
 uint8* GetFoldMask(
-	const string		&idb,
-	const PicSpec		&P,
-	const char			*forcepath,
-	const vector<uint8>	&resmsk,
-	CCropMask			*CM,
-	int					wf,
-	int					hf,
-	bool				nofile,
-	bool				transpose,
-	bool				force1rgn,
-	FILE				*flog )
+    const string		&idb,
+    const PicSpec		&P,
+    const char			*forcepath,
+    const vector<uint8>	&resmsk,
+    CCropMask			*CM,
+    int					wf,
+    int					hf,
+    bool				nofile,
+    bool				transpose,
+    bool				force1rgn,
+    FILE				*flog )
 {
-	uint8*	mask;
-	int		np = wf * hf;
+    uint8*	mask;
+    int		np = wf * hf;
 
-	if( nofile ) {
-		mask = (uint8*)RasterAlloc( np );
-		memset( mask, 1, np );
-	}
-	else {
+    if( nofile ) {
+        mask = (uint8*)RasterAlloc( np );
+        memset( mask, 1, np );
+    }
+    else {
 
-		Til2FM	t2f;
+        Til2FM	t2f;
 
-		if( !forcepath ) {
-			IDBTil2FM( t2f, idb, P.z, P.id, flog );
-			forcepath = t2f.path.c_str();
-		}
+        if( !forcepath ) {
+            IDBTil2FM( t2f, idb, P.z, P.id, flog );
+            forcepath = t2f.path.c_str();
+        }
 
-		uint32	_w, _h;
+        uint32	_w, _h;
 
-		mask = Raster8FromAny( forcepath, _w, _h, flog, transpose );
+        mask = Raster8FromAny( forcepath, _w, _h, flog, transpose );
 
-		if( _w != wf || _h != hf ) {
+        if( _w != wf || _h != hf ) {
 
-			fprintf( flog,
-			"GetFoldMask: Maps different size than input.\n" );
-			exit( 42 );
-		}
+            fprintf( flog,
+            "GetFoldMask: Maps different size than input.\n" );
+            exit( 42 );
+        }
 
-		PrintFoldmapHisto( mask, wf, hf, flog );
+        PrintFoldmapHisto( mask, wf, hf, flog );
 
-		// force one (non-fold) region
+        // force one (non-fold) region
 
-		if( force1rgn ) {
+        if( force1rgn ) {
 
-			for( int i = 0; i < np; ++i ) {
+            for( int i = 0; i < np; ++i ) {
 
-				if( mask[i] )
-					mask[i] = 1;
-			}
-		}
-	}
+                if( mask[i] )
+                    mask[i] = 1;
+            }
+        }
+    }
 
 // optionally remove resin
 
-	if( resmsk.size() == np ) {
+    if( resmsk.size() == np ) {
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			if( !resmsk[i] )
-				mask[i] = 0;
-		}
-	}
+            if( !resmsk[i] )
+                mask[i] = 0;
+        }
+    }
 
 // optionally crop mask borders
 
-	if( CM && CM->IsFile( idb ) ) {
+    if( CM && CM->IsFile( idb ) ) {
 
-		IBox	B;
-		CM->GetBox( B, P.t2i.cam );
+        IBox	B;
+        CM->GetBox( B, P.t2i.cam );
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			int	y = i / wf,
-				x = i - wf * y;
+            int	y = i / wf,
+                x = i - wf * y;
 
-			if( y < B.B || y >= B.T ||
-				x < B.L || x >= B.R ) {
+            if( y < B.B || y >= B.T ||
+                x < B.L || x >= B.R ) {
 
-				mask[i] = 0;
-			}
-		}
+                mask[i] = 0;
+            }
+        }
 
-		fprintf( flog,
-		"Crop z %d id %d cam %d to x[%d %d) y[%d %d)\n",
-		P.z, P.id, P.t2i.cam, B.L, B.R, B.B, B.T );
-	}
+        fprintf( flog,
+        "Crop z %d id %d cam %d to x[%d %d) y[%d %d)\n",
+        P.z, P.id, P.t2i.cam, B.L, B.R, B.B, B.T );
+    }
 
-	return mask;
+    return mask;
 }
 
 /* --------------------------------------------------------------- */
@@ -141,31 +141,31 @@ uint8* GetFoldMask(
 
 void SetWithinSectionBorders( uint8* foldMask, int wf, int hf )
 {
-	const int border = 100;
+    const int border = 100;
 
-	for( int y = 0; y < hf; ++y ) {
+    for( int y = 0; y < hf; ++y ) {
 
-		for( int x = 0; x < wf; ++x ) {
+        for( int x = 0; x < wf; ++x ) {
 
-			int dt	= hf-1-y;	// distance from top
-			int dr	= wf-1-x;	// distance from right
-			int pix	= 0;
+            int dt	= hf-1-y;	// distance from top
+            int dr	= wf-1-x;	// distance from right
+            int pix	= 0;
 
-			if( x < border && y > x && dt > x && dr > x )
-				pix = 1;	// left side
+            if( x < border && y > x && dt > x && dr > x )
+                pix = 1;	// left side
 
-			if( y < border && x > y && dt > y && dr > y )
-				pix = 2;	// bottom
+            if( y < border && x > y && dt > y && dr > y )
+                pix = 2;	// bottom
 
-			if( dt < border && x > dt && y > dt && dr > dt )
-				pix = 3;	// top
+            if( dt < border && x > dt && y > dt && dr > dt )
+                pix = 3;	// top
 
-			if( dr < border && x > dr && y > dr && dt > dr )
-				pix = 4;	// right side
+            if( dr < border && x > dr && y > dr && dt > dr )
+                pix = 4;	// right side
 
-			foldMask[x + wf*y] = pix;
-		}
-	}
+            foldMask[x + wf*y] = pix;
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -177,63 +177,63 @@ void SetWithinSectionBorders( uint8* foldMask, int wf, int hf )
 // (2) Color the folmask raster with region ids.
 //
 void SetBoundsAndColors(
-	vector<ConnRegion>	&cr,
-	uint8*				foldMask,
-	int					wf,
-	int					hf,
-	FILE				*flog )
+    vector<ConnRegion>	&cr,
+    uint8*				foldMask,
+    int					wf,
+    int					hf,
+    FILE				*flog )
 {
-	int	np = wf * hf,
-		nr = cr.size();
+    int	np = wf * hf,
+        nr = cr.size();
 
 // zero foldmask (the fold value)
-	memset( foldMask, 0, np );
+    memset( foldMask, 0, np );
 
 // print region header
-	fprintf( flog, "SetBnd&Clr: Big enough regions = %d:\n", nr );
+    fprintf( flog, "SetBnd&Clr: Big enough regions = %d:\n", nr );
 
 // for each region
-	for( int ir = 0; ir < nr; ++ir ) {
+    for( int ir = 0; ir < nr; ++ir ) {
 
-		ConnRegion&	C = cr[ir];
+        ConnRegion&	C = cr[ir];
 
-		np = C.pts.size();
+        np = C.pts.size();
 
-		// init bounds
-		C.B.L	= BIG;
-		C.B.B	= BIG;
-		C.B.R	= -BIG;
-		C.B.T	= -BIG;
+        // init bounds
+        C.B.L	= BIG;
+        C.B.B	= BIG;
+        C.B.R	= -BIG;
+        C.B.T	= -BIG;
 
-		// assign region id
-		C.id = ir + 1;
+        // assign region id
+        C.id = ir + 1;
 
-		// for each point
-		for( int ip = 0; ip < np; ++ip ) {
+        // for each point
+        for( int ip = 0; ip < np; ++ip ) {
 
-			int	x = (int)C.pts[ip].x,
-				y = (int)C.pts[ip].y;
+            int	x = (int)C.pts[ip].x,
+                y = (int)C.pts[ip].y;
 
-			// update bounds
-			if( x < C.B.L )
-				C.B.L = x;
-			else if( x > C.B.R )
-				C.B.R = x;
+            // update bounds
+            if( x < C.B.L )
+                C.B.L = x;
+            else if( x > C.B.R )
+                C.B.R = x;
 
-			if( y < C.B.B )
-				C.B.B = y;
-			else if( y > C.B.T )
-				C.B.T = y;
+            if( y < C.B.B )
+                C.B.B = y;
+            else if( y > C.B.T )
+                C.B.T = y;
 
-			// color mask pixel (these are non-zero)
-			foldMask[x + wf*y] = ir + 1;
-		}
+            // color mask pixel (these are non-zero)
+            foldMask[x + wf*y] = ir + 1;
+        }
 
-		// print this region
-		fprintf( flog,
-			"\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
-			C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
-	}
+        // print this region
+        fprintf( flog,
+            "\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
+            C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
+    }
 }
 
 
@@ -246,80 +246,80 @@ void SetBoundsAndColors(
 // of each such box that are also above thresh in image valid.
 //
 void SetBoundsAndColors(
-	vector<ConnRegion>		&cr,
-	uint8*					foldMask,
-	const vector<double>	&valid,
-	int						wf,
-	int						hf,
-	double					thresh,
-	int						D,
-	FILE					*flog )
+    vector<ConnRegion>		&cr,
+    uint8*					foldMask,
+    const vector<double>	&valid,
+    int						wf,
+    int						hf,
+    double					thresh,
+    int						D,
+    FILE					*flog )
 {
-	int	np = wf * hf,
-		nr = cr.size();
+    int	np = wf * hf,
+        nr = cr.size();
 
 // zero foldmask (the fold value)
-	memset( foldMask, 0, np );
+    memset( foldMask, 0, np );
 
 // print region header
-	fprintf( flog, "SetBnd&Clr: Big enough regions = %d:\n", nr );
+    fprintf( flog, "SetBnd&Clr: Big enough regions = %d:\n", nr );
 
 // for each region
-	for( int ir = 0; ir < nr; ++ir ) {
+    for( int ir = 0; ir < nr; ++ir ) {
 
-		ConnRegion&	C = cr[ir];
+        ConnRegion&	C = cr[ir];
 
-		np = C.pts.size();
+        np = C.pts.size();
 
-		// init bounds
-		C.B.L	= BIG;
-		C.B.B	= BIG;
-		C.B.R	= -BIG;
-		C.B.T	= -BIG;
+        // init bounds
+        C.B.L	= BIG;
+        C.B.B	= BIG;
+        C.B.R	= -BIG;
+        C.B.T	= -BIG;
 
-		// assign region id
-		C.id = ir + 1;
+        // assign region id
+        C.id = ir + 1;
 
-		// for each point
-		for( int ip = 0; ip < np; ++ip ) {
+        // for each point
+        for( int ip = 0; ip < np; ++ip ) {
 
-			int	x   = (int)C.pts[ip].x,
-				y   = (int)C.pts[ip].y,
-				xlo = max(    0, x - D ),
-				xhi = min( wf-1, x + D ),
-				ylo = max(    0, y - D ),
-				yhi = min( hf-1, y + D ),
-				clr = ir + 1,
-				idx;
+            int	x   = (int)C.pts[ip].x,
+                y   = (int)C.pts[ip].y,
+                xlo = max(    0, x - D ),
+                xhi = min( wf-1, x + D ),
+                ylo = max(    0, y - D ),
+                yhi = min( hf-1, y + D ),
+                clr = ir + 1,
+                idx;
 
-			// update bounds
-			if( xlo < C.B.L )
-				C.B.L = xlo;
-			else if( xhi > C.B.R )
-				C.B.R = xhi;
+            // update bounds
+            if( xlo < C.B.L )
+                C.B.L = xlo;
+            else if( xhi > C.B.R )
+                C.B.R = xhi;
 
-			if( ylo < C.B.B )
-				C.B.B = ylo;
-			else if( yhi > C.B.T )
-				C.B.T = yhi;
+            if( ylo < C.B.B )
+                C.B.B = ylo;
+            else if( yhi > C.B.T )
+                C.B.T = yhi;
 
-			// color mask pixels
+            // color mask pixels
 
-			for( y = ylo; y <= yhi; ++y ) {
+            for( y = ylo; y <= yhi; ++y ) {
 
-				for( x = xlo; x <= xhi; ++x ) {
+                for( x = xlo; x <= xhi; ++x ) {
 
-					if( valid[idx = x + wf*y] > thresh )
-						foldMask[idx] = clr;
-				}
-			}
-		}
+                    if( valid[idx = x + wf*y] > thresh )
+                        foldMask[idx] = clr;
+                }
+            }
+        }
 
-		// print this region
-		fprintf( flog,
-			"\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
-			C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
-	}
+        // print this region
+        fprintf( flog,
+            "\tid=%2d, pts=%8d, x=[%4d %4d], y=[%4d %4d].\n",
+            C.id, np, C.B.L, C.B.R, C.B.B, C.B.T );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -334,133 +334,133 @@ void SetBoundsAndColors(
 // whose point count is below (minpts).
 //
 void ConnRgnsFromFoldMask(
-	vector<ConnRegion>	&cr,
-	const uint8*		foldMask,
-	int					wf,
-	int					hf,
-	int					scale,
-	uint32				minpts,
-	FILE				*flog )
+    vector<ConnRegion>	&cr,
+    const uint8*		foldMask,
+    int					wf,
+    int					hf,
+    int					scale,
+    uint32				minpts,
+    FILE				*flog )
 {
 // Pass 1: gather ids and size info for cr and pts vectors
 
-	vector<uint32>	szrgn( 256, 0 );
-	int				N = wf * hf;
-	int				max_id = 0;
+    vector<uint32>	szrgn( 256, 0 );
+    int				N = wf * hf;
+    int				max_id = 0;
 
-	for( int i = 0; i < N; ++i )
-		++szrgn[foldMask[i]];
+    for( int i = 0; i < N; ++i )
+        ++szrgn[foldMask[i]];
 
 // Find the highest occurring region id
 
-	for( int i = 255; i > 0; --i ) {
+    for( int i = 255; i > 0; --i ) {
 
-		if( szrgn[i] ) {
-			max_id = i;
-			break;
-		}
-	}
+        if( szrgn[i] ) {
+            max_id = i;
+            break;
+        }
+    }
 
 // Report what will be included and excluded
 
-	uint32	n_inc = 0, t_inc = 0, t_exc = 0;
+    uint32	n_inc = 0, t_inc = 0, t_exc = 0;
 
-	for( int i = 1; i <= max_id; ++i ) {
+    for( int i = 1; i <= max_id; ++i ) {
 
-		if( szrgn[i] >= minpts ) {
-			++n_inc;
-			t_inc += szrgn[i];
-		}
-		else {
-			t_exc += szrgn[i];
-			szrgn[i] = 0;	// mark for skip
-		}
-	}
+        if( szrgn[i] >= minpts ) {
+            ++n_inc;
+            t_inc += szrgn[i];
+        }
+        else {
+            t_exc += szrgn[i];
+            szrgn[i] = 0;	// mark for skip
+        }
+    }
 
-	fprintf( flog,
-	"ConnRegion: FoldMask w=%d, h=%d, area=%d, scale=%d\n",
-	wf, hf, N, scale );
+    fprintf( flog,
+    "ConnRegion: FoldMask w=%d, h=%d, area=%d, scale=%d\n",
+    wf, hf, N, scale );
 
-	fprintf( flog,
-	"ConnRegion: Included rgns=%3d, area=%8d, %%=%6.2f\n",
-	n_inc, t_inc, 100.0*t_inc / N );
+    fprintf( flog,
+    "ConnRegion: Included rgns=%3d, area=%8d, %%=%6.2f\n",
+    n_inc, t_inc, 100.0*t_inc / N );
 
-	fprintf( flog,
-	"ConnRegion: Excluded rgns=%3d, area=%8d, %%=%6.2f\n",
-	max_id - n_inc, t_exc, 100.0*t_exc / N );
+    fprintf( flog,
+    "ConnRegion: Excluded rgns=%3d, area=%8d, %%=%6.2f\n",
+    max_id - n_inc, t_exc, 100.0*t_exc / N );
 
-	fprintf( flog,
-	"ConnRegion:    Folds rgns=%3d, area=%8d, %%=%6.2f\n",
-	(szrgn[0] != 0), szrgn[0], 100.0*szrgn[0] / N );
+    fprintf( flog,
+    "ConnRegion:    Folds rgns=%3d, area=%8d, %%=%6.2f\n",
+    (szrgn[0] != 0), szrgn[0], 100.0*szrgn[0] / N );
 
-	szrgn[0] = 0;	// mark for skip
+    szrgn[0] = 0;	// mark for skip
 
 // Size the vectors (pts cpacity ample for any scaling)
 // Also set the cr.id fields here.
 
-	cr.clear();
+    cr.clear();
 
-	if( !max_id )
-		return;
+    if( !max_id )
+        return;
 
-	cr.resize( max_id );
+    cr.resize( max_id );
 
-	for( int id = 1; id <= max_id; ++id ) {
+    for( int id = 1; id <= max_id; ++id ) {
 
-		ConnRegion&	C = cr[id - 1];
+        ConnRegion&	C = cr[id - 1];
 
-		C.pts.resize( szrgn[id] );
-		C.id = id;
-	}
+        C.pts.resize( szrgn[id] );
+        C.id = id;
+    }
 
 // Pass 2: gather unique scaled points and update BBoxes
 
-	vector<uint32>	pcnt( max_id + 1, 0 );
-	vector<uint8>	seen( N / (scale*scale), 0 );
-	int				ws = wf / scale;
+    vector<uint32>	pcnt( max_id + 1, 0 );
+    vector<uint8>	seen( N / (scale*scale), 0 );
+    int				ws = wf / scale;
 
-	for( int i = 0; i < N; ++i ) {
+    for( int i = 0; i < N; ++i ) {
 
-		int	id = foldMask[i];
+        int	id = foldMask[i];
 
-		if( !szrgn[id] )
-			continue;
+        if( !szrgn[id] )
+            continue;
 
-		int	Y =  i / wf,
-			y =  Y / scale,
-			x = (i - wf * Y) / scale;
+        int	Y =  i / wf,
+            y =  Y / scale,
+            x = (i - wf * Y) / scale;
 
-		if( seen[x + ws*y] )
-			continue;
+        if( seen[x + ws*y] )
+            continue;
 
-		ConnRegion&	C = cr[id - 1];
+        ConnRegion&	C = cr[id - 1];
 
-		seen[x + ws*y] = 1;
+        seen[x + ws*y] = 1;
 
-		if( x < C.B.L )
-			C.B.L = x;
-		else if( x > C.B.R )
-			C.B.R = x;
+        if( x < C.B.L )
+            C.B.L = x;
+        else if( x > C.B.R )
+            C.B.R = x;
 
-		if( y < C.B.B )
-			C.B.B = y;
-		else if( y > C.B.T )
-			C.B.T = y;
+        if( y < C.B.B )
+            C.B.B = y;
+        else if( y > C.B.T )
+            C.B.T = y;
 
-		C.pts[pcnt[id]++] = Point( x, y );
-	}
+        C.pts[pcnt[id]++] = Point( x, y );
+    }
 
 // Lastly, remove empty cr, or if keeping, set pts actual size
 
-	for( int i = 0; i < cr.size(); ++i ) {
+    for( int i = 0; i < cr.size(); ++i ) {
 
-		int	np = pcnt[cr[i].id];
+        int	np = pcnt[cr[i].id];
 
-		if( np )
-			cr[i].pts.resize( np );
-		else
-			cr.erase( cr.begin() + i );
-	}
+        if( np )
+            cr[i].pts.resize( np );
+        else
+            cr.erase( cr.begin() + i );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -469,19 +469,19 @@ void ConnRgnsFromFoldMask(
 
 void ConnRgnForce1( vector<ConnRegion> &cr, int ws, int hs )
 {
-	cr.clear();
-	cr.resize( 1 );
+    cr.clear();
+    cr.resize( 1 );
 
-	ConnRegion&	C = cr[0];
+    ConnRegion&	C = cr[0];
 
-	MakeZeroBasedPoints( C.pts, ws, hs );
+    MakeZeroBasedPoints( C.pts, ws, hs );
 
-	C.B.L	= 0;
-	C.B.R	= ws - 1;
-	C.B.B	= 0;
-	C.B.T	= hs - 1;
+    C.B.L	= 0;
+    C.B.R	= ws - 1;
+    C.B.B	= 0;
+    C.B.T	= hs - 1;
 
-	C.id	= 1;
+    C.id	= 1;
 }
 
 

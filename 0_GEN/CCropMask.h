@@ -18,19 +18,19 @@ using namespace std;
 class CCropMask {
 
 private:
-	IBox	B[4];
-	FILE	*flog;
-	int		isfile;	// unset if -1
+    IBox	B[4];
+    FILE	*flog;
+    int		isfile;	// unset if -1
 
 public:
-	CCropMask() : isfile(-1) {};
+    CCropMask() : isfile(-1) {};
 
-	bool IsFile( const string &idb );
+    bool IsFile( const string &idb );
 
-	bool ReadIDB( const string &idb, FILE* flog = stdout );
+    bool ReadIDB( const string &idb, FILE* flog = stdout );
 
-	bool GetBox( IBox &b, int cam )
-		{b=B[cam]; return isfile;};
+    bool GetBox( IBox &b, int cam )
+        {b=B[cam]; return isfile;};
 };
 
 

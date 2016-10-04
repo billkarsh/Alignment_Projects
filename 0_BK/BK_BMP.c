@@ -26,10 +26,10 @@
 
 enum {
 /* maximum pixel value plus one */
-	pixelValueRange	= 4096L,
+    pixelValueRange	= 4096L,
 
 /* don't bother looking for mode in top-most range */
-	omitTopMost		= 128
+    omitTopMost		= 128
 };
 
 
@@ -48,8 +48,8 @@ enum {
 
 int BMPMapValue( const UInt32 *map, UInt32 hPix, int h, int v )
 {
-	return (map[v * BitToWord( hPix ) + BitToWord( h )]
-			>> (AllButOneBit - WordRem( h ))) & 1;
+    return (map[v * BitToWord( hPix ) + BitToWord( h )]
+            >> (AllButOneBit - WordRem( h ))) & 1;
 }
 
 
@@ -80,17 +80,17 @@ int BMPMapValue( const UInt32 *map, UInt32 hPix, int h, int v )
  */
 
 UInt32 BMPGetMode(
-	const UInt16	*data16Bit,
-	UInt32			hPix,
-	UInt32			vPix )
+    const UInt16	*data16Bit,
+    UInt32			hPix,
+    UInt32			vPix )
 {
-	UInt32	hist[pixelValueRange];
+    UInt32	hist[pixelValueRange];
 
-	HSTAltImageRowsUInt16( NULL, NULL, hist, pixelValueRange,
-		data16Bit, hPix, vPix );
+    HSTAltImageRowsUInt16( NULL, NULL, hist, pixelValueRange,
+        data16Bit, hPix, vPix );
 
-	return STATIndexOfMaxValueUInt32( hist,
-			pixelValueRange - omitTopMost );
+    return STATIndexOfMaxValueUInt32( hist,
+            pixelValueRange - omitTopMost );
 }
 
 
@@ -121,18 +121,18 @@ UInt32 BMPGetMode(
  */
 
 UInt32 BMPGetModeBox(
-	const UInt16	*data16Bit,
-	UInt32			hPix,
-	UInt32			vPix,
-	const U16BoxPtr	box )
+    const UInt16	*data16Bit,
+    UInt32			hPix,
+    UInt32			vPix,
+    const U16BoxPtr	box )
 {
-	UInt32	hist[pixelValueRange];
+    UInt32	hist[pixelValueRange];
 
-	HSTImageBoxUInt16( NULL, NULL, hist, pixelValueRange,
-		data16Bit, hPix, vPix, box );
+    HSTImageBoxUInt16( NULL, NULL, hist, pixelValueRange,
+        data16Bit, hPix, vPix, box );
 
-	return STATIndexOfMaxValueUInt32( hist,
-			pixelValueRange - omitTopMost );
+    return STATIndexOfMaxValueUInt32( hist,
+            pixelValueRange - omitTopMost );
 }
 
 
@@ -161,35 +161,35 @@ UInt32 BMPGetModeBox(
  */
 
 void BMPGenerateThreshMap16Bit(
-	const UInt16	*data16Bit,
-	UInt32			*map,
-	UInt32			hPix,
-	UInt32			vPix,
-	UInt32			thresh )
+    const UInt16	*data16Bit,
+    UInt32			*map,
+    UInt32			hPix,
+    UInt32			vPix,
+    UInt32			thresh )
 {
-	UInt32	*pPair;
-	UInt32	pair, W, word, nWords;
-	int		bitPair;
+    UInt32	*pPair;
+    UInt32	pair, W, word, nWords;
+    int		bitPair;
 
-	nWords	= BitToWord( vPix * hPix );
-	pPair	= (UInt32*)data16Bit;
-	W		= 0;	/* suppress initialization warning */
+    nWords	= BitToWord( vPix * hPix );
+    pPair	= (UInt32*)data16Bit;
+    W		= 0;	/* suppress initialization warning */
 
-	for( word = 0; word < nWords; ++word ) {
+    for( word = 0; word < nWords; ++word ) {
 
-		for( bitPair = 0; bitPair < HalfBits; ++bitPair ) {
+        for( bitPair = 0; bitPair < HalfBits; ++bitPair ) {
 
-			pair = *pPair++;
+            pair = *pPair++;
 
-			W <<= 1;
-			W += SignExtHiBit32( thresh - (pair & LoMask) ) & 1;
+            W <<= 1;
+            W += SignExtHiBit32( thresh - (pair & LoMask) ) & 1;
 
-			W <<= 1;
-			W += SignExtHiBit32( thresh - (pair >> HalfBits) ) & 1;
-		}
+            W <<= 1;
+            W += SignExtHiBit32( thresh - (pair >> HalfBits) ) & 1;
+        }
 
-		map[word] = W;
-	}
+        map[word] = W;
+    }
 }
 
 
@@ -212,63 +212,63 @@ void BMPGenerateThreshMap16Bit(
  */
 
 void BMPGenerateThreshPatch16Bit(
-	const UInt16	*data16Bit,
-	UInt32			*map,
-	UInt32			hPix,
-	UInt32			vPix,
-	const U16BoxPtr	box,
-	UInt32			thresh )
+    const UInt16	*data16Bit,
+    UInt32			*map,
+    UInt32			hPix,
+    UInt32			vPix,
+    const U16BoxPtr	box,
+    UInt32			thresh )
 {
-	UInt32	mapRowBytes, imgRowBytes, W = 0;
-	int		v, h, bit, hL, hR, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes, W = 0;
+    int		v, h, bit, hL, hR, top, left, bot, right;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
-	top		= box->top;
-	left	= box->left;
-	bot		= box->bottom;
-	right	= box->right;
+    top		= box->top;
+    left	= box->left;
+    bot		= box->bottom;
+    right	= box->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	hL	= BitToWord( left );
-	hR	= BitToWord( right - 1 );
+    hL	= BitToWord( left );
+    hR	= BitToWord( right - 1 );
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
-					+ hL * WordBits * sizeof(UInt16));
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
+                    + hL * WordBits * sizeof(UInt16));
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		const UInt16	*p16 = data16Bit;
+        const UInt16	*p16 = data16Bit;
 
-		for( h = hL; h <= hR; ++h ) {
+        for( h = hL; h <= hR; ++h ) {
 
-			for( bit = 0; bit < WordBits; ++bit ) {
+            for( bit = 0; bit < WordBits; ++bit ) {
 
-				W <<= 1;
-				W += SignExtHiBit32( thresh - *p16++ ) & 1;
-			}
+                W <<= 1;
+                W += SignExtHiBit32( thresh - *p16++ ) & 1;
+            }
 
-			map[h] = W;
-		}
-	}
+            map[h] = W;
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -290,26 +290,26 @@ exit:
  */
 
 void BMPFillHolesBox(
-	UInt32			*dstMap,
-	UInt32			*trackingMap,
-	UInt32			*scanningMap,
-	UInt32			*tmpMap0,
-	UInt32			*tmpMap1,
-	void			*bucketScratch,
-	UInt32			hPix,
-	UInt32			vPix,
-	const U16BoxPtr	box )
+    UInt32			*dstMap,
+    UInt32			*trackingMap,
+    UInt32			*scanningMap,
+    UInt32			*tmpMap0,
+    UInt32			*tmpMap1,
+    void			*bucketScratch,
+    UInt32			hPix,
+    UInt32			vPix,
+    const U16BoxPtr	box )
 {
-	UInt32	*pRow;
-	U16Box	rBlob;
-	UInt32	rowBytes;
-	int		h, v, top, left, bot, right;
+    UInt32	*pRow;
+    U16Box	rBlob;
+    UInt32	rowBytes;
+    int		h, v, top, left, bot, right;
 
 /* -------------------- */
 /* Prepare new blob map */
 /* -------------------- */
 
-	MEMCopyMap( dstMap, scanningMap, hPix, vPix );
+    MEMCopyMap( dstMap, scanningMap, hPix, vPix );
 
 /* ---------------- */
 /* Scan grid points */
@@ -317,76 +317,76 @@ void BMPFillHolesBox(
 
 /* box limits */
 
-	if( box ) {
+    if( box ) {
 
-		top		= box->top;
-		left	= box->left;
-		bot		= box->bottom;
-		right	= box->right;
+        top		= box->top;
+        left	= box->left;
+        bot		= box->bottom;
+        right	= box->right;
 
-		if( bot > (int)vPix )
-			bot = vPix;
+        if( bot > (int)vPix )
+            bot = vPix;
 
-		if( right > (int)hPix )
-			right = hPix;
+        if( right > (int)hPix )
+            right = hPix;
 
-		if( top >= bot )
-			goto exit;
+        if( top >= bot )
+            goto exit;
 
-		if( left >= right )
-			goto exit;
-	}
-	else {
-		top		= 0;
-		left	= 0;
-		bot		= vPix;
-		right	= hPix;
-	}
+        if( left >= right )
+            goto exit;
+    }
+    else {
+        top		= 0;
+        left	= 0;
+        bot		= vPix;
+        right	= hPix;
+    }
 
-	rowBytes	= BitToByte( hPix );
-	pRow		= (UInt32*)((char*)scanningMap + rowBytes * top);
+    rowBytes	= BitToByte( hPix );
+    pRow		= (UInt32*)((char*)scanningMap + rowBytes * top);
 
-	for( v = top; v < bot;
-		++v, pRow = (UInt32*)((char*)pRow + rowBytes) ) {
+    for( v = top; v < bot;
+        ++v, pRow = (UInt32*)((char*)pRow + rowBytes) ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( pRow, h ) ) {
+            if( BMAP_IsRowBit( pRow, h ) ) {
 
-				/* ------------- */
-				/* Identify blob */
-				/* ------------- */
+                /* ------------- */
+                /* Identify blob */
+                /* ------------- */
 
-				BMAPBucketTool( &rBlob, scanningMap,
-					(BMAPBucketPtr)bucketScratch,
-					hPix, vPix, h, v );
+                BMAPBucketTool( &rBlob, scanningMap,
+                    (BMAPBucketPtr)bucketScratch,
+                    hPix, vPix, h, v );
 
-				/* ------------ */
-				/* Isolate blob */
-				/* ------------ */
+                /* ------------ */
+                /* Isolate blob */
+                /* ------------ */
 
-				BMAPXorNewPatch( tmpMap0, scanningMap, trackingMap,
-					hPix, vPix, &rBlob );
+                BMAPXorNewPatch( tmpMap0, scanningMap, trackingMap,
+                    hPix, vPix, &rBlob );
 
-				/* ---------- */
-				/* Fill holes */
-				/* ---------- */
+                /* ---------- */
+                /* Fill holes */
+                /* ---------- */
 
-				RGNGetHolesBlob( dstMap, tmpMap0, tmpMap1,
-					bucketScratch, hPix, vPix, &rBlob );
+                RGNGetHolesBlob( dstMap, tmpMap0, tmpMap1,
+                    bucketScratch, hPix, vPix, &rBlob );
 
-				/* ------------------- */
-				/* Update tracking map */
-				/* ------------------- */
+                /* ------------------- */
+                /* Update tracking map */
+                /* ------------------- */
 
-				BMAPCopyPatch( trackingMap, scanningMap,
-					hPix, vPix, &rBlob );
-			}
-		}
-	}
+                BMAPCopyPatch( trackingMap, scanningMap,
+                    hPix, vPix, &rBlob );
+            }
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 

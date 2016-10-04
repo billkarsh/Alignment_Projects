@@ -26,19 +26,19 @@
  */
 
 SInt32 MEMFirstMatch32Bit(
-	const UInt32	*list,
-	SInt32			n,
-	UInt32			value )
+    const UInt32	*list,
+    SInt32			n,
+    UInt32			value )
 {
-	SInt32	i;
+    SInt32	i;
 
-	for( i = 0; i < n; ++i ) {
+    for( i = 0; i < n; ++i ) {
 
-		if( *list++ == value )
-			return i;
-	}
+        if( *list++ == value )
+            return i;
+    }
 
-	return -1;
+    return -1;
 }
 
 
@@ -53,19 +53,19 @@ SInt32 MEMFirstMatch32Bit(
  */
 
 SInt32 MEMFirstNonMatch32Bit(
-	const UInt32	*list,
-	SInt32			n,
-	UInt32			value )
+    const UInt32	*list,
+    SInt32			n,
+    UInt32			value )
 {
-	SInt32	i;
+    SInt32	i;
 
-	for( i = 0; i < n; ++i ) {
+    for( i = 0; i < n; ++i ) {
 
-		if( *list++ != value )
-			return i;
-	}
+        if( *list++ != value )
+            return i;
+    }
 
-	return -1;
+    return -1;
 }
 
 
@@ -79,19 +79,19 @@ SInt32 MEMFirstNonMatch32Bit(
  */
 
 int MEMEqual32Bit(
-	const UInt32	*blk1,
-	const UInt32	*blk2,
-	UInt32			n )
+    const UInt32	*blk1,
+    const UInt32	*blk2,
+    UInt32			n )
 {
-	UInt32	i;
+    UInt32	i;
 
-	for( i = 0; i < n; ++i ) {
+    for( i = 0; i < n; ++i ) {
 
-		if( *blk1++ != *blk2++ )
-			return false;
-	}
+        if( *blk1++ != *blk2++ )
+            return false;
+    }
 
-	return true;
+    return true;
 }
 
 
@@ -113,20 +113,20 @@ int MEMEqual32Bit(
  */
 
 void MEMInsert1Element(
-	void			*baseAddr,
-	UInt32			elemBytes,
-	UInt32			nElems,
-	UInt32			insBefore )
+    void			*baseAddr,
+    UInt32			elemBytes,
+    UInt32			nElems,
+    UInt32			insBefore )
 {
-	char	*src;
+    char	*src;
 
-	if( insBefore < nElems ) {
+    if( insBefore < nElems ) {
 
-		src = (char*)baseAddr + insBefore * elemBytes;
+        src = (char*)baseAddr + insBefore * elemBytes;
 
-		memmove( src + elemBytes, src,
-			(nElems - insBefore) * elemBytes );
-	}
+        memmove( src + elemBytes, src,
+            (nElems - insBefore) * elemBytes );
+    }
 }
 
 
@@ -148,21 +148,21 @@ void MEMInsert1Element(
  */
 
 void MEMInsertNElements(
-	void			*baseAddr,
-	UInt32			elemBytes,
-	UInt32			nElems,
-	UInt32			insBefore,
-	UInt32			nIns )
+    void			*baseAddr,
+    UInt32			elemBytes,
+    UInt32			nElems,
+    UInt32			insBefore,
+    UInt32			nIns )
 {
-	char	*src;
+    char	*src;
 
-	if( nIns && insBefore < nElems ) {
+    if( nIns && insBefore < nElems ) {
 
-		src = (char*)baseAddr + insBefore * elemBytes;
+        src = (char*)baseAddr + insBefore * elemBytes;
 
-		memmove( src + nIns * elemBytes, src,
-			(nElems - insBefore) * elemBytes );
-	}
+        memmove( src + nIns * elemBytes, src,
+            (nElems - insBefore) * elemBytes );
+    }
 }
 
 
@@ -180,20 +180,20 @@ void MEMInsertNElements(
  */
 
 void MEMDelete1Element(
-	void			*baseAddr,
-	UInt32			elemBytes,
-	UInt32			nElems,
-	UInt32			delIdx )
+    void			*baseAddr,
+    UInt32			elemBytes,
+    UInt32			nElems,
+    UInt32			delIdx )
 {
-	char	*dst;
+    char	*dst;
 
-	if( nElems && delIdx < --nElems ) {
+    if( nElems && delIdx < --nElems ) {
 
-		dst = (char*)baseAddr + delIdx * elemBytes;
+        dst = (char*)baseAddr + delIdx * elemBytes;
 
-		MEMCopyBytes( dst, dst + elemBytes,
-			(nElems - delIdx) * elemBytes );
-	}
+        MEMCopyBytes( dst, dst + elemBytes,
+            (nElems - delIdx) * elemBytes );
+    }
 }
 
 
@@ -213,21 +213,21 @@ void MEMDelete1Element(
  */
 
 void MEMDeleteNElements(
-	void			*baseAddr,
-	UInt32			elemBytes,
-	UInt32			nElems,
-	UInt32			delFirst,
-	UInt32			nDel )
+    void			*baseAddr,
+    UInt32			elemBytes,
+    UInt32			nElems,
+    UInt32			delFirst,
+    UInt32			nDel )
 {
-	char	*dst;
+    char	*dst;
 
-	if( nElems && nDel && delFirst + nDel < nElems ) {
+    if( nElems && nDel && delFirst + nDel < nElems ) {
 
-		dst = (char*)baseAddr + delFirst * elemBytes;
+        dst = (char*)baseAddr + delFirst * elemBytes;
 
-		MEMCopyBytes( dst, dst + nDel * elemBytes,
-			(nElems - delFirst - nDel) * elemBytes );
-	}
+        MEMCopyBytes( dst, dst + nDel * elemBytes,
+            (nElems - delFirst - nDel) * elemBytes );
+    }
 }
 
 
@@ -255,64 +255,64 @@ void MEMDeleteNElements(
  */
 
 void MEMRoll1Element(
-	void			*oneElemBuf,
-	void			*baseAddr,
-	UInt32			elemBytes,
-	UInt32			nElems,
-	UInt32			oldPos,
-	UInt32			newPos )
+    void			*oneElemBuf,
+    void			*baseAddr,
+    UInt32			elemBytes,
+    UInt32			nElems,
+    UInt32			oldPos,
+    UInt32			newPos )
 {
 /* ------------- */
 /* Sanity checks */
 /* ------------- */
 
-	if( nElems <= 1 )
-		goto exit;
+    if( nElems <= 1 )
+        goto exit;
 
-	if( oldPos >= nElems )
-		oldPos = nElems - 1;
+    if( oldPos >= nElems )
+        oldPos = nElems - 1;
 
-	if( newPos >= nElems )
-		newPos = nElems - 1;
+    if( newPos >= nElems )
+        newPos = nElems - 1;
 
-	if( oldPos == newPos )
-		goto exit;
+    if( oldPos == newPos )
+        goto exit;
 
 /* -------- */
 /* Make gap */
 /* -------- */
 
-	MEMCopyBytes( oneElemBuf,
-		(char*)baseAddr + oldPos * elemBytes, elemBytes );
+    MEMCopyBytes( oneElemBuf,
+        (char*)baseAddr + oldPos * elemBytes, elemBytes );
 
 /* -------------------- */
 /* Slide other elements */
 /* -------------------- */
 
-	if( oldPos > newPos ) {
+    if( oldPos > newPos ) {
 
-		char	*src = (char*)baseAddr + newPos * elemBytes;
+        char	*src = (char*)baseAddr + newPos * elemBytes;
 
-		memmove( src + elemBytes, src,
-			(oldPos - newPos) * elemBytes );
-	}
-	else {
+        memmove( src + elemBytes, src,
+            (oldPos - newPos) * elemBytes );
+    }
+    else {
 
-		char	*dst = (char*)baseAddr + oldPos * elemBytes;
+        char	*dst = (char*)baseAddr + oldPos * elemBytes;
 
-		MEMCopyBytes( dst, dst + elemBytes,
-			(newPos - oldPos) * elemBytes );
-	}
+        MEMCopyBytes( dst, dst + elemBytes,
+            (newPos - oldPos) * elemBytes );
+    }
 
 /* -------- */
 /* Fill gap */
 /* -------- */
 
-	MEMCopyBytes( (char*)baseAddr + newPos * elemBytes,
-		oneElemBuf, elemBytes );
+    MEMCopyBytes( (char*)baseAddr + newPos * elemBytes,
+        oneElemBuf, elemBytes );
 
 exit:
-	return;
+    return;
 }
 
 
@@ -333,19 +333,19 @@ exit:
  */
 
 void MEMFlipEndianOrder16Bit(
-	UInt16			*dst16Bit,
-	UInt16			*src16Bit,
-	UInt32			nWords )
+    UInt16			*dst16Bit,
+    UInt16			*src16Bit,
+    UInt32			nWords )
 {
-	UInt32	i;
-	UInt16	D;
+    UInt32	i;
+    UInt16	D;
 
-	for( i = 0; i < nWords; ++i ) {
+    for( i = 0; i < nWords; ++i ) {
 
-		D = *src16Bit++;
+        D = *src16Bit++;
 
-		*dst16Bit = (D << ByteBits) + (D >> ByteBits);
-	}
+        *dst16Bit = (D << ByteBits) + (D >> ByteBits);
+    }
 }
 
 
@@ -366,22 +366,22 @@ void MEMFlipEndianOrder16Bit(
  */
 
 void MEMFlipEndianOrder32Bit(
-	UInt32			*dst32Bit,
-	UInt32			*src32Bit,
-	UInt32			nWords )
+    UInt32			*dst32Bit,
+    UInt32			*src32Bit,
+    UInt32			nWords )
 {
-	UInt32	i, D;
+    UInt32	i, D;
 
-	for( i = 0; i < nWords; ++i ) {
+    for( i = 0; i < nWords; ++i ) {
 
-		D = *src32Bit++;
+        D = *src32Bit++;
 
-		*dst32Bit++ =
-			(D << (WordBits - ByteBits)) +
-			((D << ByteBits) & 0x00FF0000) +
-			((D >> ByteBits) & 0x0000FF00) +
-			(D >> (WordBits - ByteBits));
-	}
+        *dst32Bit++ =
+            (D << (WordBits - ByteBits)) +
+            ((D << ByteBits) & 0x00FF0000) +
+            ((D >> ByteBits) & 0x0000FF00) +
+            (D >> (WordBits - ByteBits));
+    }
 }
 
 

@@ -15,24 +15,24 @@
 /* --------------------------------------------------------------- */
 
 /*
-	Solving for a rigid transform from A to B...
+    Solving for a rigid transform from A to B...
 
-	Let c=cos(theta), s=sin(theta), Sum over all point-pairs:
+    Let c=cos(theta), s=sin(theta), Sum over all point-pairs:
 
-	E = Sum[Xb - cXa + sYa - kx]^2 + [Yb - sXa - cYa - ky]^2
+    E = Sum[Xb - cXa + sYa - kx]^2 + [Yb - sXa - cYa - ky]^2
 
-	The params u = {theta,kx,ky) are determined by dE/du = 0.
-	If we use notation [arg] => Sum[argi] over point-pairs,
+    The params u = {theta,kx,ky) are determined by dE/du = 0.
+    If we use notation [arg] => Sum[argi] over point-pairs,
 
-	kx = ([Xb] - c[Xa] + s[Ya]) / N
-	ky = ([Yb] - s[Xa] - c[Ya]) / N
+    kx = ([Xb] - c[Xa] + s[Ya]) / N
+    ky = ([Yb] - s[Xa] - c[Ya]) / N
 
-				 [YaXb] - [XaYb] + ([Xa][Yb] - [Ya][Xb]) / N
-	tan(theta) = --------------------------------------------
-				 ([Xa][Xb] + [Ya][Yb]) / N - [XaXb] - [YaYb]
+                 [YaXb] - [XaYb] + ([Xa][Yb] - [Ya][Xb]) / N
+    tan(theta) = --------------------------------------------
+                 ([Xa][Xb] + [Ya][Yb]) / N - [XaXb] - [YaYb]
 
-	Translation is merely a simplification of the rigid such
-	that {c,s} = (1,0), hence, no cross terms are needed.
+    Translation is merely a simplification of the rigid such
+    that {c,s} = (1,0), hence, no cross terms are needed.
 */
 
 /* --------------------------------------------------------------- */
@@ -41,17 +41,17 @@
 
 void CRigid::Add( const Point &A, const Point &B )
 {
-	Xa += A.x;
-	Ya += A.y;
-	Xb += B.x;
-	Yb += B.y;
+    Xa += A.x;
+    Ya += A.y;
+    Xb += B.x;
+    Yb += B.y;
 
-	XaXb += A.x * B.x;
-	YaYb += A.y * B.y;
-	XaYb += A.x * B.y;
-	YaXb += A.y * B.x;
+    XaXb += A.x * B.x;
+    YaYb += A.y * B.y;
+    XaYb += A.x * B.y;
+    YaXb += A.y * B.x;
 
-	++N;
+    ++N;
 }
 
 /* --------------------------------------------------------------- */
@@ -60,23 +60,23 @@ void CRigid::Add( const Point &A, const Point &B )
 
 void CRigid::Solve( TAffine& T )
 {
-	if( N >= 2 ) {
+    if( N >= 2 ) {
 
-		double
-		theta = atan(
-			(YaXb - XaYb + (Xa*Yb - Ya*Xb)/N) /
-			((Xa*Xb + Ya*Yb)/N - XaXb - YaYb)
-		),
-		c  = cos( theta ),
-		s  = sin( theta ),
-		kx = (Xb - c*Xa + s*Ya) / N,
-		ky = (Yb - s*Xa - c*Ya) / N;
+        double
+        theta = atan(
+            (YaXb - XaYb + (Xa*Yb - Ya*Xb)/N) /
+            ((Xa*Xb + Ya*Yb)/N - XaXb - YaYb)
+        ),
+        c  = cos( theta ),
+        s  = sin( theta ),
+        kx = (Xb - c*Xa + s*Ya) / N,
+        ky = (Yb - s*Xa - c*Ya) / N;
 
-		T.t[0] = c; T.t[1] = -s; T.t[2] = kx;
-		T.t[3] = s; T.t[4] =  c; T.t[5] = ky;
-	}
-	else
-		T.NUSetOne();
+        T.t[0] = c; T.t[1] = -s; T.t[2] = kx;
+        T.t[3] = s; T.t[4] =  c; T.t[5] = ky;
+    }
+    else
+        T.NUSetOne();
 }
 
 /* --------------------------------------------------------------- */
@@ -91,21 +91,21 @@ void CRigid::Solve( TAffine& T )
 //
 void CRigid::Regularize( double *v, int nv, double Wr )
 {
-	if( N < 2 || Wr == 0 )
-		return;
+    if( N < 2 || Wr == 0 )
+        return;
 
-	TAffine	R;
-	Solve( R );
+    TAffine	R;
+    Solve( R );
 
-	double	Wv = (1.0 - Wr);
+    double	Wv = (1.0 - Wr);
 
-	for( int i = 0; i < 6; ++i )
-		v[i] = Wv * v[i] + Wr * R.t[i];
+    for( int i = 0; i < 6; ++i )
+        v[i] = Wv * v[i] + Wr * R.t[i];
 
-	if( nv == 8 ) {
-		v[6] *= Wv;
-		v[7] *= Wv;
-	}
+    if( nv == 8 ) {
+        v[6] *= Wv;
+        v[7] *= Wv;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -114,12 +114,12 @@ void CRigid::Regularize( double *v, int nv, double Wr )
 
 void CTrans::Add( const Point &A, const Point &B )
 {
-	Xa += A.x;
-	Ya += A.y;
-	Xb += B.x;
-	Yb += B.y;
+    Xa += A.x;
+    Ya += A.y;
+    Xb += B.x;
+    Yb += B.y;
 
-	++N;
+    ++N;
 }
 
 /* --------------------------------------------------------------- */
@@ -128,12 +128,12 @@ void CTrans::Add( const Point &A, const Point &B )
 
 void CTrans::Solve( TAffine& T )
 {
-	if( N >= 1 ) {
-		T.t[0] = 1; T.t[1] = 0; T.t[2] = (Xb - Xa) / N;
-		T.t[3] = 0; T.t[4] = 1; T.t[5] = (Yb - Ya) / N;
-	}
-	else
-		T.NUSetOne();
+    if( N >= 1 ) {
+        T.t[0] = 1; T.t[1] = 0; T.t[2] = (Xb - Xa) / N;
+        T.t[3] = 0; T.t[4] = 1; T.t[5] = (Yb - Ya) / N;
+    }
+    else
+        T.NUSetOne();
 }
 
 

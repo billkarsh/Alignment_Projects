@@ -21,42 +21,42 @@
 //
 void VMStats( FILE *flog )
 {
-	char			host[128];
-	struct rusage	usage;
-	int				pid = getpid();
+    char			host[128];
+    struct rusage	usage;
+    int				pid = getpid();
 
-	gethostname( host, sizeof(host) );
-	getrusage( RUSAGE_SELF, &usage );
+    gethostname( host, sizeof(host) );
+    getrusage( RUSAGE_SELF, &usage );
 
-	fprintf( flog, "\n---- Memory ----\n" );
-	fprintf( flog, "Host name: %s\n", host );
-	fprintf( flog, "PID:       %d\n", pid );
-	fprintf( flog, "User time:   %5ld seconds.\n",
-		usage.ru_utime.tv_sec );
-	fprintf( flog, "System time: %5ld seconds.\n",
-		usage.ru_stime.tv_sec );
+    fprintf( flog, "\n---- Memory ----\n" );
+    fprintf( flog, "Host name: %s\n", host );
+    fprintf( flog, "PID:       %d\n", pid );
+    fprintf( flog, "User time:   %5ld seconds.\n",
+        usage.ru_utime.tv_sec );
+    fprintf( flog, "System time: %5ld seconds.\n",
+        usage.ru_stime.tv_sec );
 
-	CLineScan	LS;
+    CLineScan	LS;
 
-	LS.bufsize	= 1024;
-	LS.line		= (char*)malloc( LS.bufsize );
+    LS.bufsize	= 1024;
+    LS.line		= (char*)malloc( LS.bufsize );
 
-	sprintf( LS.line, "/proc/%d/status", pid );
+    sprintf( LS.line, "/proc/%d/status", pid );
 
-	FILE	*f = fopen( LS.line, "r" );
+    FILE	*f = fopen( LS.line, "r" );
 
-	if( f ) {
+    if( f ) {
 
-		while( LS.Get( f ) > 0 ) {
+        while( LS.Get( f ) > 0 ) {
 
-			if( strstr( LS.line, "Vm" ) || strstr( LS.line, "ctxt" ) )
-				fprintf( flog, "%s", LS.line );
-		}
+            if( strstr( LS.line, "Vm" ) || strstr( LS.line, "ctxt" ) )
+                fprintf( flog, "%s", LS.line );
+        }
 
-		fclose( f );
-	}
+        fclose( f );
+    }
 
-	fprintf( flog, "\n" );
+    fprintf( flog, "\n" );
 }
 
 

@@ -15,75 +15,75 @@
 
 bool CAffineLens::ReadFile( const char *path, FILE* flog )
 {
-	this->flog = flog;
+    this->flog = flog;
 
-	FILE		*f = fopen( path, "r" );
-	CLineScan	LS;
-	uint8		is[4] = {0,0,0,0};
-	bool		ok = false;
+    FILE		*f = fopen( path, "r" );
+    CLineScan	LS;
+    uint8		is[4] = {0,0,0,0};
+    bool		ok = false;
 
 // Header
 
-	if( LS.Get( f ) <= 0 ) {
+    if( LS.Get( f ) <= 0 ) {
 
-		fprintf( flog,
-		"Lens::Read: Empty file [%s].\n", path );
-		goto exit;
-	}
+        fprintf( flog,
+        "Lens::Read: Empty file [%s].\n", path );
+        goto exit;
+    }
 
 // Entries
 
-	while( LS.Get( f ) > 0 ) {
+    while( LS.Get( f ) > 0 ) {
 
-		TAffine	T;
-		int		cam;
+        TAffine	T;
+        int		cam;
 
-		if( 7 != sscanf( LS.line,
-				"%d%lf%lf%lf%lf%lf%lf",
-				&cam,
-				&T.t[0], &T.t[3], &T.t[1],
-				&T.t[4], &T.t[2], &T.t[5] ) ) {
+        if( 7 != sscanf( LS.line,
+                "%d%lf%lf%lf%lf%lf%lf",
+                &cam,
+                &T.t[0], &T.t[3], &T.t[1],
+                &T.t[4], &T.t[2], &T.t[5] ) ) {
 
-			fprintf( flog,
-			"Lens::Read: Bad line [%s].\n", LS.line );
-			goto exit;
-		}
+            fprintf( flog,
+            "Lens::Read: Bad line [%s].\n", LS.line );
+            goto exit;
+        }
 
-		if( cam < 0 || cam > 3 ) {
+        if( cam < 0 || cam > 3 ) {
 
-			fprintf( flog,
-			"Lens::Read: Bad cam index [%s].\n", LS.line );
-			goto exit;
-		}
+            fprintf( flog,
+            "Lens::Read: Bad cam index [%s].\n", LS.line );
+            goto exit;
+        }
 
-		Tf[cam] = T;
-		is[cam] = 1;
-	}
+        Tf[cam] = T;
+        is[cam] = 1;
+    }
 
 // Got all four?
 
-	if( 4 != is[0] + is[1] + is[2] + is[3] ) {
+    if( 4 != is[0] + is[1] + is[2] + is[3] ) {
 
-		fprintf( flog,
-		"Lens::Read: Missing entry [%s].\n", path );
-		goto exit;
-	}
+        fprintf( flog,
+        "Lens::Read: Missing entry [%s].\n", path );
+        goto exit;
+    }
 
 // Make inverses
 
-	for( int i = 0; i < 4; ++i ) {
+    for( int i = 0; i < 4; ++i ) {
 
 //		Tf[i].SetXY( 0, 0 );
-		Ti[i].InverseOf( Tf[i] );
-	}
+        Ti[i].InverseOf( Tf[i] );
+    }
 
-	ok = true;
+    ok = true;
 
 exit:
-	if( f )
-		fclose( f );
+    if( f )
+        fclose( f );
 
-	return ok;
+    return ok;
 }
 
 /* --------------------------------------------------------------- */
@@ -92,11 +92,11 @@ exit:
 
 bool CAffineLens::ReadIDB( const string &idb, FILE* flog )
 {
-	char	path[2048];
+    char	path[2048];
 
-	sprintf( path, "%s/lens.txt", idb.c_str() );
+    sprintf( path, "%s/lens.txt", idb.c_str() );
 
-	return ReadFile( path, flog );
+    return ReadFile( path, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -105,9 +105,9 @@ bool CAffineLens::ReadIDB( const string &idb, FILE* flog )
 
 void CAffineLens::UpdateDoublesRHS( double *D, int cam, bool inv )
 {
-	TAffine	T = TAffine( D ) * (inv ? Ti : Tf)[cam];
+    TAffine	T = TAffine( D ) * (inv ? Ti : Tf)[cam];
 
-	T.CopyOut( D );
+    T.CopyOut( D );
 }
 
 /* --------------------------------------------------------------- */
@@ -116,7 +116,7 @@ void CAffineLens::UpdateDoublesRHS( double *D, int cam, bool inv )
 
 void CAffineLens::UpdateTFormRHS( TAffine &T, int cam, bool inv )
 {
-	T = T * (inv ? Ti : Tf)[cam];
+    T = T * (inv ? Ti : Tf)[cam];
 }
 
 /* --------------------------------------------------------------- */
@@ -125,7 +125,7 @@ void CAffineLens::UpdateTFormRHS( TAffine &T, int cam, bool inv )
 
 void CAffineLens::UpdateTFormLHS( TAffine &T, int cam, bool inv )
 {
-	T = (inv ? Ti : Tf)[cam] * T;
+    T = (inv ? Ti : Tf)[cam] * T;
 }
 
 

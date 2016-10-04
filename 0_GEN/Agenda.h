@@ -114,11 +114,11 @@ do foldmasks.
 - If fm's used, then the montage point-pairs can't be used in LSQ
 because they're not yet labelled by region. So real workflow will
 look more like:
-	- make montages without foldmasks
-	- calculate, draw, check, assign montage foldmasks
-	- map montage foldmasks to tile foldmasks
-	- montage again with full foldmasks to get point labels
-	- now do all the cross layer work
+    - make montages without foldmasks
+    - calculate, draw, check, assign montage foldmasks
+    - map montage foldmasks to tile foldmasks
+    - montage again with full foldmasks to get point labels
+    - now do all the cross layer work
 
 - Need to visualize the block results to look for block errors.
 - Bad block signs: ?{low R, low point cnt, some T consistency rule}?

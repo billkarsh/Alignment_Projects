@@ -17,13 +17,13 @@ double ** matrix(int nrl, int nrh, int ncl, int nch)
     m = (double **)malloc((nrh-nrl+1)*sizeof(double *));
     if (m == NULL) {
         printf("Odd...\n");
-	exit(-1);
-	}
+    exit(-1);
+    }
     m -= nrl;
     for(i=nrl; i<=nrh; i++) {
-	m[i] = (double *)malloc((nch-ncl+1)*sizeof(double));
-	m[i] -= ncl;
-	}
+    m[i] = (double *)malloc((nch-ncl+1)*sizeof(double));
+    m[i] -= ncl;
+    }
     return m;
 }
 
@@ -82,7 +82,7 @@ double *    b = NRvector(1,m);	/* constant vector of equation */
 
 for(int i=1; i<=m; i++)
     for(int j=1; j<=n; j++)
-	save[i][j] = a[i][j] = 0.0;
+    save[i][j] = a[i][j] = 0.0;
 for(int i=0; i<aa.size(); i++) {
     for(int j=0; j<aa[i].size(); j++){
         save[i+1][j+1] = a[i+1][j+1] = aa[i][j];
@@ -101,18 +101,18 @@ int nsingular = 0;
    double wmax = 0.0, wmin;
        for(int i=1; i<=n; i++) if (w[i] > wmax) wmax = w[i];
        //for(int i=1; i<=n; i++) {
-	   //printf("w[%d] = %g\n",i,w[i]);
-	   //for(int j=1; j<=n; j++)
-	       //printf("%10g ", v[i][j]);
-	   //printf("\n");
-	   //}
+       //printf("w[%d] = %g\n",i,w[i]);
+       //for(int j=1; j<=n; j++)
+           //printf("%10g ", v[i][j]);
+       //printf("\n");
+       //}
        wmin = wmax * 1.0E-10;
        for(int i=1; i<=n; i++)
-	  if (w[i] < wmin) {
-	     printf("Singular value! Index %d\n",i);
+      if (w[i] < wmin) {
+         printf("Singular value! Index %d\n",i);
              w[i] = 0.0;
              nsingular++;
-	     }
+         }
     }
 
 // Now do the back substitution

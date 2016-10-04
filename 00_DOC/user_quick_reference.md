@@ -5,8 +5,8 @@
 ### Initial Project Folder
 
 >* prms
-	* matchparams.txt
-	* scriptparams.txt
+    * matchparams.txt
+    * scriptparams.txt
 * mylayout.txt
 * topgo.sht
 

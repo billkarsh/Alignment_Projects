@@ -30,8 +30,8 @@ bk_src = $(PATH_BK)/{$(subst $(space),$(comma),$(bk_files))}
 all : $(appname)
 
 clean :
-    rm -f *.o
+	rm -f *.o
 
 $(appname) : .CHECK_GENLIB ${objs}
-    $(CC) $(CFLAGS) $(bk_src) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
+	$(CC) $(CFLAGS) $(bk_src) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

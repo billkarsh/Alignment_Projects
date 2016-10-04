@@ -8,22 +8,22 @@
 /* --------------------------------------------------------------- */
 
 static void _FFT_2D(
-	vector<CD>				&out,
-	const vector<double>	&in,
-	int						Nfast,
-	int						Nslow )
+    vector<CD>				&out,
+    const vector<double>	&in,
+    int						Nfast,
+    int						Nslow )
 {
-	int	M = Nslow * (Nfast/2 + 1);
+    int	M = Nslow * (Nfast/2 + 1);
 
-	out.resize( M );
+    out.resize( M );
 
-	fftw_plan	p;
+    fftw_plan	p;
 
-	p = fftw_plan_dft_r2c_2d( Nslow, Nfast, (double*)&in[0],
-			(double (*)[2])&out[0], FFTW_ESTIMATE );
+    p = fftw_plan_dft_r2c_2d( Nslow, Nfast, (double*)&in[0],
+            (double (*)[2])&out[0], FFTW_ESTIMATE );
 
-	fftw_execute( p );
-	fftw_destroy_plan( p );
+    fftw_execute( p );
+    fftw_destroy_plan( p );
 }
 
 /* --------------------------------------------------------------- */
@@ -36,23 +36,23 @@ static void _FFT_2D(
 // ordered like a C-array: in[Nslow][Nfast].
 //
 int FFT_2D(
-	vector<CD>				&out,
-	const vector<double>	&in,
-	int						Nfast,
-	int						Nslow,
-	bool					cached,
-	FILE					*flog )
+    vector<CD>				&out,
+    const vector<double>	&in,
+    int						Nfast,
+    int						Nslow,
+    bool					cached,
+    FILE					*flog )
 {
-	int	M = Nslow * (Nfast/2 + 1);
+    int	M = Nslow * (Nfast/2 + 1);
 
-	pthread_mutex_lock( &mutex_fft );
+    pthread_mutex_lock( &mutex_fft );
 
-	if( !cached || out.size() != M )
-		_FFT_2D( out, in, Nfast, Nslow );
+    if( !cached || out.size() != M )
+        _FFT_2D( out, in, Nfast, Nslow );
 
-	pthread_mutex_unlock( &mutex_fft );
+    pthread_mutex_unlock( &mutex_fft );
 
-	return M;
+    return M;
 }
 
 /* --------------------------------------------------------------- */
@@ -65,30 +65,30 @@ int FFT_2D(
 // ordered like a C-array: out[Nslow][Nfast].
 //
 void IFT_2D(
-	vector<double>			&out,
-	const vector<CD>		&in,
-	int						Nfast,
-	int						Nslow,
-	FILE					*flog )
+    vector<double>			&out,
+    const vector<CD>		&in,
+    int						Nfast,
+    int						Nslow,
+    FILE					*flog )
 {
-	int	N = Nslow * Nfast;
+    int	N = Nslow * Nfast;
 
-	out.resize( N );
+    out.resize( N );
 
-	pthread_mutex_lock( &mutex_fft );
+    pthread_mutex_lock( &mutex_fft );
 
-	fftw_plan	p;
+    fftw_plan	p;
 
-	// fftw_plan_dft_c2r_2d() modifies input
-	const vector<CD>	_in = in;
+    // fftw_plan_dft_c2r_2d() modifies input
+    const vector<CD>	_in = in;
 
-	p = fftw_plan_dft_c2r_2d( Nslow, Nfast, (double (*)[2])&_in[0],
-			&out[0], FFTW_ESTIMATE );
+    p = fftw_plan_dft_c2r_2d( Nslow, Nfast, (double (*)[2])&_in[0],
+            &out[0], FFTW_ESTIMATE );
 
-	fftw_execute( p );
-	fftw_destroy_plan( p );
+    fftw_execute( p );
+    fftw_destroy_plan( p );
 
-	pthread_mutex_unlock( &mutex_fft );
+    pthread_mutex_unlock( &mutex_fft );
 }
 
 

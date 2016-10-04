@@ -19,29 +19,29 @@
 
 PicBase::PicBase()
 {
-	raster		= NULL;
-	original	= NULL;
-	external	= NULL;
-	z			= 0;
-	scale		= 1;
+    raster		= NULL;
+    original	= NULL;
+    external	= NULL;
+    z			= 0;
+    scale		= 1;
 }
 
 
 PicBase::~PicBase()
 {
-	if( raster == original ) {
+    if( raster == original ) {
 
-		if( raster && raster != external )
-			RasterFree( raster );
-	}
-	else {
+        if( raster && raster != external )
+            RasterFree( raster );
+    }
+    else {
 
-		if( raster && raster != external )
-			RasterFree( raster );
+        if( raster && raster != external )
+            RasterFree( raster );
 
-		if( original && original != external )
-			RasterFree( original );
-	}
+        if( original && original != external )
+            RasterFree( original );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -49,16 +49,16 @@ PicBase::~PicBase()
 /* --------------------------------------------------------------- */
 
 void PicBase::LoadOriginal(
-	const char*	name,
-	FILE*		flog,
-	bool		transpose )
+    const char*	name,
+    FILE*		flog,
+    bool		transpose )
 {
-	fname = name;
+    fname = name;
 
-	original =
-	Raster8FromAny( name, w, h, flog, transpose );
+    original =
+    Raster8FromAny( name, w, h, flog, transpose );
 
-	CopyOriginal();
+    CopyOriginal();
 }
 
 /* --------------------------------------------------------------- */
@@ -67,11 +67,11 @@ void PicBase::LoadOriginal(
 
 void PicBase::SetExternal( const uint8* in_raster, uint32 w, uint32 h )
 {
-	external	= original = (uint8*)in_raster;
-	this->w		= w;
-	this->h		= h;
+    external	= original = (uint8*)in_raster;
+    this->w		= w;
+    this->h		= h;
 
-	CopyOriginal();
+    CopyOriginal();
 }
 
 /* --------------------------------------------------------------- */
@@ -80,11 +80,11 @@ void PicBase::SetExternal( const uint8* in_raster, uint32 w, uint32 h )
 
 void PicBase::CopyOriginal()
 {
-	if( raster && raster != original && raster != external )
-		RasterFree( raster );
+    if( raster && raster != original && raster != external )
+        RasterFree( raster );
 
-	scale	= 1;
-	raster	= original;
+    scale	= 1;
+    raster	= original;
 }
 
 /* --------------------------------------------------------------- */
@@ -96,51 +96,51 @@ void PicBase::CopyOriginal()
 //
 void PicBase::DownsampleIfNeeded( FILE* flog )
 {
-	CopyOriginal();
+    CopyOriginal();
 
-	if( w <= 2048 && h <= 2048 )
-		return;
+    if( w <= 2048 && h <= 2048 )
+        return;
 
 // Find scale factor that will make each dimension <= 2048
 
-	int		origw = w, origh = h;
+    int		origw = w, origh = h;
 
-	do {
-		w		/= 2;
-		h		/= 2;
-		scale	*= 2;
-	} while( w > 2048 || h > 2048 );
+    do {
+        w		/= 2;
+        h		/= 2;
+        scale	*= 2;
+    } while( w > 2048 || h > 2048 );
 
-	fprintf( flog, "DownsampleIfNeeded: Will scale by %d\n", scale );
+    fprintf( flog, "DownsampleIfNeeded: Will scale by %d\n", scale );
 
-	if( w * scale != origw || h * scale != origh ) {
+    if( w * scale != origw || h * scale != origh ) {
 
-		fprintf( flog,
-		"DownsampleIfNeeded: Image does not divide evenly!\n" );
-		exit( 45 );
-	}
+        fprintf( flog,
+        "DownsampleIfNeeded: Image does not divide evenly!\n" );
+        exit( 45 );
+    }
 
-	int		npq = scale * scale;
+    int		npq = scale * scale;
 
-	raster = (uint8*)RasterAlloc( w * h * sizeof(uint8) );
+    raster = (uint8*)RasterAlloc( w * h * sizeof(uint8) );
 
-	for( int iy = 0; iy < h; ++iy ) {
+    for( int iy = 0; iy < h; ++iy ) {
 
-		for( int ix = 0; ix < w; ++ix ) {
+        for( int ix = 0; ix < w; ++ix ) {
 
-			int		sum = 0;
+            int		sum = 0;
 
-			for( int dy = 0; dy < scale; ++dy ) {
+            for( int dy = 0; dy < scale; ++dy ) {
 
-				for( int dx = 0; dx < scale; ++dx )
-					sum += original[ix*scale+dx + origw*(iy*scale+dy)];
-			}
+                for( int dx = 0; dx < scale; ++dx )
+                    sum += original[ix*scale+dx + origw*(iy*scale+dy)];
+            }
 
-			raster[ix+w*iy] = (sum + npq/2)/npq;	// rounding
-		}
-	}
+            raster[ix+w*iy] = (sum + npq/2)/npq;	// rounding
+        }
+    }
 
-	tr.MulXY( 1.0 / scale );
+    tr.MulXY( 1.0 / scale );
 }
 
 /* --------------------------------------------------------------- */
@@ -153,70 +153,70 @@ void PicBase::DownsampleIfNeeded( FILE* flog )
 //
 void PicBase::MakeFFTExist( int i )
 {
-	printf(
-	"MakeFFTExist: called with %d,"
-	" fft_of_frame.size=%ld\n", i, fft_of_frame.size() );
+    printf(
+    "MakeFFTExist: called with %d,"
+    " fft_of_frame.size=%ld\n", i, fft_of_frame.size() );
 
-	if( fft_of_frame.size() )	// already exists
-		return;
+    if( fft_of_frame.size() )	// already exists
+        return;
 
-	int N	= 4096;
-	int M	= N*(N/2+1);	// count of complex in FFT of 2D real
-	int np	= w * h;
+    int N	= 4096;
+    int M	= N*(N/2+1);	// count of complex in FFT of 2D real
+    int np	= w * h;
 
 // Create vector of all the pixels in the frame,
 // so we can normalize their values.
 
-	vector<double>	px( np );
-	double			avg, std;
+    vector<double>	px( np );
+    double			avg, std;
 
-	for( int k = 0; k < np; ++k ) {
+    for( int k = 0; k < np; ++k ) {
 
-		int	y = k / w;
-		int	x = k - w*y;
-		px[k] = raster[k];
-	}
+        int	y = k / w;
+        int	x = k - w*y;
+        px[k] = raster[k];
+    }
 
-	Stats( px, avg, std );
-	printf( "MakeFFTExist: Frame %d: mean %f, std %f\n", i, avg, std );
+    Stats( px, avg, std );
+    printf( "MakeFFTExist: Frame %d: mean %f, std %f\n", i, avg, std );
 
 // Recompute the mean and standard dev. using only 'sensible' pixels
 
-	px.clear();
+    px.clear();
 
-	for( int k = 0; k < np; ++k ) {
+    for( int k = 0; k < np; ++k ) {
 
-		int		y	= k / w;
-		int		x	= k - w*y;
-		double	val	= (raster[k] - avg)/std;
+        int		y	= k / w;
+        int		x	= k - w*y;
+        double	val	= (raster[k] - avg)/std;
 
-		if( fabs( val ) <= 1.5 )
-			px.push_back( raster[k] );
-	}
+        if( fabs( val ) <= 1.5 )
+            px.push_back( raster[k] );
+    }
 
-	Stats( px, avg, std );
-	printf( "MakeFFTExist: Frame %d: mean %f, std %f\n", i, avg, std );
+    Stats( px, avg, std );
+    printf( "MakeFFTExist: Frame %d: mean %f, std %f\n", i, avg, std );
 
 // Now make frame of normalized values.
 
-	vector<double>	fr( N * N, 0.0 );
+    vector<double>	fr( N * N, 0.0 );
 
-	for( int k = 0; k < np; ++k ) {
+    for( int k = 0; k < np; ++k ) {
 
-		int		y	= k / w;
-		int		x	= k - w*y;
-		double	val	= (raster[k] - avg)/std;
+        int		y	= k / w;
+        int		x	= k - w*y;
+        double	val	= (raster[k] - avg)/std;
 
-		// replace outlying values with 0 (blank).
-		// These are normally artifacts producing false matches.
+        // replace outlying values with 0 (blank).
+        // These are normally artifacts producing false matches.
 
-		if( fabs( val ) > 1.5 )
-			val = 0.0;
+        if( fabs( val ) > 1.5 )
+            val = 0.0;
 
-		fr[x + N*y] = val;
-	}
+        fr[x + N*y] = val;
+    }
 
-	FFT_2D( fft_of_frame, fr, N, N, false );
+    FFT_2D( fft_of_frame, fr, N, N, false );
 
 #if 0
 // Now zero out the first few terms.
@@ -224,15 +224,15 @@ void PicBase::MakeFFTExist( int i )
 // We should do this differently for X and Y matches, but just do
 // the first few for now.
 
-	int	stride	= N/2+1;
-	int	NR		= 3;	// remove through this component
-	CD	cz( 0.0, 0.0 );
+    int	stride	= N/2+1;
+    int	NR		= 3;	// remove through this component
+    CD	cz( 0.0, 0.0 );
 
-	for( int j = 0; j <= NR; ++j ) {
+    for( int j = 0; j <= NR; ++j ) {
 
-		for( int k = 0; k <= NR; ++k )
-			fft_of_frame[k + j*stride] = cz;
-	}
+        for( int k = 0; k <= NR; ++k )
+            fft_of_frame[k + j*stride] = cz;
+    }
 #endif
 }
 
@@ -254,119 +254,119 @@ void PicBase::MakeFFTExist( int i )
 //
 void PicBase::MakeDoGExist( vector<CD> &filter, int r1, int r2 )
 {
-	int		npix	= w * h,
-			fltsz	= 3 * r2;
-	int		i, x, y;
+    int		npix	= w * h,
+            fltsz	= 3 * r2;
+    int		i, x, y;
 
 // Early exit?
 
-	if( DoG.size() )
-		return;
+    if( DoG.size() )
+        return;
 
-	DoG.resize( npix );
+    DoG.resize( npix );
 
-	if( r2 <= 0.0 ) {
-		memcpy( &DoG[0], &raster[0], npix );
-		return;
-	}
+    if( r2 <= 0.0 ) {
+        memcpy( &DoG[0], &raster[0], npix );
+        return;
+    }
 
 // Set FFT sizing
 
-	int	N = CeilPow2( max( w, h ) + fltsz );
+    int	N = CeilPow2( max( w, h ) + fltsz );
 
-	printf( "MakeDoGExist: Using size %d\n", N );
+    printf( "MakeDoGExist: Using size %d\n", N );
 
-	int M = N * (N/2 + 1);	// size of array of complex coefficients
+    int M = N * (N/2 + 1);	// size of array of complex coefficients
 
 // Construct filter
 
-	if( !filter.size() ) {
+    if( !filter.size() ) {
 
-		vector<double>	image( N * N, 0.0 );
-		double			sum1 = 0.0,	// for normalizing.
-						sum2 = 0.0;	// each integral should = 2*pi
+        vector<double>	image( N * N, 0.0 );
+        double			sum1 = 0.0,	// for normalizing.
+                        sum2 = 0.0;	// each integral should = 2*pi
 
-		// they are not quite the same due to
-		// quantization and removal of tails.
+        // they are not quite the same due to
+        // quantization and removal of tails.
 
-		for( x = -fltsz; x <= fltsz; ++x ) {
+        for( x = -fltsz; x <= fltsz; ++x ) {
 
-			for( y = -fltsz; y <= fltsz; ++y ) {
+            for( y = -fltsz; y <= fltsz; ++y ) {
 
-				double	rad2 = x*x + y*y;
+                double	rad2 = x*x + y*y;
 
-				sum1 += exp( -( rad2/(2*r1*r1) ) );
-				sum2 += exp( -( rad2/(2*r2*r2) ) );
-			}
-		}
+                sum1 += exp( -( rad2/(2*r1*r1) ) );
+                sum2 += exp( -( rad2/(2*r2*r2) ) );
+            }
+        }
 
-		printf( "MakeDoGExist: Check %f equals %f equals 2pi.\n",
-			sum1/(r1*r1), sum2/(r2*r2) );
+        printf( "MakeDoGExist: Check %f equals %f equals 2pi.\n",
+            sum1/(r1*r1), sum2/(r2*r2) );
 
-		for( x = -fltsz; x <= fltsz; ++x ) {
+        for( x = -fltsz; x <= fltsz; ++x ) {
 
-			for( y = -fltsz; y <= fltsz; ++y ) {
+            for( y = -fltsz; y <= fltsz; ++y ) {
 
-				double	rad2	= x*x + y*y;
-				double	v1		= exp( -( rad2/(2*r1*r1) ) );
-				double	v2		= exp( -( rad2/(2*r2*r2) ) );
-				int		ix		= (x >= 0 ? x : N + x);
-				int		iy		= (y >= 0 ? y : N + y);
+                double	rad2	= x*x + y*y;
+                double	v1		= exp( -( rad2/(2*r1*r1) ) );
+                double	v2		= exp( -( rad2/(2*r2*r2) ) );
+                int		ix		= (x >= 0 ? x : N + x);
+                int		iy		= (y >= 0 ? y : N + y);
 
-				image[ix + N*iy] = v1/sum1 - v2/sum2;
-			}
-		}
+                image[ix + N*iy] = v1/sum1 - v2/sum2;
+            }
+        }
 
-		// Now fft it
-		FFT_2D( filter, image, N, N, false );
-	}
+        // Now fft it
+        FFT_2D( filter, image, N, N, false );
+    }
 
 // Normalize image values
 
-	vector<double>	v( npix );
+    vector<double>	v( npix );
 
-	for( i = 0; i < npix; ++i )
-		v[i] = raster[i];
+    for( i = 0; i < npix; ++i )
+        v[i] = raster[i];
 
-	Normalize( v );
+    Normalize( v );
 
 // Copy values to the large image, then FFT
 
-	vector<double>	imag( N * N, 0.0 );
-	vector<CD>		freq;
+    vector<double>	imag( N * N, 0.0 );
+    vector<CD>		freq;
 
-	CopyRaster( &imag[0], N, &v[0], w, w, h );
+    CopyRaster( &imag[0], N, &v[0], w, w, h );
 
-	FFT_2D( freq, imag, N, N, false );
+    FFT_2D( freq, imag, N, N, false );
 
 // Convolve with filter
 
-	for( i = 0; i < M; ++i )
-		freq[i] *= filter[i];
+    for( i = 0; i < M; ++i )
+        freq[i] *= filter[i];
 
 // FFT back
 
-	IFT_2D( imag, freq, N, N );
+    IFT_2D( imag, freq, N, N );
 
 // Copy back to v for normalization
 
-	CopyRaster( &v[0], w, &imag[0], N, w, h );
+    CopyRaster( &v[0], w, &imag[0], N, w, h );
 
-	Normalize( v );
+    Normalize( v );
 
 // Copy v to DoG
 
-	for( i = 0; i < npix; ++i ) {
+    for( i = 0; i < npix; ++i ) {
 
-		int pix	= 127 + int(32 * v[i]);
+        int pix	= 127 + int(32 * v[i]);
 
-		if( pix < 0 )
-			pix = 0;
-		else if( pix > 255 )
-			pix = 255;
+        if( pix < 0 )
+            pix = 0;
+        else if( pix > 255 )
+            pix = 255;
 
-		DoG[i] = pix;
-	}
+        DoG[i] = pix;
+    }
 }
 
 

@@ -37,16 +37,16 @@ static bool RejectTile( const CUTile &til )
 // ------------------------------------
 // accept only col/row subsection
 #if 0
-	if( til.col != -999 ) {
-		int	col = til.col, row = til.row;
+    if( til.col != -999 ) {
+        int	col = til.col, row = til.row;
 //		if( col < 56 || col > 68 || row < 55 || row > 67 )
-		if( col < 33 || col > 55 || row < 73 || row > 103 )
-			return true;
-	}
+        if( col < 33 || col > 55 || row < 73 || row > 103 )
+            return true;
+    }
 #endif
 // ------------------------------------
 
-	return false;
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -55,56 +55,56 @@ static bool RejectTile( const CUTile &til )
 
 void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 {
-	FILE	*fp = FileOpenOrDie( path, "r", flog );
+    FILE	*fp = FileOpenOrDie( path, "r", flog );
 
 /* ---------- */
 /* Scan lines */
 /* ---------- */
 
-	for( ;; ) {
+    for( ;; ) {
 
-		CUTile	til;
-		char	name[2048];
-		int		z;
+        CUTile	til;
+        char	name[2048];
+        int		z;
 
-		/* ---------- */
-		/* Get a line */
-		/* ---------- */
+        /* ---------- */
+        /* Get a line */
+        /* ---------- */
 
-		if( fscanf( fp,
-			"%d%d"
-			"%lf%lf%lf%lf%lf%lf"
-			"%d%d%d%s\n",
-			&z, &til.id,
-			&til.T.t[0], &til.T.t[1], &til.T.t[2],
-			&til.T.t[3], &til.T.t[4], &til.T.t[5],
-			&til.col, &til.row, &til.cam, name ) != 12 ) {
+        if( fscanf( fp,
+            "%d%d"
+            "%lf%lf%lf%lf%lf%lf"
+            "%d%d%d%s\n",
+            &z, &til.id,
+            &til.T.t[0], &til.T.t[1], &til.T.t[2],
+            &til.T.t[3], &til.T.t[4], &til.T.t[5],
+            &til.col, &til.row, &til.cam, name ) != 12 ) {
 
-			break;
-		}
+            break;
+        }
 
-		if( z > zmax )
-			continue;
+        if( z > zmax )
+            continue;
 
-		if( z < zmin )
-			continue;
+        if( z < zmin )
+            continue;
 
-		/* --------- */
-		/* Set entry */
-		/* --------- */
+        /* --------- */
+        /* Set entry */
+        /* --------- */
 
-		til.name	= name;
-		til.z		= z;
+        til.name	= name;
+        til.z		= z;
 
-		if( !RejectTile( til ) )
-			vtil.push_back( til );
-	}
+        if( !RejectTile( til ) )
+            vtil.push_back( til );
+    }
 
 /* ----- */
 /* Close */
 /* ----- */
 
-	fclose( fp );
+    fclose( fp );
 }
 
 /* --------------------------------------------------------------- */
@@ -112,43 +112,43 @@ void CTileSet::FillFromRickFile( const char *path, int zmin, int zmax )
 /* --------------------------------------------------------------- */
 
 static TiXmlElement* XMLGetTiles(
-	CTileSet		*TS,
-	TiXmlElement*	layer,
-	int				z )
+    CTileSet		*TS,
+    TiXmlElement*	layer,
+    int				z )
 {
-	TiXmlElement*	pfirst	= layer->FirstChildElement( "t2_patch" );
-	TiXmlElement*	ptch	= pfirst;
+    TiXmlElement*	pfirst	= layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	ptch	= pfirst;
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+    for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		CUTile		til;
-		const char	*name = ptch->Attribute( "file_path" );
+        CUTile		til;
+        const char	*name = ptch->Attribute( "file_path" );
 
-		til.name	= name;
-		til.z		= z;
-		til.id		= IDFromPatch( ptch );
-		til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+        til.name	= name;
+        til.z		= z;
+        til.id		= IDFromPatch( ptch );
+        til.T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 
-		// extract col, row, cam if present
-		{
-			int	rgn, col, row, cam;
+        // extract col, row, cam if present
+        {
+            int	rgn, col, row, cam;
 
-			if( 6 == sscanf( ptch->Attribute( "title" ),
-				"%d.%d-%d_%d.%d.%d",
-				&z, &til.id, &rgn,
-				&col, &row, &cam ) ) {
+            if( 6 == sscanf( ptch->Attribute( "title" ),
+                "%d.%d-%d_%d.%d.%d",
+                &z, &til.id, &rgn,
+                &col, &row, &cam ) ) {
 
-				til.col = col;
-				til.row = row;
-				til.cam = cam;
-			}
-		}
+                til.col = col;
+                til.row = row;
+                til.cam = cam;
+            }
+        }
 
-		if( !RejectTile( til ) )
-			TS->vtil.push_back( til );
-	}
+        if( !RejectTile( til ) )
+            TS->vtil.push_back( til );
+    }
 
-	return pfirst;
+    return pfirst;
 }
 
 /* --------------------------------------------------------------- */
@@ -163,30 +163,30 @@ void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( path, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( path, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */
 /* -------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > zmax )
-			break;
+        if( z > zmax )
+            break;
 
-		if( z < zmin )
-			continue;
+        if( z < zmin )
+            continue;
 
-		TiXmlElement* p0 = XMLGetTiles( this, layer, z );
+        TiXmlElement* p0 = XMLGetTiles( this, layer, z );
 
-		if( p0 && !gW ) {
-			gW = atoi( p0->Attribute( "width" ) );
-			gH = atoi( p0->Attribute( "height" ) );
-		}
-	}
+        if( p0 && !gW ) {
+            gW = atoi( p0->Attribute( "width" ) );
+            gH = atoi( p0->Attribute( "height" ) );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -195,32 +195,32 @@ void CTileSet::FillFromTrakEM2( const char *path, int zmin, int zmax )
 
 void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 {
-	for( int z = zmin; z <= zmax; ++z ) {
+    for( int z = zmin; z <= zmax; ++z ) {
 
-		vector<Til2Img>	t2i;
+        vector<Til2Img>	t2i;
 
-		if( IDBT2IGetAll( t2i, idb, z, flog ) ) {
+        if( IDBT2IGetAll( t2i, idb, z, flog ) ) {
 
-			int	nt = t2i.size();
+            int	nt = t2i.size();
 
-			for( int i = 0; i < nt; ++i ) {
+            for( int i = 0; i < nt; ++i ) {
 
-				const Til2Img&	E = t2i[i];
-				CUTile			til;
+                const Til2Img&	E = t2i[i];
+                CUTile			til;
 
-				til.name	= E.path;
-				til.T		= E.T;
-				til.z		= z;
-				til.id		= E.id;
-				til.col		= E.col;
-				til.row		= E.row;
-				til.cam		= E.cam;
+                til.name	= E.path;
+                til.T		= E.T;
+                til.z		= z;
+                til.id		= E.id;
+                til.col		= E.col;
+                til.row		= E.row;
+                til.cam		= E.cam;
 
-				if( !RejectTile( til ) )
-					vtil.push_back( til );
-			}
-		}
-	}
+                if( !RejectTile( til ) )
+                    vtil.push_back( til );
+            }
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -228,59 +228,59 @@ void CTileSet::FillFromIDB( const string &idb, int zmin, int zmax )
 /* --------------------------------------------------------------- */
 
 void CTileSet::FillFromRgns(
-	const char		*path,
-	const string	&idb,
-	int				zmin,
-	int				zmax )
+    const char		*path,
+    const string	&idb,
+    int				zmin,
+    int				zmax )
 {
-	if( !path ) {
-		FillFromIDB( idb, zmin, zmax );
-		return;
-	}
+    if( !path ) {
+        FillFromIDB( idb, zmin, zmax );
+        return;
+    }
 
-	for( int z = zmin; z <= zmax; ++z ) {
+    for( int z = zmin; z <= zmax; ++z ) {
 
-		Rgns	R;
+        Rgns	R;
 
-		if( !R.Init( idb, z, flog ) )
-			continue;
+        if( !R.Init( idb, z, flog ) )
+            continue;
 
-		if( !R.Load( path ) )
-			continue;
+        if( !R.Load( path ) )
+            continue;
 
-		map<int,int>::iterator	mi, en = R.m.end();
+        map<int,int>::iterator	mi, en = R.m.end();
 
-		for( mi = R.m.begin(); mi != en; ) {
+        for( mi = R.m.begin(); mi != en; ) {
 
-			const Til2Img	*t2i;
+            const Til2Img	*t2i;
 
-			int	id		= mi->first,
-				j0		= mi->second,
-				jlim	= (++mi == en ? R.nr : mi->second);
+            int	id		= mi->first,
+                j0		= mi->second,
+                jlim	= (++mi == en ? R.nr : mi->second);
 
-			if( !IDBT2ICacheNGet1( t2i, idb, z, id, flog ) )
-				continue;
+            if( !IDBT2ICacheNGet1( t2i, idb, z, id, flog ) )
+                continue;
 
-			for( int j = j0; j < jlim; ++j ) {
+            for( int j = j0; j < jlim; ++j ) {
 
-				if( !FLAG_ISUSED( R.flag[j] ) )
-					continue;
+                if( !FLAG_ISUSED( R.flag[j] ) )
+                    continue;
 
-				CUTile	til;
+                CUTile	til;
 
-				til.name	= t2i->path;
-				til.T		= X_AS_AFF( R.x, j );
-				til.z		= z;
-				til.id		= id;
-				til.col		= t2i->col;
-				til.row		= t2i->row;
-				til.cam		= t2i->cam;
+                til.name	= t2i->path;
+                til.T		= X_AS_AFF( R.x, j );
+                til.z		= z;
+                til.id		= id;
+                til.col		= t2i->col;
+                til.row		= t2i->row;
+                til.cam		= t2i->cam;
 
-				if( !RejectTile( til ) )
-					vtil.push_back( til );
-			}
-		}
-	}
+                if( !RejectTile( til ) )
+                    vtil.push_back( til );
+            }
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -289,17 +289,17 @@ void CTileSet::FillFromRgns(
 
 void CTileSet::SetTileDimsFromImageFile()
 {
-	uint32	w, h;
-	uint8	*ras = Raster8FromAny( vtil[0].name.c_str(), w, h, flog );
+    uint32	w, h;
+    uint8	*ras = Raster8FromAny( vtil[0].name.c_str(), w, h, flog );
 
-	if( !ras || !w ) {
-		fprintf( flog, "Error loading [%s].\n", vtil[0].name.c_str() );
-		exit( 42 );
-	}
+    if( !ras || !w ) {
+        fprintf( flog, "Error loading [%s].\n", vtil[0].name.c_str() );
+        exit( 42 );
+    }
 
-	RasterFree( ras );
+    RasterFree( ras );
 
-	SetTileDims( w, h );
+    SetTileDims( w, h );
 }
 
 /* --------------------------------------------------------------- */
@@ -308,8 +308,8 @@ void CTileSet::SetTileDimsFromImageFile()
 
 void CTileSet::SetTileDimsFromIDB( const string &idb )
 {
-	if( !IDBGetImageDims( gW, gH, idb, flog ) )
-		exit( 42 );
+    if( !IDBGetImageDims( gW, gH, idb, flog ) )
+        exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -318,18 +318,18 @@ void CTileSet::SetTileDimsFromIDB( const string &idb )
 
 void CTileSet::InitAuxData()
 {
-	int	nt = vtil.size();
+    int	nt = vtil.size();
 
-	if( nt ) {
+    if( nt ) {
 
-		vaux.resize( nt );
+        vaux.resize( nt );
 
-		for( int i = 0; i < nt; ++i ) {
+        for( int i = 0; i < nt; ++i ) {
 
-			vtil[i].ix	= i;
-			vaux[i].r	= 0.0;
-		}
-	}
+            vtil[i].ix	= i;
+            vaux[i].r	= 0.0;
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -338,7 +338,7 @@ void CTileSet::InitAuxData()
 
 static bool Sort_z_inc( const CUTile &A, const CUTile &B )
 {
-	return A.z < B.z;
+    return A.z < B.z;
 }
 
 /* --------------------------------------------------------------- */
@@ -347,12 +347,12 @@ static bool Sort_z_inc( const CUTile &A, const CUTile &B )
 
 class CSort_id_Inc {
 public:
-	const vector<CUTile>	&vtil;
+    const vector<CUTile>	&vtil;
 public:
-	CSort_id_Inc( const vector<CUTile> &vtil )
-		: vtil(vtil) {};
-	bool operator() ( int a, int b )
-		{return vtil[a].id < vtil[b].id;};
+    CSort_id_Inc( const vector<CUTile> &vtil )
+        : vtil(vtil) {};
+    bool operator() ( int a, int b )
+        {return vtil[a].id < vtil[b].id;};
 };
 
 /* --------------------------------------------------------------- */
@@ -361,7 +361,7 @@ public:
 
 static bool Sort_z_id_inc( const CUTile &A, const CUTile &B )
 {
-	return A.z < B.z || (A.z == B.z && A.id < B.id);
+    return A.z < B.z || (A.z == B.z && A.id < B.id);
 }
 
 /* --------------------------------------------------------------- */
@@ -370,14 +370,14 @@ static bool Sort_z_id_inc( const CUTile &A, const CUTile &B )
 
 class CSort_r_id_inc {
 public:
-	const vector<TSAux>	&vaux;
+    const vector<TSAux>	&vaux;
 public:
-	CSort_r_id_inc( const vector<TSAux> &vaux )
-		: vaux(vaux) {};
-	bool operator() ( const CUTile &A, const CUTile &B )
-		{return
-			vaux[A.ix].r < vaux[B.ix].r ||
-			(vaux[A.ix].r == vaux[B.ix].r && A.id < B.id);};
+    CSort_r_id_inc( const vector<TSAux> &vaux )
+        : vaux(vaux) {};
+    bool operator() ( const CUTile &A, const CUTile &B )
+        {return
+            vaux[A.ix].r < vaux[B.ix].r ||
+            (vaux[A.ix].r == vaux[B.ix].r && A.id < B.id);};
 };
 
 /* --------------------------------------------------------------- */
@@ -386,7 +386,7 @@ public:
 
 void CTileSet::SortAll_z()
 {
-	sort( vtil.begin(), vtil.end(), Sort_z_inc );
+    sort( vtil.begin(), vtil.end(), Sort_z_inc );
 }
 
 /* --------------------------------------------------------------- */
@@ -395,7 +395,7 @@ void CTileSet::SortAll_z()
 
 void CTileSet::SortAll_z_id()
 {
-	sort( vtil.begin(), vtil.end(), Sort_z_id_inc );
+    sort( vtil.begin(), vtil.end(), Sort_z_id_inc );
 }
 
 /* --------------------------------------------------------------- */
@@ -407,34 +407,34 @@ void CTileSet::SortAll_z_id()
 //
 void CTileSet::SortAll_z_r()
 {
-	if( !vaux.size() )
-		InitAuxData();
+    if( !vaux.size() )
+        InitAuxData();
 
 // First, just sort into layers
 
-	SortAll_z();
+    SortAll_z();
 
 // For each layer...
 
-	int	is0, isN;
+    int	is0, isN;
 
-	GetLayerLimits( is0 = 0, isN );
+    GetLayerLimits( is0 = 0, isN );
 
-	while( isN != -1 ) {
+    while( isN != -1 ) {
 
-		// Get montage bounds
-		// Assign radii from montage center
-		// Sort this layer by r
+        // Get montage bounds
+        // Assign radii from montage center
+        // Sort this layer by r
 
-		DBox			B;
-		CSort_r_id_inc	sorter( vaux );
+        DBox			B;
+        CSort_r_id_inc	sorter( vaux );
 
-		LayerBounds( B, is0, isN );
-		LayerAssignR( is0, isN, B );
-		sort( vtil.begin() + is0, vtil.begin() + isN, sorter );
+        LayerBounds( B, is0, isN );
+        LayerAssignR( is0, isN, B );
+        sort( vtil.begin() + is0, vtil.begin() + isN, sorter );
 
-		GetLayerLimits( is0 = isN, isN );
-	}
+        GetLayerLimits( is0 = isN, isN );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -448,18 +448,18 @@ void CTileSet::SortAll_z_r()
 //
 int CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
 {
-	isN -= is0;
+    isN -= is0;
 
-	order.resize( isN );
+    order.resize( isN );
 
-	for( int i = 0; i < isN; ++i )
-		order[i] = is0 + i;
+    for( int i = 0; i < isN; ++i )
+        order[i] = is0 + i;
 
-	CSort_id_Inc	sorter( vtil );
+    CSort_id_Inc	sorter( vtil );
 
-	sort( order.begin(), order.end(), sorter );
+    sort( order.begin(), order.end(), sorter );
 
-	return isN;
+    return isN;
 }
 
 /* --------------------------------------------------------------- */
@@ -487,20 +487,20 @@ int CTileSet::GetOrder_id( vector<int> &order, int is0, int isN )
 //
 void CTileSet::GetLayerLimits( int &i0, int &iN )
 {
-	int	nt = vtil.size();
+    int	nt = vtil.size();
 
-	if( i0 < 0 || i0 >= nt ) {
+    if( i0 < 0 || i0 >= nt ) {
 
-		i0 = -1;
-		iN = -1;
-	}
-	else {
+        i0 = -1;
+        iN = -1;
+    }
+    else {
 
-		int	Z = vtil[i0].z;
+        int	Z = vtil[i0].z;
 
-		for( iN = i0 + 1; iN < nt && vtil[iN].z == Z; ++iN )
-			;
-	}
+        for( iN = i0 + 1; iN < nt && vtil[iN].z == Z; ++iN )
+            ;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -530,18 +530,18 @@ void CTileSet::GetLayerLimits( int &i0, int &iN )
 //
 void CTileSet::GetLayerLimitsR( int &i0, int &iN )
 {
-	if( iN <= 0 ) {
+    if( iN <= 0 ) {
 
-		i0 = -1;
-		iN = -1;
-	}
-	else {
+        i0 = -1;
+        iN = -1;
+    }
+    else {
 
-		int	Z = vtil[i0 = iN - 1].z;
+        int	Z = vtil[i0 = iN - 1].z;
 
-		for( ; i0 > 0 && vtil[i0 - 1].z == Z; --i0 )
-			;
-	}
+        for( ; i0 > 0 && vtil[i0 - 1].z == Z; --i0 )
+            ;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -553,40 +553,40 @@ void CTileSet::GetLayerLimitsR( int &i0, int &iN )
 //
 void CTileSet::ReadClixFile( vector<TSClix> &clk, const char *path )
 {
-	CLineScan	LS;
-	FILE*		f = FileOpenOrDie( path, "r" );
+    CLineScan	LS;
+    FILE*		f = FileOpenOrDie( path, "r" );
 
-	while( LS.Get( f ) > 0 ) {
+    while( LS.Get( f ) > 0 ) {
 
-		TSClix	C;
-		int		N = 0, k;
+        TSClix	C;
+        int		N = 0, k;
 
-		if( 2 == sscanf( LS.line, "%d%d%n", &C.Az, &C.Bz, &k ) ) {
+        if( 2 == sscanf( LS.line, "%d%d%n", &C.Az, &C.Bz, &k ) ) {
 
-			for(;;) {
+            for(;;) {
 
-				Point	A, B;
+                Point	A, B;
 
-				N += k + 1;
+                N += k + 1;
 
-				if( 4 == sscanf( LS.line + N, "%lf%lf%lf%lf%n",
-							&A.x, &A.y, &B.x, &B.y, &k ) ) {
+                if( 4 == sscanf( LS.line + N, "%lf%lf%lf%lf%n",
+                            &A.x, &A.y, &B.x, &B.y, &k ) ) {
 
-					C.A.push_back( A );
-					C.B.push_back( B );
-				}
-				else
-					break;
-			}
+                    C.A.push_back( A );
+                    C.B.push_back( B );
+                }
+                else
+                    break;
+            }
 
-			if( C.A.size() >= 2 )
-				clk.push_back( C );
-		}
-	}
+            if( C.A.size() >= 2 )
+                clk.push_back( C );
+        }
+    }
 
-	fclose( f );
+    fclose( f );
 
-	sort( clk.begin(), clk.end() );
+    sort( clk.begin(), clk.end() );
 }
 
 /* --------------------------------------------------------------- */
@@ -602,35 +602,35 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 {
 // Create system of normal equations
 
-	double	RHS[4];
-	double	LHS[4*4];
-	int		np    = clk.A.size(),
-			i1[3] = { 0, 1, 2 },
-			i2[3] = { 1, 0, 3 };
+    double	RHS[4];
+    double	LHS[4*4];
+    int		np    = clk.A.size(),
+            i1[3] = { 0, 1, 2 },
+            i2[3] = { 1, 0, 3 };
 
-	Zero_Quick( LHS, RHS, 4 );
+    Zero_Quick( LHS, RHS, 4 );
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		const Point&	A = clk.A[i];
-		const Point&	B = clk.B[i];
+        const Point&	A = clk.A[i];
+        const Point&	B = clk.B[i];
 
-		double	v1[3] = { A.x, -A.y, 1.0 };
-		double	v2[3] = { A.x,  A.y, 1.0 };
+        double	v1[3] = { A.x, -A.y, 1.0 };
+        double	v2[3] = { A.x,  A.y, 1.0 };
 
-		AddConstraint_Quick( LHS, RHS, 4, 3, i1, v1, B.x );
-		AddConstraint_Quick( LHS, RHS, 4, 3, i2, v2, B.y );
-	}
+        AddConstraint_Quick( LHS, RHS, 4, 3, i1, v1, B.x );
+        AddConstraint_Quick( LHS, RHS, 4, 3, i2, v2, B.y );
+    }
 
 // Solve
 
-	Solve_Quick( LHS, RHS, 4 );
+    Solve_Quick( LHS, RHS, 4 );
 
 // Return
 
-	return TAffine(
-		RHS[0], -RHS[1], RHS[2],
-		RHS[1],  RHS[0], RHS[3] );
+    return TAffine(
+        RHS[0], -RHS[1], RHS[2],
+        RHS[1],  RHS[0], RHS[3] );
 }
 
 /* --------------------------------------------------------------- */
@@ -644,38 +644,38 @@ TAffine CTileSet::SimilarityFromClix( const TSClix &clk )
 //
 TAffine CTileSet::AffineFromClix( const TSClix &clk )
 {
-	int	np = clk.A.size();
+    int	np = clk.A.size();
 
-	if( np < 3 )
-		return SimilarityFromClix( clk );
+    if( np < 3 )
+        return SimilarityFromClix( clk );
 
 // Create system of normal equations
 
-	double	RHS[6];
-	double	LHS[6*6];
-	int		i1[3] = { 0, 1, 2 },
-			i2[3] = { 3, 4, 5 };
+    double	RHS[6];
+    double	LHS[6*6];
+    int		i1[3] = { 0, 1, 2 },
+            i2[3] = { 3, 4, 5 };
 
-	Zero_Quick( LHS, RHS, 6 );
+    Zero_Quick( LHS, RHS, 6 );
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		const Point&	A = clk.A[i];
-		const Point&	B = clk.B[i];
+        const Point&	A = clk.A[i];
+        const Point&	B = clk.B[i];
 
-		double	v[3] = { A.x, A.y, 1.0 };
+        double	v[3] = { A.x, A.y, 1.0 };
 
-		AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
-		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
-	}
+        AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+        AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+    }
 
 // Solve
 
-	Solve_Quick( LHS, RHS, 6 );
+    Solve_Quick( LHS, RHS, 6 );
 
 // Return
 
-	return TAffine( &RHS[0] );
+    return TAffine( &RHS[0] );
 }
 
 /* --------------------------------------------------------------- */
@@ -695,75 +695,75 @@ TAffine CTileSet::AffineFromClix( const TSClix &clk )
 //
 void CTileSet::ApplyClix( int tfType, const char *path )
 {
-	vector<TSClix>	clk;
+    vector<TSClix>	clk;
 
-	ReadClixFile( clk, path );
+    ReadClixFile( clk, path );
 
-	int	cmin,
-		cmax,
-		nc		= clk.size(),
-		nt		= vtil.size(),
-		zmin	= vtil[0].z,
-		zmax	= vtil[nt - 1].z;
+    int	cmin,
+        cmax,
+        nc		= clk.size(),
+        nt		= vtil.size(),
+        zmin	= vtil[0].z,
+        zmax	= vtil[nt - 1].z;
 
 // Find lowest applicable click
 
-	for( cmin = 0; cmin < nc - 1; ++cmin ) {
-		if( clk[cmin].Bz >= zmin )
-			break;
-	}
+    for( cmin = 0; cmin < nc - 1; ++cmin ) {
+        if( clk[cmin].Bz >= zmin )
+            break;
+    }
 
-	zmin = clk[cmin].Az;
+    zmin = clk[cmin].Az;
 
 // Find highest applicable click
 
-	for( cmax = nc - 1; cmax >= cmin; --cmax ) {
-		if( clk[cmax].Az <= zmax )
-			break;
-	}
+    for( cmax = nc - 1; cmax >= cmin; --cmax ) {
+        if( clk[cmax].Az <= zmax )
+            break;
+    }
 
 // Each click affects all layers from clk[i].Az through zmax.
 // Assign TAffine vT[k] for each possible layer in range [zmin, zmax].
 // The vT[k] accumulate effects of sequential click transforms.
 
-	int				nz = zmax - zmin + 1;
-	vector<TAffine>	vT( nz );
+    int				nz = zmax - zmin + 1;
+    vector<TAffine>	vT( nz );
 
-	for( int i = cmin; i <= cmax; ++i ) {
+    for( int i = cmin; i <= cmax; ++i ) {
 
-		TAffine	R;
+        TAffine	R;
 
-		if( tfType == tsClixAffine )
-			R = AffineFromClix( clk[i] );
-		else
-			R = SimilarityFromClix( clk[i] );
+        if( tfType == tsClixAffine )
+            R = AffineFromClix( clk[i] );
+        else
+            R = SimilarityFromClix( clk[i] );
 
-		for( int k = clk[i].Az - zmin; k < nz; ++k )
-			vT[k] = R * vT[k];
-	}
+        for( int k = clk[i].Az - zmin; k < nz; ++k )
+            vT[k] = R * vT[k];
+    }
 
 // Walk actual layers and apply corresponding vT[k]
 
-	int	is0, isN;
+    int	is0, isN;
 
-	GetLayerLimits( is0 = 0, isN );
+    GetLayerLimits( is0 = 0, isN );
 
-	while( isN != -1 ) {
+    while( isN != -1 ) {
 
-		int	z = vtil[is0].z;
+        int	z = vtil[is0].z;
 
-		if( z >= zmin ) {
+        if( z >= zmin ) {
 
-			for( int i = is0; i < isN; ++i ) {
+            for( int i = is0; i < isN; ++i ) {
 
-				TAffine&	T = vtil[i].T;
+                TAffine&	T = vtil[i].T;
 
-				T = vT[z-zmin] * T;
-			}
-		}
+                T = vT[z-zmin] * T;
+            }
+        }
 
-		GetLayerLimits( is0 = isN, isN );
-	}
+        GetLayerLimits( is0 = isN, isN );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -774,16 +774,16 @@ void CTileSet::ApplyClix( int tfType, const char *path )
 //
 void CTileSet::BoundsPlus1( DBox &B, const vector<Point> &cnr, int i )
 {
-	vector<Point>	c( 4 );
-	memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
-	vtil[i].T.Transform( c );
+    vector<Point>	c( 4 );
+    memcpy( &c[0], &cnr[0], 4*sizeof(Point) );
+    vtil[i].T.Transform( c );
 
-	for( int k = 0; k < 4; ++k ) {
-		B.L = fmin( B.L, c[k].x );
-		B.R = fmax( B.R, c[k].x );
-		B.B = fmin( B.B, c[k].y );
-		B.T = fmax( B.T, c[k].y );
-	}
+    for( int k = 0; k < 4; ++k ) {
+        B.L = fmin( B.L, c[k].x );
+        B.R = fmax( B.R, c[k].x );
+        B.B = fmin( B.B, c[k].y );
+        B.T = fmax( B.T, c[k].y );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -794,14 +794,14 @@ void CTileSet::BoundsPlus1( DBox &B, const vector<Point> &cnr, int i )
 //
 void CTileSet::LayerBounds( DBox &B, int is0, int isN )
 {
-	vector<Point>	cnr;
-	Set4Corners( cnr, gW, gH );
+    vector<Point>	cnr;
+    Set4Corners( cnr, gW, gH );
 
-	B.L = BIGD, B.R = -BIGD,
-	B.B = BIGD, B.T = -BIGD;
+    B.L = BIGD, B.R = -BIGD,
+    B.B = BIGD, B.T = -BIGD;
 
-	for( int i = is0; i < isN; ++i )
-		BoundsPlus1( B, cnr, i );
+    for( int i = is0; i < isN; ++i )
+        BoundsPlus1( B, cnr, i );
 }
 
 /* --------------------------------------------------------------- */
@@ -810,16 +810,16 @@ void CTileSet::LayerBounds( DBox &B, int is0, int isN )
 
 void CTileSet::AllBounds( DBox &B )
 {
-	vector<Point>	cnr;
-	Set4Corners( cnr, gW, gH );
+    vector<Point>	cnr;
+    Set4Corners( cnr, gW, gH );
 
-	B.L = BIGD, B.R = -BIGD,
-	B.B = BIGD, B.T = -BIGD;
+    B.L = BIGD, B.R = -BIGD,
+    B.B = BIGD, B.T = -BIGD;
 
-	int	nt = vtil.size();
+    int	nt = vtil.size();
 
-	for( int i = 0; i < nt; ++i )
-		BoundsPlus1( B, cnr, i );
+    for( int i = 0; i < nt; ++i )
+        BoundsPlus1( B, cnr, i );
 }
 
 /* --------------------------------------------------------------- */
@@ -831,15 +831,15 @@ void CTileSet::AllBounds( DBox &B )
 //
 void CTileSet::Reframe( DBox &B )
 {
-	int	nt = vtil.size();
+    int	nt = vtil.size();
 
-	for( int i = 0; i < nt; ++i )
-		vtil[i].T.AddXY( -B.L, -B.B );
+    for( int i = 0; i < nt; ++i )
+        vtil[i].T.AddXY( -B.L, -B.B );
 
-	B.R = ceil( B.R - B.L + 1 );
-	B.T = ceil( B.T - B.B + 1 );
-	B.L = 0;
-	B.B = 0;
+    B.R = ceil( B.R - B.L + 1 );
+    B.T = ceil( B.T - B.B + 1 );
+    B.L = 0;
+    B.B = 0;
 }
 
 /* --------------------------------------------------------------- */
@@ -848,16 +848,16 @@ void CTileSet::Reframe( DBox &B )
 
 void CTileSet::LayerAssignR( int is0, int isN, const DBox &B )
 {
-	Point	C( (B.L + B.R) / 2, (B.B + B.T) / 2 );
+    Point	C( (B.L + B.R) / 2, (B.B + B.T) / 2 );
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		CUTile&	U = vtil[i];
-		Point	cnr;	// (0,0)
+        CUTile&	U = vtil[i];
+        Point	cnr;	// (0,0)
 
-		U.T.Transform( cnr );
-		vaux[U.ix].r = cnr.DistSqr( C );
-	}
+        U.T.Transform( cnr );
+        vaux[U.ix].r = cnr.DistSqr( C );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -869,14 +869,14 @@ void CTileSet::LayerAssignR( int is0, int isN, const DBox &B )
 class OrdVert {
 
 public:
-	double	a;
-	vertex	v;
+    double	a;
+    vertex	v;
 
 public:
-	OrdVert( const vertex& v ) : v(v) {};
+    OrdVert( const vertex& v ) : v(v) {};
 
-	bool operator < ( const OrdVert &rhs ) const
-		{return a < rhs.a;};
+    bool operator < ( const OrdVert &rhs ) const
+        {return a < rhs.a;};
 };
 
 
@@ -895,158 +895,158 @@ double CTileSet::ABOlap( int a, int b, const TAffine *Tab )
 {
 // Quick proximity check
 
-	TAffine	T;	// map a->b
-	Point	pb( gW/2, gH/2 ),
-			pa = pb;
+    TAffine	T;	// map a->b
+    Point	pb( gW/2, gH/2 ),
+            pa = pb;
 
-	if( Tab )
-		T = *Tab;
-	else
-		T.FromAToB( vtil[a].T, vtil[b].T );
+    if( Tab )
+        T = *Tab;
+    else
+        T.FromAToB( vtil[a].T, vtil[b].T );
 
-	T.Transform( pa );
+    T.Transform( pa );
 
-	if( pa.DistSqr( pb ) >= gW*gW + gH*gH )
-		return 0.0;
+    if( pa.DistSqr( pb ) >= gW*gW + gH*gH )
+        return 0.0;
 
 // Detailed calculation
 
-	vector<vertex>	va( 4 ), vb( 4 );
+    vector<vertex>	va( 4 ), vb( 4 );
 
 // Set b vertices (b-system) CCW ordered for LeftSide calcs
 
-	vb[0] = vertex( 0   , 0 );
-	vb[1] = vertex( gW-1, 0 );
-	vb[2] = vertex( gW-1, gH-1 );
-	vb[3] = vertex( 0   , gH-1 );
+    vb[0] = vertex( 0   , 0 );
+    vb[1] = vertex( gW-1, 0 );
+    vb[2] = vertex( gW-1, gH-1 );
+    vb[3] = vertex( 0   , gH-1 );
 
 // Set a vertices (b-system) CCW ordered for LeftSide calcs
 
-	{
-		vector<Point>	c( 4 );
-		Set4Corners( c, gW, gH );
-		T.Transform( c );
+    {
+        vector<Point>	c( 4 );
+        Set4Corners( c, gW, gH );
+        T.Transform( c );
 
-		for( int i = 0; i < 4; ++i ) {
+        for( int i = 0; i < 4; ++i ) {
 
-			va[i].x = int(c[i].x);
-			va[i].y = int(c[i].y);
+            va[i].x = int(c[i].x);
+            va[i].y = int(c[i].y);
 
-			// make close coords same
+            // make close coords same
 
-			for( int j = 0; j < i; ++j ) {
+            for( int j = 0; j < i; ++j ) {
 
-				if( iabs( va[i].x - va[j].x ) <= 2 )
-					va[i].x = va[j].x;
+                if( iabs( va[i].x - va[j].x ) <= 2 )
+                    va[i].x = va[j].x;
 
-				if( iabs( va[i].y - va[j].y ) <= 2 )
-					va[i].y = va[j].y;
-			}
-		}
-	}
+                if( iabs( va[i].y - va[j].y ) <= 2 )
+                    va[i].y = va[j].y;
+            }
+        }
+    }
 
 // Gather all side intersections and all
 // corners of A within B and vice versa.
 
-	vector<OrdVert>	verts;
+    vector<OrdVert>	verts;
 
-	for( int i = 0; i < 4; ++i ) {
+    for( int i = 0; i < 4; ++i ) {
 
-		// count LeftSide successes for corner [i]
+        // count LeftSide successes for corner [i]
 
-		int	ainb = 0,
-			bina = 0;
+        int	ainb = 0,
+            bina = 0;
 
-		for( int j = 0; j < 4; ++j ) {
+        for( int j = 0; j < 4; ++j ) {
 
-			// side crosses
+            // side crosses
 
-			vertex	pi, pj;
-			int		n;
+            vertex	pi, pj;
+            int		n;
 
-			n = ClosedSegIsects( pi, pj,
-					va[i], va[(i+1)%4],
-					vb[j], vb[(j+1)%4] );
+            n = ClosedSegIsects( pi, pj,
+                    va[i], va[(i+1)%4],
+                    vb[j], vb[(j+1)%4] );
 
-			switch( n ) {
-				case 2:
-					verts.push_back( OrdVert( pj ) );
-				case 1:
-					verts.push_back( OrdVert( pi ) );
-				default:
-					break;
-			}
+            switch( n ) {
+                case 2:
+                    verts.push_back( OrdVert( pj ) );
+                case 1:
+                    verts.push_back( OrdVert( pi ) );
+                default:
+                    break;
+            }
 
-			// corner counts
+            // corner counts
 
-			ainb += LeftSide( vb[j], vb[(j+1)%4], va[i] );
-			bina += LeftSide( va[j], va[(j+1)%4], vb[i] );
-		}
+            ainb += LeftSide( vb[j], vb[(j+1)%4], va[i] );
+            bina += LeftSide( va[j], va[(j+1)%4], vb[i] );
+        }
 
-		if( ainb == 4 )
-			verts.push_back( OrdVert( va[i] ) );
+        if( ainb == 4 )
+            verts.push_back( OrdVert( va[i] ) );
 
-		if( bina == 4 )
-			verts.push_back( OrdVert( vb[i] ) );
-	}
+        if( bina == 4 )
+            verts.push_back( OrdVert( vb[i] ) );
+    }
 
 // Intersection?
 
-	int	nv = verts.size();
+    int	nv = verts.size();
 
-	if( nv < 3 )
-		return 0.0;
+    if( nv < 3 )
+        return 0.0;
 
 // Centroid
 
-	Point	C;
+    Point	C;
 
-	for( int i = 0; i < nv; ++i ) {
-		C.x += verts[i].v.x;
-		C.y += verts[i].v.y;
-	}
+    for( int i = 0; i < nv; ++i ) {
+        C.x += verts[i].v.x;
+        C.y += verts[i].v.y;
+    }
 
-	C.x /= nv;
-	C.y /= nv;
+    C.x /= nv;
+    C.y /= nv;
 
 // Set OrdVert angles w.r.t centroid,
 // and sort by angle.
 
-	for( int i = 0; i < nv; ++i ) {
+    for( int i = 0; i < nv; ++i ) {
 
-		OrdVert&	V = verts[i];
+        OrdVert&	V = verts[i];
 
-		V.a = atan2( V.v.y - C.y, V.v.x - C.x );
-	}
+        V.a = atan2( V.v.y - C.y, V.v.x - C.x );
+    }
 
-	sort( verts.begin(), verts.end() );
+    sort( verts.begin(), verts.end() );
 
 // Remove any duplicate verts
 
-	for( int i = nv - 1; i > 0; --i ) {
+    for( int i = nv - 1; i > 0; --i ) {
 
-		for( int j = 0; j < i; ++j ) {
+        for( int j = 0; j < i; ++j ) {
 
-			if( verts[i].v == verts[j].v ||
-				verts[i].a == verts[j].a ) {
+            if( verts[i].v == verts[j].v ||
+                verts[i].a == verts[j].a ) {
 
-				verts.erase( verts.begin() + i );
-				--nv;
-				break;
-			}
-		}
-	}
+                verts.erase( verts.begin() + i );
+                --nv;
+                break;
+            }
+        }
+    }
 
 // Assemble vertices into polygon
 
-	vector<lineseg>	pgon;
+    vector<lineseg>	pgon;
 
-	for( int i = 0; i < nv; ++i )
-		pgon.push_back( lineseg( verts[i].v, verts[(i+1)%nv].v ) );
+    for( int i = 0; i < nv; ++i )
+        pgon.push_back( lineseg( verts[i].v, verts[(i+1)%nv].v ) );
 
 // Return area
 
-	return AreaOfPolygon( pgon ) / (gW * gH);
+    return AreaOfPolygon( pgon ) / (gW * gH);
 }
 
 /* --------------------------------------------------------------- */
@@ -1065,73 +1065,73 @@ double CTileSet::ABOlap( int a, int b, const TAffine *Tab )
 // autoscale, set both to zero.
 //
 void CTileSet::WriteTrakEM2Layer(
-	FILE*	f,
-	int		&oid,
-	int		xmltype,
-	int		xmlmin,
-	int		xmlmax,
-	int		is0,
-	int		isN )
+    FILE*	f,
+    int		&oid,
+    int		xmltype,
+    int		xmlmin,
+    int		xmlmax,
+    int		is0,
+    int		isN )
 {
 // Layer prologue
 
-	fprintf( f,
-	"\t\t<t2_layer\n"
-	"\t\t\toid=\"%d\"\n"
-	"\t\t\tthickness=\"0\"\n"
-	"\t\t\tz=\"%d\"\n"
-	"\t\t>\n",
-	oid++, vtil[is0].z );
+    fprintf( f,
+    "\t\t<t2_layer\n"
+    "\t\t\toid=\"%d\"\n"
+    "\t\t\tthickness=\"0\"\n"
+    "\t\t\tz=\"%d\"\n"
+    "\t\t>\n",
+    oid++, vtil[is0].z );
 
 // Tiles
 
-	vector<int> order;
+    vector<int> order;
 
-	isN = GetOrder_id( order, is0, isN );
+    isN = GetOrder_id( order, is0, isN );
 
-	for( int i = 0; i < isN; ++i ) {
+    for( int i = 0; i < isN; ++i ) {
 
-		const CUTile&	U = vtil[order[i]];
-		char			title[128];
+        const CUTile&	U = vtil[order[i]];
+        char			title[128];
 
-		if( U.col != -999 ) {
+        if( U.col != -999 ) {
 
-			sprintf( title, "%d.%d-1_%d.%d.%d",
-				U.z, U.id, U.col, U.row, U.cam );
-		}
-		else
-			sprintf( title, "%d.%d-1", U.z, U.id );
+            sprintf( title, "%d.%d-1_%d.%d.%d",
+                U.z, U.id, U.col, U.row, U.cam );
+        }
+        else
+            sprintf( title, "%d.%d-1", U.z, U.id );
 
-		fprintf( f,
-		"\t\t\t<t2_patch\n"
-		"\t\t\t\toid=\"%d\"\n"
-		"\t\t\t\twidth=\"%d\"\n"
-		"\t\t\t\theight=\"%d\"\n"
-		"\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
-		"\t\t\t\ttitle=\"%s\"\n"
-		"\t\t\t\ttype=\"%d\"\n"
-		"\t\t\t\tfile_path=\"%s\"\n"
-		"\t\t\t\to_width=\"%d\"\n"
-		"\t\t\t\to_height=\"%d\"\n",
-		oid++, gW, gH,
-		U.T.t[0], U.T.t[3], U.T.t[1], U.T.t[4], U.T.t[2], U.T.t[5],
-		title, xmltype, U.name.c_str(), gW, gH );
+        fprintf( f,
+        "\t\t\t<t2_patch\n"
+        "\t\t\t\toid=\"%d\"\n"
+        "\t\t\t\twidth=\"%d\"\n"
+        "\t\t\t\theight=\"%d\"\n"
+        "\t\t\t\ttransform=\"matrix(%f,%f,%f,%f,%f,%f)\"\n"
+        "\t\t\t\ttitle=\"%s\"\n"
+        "\t\t\t\ttype=\"%d\"\n"
+        "\t\t\t\tfile_path=\"%s\"\n"
+        "\t\t\t\to_width=\"%d\"\n"
+        "\t\t\t\to_height=\"%d\"\n",
+        oid++, gW, gH,
+        U.T.t[0], U.T.t[3], U.T.t[1], U.T.t[4], U.T.t[2], U.T.t[5],
+        title, xmltype, U.name.c_str(), gW, gH );
 
-		if( xmlmin < xmlmax ) {
+        if( xmlmin < xmlmax ) {
 
-			fprintf( f,
-			"\t\t\t\tmin=\"%d\"\n"
-			"\t\t\t\tmax=\"%d\"\n"
-			"\t\t\t/>\n",
-			xmlmin, xmlmax );
-		}
-		else
-			fprintf( f, "\t\t\t/>\n" );
-	}
+            fprintf( f,
+            "\t\t\t\tmin=\"%d\"\n"
+            "\t\t\t\tmax=\"%d\"\n"
+            "\t\t\t/>\n",
+            xmlmin, xmlmax );
+        }
+        else
+            fprintf( f, "\t\t\t/>\n" );
+    }
 
 // Layer epilogue
 
-	fprintf( f, "\t\t</t2_layer>\n" );
+    fprintf( f, "\t\t</t2_layer>\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -1154,61 +1154,61 @@ void CTileSet::WriteTrakEM2Layer(
 // autoscale, set both to zero.
 //
 void CTileSet::WriteTrakEM2(
-	const char	*path,
-	DBox		&B,
-	int			xmltype,
-	int			xmlmin,
-	int			xmlmax )
+    const char	*path,
+    DBox		&B,
+    int			xmltype,
+    int			xmlmin,
+    int			xmlmax )
 {
 // Open file
 
-	FILE	*f = FileOpenOrDie( path, "w" );
+    FILE	*f = FileOpenOrDie( path, "w" );
 
 // Prologue + bounds
 
-	int	oid = 3;
+    int	oid = 3;
 
-	fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
+    fprintf( f, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" );
 
-	TrakEM2WriteDTD( f );
+    TrakEM2WriteDTD( f );
 
-	fprintf( f, "<trakem2>\n" );
+    fprintf( f, "<trakem2>\n" );
 
-	fprintf( f,
-	"\t<project\n"
-	"\t\tid=\"0\"\n"
-	"\t\ttitle=\"Project\"\n"
-	"\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
-	"\t\tn_mipmap_threads=\"8\"\n"
-	"\t/>\n" );
+    fprintf( f,
+    "\t<project\n"
+    "\t\tid=\"0\"\n"
+    "\t\ttitle=\"Project\"\n"
+    "\t\tmipmaps_folder=\"trakem2.mipmaps/\"\n"
+    "\t\tn_mipmap_threads=\"8\"\n"
+    "\t/>\n" );
 
-	fprintf( f,
-	"\t<t2_layer_set\n"
-	"\t\toid=\"%d\"\n"
-	"\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
-	"\t\ttitle=\"Top level\"\n"
-	"\t\tlayer_width=\"%.2f\"\n"
-	"\t\tlayer_height=\"%.2f\"\n"
-	"\t>\n",
-	oid++, B.R, B.T );
+    fprintf( f,
+    "\t<t2_layer_set\n"
+    "\t\toid=\"%d\"\n"
+    "\t\ttransform=\"matrix(1,0,0,1,0,0)\"\n"
+    "\t\ttitle=\"Top level\"\n"
+    "\t\tlayer_width=\"%.2f\"\n"
+    "\t\tlayer_height=\"%.2f\"\n"
+    "\t>\n",
+    oid++, B.R, B.T );
 
 // Layers
 
-	int	is0, isN;
+    int	is0, isN;
 
-	GetLayerLimits( is0 = 0, isN );
+    GetLayerLimits( is0 = 0, isN );
 
-	while( isN != -1 ) {
+    while( isN != -1 ) {
 
-		WriteTrakEM2Layer( f, oid, xmltype, xmlmin, xmlmax, is0, isN );
-		GetLayerLimits( is0 = isN, isN );
-	}
+        WriteTrakEM2Layer( f, oid, xmltype, xmlmin, xmlmax, is0, isN );
+        GetLayerLimits( is0 = isN, isN );
+    }
 
 // Epilogue
 
-	fprintf( f, "\t</t2_layer_set>\n" );
-	fprintf( f, "</trakem2>\n" );
-	fclose( f );
+    fprintf( f, "\t</t2_layer_set>\n" );
+    fprintf( f, "</trakem2>\n" );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -1229,16 +1229,16 @@ void CTileSet::WriteTrakEM2(
 // autoscale, set both to zero.
 //
 void CTileSet::WriteTrakEM2_EZ(
-	const char	*path,
-	int			xmltype,
-	int			xmlmin,
-	int			xmlmax )
+    const char	*path,
+    int			xmltype,
+    int			xmlmin,
+    int			xmlmax )
 {
-	DBox	B;
+    DBox	B;
 
-	AllBounds( B );
-	Reframe( B );
-	WriteTrakEM2( path, B, xmltype, xmlmin, xmlmax );
+    AllBounds( B );
+    Reframe( B );
+    WriteTrakEM2( path, B, xmltype, xmlmin, xmlmax );
 }
 
 /* --------------------------------------------------------------- */
@@ -1253,59 +1253,59 @@ void CTileSet::WriteTrakEM2_EZ(
 // Write one TileToImage.txt file for given layer.
 //
 void CTileSet::WriteTileToImage(
-	const char	*topdir,
-	bool		create_zdir,
-	bool		create_nmrcdir,
-	int			is0,
-	int			isN )
+    const char	*topdir,
+    bool		create_zdir,
+    bool		create_nmrcdir,
+    int			is0,
+    int			isN )
 {
 // Manage dirs
 
-	char	path[2048];
-	FILE	*f;
-	int		len;
+    char	path[2048];
+    FILE	*f;
+    int		len;
 
-	len = sprintf( path, "%s/%d", topdir, vtil[is0].z );
+    len = sprintf( path, "%s/%d", topdir, vtil[is0].z );
 
-	if( create_zdir )
-		DskCreateDir( path, flog );
+    if( create_zdir )
+        DskCreateDir( path, flog );
 
-	if( create_nmrcdir ) {
+    if( create_nmrcdir ) {
 
-		sprintf( path + len, "/nmrc" );
-		DskCreateDir( path, flog );
-	}
+        sprintf( path + len, "/nmrc" );
+        DskCreateDir( path, flog );
+    }
 
 // Open file
 
-	sprintf( path + len, "/TileToImage.txt" );
-	f = FileOpenOrDie( path, "w", flog );
+    sprintf( path + len, "/TileToImage.txt" );
+    f = FileOpenOrDie( path, "w", flog );
 
 // Header
 
-	fprintf( f, "ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
+    fprintf( f, "ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
 
 // Write sorted entries
 
-	vector<int> order;
+    vector<int> order;
 
-	isN = GetOrder_id( order, is0, isN );
+    isN = GetOrder_id( order, is0, isN );
 
-	for( int i = 0; i < isN; ++i ) {
+    for( int i = 0; i < isN; ++i ) {
 
-		const CUTile&	U = vtil[order[i]];
-		const double*	T = U.T.t;
+        const CUTile&	U = vtil[order[i]];
+        const double*	T = U.T.t;
 
-		fprintf( f,
-			"%d"
-			"\t%f\t%f\t%f\t%f\t%f\t%f"
-			"\t%d\t%d\t%d\t%s\n",
-			U.id,
-			T[0], T[1], T[2], T[3], T[4], T[5],
-			U.col, U.row, U.cam, U.name.c_str() );
-	}
+        fprintf( f,
+            "%d"
+            "\t%f\t%f\t%f\t%f\t%f\t%f"
+            "\t%d\t%d\t%d\t%s\n",
+            U.id,
+            T[0], T[1], T[2], T[3], T[4], T[5],
+            U.col, U.row, U.cam, U.name.c_str() );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 

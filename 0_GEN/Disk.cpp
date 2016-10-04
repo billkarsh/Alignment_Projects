@@ -34,9 +34,9 @@ bool CMutex::Get( const char *name, FILE *flog )
 {
 // Prepend forward slash
 
-	m_name[0] = '/';
+    m_name[0] = '/';
 
-	strcpy( m_name + 1, name + (name[0] == '/') );
+    strcpy( m_name + 1, name + (name[0] == '/') );
 
 // Create - if not created, else open existing
 //
@@ -48,41 +48,41 @@ bool CMutex::Get( const char *name, FILE *flog )
 // external agent increases the count (sem_post). Hence, in
 // the typical exclusive access case, set this value to one.
 
-	mutex = sem_open( m_name, O_CREAT,
-				S_IRUSR | S_IWUSR |
-				S_IRGRP | S_IWGRP |
-				S_IROTH | S_IWOTH, 1 );
+    mutex = sem_open( m_name, O_CREAT,
+                S_IRUSR | S_IWUSR |
+                S_IRGRP | S_IWGRP |
+                S_IROTH | S_IWOTH, 1 );
 
-	if( mutex == SEM_FAILED ) {
-		fprintf( flog,
-		"Mutex failure: sem_open errno %d [%s].\n", errno, m_name );
-		return false;
-	}
+    if( mutex == SEM_FAILED ) {
+        fprintf( flog,
+        "Mutex failure: sem_open errno %d [%s].\n", errno, m_name );
+        return false;
+    }
 
 // Wait for lock
 
-	int	ok = !sem_wait( mutex );
+    int	ok = !sem_wait( mutex );
 
-	if( !ok ) {
-		fprintf( flog,
-		"Mutex failure: sem_wait errno %d [%s].\n", errno, m_name );
-	}
+    if( !ok ) {
+        fprintf( flog,
+        "Mutex failure: sem_wait errno %d [%s].\n", errno, m_name );
+    }
 
-	return ok;
+    return ok;
 }
 
 
 void CMutex::Release()
 {
-	if( mutex != SEM_FAILED ) {
+    if( mutex != SEM_FAILED ) {
 
-		sem_post( mutex );	// release lock
-		sem_close( mutex );	// release resources
-	}
+        sem_post( mutex );	// release lock
+        sem_close( mutex );	// release resources
+    }
 
 // Dispose - deferred by kernel until all users call sem_close
 
-	sem_unlink( m_name );
+    sem_unlink( m_name );
 }
 
 /* --------------------------------------------------------------- */
@@ -93,9 +93,9 @@ void CMutex::Release()
 //
 bool DskExists( const char *path )
 {
-	struct stat	info;
+    struct stat	info;
 
-	return !stat( path, &info );
+    return !stat( path, &info );
 }
 
 /* --------------------------------------------------------------- */
@@ -106,12 +106,12 @@ bool DskExists( const char *path )
 //
 double DskBytes( const char *path )
 {
-	struct stat	info;
+    struct stat	info;
 
-	if( stat( path, &info ) )
-		info.st_size = 0;
+    if( stat( path, &info ) )
+        info.st_size = 0;
 
-	return info.st_size;
+    return info.st_size;
 }
 
 /* --------------------------------------------------------------- */
@@ -120,15 +120,15 @@ double DskBytes( const char *path )
 
 void DskCreateDir( const char *path, FILE* flog )
 {
-	if( !DskExists( path ) ) {
+    if( !DskExists( path ) ) {
 
-		if( mkdir( path, 0777 ) == -1 && errno != EEXIST ) {
+        if( mkdir( path, 0777 ) == -1 && errno != EEXIST ) {
 
-			fprintf( flog,
-			"Error %d creating dir [%s].\n", errno, path );
-			exit( 42 );
-		}
-	}
+            fprintf( flog,
+            "Error %d creating dir [%s].\n", errno, path );
+            exit( 42 );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -153,56 +153,56 @@ bool DskAbsPath( char *out, int bufsize, const char *in, FILE* flog )
 {
 // absolute already if starts with slash
 
-	if( in[0] == '/' ) {
-		strcpy( out, in );
-		return true;
-	}
+    if( in[0] == '/' ) {
+        strcpy( out, in );
+        return true;
+    }
 
 // otherwise need current working dir
 
-	getcwd( out, bufsize );
+    getcwd( out, bufsize );
 
-	const char	*in0 = in;
-	char		*end = out + strlen( out );
+    const char	*in0 = in;
+    char		*end = out + strlen( out );
 
 next_parent:
-	if( in[0] == '.' ) {
+    if( in[0] == '.' ) {
 
-		// skip leading './'
-		if( in[1] == '/' ) {
-			in += 2;
-			goto append;
-		}
-		else if( in[1] == '.' ) {
+        // skip leading './'
+        if( in[1] == '/' ) {
+            in += 2;
+            goto append;
+        }
+        else if( in[1] == '.' ) {
 
-			if( in[2] == '/' ) {
-				in += 3;
-				end = strrchr( out, '/' );
-				*end = 0;
-				goto next_parent;
-			}
-			else
-				goto illegal;
-		}
-		else if( !in[1] ) {
-			++in;
-			goto append;
-		}
-		else {
+            if( in[2] == '/' ) {
+                in += 3;
+                end = strrchr( out, '/' );
+                *end = 0;
+                goto next_parent;
+            }
+            else
+                goto illegal;
+        }
+        else if( !in[1] ) {
+            ++in;
+            goto append;
+        }
+        else {
 illegal:
-			fprintf( flog, "Illegal path '%s'.\n", in0 );
-			return false;
-		}
-	}
-	else {
+            fprintf( flog, "Illegal path '%s'.\n", in0 );
+            return false;
+        }
+    }
+    else {
 append:
-		if( in[0] ) {
-			*end++ = '/';
-			strcpy( end, in );
-		}
-	}
+        if( in[0] ) {
+            *end++ = '/';
+            strcpy( end, in );
+        }
+    }
 
-	return true;
+    return true;
 }
 
 

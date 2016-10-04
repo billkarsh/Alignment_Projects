@@ -55,10 +55,10 @@ typedef float			FP32;
 /* ---------------------------------------------------------------*/
 
 enum DEFS_GENConsts {
-	ByteBits			= 8,
-	HalfBits			= 16,
-	WordBits			= 32,
-	AllButOneBit		= WordBits - 1
+    ByteBits			= 8,
+    HalfBits			= 16,
+    WordBits			= 32,
+    AllButOneBit		= WordBits - 1
 };
 
 
@@ -70,25 +70,25 @@ enum DEFS_GENConsts {
 
 
 #define	BitToByte( bit )										\
-	((bit) >> 3)
+    ((bit) >> 3)
 
 #define	ByteRem( bit )											\
-	((bit) & (ByteBits - 1))
+    ((bit) & (ByteBits - 1))
 
 #define	BitToWord( bit )										\
-	((bit) >> 5)
+    ((bit) >> 5)
 
 #define	WordRem( bit )											\
-	((bit) & AllButOneBit)
+    ((bit) & AllButOneBit)
 
 #define	ByteToWord( byte )										\
-	((byte) >> 2)
+    ((byte) >> 2)
 
 #define	SignExtHiBit32( W )										\
-	((long)(W) >> AllButOneBit)
+    ((long)(W) >> AllButOneBit)
 
 #define	IsHiBitSet32( W )										\
-	(((W) & HiBit) != 0)
+    (((W) & HiBit) != 0)
 
 /* ---------------------------------------------------------------*/
 /* Common macros -------------------------------------------------*/
@@ -114,69 +114,69 @@ enum DEFS_GENConsts {
 
 typedef struct {
 
-	UInt16	top,
-			left,
-			bottom,
-			right;
+    UInt16	top,
+            left,
+            bottom,
+            right;
 
 } U16Box, *U16BoxPtr;
 
 typedef struct {
 
-	UInt32	top,
-			left,
-			bottom,
-			right;
+    UInt32	top,
+            left,
+            bottom,
+            right;
 
 } U32Box, *U32BoxPtr;
 
 typedef struct {	/* same as Macintosh Rect */
 
-	SInt16	top,
-			left,
-			bottom,
-			right;
+    SInt16	top,
+            left,
+            bottom,
+            right;
 
 } S16Box, *S16BoxPtr;
 
 typedef struct {	/* same as PC RECT */
 
-	SInt32	top,
-			left,
-			bottom,
-			right;
+    SInt32	top,
+            left,
+            bottom,
+            right;
 
 } S32Box, *S32BoxPtr;
 
 typedef struct {
 
-	UInt16	x,
-			y;
+    UInt16	x,
+            y;
 
 } Centroid, *CentroidPtr;
 
 typedef struct {
 
-	FP32	x,
-			y;
+    FP32	x,
+            y;
 
 } F32Pnt, *F32PntPtr;
 
 typedef struct {
 
-	FP32	top,
-			left,
-			bottom,
-			right;
+    FP32	top,
+            left,
+            bottom,
+            right;
 
 } F32Box, *F32BoxPtr;
 
 typedef struct {
 
-	UInt16	y0,
-			x0,
-			dy,
-			dx;
+    UInt16	y0,
+            x0,
+            dy,
+            dx;
 
 } U16ROI, *U16ROIPtr;
 

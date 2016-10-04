@@ -23,44 +23,44 @@ using namespace ns_pipergns;
 
 bool Rgns::AFromIDB()
 {
-	vector<Til2Img>	t2i;
+    vector<Til2Img>	t2i;
 
-	// Get rgn #1 tforms
+    // Get rgn #1 tforms
 
-	if( !IDBT2IGet_JustIDandT( t2i, *idb, z ) )
-		return false;
+    if( !IDBT2IGet_JustIDandT( t2i, *idb, z ) )
+        return false;
 
-	x.resize( nr * 6 );
+    x.resize( nr * 6 );
 
-	int						nt = t2i.size();
-	map<int,int>::iterator	en = m.end();
+    int						nt = t2i.size();
+    map<int,int>::iterator	en = m.end();
 
-	// For each transform in IDB...
+    // For each transform in IDB...
 
-	for( int it = 0; it < nt; ++it ) {
+    for( int it = 0; it < nt; ++it ) {
 
-		// Get its block start and limit {j0,jlim}
+        // Get its block start and limit {j0,jlim}
 
-		const Til2Img&			T = t2i[it];
-		map<int,int>::iterator	mi = m.find( T.id );
-		int						j0, jlim;
+        const Til2Img&			T = t2i[it];
+        map<int,int>::iterator	mi = m.find( T.id );
+        int						j0, jlim;
 
-		if( mi == en )
-			continue;
+        if( mi == en )
+            continue;
 
-		j0		= mi->second;
-		jlim	= (++mi != en ? mi->second : nr);
+        j0		= mi->second;
+        jlim	= (++mi != en ? mi->second : nr);
 
-		// Propagate rgn #1 tform to all block members
+        // Propagate rgn #1 tform to all block members
 
-		for( int j = j0; j < jlim; ++j ) {
+        for( int j = j0; j < jlim; ++j ) {
 
-			T.T.CopyOut( &x[j * 6] );
-			FLAG_SETUSED( flag[j] );
-		}
-	}
+            T.T.CopyOut( &x[j * 6] );
+            FLAG_SETUSED( flag[j] );
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -79,115 +79,115 @@ bool Rgns::AFromIDB()
 
 class CIDRA {
 public:
-	TAffine	A;
-	int		id, r;
+    TAffine	A;
+    int		id, r;
 public:
-	inline bool FromFile( FILE *f )
-	{
-		return 8 == fscanf( f,
-			" %d %d %lf %lf %lf %lf %lf %lf%*[^\r\n][\r\n]",
-			&id, &r,
-			&A.t[0], &A.t[1], &A.t[2],
-			&A.t[3], &A.t[4], &A.t[5] );
-	};
+    inline bool FromFile( FILE *f )
+    {
+        return 8 == fscanf( f,
+            " %d %d %lf %lf %lf %lf %lf %lf%*[^\r\n][\r\n]",
+            &id, &r,
+            &A.t[0], &A.t[1], &A.t[2],
+            &A.t[3], &A.t[4], &A.t[5] );
+    };
 };
 
 
 static bool Read_vA(
-	vector<CIDRA>	&vA,
-	const char		*path,
-	int				z,
-	FILE			*flog )
+    vector<CIDRA>	&vA,
+    const char		*path,
+    int				z,
+    FILE			*flog )
 {
-	char	buf[2048];
-	FILE	*f;
-	CIDRA	A;
-	bool	nf = true;	// default = no folds
+    char	buf[2048];
+    FILE	*f;
+    CIDRA	A;
+    bool	nf = true;	// default = no folds
 
-	vA.clear();
+    vA.clear();
 
-	sprintf( buf, "%s/X_A_%d.txt", path, z );
-	f = fopen( buf, "r" );
+    sprintf( buf, "%s/X_A_%d.txt", path, z );
+    f = fopen( buf, "r" );
 
-	if( f ) {
+    if( f ) {
 
-		while( A.FromFile( f ) ) {
+        while( A.FromFile( f ) ) {
 
-			if( A.r > 1 )
-				nf = false;
+            if( A.r > 1 )
+                nf = false;
 
-			vA.push_back( A );
-		}
+            vA.push_back( A );
+        }
 
-		fclose( f );
-	}
-	else
-		fprintf( flog, "Rgns: Can't open [%s].\n", buf );
+        fclose( f );
+    }
+    else
+        fprintf( flog, "Rgns: Can't open [%s].\n", buf );
 
-	return nf;
+    return nf;
 }
 
 
 bool Rgns::AFromTxt( const char *path )
 {
-	vector<CIDRA>	vA;
-	int				nf = Read_vA( vA, path, z, flog );
+    vector<CIDRA>	vA;
+    int				nf = Read_vA( vA, path, z, flog );
 
-	x.resize( nr * 6 );
+    x.resize( nr * 6 );
 
-	int						na = vA.size();
-	map<int,int>::iterator	en = m.end();
+    int						na = vA.size();
+    map<int,int>::iterator	en = m.end();
 
-	if( !nf ) {	// Propagate rgn #1 to all block members
+    if( !nf ) {	// Propagate rgn #1 to all block members
 
-		// For each transform in vA...
+        // For each transform in vA...
 
-		for( int ia = 0; ia < na; ++ia ) {
+        for( int ia = 0; ia < na; ++ia ) {
 
-			// Get its block start and limit {j0,jlim}
+            // Get its block start and limit {j0,jlim}
 
-			const CIDRA&			A = vA[ia];
-			map<int,int>::iterator	mi = m.find( A.id );
-			int						j0, jlim;
+            const CIDRA&			A = vA[ia];
+            map<int,int>::iterator	mi = m.find( A.id );
+            int						j0, jlim;
 
-			if( mi == en )
-				continue;
+            if( mi == en )
+                continue;
 
-			j0		= mi->second;
-			jlim	= (++mi != en ? mi->second : nr);
+            j0		= mi->second;
+            jlim	= (++mi != en ? mi->second : nr);
 
-			// Propagate rgn #1 tform to all block members
+            // Propagate rgn #1 tform to all block members
 
-			for( int j = j0; j < jlim; ++j ) {
+            for( int j = j0; j < jlim; ++j ) {
 
-				A.A.CopyOut( &x[j * 6] );
-				FLAG_SETUSED( flag[j] );
-			}
-		}
-	}
-	else {	// Move each A to its specified position
+                A.A.CopyOut( &x[j * 6] );
+                FLAG_SETUSED( flag[j] );
+            }
+        }
+    }
+    else {	// Move each A to its specified position
 
-		// For each transform in vA...
+        // For each transform in vA...
 
-		for( int ia = 0; ia < na; ++ia ) {
+        for( int ia = 0; ia < na; ++ia ) {
 
-			// Get its location j
+            // Get its location j
 
-			const CIDRA&			A = vA[ia];
-			map<int,int>::iterator	mi = m.find( A.id );
-			int						j;
+            const CIDRA&			A = vA[ia];
+            map<int,int>::iterator	mi = m.find( A.id );
+            int						j;
 
-			if( mi == en )
-				continue;
+            if( mi == en )
+                continue;
 
-			j = mi->second + A.r - 1;
+            j = mi->second + A.r - 1;
 
-			A.A.CopyOut( &x[j * 6] );
-			FLAG_SETUSED( flag[j] );
-		}
-	}
+            A.A.CopyOut( &x[j * 6] );
+            FLAG_SETUSED( flag[j] );
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -206,116 +206,116 @@ bool Rgns::AFromTxt( const char *path )
 
 class CIDRH {
 public:
-	THmgphy	H;
-	int		id, r;
+    THmgphy	H;
+    int		id, r;
 public:
-	inline bool FromFile( FILE *f )
-	{
-		return 10 == fscanf( f,
-			" %d %d %lf %lf %lf %lf %lf %lf %lf %lf%*[^\r\n][\r\n]",
-			&id, &r,
-			&H.t[0], &H.t[1], &H.t[2],
-			&H.t[3], &H.t[4], &H.t[5],
-			&H.t[6], &H.t[7] );
-	};
+    inline bool FromFile( FILE *f )
+    {
+        return 10 == fscanf( f,
+            " %d %d %lf %lf %lf %lf %lf %lf %lf %lf%*[^\r\n][\r\n]",
+            &id, &r,
+            &H.t[0], &H.t[1], &H.t[2],
+            &H.t[3], &H.t[4], &H.t[5],
+            &H.t[6], &H.t[7] );
+    };
 };
 
 
 static bool Read_vH(
-	vector<CIDRH>	&vH,
-	const char		*path,
-	int				z,
-	FILE*			flog )
+    vector<CIDRH>	&vH,
+    const char		*path,
+    int				z,
+    FILE*			flog )
 {
-	char	buf[2048];
-	FILE	*f;
-	CIDRH	H;
-	bool	nf = true;	// default = no folds
+    char	buf[2048];
+    FILE	*f;
+    CIDRH	H;
+    bool	nf = true;	// default = no folds
 
-	vH.clear();
+    vH.clear();
 
-	sprintf( buf, "%s/X_H_%d.txt", path, z );
-	f = fopen( buf, "r" );
+    sprintf( buf, "%s/X_H_%d.txt", path, z );
+    f = fopen( buf, "r" );
 
-	if( f ) {
+    if( f ) {
 
-		while( H.FromFile( f ) ) {
+        while( H.FromFile( f ) ) {
 
-			if( H.r > 1 )
-				nf = false;
+            if( H.r > 1 )
+                nf = false;
 
-			vH.push_back( H );
-		}
+            vH.push_back( H );
+        }
 
-		fclose( f );
-	}
-	else
-		fprintf( flog, "Rgns: Can't open [%s].\n", buf );
+        fclose( f );
+    }
+    else
+        fprintf( flog, "Rgns: Can't open [%s].\n", buf );
 
-	return nf;
+    return nf;
 }
 
 
 bool Rgns::HFromTxt( const char *path )
 {
-	vector<CIDRH>	vH;
-	int				nf = Read_vH( vH, path, z, flog );
+    vector<CIDRH>	vH;
+    int				nf = Read_vH( vH, path, z, flog );
 
-	x.resize( nr * 8 );
+    x.resize( nr * 8 );
 
-	int						nh = vH.size();
-	map<int,int>::iterator	en = m.end();
+    int						nh = vH.size();
+    map<int,int>::iterator	en = m.end();
 
-	if( !nf ) {	// Propagate rgn #1 to all block members
+    if( !nf ) {	// Propagate rgn #1 to all block members
 
-		// For each transform in vH...
+        // For each transform in vH...
 
-		for( int ih = 0; ih < nh; ++ih ) {
+        for( int ih = 0; ih < nh; ++ih ) {
 
-			// Get its block start and limit {j0,jlim}
+            // Get its block start and limit {j0,jlim}
 
-			const CIDRH&			H = vH[ih];
-			map<int,int>::iterator	mi = m.find( H.id );
-			int						j0, jlim;
+            const CIDRH&			H = vH[ih];
+            map<int,int>::iterator	mi = m.find( H.id );
+            int						j0, jlim;
 
-			if( mi == en )
-				continue;
+            if( mi == en )
+                continue;
 
-			j0		= mi->second;
-			jlim	= (++mi != en ? mi->second : nr);
+            j0		= mi->second;
+            jlim	= (++mi != en ? mi->second : nr);
 
-			// Propagate rgn #1 tform to all block members
+            // Propagate rgn #1 tform to all block members
 
-			for( int j = j0; j < jlim; ++j ) {
+            for( int j = j0; j < jlim; ++j ) {
 
-				H.H.CopyOut( &x[j * 8] );
-				FLAG_SETUSED( flag[j] );
-			}
-		}
-	}
-	else {	// Move each H to its specified position
+                H.H.CopyOut( &x[j * 8] );
+                FLAG_SETUSED( flag[j] );
+            }
+        }
+    }
+    else {	// Move each H to its specified position
 
-		// For each transform in vH...
+        // For each transform in vH...
 
-		for( int ih = 0; ih < nh; ++ih ) {
+        for( int ih = 0; ih < nh; ++ih ) {
 
-			// Get its location j
+            // Get its location j
 
-			const CIDRH&			H = vH[ih];
-			map<int,int>::iterator	mi = m.find( H.id );
-			int						j;
+            const CIDRH&			H = vH[ih];
+            map<int,int>::iterator	mi = m.find( H.id );
+            int						j;
 
-			if( mi == en )
-				continue;
+            if( mi == en )
+                continue;
 
-			j = mi->second + H.r - 1;
+            j = mi->second + H.r - 1;
 
-			H.H.CopyOut( &x[j * 8] );
-			FLAG_SETUSED( flag[j] );
-		}
-	}
+            H.H.CopyOut( &x[j * 8] );
+            FLAG_SETUSED( flag[j] );
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -324,26 +324,26 @@ bool Rgns::HFromTxt( const char *path )
 
 bool Rgns::ReadXBin( const char *path )
 {
-	int	nx = nr * NE;
+    int	nx = nr * NE;
 
-	if( !nx )
-		return false;
+    if( !nx )
+        return false;
 
-	char	buf[2048];
-	FILE	*f;
-	sprintf( buf, "%s/X_%c_%d.bin", path, (NE == 6 ? 'A' : 'H'), z );
+    char	buf[2048];
+    FILE	*f;
+    sprintf( buf, "%s/X_%c_%d.bin", path, (NE == 6 ? 'A' : 'H'), z );
 
-	if( f = fopen( buf, "rb" ) ) {
+    if( f = fopen( buf, "rb" ) ) {
 
-		x.resize( nx );
-		fread( &x[0], sizeof(double), nx, f );
-		fclose( f );
-		return true;
-	}
-	else {
-		fprintf( flog, "Rgns: Can't open [%s].\n", buf );
-		return false;
-	}
+        x.resize( nx );
+        fread( &x[0], sizeof(double), nx, f );
+        fclose( f );
+        return true;
+    }
+    else {
+        fprintf( flog, "Rgns: Can't open [%s].\n", buf );
+        return false;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -352,23 +352,23 @@ bool Rgns::ReadXBin( const char *path )
 
 bool Rgns::ReadFBin( const char *path )
 {
-	if( !nr )
-		return false;
+    if( !nr )
+        return false;
 
-	char	buf[2048];
-	FILE	*f;
-	sprintf( buf, "%s/F_%d.bin", path, z );
+    char	buf[2048];
+    FILE	*f;
+    sprintf( buf, "%s/F_%d.bin", path, z );
 
-	if( f = fopen( buf, "rb" ) ) {
+    if( f = fopen( buf, "rb" ) ) {
 
-		fread( &flag[0], sizeof(uint8), nr, f );
-		fclose( f );
-		return true;
-	}
-	else {
-		fprintf( flog, "Rgns: Can't open [%s].\n", buf );
-		return false;
-	}
+        fread( &flag[0], sizeof(uint8), nr, f );
+        fclose( f );
+        return true;
+    }
+    else {
+        fprintf( flog, "Rgns: Can't open [%s].\n", buf );
+        return false;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -377,13 +377,13 @@ bool Rgns::ReadFBin( const char *path )
 
 bool Rgns::Init( const string &idb, int iz, FILE *flog )
 {
-	this->flog	= flog;
-	this->idb	= &idb;
-	z			= iz;
-	nr			= IDBGetIDRgnMap( m, idb, z, flog );
+    this->flog	= flog;
+    this->idb	= &idb;
+    z			= iz;
+    nr			= IDBGetIDRgnMap( m, idb, z, flog );
 
-	flag.assign( nr, fmRead );
-	return (nr != 0);
+    flag.assign( nr, fmRead );
+    return (nr != 0);
 }
 
 /* --------------------------------------------------------------- */
@@ -392,50 +392,50 @@ bool Rgns::Init( const string &idb, int iz, FILE *flog )
 
 bool Rgns::Load( const char *path )
 {
-	if( !path || !path[0] ) {
+    if( !path || !path[0] ) {
 
-		NE = 6;
-		return AFromIDB();
-	}
-	else {
+        NE = 6;
+        return AFromIDB();
+    }
+    else {
 
-		const char	*name = FileNamePtr( path );
+        const char	*name = FileNamePtr( path );
 
-		if( strstr( name, "X_A" ) ) {
+        if( strstr( name, "X_A" ) ) {
 
-			NE = 6;
+            NE = 6;
 
-			if( strstr( name, "X_A_TXT" ) ||
-				strstr( name, "X_A_MET" ) ) {
+            if( strstr( name, "X_A_TXT" ) ||
+                strstr( name, "X_A_MET" ) ) {
 
-				return AFromTxt( path );
-			}
-			else if( strstr( name, "X_A_BIN" ) )
-				return ReadXBin( path ) && ReadFBin( path );
-			else
-				goto error;
-		}
-		else if( strstr( name, "X_H" ) ) {
+                return AFromTxt( path );
+            }
+            else if( strstr( name, "X_A_BIN" ) )
+                return ReadXBin( path ) && ReadFBin( path );
+            else
+                goto error;
+        }
+        else if( strstr( name, "X_H" ) ) {
 
-			NE = 8;
+            NE = 8;
 
-			if( strstr( name, "X_H_TXT" ) ||
-				strstr( name, "X_H_MET" ) ) {
+            if( strstr( name, "X_H_TXT" ) ||
+                strstr( name, "X_H_MET" ) ) {
 
-				return HFromTxt( path );
-			}
-			else if( strstr( name, "X_H_BIN" ) )
-				return ReadXBin( path ) && ReadFBin( path );
-			else
-				goto error;
-		}
-		else {
+                return HFromTxt( path );
+            }
+            else if( strstr( name, "X_H_BIN" ) )
+                return ReadXBin( path ) && ReadFBin( path );
+            else
+                goto error;
+        }
+        else {
 error:
-			fprintf( flog,
-			"Rgns: Unknown folder name pattern [%s].\n", name );
-			exit( 42 );
-		}
-	}
+            fprintf( flog,
+            "Rgns: Unknown folder name pattern [%s].\n", name );
+            exit( 42 );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -451,44 +451,44 @@ error:
 //
 bool Rgns::SaveBIN( const char *path, bool writeflags )
 {
-	const char	*name	= FileNamePtr( path );
-	const char	*isaff	= strstr( name, "X_A_BIN" );
-	bool		ok		= false;
+    const char	*name	= FileNamePtr( path );
+    const char	*isaff	= strstr( name, "X_A_BIN" );
+    bool		ok		= false;
 
-	if( isaff || strstr( name, "X_H_BIN" ) ) {
+    if( isaff || strstr( name, "X_H_BIN" ) ) {
 
-		if( (isaff && NE != 6) || (!isaff && NE != 8) ) {
-			fprintf( flog,
-			"Rgns: SaveBIN type mismatch NE=%d -> [%s].\n",
-			NE, name );
-		}
-		else {
+        if( (isaff && NE != 6) || (!isaff && NE != 8) ) {
+            fprintf( flog,
+            "Rgns: SaveBIN type mismatch NE=%d -> [%s].\n",
+            NE, name );
+        }
+        else {
 
-			char	buf[2048];
-			FILE	*f;
+            char	buf[2048];
+            FILE	*f;
 
-			sprintf( buf, "%s/X_%c_%d.bin",
-				path, (NE == 6 ? 'A' : 'H'), z );
+            sprintf( buf, "%s/X_%c_%d.bin",
+                path, (NE == 6 ? 'A' : 'H'), z );
 
-			f = FileOpenOrDie( buf, "wb" );
-			fwrite( &x[0], sizeof(double), x.size(), f );
-			fclose( f );
+            f = FileOpenOrDie( buf, "wb" );
+            fwrite( &x[0], sizeof(double), x.size(), f );
+            fclose( f );
 
-			if( writeflags ) {
+            if( writeflags ) {
 
-				sprintf( buf, "%s/F_%d.bin", path, z );
-				f = FileOpenOrDie( buf, "wb" );
-				fwrite( &flag[0], sizeof(uint8), nr, f );
-				fclose( f );
-			}
+                sprintf( buf, "%s/F_%d.bin", path, z );
+                f = FileOpenOrDie( buf, "wb" );
+                fwrite( &flag[0], sizeof(uint8), nr, f );
+                fclose( f );
+            }
 
-			ok = true;
-		}
-	}
-	else
-		fprintf( flog, "Rgns: Unknown SaveBIN type [%s].\n", name );
+            ok = true;
+        }
+    }
+    else
+        fprintf( flog, "Rgns: Unknown SaveBIN type [%s].\n", name );
 
-	return ok;
+    return ok;
 }
 
 /* --------------------------------------------------------------- */
@@ -504,93 +504,93 @@ bool Rgns::SaveBIN( const char *path, bool writeflags )
 //
 bool Rgns::SaveTXT( const char *path )
 {
-	const char	*name = FileNamePtr( path );
-	FILE		*f;
-	char		buf[2048];
-	bool		ok = false;
+    const char	*name = FileNamePtr( path );
+    FILE		*f;
+    char		buf[2048];
+    bool		ok = false;
 
-	if( strstr( name, "X_A_TXT" ) ) {
+    if( strstr( name, "X_A_TXT" ) ) {
 
-		if( NE != 6 ) {
-			fprintf( flog,
-			"Rgns: SaveTXT type mismatch NE=%d -> [%s].\n",
-			NE, name );
-		}
-		else {
+        if( NE != 6 ) {
+            fprintf( flog,
+            "Rgns: SaveTXT type mismatch NE=%d -> [%s].\n",
+            NE, name );
+        }
+        else {
 
-			sprintf( buf, "%s/X_A_%d.txt", path, z );
-			f = FileOpenOrDie( buf, "w", flog );
+            sprintf( buf, "%s/X_A_%d.txt", path, z );
+            f = FileOpenOrDie( buf, "w", flog );
 
-			map<int,int>::iterator	mi, en = m.end();
+            map<int,int>::iterator	mi, en = m.end();
 
-			for( mi = m.begin(); mi != en; ) {
+            for( mi = m.begin(); mi != en; ) {
 
-				int	id		= mi->first,
-					j0		= mi->second,
-					jlim	= (++mi == en ? nr : mi->second);
+                int	id		= mi->first,
+                    j0		= mi->second,
+                    jlim	= (++mi == en ? nr : mi->second);
 
-				for( int j = j0; j < jlim; ++j ) {
+                for( int j = j0; j < jlim; ++j ) {
 
-					if( !FLAG_ISUSED( flag[j] ) )
-						continue;
+                    if( !FLAG_ISUSED( flag[j] ) )
+                        continue;
 
-					TAffine&	T = X_AS_AFF( x, j );
+                    TAffine&	T = X_AS_AFF( x, j );
 
-					fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
-					id, j - j0 + 1,
-					T.t[0], T.t[1], T.t[2],
-					T.t[3], T.t[4], T.t[5] );
-				}
-			}
+                    fprintf( f, "%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
+                    id, j - j0 + 1,
+                    T.t[0], T.t[1], T.t[2],
+                    T.t[3], T.t[4], T.t[5] );
+                }
+            }
 
-			fclose( f );
-			ok = true;
-		}
-	}
-	else if( strstr( name, "X_H_TXT" ) ) {
+            fclose( f );
+            ok = true;
+        }
+    }
+    else if( strstr( name, "X_H_TXT" ) ) {
 
-		if( NE != 8 ) {
-			fprintf( flog,
-			"Rgns: SaveTXT type mismatch NE=%d -> [%s].\n",
-			NE, name );
-		}
-		else {
+        if( NE != 8 ) {
+            fprintf( flog,
+            "Rgns: SaveTXT type mismatch NE=%d -> [%s].\n",
+            NE, name );
+        }
+        else {
 
-			sprintf( buf, "%s/X_H_%d.txt", path, z );
-			f = FileOpenOrDie( buf, "w", flog );
+            sprintf( buf, "%s/X_H_%d.txt", path, z );
+            f = FileOpenOrDie( buf, "w", flog );
 
-			map<int,int>::iterator	mi, en = m.end();
+            map<int,int>::iterator	mi, en = m.end();
 
-			for( mi = m.begin(); mi != en; ) {
+            for( mi = m.begin(); mi != en; ) {
 
-				int	id		= mi->first,
-					j0		= mi->second,
-					jlim	= (++mi == en ? nr : mi->second);
+                int	id		= mi->first,
+                    j0		= mi->second,
+                    jlim	= (++mi == en ? nr : mi->second);
 
-				for( int j = j0; j < jlim; ++j ) {
+                for( int j = j0; j < jlim; ++j ) {
 
-					if( !FLAG_ISUSED( flag[j] ) )
-						continue;
+                    if( !FLAG_ISUSED( flag[j] ) )
+                        continue;
 
-					THmgphy&	T = X_AS_HMY( x, j );
+                    THmgphy&	T = X_AS_HMY( x, j );
 
-					fprintf( f,
-					"%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g\n",
-					id, j - j0 + 1,
-					T.t[0], T.t[1], T.t[2],
-					T.t[3], T.t[4], T.t[5],
-					T.t[6], T.t[7] );
-				}
-			}
+                    fprintf( f,
+                    "%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%.12g\t%.12g\n",
+                    id, j - j0 + 1,
+                    T.t[0], T.t[1], T.t[2],
+                    T.t[3], T.t[4], T.t[5],
+                    T.t[6], T.t[7] );
+                }
+            }
 
-			fclose( f );
-			ok = true;
-		}
-	}
-	else
-		fprintf( flog, "Rgns: Unknown SaveTXT type [%s].\n", name );
+            fclose( f );
+            ok = true;
+        }
+    }
+    else
+        fprintf( flog, "Rgns: Unknown SaveTXT type [%s].\n", name );
 
-	return ok;
+    return ok;
 }
 
 

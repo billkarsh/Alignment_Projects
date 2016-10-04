@@ -89,20 +89,20 @@
 
 int STATAverageUInt16( const UInt16 *array, UInt32 N )
 {
-	UInt32	*pPair;
-	UInt32	i, sum, pair;
+    UInt32	*pPair;
+    UInt32	i, sum, pair;
 
-	sum		= 0;
-	pPair	= (UInt32*)array;
+    sum		= 0;
+    pPair	= (UInt32*)array;
 
-	for( i = 0; i < N; i += 2 ) {
+    for( i = 0; i < N; i += 2 ) {
 
-		pair = *pPair++;
-		sum += pair & LoMask;
-		sum += pair >> HalfBits;
-	}
+        pair = *pPair++;
+        sum += pair & LoMask;
+        sum += pair >> HalfBits;
+    }
 
-	return sum / N;
+    return sum / N;
 }
 
 #endif
@@ -133,34 +133,34 @@ int STATAverageUInt16( const UInt16 *array, UInt32 N )
 
 UInt32 STATIndexOfMaxValueUInt16( const UInt16 *array, UInt32 N )
 {
-	UInt32	*pPair;
-	UInt32	i, idx, pair;
-	int		t, max;
+    UInt32	*pPair;
+    UInt32	i, idx, pair;
+    int		t, max;
 
-	max		= 0;
-	idx		= 0;
-	pPair	= (UInt32*)array;
+    max		= 0;
+    idx		= 0;
+    pPair	= (UInt32*)array;
 
-	for( i = 0; i < N; i += 2 ) {
+    for( i = 0; i < N; i += 2 ) {
 
-		pair = *pPair++;
+        pair = *pPair++;
 
-		t = pair & LoMask;
+        t = pair & LoMask;
 
-		if( t > max ) {
-			max	= t;
-			idx	= i;
-		}
+        if( t > max ) {
+            max	= t;
+            idx	= i;
+        }
 
-		t = pair >> HalfBits;
+        t = pair >> HalfBits;
 
-		if( t > max ) {
-			max	= t;
-			idx	= i + 1;
-		}
-	}
+        if( t > max ) {
+            max	= t;
+            idx	= i + 1;
+        }
+    }
 
-	return idx;
+    return idx;
 }
 
 
@@ -175,20 +175,20 @@ UInt32 STATIndexOfMaxValueUInt16( const UInt16 *array, UInt32 N )
 
 UInt32 STATIndexOfMaxValueUInt32( const UInt32 *array, UInt32 N )
 {
-	UInt32	i, idx, t, max;
+    UInt32	i, idx, t, max;
 
-	max		= 0;
-	idx		= 0;
+    max		= 0;
+    idx		= 0;
 
-	for( i = 0; i < N; ++i ) {
+    for( i = 0; i < N; ++i ) {
 
-		if( (t = array[i]) > max ) {
-			max	= t;
-			idx	= i;
-		}
-	}
+        if( (t = array[i]) > max ) {
+            max	= t;
+            idx	= i;
+        }
+    }
 
-	return idx;
+    return idx;
 }
 
 
@@ -206,31 +206,31 @@ UInt32 STATIndexOfMaxValueUInt32( const UInt32 *array, UInt32 N )
  */
 
 UInt32 STATPercentileBinUInt32(
-	const UInt32	*hist,
-	UInt32			nBins,
-	UInt32			nCounts,
-	FP64			frac )
+    const UInt32	*hist,
+    UInt32			nBins,
+    UInt32			nCounts,
+    FP64			frac )
 {
-	UInt32	i, sum, v, bLast;
+    UInt32	i, sum, v, bLast;
 
-	nCounts	= (UInt32)(nCounts * frac);
-	sum		= 0;
-	bLast	= 0;
+    nCounts	= (UInt32)(nCounts * frac);
+    sum		= 0;
+    bLast	= 0;
 
-	for( i = 0; i < nBins; ++i ) {
+    for( i = 0; i < nBins; ++i ) {
 
-		if( v = hist[i] ) {
+        if( v = hist[i] ) {
 
-			if( (sum += v) > nCounts )
-				return (bLast + i) >> 1;
-			else if( sum == nCounts )
-				return i;
+            if( (sum += v) > nCounts )
+                return (bLast + i) >> 1;
+            else if( sum == nCounts )
+                return i;
 
-			bLast = i;
-		}
-	}
+            bLast = i;
+        }
+    }
 
-	return nBins - 1;
+    return nBins - 1;
 }
 
 
@@ -249,15 +249,15 @@ UInt32 STATPercentileBinUInt32(
 
 FP32 STATSigma32( FP32 N, FP32 meanX, FP32 sumX2 )
 {
-	FP32	sigma = 0.0F;
+    FP32	sigma = 0.0F;
 
-	if( N > 1.0F ) {
+    if( N > 1.0F ) {
 
-		sigma = (sumX2 - N * meanX * meanX) / (N - 1.0F);
-		sigma = (FP32)sqrt( sigma );
-	}
+        sigma = (sumX2 - N * meanX * meanX) / (N - 1.0F);
+        sigma = (FP32)sqrt( sigma );
+    }
 
-	return sigma;
+    return sigma;
 }
 
 
@@ -285,26 +285,26 @@ FP32 STATSigma32( FP32 N, FP32 meanX, FP32 sumX2 )
  */
 
 FP32 STATAveFP32(
-	const FP32		*pFirstVal,
-	UInt32			recBytes,
-	UInt32			N )
+    const FP32		*pFirstVal,
+    UInt32			recBytes,
+    UInt32			N )
 {
-	FP32	ave = 0.0F;
-	UInt32	i;
+    FP32	ave = 0.0F;
+    UInt32	i;
 
-	if( N ) {
+    if( N ) {
 
-		for( i = 0; i < N;
-			++i,
-			pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
+        for( i = 0; i < N;
+            ++i,
+            pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
 
-			ave += *pFirstVal;
-		}
+            ave += *pFirstVal;
+        }
 
-		ave /= N;
-	}
+        ave /= N;
+    }
 
-	return ave;
+    return ave;
 }
 
 
@@ -332,38 +332,38 @@ FP32 STATAveFP32(
  */
 
 FP32 STATMinMaxFP32(
-	FP32			*minVal,
-	const FP32		*pFirstVal,
-	UInt32			recBytes,
-	UInt32			N )
+    FP32			*minVal,
+    const FP32		*pFirstVal,
+    UInt32			recBytes,
+    UInt32			N )
 {
-	FP32	v, lMin, lMax;
-	UInt32	i;
+    FP32	v, lMin, lMax;
+    UInt32	i;
 
-	if( N ) {
+    if( N ) {
 
-		lMin = lMax = *pFirstVal;
+        lMin = lMax = *pFirstVal;
 
-		pFirstVal = (const FP32*)((char*)pFirstVal + recBytes);
+        pFirstVal = (const FP32*)((char*)pFirstVal + recBytes);
 
-		for( i = 1; i < N;
-			++i,
-			pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
+        for( i = 1; i < N;
+            ++i,
+            pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
 
-			if( (v = *pFirstVal) > lMax )
-				lMax = v;
-			else if( v < lMin )
-				lMin = v;
-		}
-	}
-	else {
-		lMin = 0;
-		lMax = 0;
-	}
+            if( (v = *pFirstVal) > lMax )
+                lMax = v;
+            else if( v < lMin )
+                lMin = v;
+        }
+    }
+    else {
+        lMin = 0;
+        lMax = 0;
+    }
 
-	*minVal = lMin;
+    *minVal = lMin;
 
-	return lMax;
+    return lMax;
 }
 
 
@@ -380,24 +380,24 @@ FP32 STATMinMaxFP32(
  */
 
 FP32 STATAveAndSDInRangeFP32(
-	FP32			*stdDev,
-	const FP32		*array,
-	UInt32			i0,
-	UInt32			iLim )
+    FP32			*stdDev,
+    const FP32		*array,
+    UInt32			i0,
+    UInt32			iLim )
 {
-	FP32	x, sumX = 0.0F, sumX2 = 0.0F;
-	UInt32	i, n = 0;
+    FP32	x, sumX = 0.0F, sumX2 = 0.0F;
+    UInt32	i, n = 0;
 
-	for( i = i0; i < iLim; ++i, ++n ) {
+    for( i = i0; i < iLim; ++i, ++n ) {
 
-		sumX	+= (x = array[i]);
-		sumX2	+= x * x;
-	}
+        sumX	+= (x = array[i]);
+        sumX2	+= x * x;
+    }
 
-	x		= (FP32)n;
-	*stdDev = STATSigma32( x, sumX /= x, sumX2 );
+    x		= (FP32)n;
+    *stdDev = STATSigma32( x, sumX /= x, sumX2 );
 
-	return sumX;
+    return sumX;
 }
 
 
@@ -422,58 +422,58 @@ FP32 STATAveAndSDInRangeFP32(
  */
 
 FP32 STATWindowedMaxFP32(
-	const FP32		*array,
-	UInt32			i0,
-	UInt32			iLim,
-	UInt32			windowSize )
+    const FP32		*array,
+    UInt32			i0,
+    UInt32			iLim,
+    UInt32			windowSize )
 {
-	FP32	max, win;
-	UInt32	iRMost;		/* right-most point in window */
+    FP32	max, win;
+    UInt32	iRMost;		/* right-most point in window */
 
-	if( iLim - i0 > windowSize ) {
+    if( iLim - i0 > windowSize ) {
 
-		/* ---------------------------------- */
-		/* Construct first window and set max */
-		/* ---------------------------------- */
+        /* ---------------------------------- */
+        /* Construct first window and set max */
+        /* ---------------------------------- */
 
-		for( iRMost = i0 + 1, win = array[i0];
-			 iRMost < i0 + windowSize; ++iRMost ) {
+        for( iRMost = i0 + 1, win = array[i0];
+             iRMost < i0 + windowSize; ++iRMost ) {
 
-			 win += array[iRMost];
-		}
+             win += array[iRMost];
+        }
 
-		max = win;
+        max = win;
 
-		/* ------------------------------------------------------ */
-		/* Slide window, remove old left-most, add new right-most */
-		/* ------------------------------------------------------ */
+        /* ------------------------------------------------------ */
+        /* Slide window, remove old left-most, add new right-most */
+        /* ------------------------------------------------------ */
 
-		for( ; iRMost < iLim; ++iRMost ) {
+        for( ; iRMost < iLim; ++iRMost ) {
 
-			win -= array[iRMost - windowSize];
-			win += array[iRMost];
+            win -= array[iRMost - windowSize];
+            win += array[iRMost];
 
-			if( win > max )
-				max = win;
-		}
+            if( win > max )
+                max = win;
+        }
 
-		/* ----------------- */
-		/* Report as average */
-		/* ----------------- */
+        /* ----------------- */
+        /* Report as average */
+        /* ----------------- */
 
-		max /= windowSize;
-	}
-	else {
+        max /= windowSize;
+    }
+    else {
 
-		/* --------------------------------- */
-		/* Data span smaller than one window */
-		/* --------------------------------- */
+        /* --------------------------------- */
+        /* Data span smaller than one window */
+        /* --------------------------------- */
 
-		max = STATMinMaxFP32( &win, array + i0,
-				sizeof(FP32), iLim - i0 );
-	}
+        max = STATMinMaxFP32( &win, array + i0,
+                sizeof(FP32), iLim - i0 );
+    }
 
-	return max;
+    return max;
 }
 
 
@@ -499,35 +499,35 @@ FP32 STATWindowedMaxFP32(
 
 FP32 STATMedianFP32( FP32 *array, FP32 *wrkspc, UInt32 N )
 {
-	FP32	median;
+    FP32	median;
 
 /* -------------------- */
 /* Copy array if needed */
 /* -------------------- */
 
-	if( wrkspc )
-		MEMCopyBytes( wrkspc, array, N * sizeof(FP32) );
-	else
-		wrkspc = array;
+    if( wrkspc )
+        MEMCopyBytes( wrkspc, array, N * sizeof(FP32) );
+    else
+        wrkspc = array;
 
 /* ---- */
 /* Sort */
 /* ---- */
 
-	SORT_FP32_Ascending( wrkspc, N );
+    SORT_FP32_Ascending( wrkspc, N );
 
 /* ------------------- */
 /* Select middle value */
 /* ------------------- */
 
-	if( N & 1 )
-		median = wrkspc[N / 2 + 1];
-	else {
-		N /= 2;
-		median = (wrkspc[N] + wrkspc[N + 1]) * 0.5F;
-	}
+    if( N & 1 )
+        median = wrkspc[N / 2 + 1];
+    else {
+        N /= 2;
+        median = (wrkspc[N] + wrkspc[N + 1]) * 0.5F;
+    }
 
-	return median;
+    return median;
 }
 
 
@@ -542,10 +542,10 @@ FP32 STATMedianFP32( FP32 *array, FP32 *wrkspc, UInt32 N )
 
 void STATUnitWeightsFP32( FP32 *wt, UInt32 N )
 {
-	UInt32	i;
+    UInt32	i;
 
-	for( i = 0; i < N; ++i )
-		wt[i] = 1.0F;
+    for( i = 0; i < N; ++i )
+        wt[i] = 1.0F;
 }
 
 
@@ -572,27 +572,27 @@ void STATUnitWeightsFP32( FP32 *wt, UInt32 N )
 
 FP32 STATSigmaMADFP32( FP32 *r, FP32 *wrkspc, UInt32 N )
 {
-	FP32	median;
-	UInt32	i;
+    FP32	median;
+    UInt32	i;
 
 /* ---------------------- */
 /* Calculate median( Ri ) */
 /* ---------------------- */
 
-	median = STATMedianFP32( r, wrkspc, N );
+    median = STATMedianFP32( r, wrkspc, N );
 
 /* -------------------------- */
 /* Create array |Ri - median| */
 /* -------------------------- */
 
-	for( i = 0; i < N; ++i )
-		wrkspc[i] = (FP32)fabs( wrkspc[i] - median );
+    for( i = 0; i < N; ++i )
+        wrkspc[i] = (FP32)fabs( wrkspc[i] - median );
 
 /* --------------------------------- */
 /* Calculate median( |Ri - median| ) */
 /* --------------------------------- */
 
-	return STATMedianFP32( wrkspc, NULL, N ) / 0.6745F;
+    return STATMedianFP32( wrkspc, NULL, N ) / 0.6745F;
 }
 
 
@@ -628,38 +628,38 @@ FP32 STATSigmaMADFP32( FP32 *r, FP32 *wrkspc, UInt32 N )
 
 int STATTukeyWtsFP32( FP32 *w, FP32 *r, FP32 *wrkspc, UInt32 N )
 {
-	FP32	Bs2;
-	int		nnz;
+    FP32	Bs2;
+    int		nnz;
 
-	Bs2 = STATSigmaMADFP32( r, wrkspc, N ) * 4.685F;
-	nnz = 0;
+    Bs2 = STATSigmaMADFP32( r, wrkspc, N ) * 4.685F;
+    nnz = 0;
 
-	if( Bs2 <= 0.0F )
-		MEMZeroBytes( w, N * sizeof(FP32) );
-	else {
+    if( Bs2 <= 0.0F )
+        MEMZeroBytes( w, N * sizeof(FP32) );
+    else {
 
-		FP32	invBs2, r2, x;
-		UInt32	i;
+        FP32	invBs2, r2, x;
+        UInt32	i;
 
-		Bs2	   *= Bs2;
-		invBs2	= 1.0F / Bs2;
+        Bs2	   *= Bs2;
+        invBs2	= 1.0F / Bs2;
 
-		for( i = 0; i < N; ++i ) {
+        for( i = 0; i < N; ++i ) {
 
-			x = r[i];
+            x = r[i];
 
-			if( (r2 = x * x) < Bs2 ) {
+            if( (r2 = x * x) < Bs2 ) {
 
-				x	 = (1.0F - r2 * invBs2);
-				++nnz;
-				w[i] = x * x;
-			}
-			else
-				w[i] = 0.0F;
-		}
-	}
+                x	 = (1.0F - r2 * invBs2);
+                ++nnz;
+                w[i] = x * x;
+            }
+            else
+                w[i] = 0.0F;
+        }
+    }
 
-	return nnz;
+    return nnz;
 }
 
 
@@ -697,41 +697,41 @@ int STATTukeyWtsFP32( FP32 *w, FP32 *r, FP32 *wrkspc, UInt32 N )
 
 int STATBisquareWtsFP32( FP32 *w, FP32 *r, FP32 *wrkspc, UInt32 N )
 {
-	FP32	Bs2;
-	UInt32	i;
-	int		nnz;
+    FP32	Bs2;
+    UInt32	i;
+    int		nnz;
 
-	for( i = 0; i < N; ++i )
-		wrkspc[i] = (FP32)fabs( r[i] );
+    for( i = 0; i < N; ++i )
+        wrkspc[i] = (FP32)fabs( r[i] );
 
-	Bs2	= STATMedianFP32( wrkspc, NULL, N ) * 6.0F;
-	nnz	= 0;
+    Bs2	= STATMedianFP32( wrkspc, NULL, N ) * 6.0F;
+    nnz	= 0;
 
-	if( Bs2 <= 0.0F )
-		MEMZeroBytes( w, N * sizeof(FP32) );
-	else {
+    if( Bs2 <= 0.0F )
+        MEMZeroBytes( w, N * sizeof(FP32) );
+    else {
 
-		FP32	invBs2, r2, x;
+        FP32	invBs2, r2, x;
 
-		Bs2	   *= Bs2;
-		invBs2	= 1.0F / Bs2;
+        Bs2	   *= Bs2;
+        invBs2	= 1.0F / Bs2;
 
-		for( i = 0; i < N; ++i ) {
+        for( i = 0; i < N; ++i ) {
 
-			x = r[i];
+            x = r[i];
 
-			if( (r2 = x * x) < Bs2 ) {
+            if( (r2 = x * x) < Bs2 ) {
 
-				x	 = (1.0F - r2 * invBs2);
-				++nnz;
-				w[i] = x * x;
-			}
-			else
-				w[i] = 0.0F;
-		}
-	}
+                x	 = (1.0F - r2 * invBs2);
+                ++nnz;
+                w[i] = x * x;
+            }
+            else
+                w[i] = 0.0F;
+        }
+    }
 
-	return nnz;
+    return nnz;
 }
 
 
@@ -747,48 +747,48 @@ int STATBisquareWtsFP32( FP32 *w, FP32 *r, FP32 *wrkspc, UInt32 N )
  */
 
 void STATSlopeFit32XY(
-	STATLinFitPtr	L,
-	const FP32		*x,
-	const FP32		*y,
-	UInt32			i0,
-	UInt32			iLim )
+    STATLinFitPtr	L,
+    const FP32		*x,
+    const FP32		*y,
+    UInt32			i0,
+    UInt32			iLim )
 {
-	FP64	X, Y, r, varX, varY,
-			n		= 0.0,
-			sumX	= 0.0,
-			sumY	= 0.0,
-			sumXX	= 0.0,
-			sumYY	= 0.0,
-			sumXY	= 0.0;
-	UInt32	i;
+    FP64	X, Y, r, varX, varY,
+            n		= 0.0,
+            sumX	= 0.0,
+            sumY	= 0.0,
+            sumXX	= 0.0,
+            sumYY	= 0.0,
+            sumXY	= 0.0;
+    UInt32	i;
 
 /* --------------------------- */
 /* Collect sums over [i0,iLim) */
 /* --------------------------- */
 
-	for( i = i0; i < iLim; ++i ) {
+    for( i = i0; i < iLim; ++i ) {
 
-		++n;
-		X	= x[i];
-		Y	= y[i];
-		sumX	+= X;
-		sumY	+= Y;
-		sumXX	+= X * X;
-		sumYY	+= Y * Y;
-		sumXY	+= X * Y;
-	}
+        ++n;
+        X	= x[i];
+        Y	= y[i];
+        sumX	+= X;
+        sumY	+= Y;
+        sumXX	+= X * X;
+        sumYY	+= Y * Y;
+        sumXY	+= X * Y;
+    }
 
 /* --------------- */
 /* Compute results */
 /* --------------- */
 
-	r		= n * sumXY - sumX * sumY;
-	varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
-	varY	= n * sumYY - sumY * sumY;
+    r		= n * sumXY - sumX * sumY;
+    varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
+    varY	= n * sumYY - sumY * sumY;
 
-	L->icpt		= 0;
-	L->slope	= sumXY / sumXX;
-	L->linCor	= r / sqrt( varX * varY );
+    L->icpt		= 0;
+    L->slope	= sumXY / sumXX;
+    L->linCor	= r / sqrt( varX * varY );
 }
 
 
@@ -804,48 +804,48 @@ void STATSlopeFit32XY(
  */
 
 void STATLinFit32XY(
-	STATLinFitPtr	L,
-	const FP32		*x,
-	const FP32		*y,
-	UInt32			i0,
-	UInt32			iLim )
+    STATLinFitPtr	L,
+    const FP32		*x,
+    const FP32		*y,
+    UInt32			i0,
+    UInt32			iLim )
 {
-	FP64	X, Y, r, varX, varY,
-			n		= 0.0,
-			sumX	= 0.0,
-			sumY	= 0.0,
-			sumXX	= 0.0,
-			sumYY	= 0.0,
-			sumXY	= 0.0;
-	UInt32	i;
+    FP64	X, Y, r, varX, varY,
+            n		= 0.0,
+            sumX	= 0.0,
+            sumY	= 0.0,
+            sumXX	= 0.0,
+            sumYY	= 0.0,
+            sumXY	= 0.0;
+    UInt32	i;
 
 /* --------------------------- */
 /* Collect sums over [i0,iLim) */
 /* --------------------------- */
 
-	for( i = i0; i < iLim; ++i ) {
+    for( i = i0; i < iLim; ++i ) {
 
-		++n;
-		X	= x[i];
-		Y	= y[i];
-		sumX	+= X;
-		sumY	+= Y;
-		sumXX	+= X * X;
-		sumYY	+= Y * Y;
-		sumXY	+= X * Y;
-	}
+        ++n;
+        X	= x[i];
+        Y	= y[i];
+        sumX	+= X;
+        sumY	+= Y;
+        sumXX	+= X * X;
+        sumYY	+= Y * Y;
+        sumXY	+= X * Y;
+    }
 
 /* --------------- */
 /* Compute results */
 /* --------------- */
 
-	r		= n * sumXY - sumX * sumY;
-	varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
-	varY	= n * sumYY - sumY * sumY;
+    r		= n * sumXY - sumX * sumY;
+    varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
+    varY	= n * sumYY - sumY * sumY;
 
-	L->icpt		= (sumXX * sumY - sumX * sumXY) / varX;
-	L->slope	= r / varX;
-	L->linCor	= r / sqrt( varX * varY );
+    L->icpt		= (sumXX * sumY - sumX * sumXY) / varX;
+    L->slope	= r / varX;
+    L->linCor	= r / sqrt( varX * varY );
 }
 
 
@@ -861,48 +861,48 @@ void STATLinFit32XY(
  */
 
 void STATLinFit64XY(
-	STATLinFitPtr	L,
-	const FP64		*x,
-	const FP64		*y,
-	UInt32			i0,
-	UInt32			iLim )
+    STATLinFitPtr	L,
+    const FP64		*x,
+    const FP64		*y,
+    UInt32			i0,
+    UInt32			iLim )
 {
-	FP64	X, Y, r, varX, varY,
-			n		= 0.0,
-			sumX	= 0.0,
-			sumY	= 0.0,
-			sumXX	= 0.0,
-			sumYY	= 0.0,
-			sumXY	= 0.0;
-	UInt32	i;
+    FP64	X, Y, r, varX, varY,
+            n		= 0.0,
+            sumX	= 0.0,
+            sumY	= 0.0,
+            sumXX	= 0.0,
+            sumYY	= 0.0,
+            sumXY	= 0.0;
+    UInt32	i;
 
 /* --------------------------- */
 /* Collect sums over [i0,iLim) */
 /* --------------------------- */
 
-	for( i = i0; i < iLim; ++i ) {
+    for( i = i0; i < iLim; ++i ) {
 
-		++n;
-		X	= x[i];
-		Y	= y[i];
-		sumX	+= X;
-		sumY	+= Y;
-		sumXX	+= X * X;
-		sumYY	+= Y * Y;
-		sumXY	+= X * Y;
-	}
+        ++n;
+        X	= x[i];
+        Y	= y[i];
+        sumX	+= X;
+        sumY	+= Y;
+        sumXX	+= X * X;
+        sumYY	+= Y * Y;
+        sumXY	+= X * Y;
+    }
 
 /* --------------- */
 /* Compute results */
 /* --------------- */
 
-	r		= n * sumXY - sumX * sumY;
-	varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
-	varY	= n * sumYY - sumY * sumY;
+    r		= n * sumXY - sumX * sumY;
+    varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
+    varY	= n * sumYY - sumY * sumY;
 
-	L->icpt		= (sumXX * sumY - sumX * sumXY) / varX;
-	L->slope	= r / varX;
-	L->linCor	= r / sqrt( varX * varY );
+    L->icpt		= (sumXX * sumY - sumX * sumXY) / varX;
+    L->slope	= r / varX;
+    L->linCor	= r / sqrt( varX * varY );
 }
 
 
@@ -918,48 +918,48 @@ void STATLinFit64XY(
  */
 
 void STATLinFit32Y(
-	STATLinFitPtr	L,
-	FP32			x0,
-	FP32			dx,
-	const FP32		*y,
-	UInt32			i0,
-	UInt32			iLim )
+    STATLinFitPtr	L,
+    FP32			x0,
+    FP32			dx,
+    const FP32		*y,
+    UInt32			i0,
+    UInt32			iLim )
 {
-	FP64	X, Y, r, varX, varY,
-			n		= 0.0,
-			sumX	= 0.0,
-			sumY	= 0.0,
-			sumXX	= 0.0,
-			sumYY	= 0.0,
-			sumXY	= 0.0;
-	UInt32	i;
+    FP64	X, Y, r, varX, varY,
+            n		= 0.0,
+            sumX	= 0.0,
+            sumY	= 0.0,
+            sumXX	= 0.0,
+            sumYY	= 0.0,
+            sumXY	= 0.0;
+    UInt32	i;
 
 /* --------------------------- */
 /* Collect sums over [i0,iLim) */
 /* --------------------------- */
 
-	for( i = i0, X = x0; i < iLim; ++i, X += dx ) {
+    for( i = i0, X = x0; i < iLim; ++i, X += dx ) {
 
-		++n;
-		Y	= y[i];
-		sumX	+= X;
-		sumY	+= Y;
-		sumXX	+= X * X;
-		sumYY	+= Y * Y;
-		sumXY	+= X * Y;
-	}
+        ++n;
+        Y	= y[i];
+        sumX	+= X;
+        sumY	+= Y;
+        sumXX	+= X * X;
+        sumYY	+= Y * Y;
+        sumXY	+= X * Y;
+    }
 
 /* --------------- */
 /* Compute results */
 /* --------------- */
 
-	r		= n * sumXY - sumX * sumY;
-	varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
-	varY	= n * sumYY - sumY * sumY;
+    r		= n * sumXY - sumX * sumY;
+    varX	= n * sumXX - sumX * sumX;	/* a.k.a. delta */
+    varY	= n * sumYY - sumY * sumY;
 
-	L->icpt		= (sumXX * sumY - sumX * sumXY) / varX;
-	L->slope	= r / varX;
-	L->linCor	= r / sqrt( varX * varY );
+    L->icpt		= (sumXX * sumY - sumX * sumXY) / varX;
+    L->slope	= r / varX;
+    L->linCor	= r / sqrt( varX * varY );
 }
 
 

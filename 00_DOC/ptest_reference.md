@@ -28,7 +28,7 @@ Appendices:
 
 As of 09/29/2016 ptest has been modified such that point-pair output goes to stdout and all logging data go to stderr. The calling scripts now have the responsibility to name the destination files. This was done to plug ptest into an alternate pipeline here at Janelia.
 
-In addition, there are a few more options added to ptest for greater flexibility. You can find those summarized in `1_Ptestx/pgo.sht`. 
+In addition, there are a few more options added to ptest for greater flexibility. You can find those summarized in `1_Ptestx/pgo.sht`.
 
 #### Disclaimer
 
@@ -37,10 +37,10 @@ This software is presented, **_as is_**, in the hopes that it may be useful to y
 In particular, I advise the following:
 
 1. Foldmask handling, as I will discuss later in this document, should work quite differently than it does at present. What it does now is peculiar because it reflects shifting ideas over time. I have retained significant amounts of foldmask handling infrastructure because I fully believe these will ultimately play a role in the real thing or at least demonstrate how key pieces might work...But all that machinery is doing little useful work at the moment. Still, what it does now is effectively correct if you turn off foldmasks using at least one of:
-	* `matchparams::FLD=N`
-	* command line option `-nf`
+    * `matchparams::FLD=N`
+    * command line option `-nf`
 2. Sanity checking a match by assessing the Fourier spectrum in a difference image may be both poorly grounded and wrongly coded. This is performed by `0_GEN/Metrics::FourierMatch()`. Rather, you should bypass that entirely and instead use the earth mover metric by setting:
-	* `matchparams::EMM=Y`.
+    * `matchparams::EMM=Y`.
 
 ## Outline of the Algorithm
 
@@ -99,8 +99,8 @@ On each line the LHS point is the centroid of a triangle (in a mesh) in A-coords
 Again, ptest gets as input a rough guess "Tab" as a starting point. For a variety of purposes we need a better guess than that at how images A & B overlap before we begin mesh operations, but there are two really important issues:
 
 1. The deformable mesh carves the intersection area into small patches and must be able to measure meaningful correlation changes for them. This becomes more unreliable as patches become smaller. We want patches to be pretty small so we get a good density of triangles, hence, density of reported point pairs to work with in the solver. We can go pretty small as long as we start the mesh off close to a local minimum, so the pressure is on to get a good approximate transform. In addition, you should select rational mesh sizing parameters according to what you know about the contrast and feature density in your data:
-	* `matchparams::MNL` : sets nominal triangle edge length scale (same or cross layer)
-	* `matchparams::MTA` : sets nominal triangle area (cross layer only).
+    * `matchparams::MNL` : sets nominal triangle edge length scale (same or cross layer)
+    * `matchparams::MTA` : sets nominal triangle area (cross layer only).
 2. In a moment we'll describe the mesh optimization procedure which expresses the cross correlation of two image patches as a function of mesh vertices (control points), and calculates analytical derivatives of that to decide which direction to step the vertices a la gradient descent. The point here is that correlation isn't generally a smooth function of position, but for typical serial section images (typical feature sizes) it is approximately smooth within a ball of some 20 pixels radius about a true match (that's all we ask of it). So again, a good starting guess is crucial.
 
 I'll just reiterate here that this idea of progressive refinement is central to the success of the pipeline. Looking now at the whole pipeline, we build montages first because that's pretty reliable without global context. Then we assemble montages into a crude stack with the strip matcher which works well because it uses large amounts of real estate (context) to make matches. Then montages are refined block by block. Then blocks are refined tile by tile. Inside ptest now, the tiles are first coarsely aligned with the largest available areas, and then refined on small mesh triangles. Working from large scales to small is what regularizes and stabilizes the process from end to end.
@@ -202,19 +202,19 @@ After the optimizer returns (in `1_DMesh/RegionToRegionMap::RegionToRegionMap()`
 
 * Simple mean square difference =  **1/N X SUM<sub>i=0,N</sub>( A<sub>i</sub> - B<sub>i</sub> )<sup>^2</sup>**.
 * **_Lou's clever approximation to an_** [approximate earth mover's metric](http://ttic.uchicago.edu/~ssameer/Research/Papers/WEMD_CVPR08.pdf).
-	* Require per-triangle EMM < `matchparams::GBL.mch.EMT`.
-	* Require whole-mesh EMM < `1.10 X matchparams::GBL.mch.EMT`.
+    * Require per-triangle EMM < `matchparams::GBL.mch.EMT`.
+    * Require whole-mesh EMM < `1.10 X matchparams::GBL.mch.EMT`.
 * Fraction of "yellow" overlap pixels = **1/N X (count A-B values within 25%)**.
-	* Require yellow >= `matchparams::GBL.mch.FYL`.
+    * Require yellow >= `matchparams::GBL.mch.FYL`.
 * Self-consistency: Calculate maximum spread over triangles of {angle, affine components}.
-	* Require spread in effective angle <= `matchparams::GBL.mch.LDA` radians.
-	* Require spread in matrix-like components <= `matchparams::GBL.mch.LDR` radians.
-	* Require spread in translation components <= `matchparams::GBL.mch.LDC` pixels.
+    * Require spread in effective angle <= `matchparams::GBL.mch.LDA` radians.
+    * Require spread in matrix-like components <= `matchparams::GBL.mch.LDR` radians.
+    * Require spread in translation components <= `matchparams::GBL.mch.LDC` pixels.
 * Close to Original: Average mesh affines, calculate difference from tr_guess.
-	* Require difference in matrix-like components <= `2 X matchparams::GBL.mch.LDR` radians.
-	* Require difference in translation components <= `2 X matchparams::GBL.mch.LDC` pixels.
+    * Require difference in matrix-like components <= `2 X matchparams::GBL.mch.LDR` radians.
+    * Require difference in translation components <= `2 X matchparams::GBL.mch.LDC` pixels.
 * Close to User translation: User provides command-line expected translations `-XYexp=dx,dy`.
-	* Require difference of **_any_** triangle translation <= `matchparams::GBL.mch.DXY`.
+    * Require difference of **_any_** triangle translation <= `matchparams::GBL.mch.DXY`.
 
 ## <a name="general-source-code-anatomy"></a>General Source Code Anatomy
 
@@ -223,11 +223,11 @@ Most of my sources have the following internal organization, reading from top to
 **Data Stuff:**
 
 * includes
-	* app-specific headers
-	* my library headers
-	* 3rd-party headers
-	* std library headers
-	* using directives
+    * app-specific headers
+    * my library headers
+    * 3rd-party headers
+    * std library headers
+    * using directives
 * constants and enums
 * pragmas
 * macros
@@ -566,12 +566,12 @@ Using command line parameters you can specify a deformation "Tdfm" to be applied
 
 * Set `matchparams::PRETWEAK=Y` to enable the feature.
 * If using an angle sweep mode
-	* Sweep is done normally first
-	* If best R is below RTRSH, Pretweaks() is called
-	* Sweep is tried again one more time
+    * Sweep is done normally first
+    * If best R is below RTRSH, Pretweaks() is called
+    * Sweep is tried again one more time
 * If using disc mode
-	* Pretweaks() is called unconditionally
-	* Disc method applied
+    * Pretweaks() is called unconditionally
+    * Disc method applied
 
 To see how Pretweaks() works let's start with the correlator which acts on two point clouds. We never call the correlator directly, instead we use a helper class `0_GEN/CThmScan`. In particular, method `RFromAngle()` transforms the A-cloud and then calls the correlator. The transform is the affine composition `R X Tdfm X Tptwk`, where R is a pure rotation matrix made from RFromAngle's `deg parameter`, Tdfm is a class member initialized from the user's Tdfm, and Tptwk is another member initially set to unity, but modifiable via the Pretweaks() method.
 
@@ -647,15 +647,15 @@ I regularly use ptestx to tune parameters in matchparams before committing batch
 After **"Create Image Database and 'temp0' Work Folder"** and before "**Extract Same-Layer Point-Pairs**" create a folder called "try" here:
 
 * prms
-	* matchparams.txt
-	* scriptparams.txt
+    * matchparams.txt
+    * scriptparams.txt
 * mylayout.txt
 * topgo.sht
 * idb <= exists after running dbgo.sht
 * temp0 <= exists after running mongo.sht
 * try
-	* pgo.sht <= copy here from `1_Ptestx`
-	* matchparams.txt <= copy here from prms folder
+    * pgo.sht <= copy here from `1_Ptestx`
+    * matchparams.txt <= copy here from prms folder
 
 As shown, copy the example script `1_Ptestx/pgo.sht` into your try folder. Also copy the `matchparams.txt` file from your starting prms folder into the try folder so you can play with a local copy without disturbing "the real thing".
 
@@ -671,13 +671,13 @@ The reason I had you run both dbgo.sht and mongo.sht first is that these create 
 ```
 ... etc ...
 4/1.10.map.tif:
-	ptest >>pts.same 2>pair_1.4^1.10.log 1.4^1.10 -nf ${EXTRA}
+    ptest >>pts.same 2>pair_1.4^1.10.log 1.4^1.10 -nf ${EXTRA}
 
 4/1.8.map.tif:
-	ptest >>pts.same 2>pair_1.4^1.8.log [[1.4^1.8 -nf]] ${EXTRA}
+    ptest >>pts.same 2>pair_1.4^1.8.log [[1.4^1.8 -nf]] ${EXTRA}
 
 3/1.9.map.tif:
-	ptest >>pts.same 2>pair_1.3^1.9.log 1.3^1.9 -nf ${EXTRA}
+    ptest >>pts.same 2>pair_1.3^1.9.log 1.3^1.9 -nf ${EXTRA}
 ... etc ...
 ```
 
@@ -708,13 +708,13 @@ Returning to the main workflow, after **"Run Block-Block Alignment"**, the D- fo
 ```
 ... etc ...
 12/0.2.map.tif:
-	ptest >>pts.down 2>pair_1.12^0.2.log 1.12^0.2 -Tab=1.003811,-0.027988,-1280.633680,0.023455,1.007369,-681.869390 -nf ${EXTRA}
+    ptest >>pts.down 2>pair_1.12^0.2.log 1.12^0.2 -Tab=1.003811,-0.027988,-1280.633680,0.023455,1.007369,-681.869390 -nf ${EXTRA}
 
 12/0.1.map.tif:
-	ptest >>pts.down 2>pair_1.12^0.1.log [[1.12^0.1 -Tab=1.004147,-0.025540,-1279.945138,0.023444,1.007651,176.454982 -nf]] ${EXTRA}
+    ptest >>pts.down 2>pair_1.12^0.1.log [[1.12^0.1 -Tab=1.004147,-0.025540,-1279.945138,0.023444,1.007651,176.454982 -nf]] ${EXTRA}
 
 11/0.11.map.tif:
-	ptest >>pts.down 2>pair_1.11^0.11.log 1.11^0.11 -Tab=1.003358,-0.027931,-155.192769,0.023796,1.006780,177.440927 -nf ${EXTRA}
+    ptest >>pts.down 2>pair_1.11^0.11.log 1.11^0.11 -Tab=1.003358,-0.027931,-155.192769,0.023796,1.006780,177.440927 -nf ${EXTRA}
 ... etc ...
 ```
 

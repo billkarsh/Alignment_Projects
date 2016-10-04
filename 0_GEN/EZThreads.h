@@ -21,10 +21,10 @@ typedef	void* (*EZThreadproc)( void* ithr );
 /* --------------------------------------------------------------- */
 
 bool EZThreads(
-	EZThreadproc	proc,
-	int				nthr,
-	int				stksize_factor,
-	const char		*msgname,
-	FILE			*flog = stdout );
+    EZThreadproc	proc,
+    int				nthr,
+    int				stksize_factor,
+    const char		*msgname,
+    FILE			*flog = stdout );
 
 

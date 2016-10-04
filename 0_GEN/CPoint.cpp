@@ -16,10 +16,10 @@
 
 double Point::Dist( const Point& rhs ) const
 {
-	double	dx = x - rhs.x,
-			dy = y - rhs.y;
+    double	dx = x - rhs.x,
+            dy = y - rhs.y;
 
-	return sqrt( dx*dx + dy*dy );
+    return sqrt( dx*dx + dy*dy );
 }
 
 /* --------------------------------------------------------------- */
@@ -28,10 +28,10 @@ double Point::Dist( const Point& rhs ) const
 
 double Point::DistSqr( const Point& rhs ) const
 {
-	double	dx = x - rhs.x,
-			dy = y - rhs.y;
+    double	dx = x - rhs.x,
+            dy = y - rhs.y;
 
-	return dx*dx + dy*dy;
+    return dx*dx + dy*dy;
 }
 
 /* --------------------------------------------------------------- */
@@ -44,19 +44,19 @@ double Point::DistSqr( const Point& rhs ) const
 //
 Point FindCOG( const vector<Point> &v, const vector<double> &vals )
 {
-	double	sumx = 0.0, sumy = 0.0;
-	int		n = v.size(), m = 0;
+    double	sumx = 0.0, sumy = 0.0;
+    int		n = v.size(), m = 0;
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		if( fabs( vals[i] ) > 1.0E-8 ) {
-			sumx += v[i].x;
-			sumy += v[i].y;
-			++m;
-		}
-	}
+        if( fabs( vals[i] ) > 1.0E-8 ) {
+            sumx += v[i].x;
+            sumy += v[i].y;
+            ++m;
+        }
+    }
 
-	return Point( sumx/m, sumy/m );
+    return Point( sumx/m, sumy/m );
 }
 
 
@@ -64,15 +64,15 @@ Point FindCOG( const vector<Point> &v, const vector<double> &vals )
 //
 Point FindCOG( const vector<Point> &v )
 {
-	double	sumx = 0.0, sumy = 0.0;
-	int		n = v.size();
+    double	sumx = 0.0, sumy = 0.0;
+    int		n = v.size();
 
-	for( int i = 0; i < n; ++i ) {
-		sumx += v[i].x;
-		sumy += v[i].y;
-	}
+    for( int i = 0; i < n; ++i ) {
+        sumx += v[i].x;
+        sumy += v[i].y;
+    }
 
-	return Point( sumx/n, sumy/n );
+    return Point( sumx/n, sumy/n );
 }
 
 /* --------------------------------------------------------------- */
@@ -81,17 +81,17 @@ Point FindCOG( const vector<Point> &v )
 
 void MakeZeroBasedPoints( vector<Point> &P, int w, int h )
 {
-	int		np = w * h;
+    int		np = w * h;
 
-	P.resize( np );
+    P.resize( np );
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		int	y = i / w,
-			x = i - w * y;
+        int	y = i / w,
+            x = i - w * y;
 
-		P[i] = Point( x, y );
-	}
+        P[i] = Point( x, y );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -102,26 +102,26 @@ void MakeZeroBasedPoints( vector<Point> &P, int w, int h )
 //
 void Mangle( Point &p, int w, int h )
 {
-	double	alpha	= p.x/(w-1);
-	double	beta	= p.y/(w-1);
-	double	scale	= 1.01;
-	Point	p0		= p;
-	Point	p1, p2;	// intermediate points
+    double	alpha	= p.x/(w-1);
+    double	beta	= p.y/(w-1);
+    double	scale	= 1.01;
+    Point	p0		= p;
+    Point	p1, p2;	// intermediate points
 
 // first vector goes from (0,0) to (w-1,0)
-	p1.x = (1-alpha)*0.0 + alpha*(w-1);	// could be simplified..
-	p1.y = (1-alpha)*0.0 + alpha*0.0;
+    p1.x = (1-alpha)*0.0 + alpha*(w-1);	// could be simplified..
+    p1.y = (1-alpha)*0.0 + alpha*0.0;
 
 // top vector goes from (0,h-1) to (w-1,h-1)*scale
-	p2.x = (1-alpha)*0.0   + alpha*((w-1)*scale);
-	p2.y = (1-alpha)*(h-1) + alpha*((h-1)*scale);
+    p2.x = (1-alpha)*0.0   + alpha*((w-1)*scale);
+    p2.y = (1-alpha)*(h-1) + alpha*((h-1)*scale);
 
 // now interpolate among these using beta
-	p.x = (1-beta)*p1.x + beta*p2.x;
-	p.y = (1-beta)*p1.y + beta*p2.y;
+    p.x = (1-beta)*p1.x + beta*p2.x;
+    p.y = (1-beta)*p1.y + beta*p2.y;
 
-	printf( "Mangle: Was (%f %f), now (%f %f).\n",
-		p0.x, p0.y, p.x, p.y );
+    printf( "Mangle: Was (%f %f), now (%f %f).\n",
+        p0.x, p0.y, p.x, p.y );
 }
 
 /* --------------------------------------------------------------- */
@@ -133,11 +133,11 @@ void Mangle( Point &p, int w, int h )
 //
 void Set4Corners( vector<Point> &cnr, int w, int h )
 {
-	cnr.resize( 4 );
-	cnr[0] = Point( 0.0, 0.0 );
-	cnr[1] = Point( w-1, 0.0 );
-	cnr[2] = Point( w-1, h-1 );
-	cnr[3] = Point( 0.0, h-1 );
+    cnr.resize( 4 );
+    cnr[0] = Point( 0.0, 0.0 );
+    cnr[1] = Point( w-1, 0.0 );
+    cnr[2] = Point( w-1, h-1 );
+    cnr[3] = Point( 0.0, h-1 );
 }
 
 

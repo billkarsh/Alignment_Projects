@@ -14,7 +14,7 @@
 // compute (v1-O) x (v2-O)
 //
 #define	CROSS( O, v1, v2 )										\
-	((v1.x - O.x)*(v2.y - O.y) - (v2.x - O.x)*(v1.y - O.y))
+    ((v1.x - O.x)*(v2.y - O.y) - (v2.x - O.x)*(v1.y - O.y))
 
 
 
@@ -29,46 +29,46 @@
 // on closed line segment from point 0 to point 1.
 //
 double SegPointDist(
-	int		x0,
-	int		y0,
-	int		x1,
-	int		y1,
-	int		x2,
-	int		y2 )
+    int		x0,
+    int		y0,
+    int		x1,
+    int		y1,
+    int		x2,
+    int		y2 )
 {
 // make (x0,y0) the origin;
 // form vector A from 0 to 1;
 // form vector B from 0 to 2.
 
-	x1	-= x0;
-	x2	-= x0;
-	y1	-= y0;
-	y2	-= y0;
+    x1	-= x0;
+    x2	-= x0;
+    y1	-= y0;
+    y2	-= y0;
 
-	int	BdotA = x1*x2 + y1*y2;
+    int	BdotA = x1*x2 + y1*y2;
 
-	if( BdotA <= 0 ) {
+    if( BdotA <= 0 ) {
 
-		// B closest to origin
+        // B closest to origin
 
-		return sqrt( x2*x2 + y2*y2 );
-	}
+        return sqrt( x2*x2 + y2*y2 );
+    }
 
-	int	AdotA = x1*x1 + y1*y1;
+    int	AdotA = x1*x1 + y1*y1;
 
-	if( BdotA >= AdotA ) {
+    if( BdotA >= AdotA ) {
 
-		// B closest to A
+        // B closest to A
 
-		x2	-= x1;
-		y2	-= y1;
+        x2	-= x1;
+        y2	-= y1;
 
-		return sqrt( x2*x2 + y2*y2 );
-	}
+        return sqrt( x2*x2 + y2*y2 );
+    }
 
 // otherwise, dist is perpendicular component: |AxB|/|A|
 
-	return abs( double(x1*y2 - x2*y1) ) / sqrt( AdotA );
+    return abs( double(x1*y2 - x2*y1) ) / sqrt( AdotA );
 }
 
 /* --------------------------------------------------------------- */
@@ -77,62 +77,62 @@ double SegPointDist(
 
 void BBoxFromPoints( IBox &B, const vector<Point> &pts )
 {
-	double	xlo, xhi, ylo, yhi;
-	int		npts = pts.size();
+    double	xlo, xhi, ylo, yhi;
+    int		npts = pts.size();
 
-	xlo = xhi = pts[0].x;
-	ylo = yhi = pts[0].y;
+    xlo = xhi = pts[0].x;
+    ylo = yhi = pts[0].y;
 
-	for( int i = 1; i < npts; ++i ) {
+    for( int i = 1; i < npts; ++i ) {
 
-		double	t;
+        double	t;
 
-		if( (t = pts[i].x) < xlo )
-			xlo = t;
-		else if( t > xhi )
-			xhi = t;
+        if( (t = pts[i].x) < xlo )
+            xlo = t;
+        else if( t > xhi )
+            xhi = t;
 
-		if( (t = pts[i].y) < ylo )
-			ylo = t;
-		else if( t > yhi )
-			yhi = t;
-	}
+        if( (t = pts[i].y) < ylo )
+            ylo = t;
+        else if( t > yhi )
+            yhi = t;
+    }
 
-	B.L	= (int)floor( xlo );
-	B.R	= (int)ceil( xhi );
+    B.L	= (int)floor( xlo );
+    B.R	= (int)ceil( xhi );
 
-	B.B	= (int)floor( ylo );
-	B.T	= (int)ceil( yhi );
+    B.B	= (int)floor( ylo );
+    B.T	= (int)ceil( yhi );
 }
 
 
 void BBoxFromPoints( DBox &B, const vector<Point> &pts )
 {
-	int	npts = pts.size();
+    int	npts = pts.size();
 
-	B.L = B.R = pts[0].x;
-	B.B = B.T = pts[0].y;
+    B.L = B.R = pts[0].x;
+    B.B = B.T = pts[0].y;
 
-	for( int i = 1; i < npts; ++i ) {
+    for( int i = 1; i < npts; ++i ) {
 
-		double	t;
+        double	t;
 
-		if( (t = pts[i].x) < B.L )
-			B.L = t;
-		else if( t > B.R )
-			B.R = t;
+        if( (t = pts[i].x) < B.L )
+            B.L = t;
+        else if( t > B.R )
+            B.R = t;
 
-		if( (t = pts[i].y) < B.B )
-			B.B = t;
-		else if( t > B.T )
-			B.T = t;
-	}
+        if( (t = pts[i].y) < B.B )
+            B.B = t;
+        else if( t > B.T )
+            B.T = t;
+    }
 
-	B.L	= floor( B.L );
-	B.R	= ceil( B.R );
+    B.L	= floor( B.L );
+    B.R	= ceil( B.R );
 
-	B.B	= floor( B.B );
-	B.T	= ceil( B.T );
+    B.B	= floor( B.B );
+    B.T	= ceil( B.T );
 }
 
 /* --------------------------------------------------------------- */
@@ -148,31 +148,31 @@ void BBoxFromPoints( DBox &B, const vector<Point> &pts )
 // Here, bottom has lower y-value, so that (t - b) is positive.
 //
 void BoxesFromShifts(
-	IBox	&B1,
-	IBox	&B2,
-	int		w1,
-	int		h1,
-	int		w2,
-	int		h2,
-	int		x,
-	int		y )
+    IBox	&B1,
+    IBox	&B2,
+    int		w1,
+    int		h1,
+    int		w2,
+    int		h2,
+    int		x,
+    int		y )
 {
 // after shifting, bbox for image2 will be
 // [x, x+w-1] in x, and [y, y+h-1] in y
 
-	B2.L = max( 0, x );			// greater of left edges
-	B2.R = min( w2-1, x+w1-1 );	// least of the rights
-	B2.B = max( 0, y );			// greater of the bottoms
-	B2.T = min( h2-1, y+h1-1 );	// lesser of the tops
-	B2.R = max( B2.R, B2.L );	// non-negative width
-	B2.T = max( B2.T, B2.B );	// non-negative height
+    B2.L = max( 0, x );			// greater of left edges
+    B2.R = min( w2-1, x+w1-1 );	// least of the rights
+    B2.B = max( 0, y );			// greater of the bottoms
+    B2.T = min( h2-1, y+h1-1 );	// lesser of the tops
+    B2.R = max( B2.R, B2.L );	// non-negative width
+    B2.T = max( B2.T, B2.B );	// non-negative height
 
 // bounding box relative to image 1 is simply offset
 
-	B1.L = B2.L - x;
-	B1.R = B2.R - x;
-	B1.B = B2.B - y;
-	B1.T = B2.T - y;
+    B1.L = B2.L - x;
+    B1.R = B2.R - x;
+    B1.B = B2.B - y;
+    B1.T = B2.T - y;
 }
 
 /* --------------------------------------------------------------- */
@@ -186,7 +186,7 @@ void BoxesFromShifts(
 //
 int TightestBBox( DBox &B, const vector<Point> &pts )
 {
-	int	np = pts.size();
+    int	np = pts.size();
 
 /* --------------------- */
 /* Create region outline */
@@ -194,77 +194,77 @@ int TightestBBox( DBox &B, const vector<Point> &pts )
 
 // For each y-row get the min and max x-coord.
 
-	vector<Point>	outline;
+    vector<Point>	outline;
 
-	BBoxFromPoints( B, pts );
+    BBoxFromPoints( B, pts );
 
-	{
-		int				ny = int(B.T - B.B) + 1;
-		vector<double>	minx( ny, B.R + 1 );
-		vector<double>	maxx( ny, B.L - 1 );
+    {
+        int				ny = int(B.T - B.B) + 1;
+        vector<double>	minx( ny, B.R + 1 );
+        vector<double>	maxx( ny, B.L - 1 );
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			int	iy = int(floor( pts[i].y - B.B ));
+            int	iy = int(floor( pts[i].y - B.B ));
 
-			minx[iy] = fmin( minx[iy], pts[i].x );
-			maxx[iy] = fmax( maxx[iy], pts[i].x );
-		}
+            minx[iy] = fmin( minx[iy], pts[i].x );
+            maxx[iy] = fmax( maxx[iy], pts[i].x );
+        }
 
-		for( int iy = 0; iy < ny; ++iy ) {
+        for( int iy = 0; iy < ny; ++iy ) {
 
-			if( minx[iy] <= maxx[iy] ) {
+            if( minx[iy] <= maxx[iy] ) {
 
-				outline.push_back( Point( minx[iy], iy + B.B ) );
-				outline.push_back( Point( maxx[iy], iy + B.B ) );
-			}
-		}
-	}
+                outline.push_back( Point( minx[iy], iy + B.B ) );
+                outline.push_back( Point( maxx[iy], iy + B.B ) );
+            }
+        }
+    }
 
 /* ------------------------------------------- */
 /* Outline only useful if fewer pts than whole */
 /* ------------------------------------------- */
 
-	const vector<Point>	*ppointset = &outline;
+    const vector<Point>	*ppointset = &outline;
 
-	if( outline.size() >= np ) {
+    if( outline.size() >= np ) {
 
-		ppointset = &pts;
-		outline.clear();
-	}
+        ppointset = &pts;
+        outline.clear();
+    }
 
 /* --------------- */
 /* Find best angle */
 /* --------------- */
 
-	double	best_area	= (B.R - B.L) * (B.T - B.B);
-	int		best_angle	= 0;
+    double	best_area	= (B.R - B.L) * (B.T - B.B);
+    int		best_angle	= 0;
 
-	for( int angle = -45; angle <= 45; ++angle ) {
+    for( int angle = -45; angle <= 45; ++angle ) {
 
-		if( angle == 0 )
-			continue;
+        if( angle == 0 )
+            continue;
 
-		vector<Point>	P = *ppointset;
-		TAffine			T;
-		DBox			box;
-		double			area;
+        vector<Point>	P = *ppointset;
+        TAffine			T;
+        DBox			box;
+        double			area;
 
-		T.NUSetRot( angle*PI/180 );
-		T.Apply_R_Part( P );
-		BBoxFromPoints( box, P );
+        T.NUSetRot( angle*PI/180 );
+        T.Apply_R_Part( P );
+        BBoxFromPoints( box, P );
 
-		area = (box.R - box.L) * (box.T - box.B);
+        area = (box.R - box.L) * (box.T - box.B);
 
-		if( area < best_area ) {
+        if( area < best_area ) {
 
-			B			= box;
-			best_area	= area;
-			best_angle	= angle;
-		}
-	}
+            B			= box;
+            best_area	= area;
+            best_angle	= angle;
+        }
+    }
 
-	return best_angle;
+    return best_angle;
 }
 
 /* --------------------------------------------------------------- */
@@ -278,42 +278,42 @@ int TightestBBox( DBox &B, const vector<Point> &pts )
 // Return count of qualified points (region area).
 //
 int Propagate(
-	vector<double>	&v,
-	int				w,
-	int				h,
-	int				first,
-	double			tmin,
-	double			tmax,
-	double			set_to )
+    vector<double>	&v,
+    int				w,
+    int				h,
+    int				first,
+    double			tmin,
+    double			tmax,
+    double			set_to )
 {
-	stack<int>	st;
-	int			cnt = 0;
+    stack<int>	st;
+    int			cnt = 0;
 
-	st.push( first );
+    st.push( first );
 
-	while( !st.empty() ) {
+    while( !st.empty() ) {
 
-		int		j = st.top();
+        int		j = st.top();
 
-		st.pop();
+        st.pop();
 
-		if( tmin < v[j] && v[j] < tmax ) {
+        if( tmin < v[j] && v[j] < tmax ) {
 
-			int		y = j / w;
-			int		x = j - w * y;
+            int		y = j / w;
+            int		x = j - w * y;
 
-			v[j] = set_to;	// remove from further consideration
-			++cnt;
+            v[j] = set_to;	// remove from further consideration
+            ++cnt;
 
-			// push the four neighbors
-			if( x - 1 >= 0 )	st.push( j - 1 );
-			if( x + 1 <  w )	st.push( j + 1 );
-			if( y - 1 >= 0 )	st.push( j - w );
-			if( y + 1 <  h )	st.push( j + w );
-		}
-	}
+            // push the four neighbors
+            if( x - 1 >= 0 )	st.push( j - 1 );
+            if( x + 1 <  w )	st.push( j + 1 );
+            if( y - 1 >= 0 )	st.push( j - w );
+            if( y + 1 <  h )	st.push( j + w );
+        }
+    }
 
-	return cnt;
+    return cnt;
 }
 
 
@@ -328,47 +328,47 @@ int Propagate(
 // Return count of qualified points (region area).
 //
 int Propagate(
-	vector<Point>	&plist,
-	vector<double>	&v,
-	int				w,
-	int				h,
-	int				first,
-	double			thresh,
-	double			set_to )
+    vector<Point>	&plist,
+    vector<double>	&v,
+    int				w,
+    int				h,
+    int				first,
+    double			thresh,
+    double			set_to )
 {
-	stack<int>	st;
-	int			cnt = 0;
+    stack<int>	st;
+    int			cnt = 0;
 
-	plist.clear();
-	plist.reserve( w * h );
+    plist.clear();
+    plist.reserve( w * h );
 
-	st.push( first );
+    st.push( first );
 
-	while( !st.empty() ) {
+    while( !st.empty() ) {
 
-		int		j = st.top();
+        int		j = st.top();
 
-		st.pop();
+        st.pop();
 
-		if( v[j] > thresh ) {
+        if( v[j] > thresh ) {
 
-			int		y = j / w;
-			int		x = j - w * y;
+            int		y = j / w;
+            int		x = j - w * y;
 
-			plist.push_back( Point( x, y ) );
+            plist.push_back( Point( x, y ) );
 
-			v[j] = set_to;	// remove from further consideration
-			++cnt;
+            v[j] = set_to;	// remove from further consideration
+            ++cnt;
 
-			// push the four neighbors
-			if( x - 1 >= 0 )	st.push( j - 1 );
-			if( x + 1 <  w )	st.push( j + 1 );
-			if( y - 1 >= 0 )	st.push( j - w );
-			if( y + 1 <  h )	st.push( j + w );
-		}
-	}
+            // push the four neighbors
+            if( x - 1 >= 0 )	st.push( j - 1 );
+            if( x + 1 <  w )	st.push( j + 1 );
+            if( y - 1 >= 0 )	st.push( j - w );
+            if( y + 1 <  h )	st.push( j + w );
+        }
+    }
 
-	return cnt;
+    return cnt;
 }
 
 /* --------------------------------------------------------------- */
@@ -382,82 +382,82 @@ int Propagate(
 // Return object pixel count (area).
 //
 int MapBlobRng(
-	vector<uint8>			&map,
-	const vector<double>	&I,
-	int						w,
-	int						h,
-	int						first,
-	double					tmin,
-	double					tmax )
+    vector<uint8>			&map,
+    const vector<double>	&I,
+    int						w,
+    int						h,
+    int						first,
+    double					tmin,
+    double					tmax )
 {
-	stack<int>	st;
-	int			cnt = 0;
+    stack<int>	st;
+    int			cnt = 0;
 
-	st.push( first );
+    st.push( first );
 
-	while( !st.empty() ) {
+    while( !st.empty() ) {
 
-		int		j = st.top();
+        int		j = st.top();
 
-		st.pop();
+        st.pop();
 
-		if( !map[j] && tmin <= I[j] && I[j] <= tmax ) {
+        if( !map[j] && tmin <= I[j] && I[j] <= tmax ) {
 
-			int		y = j / w;
-			int		x = j - w * y;
+            int		y = j / w;
+            int		x = j - w * y;
 
-			map[j] = 1;
-			++cnt;
+            map[j] = 1;
+            ++cnt;
 
-			// push the four neighbors
-			if( x - 1 >= 0 )	st.push( j - 1 );
-			if( x + 1 <  w )	st.push( j + 1 );
-			if( y - 1 >= 0 )	st.push( j - w );
-			if( y + 1 <  h )	st.push( j + w );
-		}
-	}
+            // push the four neighbors
+            if( x - 1 >= 0 )	st.push( j - 1 );
+            if( x + 1 <  w )	st.push( j + 1 );
+            if( y - 1 >= 0 )	st.push( j - w );
+            if( y + 1 <  h )	st.push( j + w );
+        }
+    }
 
-	return cnt;
+    return cnt;
 }
 
 
 int MapBlobRng(
-	vector<uint8>	&map,
-	const uint8		*I,
-	int				w,
-	int				h,
-	int				first,
-	int				tmin,
-	int				tmax )
+    vector<uint8>	&map,
+    const uint8		*I,
+    int				w,
+    int				h,
+    int				first,
+    int				tmin,
+    int				tmax )
 {
-	stack<int>	st;
-	int			cnt = 0;
+    stack<int>	st;
+    int			cnt = 0;
 
-	st.push( first );
+    st.push( first );
 
-	while( !st.empty() ) {
+    while( !st.empty() ) {
 
-		int		j = st.top();
+        int		j = st.top();
 
-		st.pop();
+        st.pop();
 
-		if( !map[j] && tmin <= I[j] && I[j] <= tmax ) {
+        if( !map[j] && tmin <= I[j] && I[j] <= tmax ) {
 
-			int		y = j / w;
-			int		x = j - w * y;
+            int		y = j / w;
+            int		x = j - w * y;
 
-			map[j] = 1;
-			++cnt;
+            map[j] = 1;
+            ++cnt;
 
-			// push the four neighbors
-			if( x - 1 >= 0 )	st.push( j - 1 );
-			if( x + 1 <  w )	st.push( j + 1 );
-			if( y - 1 >= 0 )	st.push( j - w );
-			if( y + 1 <  h )	st.push( j + w );
-		}
-	}
+            // push the four neighbors
+            if( x - 1 >= 0 )	st.push( j - 1 );
+            if( x + 1 <  w )	st.push( j + 1 );
+            if( y - 1 >= 0 )	st.push( j - w );
+            if( y + 1 <  h )	st.push( j + w );
+        }
+    }
 
-	return cnt;
+    return cnt;
 }
 
 /* --------------------------------------------------------------- */
@@ -472,62 +472,62 @@ int MapBlobRng(
 // Return object pixel count (area).
 //
 int MapBlobVar(
-	vector<uint8>	&map,
-	const uint8		*I,
-	int				w,
-	int				h,
-	int				first,
-	int				size,
-	int				tol )
+    vector<uint8>	&map,
+    const uint8		*I,
+    int				w,
+    int				h,
+    int				first,
+    int				size,
+    int				tol )
 {
-	stack<int>	st;
-	int			cnt = 0;
+    stack<int>	st;
+    int			cnt = 0;
 
-	size /= 2;	// halfwidth
+    size /= 2;	// halfwidth
 
-	st.push( first );
+    st.push( first );
 
-	while( !st.empty() ) {
+    while( !st.empty() ) {
 
-		int	j = st.top();
+        int	j = st.top();
 
-		st.pop();
+        st.pop();
 
-		if( map[j] )
-			continue;
+        if( map[j] )
+            continue;
 
-		int	y0 = j / w,
-			x0 = j - w * y0,
-			A = -I[j],
-			n = -1,
-			L, R, B, T;
+        int	y0 = j / w,
+            x0 = j - w * y0,
+            A = -I[j],
+            n = -1,
+            L, R, B, T;
 
-		L = max( x0 - size, 0 );
-		R = min( x0 + size, w - 1 );
-		B = max( y0 - size, 0 );
-		T = min( y0 + size, h - 1 );
+        L = max( x0 - size, 0 );
+        R = min( x0 + size, w - 1 );
+        B = max( y0 - size, 0 );
+        T = min( y0 + size, h - 1 );
 
-		for( int y = B; y <= T; ++y ) {
-			for( int x = L; x <= R; ++x ) {
-				A += I[x+w*y];
-				++n;
-			}
-		}
+        for( int y = B; y <= T; ++y ) {
+            for( int x = L; x <= R; ++x ) {
+                A += I[x+w*y];
+                ++n;
+            }
+        }
 
-		if( iabs( I[j] - A/n ) <= tol ) {
+        if( iabs( I[j] - A/n ) <= tol ) {
 
-			map[j] = 1;
-			++cnt;
+            map[j] = 1;
+            ++cnt;
 
-			// push the four neighbors
-			if( x0 - 1 >= 0 )	st.push( j - 1 );
-			if( x0 + 1 <  w )	st.push( j + 1 );
-			if( y0 - 1 >= 0 )	st.push( j - w );
-			if( y0 + 1 <  h )	st.push( j + w );
-		}
-	}
+            // push the four neighbors
+            if( x0 - 1 >= 0 )	st.push( j - 1 );
+            if( x0 + 1 <  w )	st.push( j + 1 );
+            if( y0 - 1 >= 0 )	st.push( j - w );
+            if( y0 + 1 <  h )	st.push( j + w );
+        }
+    }
 
-	return cnt;
+    return cnt;
 }
 
 /* --------------------------------------------------------------- */
@@ -540,16 +540,16 @@ int MapBlobVar(
 //
 void DilateMap1Pix( vector<uint8> &map, int w, int h )
 {
-	vector<uint8>	org = map;
-	int				N	= w * h - w - 1;
+    vector<uint8>	org = map;
+    int				N	= w * h - w - 1;
 
-	for( int i = w + 1; i < N; ++i ) {
+    for( int i = w + 1; i < N; ++i ) {
 
-		map[i] |= org[i - 1];
-		map[i] |= org[i + 1];
-		map[i] |= org[i - w];
-		map[i] |= org[i + w];
-	}
+        map[i] |= org[i - 1];
+        map[i] |= org[i + 1];
+        map[i] |= org[i - w];
+        map[i] |= org[i + w];
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -562,16 +562,16 @@ void DilateMap1Pix( vector<uint8> &map, int w, int h )
 //
 void ErodeMap1Pix( vector<uint8> &map, int w, int h )
 {
-	vector<uint8>	org = map;
-	int				N	= w * h - w - 1;
+    vector<uint8>	org = map;
+    int				N	= w * h - w - 1;
 
-	for( int i = w + 1; i < N; ++i ) {
+    for( int i = w + 1; i < N; ++i ) {
 
-		map[i] &= org[i - 1];
-		map[i] &= org[i + 1];
-		map[i] &= org[i - w];
-		map[i] &= org[i + w];
-	}
+        map[i] &= org[i - 1];
+        map[i] &= org[i + 1];
+        map[i] &= org[i - w];
+        map[i] &= org[i + w];
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -583,72 +583,72 @@ void ErodeMap1Pix( vector<uint8> &map, int w, int h )
 // with the end point wrapping around.
 //
 void PixelListFromPolygon(
-	vector<Point>			&Plist,
-	const vector<Point>		&Pgon )
+    vector<Point>			&Plist,
+    const vector<Point>		&Pgon )
 {
-	double	xmin, ymin, xmax, ymax;
-	int		i, x, y, np = Pgon.size();
+    double	xmin, ymin, xmax, ymax;
+    int		i, x, y, np = Pgon.size();
 
-	xmin = xmax = Pgon[0].x;
-	ymin = ymax = Pgon[0].y;
+    xmin = xmax = Pgon[0].x;
+    ymin = ymax = Pgon[0].y;
 
-	for( i = 1; i < np; ++i ) {
+    for( i = 1; i < np; ++i ) {
 
-		double	t;
+        double	t;
 
-		if( (t = Pgon[i].x) < xmin )
-			xmin = t;
-		else if( t > xmax )
-			xmax = t;
+        if( (t = Pgon[i].x) < xmin )
+            xmin = t;
+        else if( t > xmax )
+            xmax = t;
 
-		if( (t = Pgon[i].y) < ymin )
-			ymin = t;
-		else if( t > ymax )
-			ymax = t;
-	}
+        if( (t = Pgon[i].y) < ymin )
+            ymin = t;
+        else if( t > ymax )
+            ymax = t;
+    }
 
-	Plist.clear();
-	Plist.reserve( (size_t)((xmax - xmin) * (ymax - ymin)) );
+    Plist.clear();
+    Plist.reserve( (size_t)((xmax - xmin) * (ymax - ymin)) );
 
-	for( x = int(xmin-1); x <= xmax+1; ++x ) {
+    for( x = int(xmin-1); x <= xmax+1; ++x ) {
 
-		for( y = int(ymin-1); y <= ymax+1; ++y ) {
+        for( y = int(ymin-1); y <= ymax+1; ++y ) {
 
-			// is (x,y) inside?
-			// Draw a line to infinity, count the crossings to see
+            // is (x,y) inside?
+            // Draw a line to infinity, count the crossings to see
 
-			int		nint = 0;
+            int		nint = 0;
 
-			for( i = 0; i < np; ++i ) {
+            for( i = 0; i < np; ++i ) {
 
-				// line goes from Pgon[i] to Pgon[i2]
-				int		i2 = (i+1)%np;
+                // line goes from Pgon[i] to Pgon[i2]
+                int		i2 = (i+1)%np;
 
-				// ignore horizontal lines
-				if( Pgon[i].y == Pgon[i2].y )
-					continue;
+                // ignore horizontal lines
+                if( Pgon[i].y == Pgon[i2].y )
+                    continue;
 
-				// entirely above; ignore it
-				if( Pgon[i].y >= y && Pgon[i2].y >= y )
-					continue;
+                // entirely above; ignore it
+                if( Pgon[i].y >= y && Pgon[i2].y >= y )
+                    continue;
 
-				// entirely below; ignore it
-				if( Pgon[i].y < y && Pgon[i2].y < y )
-					continue;
+                // entirely below; ignore it
+                if( Pgon[i].y < y && Pgon[i2].y < y )
+                    continue;
 
-				// otherwise find x intercept
-				double	xx = Pgon[i].x +
-							(y-Pgon[i].y)/(Pgon[i2].y-Pgon[i].y)
-							*(Pgon[i2].x-Pgon[i].x);
+                // otherwise find x intercept
+                double	xx = Pgon[i].x +
+                            (y-Pgon[i].y)/(Pgon[i2].y-Pgon[i].y)
+                            *(Pgon[i2].x-Pgon[i].x);
 
-				if( xx > x )
-					++nint;
-			}
+                if( xx > x )
+                    ++nint;
+            }
 
-			if( nint & 1 )
-				Plist.push_back( Point( x, y ) );
-		}
-	}
+            if( nint & 1 )
+                Plist.push_back( Point( x, y ) );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -659,29 +659,29 @@ void PixelListFromPolygon(
 // Image's new origin is (0,0).
 //
 void ImageFromValuesAndPoints(
-	vector<double>			&I,
-	int						w,
-	int						h,
-	const vector<double>	&v,
-	const vector<Point>		&plist,
-	int						xmin,
-	int						ymin )
+    vector<double>			&I,
+    int						w,
+    int						h,
+    const vector<double>	&v,
+    const vector<Point>		&plist,
+    int						xmin,
+    int						ymin )
 {
 // Size and zero destination image
 
-	I.assign( w * h, 0.0 );
+    I.assign( w * h, 0.0 );
 
 // Paint with points
 
-	int	np = plist.size();
+    int	np = plist.size();
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		double	x = plist[i].x - xmin,
-				y = plist[i].y - ymin;
+        double	x = plist[i].x - xmin,
+                y = plist[i].y - ymin;
 
-		DistributePixel( x, y, v[i], I, w, h );
-	}
+        DistributePixel( x, y, v[i], I, w, h );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -693,17 +693,17 @@ void ImageFromValuesAndPoints(
 // Uses bi-linear interpolation of adjacent pixels.
 //
 void ValuesFromImageAndPoints(
-	vector<double>			&v,
-	const uint8*			raster,
-	int						w,
-	const vector<Point>		&plist )
+    vector<double>			&v,
+    const uint8*			raster,
+    int						w,
+    const vector<Point>		&plist )
 {
-	int		nPts = plist.size();
+    int		nPts = plist.size();
 
-	v.resize( nPts );
+    v.resize( nPts );
 
-	for( int i = 0; i < nPts; ++i )
-		v[i] = InterpolatePixel( plist[i].x, plist[i].y, raster, w );
+    for( int i = 0; i < nPts; ++i )
+        v[i] = InterpolatePixel( plist[i].x, plist[i].y, raster, w );
 }
 
 
@@ -712,58 +712,58 @@ void ValuesFromImageAndPoints(
 // Uses bi-linear interpolation of adjacent pixels.
 //
 void ValuesFromImageAndPoints(
-	vector<double>			&v,
-	double					&dvx,
-	double					&dvy,
-	const vector<double>	&raster,
-	int						w,
-	const vector<Point>		&plist,
-	const vector<double>	&spv )
+    vector<double>			&v,
+    double					&dvx,
+    double					&dvy,
+    const vector<double>	&raster,
+    int						w,
+    const vector<Point>		&plist,
+    const vector<double>	&spv )
 {
-	double	derx = 0.0, dery = 0.0; // local copies for derivatives
-	int		nPts = plist.size();
+    double	derx = 0.0, dery = 0.0; // local copies for derivatives
+    int		nPts = plist.size();
 
-	v.resize( nPts );
+    v.resize( nPts );
 
-	for( int i = 0; i < nPts; ++i ) {
+    for( int i = 0; i < nPts; ++i ) {
 
-		// find the 4 points surrounding real valued coordinate
+        // find the 4 points surrounding real valued coordinate
 
-		if( plist[i].x <  0.0	||
-			plist[i].x >= w - 1	||
-			plist[i].y <  0.0	||
-			plist[i].y >= 4095 ) {
+        if( plist[i].x <  0.0	||
+            plist[i].x >= w - 1	||
+            plist[i].y <  0.0	||
+            plist[i].y >= 4095 ) {
 
-			// anything outside the raster is 0.0
-			v[i] = 0.0;
-			continue;
-		}
+            // anything outside the raster is 0.0
+            v[i] = 0.0;
+            continue;
+        }
 
-		int xl	= (int)plist[i].x;
-		int yl	= (int)plist[i].y;
-		int xr	= xl + 1;
-		int yu	= yl + 1;
+        int xl	= (int)plist[i].x;
+        int yl	= (int)plist[i].y;
+        int xr	= xl + 1;
+        int yu	= yl + 1;
 
-		double alpha	= plist[i].x - xl;
-		double beta		= plist[i].y - yl;
-		double ll		= raster[w*yl + xl];
-		double ul		= raster[w*yu + xl];
-		double ur		= raster[w*yu + xr];
-		double lr		= raster[w*yl + xr];
-		double dx		= lr - ll;
-		double dy		= ul - ll;
-		double dxy		= ll - lr - ul + ur;
-		double d		= ll + alpha*dx + beta*dy + alpha*beta*dxy;
+        double alpha	= plist[i].x - xl;
+        double beta		= plist[i].y - yl;
+        double ll		= raster[w*yl + xl];
+        double ul		= raster[w*yu + xl];
+        double ur		= raster[w*yu + xr];
+        double lr		= raster[w*yl + xr];
+        double dx		= lr - ll;
+        double dy		= ul - ll;
+        double dxy		= ll - lr - ul + ur;
+        double d		= ll + alpha*dx + beta*dy + alpha*beta*dxy;
 
-		derx += spv[i] * (dx + beta*dxy);
-		dery += spv[i] * (dy + alpha*dxy);
+        derx += spv[i] * (dx + beta*dxy);
+        dery += spv[i] * (dy + alpha*dxy);
 
-		v[i] = d;
-	}
+        v[i] = d;
+    }
 
-	dvx = derx;
-	dvy = dery;
-	printf( "ValsFrmImg: Local derivatives %f %f\n", derx, dery );
+    dvx = derx;
+    dvy = dery;
+    printf( "ValsFrmImg: Local derivatives %f %f\n", derx, dery );
 }
 
 /* --------------------------------------------------------------- */
@@ -772,10 +772,10 @@ void ValuesFromImageAndPoints(
 
 int vertex::IDistSqr( const vertex& rhs ) const
 {
-	int	dx = x - rhs.x,
-		dy = y - rhs.y;
+    int	dx = x - rhs.x,
+        dy = y - rhs.y;
 
-	return dx*dx + dy*dy;
+    return dx*dx + dy*dy;
 }
 
 /* --------------------------------------------------------------- */
@@ -784,10 +784,10 @@ int vertex::IDistSqr( const vertex& rhs ) const
 
 double vertex::DistSqr( const vertex& rhs ) const
 {
-	double	dx = x - rhs.x,
-			dy = y - rhs.y;
+    double	dx = x - rhs.x,
+            dy = y - rhs.y;
 
-	return dx*dx + dy*dy;
+    return dx*dx + dy*dy;
 }
 
 /* --------------------------------------------------------------- */
@@ -798,11 +798,11 @@ double vertex::DistSqr( const vertex& rhs ) const
 // on closed line segment from point 0 to point 1.
 //
 double SegPointDist(
-	const vertex	&v0,
-	const vertex	&v1,
-	const vertex	&v2 )
+    const vertex	&v0,
+    const vertex	&v1,
+    const vertex	&v2 )
 {
-	return SegPointDist( v0.x, v0.y, v1.x, v1.y, v2.x, v2.y );
+    return SegPointDist( v0.x, v0.y, v1.x, v1.y, v2.x, v2.y );
 }
 
 /* --------------------------------------------------------------- */
@@ -813,7 +813,7 @@ double SegPointDist(
 //
 bool LeftSide( const Point &a, const Point &b, const Point &c )
 {
-	return CROSS( a, b, c ) > 0;
+    return CROSS( a, b, c ) > 0;
 }
 
 
@@ -821,7 +821,7 @@ bool LeftSide( const Point &a, const Point &b, const Point &c )
 //
 bool LeftSide( const vertex &a, const vertex &b, const vertex &c )
 {
-	return CROSS( a, b, c ) > 0;
+    return CROSS( a, b, c ) > 0;
 }
 
 /* --------------------------------------------------------------- */
@@ -832,27 +832,27 @@ bool LeftSide( const vertex &a, const vertex &b, const vertex &c )
 // and through {3,4} intersect.
 //
 bool LinesCross(
-	const vertex	&p1,
-	const vertex	&p2,
-	const vertex	&p3,
-	const vertex	&p4 )
+    const vertex	&p1,
+    const vertex	&p2,
+    const vertex	&p3,
+    const vertex	&p4 )
 {
-	int		x21	= p2.x - p1.x,
-			x43	= p4.x - p3.x,
-			y21	= p2.y - p1.y,
-			y43	= p4.y - p3.y;
+    int		x21	= p2.x - p1.x,
+            x43	= p4.x - p3.x,
+            y21	= p2.y - p1.y,
+            y43	= p4.y - p3.y;
 
 // cross if 1-2, 3-4 diff slopes
 
-	if( x21*y43 != x43*y21 )
-		return true;
+    if( x21*y43 != x43*y21 )
+        return true;
 
 // else if same slope, cross (colinear) if 1-3, 1-2 same slope
 
-	int		x31	= p3.x - p1.x,
-			y31	= p3.y - p1.y;
+    int		x31	= p3.x - p1.x,
+            y31	= p3.y - p1.y;
 
-	return x21*y31 == x31*y21;
+    return x21*y31 == x31*y21;
 }
 
 /* --------------------------------------------------------------- */
@@ -880,187 +880,187 @@ bool LinesCross(
 // caller data) because we might need to swap them.
 //
 int ClosedSegIsects(
-	vertex			&pi,
-	vertex			&pj,
-	const vertex	&p1,
-	const vertex	&p2,
-	vertex			p3,
-	vertex			p4 )
+    vertex			&pi,
+    vertex			&pj,
+    const vertex	&p1,
+    const vertex	&p2,
+    vertex			p3,
+    vertex			p4 )
 {
-	int	x12	= p2.x - p1.x,
-		y12	= p2.y - p1.y,
-		x34	= p4.x - p3.x,
-		y34	= p4.y - p3.y,
-		BxA	= x34*y12 - x12*y34;
+    int	x12	= p2.x - p1.x,
+        y12	= p2.y - p1.y,
+        x34	= p4.x - p3.x,
+        y34	= p4.y - p3.y,
+        BxA	= x34*y12 - x12*y34;
 
-	if( BxA ) {	// nondegenerate case
+    if( BxA ) {	// nondegenerate case
 
-		int	x31	= p1.x - p3.x,
-			y31	= p1.y - p3.y;
+        int	x31	= p1.x - p3.x,
+            y31	= p1.y - p3.y;
 
-		double	s = (x31*y12 - x12*y31) / (double)BxA;
+        double	s = (x31*y12 - x12*y31) / (double)BxA;
 
-		if( s < 0.0 || s > 1.0 )
-			return 0;
+        if( s < 0.0 || s > 1.0 )
+            return 0;
 
-		double	t = (x31*y34 - x34*y31) / (double)BxA;
+        double	t = (x31*y34 - x34*y31) / (double)BxA;
 
-		if( t < 0.0 || t > 1.0 )
-			return 0;
+        if( t < 0.0 || t > 1.0 )
+            return 0;
 
-		pi.x = int(p3.x + s * x34);
-		pi.y = int(p3.y + s * y34);
+        pi.x = int(p3.x + s * x34);
+        pi.y = int(p3.y + s * y34);
 
-		return 1;
-	}
-	else {	// degenerate
+        return 1;
+    }
+    else {	// degenerate
 
-		// Since BxA == 0, we may have:
-		// (1) |A| == 0 or |B| == 0,
-		// (2) A parallel transported from B,
-		// (3) A, B colinear, nonoverlapping,
-		// (4) A, B colinear and overlapping.
+        // Since BxA == 0, we may have:
+        // (1) |A| == 0 or |B| == 0,
+        // (2) A parallel transported from B,
+        // (3) A, B colinear, nonoverlapping,
+        // (4) A, B colinear and overlapping.
 
-		// Handle case (1).
+        // Handle case (1).
 
-		int	AdotA = x12*x12 + y12*y12,
-			BdotB = x34*x34 + y34*y34;
+        int	AdotA = x12*x12 + y12*y12,
+            BdotB = x34*x34 + y34*y34;
 
-		if( !AdotA && !BdotB ) {
+        if( !AdotA && !BdotB ) {
 
-			if( p1 == p3 ) {
-				pi = p1;
-				return 1;
-			}
+            if( p1 == p3 ) {
+                pi = p1;
+                return 1;
+            }
 
-			return 0;
-		}
-		else if( !AdotA ) {
+            return 0;
+        }
+        else if( !AdotA ) {
 
-			double	d;
+            double	d;
 
-			d = SegPointDist( p3.x, p3.y, p4.x, p4.y, p1.x, p1.y );
+            d = SegPointDist( p3.x, p3.y, p4.x, p4.y, p1.x, p1.y );
 
-			if( d < 0.001 ) {
-				pi = p1;
-				return 1;
-			}
+            if( d < 0.001 ) {
+                pi = p1;
+                return 1;
+            }
 
-			return 0;
-		}
-		else if( !BdotB ) {
+            return 0;
+        }
+        else if( !BdotB ) {
 
-			double	d;
+            double	d;
 
-			d = SegPointDist( p1.x, p1.y, p2.x, p2.y, p3.x, p3.y );
+            d = SegPointDist( p1.x, p1.y, p2.x, p2.y, p3.x, p3.y );
 
-			if( d < 0.001 ) {
-				pi = p3;
-				return 1;
-			}
+            if( d < 0.001 ) {
+                pi = p3;
+                return 1;
+            }
 
-			return 0;
-		}
+            return 0;
+        }
 
-		// Non-zero lengths!
-		// To get intersection we first need colinearity.
-		// We already know the slopes are the same. We next
-		// need same intercepts. Intercept (b) for segment
-		// 1-2 is y2 - y12*x2/x12. However, if x12 is zero
-		// the vertical segments need same X to be colinear.
+        // Non-zero lengths!
+        // To get intersection we first need colinearity.
+        // We already know the slopes are the same. We next
+        // need same intercepts. Intercept (b) for segment
+        // 1-2 is y2 - y12*x2/x12. However, if x12 is zero
+        // the vertical segments need same X to be colinear.
 
-		if( x12 ) {	// non-vertical
+        if( x12 ) {	// non-vertical
 
-			double	b = p2.y - (double)y12*p2.x/x12;
+            double	b = p2.y - (double)y12*p2.x/x12;
 
-			if( b != p4.y - (double)y34*p4.x/x34 )
-				return 0;
-		}
-		else {	// vertical
+            if( b != p4.y - (double)y34*p4.x/x34 )
+                return 0;
+        }
+        else {	// vertical
 
-			if( p1.x != p3.x )
-				return 0;
-		}
+            if( p1.x != p3.x )
+                return 0;
+        }
 
-		// Colinear!
-		// Get [3,4] oriented same as [1,2]:
-		// swap 3, 4 if dot product negative.
+        // Colinear!
+        // Get [3,4] oriented same as [1,2]:
+        // swap 3, 4 if dot product negative.
 
-		if( x12*x34 + y12*y34 < 0 ) {
+        if( x12*x34 + y12*y34 < 0 ) {
 
-			pi = p3;
-			p3 = p4;
-			p4 = pi;
-		}
+            pi = p3;
+            p3 = p4;
+            p4 = pi;
+        }
 
-		// Colinear and same orientation...but how are
-		// they ordered? If [1,2] goes opposite [1,4]
-		// there is no overlap, if zero, the endpoints
-		// match, if positive then p4 is beyond p1 but
-		// we don't know how far yet.
+        // Colinear and same orientation...but how are
+        // they ordered? If [1,2] goes opposite [1,4]
+        // there is no overlap, if zero, the endpoints
+        // match, if positive then p4 is beyond p1 but
+        // we don't know how far yet.
 
-		int	x14	= p4.x - p1.x,
-			y14	= p4.y - p1.y,
-			dot;
+        int	x14	= p4.x - p1.x,
+            y14	= p4.y - p1.y,
+            dot;
 
-		dot = x12*x14 + y12*y14;
+        dot = x12*x14 + y12*y14;
 
-		if( dot < 0 )
-			return 0;
+        if( dot < 0 )
+            return 0;
 
-		if( !dot ) {
-			pi = p1;
-			return 1;
-		}
+        if( !dot ) {
+            pi = p1;
+            return 1;
+        }
 
-		// Similarly compare [3,2] to [3,4].
+        // Similarly compare [3,2] to [3,4].
 
-		int	x32	= p2.x - p3.x,
-			y32	= p2.y - p3.y;
+        int	x32	= p2.x - p3.x,
+            y32	= p2.y - p3.y;
 
-		dot = x34*x32 + y34*y32;
+        dot = x34*x32 + y34*y32;
 
-		if( dot < 0 )
-			return 0;
+        if( dot < 0 )
+            return 0;
 
-		if( !dot ) {
-			pi = p2;
-			return 1;
-		}
+        if( !dot ) {
+            pi = p2;
+            return 1;
+        }
 
-		// We will return a non-zero-length segment!
-		// Thus far, along the common direction [1,2],
-		// we know that p4 > {p1,p3} and p2 > {p1,p3}.
-		//
-		// pi will either be p1 or p3, and pj will be
-		// whichever of {p2,p4} is closer to pi.
+        // We will return a non-zero-length segment!
+        // Thus far, along the common direction [1,2],
+        // we know that p4 > {p1,p3} and p2 > {p1,p3}.
+        //
+        // pi will either be p1 or p3, and pj will be
+        // whichever of {p2,p4} is closer to pi.
 
-		int	x13	= p3.x - p1.x,
-			y13	= p3.y - p1.y;
+        int	x13	= p3.x - p1.x,
+            y13	= p3.y - p1.y;
 
-		dot = x12*x13 + y12*y13;
+        dot = x12*x13 + y12*y13;
 
-		if( dot <= 0 ) {
+        if( dot <= 0 ) {
 
-			pi = p1;
+            pi = p1;
 
-			if( x12*x12 + y12*y12 >= x14*x14 + y14*y14 )
-				pj = p4;
-			else
-				pj = p2;
-		}
-		else {
+            if( x12*x12 + y12*y12 >= x14*x14 + y14*y14 )
+                pj = p4;
+            else
+                pj = p2;
+        }
+        else {
 
-			pi = p3;
+            pi = p3;
 
-			if( x34*x34 + y34*y34 >= x32*x32 + y32*y32 )
-				pj = p2;
-			else
-				pj = p4;
-		}
+            if( x34*x34 + y34*y34 >= x32*x32 + y32*y32 )
+                pj = p2;
+            else
+                pj = p4;
+        }
 
-		return 2;
-	}
+        return 2;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1082,123 +1082,123 @@ int ClosedSegIsects(
 // t = (P1-P3)xB / BxA.
 //
 bool OpenSegsCross(
-	const vertex	&p1,
-	const vertex	&p2,
-	const vertex	&p3,
-	const vertex	&p4 )
+    const vertex	&p1,
+    const vertex	&p2,
+    const vertex	&p3,
+    const vertex	&p4 )
 {
-	int	x12	= p2.x - p1.x,
-		y12	= p2.y - p1.y,
-		x34	= p4.x - p3.x,
-		y34	= p4.y - p3.y,
-		BxA	= x34*y12 - x12*y34;
+    int	x12	= p2.x - p1.x,
+        y12	= p2.y - p1.y,
+        x34	= p4.x - p3.x,
+        y34	= p4.y - p3.y,
+        BxA	= x34*y12 - x12*y34;
 
-	if( BxA ) {	// nondegenerate case
+    if( BxA ) {	// nondegenerate case
 
-		int	x31	= p1.x - p3.x,
-			y31	= p1.y - p3.y;
+        int	x31	= p1.x - p3.x,
+            y31	= p1.y - p3.y;
 
-		double	s = (x31*y12 - x12*y31) / (double)BxA;
+        double	s = (x31*y12 - x12*y31) / (double)BxA;
 
-		if( s <= 0.0 || s >= 1.0 )
-			return false;
+        if( s <= 0.0 || s >= 1.0 )
+            return false;
 
-		double	t = (x31*y34 - x34*y31) / (double)BxA;
+        double	t = (x31*y34 - x34*y31) / (double)BxA;
 
-		return t > 0.0 && t < 1.0;
-	}
-	else {	// degenerate
+        return t > 0.0 && t < 1.0;
+    }
+    else {	// degenerate
 
-		// Since BxA == 0, we may have:
-		// (1) |A| == 0 or |B| == 0,
-		// (2) A parallel transported from B,
-		// (3) A, B colinear, nonoverlapping,
-		// (4) A, B colinear and overlapping.
+        // Since BxA == 0, we may have:
+        // (1) |A| == 0 or |B| == 0,
+        // (2) A parallel transported from B,
+        // (3) A, B colinear, nonoverlapping,
+        // (4) A, B colinear and overlapping.
 
-		// In case (1) a zero-length segment IS its endpoints,
-		// and endpoint touching is not counted as intersecting
-		// for open segments, so the result is always false.
+        // In case (1) a zero-length segment IS its endpoints,
+        // and endpoint touching is not counted as intersecting
+        // for open segments, so the result is always false.
 
-		int	AdotA = x12*x12 + y12*y12,
-			BdotB = x34*x34 + y34*y34;
+        int	AdotA = x12*x12 + y12*y12,
+            BdotB = x34*x34 + y34*y34;
 
-		if( !AdotA || !BdotB )
-			return false;
+        if( !AdotA || !BdotB )
+            return false;
 
-		// Non-zero lengths!
-		// To get intersection we first need colinearity.
-		// We already know the slopes are the same. We next
-		// need same intercepts. Intercept (b) for segment
-		// 1-2 is y2 - y12*x2/x12. However, if x12 is zero
-		// the vertical segments need same X to be colinear.
+        // Non-zero lengths!
+        // To get intersection we first need colinearity.
+        // We already know the slopes are the same. We next
+        // need same intercepts. Intercept (b) for segment
+        // 1-2 is y2 - y12*x2/x12. However, if x12 is zero
+        // the vertical segments need same X to be colinear.
 
-		if( x12 ) {	// non-vertical
+        if( x12 ) {	// non-vertical
 
-			double	b = p2.y - (double)y12*p2.x/x12;
+            double	b = p2.y - (double)y12*p2.x/x12;
 
-			if( b != p4.y - (double)y34*p4.x/x34 )
-				return false;
-		}
-		else {	// vertical
+            if( b != p4.y - (double)y34*p4.x/x34 )
+                return false;
+        }
+        else {	// vertical
 
-			if( p1.x != p3.x )
-				return false;
-		}
+            if( p1.x != p3.x )
+                return false;
+        }
 
-		// Colinear!
-		// Now we have to take a segment A and see if one of
-		// segment B's endpoints falls between. But there is
-		// a tricky case. Suppose A is shorter and sits entirely
-		// interior to B. Neither of B's ends is inside A so we
-		// would wrongly conclude no overlap. Therefore we need
-		// the longer segment.
+        // Colinear!
+        // Now we have to take a segment A and see if one of
+        // segment B's endpoints falls between. But there is
+        // a tricky case. Suppose A is shorter and sits entirely
+        // interior to B. Neither of B's ends is inside A so we
+        // would wrongly conclude no overlap. Therefore we need
+        // the longer segment.
 
-		if( AdotA >= BdotB ) {
+        if( AdotA >= BdotB ) {
 
-			// test B ends against seg A
+            // test B ends against seg A
 
-			int	x13	= p3.x - p1.x,
-				y13	= p3.y - p1.y,
-				dot;
+            int	x13	= p3.x - p1.x,
+                y13	= p3.y - p1.y,
+                dot;
 
-			dot = x12*x13 + y12*y13;
+            dot = x12*x13 + y12*y13;
 
-			if( dot > 0 && dot < AdotA )
-				return true;
+            if( dot > 0 && dot < AdotA )
+                return true;
 
-			int	x14	= p4.x - p1.x,
-				y14	= p4.y - p1.y;
+            int	x14	= p4.x - p1.x,
+                y14	= p4.y - p1.y;
 
-			dot = x12*x14 + y12*y14;
+            dot = x12*x14 + y12*y14;
 
-			if( dot > 0 && dot < AdotA )
-				return true;
-		}
-		else {
+            if( dot > 0 && dot < AdotA )
+                return true;
+        }
+        else {
 
-			// test A ends against seg B
+            // test A ends against seg B
 
-			int	x31	= p1.x - p3.x,
-				y31	= p1.y - p3.y,
-				dot;
+            int	x31	= p1.x - p3.x,
+                y31	= p1.y - p3.y,
+                dot;
 
-			dot = x34*x31 + y34*y31;
+            dot = x34*x31 + y34*y31;
 
-			if( dot > 0 && dot < BdotB )
-				return true;
+            if( dot > 0 && dot < BdotB )
+                return true;
 
-			int	x32	= p2.x - p3.x,
-				y32	= p2.y - p3.y;
+            int	x32	= p2.x - p3.x,
+                y32	= p2.y - p3.y;
 
-			dot = x34*x32 + y34*y32;
+            dot = x34*x32 + y34*y32;
 
-			if( dot > 0 && dot < BdotB )
-				return true;
-		}
+            if( dot > 0 && dot < BdotB )
+                return true;
+        }
 
-		// no interposed ends
-		return false;
-	}
+        // no interposed ends
+        return false;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1208,19 +1208,19 @@ bool OpenSegsCross(
 // Return true if segment from a to b crosses any other edges.
 //
 bool AnyCrossing(
-	const vector<lineseg>	&s,
-	const vertex			&a,
-	const vertex			&b )
+    const vector<lineseg>	&s,
+    const vertex			&a,
+    const vertex			&b )
 {
-	int		ns = s.size();
+    int		ns = s.size();
 
-	for( int i = 0; i < ns; ++i ) {
+    for( int i = 0; i < ns; ++i ) {
 
-		if( OpenSegsCross( s[i].v[0], s[i].v[1], a, b ) )
-			return true;
-	}
+        if( OpenSegsCross( s[i].v[0], s[i].v[1], a, b ) )
+            return true;
+    }
 
-	return false;
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -1230,16 +1230,16 @@ bool AnyCrossing(
 // Return number of crossings of segment from a to b.
 //
 int CountCrossings(
-	const vector<lineseg>	&s,
-	const vertex			&a,
-	const vertex			&b )
+    const vector<lineseg>	&s,
+    const vertex			&a,
+    const vertex			&b )
 {
-	int		ns = s.size(), N = 0;
+    int		ns = s.size(), N = 0;
 
-	for( int i = 0; i < ns; ++i )
-		N += OpenSegsCross( s[i].v[0], s[i].v[1], a, b );
+    for( int i = 0; i < ns; ++i )
+        N += OpenSegsCross( s[i].v[0], s[i].v[1], a, b );
 
-	return N;
+    return N;
 }
 
 /* --------------------------------------------------------------- */
@@ -1253,15 +1253,15 @@ int CountCrossings(
 // sections of W that extend beyond e.
 //
 bool IsSubseg(
-	stack<lineseg>	&stk,
-	const lineseg	&e,
-	const lineseg	&W )
+    stack<lineseg>	&stk,
+    const lineseg	&e,
+    const lineseg	&W )
 {
-	if( 0.001 < SegPointDist( W.v[0], W.v[1], e.v[0] ) ||
-		0.001 < SegPointDist( W.v[0], W.v[1], e.v[1] ) ) {
+    if( 0.001 < SegPointDist( W.v[0], W.v[1], e.v[0] ) ||
+        0.001 < SegPointDist( W.v[0], W.v[1], e.v[1] ) ) {
 
-		return false;
-	}
+        return false;
+    }
 
 /* -------------------------------------------- */
 /* It's a subset; push leftover sections to stk */
@@ -1270,35 +1270,35 @@ bool IsSubseg(
 // Which e-end is closer to W.v[0]?
 // The 'other' e-end pairs with W.v[1].
 
-	int	other, d0 = W.v[0].IDistSqr( e.v[0] );
+    int	other, d0 = W.v[0].IDistSqr( e.v[0] );
 
-	if( !d0 ) {
-		// nothing to push at this end
-		other = 1;
-	}
-	else {
+    if( !d0 ) {
+        // nothing to push at this end
+        other = 1;
+    }
+    else {
 
-		int	d1 = W.v[0].IDistSqr( e.v[1] );
+        int	d1 = W.v[0].IDistSqr( e.v[1] );
 
-		if( d0 < d1 ) {
-			stk.push( lineseg( W.v[0], e.v[0] ) );
-			other = 1;
-		}
-		else {
+        if( d0 < d1 ) {
+            stk.push( lineseg( W.v[0], e.v[0] ) );
+            other = 1;
+        }
+        else {
 
-			if( d1 )
-				stk.push( lineseg( W.v[0], e.v[1] ) );
+            if( d1 )
+                stk.push( lineseg( W.v[0], e.v[1] ) );
 
-			other = 0;
-		}
-	}
+            other = 0;
+        }
+    }
 
 // Now do other end
 
-	if( W.v[1].IDistSqr( e.v[other] ) )
-		stk.push( lineseg( e.v[other], W.v[1] ) );
+    if( W.v[1].IDistSqr( e.v[other] ) )
+        stk.push( lineseg( e.v[other], W.v[1] ) );
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -1308,14 +1308,14 @@ bool IsSubseg(
 // True if point p on interior of ABC.
 //
 bool InTriangle(
-	const vertex	&va,
-	const vertex	&vb,
-	const vertex	&vc,
-	const vertex	&p )
+    const vertex	&va,
+    const vertex	&vb,
+    const vertex	&vc,
+    const vertex	&p )
 {
-	return	LeftSide( va, vb, p ) &&
-			LeftSide( vb, vc, p ) &&
-			LeftSide( vc, va, p );
+    return	LeftSide( va, vb, p ) &&
+            LeftSide( vb, vc, p ) &&
+            LeftSide( vc, va, p );
 }
 
 /* --------------------------------------------------------------- */
@@ -1336,56 +1336,56 @@ bool InTriangle(
 // (2) The test may be foiled by integer round-off.
 //
 bool AnyInside(
-	const vertex			&va,
-	const vertex			&vb,
-	const vertex			&vc,
-	const vector<lineseg>	&s,
-	const vector<vertex>	&ips )
+    const vertex			&va,
+    const vertex			&vb,
+    const vertex			&vc,
+    const vector<lineseg>	&s,
+    const vector<vertex>	&ips )
 {
-	int		i, N;
+    int		i, N;
 
 /* ----------------------- */
 /* Check the line segments */
 /* ----------------------- */
 
-	N = s.size();
+    N = s.size();
 
-	for( i = 0; i < N; ++i ) {
+    for( i = 0; i < N; ++i ) {
 
-		const vertex	&v0 = s[i].v[0];
-		const vertex	&v1 = s[i].v[1];
+        const vertex	&v0 = s[i].v[0];
+        const vertex	&v1 = s[i].v[1];
 
-		if( InTriangle( va, vb, vc, v0 ) )
-			return true;
+        if( InTriangle( va, vb, vc, v0 ) )
+            return true;
 
-		if( InTriangle( va, vb, vc, v1 ) )
-			return true;
+        if( InTriangle( va, vb, vc, v1 ) )
+            return true;
 
-		// if either point is not a vertex, test midpoint
+        // if either point is not a vertex, test midpoint
 
-		if( !((v0 == va) || (v0 == vb) || (v0 == vc)) ||
-			!((v1 == va) || (v1 == vb) || (v1 == vc)) ) {
+        if( !((v0 == va) || (v0 == vb) || (v0 == vc)) ||
+            !((v1 == va) || (v1 == vb) || (v1 == vc)) ) {
 
-			vertex	mid( (v0.x + v1.x)/2, (v0.y + v1.y)/2 );
+            vertex	mid( (v0.x + v1.x)/2, (v0.y + v1.y)/2 );
 
-			if( InTriangle( va, vb, vc, mid ) )
-				return true;
-		}
-	}
+            if( InTriangle( va, vb, vc, mid ) )
+                return true;
+        }
+    }
 
 /* ------------------------- */
 /* Check the internal points */
 /* ------------------------- */
 
-	N = ips.size();
+    N = ips.size();
 
-	for( i = 0; i < N; ++i ) {
+    for( i = 0; i < N; ++i ) {
 
-		if( InTriangle( va, vb, vc, ips[i] ) )
-			return true;
-	}
+        if( InTriangle( va, vb, vc, ips[i] ) )
+            return true;
+    }
 
-	return false;	// none inside
+    return false;	// none inside
 }
 
 /* --------------------------------------------------------------- */
@@ -1394,7 +1394,7 @@ bool AnyInside(
 
 double triangle::Area( const vector<Point> &ctl ) const
 {
-	return  0.5 * abs( CROSS( ctl[v[0]], ctl[v[1]], ctl[v[2]] ) );
+    return  0.5 * abs( CROSS( ctl[v[0]], ctl[v[1]], ctl[v[2]] ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -1402,20 +1402,20 @@ double triangle::Area( const vector<Point> &ctl ) const
 /* --------------------------------------------------------------- */
 
 double AreaOfTriangle(
-	const Point		&v0,
-	const Point		&v1,
-	const Point		&v2 )
+    const Point		&v0,
+    const Point		&v1,
+    const Point		&v2 )
 {
-	return 0.5 * abs( CROSS( v0, v1, v2 ) );
+    return 0.5 * abs( CROSS( v0, v1, v2 ) );
 }
 
 
 double AreaOfTriangle(
-	const vertex	&v0,
-	const vertex	&v1,
-	const vertex	&v2 )
+    const vertex	&v0,
+    const vertex	&v1,
+    const vertex	&v2 )
 {
-	return 0.5 * abs( (double)CROSS( v0, v1, v2 ) );
+    return 0.5 * abs( (double)CROSS( v0, v1, v2 ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -1426,61 +1426,61 @@ double AreaOfTriangle(
 // If we are inside it's obvious; otherwise pick the closest.
 //
 int BestTriangle(
-	const vector<triangle>	&T,
-	const vector<vertex>	&C,
-	const Point				&p )
+    const vector<triangle>	&T,
+    const vector<vertex>	&C,
+    const Point				&p )
 {
-	int		nT = T.size();
-	vertex	v( int(p.x), int(p.y) );
+    int		nT = T.size();
+    vertex	v( int(p.x), int(p.y) );
 
-	for( int i = 0; i < nT; ++i ) {
+    for( int i = 0; i < nT; ++i ) {
 
-		const vertex	&v0 = C[T[i].v[0]],
-						&v1 = C[T[i].v[1]],
-						&v2 = C[T[i].v[2]];
+        const vertex	&v0 = C[T[i].v[0]],
+                        &v1 = C[T[i].v[1]],
+                        &v2 = C[T[i].v[2]];
 
-		if( InTriangle( v0, v1, v2, v ) )
-			return i;
-	}
+        if( InTriangle( v0, v1, v2, v ) )
+            return i;
+    }
 
 // Not inside any of them. Find the closest one...
 
-	double	dbest	= BIG;
-	int		ibest	= -1;
+    double	dbest	= BIG;
+    int		ibest	= -1;
 
-	for( int i = 0; i < nT; ++i ) {
+    for( int i = 0; i < nT; ++i ) {
 
-		const vertex	&v0 = C[T[i].v[0]],
-						&v1 = C[T[i].v[1]],
-						&v2 = C[T[i].v[2]];
-		double			d;
+        const vertex	&v0 = C[T[i].v[0]],
+                        &v1 = C[T[i].v[1]],
+                        &v2 = C[T[i].v[2]];
+        double			d;
 
-		d = SegPointDist( v0, v1, v );
+        d = SegPointDist( v0, v1, v );
 
-		if( d < dbest ) {
-			dbest = d;
-			ibest = i;
-		}
+        if( d < dbest ) {
+            dbest = d;
+            ibest = i;
+        }
 
-		d = SegPointDist( v1, v2, v );
+        d = SegPointDist( v1, v2, v );
 
-		if( d < dbest ) {
-			dbest = d;
-			ibest = i;
-		}
+        if( d < dbest ) {
+            dbest = d;
+            ibest = i;
+        }
 
-		d = SegPointDist( v2, v0, v );
+        d = SegPointDist( v2, v0, v );
 
-		if( d < dbest ) {
-			dbest = d;
-			ibest = i;
-		}
+        if( d < dbest ) {
+            dbest = d;
+            ibest = i;
+        }
 
-		if( dbest <= 0.1 )
-			break;
-	}
+        if( dbest <= 0.1 )
+            break;
+    }
 
-	return ibest;
+    return ibest;
 }
 
 /* --------------------------------------------------------------- */
@@ -1507,17 +1507,17 @@ int BestTriangle(
 //
 double AreaOfPolygon( const vector<lineseg> &edges )
 {
-	long	A	= 0;
-	int		ne	= edges.size();
+    long	A	= 0;
+    int		ne	= edges.size();
 
-	for( int i = 0; i < ne; ++i ) {
+    for( int i = 0; i < ne; ++i ) {
 
-		const lineseg&	L = edges[i];
+        const lineseg&	L = edges[i];
 
-		A += (L.v[0].x - L.v[1].x) * (L.v[0].y + L.v[1].y);
-	}
+        A += (L.v[0].x - L.v[1].x) * (L.v[0].y + L.v[1].y);
+    }
 
-	return A / 2.0;
+    return A / 2.0;
 }
 
 /* --------------------------------------------------------------- */
@@ -1527,34 +1527,34 @@ double AreaOfPolygon( const vector<lineseg> &edges )
 // Remove from uint8 map all pixels within 'dist' of vertex.
 //
 void RemoveFromMap(
-	vector<uint8>	&map,
-	int				w,
-	int				h,
-	const vertex	&v,
-	int				dist )
+    vector<uint8>	&map,
+    int				w,
+    int				h,
+    const vertex	&v,
+    int				dist )
 {
-	int	d	= dist + 1,
-		dsqr,
-		xlo	= max( v.x - d, 0 ),
-		ylo	= max( v.y - d, 0 ),
-		xhi	= min( v.x + d, w - 1 ),
-		yhi	= min( v.y + d, h - 1 );
+    int	d	= dist + 1,
+        dsqr,
+        xlo	= max( v.x - d, 0 ),
+        ylo	= max( v.y - d, 0 ),
+        xhi	= min( v.x + d, w - 1 ),
+        yhi	= min( v.y + d, h - 1 );
 
-	dsqr = d * d;
+    dsqr = d * d;
 
-	for( int y = ylo; y <= yhi; ++y ) {
+    for( int y = ylo; y <= yhi; ++y ) {
 
-		int	dy		= y - v.y,
-			xmaxsqr	= dsqr - dy*dy;
+        int	dy		= y - v.y,
+            xmaxsqr	= dsqr - dy*dy;
 
-		for( int x = xlo; x <= xhi; ++x ) {
+        for( int x = xlo; x <= xhi; ++x ) {
 
-			int	dx = x - v.x;
+            int	dx = x - v.x;
 
-			if( dx*dx <= xmaxsqr )
-				map[x + w*y] = 0;
-		}
-	}
+            if( dx*dx <= xmaxsqr )
+                map[x + w*y] = 0;
+        }
+    }
 }
 
 

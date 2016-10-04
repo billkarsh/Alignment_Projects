@@ -19,7 +19,7 @@
 /* --------------------------------------------------------------- */
 
 #define	HToMask( h )											\
-	(HiBit >> WordRem( h ))
+    (HiBit >> WordRem( h ))
 
 
 
@@ -36,14 +36,14 @@
  */
 
 void BMAPSetPoint(
-	UInt32				*map,
-	UInt32				hPix,
-	int					h,
-	int					v )
+    UInt32				*map,
+    UInt32				hPix,
+    int					h,
+    int					v )
 {
-	map += v * BitToWord( hPix );
+    map += v * BitToWord( hPix );
 
-	map[BitToWord( h )] |= HToMask( h );
+    map[BitToWord( h )] |= HToMask( h );
 }
 
 
@@ -57,24 +57,24 @@ void BMAPSetPoint(
  */
 
 void BMAPSetHSeg(
-	UInt32				*map,
-	int					hPix,
-	int					h1,
-	int					h2,
-	int					v )
+    UInt32				*map,
+    int					hPix,
+    int					h1,
+    int					h2,
+    int					v )
 {
-	int		h;
+    int		h;
 
-	if( h1 > h2 ) {
-		h	= h1;
-		h1	= h2;
-		h2	= h;
-	}
+    if( h1 > h2 ) {
+        h	= h1;
+        h1	= h2;
+        h2	= h;
+    }
 
-	map += v * BitToWord( hPix );
+    map += v * BitToWord( hPix );
 
-	for( h = h1; h <= h2; ++h )
-		map[BitToWord( h )] |= HToMask( h );
+    for( h = h1; h <= h2; ++h )
+        map[BitToWord( h )] |= HToMask( h );
 }
 
 
@@ -88,30 +88,30 @@ void BMAPSetHSeg(
  */
 
 void BMAPSetVSeg(
-	UInt32				*map,
-	int					hPix,
-	int					h,
-	int					v1,
-	int					v2 )
+    UInt32				*map,
+    int					hPix,
+    int					h,
+    int					v1,
+    int					v2 )
 {
-	UInt32	rowBytes	= BitToByte( hPix ),
-			mask		= HToMask( h );
-	int		v;
+    UInt32	rowBytes	= BitToByte( hPix ),
+            mask		= HToMask( h );
+    int		v;
 
-	if( v1 > v2 ) {
-		v	= v1;
-		v1	= v2;
-		v2	= v;
-	}
+    if( v1 > v2 ) {
+        v	= v1;
+        v1	= v2;
+        v2	= v;
+    }
 
-	map += v1 * BitToWord( hPix ) + BitToWord( h );
+    map += v1 * BitToWord( hPix ) + BitToWord( h );
 
-	for( v = v1; v <= v2;
-		++v,
-		map = (UInt32*)((char*)map + rowBytes) ) {
+    for( v = v1; v <= v2;
+        ++v,
+        map = (UInt32*)((char*)map + rowBytes) ) {
 
-		*map |= mask;
-	}
+        *map |= mask;
+    }
 }
 
 
@@ -125,30 +125,30 @@ void BMAPSetVSeg(
  */
 
 void BMAPSetSeg(
-	UInt32				*map,
-	UInt32				hPix,
-	int					h1,
-	int					v1,
-	int					h2,
-	int					v2 )
+    UInt32				*map,
+    UInt32				hPix,
+    int					h1,
+    int					v1,
+    int					h2,
+    int					v2 )
 {
-	double	r, dr, T, c, s;
-	int		dh, dv, N, i;
+    double	r, dr, T, c, s;
+    int		dh, dv, N, i;
 
-	dh	= h2 - h1;
-	dv	= v2 - v1;
-	T	= atan( (double)dv / dh ) + (dh >= 0 ? 0.0 : M_PI);
-	r	= sqrt( dh*dh + dv*dv );
-	c	= cos( T );
-	N	= (int)(r * 1.05);	/* overfill 5% */
-	s	= sin( T );
-	dr	= r / N;
+    dh	= h2 - h1;
+    dv	= v2 - v1;
+    T	= atan( (double)dv / dh ) + (dh >= 0 ? 0.0 : M_PI);
+    r	= sqrt( dh*dh + dv*dv );
+    c	= cos( T );
+    N	= (int)(r * 1.05);	/* overfill 5% */
+    s	= sin( T );
+    dr	= r / N;
 
-	for( i = 0; i < N; ++i ) {
+    for( i = 0; i < N; ++i ) {
 
-		BMAPSetPoint( map, hPix,
-			h1 + (int)(i*dr*c), v1 + (int)(i*dr*s) );
-	}
+        BMAPSetPoint( map, hPix,
+            h1 + (int)(i*dr*c), v1 + (int)(i*dr*s) );
+    }
 }
 
 
@@ -162,35 +162,35 @@ void BMAPSetSeg(
  */
 
 void BMAPSetBox(
-	UInt32				*map,
-	int					hPix,
-	int					vPix,
-	const U16BoxPtr		box )
+    UInt32				*map,
+    int					hPix,
+    int					vPix,
+    const U16BoxPtr		box )
 {
-	int		bot, right;
+    int		bot, right;
 
-	if( (bot = box->bottom) > vPix )
-		bot = vPix;
+    if( (bot = box->bottom) > vPix )
+        bot = vPix;
 
-	if( (right = box->right) > hPix )
-		right = hPix;
+    if( (right = box->right) > hPix )
+        right = hPix;
 
-	if( box->top >= bot )
-		goto exit;
+    if( box->top >= bot )
+        goto exit;
 
-	if( box->left >= right )
-		goto exit;
+    if( box->left >= right )
+        goto exit;
 
-	--bot;
-	--right;
+    --bot;
+    --right;
 
-	BMAPSetHSeg( map, hPix, box->left, right, box->top );
-	BMAPSetVSeg( map, hPix, box->left, box->top, bot );
-	BMAPSetVSeg( map, hPix, right, box->top, bot );
-	BMAPSetHSeg( map, hPix, box->left, right, bot );
+    BMAPSetHSeg( map, hPix, box->left, right, box->top );
+    BMAPSetVSeg( map, hPix, box->left, box->top, bot );
+    BMAPSetVSeg( map, hPix, right, box->top, bot );
+    BMAPSetHSeg( map, hPix, box->left, right, bot );
 
 exit:
-	return;
+    return;
 }
 
 

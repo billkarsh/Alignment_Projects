@@ -16,10 +16,10 @@
 /* --------------------------------------------------------------- */
 
 #define	Slot4( k )										\
-	(*(SInt32*)((char*)base + (k)))
+    (*(SInt32*)((char*)base + (k)))
 
 #define	oneX4											\
-	sizeof(SInt32)
+    sizeof(SInt32)
 
 
 
@@ -69,62 +69,62 @@
  */
 
 void SORTSInt32(
-	SInt32				*base,
-	SInt32				nItems,
-	SORTSInt32Proc		compare )
+    SInt32				*base,
+    SInt32				nItems,
+    SORTSInt32Proc		compare )
 {
-	SInt32	iX4, jX4, kX4, nX4, temp;
+    SInt32	iX4, jX4, kX4, nX4, temp;
 
-	if( nItems < 2 )
-		goto exit;
+    if( nItems < 2 )
+        goto exit;
 
-	kX4 = ((nItems >> 1) + 1) * sizeof(SInt32);
-	nX4 = nItems * sizeof(SInt32);
-	--base;			/* -1 for zero-offset array */
+    kX4 = ((nItems >> 1) + 1) * sizeof(SInt32);
+    nX4 = nItems * sizeof(SInt32);
+    --base;			/* -1 for zero-offset array */
 
-	for(;;) {
+    for(;;) {
 
-		if( kX4 > oneX4 )
-			temp = Slot4( kX4 -= oneX4 );
-		else {
+        if( kX4 > oneX4 )
+            temp = Slot4( kX4 -= oneX4 );
+        else {
 
-			temp = Slot4( nX4 );
-			Slot4( nX4 ) = Slot4( oneX4 );
+            temp = Slot4( nX4 );
+            Slot4( nX4 ) = Slot4( oneX4 );
 
-			if( (nX4 -= oneX4) == oneX4 ) {
-				Slot4( oneX4 ) = temp;
-				break;
-			}
-		}
+            if( (nX4 -= oneX4) == oneX4 ) {
+                Slot4( oneX4 ) = temp;
+                break;
+            }
+        }
 
-		iX4 = kX4;
-		jX4 = kX4 + kX4;
+        iX4 = kX4;
+        jX4 = kX4 + kX4;
 
-		while( jX4 <= nX4 ) {
+        while( jX4 <= nX4 ) {
 
-			if( jX4 < nX4 &&
-				compare(
-					Slot4( jX4 ),
-					Slot4( jX4 + oneX4 ) ) < 0 ) {
+            if( jX4 < nX4 &&
+                compare(
+                    Slot4( jX4 ),
+                    Slot4( jX4 + oneX4 ) ) < 0 ) {
 
-				jX4 += oneX4;
-			}
+                jX4 += oneX4;
+            }
 
-			if( compare( temp, Slot4( jX4 ) ) < 0 ) {
+            if( compare( temp, Slot4( jX4 ) ) < 0 ) {
 
-				Slot4( iX4 ) = Slot4( jX4 );
-				iX4  = jX4;
-				jX4 += jX4;
-			}
-			else
-				break;
-		}
+                Slot4( iX4 ) = Slot4( jX4 );
+                iX4  = jX4;
+                jX4 += jX4;
+            }
+            else
+                break;
+        }
 
-		Slot4( iX4 ) = temp;
-	}
+        Slot4( iX4 ) = temp;
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -148,57 +148,57 @@ exit:
 
 void SORTImmedAscending( SInt32 *base, UInt32 nItems )
 {
-	SInt32	temp;
-	UInt32	iX4, jX4, kX4, nX4;
+    SInt32	temp;
+    UInt32	iX4, jX4, kX4, nX4;
 
-	if( nItems < 2 )
-		goto exit;
+    if( nItems < 2 )
+        goto exit;
 
-	kX4 = ((nItems >> 1) + 1) * sizeof(SInt32);
-	nX4 = nItems * sizeof(SInt32);
-	--base;			/* -1 for zero-offset array */
+    kX4 = ((nItems >> 1) + 1) * sizeof(SInt32);
+    nX4 = nItems * sizeof(SInt32);
+    --base;			/* -1 for zero-offset array */
 
-	for(;;) {
+    for(;;) {
 
-		if( kX4 > oneX4 )
-			temp = Slot4( kX4 -= oneX4 );
-		else {
+        if( kX4 > oneX4 )
+            temp = Slot4( kX4 -= oneX4 );
+        else {
 
-			temp = Slot4( nX4 );
-			Slot4( nX4 ) = Slot4( oneX4 );
+            temp = Slot4( nX4 );
+            Slot4( nX4 ) = Slot4( oneX4 );
 
-			if( (nX4 -= oneX4) == oneX4 ) {
-				Slot4( oneX4 ) = temp;
-				break;
-			}
-		}
+            if( (nX4 -= oneX4) == oneX4 ) {
+                Slot4( oneX4 ) = temp;
+                break;
+            }
+        }
 
-		iX4 = kX4;
-		jX4 = kX4 + kX4;
+        iX4 = kX4;
+        jX4 = kX4 + kX4;
 
-		while( jX4 <= nX4 ) {
+        while( jX4 <= nX4 ) {
 
-			if( jX4 < nX4 &&
-				Slot4( jX4 ) < Slot4( jX4 + oneX4 ) ) {
+            if( jX4 < nX4 &&
+                Slot4( jX4 ) < Slot4( jX4 + oneX4 ) ) {
 
-				jX4 += oneX4;
-			}
+                jX4 += oneX4;
+            }
 
-			if( temp < Slot4( jX4 ) ) {
+            if( temp < Slot4( jX4 ) ) {
 
-				Slot4( iX4 ) = Slot4( jX4 );
-				iX4  = jX4;
-				jX4 += jX4;
-			}
-			else
-				break;
-		}
+                Slot4( iX4 ) = Slot4( jX4 );
+                iX4  = jX4;
+                jX4 += jX4;
+            }
+            else
+                break;
+        }
 
-		Slot4( iX4 ) = temp;
-	}
+        Slot4( iX4 ) = temp;
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -222,57 +222,57 @@ exit:
 
 void SORTImmedDescending( SInt32 *base, UInt32 nItems )
 {
-	SInt32	temp;
-	UInt32	iX4, jX4, kX4, nX4;
+    SInt32	temp;
+    UInt32	iX4, jX4, kX4, nX4;
 
-	if( nItems < 2 )
-		goto exit;
+    if( nItems < 2 )
+        goto exit;
 
-	kX4 = ((nItems >> 1) + 1) * sizeof(SInt32);
-	nX4 = nItems * sizeof(SInt32);
-	--base;			/* -1 for zero-offset array */
+    kX4 = ((nItems >> 1) + 1) * sizeof(SInt32);
+    nX4 = nItems * sizeof(SInt32);
+    --base;			/* -1 for zero-offset array */
 
-	for(;;) {
+    for(;;) {
 
-		if( kX4 > oneX4 )
-			temp = Slot4( kX4 -= oneX4 );
-		else {
+        if( kX4 > oneX4 )
+            temp = Slot4( kX4 -= oneX4 );
+        else {
 
-			temp = Slot4( nX4 );
-			Slot4( nX4 ) = Slot4( oneX4 );
+            temp = Slot4( nX4 );
+            Slot4( nX4 ) = Slot4( oneX4 );
 
-			if( (nX4 -= oneX4) == oneX4 ) {
-				Slot4( oneX4 ) = temp;
-				break;
-			}
-		}
+            if( (nX4 -= oneX4) == oneX4 ) {
+                Slot4( oneX4 ) = temp;
+                break;
+            }
+        }
 
-		iX4 = kX4;
-		jX4 = kX4 + kX4;
+        iX4 = kX4;
+        jX4 = kX4 + kX4;
 
-		while( jX4 <= nX4 ) {
+        while( jX4 <= nX4 ) {
 
-			if( jX4 < nX4 &&
-				Slot4( jX4 + oneX4 ) < Slot4( jX4 ) ) {
+            if( jX4 < nX4 &&
+                Slot4( jX4 + oneX4 ) < Slot4( jX4 ) ) {
 
-				jX4 += oneX4;
-			}
+                jX4 += oneX4;
+            }
 
-			if( Slot4( jX4 ) < temp ) {
+            if( Slot4( jX4 ) < temp ) {
 
-				Slot4( iX4 ) = Slot4( jX4 );
-				iX4  = jX4;
-				jX4 += jX4;
-			}
-			else
-				break;
-		}
+                Slot4( iX4 ) = Slot4( jX4 );
+                iX4  = jX4;
+                jX4 += jX4;
+            }
+            else
+                break;
+        }
 
-		Slot4( iX4 ) = temp;
-	}
+        Slot4( iX4 ) = temp;
+    }
 
 exit:
-	return;
+    return;
 }
 
 

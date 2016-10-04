@@ -23,7 +23,7 @@
 
 enum {
 /* maximum pixel value plus one */
-	pixelValueRange	= 4096L
+    pixelValueRange	= 4096L
 };
 
 
@@ -43,90 +43,90 @@ enum {
  */
 
 void RGNBox_Ipk(
-	RGN_Ipk_Ptr			ipk,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	const U16BoxPtr		box )
+    RGN_Ipk_Ptr			ipk,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    const U16BoxPtr		box )
 {
-	UInt32	mapRowBytes, imgRowBytes;
-	int		v, h, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes;
+    int		v, h, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* blob limits */
 
-	top		= rBlob->top;
-	left	= rBlob->left;
-	bot		= rBlob->bottom;
-	right	= rBlob->right;
+    top		= rBlob->top;
+    left	= rBlob->left;
+    bot		= rBlob->bottom;
+    right	= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
 /* box limits */
 
-	if( box->top > top )
-		top = box->top;
+    if( box->top > top )
+        top = box->top;
 
-	if( box->left > left )
-		left = box->left;
+    if( box->left > left )
+        left = box->left;
 
-	if( box->bottom < bot )
-		bot = box->bottom;
+    if( box->bottom < bot )
+        bot = box->bottom;
 
-	if( box->right < right )
-		right = box->right;
+    if( box->right < right )
+        right = box->right;
 
-	ipk->Ipk	= 0;
-	ipk->v		= top;
-	ipk->h		= left;
+    ipk->Ipk	= 0;
+    ipk->v		= top;
+    ipk->h		= left;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* ---------------------- */
 /* Loop over boxed pixels */
 /* ---------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( map, h ) ) {
+            if( BMAP_IsRowBit( map, h ) ) {
 
-				UInt32	i;
+                UInt32	i;
 
-				if( (i = data16Bit[h]) > ipk->Ipk ) {
+                if( (i = data16Bit[h]) > ipk->Ipk ) {
 
-					ipk->Ipk	= i;
-					ipk->v		= v;
-					ipk->h		= h;
-				}
-			}
-		}
-	}
+                    ipk->Ipk	= i;
+                    ipk->v		= v;
+                    ipk->h		= h;
+                }
+            }
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -142,84 +142,84 @@ exit:
  */
 
 void RGNBox_F_A(
-	SUM_F_A_Ptr			sum,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	const U16BoxPtr		box )
+    SUM_F_A_Ptr			sum,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    const U16BoxPtr		box )
 {
-	UInt32	mapRowBytes, imgRowBytes, F, A;
-	int		v, h, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes, F, A;
+    int		v, h, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	F = 0;
-	A = 0;
+    F = 0;
+    A = 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* blob limits */
 
-	top		= rBlob->top;
-	left	= rBlob->left;
-	bot		= rBlob->bottom;
-	right	= rBlob->right;
+    top		= rBlob->top;
+    left	= rBlob->left;
+    bot		= rBlob->bottom;
+    right	= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
 /* box limits */
 
-	if( box->top > top )
-		top = box->top;
+    if( box->top > top )
+        top = box->top;
 
-	if( box->left > left )
-		left = box->left;
+    if( box->left > left )
+        left = box->left;
 
-	if( box->bottom < bot )
-		bot = box->bottom;
+    if( box->bottom < bot )
+        bot = box->bottom;
 
-	if( box->right < right )
-		right = box->right;
+    if( box->right < right )
+        right = box->right;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* ---------------------- */
 /* Loop over boxed pixels */
 /* ---------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( map, h ) ) {
+            if( BMAP_IsRowBit( map, h ) ) {
 
-				F += data16Bit[h];
-				++A;
-			}
-		}
-	}
+                F += data16Bit[h];
+                ++A;
+            }
+        }
+    }
 
 exit:
-	sum->F = F;
-	sum->A = A;
+    sum->F = F;
+    sum->A = A;
 }
 
 
@@ -235,89 +235,89 @@ exit:
  */
 
 void RGNBox_F_F2_A(
-	SUM_F_F2_A_Ptr		sum,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	const U16BoxPtr		box )
+    SUM_F_F2_A_Ptr		sum,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    const U16BoxPtr		box )
 {
-	UInt32	mapRowBytes, imgRowBytes, F, F2, A;
-	int		v, h, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes, F, F2, A;
+    int		v, h, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	F	= 0;
-	F2	= 0;
-	A	= 0;
+    F	= 0;
+    F2	= 0;
+    A	= 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* blob limits */
 
-	top		= rBlob->top;
-	left	= rBlob->left;
-	bot		= rBlob->bottom;
-	right	= rBlob->right;
+    top		= rBlob->top;
+    left	= rBlob->left;
+    bot		= rBlob->bottom;
+    right	= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
 /* box limits */
 
-	if( box->top > top )
-		top = box->top;
+    if( box->top > top )
+        top = box->top;
 
-	if( box->left > left )
-		left = box->left;
+    if( box->left > left )
+        left = box->left;
 
-	if( box->bottom < bot )
-		bot = box->bottom;
+    if( box->bottom < bot )
+        bot = box->bottom;
 
-	if( box->right < right )
-		right = box->right;
+    if( box->right < right )
+        right = box->right;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* ---------------------- */
 /* Loop over boxed pixels */
 /* ---------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( map, h ) ) {
+            if( BMAP_IsRowBit( map, h ) ) {
 
-				UInt32	f = data16Bit[h];
+                UInt32	f = data16Bit[h];
 
-				F	+= f;
-				F2	+= f * f;
-				++A;
-			}
-		}
-	}
+                F	+= f;
+                F2	+= f * f;
+                ++A;
+            }
+        }
+    }
 
 exit:
-	sum->F	= F;
-	sum->F2	= F2;
-	sum->A	= A;
+    sum->F	= F;
+    sum->F2	= F2;
+    sum->A	= A;
 }
 
 
@@ -333,33 +333,33 @@ exit:
  */
 
 UInt32 RGNBoxPixList(
-	UInt32				*list,
-	const UInt16		*data16Bit,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		box )
+    UInt32				*list,
+    const UInt16		*data16Bit,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		box )
 {
-	UInt32	imgRowBytes;
-	int		N, v, h, top, left, bot, right;
+    UInt32	imgRowBytes;
+    int		N, v, h, top, left, bot, right;
 
-	N			= 0;
-	imgRowBytes	= hPix * sizeof(UInt16);
+    N			= 0;
+    imgRowBytes	= hPix * sizeof(UInt16);
 
-	top			= box->top;
-	left		= box->left;
-	bot			= box->bottom;
-	right		= box->right;
+    top			= box->top;
+    left		= box->left;
+    bot			= box->bottom;
+    right		= box->right;
 
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
-	for( v = top; v < bot; ++v,
-		data16Bit = (UInt16*)((char*)data16Bit + imgRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit = (UInt16*)((char*)data16Bit + imgRowBytes) ) {
 
-		for( h = left; h < right; ++h, ++N )
-			list[N] = data16Bit[h];
-	}
+        for( h = left; h < right; ++h, ++N )
+            list[N] = data16Bit[h];
+    }
 
-	return N;
+    return N;
 }
 
 
@@ -377,99 +377,99 @@ UInt32 RGNBoxPixList(
  */
 
 UInt32 RGNHistogramBox(
-	UInt32				*oFlowCnt,
-	UInt32				*oFlowSum,
-	UInt32				*binArray,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	const U16BoxPtr		box )
+    UInt32				*oFlowCnt,
+    UInt32				*oFlowSum,
+    UInt32				*binArray,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    const U16BoxPtr		box )
 {
-	UInt32	mapRowBytes, imgRowBytes, N, x, oflowC, oflowS;
-	int		v, h, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes, N, x, oflowC, oflowS;
+    int		v, h, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	MEMZeroBytes( binArray, pixelValueRange * sizeof(UInt32) );
-	N			= 0;
-	oflowC		= 0;
-	oflowS		= 0;
+    MEMZeroBytes( binArray, pixelValueRange * sizeof(UInt32) );
+    N			= 0;
+    oflowC		= 0;
+    oflowS		= 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* blob limits */
 
-	top		= rBlob->top;
-	left	= rBlob->left;
-	bot		= rBlob->bottom;
-	right	= rBlob->right;
+    top		= rBlob->top;
+    left	= rBlob->left;
+    bot		= rBlob->bottom;
+    right	= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
 /* box limits */
 
-	if( box->top > top )
-		top = box->top;
+    if( box->top > top )
+        top = box->top;
 
-	if( box->left > left )
-		left = box->left;
+    if( box->left > left )
+        left = box->left;
 
-	if( box->bottom < bot )
-		bot = box->bottom;
+    if( box->bottom < bot )
+        bot = box->bottom;
 
-	if( box->right < right )
-		right = box->right;
+    if( box->right < right )
+        right = box->right;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* ---------------------- */
 /* Loop over boxed pixels */
 /* ---------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( map, h ) ) {
+            if( BMAP_IsRowBit( map, h ) ) {
 
-				if( (x = data16Bit[h]) < pixelValueRange ) {
-					++binArray[x];
-					++N;
-				}
-				else {
-					oflowS += x;
-					++oflowC;
-				}
-			}
-		}
-	}
+                if( (x = data16Bit[h]) < pixelValueRange ) {
+                    ++binArray[x];
+                    ++N;
+                }
+                else {
+                    oflowS += x;
+                    ++oflowC;
+                }
+            }
+        }
+    }
 
 exit:
-	if( oFlowCnt )
-		*oFlowCnt = oflowC;
+    if( oFlowCnt )
+        *oFlowCnt = oflowC;
 
-	if( oFlowSum )
-		*oFlowSum = oflowS;
+    if( oFlowSum )
+        *oFlowSum = oflowS;
 
-	return N;
+    return N;
 }
 
 
@@ -485,126 +485,126 @@ exit:
  */
 
 void RGNBoxPerim_F_A(
-	SUM_F_A_Ptr			sum,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	const U16BoxPtr		box )
+    SUM_F_A_Ptr			sum,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    const U16BoxPtr		box )
 {
-	UInt32	mapRowBytes, imgRowBytes, F, A;
-	int		v, h, L, R, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes, F, A;
+    int		v, h, L, R, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	F = 0;
-	A = 0;
+    F = 0;
+    A = 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* blob limits */
 
-	top		= rBlob->top;
-	left	= rBlob->left;
-	bot		= rBlob->bottom;
-	right	= rBlob->right;
+    top		= rBlob->top;
+    left	= rBlob->left;
+    bot		= rBlob->bottom;
+    right	= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	L		= left;
-	R		= right - 1;
+    L		= left;
+    R		= right - 1;
 
 /* box limits */
 
-	if( box->top > top )
-		top = box->top;
+    if( box->top > top )
+        top = box->top;
 
-	if( box->left > left )
-		left = box->left;
+    if( box->left > left )
+        left = box->left;
 
-	if( box->bottom < bot )
-		bot = box->bottom;
+    if( box->bottom < bot )
+        bot = box->bottom;
 
-	if( box->right < right )
-		right = box->right;
+    if( box->right < right )
+        right = box->right;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* --- */
 /* Top */
 /* --- */
 
-	for( h = left; h < right; ++h ) {
+    for( h = left; h < right; ++h ) {
 
-		if( BMAP_IsRowBit( map, h ) ) {
+        if( BMAP_IsRowBit( map, h ) ) {
 
-			F += data16Bit[h];
-			++A;
-		}
-	}
+            F += data16Bit[h];
+            ++A;
+        }
+    }
 
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes);
-	map			= (UInt32*)((char*)map + mapRowBytes);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes);
+    map			= (UInt32*)((char*)map + mapRowBytes);
 
 /* ----- */
 /* Sides */
 /* ----- */
 
-	--right;
+    --right;
 
-	for( v = top + 2; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top + 2; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		if( left >= L && BMAP_IsRowBit( map, left ) ) {
+        if( left >= L && BMAP_IsRowBit( map, left ) ) {
 
-			F += data16Bit[left];
-			++A;
-		}
+            F += data16Bit[left];
+            ++A;
+        }
 
-		if( right <= R && BMAP_IsRowBit( map, right ) ) {
+        if( right <= R && BMAP_IsRowBit( map, right ) ) {
 
-			F += data16Bit[right];
-			++A;
-		}
-	}
+            F += data16Bit[right];
+            ++A;
+        }
+    }
 
-	++right;
+    ++right;
 
 /* ------ */
 /* Bottom */
 /* ------ */
 
-	if( bot - top > 1 ) {
+    if( bot - top > 1 ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( map, h ) ) {
+            if( BMAP_IsRowBit( map, h ) ) {
 
-				F += data16Bit[h];
-				++A;
-			}
-		}
-	}
+                F += data16Bit[h];
+                ++A;
+            }
+        }
+    }
 
 exit:
-	sum->F = F;
-	sum->A = A;
+    sum->F = F;
+    sum->A = A;
 }
 
 
@@ -629,112 +629,112 @@ exit:
  */
 
 UInt32 RGNBoxPerimList(
-	UInt32				*list,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	const U16BoxPtr		box )
+    UInt32				*list,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    const U16BoxPtr		box )
 {
-	UInt32	mapRowBytes, imgRowBytes, N;
-	int		v, h, L, R, top, left, bot, right;
+    UInt32	mapRowBytes, imgRowBytes, N;
+    int		v, h, L, R, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	N			= 0;
+    N			= 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* blob limits */
 
-	top		= rBlob->top;
-	left	= rBlob->left;
-	bot		= rBlob->bottom;
-	right	= rBlob->right;
+    top		= rBlob->top;
+    left	= rBlob->left;
+    bot		= rBlob->bottom;
+    right	= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	L		= left;
-	R		= right - 1;
+    L		= left;
+    R		= right - 1;
 
 /* box limits */
 
-	if( box->top > top )
-		top = box->top;
+    if( box->top > top )
+        top = box->top;
 
-	if( box->left > left )
-		left = box->left;
+    if( box->left > left )
+        left = box->left;
 
-	if( box->bottom < bot )
-		bot = box->bottom;
+    if( box->bottom < bot )
+        bot = box->bottom;
 
-	if( box->right < right )
-		right = box->right;
+    if( box->right < right )
+        right = box->right;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* --- */
 /* Top */
 /* --- */
 
-	for( h = left; h < right; ++h ) {
+    for( h = left; h < right; ++h ) {
 
-		if( BMAP_IsRowBit( map, h ) )
-			list[N++] = data16Bit[h];
-	}
+        if( BMAP_IsRowBit( map, h ) )
+            list[N++] = data16Bit[h];
+    }
 
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes);
-	map			= (UInt32*)((char*)map + mapRowBytes);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes);
+    map			= (UInt32*)((char*)map + mapRowBytes);
 
 /* ----- */
 /* Sides */
 /* ----- */
 
-	--right;
+    --right;
 
-	for( v = top + 2; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top + 2; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		if( left >= L && BMAP_IsRowBit( map, left ) )
-			list[N++] = data16Bit[left];
+        if( left >= L && BMAP_IsRowBit( map, left ) )
+            list[N++] = data16Bit[left];
 
-		if( right <= R && BMAP_IsRowBit( map, right ) )
-			list[N++] = data16Bit[right];
-	}
+        if( right <= R && BMAP_IsRowBit( map, right ) )
+            list[N++] = data16Bit[right];
+    }
 
-	++right;
+    ++right;
 
 /* ------ */
 /* Bottom */
 /* ------ */
 
-	if( bot - top > 1 ) {
+    if( bot - top > 1 ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( BMAP_IsRowBit( map, h ) )
-				list[N++] = data16Bit[h];
-		}
-	}
+            if( BMAP_IsRowBit( map, h ) )
+                list[N++] = data16Bit[h];
+        }
+    }
 
 exit:
-	return N;
+    return N;
 }
 
 
@@ -748,12 +748,12 @@ exit:
  */
 
 UInt32 RGNBlob_A(
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob )
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob )
 {
-	return BMAPPatchArea( map, hPix, vPix, rBlob );
+    return BMAPPatchArea( map, hPix, vPix, rBlob );
 }
 
 
@@ -767,17 +767,17 @@ UInt32 RGNBlob_A(
  */
 
 UInt32 RGNBlob_F(
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob )
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob )
 {
-	SUM_F_A_Rec		sum;
+    SUM_F_A_Rec		sum;
 
-	SUMBlob_F_A( &sum, data16Bit, map, hPix, vPix, rBlob );
+    SUMBlob_F_A( &sum, data16Bit, map, hPix, vPix, rBlob );
 
-	return sum.F;
+    return sum.F;
 }
 
 
@@ -791,17 +791,17 @@ UInt32 RGNBlob_F(
  */
 
 FP32 RGNBlob_I(
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob )
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob )
 {
-	SUM_F_A_Rec		sum;
+    SUM_F_A_Rec		sum;
 
-	SUMBlob_F_A( &sum, data16Bit, map, hPix, vPix, rBlob );
+    SUMBlob_F_A( &sum, data16Bit, map, hPix, vPix, rBlob );
 
-	return SUM_RecIntensity( &sum );
+    return SUM_RecIntensity( &sum );
 }
 
 
@@ -815,98 +815,98 @@ FP32 RGNBlob_I(
  */
 
 UInt32 RGNBlob_Ipk(
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob )
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob )
 {
-	UInt32	*pPair;
-	UInt32	mapRowBytes, imgRowBytes, pair, W, val, Ipk;
-	int		v, h, hL, hR, pairIdx,
-			top, left, bot, right;
+    UInt32	*pPair;
+    UInt32	mapRowBytes, imgRowBytes, pair, W, val, Ipk;
+    int		v, h, hL, hR, pairIdx,
+            top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	Ipk			= 0;
+    Ipk			= 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
-	top			= rBlob->top;
-	left		= rBlob->left;
-	bot			= rBlob->bottom;
-	right		= rBlob->right;
+    top			= rBlob->top;
+    left		= rBlob->left;
+    bot			= rBlob->bottom;
+    right		= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	hL	= BitToWord( left );
-	hR	= BitToWord( right - 1 );
+    hL	= BitToWord( left );
+    hR	= BitToWord( right - 1 );
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
-					+ hL * WordBits * sizeof(UInt16));
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
+                    + hL * WordBits * sizeof(UInt16));
 
 /* ------------------------------- */
 /* Loop over 32-bit words in patch */
 /* ------------------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		pPair = (UInt32*)data16Bit;
+        pPair = (UInt32*)data16Bit;
 
-		for( h = hL; h <= hR; ++h, pPair += HalfBits ) {
+        for( h = hL; h <= hR; ++h, pPair += HalfBits ) {
 
-			if( W = map[h] ) {
+            if( W = map[h] ) {
 
-				/* --------------------------- */
-				/* Loop over bit pairs in word */
-				/* --------------------------- */
+                /* --------------------------- */
+                /* Loop over bit pairs in word */
+                /* --------------------------- */
 
-				for( pairIdx = 0; pairIdx < HalfBits; ++pairIdx ) {
+                for( pairIdx = 0; pairIdx < HalfBits; ++pairIdx ) {
 
-					pair = pPair[pairIdx];
+                    pair = pPair[pairIdx];
 
-					if( IsHiBitSet32( W ) ) {
+                    if( IsHiBitSet32( W ) ) {
 
-						val = pair & LoMask;
+                        val = pair & LoMask;
 
-						if( val > Ipk )
-							Ipk = val;
-					}
+                        if( val > Ipk )
+                            Ipk = val;
+                    }
 
-					W <<= 1;
+                    W <<= 1;
 
-					if( IsHiBitSet32( W ) ) {
+                    if( IsHiBitSet32( W ) ) {
 
-						val = pair >> HalfBits;
+                        val = pair >> HalfBits;
 
-						if( val > Ipk )
-							Ipk = val;
-					}
+                        if( val > Ipk )
+                            Ipk = val;
+                    }
 
-					W <<= 1;
-				}
-			}
-		}
-	}
+                    W <<= 1;
+                }
+            }
+        }
+    }
 
 exit:
-	return Ipk;
+    return Ipk;
 }
 
 
@@ -922,122 +922,122 @@ exit:
  */
 
 UInt32 RGNHistogramBlob(
-	UInt32				*oFlowCnt,
-	UInt32				*oFlowSum,
-	UInt32				*binArray,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob )
+    UInt32				*oFlowCnt,
+    UInt32				*oFlowSum,
+    UInt32				*binArray,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob )
 {
-	UInt32	*pPair;
-	UInt32	mapRowBytes, imgRowBytes, pair, W, N, x, oflowC, oflowS;
-	int		v, h, hL, hR, pairIdx,
-			top, left, bot, right;
+    UInt32	*pPair;
+    UInt32	mapRowBytes, imgRowBytes, pair, W, N, x, oflowC, oflowS;
+    int		v, h, hL, hR, pairIdx,
+            top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	MEMZeroBytes( binArray, pixelValueRange * sizeof(UInt32) );
-	N			= 0;
-	oflowC		= 0;
-	oflowS		= 0;
+    MEMZeroBytes( binArray, pixelValueRange * sizeof(UInt32) );
+    N			= 0;
+    oflowC		= 0;
+    oflowS		= 0;
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
-	top			= rBlob->top;
-	left		= rBlob->left;
-	bot			= rBlob->bottom;
-	right		= rBlob->right;
+    top			= rBlob->top;
+    left		= rBlob->left;
+    bot			= rBlob->bottom;
+    right		= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	hL	= BitToWord( left );
-	hR	= BitToWord( right - 1 );
+    hL	= BitToWord( left );
+    hR	= BitToWord( right - 1 );
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
-					+ hL * WordBits * sizeof(UInt16));
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
+                    + hL * WordBits * sizeof(UInt16));
 
 /* ------------------------------- */
 /* Loop over 32-bit words in patch */
 /* ------------------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		pPair = (UInt32*)data16Bit;
+        pPair = (UInt32*)data16Bit;
 
-		for( h = hL; h <= hR; ++h, pPair += HalfBits ) {
+        for( h = hL; h <= hR; ++h, pPair += HalfBits ) {
 
-			if( W = map[h] ) {
+            if( W = map[h] ) {
 
-				/* --------------------------- */
-				/* Loop over bit pairs in word */
-				/* --------------------------- */
+                /* --------------------------- */
+                /* Loop over bit pairs in word */
+                /* --------------------------- */
 
-				for( pairIdx = 0; pairIdx < HalfBits; ++pairIdx ) {
+                for( pairIdx = 0; pairIdx < HalfBits; ++pairIdx ) {
 
-					pair = pPair[pairIdx];
+                    pair = pPair[pairIdx];
 
-					if( IsHiBitSet32( W ) ) {
+                    if( IsHiBitSet32( W ) ) {
 
-						if( (x = pair & LoMask) <
-							pixelValueRange ) {
+                        if( (x = pair & LoMask) <
+                            pixelValueRange ) {
 
-							++binArray[x];
-							++N;
-						}
-						else {
-							oflowS += x;
-							++oflowC;
-						}
-					}
+                            ++binArray[x];
+                            ++N;
+                        }
+                        else {
+                            oflowS += x;
+                            ++oflowC;
+                        }
+                    }
 
-					W <<= 1;
+                    W <<= 1;
 
-					if( IsHiBitSet32( W ) ) {
+                    if( IsHiBitSet32( W ) ) {
 
-						if( (x = pair >> HalfBits) <
-							pixelValueRange ) {
+                        if( (x = pair >> HalfBits) <
+                            pixelValueRange ) {
 
-							++binArray[x];
-							++N;
-						}
-						else {
-							oflowS += x;
-							++oflowC;
-						}
-					}
+                            ++binArray[x];
+                            ++N;
+                        }
+                        else {
+                            oflowS += x;
+                            ++oflowC;
+                        }
+                    }
 
-					W <<= 1;
-				}
-			}
-		}
-	}
+                    W <<= 1;
+                }
+            }
+        }
+    }
 
 exit:
-	if( oFlowCnt )
-		*oFlowCnt = oflowC;
+    if( oFlowCnt )
+        *oFlowCnt = oflowC;
 
-	if( oFlowSum )
-		*oFlowSum = oflowS;
+    if( oFlowSum )
+        *oFlowSum = oflowS;
 
-	return N;
+    return N;
 }
 
 
@@ -1069,133 +1069,133 @@ exit:
  */
 
 FP32 RGNBlobGrainsV0(
-	RGN_Grain_Ptr		sums,
-	const UInt16		*data16Bit,
-	const UInt32		*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	int					granPix,
-	int					corePix,
-	FP32				minGradient,
-	UInt32				*visMap )
+    RGN_Grain_Ptr		sums,
+    const UInt16		*data16Bit,
+    const UInt32		*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    int					granPix,
+    int					corePix,
+    FP32				minGradient,
+    UInt32				*visMap )
 {
-	U16Box	rGrid;
-	int		N;
+    U16Box	rGrid;
+    int		N;
 
 /* ---- */
 /* Init */
 /* ---- */
 
-	N = 0;
+    N = 0;
 
-	if( sums )
-		MEMZeroBytes( sums, sizeof(RGN_Grain_Rec) );
+    if( sums )
+        MEMZeroBytes( sums, sizeof(RGN_Grain_Rec) );
 
-	if( visMap )
-		BMAPSetBox( visMap, hPix, vPix, rBlob );
+    if( visMap )
+        BMAPSetBox( visMap, hPix, vPix, rBlob );
 
 /* -------------------- */
 /* For each grid box... */
 /* -------------------- */
 
-	rGrid.top		= rBlob->top;
-	rGrid.bottom	= rGrid.top + granPix;
+    rGrid.top		= rBlob->top;
+    rGrid.bottom	= rGrid.top + granPix;
 
-	for( ; rGrid.bottom <= rBlob->bottom;
-		rGrid.top = rGrid.bottom, rGrid.bottom += granPix ) {
+    for( ; rGrid.bottom <= rBlob->bottom;
+        rGrid.top = rGrid.bottom, rGrid.bottom += granPix ) {
 
-		rGrid.left	= rBlob->left;
-		rGrid.right	= rGrid.left + granPix;
+        rGrid.left	= rBlob->left;
+        rGrid.right	= rGrid.left + granPix;
 
-		for( ; rGrid.right <= rBlob->right;
-			rGrid.left = rGrid.right, rGrid.right += granPix ) {
+        for( ; rGrid.right <= rBlob->right;
+            rGrid.left = rGrid.right, rGrid.right += granPix ) {
 
-			RGN_Ipk_Rec		I1, I2;
-			SUM_F_A_Rec		fPeri, fCore;
-			U16Box			rGran, rCore;
+            RGN_Ipk_Rec		I1, I2;
+            SUM_F_A_Rec		fPeri, fCore;
+            U16Box			rGran, rCore;
 
-			/* --------------------- */
-			/* Locate bightest pixel */
-			/* --------------------- */
+            /* --------------------- */
+            /* Locate bightest pixel */
+            /* --------------------- */
 
-			RGNBox_Ipk( &I1, data16Bit, map, hPix, vPix,
-				rBlob, &rGrid );
+            RGNBox_Ipk( &I1, data16Bit, map, hPix, vPix,
+                rBlob, &rGrid );
 
-			/* ---------------------- */
-			/* Center rGran box on it */
-			/* ---------------------- */
+            /* ---------------------- */
+            /* Center rGran box on it */
+            /* ---------------------- */
 
-			rGran.top		= I1.v - granPix / 2;
-			rGran.left		= I1.h - granPix / 2;
-			rGran.bottom	= rGran.top  + granPix;
-			rGran.right		= rGran.left + granPix;
+            rGran.top		= I1.v - granPix / 2;
+            rGran.left		= I1.h - granPix / 2;
+            rGran.bottom	= rGran.top  + granPix;
+            rGran.right		= rGran.left + granPix;
 
-			/* ----------------------------------------- */
-			/* Verify center pixel is brightest in rGran */
-			/* ----------------------------------------- */
+            /* ----------------------------------------- */
+            /* Verify center pixel is brightest in rGran */
+            /* ----------------------------------------- */
 
-			RGNBox_Ipk( &I2, data16Bit, map, hPix, vPix,
-				rBlob, &rGran );
+            RGNBox_Ipk( &I2, data16Bit, map, hPix, vPix,
+                rBlob, &rGran );
 
-			if( I2.v != I1.v || I2.h != I1.h )
-				continue;
+            if( I2.v != I1.v || I2.h != I1.h )
+                continue;
 
-			/* ----------------------- */
-			/* Measure rGran perimeter */
-			/* ----------------------- */
+            /* ----------------------- */
+            /* Measure rGran perimeter */
+            /* ----------------------- */
 
-			RGNBoxPerim_F_A( &fPeri, data16Bit, map, hPix, vPix,
-				rBlob, &rGran );
+            RGNBoxPerim_F_A( &fPeri, data16Bit, map, hPix, vPix,
+                rBlob, &rGran );
 
-			if( !fPeri.F )
-				continue;
+            if( !fPeri.F )
+                continue;
 
-			/* -------------------- */
-			/* Measure granule core */
-			/* -------------------- */
+            /* -------------------- */
+            /* Measure granule core */
+            /* -------------------- */
 
-			rCore.top		= I1.v - corePix / 2;
-			rCore.left		= I1.h - corePix / 2;
-			rCore.bottom	= rCore.top  + corePix;
-			rCore.right		= rCore.left + corePix;
+            rCore.top		= I1.v - corePix / 2;
+            rCore.left		= I1.h - corePix / 2;
+            rCore.bottom	= rCore.top  + corePix;
+            rCore.right		= rCore.left + corePix;
 
-			RGNBox_F_A( &fCore, data16Bit, map, hPix, vPix,
-				rBlob, &rCore );
+            RGNBox_F_A( &fCore, data16Bit, map, hPix, vPix,
+                rBlob, &rCore );
 
-			if( !fCore.A )
-				continue;
+            if( !fCore.A )
+                continue;
 
-			/* ------- */
-			/* Qualify */
-			/* ------- */
+            /* ------- */
+            /* Qualify */
+            /* ------- */
 
-			if( (FP32)(fCore.F * fPeri.A) / (fCore.A * fPeri.F)
-				>= minGradient ) {
+            if( (FP32)(fCore.F * fPeri.A) / (fCore.A * fPeri.F)
+                >= minGradient ) {
 
-				++N;
+                ++N;
 
-				if( sums ) {
+                if( sums ) {
 
-					SUM_F_A_Rec	s;
+                    SUM_F_A_Rec	s;
 
-					RGNBox_F_A( &s, data16Bit, map, hPix, vPix,
-						rBlob, &rGran );
+                    RGNBox_F_A( &s, data16Bit, map, hPix, vPix,
+                        rBlob, &rGran );
 
-					sums->grains.F += s.F;
-					sums->grains.A += s.A;
-				}
+                    sums->grains.F += s.F;
+                    sums->grains.A += s.A;
+                }
 
-				if( visMap )
-					BMAPSetBox( visMap, hPix, vPix, &rGran );
-			}
-		}
-	}
+                if( visMap )
+                    BMAPSetBox( visMap, hPix, vPix, &rGran );
+            }
+        }
+    }
 
-	if( sums && N )
-		SUMBlob_F_A( &sums->blob, data16Bit, map, hPix, vPix, rBlob );
+    if( sums && N )
+        SUMBlob_F_A( &sums->blob, data16Bit, map, hPix, vPix, rBlob );
 
-	return (FP32)N;
+    return (FP32)N;
 }
 
 
@@ -1211,104 +1211,104 @@ FP32 RGNBlobGrainsV0(
  */
 
 void RGNRethresholdBlob(
-	const UInt16		*data16Bit,
-	UInt32				*map,
-	UInt32				hPix,
-	UInt32				vPix,
-	UInt32				thresh,
-	const U16BoxPtr		rBlob )
+    const UInt16		*data16Bit,
+    UInt32				*map,
+    UInt32				hPix,
+    UInt32				vPix,
+    UInt32				thresh,
+    const U16BoxPtr		rBlob )
 {
-	UInt32	*pPair;
-	UInt32	mapRowBytes, imgRowBytes, pair, W, bit, keep;
-	int		v, h, hL, hR, pairIdx,
-			top, left, bot, right;
+    UInt32	*pPair;
+    UInt32	mapRowBytes, imgRowBytes, pair, W, bit, keep;
+    int		v, h, hL, hR, pairIdx,
+            top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	mapRowBytes	= BitToByte( hPix );
-	imgRowBytes	= hPix * sizeof(UInt16);
+    mapRowBytes	= BitToByte( hPix );
+    imgRowBytes	= hPix * sizeof(UInt16);
 
-	top			= rBlob->top;
-	left		= rBlob->left;
-	bot			= rBlob->bottom;
-	right		= rBlob->right;
+    top			= rBlob->top;
+    left		= rBlob->left;
+    bot			= rBlob->bottom;
+    right		= rBlob->right;
 
-	if( bot > (int)vPix )
-		bot = vPix;
+    if( bot > (int)vPix )
+        bot = vPix;
 
-	if( right > (int)hPix )
-		right = hPix;
+    if( right > (int)hPix )
+        right = hPix;
 
-	if( top >= bot )
-		goto exit;
+    if( top >= bot )
+        goto exit;
 
-	if( left >= right )
-		goto exit;
+    if( left >= right )
+        goto exit;
 
-	hL	= BitToWord( left );
-	hR	= BitToWord( right - 1 );
+    hL	= BitToWord( left );
+    hR	= BitToWord( right - 1 );
 
-	map			= (UInt32*)((char*)map + mapRowBytes * top);
-	data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
-					+ hL * WordBits * sizeof(UInt16));
+    map			= (UInt32*)((char*)map + mapRowBytes * top);
+    data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes * top
+                    + hL * WordBits * sizeof(UInt16));
 
 /* ------------------------------- */
 /* Loop over 32-bit words in patch */
 /* ------------------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
-		map			= (UInt32*)((char*)map + mapRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit	= (UInt16*)((char*)data16Bit + imgRowBytes),
+        map			= (UInt32*)((char*)map + mapRowBytes) ) {
 
-		pPair = (UInt32*)data16Bit;
+        pPair = (UInt32*)data16Bit;
 
-		for( h = hL; h <= hR; ++h, pPair += HalfBits ) {
+        for( h = hL; h <= hR; ++h, pPair += HalfBits ) {
 
-			if( W = map[h] ) {
+            if( W = map[h] ) {
 
-				bit		= HiBit;
-				keep	= 0;
+                bit		= HiBit;
+                keep	= 0;
 
-				/* --------------------------- */
-				/* Loop over bit pairs in word */
-				/* --------------------------- */
+                /* --------------------------- */
+                /* Loop over bit pairs in word */
+                /* --------------------------- */
 
-				for( pairIdx = 0; pairIdx < HalfBits; ++pairIdx ) {
+                for( pairIdx = 0; pairIdx < HalfBits; ++pairIdx ) {
 
-					pair = pPair[pairIdx];
+                    pair = pPair[pairIdx];
 
-					if( IsHiBitSet32( W ) ) {
+                    if( IsHiBitSet32( W ) ) {
 
-						if( (pair & LoMask) >= thresh )
-							keep |= bit;
-					}
+                        if( (pair & LoMask) >= thresh )
+                            keep |= bit;
+                    }
 
-					W	<<= 1;
-					bit	>>= 1;
+                    W	<<= 1;
+                    bit	>>= 1;
 
-					if( IsHiBitSet32( W ) ) {
+                    if( IsHiBitSet32( W ) ) {
 
-						if( (pair >> HalfBits) >= thresh )
-							keep |= bit;
-					}
+                        if( (pair >> HalfBits) >= thresh )
+                            keep |= bit;
+                    }
 
-					W	<<= 1;
-					bit	>>= 1;
-				}
+                    W	<<= 1;
+                    bit	>>= 1;
+                }
 
-				/* ---------------------------- */
-				/* Update map word with keepers */
-				/* ---------------------------- */
+                /* ---------------------------- */
+                /* Update map word with keepers */
+                /* ---------------------------- */
 
-				map[h] = keep;
-			}
-		}
-	}
+                map[h] = keep;
+            }
+        }
+    }
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1330,31 +1330,31 @@ exit:
  */
 
 UInt32 *RGNErodeBlob(
-	UInt32				*erMap0,
-	UInt32				*erMap1,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	UInt32				N )
+    UInt32				*erMap0,
+    UInt32				*erMap1,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    UInt32				N )
 {
-	int		i;
+    int		i;
 
 /* -------------------------- */
 /* Prepare erosion workspaces */
 /* -------------------------- */
 
-	BMAPZeroPatch( erMap0, hPix, vPix, rBlob );
-	BMAPZeroPatch( erMap1, hPix, vPix, rBlob );
+    BMAPZeroPatch( erMap0, hPix, vPix, rBlob );
+    BMAPZeroPatch( erMap1, hPix, vPix, rBlob );
 
 /* ----- */
 /* Erode */
 /* ----- */
 
-	i = BMAPInsetPatch_NPixels( erMap0, erMap1, srcMap,
-			hPix, vPix, N, rBlob );
+    i = BMAPInsetPatch_NPixels( erMap0, erMap1, srcMap,
+            hPix, vPix, N, rBlob );
 
-	return (i ? erMap1 : erMap0);
+    return (i ? erMap1 : erMap0);
 }
 
 
@@ -1397,20 +1397,20 @@ UInt32 *RGNErodeBlob(
  */
 
 UInt32 *RGNDilateBlob(
-	UInt32				*dilMap0,
-	UInt32				*dilMap1,
-	const UInt32		*srcMap,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob,
-	UInt32				N )
+    UInt32				*dilMap0,
+    UInt32				*dilMap1,
+    const UInt32		*srcMap,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob,
+    UInt32				N )
 {
-	int		i;
+    int		i;
 
-	i = BMAPTracePatch_NPixels( dilMap0, dilMap1, srcMap,
-			hPix, vPix, N, rBlob );
+    i = BMAPTracePatch_NPixels( dilMap0, dilMap1, srcMap,
+            hPix, vPix, N, rBlob );
 
-	return (i ? dilMap1 : dilMap0);
+    return (i ? dilMap1 : dilMap0);
 }
 
 
@@ -1427,66 +1427,66 @@ UInt32 *RGNDilateBlob(
  */
 
 void RGNGetHolesBlob(
-	UInt32				*dstMap,
-	const UInt32		*srcMap,
-	UInt32				*tmpMap,
-	void				*bucketScratch,
-	UInt32				hPix,
-	UInt32				vPix,
-	const U16BoxPtr		rBlob )
+    UInt32				*dstMap,
+    const UInt32		*srcMap,
+    UInt32				*tmpMap,
+    void				*bucketScratch,
+    UInt32				hPix,
+    UInt32				vPix,
+    const U16BoxPtr		rBlob )
 {
-	U16Box	R;
-	int		h, v;
+    U16Box	R;
+    int		h, v;
 
 /* ------------------------------------- */
 /* One-pixel-larger box: blob's exterior */
 /* ------------------------------------- */
 
-	GEOMOutsetU16Box( &R, rBlob, hPix, vPix, 1 );
+    GEOMOutsetU16Box( &R, rBlob, hPix, vPix, 1 );
 
 /* -------------------- */
 /* Perimeter seed point */
 /* -------------------- */
 
-	h = R.left;
-	v = R.top;
+    h = R.left;
+    v = R.top;
 
-	if( !rBlob->left ) {
+    if( !rBlob->left ) {
 
-		if( (h = rBlob->right) >= (int)hPix )
-			goto exit;
-	}
+        if( (h = rBlob->right) >= (int)hPix )
+            goto exit;
+    }
 
-	if( !rBlob->top ) {
+    if( !rBlob->top ) {
 
-		if( (v = rBlob->bottom) >= (int)vPix )
-			goto exit;
-	}
+        if( (v = rBlob->bottom) >= (int)vPix )
+            goto exit;
+    }
 
 /* ------------------------------ */
 /* Create inverted blob in tmpMap */
 /* ------------------------------ */
 
-	BMAPFillPatch( tmpMap, hPix, vPix, &R );
+    BMAPFillPatch( tmpMap, hPix, vPix, &R );
 
-	BMAPBicPatch( tmpMap, srcMap, hPix, vPix, rBlob );
+    BMAPBicPatch( tmpMap, srcMap, hPix, vPix, rBlob );
 
 /* ------------------------------- */
 /* Remove connections to perimeter */
 /* ------------------------------- */
 
-	BMAPBoxedBucketTool( &R, tmpMap,
-		(BMAPBucketPtr)bucketScratch,
-		hPix, vPix, h, v, &R );
+    BMAPBoxedBucketTool( &R, tmpMap,
+        (BMAPBucketPtr)bucketScratch,
+        hPix, vPix, h, v, &R );
 
 /* --------------------------------- */
 /* OR remaining holes to destination */
 /* --------------------------------- */
 
-	BMAPOrBox( dstMap, tmpMap, hPix, vPix, rBlob );
+    BMAPOrBox( dstMap, tmpMap, hPix, vPix, rBlob );
 
 exit:
-	return;
+    return;
 }
 
 
@@ -1544,94 +1544,94 @@ exit:
  */
 
 void RGNDelTouchingRegion(
-	UInt32				*dstMap,
-	const U16BoxPtr		rDst,
-	const UInt32		*rgnMap,
-	const U16BoxPtr		rRgn,
-	UInt32				*tmpMap0,
-	UInt32				*tmpMap1,
-	void				*bucketScratch,
-	UInt32				hPix,
-	UInt32				vPix )
+    UInt32				*dstMap,
+    const U16BoxPtr		rDst,
+    const UInt32		*rgnMap,
+    const U16BoxPtr		rRgn,
+    UInt32				*tmpMap0,
+    UInt32				*tmpMap1,
+    void				*bucketScratch,
+    UInt32				hPix,
+    UInt32				vPix )
 {
-	UInt32	*K = tmpMap0,
-			*D = tmpMap1;
-	U16Box	rK, rDstPatch, rRgnPatch;
-	UInt32	hSeed, vSeed;
+    UInt32	*K = tmpMap0,
+            *D = tmpMap1;
+    U16Box	rK, rDstPatch, rRgnPatch;
+    UInt32	hSeed, vSeed;
 
 /* ---------------------------------------------------- */
 /* Work with entire patch content, not just BBox subset */
 /* ---------------------------------------------------- */
 
-	GEOMU16PatchBox( &rDstPatch, rDst, hPix, vPix );
-	GEOMU16PatchBox( &rRgnPatch, rRgn, hPix, vPix );
+    GEOMU16PatchBox( &rDstPatch, rDst, hPix, vPix );
+    GEOMU16PatchBox( &rRgnPatch, rRgn, hPix, vPix );
 
 /* --------------------------------------------------- */
 /* Limit killing region to intersection of two patches */
 /* --------------------------------------------------- */
 
-	if( !GEOMU16BoxIntersection( &rK, &rDstPatch, &rRgnPatch ) )
-		goto exit;
+    if( !GEOMU16BoxIntersection( &rK, &rDstPatch, &rRgnPatch ) )
+        goto exit;
 
 /* --------------------- */
 /* Killing region empty? */
 /* --------------------- */
 
-	if( !BMAPGetSeedPatch( &hSeed, &vSeed, rgnMap,
-			hPix, vPix, &rK, rK.top ) ) {
+    if( !BMAPGetSeedPatch( &hSeed, &vSeed, rgnMap,
+            hPix, vPix, &rK, rK.top ) ) {
 
-		goto exit;
-	}
+        goto exit;
+    }
 
 /* ------------------------------------------ */
 /* Store killing region for tracking purposes */
 /* ------------------------------------------ */
 
-	BMAPCopyPatch( K, rgnMap, hPix, vPix, &rK );
+    BMAPCopyPatch( K, rgnMap, hPix, vPix, &rK );
 
 /* ---------------------------------------- */
 /* OR region into dstMap to locate touchers */
 /* ---------------------------------------- */
 
-	BMAPOrPatch( dstMap, K, hPix, vPix, &rK );
+    BMAPOrPatch( dstMap, K, hPix, vPix, &rK );
 
 /* ---------------------------------- */
 /* Delete touchers until region empty */
 /* ---------------------------------- */
 
-	do {
+    do {
 
-		U16Box	rDum;
+        U16Box	rDum;
 
-		/* ----------------------------------------- */
-		/* Save copy of intersection before deletion */
-		/* ----------------------------------------- */
+        /* ----------------------------------------- */
+        /* Save copy of intersection before deletion */
+        /* ----------------------------------------- */
 
-		BMAPCopyPatch( D, dstMap, hPix, vPix, &rK );
+        BMAPCopyPatch( D, dstMap, hPix, vPix, &rK );
 
-		/* ------------------------ */
-		/* Delete using object find */
-		/* ------------------------ */
+        /* ------------------------ */
+        /* Delete using object find */
+        /* ------------------------ */
 
-		BMAPBoxedBucketTool( &rDum, dstMap,
-			(BMAPBucketPtr)bucketScratch,
-			hPix, vPix, hSeed, vSeed, &rDstPatch );
+        BMAPBoxedBucketTool( &rDum, dstMap,
+            (BMAPBucketPtr)bucketScratch,
+            hPix, vPix, hSeed, vSeed, &rDstPatch );
 
-		/* ---------------------- */
-		/* Update tracking region */
-		/* ---------------------- */
+        /* ---------------------- */
+        /* Update tracking region */
+        /* ---------------------- */
 
-		BMAPBicDifPatch( K, D, dstMap, hPix, vPix, &rK );
+        BMAPBicDifPatch( K, D, dstMap, hPix, vPix, &rK );
 
-		/* --------------------- */
-		/* Killing region empty? */
-		/* --------------------- */
+        /* --------------------- */
+        /* Killing region empty? */
+        /* --------------------- */
 
-	} while( BMAPGetSeedPatch( &hSeed, &vSeed, K,
-				hPix, vPix, &rK, vSeed ) );
+    } while( BMAPGetSeedPatch( &hSeed, &vSeed, K,
+                hPix, vPix, &rK, vSeed ) );
 
 exit:
-	return;
+    return;
 }
 
 

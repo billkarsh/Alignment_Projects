@@ -30,9 +30,9 @@ typedef int (*SORTSInt32Proc)( SInt32 A, SInt32 B );
 /* --------------------------------------------------------------- */
 
 void SORTSInt32(
-	SInt32				*base,
-	SInt32				nItems,
-	SORTSInt32Proc		compare );
+    SInt32				*base,
+    SInt32				nItems,
+    SORTSInt32Proc		compare );
 
 void SORTImmedAscending( SInt32 *base, UInt32 nItems );
 

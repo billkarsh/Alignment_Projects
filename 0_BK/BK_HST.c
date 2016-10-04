@@ -45,67 +45,67 @@
  */
 
 UInt32 HSTAltImageRowsUInt16(
-	UInt32			*oFlowCnt,
-	UInt32			*oFlowSum,
-	UInt32			*binArray,
-	UInt32			nBins,
-	const UInt16	*data16Bit,
-	int				hPix,
-	int				vPix )
+    UInt32			*oFlowCnt,
+    UInt32			*oFlowSum,
+    UInt32			*binArray,
+    UInt32			nBins,
+    const UInt16	*data16Bit,
+    int				hPix,
+    int				vPix )
 {
-	UInt32	*pPair;
-	UInt32	pair, v0, v1, oflowC, oflowS;
-	int		h, v, rowBytes;
+    UInt32	*pPair;
+    UInt32	pair, v0, v1, oflowC, oflowS;
+    int		h, v, rowBytes;
 
 /* ----------------- */
 /* Initialize output */
 /* ----------------- */
 
-	MEMZeroBytes( binArray, nBins * sizeof(UInt32) );
-	oflowC	= 0;
-	oflowS	= 0;
+    MEMZeroBytes( binArray, nBins * sizeof(UInt32) );
+    oflowC	= 0;
+    oflowS	= 0;
 
 /* ---------- */
 /* Accumulate */
 /* ---------- */
 
-	rowBytes	= hPix * sizeof(UInt16);
-	hPix		>>= 1;
-	pPair		= (UInt32*)data16Bit;
+    rowBytes	= hPix * sizeof(UInt16);
+    hPix		>>= 1;
+    pPair		= (UInt32*)data16Bit;
 
-	for( v = 0; v < vPix;
-		v += 2,
-		pPair = (UInt32*)((char*)pPair + rowBytes) ) {
+    for( v = 0; v < vPix;
+        v += 2,
+        pPair = (UInt32*)((char*)pPair + rowBytes) ) {
 
-		for( h = 0; h < hPix; ++h ) {
+        for( h = 0; h < hPix; ++h ) {
 
-			pair	= *pPair++;
-			v0		= pair & LoMask;
-			v1		= pair >> HalfBits;
+            pair	= *pPair++;
+            v0		= pair & LoMask;
+            v1		= pair >> HalfBits;
 
-			if( v0 < nBins )
-				++binArray[v0];
-			else {
-				oflowS += v0;
-				++oflowC;
-			}
+            if( v0 < nBins )
+                ++binArray[v0];
+            else {
+                oflowS += v0;
+                ++oflowC;
+            }
 
-			if( v1 < nBins )
-				++binArray[v1];
-			else {
-				oflowS += v1;
-				++oflowC;
-			}
-		}
-	}
+            if( v1 < nBins )
+                ++binArray[v1];
+            else {
+                oflowS += v1;
+                ++oflowC;
+            }
+        }
+    }
 
-	if( oFlowCnt )
-		*oFlowCnt = oflowC;
+    if( oFlowCnt )
+        *oFlowCnt = oflowC;
 
-	if( oFlowSum )
-		*oFlowSum = oflowS;
+    if( oFlowSum )
+        *oFlowSum = oflowS;
 
-	return (vPix + (vPix & 1)) / 2 * hPix - oflowC;
+    return (vPix + (vPix & 1)) / 2 * hPix - oflowC;
 }
 
 
@@ -124,87 +124,87 @@ UInt32 HSTAltImageRowsUInt16(
  */
 
 UInt32 HSTImageBoxUInt16(
-	UInt32			*oFlowCnt,
-	UInt32			*oFlowSum,
-	UInt32			*binArray,
-	UInt32			nBins,
-	const UInt16	*data16Bit,
-	int				hPix,
-	int				vPix,
-	const U16BoxPtr	box )
+    UInt32			*oFlowCnt,
+    UInt32			*oFlowSum,
+    UInt32			*binArray,
+    UInt32			nBins,
+    const UInt16	*data16Bit,
+    int				hPix,
+    int				vPix,
+    const U16BoxPtr	box )
 {
-	UInt32	imgRowBytes, N, x, oflowC, oflowS;
-	int		v, h, top, left, bot, right;
+    UInt32	imgRowBytes, N, x, oflowC, oflowS;
+    int		v, h, top, left, bot, right;
 
 /* --------------- */
 /* Initializations */
 /* --------------- */
 
-	MEMZeroBytes( binArray, nBins * sizeof(UInt32) );
-	N			= 0;
-	oflowC		= 0;
-	oflowS		= 0;
+    MEMZeroBytes( binArray, nBins * sizeof(UInt32) );
+    N			= 0;
+    oflowC		= 0;
+    oflowS		= 0;
 
-	imgRowBytes	= hPix * sizeof(UInt16);
+    imgRowBytes	= hPix * sizeof(UInt16);
 
 /* box limits */
 
-	if( box ) {
+    if( box ) {
 
-		top		= box->top;
-		left	= box->left;
-		bot		= box->bottom;
-		right	= box->right;
+        top		= box->top;
+        left	= box->left;
+        bot		= box->bottom;
+        right	= box->right;
 
-		if( bot > (int)vPix )
-			bot = vPix;
+        if( bot > (int)vPix )
+            bot = vPix;
 
-		if( right > (int)hPix )
-			right = hPix;
+        if( right > (int)hPix )
+            right = hPix;
 
-		if( top >= bot )
-			goto exit;
+        if( top >= bot )
+            goto exit;
 
-		if( left >= right )
-			goto exit;
-	}
-	else {
-		top		= 0;
-		left	= 0;
-		bot		= vPix;
-		right	= hPix;
-	}
+        if( left >= right )
+            goto exit;
+    }
+    else {
+        top		= 0;
+        left	= 0;
+        bot		= vPix;
+        right	= hPix;
+    }
 
-	data16Bit = (UInt16*)((char*)data16Bit + imgRowBytes * top);
+    data16Bit = (UInt16*)((char*)data16Bit + imgRowBytes * top);
 
 /* ---------------------- */
 /* Loop over boxed pixels */
 /* ---------------------- */
 
-	for( v = top; v < bot; ++v,
-		data16Bit = (UInt16*)((char*)data16Bit + imgRowBytes) ) {
+    for( v = top; v < bot; ++v,
+        data16Bit = (UInt16*)((char*)data16Bit + imgRowBytes) ) {
 
-		for( h = left; h < right; ++h ) {
+        for( h = left; h < right; ++h ) {
 
-			if( (x = data16Bit[h]) < nBins ) {
-				++binArray[x];
-				++N;
-			}
-			else {
-				oflowS += x;
-				++oflowC;
-			}
-		}
-	}
+            if( (x = data16Bit[h]) < nBins ) {
+                ++binArray[x];
+                ++N;
+            }
+            else {
+                oflowS += x;
+                ++oflowC;
+            }
+        }
+    }
 
 exit:
-	if( oFlowCnt )
-		*oFlowCnt = oflowC;
+    if( oFlowCnt )
+        *oFlowCnt = oflowC;
 
-	if( oFlowSum )
-		*oFlowSum = oflowS;
+    if( oFlowSum )
+        *oFlowSum = oflowS;
 
-	return N;
+    return N;
 }
 
 
@@ -237,59 +237,59 @@ exit:
  */
 
 UInt32 HSTUnitWidthUInt16(
-	UInt32			*oFlowCnt,
-	UInt32			*oFlowSum,
-	UInt32			*binArray,
-	UInt32			nBins,
-	const UInt16	*data16Bit,
-	UInt32			nData )
+    UInt32			*oFlowCnt,
+    UInt32			*oFlowSum,
+    UInt32			*binArray,
+    UInt32			nBins,
+    const UInt16	*data16Bit,
+    UInt32			nData )
 {
-	UInt32	*pPair;
-	UInt32	i, pair, v0, v1, oflowC, oflowS;
+    UInt32	*pPair;
+    UInt32	i, pair, v0, v1, oflowC, oflowS;
 
 /* ----------------- */
 /* Initialize output */
 /* ----------------- */
 
-	MEMZeroBytes( binArray, nBins * sizeof(UInt32) );
-	oflowC	= 0;
-	oflowS	= 0;
+    MEMZeroBytes( binArray, nBins * sizeof(UInt32) );
+    oflowC	= 0;
+    oflowS	= 0;
 
 /* ---------- */
 /* Accumulate */
 /* ---------- */
 
-	nData >>= 1;
-	pPair   = (UInt32*)data16Bit;
+    nData >>= 1;
+    pPair   = (UInt32*)data16Bit;
 
-	for( i = 0; i < nData; ++i ) {
+    for( i = 0; i < nData; ++i ) {
 
-		pair	= *pPair++;
-		v0		= pair & LoMask;
-		v1		= pair >> HalfBits;
+        pair	= *pPair++;
+        v0		= pair & LoMask;
+        v1		= pair >> HalfBits;
 
-		if( v0 < nBins )
-			++binArray[v0];
-		else {
-			oflowS += v0;
-			++oflowC;
-		}
+        if( v0 < nBins )
+            ++binArray[v0];
+        else {
+            oflowS += v0;
+            ++oflowC;
+        }
 
-		if( v1 < nBins )
-			++binArray[v1];
-		else {
-			oflowS += v1;
-			++oflowC;
-		}
-	}
+        if( v1 < nBins )
+            ++binArray[v1];
+        else {
+            oflowS += v1;
+            ++oflowC;
+        }
+    }
 
-	if( oFlowCnt )
-		*oFlowCnt = oflowC;
+    if( oFlowCnt )
+        *oFlowCnt = oflowC;
 
-	if( oFlowSum )
-		*oFlowSum = oflowS;
+    if( oFlowSum )
+        *oFlowSum = oflowS;
 
-	return nData - oflowC;
+    return nData - oflowC;
 }
 
 
@@ -335,85 +335,85 @@ UInt32 HSTUnitWidthUInt16(
  */
 
 int HSTGeneralFP32(
-	FP32			*uFlow,
-	FP32			*oFlow,
-	UInt16			*binArray,
-	UInt32			nBins,
-	const FP32		*pFirstVal,
-	UInt32			recBytes,
-	UInt32			nData,
-	FP32			minH,
-	FP32			maxH )
+    FP32			*uFlow,
+    FP32			*oFlow,
+    UInt16			*binArray,
+    UInt32			nBins,
+    const FP32		*pFirstVal,
+    UInt32			recBytes,
+    UInt32			nData,
+    FP32			minH,
+    FP32			maxH )
 {
-	FP32	rng;
-	int		i, count, maxV;
+    FP32	rng;
+    int		i, count, maxV;
 
 /* ----------------- */
 /* Initialize output */
 /* ----------------- */
 
-	MEMZeroBytes( binArray, nBins * sizeof(UInt16) );
+    MEMZeroBytes( binArray, nBins * sizeof(UInt16) );
 
-	rng = maxH - minH;
+    rng = maxH - minH;
 
-	if( !nData || rng <= 0.0F ) {
-		binArray[0] = (int)nData;
-		maxV		= nData;
-		goto exit;
-	}
+    if( !nData || rng <= 0.0F ) {
+        binArray[0] = (int)nData;
+        maxV		= nData;
+        goto exit;
+    }
 
 /* ---------- */
 /* Accumulate */
 /* ---------- */
 
-	--nBins;
+    --nBins;
 
-	if( !uFlow ) {
+    if( !uFlow ) {
 
-		for( i = 0; i < (int)nData;
-			++i,
-			pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
+        for( i = 0; i < (int)nData;
+            ++i,
+            pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
 
-			++binArray[(int)((*pFirstVal - minH) * nBins / rng)];
-		}
-	}
-	else {
+            ++binArray[(int)((*pFirstVal - minH) * nBins / rng)];
+        }
+    }
+    else {
 
-		FP32	v;
-		UInt32	uflow = 0, oflow = 0;
+        FP32	v;
+        UInt32	uflow = 0, oflow = 0;
 
-		for( i = 0; i < (int)nData;
-			++i,
-			pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
+        for( i = 0; i < (int)nData;
+            ++i,
+            pFirstVal = (const FP32*)((char*)pFirstVal + recBytes) ) {
 
-			if( (v = *pFirstVal) < minH )
-				++uflow;
-			else if( v > maxH )
-				++oflow;
-			else
-				++binArray[(int)((v - minH) * nBins / rng)];
-		}
+            if( (v = *pFirstVal) < minH )
+                ++uflow;
+            else if( v > maxH )
+                ++oflow;
+            else
+                ++binArray[(int)((v - minH) * nBins / rng)];
+        }
 
-		*uFlow	= (FP32)uflow;
-		*oFlow	= (FP32)oflow;
-	}
+        *uFlow	= (FP32)uflow;
+        *oFlow	= (FP32)oflow;
+    }
 
-	++nBins;
+    ++nBins;
 
 /* ---------------- */
 /* Find highest bin */
 /* ---------------- */
 
-	maxV = 0;
+    maxV = 0;
 
-	for( i = 0; i < (int)nBins; ++i ) {
+    for( i = 0; i < (int)nBins; ++i ) {
 
-		if( (count = binArray[i]) > maxV )
-			maxV = count;
-	}
+        if( (count = binArray[i]) > maxV )
+            maxV = count;
+    }
 
 exit:
-	return maxV;
+    return maxV;
 }
 
 
