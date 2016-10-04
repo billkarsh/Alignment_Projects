@@ -35,34 +35,34 @@
 class CArgs_xml {
 
 private:
-	char	locxml[2048],
-			images[2048],
-			curlyr[2048];
+    char	locxml[2048],
+            images[2048],
+            curlyr[2048];
 
 public:
-	const char	*infile,
-				*dst;
-	int			zmin, zmax;
+    const char	*infile,
+                *dst;
+    int			zmin, zmax;
 
 public:
-	CArgs_xml()
-	{
-		locxml[0]	= 0;
-		images[0]	= 0;
-		curlyr[0]	= 0;
-		infile		= NULL;
-		dst			= NULL;
-		zmin		= 0;
-		zmax		= 32768;
-	};
+    CArgs_xml()
+    {
+        locxml[0]	= 0;
+        images[0]	= 0;
+        curlyr[0]	= 0;
+        infile		= NULL;
+        dst			= NULL;
+        zmin		= 0;
+        zmax		= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
-	void TopLevel();
-	void NewLayer( int z );
-	int  CopyImg( TiXmlElement* ptch );
-	void SetRelPath( TiXmlElement* ptch );
-	char *GetXML()	{return locxml;};
-	void RenameXML();
+    void SetCmdLine( int argc, char* argv[] );
+    void TopLevel();
+    void NewLayer( int z );
+    int  CopyImg( TiXmlElement* ptch );
+    void SetRelPath( TiXmlElement* ptch );
+    char *GetXML()	{return locxml;};
+    void RenameXML();
 };
 
 /* --------------------------------------------------------------- */
@@ -85,47 +85,47 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "LocalProj.log", "w" );
+    flog = FileOpenOrDie( "LocalProj.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 5 ) {
-		printf( "Usage: localproj <xml-file1>"
-		" -dst=path -zmin=i -zmax=j.\n" );
-		exit( 42 );
-	}
+    if( argc < 5 ) {
+        printf( "Usage: localproj <xml-file1>"
+        " -dst=path -zmin=i -zmax=j.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArgStr( dst, "-dst=", argv[i] ) )
-			;
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArgStr( dst, "-dst=", argv[i] ) )
+            ;
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -134,21 +134,21 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 void CArgs_xml::TopLevel()
 {
-	char		buf[2048];
-	const char	*s;
+    char		buf[2048];
+    const char	*s;
 
 // create top directory
-	DskCreateDir( dst, flog );
+    DskCreateDir( dst, flog );
 
 // copy xml
-	s = FileNamePtr( infile );
-	sprintf( locxml, "%s/%s", dst, s );
-	sprintf( buf, "cp %s %s", infile, locxml );
-	system( buf );
+    s = FileNamePtr( infile );
+    sprintf( locxml, "%s/%s", dst, s );
+    sprintf( buf, "cp %s %s", infile, locxml );
+    system( buf );
 
 // create images folder
-	sprintf( images, "%s/Images", dst );
-	DskCreateDir( images, flog );
+    sprintf( images, "%s/Images", dst );
+    DskCreateDir( images, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -157,8 +157,8 @@ void CArgs_xml::TopLevel()
 
 void CArgs_xml::NewLayer( int z )
 {
-	sprintf( curlyr, "%s/Z%d", images, z );
-	DskCreateDir( curlyr, flog );
+    sprintf( curlyr, "%s/Z%d", images, z );
+    DskCreateDir( curlyr, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -167,16 +167,16 @@ void CArgs_xml::NewLayer( int z )
 
 int CArgs_xml::CopyImg( TiXmlElement* ptch )
 {
-	char	buf[4096];
-	const char	*p = ptch->Attribute( "file_path" ),
-				*n = FileNamePtr( p );
+    char	buf[4096];
+    const char	*p = ptch->Attribute( "file_path" ),
+                *n = FileNamePtr( p );
 
-	sprintf( buf, "cp %s %s/%s", p, curlyr, n );
-	system( buf );
+    sprintf( buf, "cp %s %s/%s", p, curlyr, n );
+    system( buf );
 
-	sprintf( buf, "%s/%s", curlyr, n );
+    sprintf( buf, "%s/%s", curlyr, n );
 
-	return DskExists( buf );
+    return DskExists( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -185,13 +185,13 @@ int CArgs_xml::CopyImg( TiXmlElement* ptch )
 
 void CArgs_xml::SetRelPath( TiXmlElement* ptch )
 {
-	char	buf[2048];
+    char	buf[2048];
 
-	sprintf( buf, "%s/%s",
-		strstr( curlyr, "Images/Z" ),
-		FileNamePtr( ptch->Attribute( "file_path" ) ) );
+    sprintf( buf, "%s/%s",
+        strstr( curlyr, "Images/Z" ),
+        FileNamePtr( ptch->Attribute( "file_path" ) ) );
 
-	ptch->SetAttribute( "file_path", buf );
+    ptch->SetAttribute( "file_path", buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -200,11 +200,11 @@ void CArgs_xml::SetRelPath( TiXmlElement* ptch )
 
 void CArgs_xml::RenameXML()
 {
-	char	buf[4096];
-	int		len = strlen( locxml );
+    char	buf[4096];
+    int		len = strlen( locxml );
 
-	sprintf( buf, "mv %.*s_v2.xml %s", len - 4, locxml, locxml );
-	system( buf );
+    sprintf( buf, "mv %.*s_v2.xml %s", len - 4, locxml, locxml );
+    system( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -213,13 +213,13 @@ void CArgs_xml::RenameXML()
 
 static void UpdateTiles( TiXmlElement* layer )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+    for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		if( gArgs.CopyImg( ptch ) )
-			gArgs.SetRelPath( ptch );
-	}
+        if( gArgs.CopyImg( ptch ) )
+            gArgs.SetRelPath( ptch );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -232,52 +232,52 @@ static void DoLayers()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.GetXML(), flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.GetXML(), flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ------------------------- */
 /* Kill layers outside range */
 /* ------------------------- */
 
-	TiXmlNode*		lyrset = layer->Parent();
-	TiXmlElement*	next;
+    TiXmlNode*		lyrset = layer->Parent();
+    TiXmlElement*	next;
 
-	for( ; layer; layer = next ) {
+    for( ; layer; layer = next ) {
 
-		// next layer0 before deleting anything
-		next = layer->NextSiblingElement();
+        // next layer0 before deleting anything
+        next = layer->NextSiblingElement();
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z < gArgs.zmin || z > gArgs.zmax )
-			lyrset->RemoveChild( layer );
-	}
+        if( z < gArgs.zmin || z > gArgs.zmax )
+            lyrset->RemoveChild( layer );
+    }
 
 /* --------------------------- */
 /* Copies for remaining layers */
 /* --------------------------- */
 
-	layer = lyrset->FirstChild( "t2_layer" )->ToElement();
+    layer = lyrset->FirstChild( "t2_layer" )->ToElement();
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		gArgs.NewLayer( z );
-		UpdateTiles( layer );
-	}
+        gArgs.NewLayer( z );
+        UpdateTiles( layer );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 
 /* ------------------ */
 /* Rename version two */
 /* ------------------ */
 
-	gArgs.RenameXML();
+    gArgs.RenameXML();
 }
 
 /* --------------------------------------------------------------- */
@@ -290,28 +290,28 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* --------- */
 /* Top level */
 /* --------- */
 
-	gArgs.TopLevel();
+    gArgs.TopLevel();
 
 /* ------------------ */
 /* Process the layers */
 /* ------------------ */
 
-	DoLayers();
+    DoLayers();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

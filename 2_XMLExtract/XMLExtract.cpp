@@ -28,19 +28,19 @@
 class CArgs_xml {
 
 public:
-	vector<double>	lrbt;		// if not empty, forced bbox
-	char			*infile;
-	int				zmin, zmax;
+    vector<double>	lrbt;		// if not empty, forced bbox
+    char			*infile;
+    int				zmin, zmax;
 
 public:
-	CArgs_xml()
-	{
-		infile	= NULL;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    CArgs_xml()
+    {
+        infile	= NULL;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -63,66 +63,66 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLExtract.log", "w" );
+    flog = FileOpenOrDie( "XMLExtract.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 4 ) {
-		printf( "Usage: XMLExtract <xml-file1> -zmin=i -zmax=j.\n" );
-		exit( 42 );
-	}
+    if( argc < 4 ) {
+        printf( "Usage: XMLExtract <xml-file1> -zmin=i -zmax=j.\n" );
+        exit( 42 );
+    }
 
-	vector<double>	xyr;
+    vector<double>	xyr;
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArgList( lrbt, "-lrbt=", argv[i] ) ) {
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else if( GetArgList( lrbt, "-lrbt=", argv[i] ) ) {
 
-			if( 4 != lrbt.size() ) {
-				printf( "Bad format in -lrbt [%s].\n", argv[i] );
-				exit( 42 );
-			}
-		}
-		else if( GetArgList( xyr, "-xyr=", argv[i] ) ) {
+            if( 4 != lrbt.size() ) {
+                printf( "Bad format in -lrbt [%s].\n", argv[i] );
+                exit( 42 );
+            }
+        }
+        else if( GetArgList( xyr, "-xyr=", argv[i] ) ) {
 
-			if( 3 != xyr.size() ) {
-				printf( "Bad format in -xyr [%s].\n", argv[i] );
-				exit( 42 );
-			}
+            if( 3 != xyr.size() ) {
+                printf( "Bad format in -xyr [%s].\n", argv[i] );
+                exit( 42 );
+            }
 
-			lrbt.resize( 4 );
-			lrbt[0] = xyr[0] - xyr[2];
-			lrbt[1] = xyr[0] + xyr[2];
-			lrbt[2] = xyr[1] - xyr[2];
-			lrbt[3] = xyr[1] + xyr[2];
-		}
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            lrbt.resize( 4 );
+            lrbt[0] = xyr[0] - xyr[2];
+            lrbt[1] = xyr[0] + xyr[2];
+            lrbt[2] = xyr[1] - xyr[2];
+            lrbt[3] = xyr[1] + xyr[2];
+        }
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -131,41 +131,41 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static void TrimTiles( TiXmlElement* layer )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
-	TiXmlElement*	pnext;
+    TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	pnext;
 
-	for( ; ptch; ptch = pnext ) {
+    for( ; ptch; ptch = pnext ) {
 
-		pnext = ptch->NextSiblingElement();
+        pnext = ptch->NextSiblingElement();
 
-		vector<Point>	cnr;
-		TAffine			T;
-		DBox			B;
-		int				w, h;
+        vector<Point>	cnr;
+        TAffine			T;
+        DBox			B;
+        int				w, h;
 
-		w = atoi( ptch->Attribute( "width" ) );
-		h = atoi( ptch->Attribute( "height" ) );
-		T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+        w = atoi( ptch->Attribute( "width" ) );
+        h = atoi( ptch->Attribute( "height" ) );
+        T.ScanTrackEM2( ptch->Attribute( "transform" ) );
 
-		B.L = BIGD, B.R = -BIGD,
-		B.B = BIGD, B.T = -BIGD;
+        B.L = BIGD, B.R = -BIGD,
+        B.B = BIGD, B.T = -BIGD;
 
-		Set4Corners( cnr, w, h );
-		T.Transform( cnr );
+        Set4Corners( cnr, w, h );
+        T.Transform( cnr );
 
-		for( int k = 0; k < 4; ++k ) {
-			B.L = fmin( B.L, cnr[k].x );
-			B.R = fmax( B.R, cnr[k].x );
-			B.B = fmin( B.B, cnr[k].y );
-			B.T = fmax( B.T, cnr[k].y );
-		}
+        for( int k = 0; k < 4; ++k ) {
+            B.L = fmin( B.L, cnr[k].x );
+            B.R = fmax( B.R, cnr[k].x );
+            B.B = fmin( B.B, cnr[k].y );
+            B.T = fmax( B.T, cnr[k].y );
+        }
 
-		if( B.R <= gArgs.lrbt[0] || B.L >= gArgs.lrbt[1] ||
-			B.T <= gArgs.lrbt[2] || B.B >= gArgs.lrbt[3] ) {
+        if( B.R <= gArgs.lrbt[0] || B.L >= gArgs.lrbt[1] ||
+            B.T <= gArgs.lrbt[2] || B.B >= gArgs.lrbt[3] ) {
 
-			layer->RemoveChild( ptch );
-		}
-	}
+            layer->RemoveChild( ptch );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -178,45 +178,45 @@ static void Extract()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlNode*		lyrset	= xml.GetLayerset();
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlNode*		lyrset	= xml.GetLayerset();
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ------------------------- */
 /* Kill layers outside range */
 /* ------------------------- */
 
-	TiXmlElement*	next;
+    TiXmlElement*	next;
 
-	for( ; layer; layer = next ) {
+    for( ; layer; layer = next ) {
 
-		/* ---------------- */
-		/* Layer in bounds? */
-		/* ---------------- */
+        /* ---------------- */
+        /* Layer in bounds? */
+        /* ---------------- */
 
-		// next layer0 before deleting anything
-		next = layer->NextSiblingElement();
+        // next layer0 before deleting anything
+        next = layer->NextSiblingElement();
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z < gArgs.zmin || z > gArgs.zmax )
-			lyrset->RemoveChild( layer );
+        if( z < gArgs.zmin || z > gArgs.zmax )
+            lyrset->RemoveChild( layer );
 
-		/* --------------- */
-		/* Tile in bounds? */
-		/* --------------- */
+        /* --------------- */
+        /* Tile in bounds? */
+        /* --------------- */
 
-		if( !gArgs.lrbt.size() )
-			continue;
+        if( !gArgs.lrbt.size() )
+            continue;
 
-		TrimTiles( layer );
-	}
+        TrimTiles( layer );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -229,22 +229,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	Extract();
+    Extract();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

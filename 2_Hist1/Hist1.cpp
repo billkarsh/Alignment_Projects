@@ -24,11 +24,11 @@
 
 class CArgs_hist1 {
 public:
-	char	*img, *hst;
+    char	*img, *hst;
 public:
-	CArgs_hist1() : img(NULL), hst(NULL) {};
+    CArgs_hist1() : img(NULL), hst(NULL) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -51,36 +51,36 @@ void CArgs_hist1::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "Hist1.log", "w" );
+    flog = FileOpenOrDie( "Hist1.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: Hist1 <img-file> <hst_file>.\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf( "Usage: Hist1 <img-file> <hst_file>.\n" );
+        exit( 42 );
+    }
 
-	img = argv[1];
-	hst = argv[2];
+    img = argv[1];
+    hst = argv[2];
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
-	}
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -91,30 +91,30 @@ static void Hist()
 {
 // gather histogram
 
-	const int		nbins = 65536;	// also max val
-	vector<double>	bins( nbins, 0.0 );
-	double			uflo = 0.0,
-					oflo = 0.0;
-	uint32			w, h;
-	uint16*			ras;
+    const int		nbins = 65536;	// also max val
+    vector<double>	bins( nbins, 0.0 );
+    double			uflo = 0.0,
+                    oflo = 0.0;
+    uint32			w, h;
+    uint16*			ras;
 
-	ras = Raster16FromTif16( gArgs.img, w, h, flog );
+    ras = Raster16FromTif16( gArgs.img, w, h, flog );
 
-	Histogram( uflo, oflo, &bins[0], nbins,
-		0.0, nbins, ras, w * h, false );
+    Histogram( uflo, oflo, &bins[0], nbins,
+        0.0, nbins, ras, w * h, false );
 
-	RasterFree( ras );
+    RasterFree( ras );
 
 // write binary hist file
 
-	FILE	*f;
+    FILE	*f;
 
-	if( f = fopen( gArgs.hst, "wb" ) ) {
-		fwrite( &uflo, sizeof(double), 1, f );
-		fwrite( &oflo, sizeof(double), 1, f );
-		fwrite( &bins[0], sizeof(double), nbins, f );
-		fclose( f );
-	}
+    if( f = fopen( gArgs.hst, "wb" ) ) {
+        fwrite( &uflo, sizeof(double), 1, f );
+        fwrite( &oflo, sizeof(double), 1, f );
+        fwrite( &bins[0], sizeof(double), nbins, f );
+        fclose( f );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -127,22 +127,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* --------- */
 /* Histogram */
 /* --------- */
 
-	Hist();
+    Hist();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

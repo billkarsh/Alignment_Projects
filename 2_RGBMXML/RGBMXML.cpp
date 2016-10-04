@@ -24,20 +24,20 @@
 class CArgs_rgbm {
 
 public:
-	char	*infile,
-			*tag;
-	int		zmin, zmax;
+    char	*infile,
+            *tag;
+    int		zmin, zmax;
 
 public:
-	CArgs_rgbm()
-	{
-		infile	= NULL;
-		tag		= NULL;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    CArgs_rgbm()
+    {
+        infile	= NULL;
+        tag		= NULL;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -60,49 +60,49 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "RGBMXML.log", "w" );
+    flog = FileOpenOrDie( "RGBMXML.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: RGBMXML <xml-file> <tag> [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf( "Usage: RGBMXML <xml-file> <tag> [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !infile )
-				infile = argv[i];
-			else
-				tag = argv[i];
-		}
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !infile )
+                infile = argv[i];
+            else
+                tag = argv[i];
+        }
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -115,21 +115,21 @@ void CArgs_rgbm::SetCmdLine( int argc, char* argv[] )
 //
 static void EditPath( TiXmlElement* ptch )
 {
-	char		buf[2048], name[128];
-	const char	*n = ptch->Attribute( "file_path" ),
-				*s = strrchr( n, '/' ),
-				*u = strrchr( s, '_' );
+    char		buf[2048], name[128];
+    const char	*n = ptch->Attribute( "file_path" ),
+                *s = strrchr( n, '/' ),
+                *u = strrchr( s, '_' );
 
 // get the '/name' part
 
-	sprintf( name, "%.*s", int(u - s), s );
+    sprintf( name, "%.*s", int(u - s), s );
 
 // rebuild path
 
-	sprintf( buf, "%.*s_%s%s_%s.tif", int(s - n), n,
-		gArgs.tag, name, gArgs.tag );
+    sprintf( buf, "%.*s_%s%s_%s.tif", int(s - n), n,
+        gArgs.tag, name, gArgs.tag );
 
-	ptch->SetAttribute( "file_path", buf );
+    ptch->SetAttribute( "file_path", buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -138,15 +138,15 @@ static void EditPath( TiXmlElement* ptch )
 
 static void UpdateTiles( TiXmlElement* layer )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+    for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		EditPath( ptch );
-		ptch->SetAttribute( "type", 4 );
-		ptch->SetAttribute( "min", 0 );
-		ptch->SetAttribute( "max", 255 );
-	}
+        EditPath( ptch );
+        ptch->SetAttribute( "type", 4 );
+        ptch->SetAttribute( "min", 0 );
+        ptch->SetAttribute( "max", 255 );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -159,35 +159,35 @@ static void WriteXML()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ---------- */
 /* Fix layers */
 /* ---------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		// odd-only for JCR correlative em
-		//if( !(z & 1) )
-		//	continue;
+        // odd-only for JCR correlative em
+        //if( !(z & 1) )
+        //	continue;
 
-		UpdateTiles( layer );
-	}
+        UpdateTiles( layer );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -200,22 +200,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	WriteXML();
+    WriteXML();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

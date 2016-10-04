@@ -24,12 +24,12 @@ using namespace std;
 
 class CArgs_xml {
 public:
-	char	*xmlfile,
-			*listfile;
+    char	*xmlfile,
+            *listfile;
 public:
-	CArgs_xml() : xmlfile(NULL), listfile(NULL) {};
+    CArgs_xml() : xmlfile(NULL), listfile(NULL) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -53,46 +53,46 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLKillZ.log", "w" );
+    flog = FileOpenOrDie( "XMLKillZ.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf(
-		"Usage: XMLKillZ <xml-file> <list-file>.\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf(
+        "Usage: XMLKillZ <xml-file> <list-file>.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !xmlfile )
-				xmlfile = argv[i];
-			else
-				listfile = argv[i];
-		}
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !xmlfile )
+                xmlfile = argv[i];
+            else
+                listfile = argv[i];
+        }
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -101,18 +101,18 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static void GetZList()
 {
-	FILE		*f = FileOpenOrDie( gArgs.listfile, "r" );
-	CLineScan	LS;
+    FILE		*f = FileOpenOrDie( gArgs.listfile, "r" );
+    CLineScan	LS;
 
-	while( LS.Get( f ) > 0 ) {
+    while( LS.Get( f ) > 0 ) {
 
-		int	z;
+        int	z;
 
-		if( 1 == sscanf( LS.line, "%d", &z ) )
-			Z.insert( z );
-	}
+        if( 1 == sscanf( LS.line, "%d", &z ) )
+            Z.insert( z );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -125,33 +125,33 @@ static void Edit()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.xmlfile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
-	TiXmlNode*		lyrset	= layer->Parent();
+    XML_TKEM		xml( gArgs.xmlfile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
+    TiXmlNode*		lyrset	= layer->Parent();
 
 /* ---------------------- */
 /* Remove matching layers */
 /* ---------------------- */
 
-	TiXmlElement*	next;
+    TiXmlElement*	next;
 
-	for( ; layer; layer = next ) {
+    for( ; layer; layer = next ) {
 
-		next = layer->NextSiblingElement();
+        next = layer->NextSiblingElement();
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( Z.find( z ) == Z.end() )
-			continue;
+        if( Z.find( z ) == Z.end() )
+            continue;
 
-		lyrset->RemoveChild( layer );
-	}
+        lyrset->RemoveChild( layer );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -164,28 +164,28 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ---------------- */
 /* Load list of Z's */
 /* ---------------- */
 
-	GetZList();
+    GetZList();
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	Edit();
+    Edit();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

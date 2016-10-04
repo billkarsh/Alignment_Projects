@@ -11,8 +11,8 @@ objs = ${files:.cpp=.o}
 all : $(appname)
 
 clean :
-	rm -f *.o
+    rm -f *.o
 
 $(appname) : .CHECK_GENLIB ${objs}
-	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
+    $(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

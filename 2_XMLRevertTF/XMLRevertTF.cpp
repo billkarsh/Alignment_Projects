@@ -27,18 +27,18 @@ using namespace std;
 class CArgs_xml {
 
 public:
-	char	*dstfile,
-			*srcfile;
-	int		zsrc;
+    char	*dstfile,
+            *srcfile;
+    int		zsrc;
 
 public:
-	CArgs_xml()
-	{
-		dstfile	= NULL;
-		srcfile	= NULL;
-	};
+    CArgs_xml()
+    {
+        dstfile	= NULL;
+        srcfile	= NULL;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -63,56 +63,56 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLRevertTF.log", "w" );
+    flog = FileOpenOrDie( "XMLRevertTF.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 5 ) {
-		printf(
-		"Usage: XMLRevertTF <dst-file> <-dst=list>"
-		" <src-file> <-src=z>.\n" );
-		exit( 42 );
-	}
+    if( argc < 5 ) {
+        printf(
+        "Usage: XMLRevertTF <dst-file> <-dst=list>"
+        " <src-file> <-src=z>.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		vector<int>	vi;
+        vector<int>	vi;
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !dstfile )
-				dstfile = argv[i];
-			else
-				srcfile = argv[i];
-		}
-		else if( GetArgList( vi, "-dst=", argv[i] ) ) {
+            if( !dstfile )
+                dstfile = argv[i];
+            else
+                srcfile = argv[i];
+        }
+        else if( GetArgList( vi, "-dst=", argv[i] ) ) {
 
-			for( int i = 0; i < vi.size(); ++i )
-				Z.insert( vi[i] );
-		}
-		else if( GetArg( &zsrc, "-src=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            for( int i = 0; i < vi.size(); ++i )
+                Z.insert( vi[i] );
+        }
+        else if( GetArg( &zsrc, "-src=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -121,16 +121,16 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static void GetTAffines( TiXmlElement* layer )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		TAffine	T;
-		int		id = IDFromPatch( p );
+        TAffine	T;
+        int		id = IDFromPatch( p );
 
-		T.ScanTrackEM2( p->Attribute( "transform" ) );
-		M[id] = T;
-	}
+        T.ScanTrackEM2( p->Attribute( "transform" ) );
+        M[id] = T;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -143,25 +143,25 @@ static void GetSrc()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.srcfile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.srcfile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------------- */
 /* Move up to src layer */
 /* -------------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z == gArgs.zsrc ) {
-			GetTAffines( layer );
-			return;
-		}
-	}
+        if( z == gArgs.zsrc ) {
+            GetTAffines( layer );
+            return;
+        }
+    }
 
-	fprintf( flog, "Src layer not found.\n" );
-	exit( 42 );
+    fprintf( flog, "Src layer not found.\n" );
+    exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -170,17 +170,17 @@ static void GetSrc()
 
 static void UpdateTiles( TiXmlElement* layer )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		int	id = IDFromPatch( p );
+        int	id = IDFromPatch( p );
 
-		map<int,TAffine>::iterator	it = M.find( id );
+        map<int,TAffine>::iterator	it = M.find( id );
 
-		if( it != M.end() )
-			XMLSetTFVals( p, it->second.t );
-	}
+        if( it != M.end() )
+            XMLSetTFVals( p, it->second.t );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -193,28 +193,28 @@ static void Update()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.dstfile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.dstfile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ------------------------ */
 /* Copy matching transforms */
 /* ------------------------ */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( Z.find( z ) == Z.end() )
-			continue;
+        if( Z.find( z ) == Z.end() )
+            continue;
 
-		UpdateTiles( layer );
-	}
+        UpdateTiles( layer );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -227,28 +227,28 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* -------------- */
 /* Get src tforms */
 /* -------------- */
 
-	GetSrc();
+    GetSrc();
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	Update();
+    Update();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

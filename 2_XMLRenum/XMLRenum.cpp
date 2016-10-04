@@ -21,12 +21,12 @@
 
 class CArgs_xml {
 public:
-	char	*infile;
-	int		start;
+    char	*infile;
+    int		start;
 public:
-	CArgs_xml() : infile(NULL), start(0) {};
+    CArgs_xml() : infile(NULL), start(0) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -49,43 +49,43 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLRenum.log", "w" );
+    flog = FileOpenOrDie( "XMLRenum.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 2 ) {
-		printf(
-		"Usage: XMLRenum <xml-file1> [-start=i].\n" );
-		exit( 42 );
-	}
+    if( argc < 2 ) {
+        printf(
+        "Usage: XMLRenum <xml-file1> [-start=i].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArg( &start, "-start=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArg( &start, "-start=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -98,23 +98,23 @@ static void Renum()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------------------------- */
 /* Renumber each layer respectively */
 /* -------------------------------- */
 
-	int	newZ = gArgs.start;
+    int	newZ = gArgs.start;
 
-	for( ; layer; layer = layer->NextSiblingElement() )
-		layer->SetAttribute( "z", newZ++ );
+    for( ; layer; layer = layer->NextSiblingElement() )
+        layer->SetAttribute( "z", newZ++ );
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -127,22 +127,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	Renum();
+    Renum();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

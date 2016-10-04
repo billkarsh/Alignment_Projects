@@ -26,25 +26,25 @@
 class CArgs_xml {
 
 public:
-	char	*infile1,
-			*infile2;
-	int		zolap,
-			reftile;
-	bool	adoptZ,
-			reserved;
+    char	*infile1,
+            *infile2;
+    int		zolap,
+            reftile;
+    bool	adoptZ,
+            reserved;
 
 public:
-	CArgs_xml()
-	{
-		infile1		= NULL;
-		infile2		= NULL;
-		zolap		= 1;
-		reftile		= 0;
-		adoptZ		= false;
-		reserved	= 0;
-	};
+    CArgs_xml()
+    {
+        infile1		= NULL;
+        infile2		= NULL;
+        zolap		= 1;
+        reftile		= 0;
+        adoptZ		= false;
+        reserved	= 0;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -67,51 +67,51 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLUnite.log", "w" );
+    flog = FileOpenOrDie( "XMLUnite.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: XMLUnite <xml-file1> <xml-file2> [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf( "Usage: XMLUnite <xml-file1> <xml-file2> [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !infile1 )
-				infile1 = argv[i];
-			else
-				infile2 = argv[i];
-		}
-		else if( GetArg( &zolap, "-olap=%d", argv[i] ) )
-			;
-		else if( GetArg( &reftile, "-ref=%d", argv[i] ) )
-			;
-		else if( IsArg( "-adoptZ", argv[i] ) )
-			adoptZ = true;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !infile1 )
+                infile1 = argv[i];
+            else
+                infile2 = argv[i];
+        }
+        else if( GetArg( &zolap, "-olap=%d", argv[i] ) )
+            ;
+        else if( GetArg( &reftile, "-ref=%d", argv[i] ) )
+            ;
+        else if( IsArg( "-adoptZ", argv[i] ) )
+            adoptZ = true;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* -------------------------------------------------------------- */
@@ -120,18 +120,18 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static bool GetThisTAffine( TAffine &T, TiXmlElement* layer, int id )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+    for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		if( IDFromPatch( ptch ) == id ) {
+        if( IDFromPatch( ptch ) == id ) {
 
-			T.ScanTrackEM2( ptch->Attribute( "transform" ) );
-			return true;
-		}
-	}
+            T.ScanTrackEM2( ptch->Attribute( "transform" ) );
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 /* -------------------------------------------------------------- */
@@ -140,16 +140,16 @@ static bool GetThisTAffine( TAffine &T, TiXmlElement* layer, int id )
 
 static void UpdateTiles( TiXmlElement* layer, const TAffine& T )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+    for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		TAffine	told, tnew;
+        TAffine	told, tnew;
 
-		told.ScanTrackEM2( ptch->Attribute( "transform" ) );
-		tnew = T * told;
-		XMLSetTFVals( ptch, tnew.t );
-	}
+        told.ScanTrackEM2( ptch->Attribute( "transform" ) );
+        tnew = T * told;
+        XMLSetTFVals( ptch, tnew.t );
+    }
 }
 
 /* -------------------------------------------------------------- */
@@ -162,24 +162,24 @@ static void Unite()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml1( gArgs.infile1, flog );
-	TiXmlNode*		lyrset1	= xml1.GetLayerset();
-	TiXmlElement*	layer1	= xml1.GetLastLayer();
+    XML_TKEM		xml1( gArgs.infile1, flog );
+    TiXmlNode*		lyrset1	= xml1.GetLayerset();
+    TiXmlElement*	layer1	= xml1.GetLastLayer();
 
-	XML_TKEM		xml2( gArgs.infile2, flog );
-	TiXmlElement*	layer2	= xml2.GetFirstLayer();
+    XML_TKEM		xml2( gArgs.infile2, flog );
+    TiXmlElement*	layer2	= xml2.GetFirstLayer();
 
 /* -------------------------------- */
 /* Advance layer2 to top of overlap */
 /* -------------------------------- */
 
-	for( int i = 1; i < gArgs.zolap; ++i )
-		layer2 = layer2->NextSiblingElement();
+    for( int i = 1; i < gArgs.zolap; ++i )
+        layer2 = layer2->NextSiblingElement();
 
-	if( !layer2 ) {
-		fprintf( flog, "File2 fully overlaps file1.\n" );
-		exit( 42 );
-	}
+    if( !layer2 ) {
+        fprintf( flog, "File2 fully overlaps file1.\n" );
+        exit( 42 );
+    }
 
 /* ----- */
 /* Unite */
@@ -187,51 +187,51 @@ static void Unite()
 
 // get last z to propagate to added layers
 
-	int	z		= atoi( layer1->Attribute( "z" ) );
-	int	nextoid	= xml1.NextOID();
+    int	z		= atoi( layer1->Attribute( "z" ) );
+    int	nextoid	= xml1.NextOID();
 
 // get transform mapping T
 
-	TAffine	T;
+    TAffine	T;
 
-	{
-		TAffine	T1, T2i, T2;
+    {
+        TAffine	T1, T2i, T2;
 
-		if( !GetThisTAffine( T1, layer1, gArgs.reftile ) ) {
-			fprintf( flog, "Reference tile not found in file1.\n" );
-			exit( 42 );
-		}
+        if( !GetThisTAffine( T1, layer1, gArgs.reftile ) ) {
+            fprintf( flog, "Reference tile not found in file1.\n" );
+            exit( 42 );
+        }
 
-		if( !GetThisTAffine( T2, layer2, gArgs.reftile ) ) {
-			fprintf( flog, "Reference tile not found in file2.\n" );
-			exit( 42 );
-		}
+        if( !GetThisTAffine( T2, layer2, gArgs.reftile ) ) {
+            fprintf( flog, "Reference tile not found in file2.\n" );
+            exit( 42 );
+        }
 
-		T2i.InverseOf( T2 );
-		T = T1 * T2i;
-	}
+        T2i.InverseOf( T2 );
+        T = T1 * T2i;
+    }
 
 // update and add
 
-	layer2 = layer2->NextSiblingElement();
+    layer2 = layer2->NextSiblingElement();
 
-	do {
+    do {
 
-		if( !gArgs.adoptZ )
-			layer2->SetAttribute( "z", ++z );
+        if( !gArgs.adoptZ )
+            layer2->SetAttribute( "z", ++z );
 
-		nextoid = SetOID( layer2, nextoid );
-		UpdateTiles( layer2, T );
+        nextoid = SetOID( layer2, nextoid );
+        UpdateTiles( layer2, T );
 
-		lyrset1->InsertEndChild( *layer2 );
+        lyrset1->InsertEndChild( *layer2 );
 
-	} while( layer2 = layer2->NextSiblingElement() );
+    } while( layer2 = layer2->NextSiblingElement() );
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml1.Save( "xmltmp.txt", true );
+    xml1.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -244,22 +244,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	Unite();
+    Unite();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

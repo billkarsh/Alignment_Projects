@@ -42,24 +42,24 @@
 class CArgs_xml {
 
 public:
-	double		degcw, tdeg;
-	char		*infile;
-	int			mode, id1, id2, x, y, z, zmin, zmax;
+    double		degcw, tdeg;
+    char		*infile;
+    int			mode, id1, id2, x, y, z, zmin, zmax;
 
 public:
-	CArgs_xml()
-	{
-		degcw	= 0.0;
-		tdeg	= 0.0;
-		infile	= NULL;
-		mode	= 0;
-		x		= 1376;
-		y		= 1040;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    CArgs_xml()
+    {
+        degcw	= 0.0;
+        tdeg	= 0.0;
+        infile	= NULL;
+        mode	= 0;
+        x		= 1376;
+        y		= 1040;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -82,60 +82,60 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLRotTiles.log", "w" );
+    flog = FileOpenOrDie( "XMLRotTiles.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 4 ) {
-		printf( "Usage: XMLRotTiles <xml-file> -z=i -degcw=f\n" );
-		exit( 42 );
-	}
+    if( argc < 4 ) {
+        printf( "Usage: XMLRotTiles <xml-file> -z=i -degcw=f\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArg( &mode, "-mode=%d", argv[i] ) )
-			;
-		else if( GetArg( &id1, "-id1=%d", argv[i] ) )
-			;
-		else if( GetArg( &id2, "-id2=%d", argv[i] ) )
-			;
-		else if( GetArg( &x, "-x=%d", argv[i] ) )
-			;
-		else if( GetArg( &y, "-y=%d", argv[i] ) )
-			;
-		else if( GetArg( &z, "-z=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
-			;
-		else if( GetArg( &tdeg, "-tdeg=%lf", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArg( &mode, "-mode=%d", argv[i] ) )
+            ;
+        else if( GetArg( &id1, "-id1=%d", argv[i] ) )
+            ;
+        else if( GetArg( &id2, "-id2=%d", argv[i] ) )
+            ;
+        else if( GetArg( &x, "-x=%d", argv[i] ) )
+            ;
+        else if( GetArg( &y, "-y=%d", argv[i] ) )
+            ;
+        else if( GetArg( &z, "-z=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else if( GetArg( &degcw, "-degcw=%lf", argv[i] ) )
+            ;
+        else if( GetArg( &tdeg, "-tdeg=%lf", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -148,19 +148,19 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 /* Create rotation */
 /* --------------- */
 
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
-	TAffine			TR;
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TAffine			TR;
 
-	TR.SetCWRot( degcw, Point( gArgs.x/2, gArgs.y/2 ) );
+    TR.SetCWRot( degcw, Point( gArgs.x/2, gArgs.y/2 ) );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		TAffine	T0, T;
+        TAffine	T0, T;
 
-		T0.ScanTrackEM2( p->Attribute( "transform" ) );
-		T = T0 * TR;
-		XMLSetTFVals( p, T.t );
-	}
+        T0.ScanTrackEM2( p->Attribute( "transform" ) );
+        T = T0 * TR;
+        XMLSetTFVals( p, T.t );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -168,28 +168,28 @@ static void RotateLayer( TiXmlElement* layer, double degcw )
 /* --------------------------------------------------------------- */
 
 static bool GetTheTwoTAffines(
-	TAffine			&T1,
-	TAffine			&T2,
-	TiXmlElement*	layer )
+    TAffine			&T1,
+    TAffine			&T2,
+    TiXmlElement*	layer )
 {
-	TiXmlElement*	p		= layer->FirstChildElement( "t2_patch" );
-	int				ngot	= 0;
+    TiXmlElement*	p		= layer->FirstChildElement( "t2_patch" );
+    int				ngot	= 0;
 
-	for( ; ngot < 2 && p; p = p->NextSiblingElement() ) {
+    for( ; ngot < 2 && p; p = p->NextSiblingElement() ) {
 
-		int	id = IDFromPatch( p );
+        int	id = IDFromPatch( p );
 
-		if( id == gArgs.id1 ) {
-			T1.ScanTrackEM2( p->Attribute( "transform" ) );
-			++ngot;
-		}
-		else if( id == gArgs.id2 ) {
-			T2.ScanTrackEM2( p->Attribute( "transform" ) );
-			++ngot;
-		}
-	}
+        if( id == gArgs.id1 ) {
+            T1.ScanTrackEM2( p->Attribute( "transform" ) );
+            ++ngot;
+        }
+        else if( id == gArgs.id2 ) {
+            T2.ScanTrackEM2( p->Attribute( "transform" ) );
+            ++ngot;
+        }
+    }
 
-	return (ngot == 2);
+    return (ngot == 2);
 }
 
 /* --------------------------------------------------------------- */
@@ -202,48 +202,48 @@ static void Report()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ---------- */
 /* All layers */
 /* ---------- */
 
-	fprintf( flog, "Z\tGlobal\tTileAve\tdegCW\tBig\n" );
+    fprintf( flog, "Z\tGlobal\tTileAve\tdegCW\tBig\n" );
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		TAffine	T1, T2;
-		int		z = atoi( layer->Attribute( "z" ) );
+        TAffine	T1, T2;
+        int		z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		if( !GetTheTwoTAffines( T1, T2, layer ) ) {
-			fprintf( flog, "%d\tMissing ref tile\n", z );
-			continue;
-		}
+        if( !GetTheTwoTAffines( T1, T2, layer ) ) {
+            fprintf( flog, "%d\tMissing ref tile\n", z );
+            continue;
+        }
 
-		double	base, tile, cw;
-		char	big = ' ';
+        double	base, tile, cw;
+        char	big = ' ';
 
-		base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
-		base = 180/PI * atan( base );
+        base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
+        base = 180/PI * atan( base );
 
-		tile = T1.GetRadians() + T2.GetRadians();
-		tile = 180/PI * tile / 2;
+        tile = T1.GetRadians() + T2.GetRadians();
+        tile = 180/PI * tile / 2;
 
-		cw = -(base + tile);
+        cw = -(base + tile);
 
-		if( fabs( cw ) > 2 )
-			big = '*';
+        if( fabs( cw ) > 2 )
+            big = '*';
 
-		fprintf( flog, "%d\t%.2f\t%.2f\t%.2f\t%c\n",
-			z, base, tile, cw, big );
-	}
+        fprintf( flog, "%d\t%.2f\t%.2f\t%.2f\t%c\n",
+            z, base, tile, cw, big );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -256,50 +256,50 @@ static void RotateAuto()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* ---------- */
 /* All layers */
 /* ---------- */
 
-	fprintf( flog, "Z\tGlobal\tTileAve\tdegCW\tBig\n" );
+    fprintf( flog, "Z\tGlobal\tTileAve\tdegCW\tBig\n" );
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		TAffine	T1, T2;
-		int		z = atoi( layer->Attribute( "z" ) );
+        TAffine	T1, T2;
+        int		z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		if( !GetTheTwoTAffines( T1, T2, layer ) ) {
-			fprintf( flog, "%d\tMissing ref tile\n", z );
-			continue;
-		}
+        if( !GetTheTwoTAffines( T1, T2, layer ) ) {
+            fprintf( flog, "%d\tMissing ref tile\n", z );
+            continue;
+        }
 
-		double	base, tile, cw;
+        double	base, tile, cw;
 
-		base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
-		base = 180/PI * atan( base );
+        base = -(T2.t[5] - T1.t[5]) / (T2.t[2] - T1.t[2]);
+        base = 180/PI * atan( base );
 
-		tile = T1.GetRadians() + T2.GetRadians();
-		tile = 180/PI * tile / 2;
+        tile = T1.GetRadians() + T2.GetRadians();
+        tile = 180/PI * tile / 2;
 
-		cw = -(base + tile);
+        cw = -(base + tile);
 
-		if( fabs( cw ) >= gArgs.tdeg )
-			RotateLayer( layer, cw );
-	}
+        if( fabs( cw ) >= gArgs.tdeg )
+            RotateLayer( layer, cw );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -312,28 +312,28 @@ static void Rotate1Layer()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* Find our layer */
 /* -------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z != gArgs.z )
-			continue;
+        if( z != gArgs.z )
+            continue;
 
-		RotateLayer( layer, gArgs.degcw );
-	}
+        RotateLayer( layer, gArgs.degcw );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -346,27 +346,27 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	if( gArgs.mode == 1 )
-		Rotate1Layer();
-	else if( gArgs.mode == 2 )
-		RotateAuto();
-	else
-		Report();
+    if( gArgs.mode == 1 )
+        Rotate1Layer();
+    else if( gArgs.mode == 2 )
+        RotateAuto();
+    else
+        Report();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

@@ -22,11 +22,11 @@
 
 class CArgs_heq {
 public:
-	char	*infile;
+    char	*infile;
 public:
-	CArgs_heq() : infile(NULL) {};
+    CArgs_heq() : infile(NULL) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -49,35 +49,35 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "ReverseTiles.log", "w" );
+    flog = FileOpenOrDie( "ReverseTiles.log", "w" );
 
 // parse command line args
 
-	if( argc < 2 ) {
-		printf( "Usage: ReverseTiles <xml-file>.\n" );
-		exit( 42 );
-	}
+    if( argc < 2 ) {
+        printf( "Usage: ReverseTiles <xml-file>.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !infile )
-				infile = argv[i];
-		}
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !infile )
+                infile = argv[i];
+        }
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
 // header
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -90,34 +90,34 @@ static void WriteXML()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */
 /* -------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		TiXmlNode	*i, *last = layer->LastChild( "t2_patch" );
+        TiXmlNode	*i, *last = layer->LastChild( "t2_patch" );
 
-		if( !last )
-			continue;
+        if( !last )
+            continue;
 
-		while( i = last->PreviousSibling() ) {
+        while( i = last->PreviousSibling() ) {
 
-			TiXmlNode*	ii = i->Clone();
+            TiXmlNode*	ii = i->Clone();
 
-			layer->RemoveChild( i );
-			layer->InsertEndChild( *ii );
-		}
-	}
+            layer->RemoveChild( i );
+            layer->InsertEndChild( *ii );
+        }
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -130,22 +130,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	WriteXML();
+    WriteXML();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

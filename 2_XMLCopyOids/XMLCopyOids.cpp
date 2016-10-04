@@ -32,12 +32,12 @@ using namespace std;
 
 class CArgs_xml {
 public:
-	char	*dst,
-			*src;
+    char	*dst,
+            *src;
 public:
-	CArgs_xml() : dst(NULL), src(NULL) {};
+    CArgs_xml() : dst(NULL), src(NULL) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -60,36 +60,36 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "XMLCopyOids.log", "w" );
+    flog = FileOpenOrDie( "XMLCopyOids.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: XMLCopyOids <dst.xml> <src.xml> [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf( "Usage: XMLCopyOids <dst.xml> <src.xml> [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
-	}
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
+    }
 
-	dst = argv[1];
-	src = argv[2];
+    dst = argv[1];
+    src = argv[2];
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -97,17 +97,17 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 /* --------------------------------------------------------------- */
 
 static void GetTileOids(
-	map<string,int>	&M,
-	TiXmlElement*	layer )
+    map<string,int>	&M,
+    TiXmlElement*	layer )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		string	s = p->Attribute( "file_path" );
+        string	s = p->Attribute( "file_path" );
 
-		M[s] = atoi( p->Attribute( "oid" ) );
-	}
+        M[s] = atoi( p->Attribute( "oid" ) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -115,25 +115,25 @@ static void GetTileOids(
 /* --------------------------------------------------------------- */
 
 static void UpdateTiles(
-	TiXmlElement*	layer,
-	map<string,int>	&M )
+    TiXmlElement*	layer,
+    map<string,int>	&M )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		string	s = p->Attribute( "file_path" );
+        string	s = p->Attribute( "file_path" );
 
-		map<string,int>::iterator	mi = M.find( s );
+        map<string,int>::iterator	mi = M.find( s );
 
-		if( mi == M.end() ) {
-			fprintf( flog,
-			"Dest tile not found in src '%s'.\n", s.c_str() );
-			exit( 42 );
-		}
+        if( mi == M.end() ) {
+            fprintf( flog,
+            "Dest tile not found in src '%s'.\n", s.c_str() );
+            exit( 42 );
+        }
 
-		p->SetAttribute( "oid", mi->second );
-	}
+        p->SetAttribute( "oid", mi->second );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -146,54 +146,54 @@ static void CopyOids()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xmlD( gArgs.dst, flog );
-	TiXmlElement*	layerD	= xmlD.GetFirstLayer();
+    XML_TKEM		xmlD( gArgs.dst, flog );
+    TiXmlElement*	layerD	= xmlD.GetFirstLayer();
 
-	XML_TKEM		xmlS( gArgs.src, flog );
-	TiXmlElement*	layerS	= xmlS.GetFirstLayer();
+    XML_TKEM		xmlS( gArgs.src, flog );
+    TiXmlElement*	layerS	= xmlS.GetFirstLayer();
 
 /* ------- */
 /* Process */
 /* ------- */
 
-	for( ;
-		layerD && layerS;
-		layerD = layerD->NextSiblingElement(),
-		layerS = layerS->NextSiblingElement() ) {
+    for( ;
+        layerD && layerS;
+        layerD = layerD->NextSiblingElement(),
+        layerS = layerS->NextSiblingElement() ) {
 
-		int	zD = atoi( layerD->Attribute( "z" ) ),
-			zS = atoi( layerS->Attribute( "z" ) );
+        int	zD = atoi( layerD->Attribute( "z" ) ),
+            zS = atoi( layerS->Attribute( "z" ) );
 
-		if( zD != zS ) {
-			fprintf( flog,
-			"Unexpected layer mismatch [zD zS] = [%d %d].\n",
-			zD, zS );
-			exit( 42 );
-		}
+        if( zD != zS ) {
+            fprintf( flog,
+            "Unexpected layer mismatch [zD zS] = [%d %d].\n",
+            zD, zS );
+            exit( 42 );
+        }
 
-		/* -------------- */
-		/* Copy layer oid */
-		/* -------------- */
+        /* -------------- */
+        /* Copy layer oid */
+        /* -------------- */
 
-		int	oidS = atoi( layerS->Attribute( "oid" ) );
+        int	oidS = atoi( layerS->Attribute( "oid" ) );
 
-		layerD->SetAttribute( "oid", oidS );
+        layerD->SetAttribute( "oid", oidS );
 
-		/* ------------------ */
-		/* Transfer tile oids */
-		/* -------------------*/
+        /* ------------------ */
+        /* Transfer tile oids */
+        /* -------------------*/
 
-		map<string,int>	M;
+        map<string,int>	M;
 
-		GetTileOids( M, layerS );
-		UpdateTiles( layerD, M );
-	}
+        GetTileOids( M, layerS );
+        UpdateTiles( layerD, M );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xmlD.Save( "xmltmp.txt", true );
+    xmlD.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -206,22 +206,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	CopyOids();
+    CopyOids();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

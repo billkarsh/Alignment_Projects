@@ -30,23 +30,23 @@
 class CArgs_heq {
 
 public:
-	char	dtag[32],
-			utag[32];
-	char	*infile,
-			*tag;
-	int		zmin, zmax,
-			ltag;
+    char	dtag[32],
+            utag[32];
+    char	*infile,
+            *tag;
+    int		zmin, zmax,
+            ltag;
 
 public:
-	CArgs_heq()
-	{
-		infile	= NULL;
-		tag		= NULL;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    CArgs_heq()
+    {
+        infile	= NULL;
+        tag		= NULL;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -69,54 +69,54 @@ void CArgs_heq::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "HEQVFY.log", "w" );
+    flog = FileOpenOrDie( "HEQVFY.log", "w" );
 
 // parse command line args
 
-	if( argc < 5 ) {
+    if( argc < 5 ) {
 usage:
-		printf( "Usage: HEQVFY <xml-file> <tag> -zmin=i -zmax=j.\n" );
-		exit( 42 );
-	}
+        printf( "Usage: HEQVFY <xml-file> <tag> -zmin=i -zmax=j.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !infile )
-				infile = argv[i];
-			else
-				tag = argv[i];
-		}
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !infile )
+                infile = argv[i];
+            else
+                tag = argv[i];
+        }
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	if( tag ) {
+    if( tag ) {
 
-		ltag = sprintf( dtag, ".%s", tag );
+        ltag = sprintf( dtag, ".%s", tag );
 
-		utag[0] = '_';
-		strcpy( utag + 1, tag );
-	}
-	else
-		goto usage;
+        utag[0] = '_';
+        strcpy( utag + 1, tag );
+    }
+    else
+        goto usage;
 
-	fprintf( flog, "\n\n" );
+    fprintf( flog, "\n\n" );
 
 // header
 
-	fprintf( flog, "\n\nMissing HEQ---\nZ\tID\n" );
-	fflush( flog );
+    fprintf( flog, "\n\nMissing HEQ---\nZ\tID\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -132,31 +132,31 @@ usage:
 //
 static char *OutName( char *buf, TiXmlElement* p )
 {
-	const char	*n = p->Attribute( "file_path" );
-	const char	*s = strrchr( n, '/' );
+    const char	*n = p->Attribute( "file_path" );
+    const char	*s = strrchr( n, '/' );
 
-	if( strstr( s + 1, gArgs.dtag ) ) {
+    if( strstr( s + 1, gArgs.dtag ) ) {
 
-		// xml name in proper form
+        // xml name in proper form
 
-		strcpy( buf, n );
-	}
-	else {
+        strcpy( buf, n );
+    }
+    else {
 
-		// compose prospective name
+        // compose prospective name
 
-		const char	*dot = strrchr( s, '.' );
+        const char	*dot = strrchr( s, '.' );
 
-		sprintf( buf,
-			"%.*s%s"	// path excl / + _HEQ
-			"%.*s"		// / + name excl .tif
-			"%s.tif",	// .HEQ.tif
-			int(s - n), n, gArgs.utag,
-			int(dot - s), s,
-			gArgs.dtag );
-	}
+        sprintf( buf,
+            "%.*s%s"	// path excl / + _HEQ
+            "%.*s"		// / + name excl .tif
+            "%s.tif",	// .HEQ.tif
+            int(s - n), n, gArgs.utag,
+            int(dot - s), s,
+            gArgs.dtag );
+    }
 
-	return buf;
+    return buf;
 }
 
 /* --------------------------------------------------------------- */
@@ -165,16 +165,16 @@ static char *OutName( char *buf, TiXmlElement* p )
 
 static void ListMissingTiles( TiXmlElement* layer, int z )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		char	buf[2048];
-		int		id = IDFromPatch( p );
+        char	buf[2048];
+        int		id = IDFromPatch( p );
 
-		if( !DskExists( OutName( buf, p ) ) )
-			fprintf( flog, "%d\t%d\n", z, id );
-	}
+        if( !DskExists( OutName( buf, p ) ) )
+            fprintf( flog, "%d\t%d\n", z, id );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -187,29 +187,29 @@ static void ParseTrakEM2()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */
 /* -------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
+        /* ----------------- */
+        /* Layer-level stuff */
+        /* ----------------- */
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		ListMissingTiles( layer, z );
-	}
+        ListMissingTiles( layer, z );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -222,22 +222,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ---------------- */
 /* Read source file */
 /* ---------------- */
 
-	ParseTrakEM2();
+    ParseTrakEM2();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

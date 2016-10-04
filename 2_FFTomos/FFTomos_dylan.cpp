@@ -27,11 +27,11 @@
 
 class CArgs {
 public:
-	char	*prmfile;
+    char	*prmfile;
 public:
-	CArgs() : prmfile(NULL) {};
+    CArgs() : prmfile(NULL) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -41,13 +41,13 @@ public:
 static CArgs	gArgs;
 static FILE*	flog = NULL;
 static char		tifdir[2048],
-				ffdir[2048],
-				rick[2048];
+                ffdir[2048],
+                rick[2048];
 static uint16*	ffras[4]	= {NULL,NULL,NULL,NULL};
 static double	ffave[4]	= {0,0,0,0};
 static int		ischn[4]	= {0,0,0,0};
 static uint32	gW			= 0,
-				gH			= 0;	// universal pic dims
+                gH			= 0;	// universal pic dims
 
 
 
@@ -62,40 +62,40 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "FFTomos.log", "w" );
+    flog = FileOpenOrDie( "FFTomos.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 2 ) {
-		printf( "Usage: fftomos <paramfile>.\n" );
-		exit( 42 );
-	}
+    if( argc < 2 ) {
+        printf( "Usage: fftomos <paramfile>.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			prmfile = argv[i];
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            prmfile = argv[i];
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -115,73 +115,73 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 //
 static void ReadParams()
 {
-	FILE*		f = FileOpenOrDie( gArgs.prmfile, "r" );
-	CLineScan	LS;
-	char		buf[2048];
+    FILE*		f = FileOpenOrDie( gArgs.prmfile, "r" );
+    CLineScan	LS;
+    char		buf[2048];
 
 // scann the TIF folder path
 
-	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "TIFpath=%s", tifdir ) )
-		exit( 42 );
-	fprintf( flog, "TIFpath=%s\n", tifdir );
+    if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "TIFpath=%s", tifdir ) )
+        exit( 42 );
+    fprintf( flog, "TIFpath=%s\n", tifdir );
 
 // name the FF folder
 
-	sprintf( ffdir, "%s/FF_c2/", tifdir );
-	fprintf( flog, "FFpath=%s\n", ffdir );
+    sprintf( ffdir, "%s/FF_c2/", tifdir );
+    fprintf( flog, "FFpath=%s\n", ffdir );
 
 // scan rick file name
 
-	if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "rick=%s", rick ) )
-		exit( 42 );
-	fprintf( flog, "rick=%s\n", rick );
+    if( LS.Get( f ) <= 0 || 1 != sscanf( LS.line, "rick=%s", rick ) )
+        exit( 42 );
+    fprintf( flog, "rick=%s\n", rick );
 
 // now for each channel directive
 
-	while( LS.Get( f ) > 0 ) {
+    while( LS.Get( f ) > 0 ) {
 
-		int		chan, np;
+        int		chan, np;
 
-		// scan parameters
+        // scan parameters
 
-		if( 2 != sscanf( LS.line,
-			"chan=%d,%s",
-			&chan, buf ) ) {
+        if( 2 != sscanf( LS.line,
+            "chan=%d,%s",
+            &chan, buf ) ) {
 
-			break;
-		}
+            break;
+        }
 
-		fprintf( flog,
-		"chan=%d,%s\n",
-		chan, buf );
+        fprintf( flog,
+        "chan=%d,%s\n",
+        chan, buf );
 
-		ischn[chan] = true;
+        ischn[chan] = true;
 
-		// external file: compute FF average
+        // external file: compute FF average
 
-		ffras[chan] = Raster16FromTif16( buf, gW, gH, flog );
+        ffras[chan] = Raster16FromTif16( buf, gW, gH, flog );
 
-		if( !ffras[chan] ) {
-			fprintf( flog, "Bad ff file, chan %d.\n", chan );
-			exit(0);
-		}
+        if( !ffras[chan] ) {
+            fprintf( flog, "Bad ff file, chan %d.\n", chan );
+            exit(0);
+        }
 
-		np = gW * gH;
+        np = gW * gH;
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			if( ffras[chan][i] == 0 )
-				ffras[chan][i] = 1;
+            if( ffras[chan][i] == 0 )
+                ffras[chan][i] = 1;
 
-			ffave[chan] += ffras[chan][i];
-		}
+            ffave[chan] += ffras[chan][i];
+        }
 
-		ffave[chan] /= np;
-	}
+        ffave[chan] /= np;
+    }
 
-	fprintf( flog, "\n" );
+    fprintf( flog, "\n" );
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -190,17 +190,17 @@ static void ReadParams()
 
 static void FFChannel( uint16* ras, int chan )
 {
-	int	np = gW * gH;
+    int	np = gW * gH;
 
-	if( ffras[chan] ) {
+    if( ffras[chan] ) {
 
-		// external file
+        // external file
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			ras[i] = uint16(ras[i]*ffave[chan]/ffras[chan][i]);
-		}
-	}
+            ras[i] = uint16(ras[i]*ffave[chan]/ffras[chan][i]);
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -211,43 +211,43 @@ static void DoChannel( int chan )
 {
 // Reopen rick file for each channel
 
-	FILE		*frick = FileOpenOrDie( rick, "r" );
-	CLineScan	LS;
+    FILE		*frick = FileOpenOrDie( rick, "r" );
+    CLineScan	LS;
 
 // For each line...
 // Get its image-name, x, y
 // Do pixel ops on that image and write it to FF folder
 
-	while( LS.Get( frick ) > 0 ) {
+    while( LS.Get( frick ) > 0 ) {
 
-		char	path[2048], name[2048];
+        char	path[2048], name[2048];
 
-		// Get native line data
-		sscanf( LS.line, "%s", name );
+        // Get native line data
+        sscanf( LS.line, "%s", name );
 
-		// This channel?
-		char	*c = strrchr( name, 'c' );
-		if( atoi( c + 1 ) != chan )
-			continue;
+        // This channel?
+        char	*c = strrchr( name, 'c' );
+        if( atoi( c + 1 ) != chan )
+            continue;
 
-		// Read the image
-		uint16*	ras = Raster16FromTif16( name, gW, gH, flog );
+        // Read the image
+        uint16*	ras = Raster16FromTif16( name, gW, gH, flog );
 
-		if( !ras ) {
-			fprintf( flog, "Missing image=[%s]\n", name );
-			continue;
-		}
+        if( !ras ) {
+            fprintf( flog, "Missing image=[%s]\n", name );
+            continue;
+        }
 
-		// Flat-field the image
-		FFChannel( ras, chan );
+        // Flat-field the image
+        FFChannel( ras, chan );
 
-		// Write image file
-		sprintf( path, "%s%s", ffdir, FileNamePtr( name ) );
-		Raster16ToTif16( path, ras, gW, gH, flog );
-		RasterFree( ras );
-	}
+        // Write image file
+        sprintf( path, "%s%s", ffdir, FileNamePtr( name ) );
+        Raster16ToTif16( path, ras, gW, gH, flog );
+        RasterFree( ras );
+    }
 
-	fclose( frick );
+    fclose( frick );
 }
 
 /* --------------------------------------------------------------- */
@@ -256,11 +256,11 @@ static void DoChannel( int chan )
 
 static void ChannelLoop()
 {
-	for( int chan = 0; chan < 4; ++chan ) {
+    for( int chan = 0; chan < 4; ++chan ) {
 
-		if( ischn[chan] )
-			DoChannel( chan );
-	}
+        if( ischn[chan] )
+            DoChannel( chan );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -269,19 +269,19 @@ static void ChannelLoop()
 
 int main( int argc, char* argv[] )
 {
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
-	ReadParams();
+    ReadParams();
 
-	ChannelLoop();
+    ChannelLoop();
 
-	for( int i = 0; i < 4; ++i )
-		RasterFree( ffras[i] );
+    for( int i = 0; i < 4; ++i )
+        RasterFree( ffras[i] );
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

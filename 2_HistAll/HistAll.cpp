@@ -26,13 +26,13 @@ using namespace std;
 
 class Picture {
 public:
-	string	fname;	// name excluding '_chan.tif'
-	int		z, id;
+    string	fname;	// name excluding '_chan.tif'
+    int		z, id;
 public:
-	Picture( const char* name, int _z );
+    Picture( const char* name, int _z );
 
-	bool operator < ( const Picture &rhs ) const
-		{return z < rhs.z || (z == rhs.z && id < rhs.id);};
+    bool operator < ( const Picture &rhs ) const
+        {return z < rhs.z || (z == rhs.z && id < rhs.id);};
 };
 
 /* --------------------------------------------------------------- */
@@ -42,20 +42,20 @@ public:
 class CArgs_hsta {
 
 public:
-	char		*infile;
-	int			zmin,
-				zmax;
-	vector<int>	chn;
+    char		*infile;
+    int			zmin,
+                zmax;
+    vector<int>	chn;
 
 public:
-	CArgs_hsta()
-	{
-		infile	= NULL;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    CArgs_hsta()
+    {
+        infile	= NULL;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -78,46 +78,46 @@ void CArgs_hsta::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "HistAll.log", "w" );
+    flog = FileOpenOrDie( "HistAll.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: HistAll <xml-file> -chan=,,.\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf( "Usage: HistAll <xml-file> -chan=,,.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( GetArgList( chn, "-chan=", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else if( GetArgList( chn, "-chan=", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -126,20 +126,20 @@ void CArgs_hsta::SetCmdLine( int argc, char* argv[] )
 
 Picture::Picture( const char* name, int _z )
 {
-	char	buf[2048];
-	char	*s;
-	int		len;
+    char	buf[2048];
+    char	*s;
+    int		len;
 
-	len	= sprintf( buf, "%s", name );
-	s	= buf + len - 6;
-	*s	= 0;	// remove '_chn.tif'
+    len	= sprintf( buf, "%s", name );
+    s	= buf + len - 6;
+    *s	= 0;	// remove '_chn.tif'
 
-	while( isdigit( s[-1] ) )
-		--s;
+    while( isdigit( s[-1] ) )
+        --s;
 
-	fname	= buf;
-	z		= _z;
-	id		= atoi( s );
+    fname	= buf;
+    z		= _z;
+    id		= atoi( s );
 }
 
 /* --------------------------------------------------------------- */
@@ -147,16 +147,16 @@ Picture::Picture( const char* name, int _z )
 /* --------------------------------------------------------------- */
 
 static void GetTiles(
-	vector<Picture>	&vp,
-	TiXmlElement*	layer,
-	int				z )
+    vector<Picture>	&vp,
+    TiXmlElement*	layer,
+    int				z )
 {
-	TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	ptch = layer->FirstChildElement( "t2_patch" );
 
-	for( ; ptch; ptch = ptch->NextSiblingElement() ) {
+    for( ; ptch; ptch = ptch->NextSiblingElement() ) {
 
-		vp.push_back( Picture( ptch->Attribute( "file_path" ), z ) );
-	}
+        vp.push_back( Picture( ptch->Attribute( "file_path" ), z ) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -169,29 +169,29 @@ static void ParseTrakEM2( vector<Picture> &vp )
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.infile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.infile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */
 /* -------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
+        /* ----------------- */
+        /* Layer-level stuff */
+        /* ----------------- */
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		GetTiles( vp, layer, z );
-	}
+        GetTiles( vp, layer, z );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -202,40 +202,40 @@ static void WriteScript( const vector<Picture> &vp )
 {
 // HST directory
 
-	DskCreateDir( "HST", flog );
+    DskCreateDir( "HST", flog );
 
 // open file
 
-	FILE	*f = FileOpenOrDie( "HST/make.hst.sht", "w", flog );
+    FILE	*f = FileOpenOrDie( "HST/make.hst.sht", "w", flog );
 
 // write
 
-	int		np = vp.size(),
-			nc = gArgs.chn.size();
+    int		np = vp.size(),
+            nc = gArgs.chn.size();
 
-	fprintf( f, "#!/bin/sh\n" );
-	fprintf( f, "\n" );
+    fprintf( f, "#!/bin/sh\n" );
+    fprintf( f, "\n" );
 
-	for( int ip = 0; ip < np; ++ip ) {
+    for( int ip = 0; ip < np; ++ip ) {
 
-		const Picture&	P = vp[ip];
+        const Picture&	P = vp[ip];
 
-		for( int ic = 0; ic < nc; ++ic ) {
+        for( int ic = 0; ic < nc; ++ic ) {
 
-			int	chn = gArgs.chn[ic];
+            int	chn = gArgs.chn[ic];
 
-			fprintf( f,
-			"QSUB_1NODE.sht 33 \"hst-%d-%d\" \"-j y -o out.txt\" 1"
-			" \"Hist1 '%s_%d.tif' 'HST_%d_%d_%d.bin'\"\n",
-			ip*nc+ic, np*nc,
-			P.fname.c_str(), chn, P.z, P.id, chn );
-		}
-	}
+            fprintf( f,
+            "QSUB_1NODE.sht 33 \"hst-%d-%d\" \"-j y -o out.txt\" 1"
+            " \"Hist1 '%s_%d.tif' 'HST_%d_%d_%d.bin'\"\n",
+            ip*nc+ic, np*nc,
+            P.fname.c_str(), chn, P.z, P.id, chn );
+        }
+    }
 
-	fprintf( f, "\n" );
+    fprintf( f, "\n" );
 
-	fclose( f );
-	FileScriptPerms( "HST/make.hst.sht" );
+    fclose( f );
+    FileScriptPerms( "HST/make.hst.sht" );
 }
 
 /* --------------------------------------------------------------- */
@@ -244,46 +244,46 @@ static void WriteScript( const vector<Picture> &vp )
 
 int main( int argc, char* argv[] )
 {
-	vector<Picture>	vp;
+    vector<Picture>	vp;
 
 /* ------------------ */
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ---------------- */
 /* Read source file */
 /* ---------------- */
 
-	ParseTrakEM2( vp );
+    ParseTrakEM2( vp );
 
-	fprintf( flog, "Got %d images.\n", (int)vp.size() );
+    fprintf( flog, "Got %d images.\n", (int)vp.size() );
 
-	if( !vp.size() )
-		goto exit;
+    if( !vp.size() )
+        goto exit;
 
 /* ------------------ */
 /* Sort by Z and tile */
 /* ------------------ */
 
-	sort( vp.begin(), vp.end() );
+    sort( vp.begin(), vp.end() );
 
 /* ------------ */
 /* Write script */
 /* ------------ */
 
-	WriteScript( vp );
+    WriteScript( vp );
 
 /* ---- */
 /* Done */
 /* ---- */
 
 exit:
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 
