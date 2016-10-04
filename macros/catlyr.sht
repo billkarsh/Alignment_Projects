@@ -8,7 +8,7 @@ dir=/groups/bock/bocklab/people/eric/scratch/32stack-clahe/
 
 for z in $(seq 7 119)
 do
-	N=$(printf "%04d" $z)
-	cat $dir$N".txt" >> Z7-119.txt
+    N=$(printf "%04d" $z)
+    cat $dir$N".txt" >> Z7-119.txt
 done
 

@@ -51,20 +51,20 @@ new="E://myplace/"
 # Get old and new patterns from command line as $2, $3
 if [ "$2" != "" ]
 then
-	old=$2
+    old=$2
 fi
 
 if [ "$3" != "" ]
 then
-	new=$3
+    new=$3
 fi
 
 
 # Do substitutions on all lines
 if [ $(echo $ext | tr '[:upper:]' '[:lower:]') == "xml" ]
 then
-	sed 's|file_path="'$old'|file_path="'$new'|' < $1 > $v2
+    sed 's|file_path="'$old'|file_path="'$new'|' < $1 > $v2
 else
-	sed 's|'$old'|'$new'|' < $1 > $v2
+    sed 's|'$old'|'$new'|' < $1 > $v2
 fi
 

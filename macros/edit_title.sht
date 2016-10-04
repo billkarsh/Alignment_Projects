@@ -30,12 +30,12 @@ new="3"
 # Optionally, get old and new patterns from command line as $2, $3
 if [ "$2" != "" ]
 then
-	old=$2
+    old=$2
 fi
 
 if [ "$3" != "" ]
 then
-	new=$3
+    new=$3
 fi
 
 

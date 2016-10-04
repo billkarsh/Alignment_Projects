@@ -14,42 +14,42 @@
 
 if [ $(printf "%.1s" $4) = "/" ]
 then
-	dsttop=$4
+    dsttop=$4
 else
-	dsttop=$PWD/$4
+    dsttop=$PWD/$4
 fi
 
 if [ "$1" = "-c" ]
 then # compress
 
-	dsttop=$dsttop/$2"_gzip"/$2
+    dsttop=$dsttop/$2"_gzip"/$2
 
-	cd $3
+    cd $3
 
-	for srcdir in $(ls -d V91*)
-	do
-		echo $srcdir
-		dstdir=$dsttop/$srcdir
-		mkdir -p $dstdir
-		tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0
-	done
+    for srcdir in $(ls -d V91*)
+    do
+        echo $srcdir
+        dstdir=$dsttop/$srcdir
+        mkdir -p $dstdir
+        tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0
+    done
 
 elif [ "$1" = "-u" ]
 then # uncompress
 
-	dsttop=$dsttop/$2"_unzp"/$2
-	mkdir -p $dsttop
+    dsttop=$dsttop/$2"_unzp"/$2
+    mkdir -p $dsttop
 
-	cd $3
+    cd $3
 
-	for srcdir in $(ls -d V91*)
-	do
-		echo $srcdir
-		tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop
-	done
+    for srcdir in $(ls -d V91*)
+    do
+        echo $srcdir
+        tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop
+    done
 else
-	echo "Error: Arg #1 must be -c or -u"
-	exit
+    echo "Error: Arg #1 must be -c or -u"
+    exit
 fi
 
 

@@ -24,16 +24,16 @@ using namespace std;
 
 class CTile {
 public:
-	string	name;
-	double	x,
-			y;
-	int		z;
+    string	name;
+    double	x,
+            y;
+    int		z;
 };
 
 
 class CXY {
 public:
-	double	x, y;
+    double	x, y;
 };
 
 /* --------------------------------------------------------------- */
@@ -43,19 +43,19 @@ public:
 class CArgs {
 
 public:
-	double	umperpix;
-	char	*rick,
-			*meta;
+    double	umperpix;
+    char	*rick,
+            *meta;
 
 public:
-	CArgs()
-	{
-		umperpix	= 0.645;
-		rick		= NULL;
-		meta		= NULL;
-	};
+    CArgs()
+    {
+        umperpix	= 0.645;
+        rick		= NULL;
+        meta		= NULL;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -80,34 +80,34 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "fixcoords.log", "w" );
+    flog = FileOpenOrDie( "fixcoords.log", "w" );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf( "Usage: fixcoords rickfile metafile [-umperpix=].\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf( "Usage: fixcoords rickfile metafile [-umperpix=].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !rick )
-				rick = argv[i];
-			else
-				meta = argv[i];
-		}
-		else if( GetArg( &umperpix, "-umperpix=%lf", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !rick )
+                rick = argv[i];
+            else
+                meta = argv[i];
+        }
+        else if( GetArg( &umperpix, "-umperpix=%lf", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -116,38 +116,38 @@ void CArgs::SetCmdLine( int argc, char* argv[] )
 
 static void ReadRick()
 {
-	FILE	*f = FileOpenOrDie( gArgs.rick, "r", flog );
+    FILE	*f = FileOpenOrDie( gArgs.rick, "r", flog );
 
 /* ---------- */
 /* Scan lines */
 /* ---------- */
 
-	for( ;; ) {
+    for( ;; ) {
 
-		CTile	T;
-		char	name[2048];
+        CTile	T;
+        char	name[2048];
 
-		/* ---------- */
-		/* Get a line */
-		/* ---------- */
+        /* ---------- */
+        /* Get a line */
+        /* ---------- */
 
-		if( fscanf( f, "%s%lf%lf%d\n", name, &T.x, &T.y, &T.z ) != 4 )
-			break;
+        if( fscanf( f, "%s%lf%lf%d\n", name, &T.x, &T.y, &T.z ) != 4 )
+            break;
 
-		/* --------- */
-		/* Set entry */
-		/* --------- */
+        /* --------- */
+        /* Set entry */
+        /* --------- */
 
-		T.name = name;
+        T.name = name;
 
-		vT.push_back( T );
-	}
+        vT.push_back( T );
+    }
 
 /* ----- */
 /* Close */
 /* ----- */
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -156,66 +156,66 @@ static void ReadRick()
 
 static void ReadMeta()
 {
-	FILE	*f = FileOpenOrDie( gArgs.meta, "r", flog );
+    FILE	*f = FileOpenOrDie( gArgs.meta, "r", flog );
 
 /* ----------- */
 /* Skip header */
 /* ----------- */
 
-	char	*buf;
-	size_t	dum;
+    char	*buf;
+    size_t	dum;
 
-	getline( &buf, &dum, f );
+    getline( &buf, &dum, f );
 
 /* ---------- */
 /* Scan lines */
 /* ---------- */
 
-	for( ;; ) {
+    for( ;; ) {
 
-		CXY		xy;
-		double	x, y;
-		char	name[2048];
+        CXY		xy;
+        double	x, y;
+        char	name[2048];
 
-		/* ---------- */
-		/* Get a line */
-		/* ---------- */
+        /* ---------- */
+        /* Get a line */
+        /* ---------- */
 
-		if( fscanf( f,
-			"%*d%*d%*d"
-			"%lf%lf"
-			"%*lf%*lf%*lf%*lf%*lf%*lf%*lf"
-			"%*d%*d"
-			"\t%s",
-			&x, &y, name ) != 3 ) {
+        if( fscanf( f,
+            "%*d%*d%*d"
+            "%lf%lf"
+            "%*lf%*lf%*lf%*lf%*lf%*lf%*lf"
+            "%*d%*d"
+            "\t%s",
+            &x, &y, name ) != 3 ) {
 
-			break;
-		}
+            break;
+        }
 
-		/* --------- */
-		/* Set entry */
-		/* --------- */
+        /* --------- */
+        /* Set entry */
+        /* --------- */
 
-		const char	*fname = strrchr( name, '\\' );
+        const char	*fname = strrchr( name, '\\' );
 
-		if( fname )
-			++fname;
-		else
-			fname = name;
+        if( fname )
+            ++fname;
+        else
+            fname = name;
 
-		string	s = fname;
+        string	s = fname;
 
-		xy.x = -y / gArgs.umperpix;
-		xy.y = -x / gArgs.umperpix;
+        xy.x = -y / gArgs.umperpix;
+        xy.y = -x / gArgs.umperpix;
 
-		M[s] = xy;
-	}
+        M[s] = xy;
+    }
 
 /* ----- */
 /* Close */
 /* ----- */
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -224,31 +224,31 @@ static void ReadMeta()
 
 static void Update()
 {
-	int	nt = vT.size();
+    int	nt = vT.size();
 
-	for( int i = 0; i < nt; ++i ) {
+    for( int i = 0; i < nt; ++i ) {
 
-		CTile	&T = vT[i];
+        CTile	&T = vT[i];
 
-		map<string,CXY>::iterator	it = M.find( T.name );
+        map<string,CXY>::iterator	it = M.find( T.name );
 
-		if( it != M.end() ) {
-			T.x = it->second.x;
-			T.y = it->second.y;
-		}
-	}
+        if( it != M.end() ) {
+            T.x = it->second.x;
+            T.y = it->second.y;
+        }
+    }
 
-	FILE	*f = FileOpenOrDie( "newrick.txt", "w", flog );
+    FILE	*f = FileOpenOrDie( "newrick.txt", "w", flog );
 
-	for( int i = 0; i < nt; ++i ) {
+    for( int i = 0; i < nt; ++i ) {
 
-		const CTile	&T = vT[i];
+        const CTile	&T = vT[i];
 
-		fprintf( f, "%s\t%f\t%f\t%d\n",
-			T.name.c_str(), T.x, T.y, T.z );
-	}
+        fprintf( f, "%s\t%f\t%f\t%d\n",
+            T.name.c_str(), T.x, T.y, T.z );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -261,25 +261,25 @@ int main( int argc, char **argv )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ---- */
 /* Read */
 /* ---- */
 
-	ReadRick();
-	ReadMeta();
+    ReadRick();
+    ReadMeta();
 
-	Update();
+    Update();
 
 /* ---- */
 /* Done */
 /* ---- */
 
 exit:
-	fclose( flog );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

@@ -16,32 +16,32 @@ list=($(ls *.h))
 N=${#list[@]}
 if [ $N -gt 0 ]
 then
-	echo ""
-	echo "HEADERS += \\"
-	if [ $N -gt 1 ]
-	then
-	  for i in $(seq 0 $(($N-2)))
-	  do
-		echo "    \$\$PWD/"${list[i]}" \\"
-	  done
-	fi
-	echo "    \$\$PWD/"${list[$(($N-1))]}
+    echo ""
+    echo "HEADERS += \\"
+    if [ $N -gt 1 ]
+    then
+      for i in $(seq 0 $(($N-2)))
+      do
+        echo "    \$\$PWD/"${list[i]}" \\"
+      done
+    fi
+    echo "    \$\$PWD/"${list[$(($N-1))]}
 fi
 
 list=($(ls *.cpp))
 N=${#list[@]}
 if [ $N -gt 0 ]
 then
-	echo ""
-	echo "SOURCES += \\"
-	if [ $N -gt 1 ]
-	then
-	  for i in $(seq 0 $(($N-2)))
-	  do
-		echo "    \$\$PWD/"${list[i]}" \\"
-	  done
-	fi
-	echo "    \$\$PWD/"${list[$(($N-1))]}
+    echo ""
+    echo "SOURCES += \\"
+    if [ $N -gt 1 ]
+    then
+      for i in $(seq 0 $(($N-2)))
+      do
+        echo "    \$\$PWD/"${list[i]}" \\"
+      done
+    fi
+    echo "    \$\$PWD/"${list[$(($N-1))]}
 fi
 
 echo ""

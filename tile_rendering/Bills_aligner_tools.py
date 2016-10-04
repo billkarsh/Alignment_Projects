@@ -733,4 +733,3 @@ def gen_bills_aligner_stack_import_file():
 
 if __name__ == '__main__':
     single_render_job(sys.argv[1])
-	

@@ -7,9 +7,9 @@ inwhich="*.xml"
 
 for file in $(grep -l $searchterm $inwhich)
 do
-	echo $file
-	mkdir -p _prereplace
-	cp $file _prereplace
-	sed -i -e "s|$searchterm|$replaceterm|g" $file
+    echo $file
+    mkdir -p _prereplace
+    cp $file _prereplace
+    sed -i -e "s|$searchterm|$replaceterm|g" $file
 done
 
