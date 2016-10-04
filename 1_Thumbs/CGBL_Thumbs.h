@@ -59,15 +59,15 @@ public:
 // ============
 
 private:
-	PrvDrvArgs		_arg;
+	PrvDrvArgs	_arg;
 
 public:
-	DriverArgs		arg;
-	TAffine			Tab;	// start thumbs here
-	MatchParams		mch;
-	CntxtDep		ctx;
-	string			idb;
-	PicSpecs		A, B;
+	DriverArgs	arg;
+	TAffine		Tab;	// start thumbs here
+	MatchParams	mch;
+	CntxtDep	ctx;
+	string		idb;
+	PicSpec		A, B;
 
 // =================
 // Object management

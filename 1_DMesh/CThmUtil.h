@@ -30,7 +30,7 @@ typedef struct {
 class CThmUtil {
 
 private:
-	const PicSpecs	&A, &B;
+	const PicSpec	&A, &B;
 	const int		acr, bcr;
 	const PixPair	&px;
 	long			&OLAP2D;
@@ -49,9 +49,9 @@ public:
 
 public:
 	CThmUtil(
-		const PicSpecs	&A,
+		const PicSpec	&A,
 		int				acr,
-		const PicSpecs	&B,
+		const PicSpec	&B,
 		int				bcr,
 		const PixPair	&px,
 		TAffine			&Tab,

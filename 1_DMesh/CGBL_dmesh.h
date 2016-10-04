@@ -82,7 +82,7 @@ public:
 	MatchParams		mch;
 	CntxtDep		ctx;
 	string			idb;
-	PicSpecs		A, B;
+	PicSpec			A, B;
 
 // =================
 // Object management

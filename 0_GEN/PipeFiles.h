@@ -140,7 +140,7 @@ typedef struct {
 	Til2Img		t2i;
 	int			z,
 				id;
-} PicSpecs;
+} PicSpec;
 
 typedef struct {
 // entry: ThmPair.txt

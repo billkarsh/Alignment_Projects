@@ -41,8 +41,8 @@ private:
 
 public:
 	bool Load(
-		const PicSpecs	&A,
-		const PicSpecs	&B,
+		const PicSpec	&A,
+		const PicSpec	&B,
 		const string	&idb,
 		bool			lens,
 		bool			resmsk,

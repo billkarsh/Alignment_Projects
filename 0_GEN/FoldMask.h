@@ -31,7 +31,7 @@ public:
 
 uint8* GetFoldMask(
 	const string		&idb,
-	const PicSpecs		&P,
+	const PicSpec		&P,
 	const char			*forcepath,
 	const vector<uint8>	&resmsk,
 	CCropMask			*CM,
