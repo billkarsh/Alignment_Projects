@@ -13,13 +13,13 @@
 /* --------------------------------------------------------------- */
 
 void RegionToRegionMap(
-	ffmap				&maps,
-	uint16				*ids,
-	const PixPair		&px,
-	const ConnRegion	&acr,
-	const ConnRegion	&bcr,
-	TAffine				tr_guess,
-	FILE				*flog,
-	FILE				*ftri );
+    ffmap				&maps,
+    uint16				*ids,
+    const PixPair		&px,
+    const ConnRegion	&acr,
+    const ConnRegion	&bcr,
+    TAffine				tr_guess,
+    FILE				*flog,
+    FILE				*ftri );
 
 

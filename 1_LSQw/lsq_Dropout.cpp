@@ -36,59 +36,59 @@ static int				nthr;
 
 void* _Scan( void* ithr )
 {
-	int	nd = zihi - zilo + 1;
+    int	nd = zihi - zilo + 1;
 
 // For each layer...
 
-	for( int id = (long)ithr; id < nd; id += nthr ) {
+    for( int id = (long)ithr; id < nd; id += nthr ) {
 
-		int			iz	= id + zilo;
-		const Rgns&	R	= vR[iz];
-		Dropout&	D	= vD[id];
-		FILE		*q	= NULL;
+        int			iz	= id + zilo;
+        const Rgns&	R	= vR[iz];
+        Dropout&	D	= vD[id];
+        FILE		*q	= NULL;
 
-		D.rmax += R.nr;
+        D.rmax += R.nr;
 
-		// For each rgn...
+        // For each rgn...
 
-		for( int ir = 0; ir < R.nr; ++ir ) {
+        for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( R.flag[ir] ) {
+            if( R.flag[ir] ) {
 
-				if( !q ) {
-					DskCreateDir( "Dropouts", stdout );
-					char	buf[64];
-					sprintf( buf, "Dropouts/drop_%d.txt", R.z );
-					q = FileOpenOrDie( buf, "w" );
-				}
+                if( !q ) {
+                    DskCreateDir( "Dropouts", stdout );
+                    char	buf[64];
+                    sprintf( buf, "Dropouts/drop_%d.txt", R.z );
+                    q = FileOpenOrDie( buf, "w" );
+                }
 
-				int	z, i, r;
-				RealZIDR( z, i, r, iz, ir );
+                int	z, i, r;
+                RealZIDR( z, i, r, iz, ir );
 
-				if( FLAG_ISREAD( R.flag[ir] ) ) {
-					fprintf( q, "R %d.%d-%d\n", z, i, r );
-					++D.read;
-				}
-				else if( FLAG_ISPNTS( R.flag[ir] ) ) {
-					fprintf( q, "P %d.%d-%d\n", z, i, r );
-					++D.pnts;
-				}
-				else if( FLAG_ISKILL( R.flag[ir] ) ) {
-					fprintf( q, "K %d.%d-%d\n", z, i, r );
-					++D.kill;
-				}
-				else if( FLAG_ISCUTD( R.flag[ir] ) ) {
-					fprintf( q, "C %d.%d-%d\n", z, i, r );
-					++D.cutd;
-				}
-			}
-		}
+                if( FLAG_ISREAD( R.flag[ir] ) ) {
+                    fprintf( q, "R %d.%d-%d\n", z, i, r );
+                    ++D.read;
+                }
+                else if( FLAG_ISPNTS( R.flag[ir] ) ) {
+                    fprintf( q, "P %d.%d-%d\n", z, i, r );
+                    ++D.pnts;
+                }
+                else if( FLAG_ISKILL( R.flag[ir] ) ) {
+                    fprintf( q, "K %d.%d-%d\n", z, i, r );
+                    ++D.kill;
+                }
+                else if( FLAG_ISCUTD( R.flag[ir] ) ) {
+                    fprintf( q, "C %d.%d-%d\n", z, i, r );
+                    ++D.cutd;
+                }
+            }
+        }
 
-		if( q )
-			fclose( q );
-	}
+        if( q )
+            fclose( q );
+    }
 
-	return NULL;
+    return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -97,17 +97,17 @@ void* _Scan( void* ithr )
 
 static void ScanEachLayer()
 {
-	int	nd = zihi - zilo + 1;
+    int	nd = zihi - zilo + 1;
 
-	vD.resize( nd );
+    vD.resize( nd );
 
-	nthr = maxthreads;
+    nthr = maxthreads;
 
-	if( nthr > nd )
-		nthr = nd;
+    if( nthr > nd )
+        nthr = nd;
 
-	if( !EZThreads( _Scan, nthr, 1, "_ScanEachLayer" ) )
-		exit( 42 );
+    if( !EZThreads( _Scan, nthr, 1, "_ScanEachLayer" ) )
+        exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -116,47 +116,47 @@ static void ScanEachLayer()
 
 void Dropout::GatherCounts()
 {
-	int	nd = zihi - zilo + 1;
+    int	nd = zihi - zilo + 1;
 
-	for( int id = 0; id < nd; ++id )
-		Add( vD[id] );
+    for( int id = 0; id < nd; ++id )
+        Add( vD[id] );
 
-	if( nwks > 1 ) {
-		printf(
-		"Worker %03d: MAX %9ld READ %9ld"
-		" PNTS %9ld KILL %9ld CUTD %9ld\n",
-		wkid, rmax, read, pnts, kill, cutd );
-	}
-	else {
-		printf(
-		"All workers: MAX %9ld READ %9ld"
-		" PNTS %9ld KILL %9ld CUTD %9ld\n",
-		rmax, read, pnts, kill, cutd );
-	}
+    if( nwks > 1 ) {
+        printf(
+        "Worker %03d: MAX %9ld READ %9ld"
+        " PNTS %9ld KILL %9ld CUTD %9ld\n",
+        wkid, rmax, read, pnts, kill, cutd );
+    }
+    else {
+        printf(
+        "All workers: MAX %9ld READ %9ld"
+        " PNTS %9ld KILL %9ld CUTD %9ld\n",
+        rmax, read, pnts, kill, cutd );
+    }
 
-	if( wkid > 0 )
-		MPISend( this, sizeof(Dropout), 0, wkid );
-	else if( nwks > 1 ) {
+    if( wkid > 0 )
+        MPISend( this, sizeof(Dropout), 0, wkid );
+    else if( nwks > 1 ) {
 
-		for( int iw = 1; iw < nwks; ++iw ) {
+        for( int iw = 1; iw < nwks; ++iw ) {
 
-			Dropout	D;
-			MPIRecv( &D, sizeof(Dropout), iw, iw );
-			Add( D );
+            Dropout	D;
+            MPIRecv( &D, sizeof(Dropout), iw, iw );
+            Add( D );
 
-			printf(
-			"Worker %03d: MAX %9ld READ %9ld"
-			" PNTS %9ld KILL %9ld CUTD %9ld\n",
-			iw, D.rmax, D.read, D.pnts, D.kill, D.cutd );
-		}
+            printf(
+            "Worker %03d: MAX %9ld READ %9ld"
+            " PNTS %9ld KILL %9ld CUTD %9ld\n",
+            iw, D.rmax, D.read, D.pnts, D.kill, D.cutd );
+        }
 
-		printf(
-		"--------------------------------------------"
-		"-------------------------------------------\n"
-		"     Total: MAX %9ld READ %9ld"
-		" PNTS %9ld KILL %9ld CUTD %9ld\n\n",
-		rmax, read, pnts, kill, cutd );
-	}
+        printf(
+        "--------------------------------------------"
+        "-------------------------------------------\n"
+        "     Total: MAX %9ld READ %9ld"
+        " PNTS %9ld KILL %9ld CUTD %9ld\n\n",
+        rmax, read, pnts, kill, cutd );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -165,15 +165,15 @@ void Dropout::GatherCounts()
 
 void Dropout::Scan()
 {
-	printf( "\n---- Dropouts ----\n" );
+    printf( "\n---- Dropouts ----\n" );
 
-	clock_t	t0 = StartTiming();
+    clock_t	t0 = StartTiming();
 
-	ScanEachLayer();
-	GatherCounts();
-	vD.clear();
+    ScanEachLayer();
+    GatherCounts();
+    vD.clear();
 
-	StopTiming( stdout, "Drops ", t0 );
+    StopTiming( stdout, "Drops ", t0 );
 }
 
 

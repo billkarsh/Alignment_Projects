@@ -14,17 +14,17 @@ using namespace std;
 
 class Layer {
 public:
-	int			z,
-				sx, sy,
-				dx, dy;
-	set<int>	zdown;
+    int			z,
+                sx, sy,
+                dx, dy;
+    set<int>	zdown;
 public:
-	Layer() : sx(-1), sy(-1), dx(-1), dy(-1) {};
+    Layer() : sx(-1), sy(-1), dx(-1), dy(-1) {};
 
-	inline int Lowest() const
-	{
-		return (zdown.size() ? *zdown.begin() : z);
-	};
+    inline int Lowest() const
+    {
+        return (zdown.size() ? *zdown.begin() : z);
+    };
 };
 
 /* --------------------------------------------------------------- */
@@ -32,12 +32,12 @@ public:
 /* --------------------------------------------------------------- */
 
 bool LayerCat(
-	vector<Layer>	&vL,
-	const char		*tempdir,
-	const char		*cachedir,
-	int				zolo,
-	int				zohi,
-	bool			catclr );
+    vector<Layer>	&vL,
+    const char		*tempdir,
+    const char		*cachedir,
+    int				zolo,
+    int				zohi,
+    bool			catclr );
 
 int LayerCat_MaxSpan( const vector<Layer>& vL );
 

@@ -59,7 +59,7 @@ ValueIteratorBase::deref() const
 }
 
 
-void 
+void
 ValueIteratorBase::increment()
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -72,7 +72,7 @@ ValueIteratorBase::increment()
 }
 
 
-void 
+void
 ValueIteratorBase::decrement()
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -85,7 +85,7 @@ ValueIteratorBase::decrement()
 }
 
 
-ValueIteratorBase::difference_type 
+ValueIteratorBase::difference_type
 ValueIteratorBase::computeDistance( const SelfType &other ) const
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -94,7 +94,7 @@ ValueIteratorBase::computeDistance( const SelfType &other ) const
 # else
    // Iterator for null value are initialized using the default
    // constructor, which initialize current_ to the default
-   // std::map::iterator. As begin() and end() are two instance 
+   // std::map::iterator. As begin() and end() are two instance
    // of the default std::map::iterator, they can not be compared.
    // To allow this, we handle this comparison specifically.
    if ( isNull_  &&  other.isNull_ )
@@ -122,7 +122,7 @@ ValueIteratorBase::computeDistance( const SelfType &other ) const
 }
 
 
-bool 
+bool
 ValueIteratorBase::isEqual( const SelfType &other ) const
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -139,7 +139,7 @@ ValueIteratorBase::isEqual( const SelfType &other ) const
 }
 
 
-void 
+void
 ValueIteratorBase::copy( const SelfType &other )
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -152,7 +152,7 @@ ValueIteratorBase::copy( const SelfType &other )
 }
 
 
-Value 
+Value
 ValueIteratorBase::key() const
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -176,7 +176,7 @@ ValueIteratorBase::key() const
 }
 
 
-UInt 
+UInt
 ValueIteratorBase::index() const
 {
 #ifndef JSON_VALUE_USE_INTERNAL_MAP

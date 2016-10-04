@@ -38,30 +38,30 @@
 class CArgs_xml {
 
 private:
-	// re_id used to extract tile id from image name.
-	// "/N" used for EM projects, "_N_" for APIG images,
-	// "_Nex.mrc" typical for Leginon files.
-	CRegexID	re_id;
+    // re_id used to extract tile id from image name.
+    // "/N" used for EM projects, "_N_" for APIG images,
+    // "_Nex.mrc" typical for Leginon files.
+    CRegexID	re_id;
 
 public:
-	char	*inpath;
-	int		cmd,		// {'x','r','d'}
-			zmin,
-			zmax;
+    char	*inpath;
+    int		cmd,		// {'x','r','d'}
+            zmin,
+            zmax;
 
 public:
-	CArgs_xml()
-	{
-		inpath	= NULL;
-		cmd		= 0;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    CArgs_xml()
+    {
+        inpath	= NULL;
+        cmd		= 0;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 
-	int IDFromName( const char *name );
-	int IDFromPatch( TiXmlElement* p );
+    int IDFromName( const char *name );
+    int IDFromPatch( TiXmlElement* p );
 };
 
 /* --------------------------------------------------------------- */
@@ -84,60 +84,60 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "Reformat.log", "w" );
+    flog = FileOpenOrDie( "Reformat.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Start: %s ", atime );
+    fprintf( flog, "Start: %s ", atime );
 
 // parse command line args
 
-	const char	*pat;
+    const char	*pat;
 
-	re_id.Set( "_N_" );
+    re_id.Set( "_N_" );
 
-	if( argc < 4 ) {
-		printf(
-		"Usage: reformat path <-x,-r,-d> -p=_Nex.mrc -zmin=i -zmax=j.\n" );
-		exit( 42 );
-	}
+    if( argc < 4 ) {
+        printf(
+        "Usage: reformat path <-x,-r,-d> -p=_Nex.mrc -zmin=i -zmax=j.\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			inpath = argv[i];
-		else if( IsArg( "-x", argv[i] ) )
-			cmd = 'x';
-		else if( IsArg( "-r", argv[i] ) )
-			cmd = 'r';
-		else if( IsArg( "-d", argv[i] ) )
-			cmd = 'd';
-		else if( GetArgStr( pat, "-p=", argv[i] ) )
-			re_id.Set( pat );
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            inpath = argv[i];
+        else if( IsArg( "-x", argv[i] ) )
+            cmd = 'x';
+        else if( IsArg( "-r", argv[i] ) )
+            cmd = 'r';
+        else if( IsArg( "-d", argv[i] ) )
+            cmd = 'd';
+        else if( GetArgStr( pat, "-p=", argv[i] ) )
+            re_id.Set( pat );
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n" );
+    fprintf( flog, "\n" );
 
-	re_id.Compile( flog );
+    re_id.Compile( flog );
 
-	fflush( flog );
+    fflush( flog );
 }
 
 /* -------------------------------------------------------------- */
@@ -146,14 +146,14 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 int CArgs_xml::IDFromName( const char *name )
 {
-	int	id;
+    int	id;
 
-	if( !re_id.Decode( id, FileNamePtr( name ) ) ) {
-		fprintf( flog, "No tile-id found in '%s'.\n", name );
-		exit( 42 );
-	}
+    if( !re_id.Decode( id, FileNamePtr( name ) ) ) {
+        fprintf( flog, "No tile-id found in '%s'.\n", name );
+        exit( 42 );
+    }
 
-	return id;
+    return id;
 }
 
 /* -------------------------------------------------------------- */
@@ -162,7 +162,7 @@ int CArgs_xml::IDFromName( const char *name )
 
 int CArgs_xml::IDFromPatch( TiXmlElement* p )
 {
-	return IDFromName( p->Attribute( "title" ) );
+    return IDFromName( p->Attribute( "title" ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -171,28 +171,28 @@ int CArgs_xml::IDFromPatch( TiXmlElement* p )
 
 static void UpdateXMLLayer( TiXmlElement* layer, int z )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		char	title[128];
-		int		id = gArgs.IDFromPatch( p );
+        char	title[128];
+        int		id = gArgs.IDFromPatch( p );
 
-		const char	*c, *n = p->Attribute( "title" );
+        const char	*c, *n = p->Attribute( "title" );
 
-		if( c = strstr( n, "col" ) ) {
+        if( c = strstr( n, "col" ) ) {
 
-			int	col = -1, row = -1, cam = 0;
-			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+            int	col = -1, row = -1, cam = 0;
+            sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
 
-			sprintf( title, "%d.%d-1_%d.%d.%d",
-				z, id, col, row, cam );
-		}
-		else
-			sprintf( title, "%d.%d-1", z, id );
+            sprintf( title, "%d.%d-1_%d.%d.%d",
+                z, id, col, row, cam );
+        }
+        else
+            sprintf( title, "%d.%d-1", z, id );
 
-		p->SetAttribute( "title", title );
-	}
+        p->SetAttribute( "title", title );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -205,35 +205,35 @@ static void UpdateXML()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.inpath, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.inpath, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------------- */
 /* For each layer */
 /* -------------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		/* ----------------- */
-		/* Layer-level stuff */
-		/* ----------------- */
+        /* ----------------- */
+        /* Layer-level stuff */
+        /* ----------------- */
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		UpdateXMLLayer( layer, z );
-	}
+        UpdateXMLLayer( layer, z );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -242,50 +242,50 @@ static void UpdateXML()
 
 static void UpdateRick()
 {
-	FILE	*in  = FileOpenOrDie( gArgs.inpath, "r" );
+    FILE	*in  = FileOpenOrDie( gArgs.inpath, "r" );
 
 // name and open out file: path/name.ext -> path/name_v2.ext
 
-	char	buf[2048];
-	int		len = sprintf( buf, "%s", gArgs.inpath ) - 4;
-	sprintf( buf + len, "_v2%s", gArgs.inpath + len );
+    char	buf[2048];
+    int		len = sprintf( buf, "%s", gArgs.inpath ) - 4;
+    sprintf( buf + len, "_v2%s", gArgs.inpath + len );
 
-	FILE	*out = FileOpenOrDie( buf, "w" );
+    FILE	*out = FileOpenOrDie( buf, "w" );
 
 // process line by line
 
-	for( ;; ) {
+    for( ;; ) {
 
-		TAffine	T;
-		int		z, col = -999, row = -999, cam = 0;
+        TAffine	T;
+        int		z, col = -999, row = -999, cam = 0;
 
-		if( fscanf( in, "%s%lf%lf%d%*[^\r\n][\r\n]",
-			buf, &T.t[2], &T.t[5], &z ) != 4 ) {
+        if( fscanf( in, "%s%lf%lf%d%*[^\r\n][\r\n]",
+            buf, &T.t[2], &T.t[5], &z ) != 4 ) {
 
-			break;
-		}
+            break;
+        }
 
-		if( z > gArgs.zmax )
-			break;
+        if( z > gArgs.zmax )
+            break;
 
-		if( z < gArgs.zmin )
-			continue;
+        if( z < gArgs.zmin )
+            continue;
 
-		const char *c, *n = FileNamePtr( buf );
+        const char *c, *n = FileNamePtr( buf );
 
-		if( c = strstr( n, "col" ) )
-			sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+        if( c = strstr( n, "col" ) )
+            sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
 
-		fprintf( out, "%d\t%d"
-		"\t%f\t%f\t%f\t%f\t%f\t%f"
-		"\t%d\t%d\t%d\t%s\n",
-		z, gArgs.IDFromName( n ),
-		T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
-		col, row, cam, buf );
-	}
+        fprintf( out, "%d\t%d"
+        "\t%f\t%f\t%f\t%f\t%f\t%f"
+        "\t%d\t%d\t%d\t%s\n",
+        z, gArgs.IDFromName( n ),
+        T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+        col, row, cam, buf );
+    }
 
-	fclose( out );
-	fclose( in );
+    fclose( out );
+    fclose( in );
 }
 
 /* --------------------------------------------------------------- */
@@ -296,77 +296,77 @@ static void UpdateIDB()
 {
 // loop over dirs
 
-	for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
+    for( int z = gArgs.zmin; z <= gArgs.zmax; ++z ) {
 
-		// z exists?
+        // z exists?
 
-		char	buf[4096];
-		sprintf( buf, "%s/%d/TileToImage.txt", gArgs.inpath, z );
+        char	buf[4096];
+        sprintf( buf, "%s/%d/TileToImage.txt", gArgs.inpath, z );
 
-		if( !DskExists( buf ) )
-			continue;
+        if( !DskExists( buf ) )
+            continue;
 
-		// open input and skip header
+        // open input and skip header
 
-		FILE		*in  = FileOpenOrDie( buf, "r" );
-		CLineScan	LS;
+        FILE		*in  = FileOpenOrDie( buf, "r" );
+        CLineScan	LS;
 
-		if( LS.Get( in ) <= 0 ) {
-			fprintf( flog, "UpdateIDB: Empty file [%s].\n", buf );
-			fclose( in );
-			continue;
-		}
+        if( LS.Get( in ) <= 0 ) {
+            fprintf( flog, "UpdateIDB: Empty file [%s].\n", buf );
+            fclose( in );
+            continue;
+        }
 
-		// name and open out file: same.tmp
+        // name and open out file: same.tmp
 
-		sprintf( buf, "%s/%d/TileToImage.tmp", gArgs.inpath, z );
+        sprintf( buf, "%s/%d/TileToImage.tmp", gArgs.inpath, z );
 
-		FILE	*out = FileOpenOrDie( buf, "w" );
+        FILE	*out = FileOpenOrDie( buf, "w" );
 
-		// write header
+        // write header
 
-		fprintf( out,
-		"ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
+        fprintf( out,
+        "ID\tT0\tT1\tX\tT3\tT4\tY\tCol\tRow\tCam\tPath\n" );
 
-		// process line by line
+        // process line by line
 
-		while( LS.Get( in ) > 0 ) {
+        while( LS.Get( in ) > 0 ) {
 
-			TAffine	T;
-			int		id, col = -999, row = -999, cam = 0;
+            TAffine	T;
+            int		id, col = -999, row = -999, cam = 0;
 
-			sscanf( LS.line,
-			"%d\t%lf\t%lf\t%lf"
-			"\t%lf\t%lf\t%lf\t%[^\t\n]",
-			&id,
-			&T.t[0], &T.t[1], &T.t[2],
-			&T.t[3], &T.t[4], &T.t[5],
-			buf );
+            sscanf( LS.line,
+            "%d\t%lf\t%lf\t%lf"
+            "\t%lf\t%lf\t%lf\t%[^\t\n]",
+            &id,
+            &T.t[0], &T.t[1], &T.t[2],
+            &T.t[3], &T.t[4], &T.t[5],
+            buf );
 
-			const char *c, *n = FileNamePtr( buf );
+            const char *c, *n = FileNamePtr( buf );
 
-			if( c = strstr( n, "col" ) )
-				sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
+            if( c = strstr( n, "col" ) )
+                sscanf( c, "col%d_row%d_cam%d", &col, &row, &cam );
 
-			fprintf( out, "%d"
-			"\t%f\t%f\t%f\t%f\t%f\t%f"
-			"\t%d\t%d\t%d\t%s\n",
-			id,
-			T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
-			col, row, cam, buf );
-		}
+            fprintf( out, "%d"
+            "\t%f\t%f\t%f\t%f\t%f\t%f"
+            "\t%d\t%d\t%d\t%s\n",
+            id,
+            T.t[0], T.t[1], T.t[2], T.t[3], T.t[4], T.t[5],
+            col, row, cam, buf );
+        }
 
-		fclose( out );
-		fclose( in );
+        fclose( out );
+        fclose( in );
 
-		// replace file
+        // replace file
 
-		sprintf( buf,
-		"mv %s/%d/TileToImage.tmp %s/%d/TileToImage.txt",
-		gArgs.inpath, z, gArgs.inpath, z );
+        sprintf( buf,
+        "mv %s/%d/TileToImage.tmp %s/%d/TileToImage.txt",
+        gArgs.inpath, z, gArgs.inpath, z );
 
-		system( buf );
-	}
+        system( buf );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -379,35 +379,35 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------------- */
 /* Write new xml */
 /* ------------- */
 
-	switch( gArgs.cmd ) {
+    switch( gArgs.cmd ) {
 
-		case 'x':
-			UpdateXML();
-		break;
+        case 'x':
+            UpdateXML();
+        break;
 
-		case 'r':
-			UpdateRick();
-		break;
+        case 'r':
+            UpdateRick();
+        break;
 
-		case 'd':
-			UpdateIDB();
-		break;
-	}
+        case 'd':
+            UpdateIDB();
+        break;
+    }
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

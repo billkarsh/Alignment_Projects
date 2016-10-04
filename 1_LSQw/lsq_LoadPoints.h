@@ -14,35 +14,35 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 class CLoadPoints {
-	friend void* _Gather( void* ithr );
+    friend void* _Gather( void* ithr );
 private:
-	class CJob {
-	public:
-		int	z, SorD, x, y;
-	public:
-		CJob( int z, int SorD, int x, int y )
-		: z(z), SorD(SorD), x(x), y(y) {};
-	};
+    class CJob {
+    public:
+        int	z, SorD, x, y;
+    public:
+        CJob( int z, int SorD, int x, int y )
+        : z(z), SorD(SorD), x(x), y(y) {};
+    };
 private:
-	const char		*tempdir;
-	const char		*cachedir;
-	FILE			*fpnts;
-	vector<CJob>	vJ;
-	int				njob,
-					nthr;
+    const char		*tempdir;
+    const char		*cachedir;
+    FILE			*fpnts;
+    vector<CJob>	vJ;
+    int				njob,
+                    nthr;
 private:
-	char* NameBinary( char *buf );
-	bool IsBinary();
-	void AppendJobs(
-		int			z,
-		int			SorD,
-		int			xhi,
-		int			yhi );
-	void MakeBinary();
-	void LoadBinary();
-	void Remap();
+    char* NameBinary( char *buf );
+    bool IsBinary();
+    void AppendJobs(
+        int			z,
+        int			SorD,
+        int			xhi,
+        int			yhi );
+    void MakeBinary();
+    void LoadBinary();
+    void Remap();
 public:
-	void Load( const char *tempdir, const char *cachedir );
+    void Load( const char *tempdir, const char *cachedir );
 };
 
 /* --------------------------------------------------------------- */

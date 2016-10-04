@@ -34,17 +34,17 @@ export MRC_TRIM=12
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 for lyr in $(seq $1 $last)
 do
-	echo $lyr
-	if [ -d "$lyr" ]
-	then
-		QSUB_1NODE.sht 10 "mos-$lyr" "" 8 "mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp -nf > mos_$lyr.txt"
-	fi
+    echo $lyr
+    if [ -d "$lyr" ]
+    then
+        QSUB_1NODE.sht 10 "mos-$lyr" "" 8 "mos ../stack/simple 0,0,-1,-1 $lyr,$lyr -warp -nf > mos_$lyr.txt"
+    fi
 done
 

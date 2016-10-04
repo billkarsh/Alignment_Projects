@@ -20,16 +20,16 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 enum RgnFlags {
-	fbDead		= 0x01,
-	fbRead		= 0x02,
-	fbPnts		= 0x04,
-	fbKill		= 0x08,
-	fbCutd		= 0x10,
+    fbDead		= 0x01,
+    fbRead		= 0x02,
+    fbPnts		= 0x04,
+    fbKill		= 0x08,
+    fbCutd		= 0x10,
 
-	fmRead		= fbRead + fbDead,
-	fmPnts		= fbPnts + fbDead,
-	fmKill		= fbKill + fbDead,
-	fmUnct		= fbCutd + fbDead
+    fmRead		= fbRead + fbDead,
+    fmPnts		= fbPnts + fbDead,
+    fmKill		= fbKill + fbDead,
+    fmUnct		= fbCutd + fbDead
 };
 
 #define	FLAG_ISUSED( f )	(((f) & fbDead) == 0)
@@ -54,38 +54,38 @@ class Rgns {
 // The rgns for given layer
 // indexed by 0-based 'idx0'
 public:
-	vector<vector<int> >	pts;	// ea rgn's pts
-	vector<uint8>			flag;	// rgn flags
-	map<int,int>			m;		// map id -> idx0
-	int						nr,		// num rgns
-							z,		// common z
-							cached_id,
-							cached_i;
+    vector<vector<int> >	pts;	// ea rgn's pts
+    vector<uint8>			flag;	// rgn flags
+    map<int,int>			m;		// map id -> idx0
+    int						nr,		// num rgns
+                            z,		// common z
+                            cached_id,
+                            cached_i;
 public:
-	Rgns( int z );
-	int Map( int id, int r );
+    Rgns( int z );
+    int Map( int id, int r );
 };
 
 class CorrPnt {
 public:
-	Point	p1, p2;
-	int		z1, z2,	// index into vR
-			i1, i2;	// index into vR[iz]
-	union {
-	int		used;
-	struct {
-	uint16	r1, r2;
-	};
-	};
+    Point	p1, p2;
+    int		z1, z2,	// index into vR
+            i1, i2;	// index into vR[iz]
+    union {
+    int		used;
+    struct {
+    uint16	r1, r2;
+    };
+    };
 public:
-	inline bool FromFile( FILE *f )
-	{
-		return 10 == fscanf( f, "CPOINT2"
-			" %d.%d-%hd %lf %lf"
-			" %d.%d-%hd %lf %lf\n",
-			&z1, &i1, &r1, &p1.x, &p1.y,
-			&z2, &i2, &r2, &p2.x, &p2.y );
-	};
+    inline bool FromFile( FILE *f )
+    {
+        return 10 == fscanf( f, "CPOINT2"
+            " %d.%d-%hd %lf %lf"
+            " %d.%d-%hd %lf %lf\n",
+            &z1, &i1, &r1, &p1.x, &p1.y,
+            &z2, &i2, &r2, &p2.x, &p2.y );
+    };
 };
 
 /* --------------------------------------------------------------- */
@@ -94,11 +94,11 @@ public:
 
 extern string			idb;
 extern int				zLlo, zLhi,	// LHS neib needs these
-						zRlo, zRhi,	// RHS neib needs these
-						zilo, zihi,
-						zolo, zohi,	// index into vR
-						gW,   gH,	// image dims
-						maxthreads;
+                        zRlo, zRhi,	// RHS neib needs these
+                        zilo, zihi,
+                        zolo, zohi,	// index into vR
+                        gW,   gH,	// image dims
+                        maxthreads;
 extern vector<Layer>	vL;
 extern map<int,int>		mZ;
 extern vector<Rgns>		vR;

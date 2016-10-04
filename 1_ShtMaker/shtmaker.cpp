@@ -12,47 +12,47 @@
 //
 int main(int argc, char **argv)
 {
-	char	*line;
-	size_t	size = 0;
+    char	*line;
+    size_t	size = 0;
 
-	while( getline( &line, &size, stdin ) > 0 ) {
+    while( getline( &line, &size, stdin ) > 0 ) {
 
-		printf( "\tfprintf( f, \"" );
+        printf( "\tfprintf( f, \"" );
 
-		char	*s = line, c;
+        char	*s = line, c;
 
-		while( c = *s++ ) {
+        while( c = *s++ ) {
 
-			switch( c ) {
+            switch( c ) {
 
-				case '\n':
-					printf( "\\n\" );\n" );
-				break;
+                case '\n':
+                    printf( "\\n\" );\n" );
+                break;
 
-				case '\t':
-					printf( "\\t" );
-				break;
+                case '\t':
+                    printf( "\\t" );
+                break;
 
-				case '"':
-					printf( "\\\"" );
-				break;
+                case '"':
+                    printf( "\\\"" );
+                break;
 
-				case '\\':
-					printf( "\\\\" );
-				break;
+                case '\\':
+                    printf( "\\\\" );
+                break;
 
-				case '%':
-					printf( "%%%%" );
-				break;
+                case '%':
+                    printf( "%%%%" );
+                break;
 
-				default:
-					printf( "%c", c );
-				break;
-			}
-		}
-	}
+                default:
+                    printf( "%c", c );
+                break;
+            }
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 

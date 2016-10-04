@@ -49,22 +49,22 @@ static const double	sqrtol	= sin( 15 * PI/180 );
 class Todo {
 // Which 0-based {iz,ir} a thread should work on
 public:
-	int	iz, ir;
+    int	iz, ir;
 public:
-	Todo() {};
-	Todo( int iz, int ir ) : iz(iz), ir(ir) {};
-	bool First( int ithr );
-	bool Next();
-	static bool UseThreads( int minrgns );
-	static int RgnCount();
+    Todo() {};
+    Todo( int iz, int ir ) : iz(iz), ir(ir) {};
+    bool First( int ithr );
+    bool Next();
+    static bool UseThreads( int minrgns );
+    static int RgnCount();
 };
 
 class Thrdat {
 // Each thread's edit tracking data
 public:
-	vector<Todo>	vmark,	// update pnt used flags
-					vcutd,	// cut down pts
-					vkill;	// can't rescue
+    vector<Todo>	vmark,	// update pnt used flags
+                    vcutd,	// cut down pts
+                    vkill;	// can't rescue
 };
 
 /* --------------------------------------------------------------- */
@@ -75,8 +75,8 @@ static double			Wr, Etol;
 static XArray			*Xs, *Xd;
 static vector<Thrdat>	vthr;
 static int				regtype,
-						editdelay,
-						pass, nthr;
+                        editdelay,
+                        pass, nthr;
 
 
 
@@ -89,22 +89,22 @@ static int				regtype,
 
 bool Todo::First( int ithr )
 {
-	ir = ithr;
+    ir = ithr;
 
-	for( iz = zilo; iz <= zihi; ++iz ) {
+    for( iz = zilo; iz <= zihi; ++iz ) {
 
-		const Rgns&	R = vR[iz];
+        const Rgns&	R = vR[iz];
 
-		for( ; ir < R.nr; ir += nthr ) {
+        for( ; ir < R.nr; ir += nthr ) {
 
-			if( FLAG_ISUSED( R.flag[ir] ) )
-				return true;
-		}
+            if( FLAG_ISUSED( R.flag[ir] ) )
+                return true;
+        }
 
-		ir -= R.nr;
-	}
+        ir -= R.nr;
+    }
 
-	return false;
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -113,22 +113,22 @@ bool Todo::First( int ithr )
 
 bool Todo::Next()
 {
-	ir += nthr;
+    ir += nthr;
 
-	for( ; iz <= zihi; ++iz ) {
+    for( ; iz <= zihi; ++iz ) {
 
-		const Rgns&	R = vR[iz];
+        const Rgns&	R = vR[iz];
 
-		for( ; ir < R.nr; ir += nthr ) {
+        for( ; ir < R.nr; ir += nthr ) {
 
-			if( FLAG_ISUSED( R.flag[ir] ) )
-				return true;
-		}
+            if( FLAG_ISUSED( R.flag[ir] ) )
+                return true;
+        }
 
-		ir -= R.nr;
-	}
+        ir -= R.nr;
+    }
 
-	return false;
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -137,23 +137,23 @@ bool Todo::Next()
 
 int Todo::RgnCount()
 {
-	int	N = 0;
+    int	N = 0;
 
-	for( int iz = zilo; iz <= zihi; ++iz ) {
+    for( int iz = zilo; iz <= zihi; ++iz ) {
 
-		const vector<uint8>&	f  = vR[iz].flag;
-		int						nr = vR[iz].nr;
+        const vector<uint8>&	f  = vR[iz].flag;
+        int						nr = vR[iz].nr;
 
-		for( int ir = 0; ir < nr; ++ir ) {
+        for( int ir = 0; ir < nr; ++ir ) {
 
-			if( FLAG_ISUSED( f[ir] ) )
-				++N;
-		}
-	}
+            if( FLAG_ISUSED( f[ir] ) )
+                ++N;
+        }
+    }
 
-	printf( "NRgns: %d\n", N );
+    printf( "NRgns: %d\n", N );
 
-	return N;
+    return N;
 }
 
 /* --------------------------------------------------------------- */
@@ -162,42 +162,42 @@ int Todo::RgnCount()
 
 static bool SortPnts( int a, int b )
 {
-	const CorrPnt&	A = vC[a];
-	const CorrPnt&	B = vC[b];
+    const CorrPnt&	A = vC[a];
+    const CorrPnt&	B = vC[b];
 
-	if( A.z1 < B.z1 )
-		return true;
-	if( A.z1 > B.z1 )
-		return false;
-	if( A.i1 < B.i1 )
-		return true;
-	if( A.i1 > B.i1 )
-		return false;
+    if( A.z1 < B.z1 )
+        return true;
+    if( A.z1 > B.z1 )
+        return false;
+    if( A.i1 < B.i1 )
+        return true;
+    if( A.i1 > B.i1 )
+        return false;
 
-	if( A.z2 < B.z2 )
-		return true;
-	if( A.z2 > B.z2 )
-		return false;
-	if( A.i2 < B.i2 )
-		return true;
-	if( A.i2 > B.i2 )
-		return false;
+    if( A.z2 < B.z2 )
+        return true;
+    if( A.z2 > B.z2 )
+        return false;
+    if( A.i2 < B.i2 )
+        return true;
+    if( A.i2 > B.i2 )
+        return false;
 
-	if( A.p1.x < B.p1.x )
-		return true;
-	if( A.p1.x > B.p1.x )
-		return false;
-	if( A.p1.y < B.p1.y )
-		return true;
-	if( A.p1.y > B.p1.y )
-		return false;
+    if( A.p1.x < B.p1.x )
+        return true;
+    if( A.p1.x > B.p1.x )
+        return false;
+    if( A.p1.y < B.p1.y )
+        return true;
+    if( A.p1.y > B.p1.y )
+        return false;
 
-	if( A.p2.x < B.p2.x )
-		return true;
-	if( A.p2.x > B.p2.x )
-		return false;
+    if( A.p2.x < B.p2.x )
+        return true;
+    if( A.p2.x > B.p2.x )
+        return false;
 
-	return A.p2.y < B.p2.y;
+    return A.p2.y < B.p2.y;
 }
 
 /* --------------------------------------------------------------- */
@@ -206,23 +206,23 @@ static bool SortPnts( int a, int b )
 
 static void ShortenList( const Todo& Q, int ithr, int minpts )
 {
-	vector<int>		keep;
-	vector<int>&	vp = vR[Q.iz].pts[Q.ir];
-	int				np = vp.size(),
-					nu;
+    vector<int>		keep;
+    vector<int>&	vp = vR[Q.iz].pts[Q.ir];
+    int				np = vp.size(),
+                    nu;
 
-	for( int ip = 0; ip < np; ++ip ) {
+    for( int ip = 0; ip < np; ++ip ) {
 
-		if( vC[vp[ip]].used )
-			keep.push_back( vp[ip] );
-	}
+        if( vC[vp[ip]].used )
+            keep.push_back( vp[ip] );
+    }
 
-	if( (nu = keep.size()) >= minpts ) {
-		vp.resize( nu );
-		memcpy( &vp[0], &keep[0], nu * sizeof(int) );
-	}
-	else
-		KILL( Q );
+    if( (nu = keep.size()) >= minpts ) {
+        vp.resize( nu );
+        memcpy( &vp[0], &keep[0], nu * sizeof(int) );
+    }
+    else
+        KILL( Q );
 }
 
 /* --------------------------------------------------------------- */
@@ -231,110 +231,110 @@ static void ShortenList( const Todo& Q, int ithr, int minpts )
 
 static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 {
-	int	i1[3] = { 0, 1, 2 },
-		i2[3] = { 3, 4, 5 };
+    int	i1[3] = { 0, 1, 2 },
+        i2[3] = { 3, 4, 5 };
 
 // For rgn Q...
 
-	CRigid				*rgd;
-	const Rgns&			R  = vR[Q.iz];
-	const vector<int>&	vp = R.pts[Q.ir];
-	int					np = vp.size(),
-						nu = 0;	// count pts used
+    CRigid				*rgd;
+    const Rgns&			R  = vR[Q.iz];
+    const vector<int>&	vp = R.pts[Q.ir];
+    int					np = vp.size(),
+                        nu = 0;	// count pts used
 
-	if( regtype == 'R' )
-		rgd = new CRigid;
-	else
-		rgd = new CTrans;
+    if( regtype == 'R' )
+        rgd = new CRigid;
+    else
+        rgd = new CTrans;
 
-	double		LHS[6*6];
-	TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
-	TAffine*	Tb;
-	int			lastbi = -1;
+    double		LHS[6*6];
+    TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+    TAffine*	Tb;
+    int			lastbi = -1;
 
-	Zero_Quick( LHS, RHS, 6 );
+    Zero_Quick( LHS, RHS, 6 );
 
-	// For each of its points...
+    // For each of its points...
 
-	for( int ip = 0; ip < np; ++ip ) {
+    for( int ip = 0; ip < np; ++ip ) {
 
-		CorrPnt&	C = vC[vp[ip]];
+        CorrPnt&	C = vC[vp[ip]];
 
-		if( !C.used || C.z1 != C.z2 )
-			continue;
+        if( !C.used || C.z1 != C.z2 )
+            continue;
 
-		Point	A, B;
+        Point	A, B;
 
-		// Which of {1,2} is the A-side?
+        // Which of {1,2} is the A-side?
 
-		if( C.i1 == Q.ir ) {	// A is 1
+        if( C.i1 == Q.ir ) {	// A is 1
 
-			if( C.i2 != lastbi ) {
+            if( C.i2 != lastbi ) {
 
-				if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
-					continue;
+                if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+                    continue;
 
-				Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
-				lastbi = C.i2;
-			}
+                Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+                lastbi = C.i2;
+            }
 
-			Ta->Transform( A = C.p1 );
-			Tb->Transform( B = C.p2 );
+            Ta->Transform( A = C.p1 );
+            Tb->Transform( B = C.p2 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol )
-				continue;
+            if( pass > editdelay && A.DistSqr( B ) > Etol )
+                continue;
 
-			B.x = Wb * B.x + (1 - Wb) * A.x;
-			B.y = Wb * B.y + (1 - Wb) * A.y;
-			A = C.p1;
+            B.x = Wb * B.x + (1 - Wb) * A.x;
+            B.y = Wb * B.y + (1 - Wb) * A.y;
+            A = C.p1;
 
-			rgd->Add( A, B );
-		}
-		else {	// A is 2
+            rgd->Add( A, B );
+        }
+        else {	// A is 2
 
-			if( C.i1 != lastbi ) {
+            if( C.i1 != lastbi ) {
 
-				if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
-					continue;
+                if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
+                    continue;
 
-				Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
-				lastbi = C.i1;
-			}
+                Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+                lastbi = C.i1;
+            }
 
-			Ta->Transform( A = C.p2 );
-			Tb->Transform( B = C.p1 );
+            Ta->Transform( A = C.p2 );
+            Tb->Transform( B = C.p1 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol )
-				continue;
+            if( pass > editdelay && A.DistSqr( B ) > Etol )
+                continue;
 
-			B.x = Wb * B.x + (1 - Wb) * A.x;
-			B.y = Wb * B.y + (1 - Wb) * A.y;
-			A = C.p2;
+            B.x = Wb * B.x + (1 - Wb) * A.x;
+            B.y = Wb * B.y + (1 - Wb) * A.y;
+            A = C.p2;
 
-			rgd->Add( A, B );
-		}
+            rgd->Add( A, B );
+        }
 
-		++nu;
+        ++nu;
 
-		double	v[3] = { A.x, A.y, 1.0 };
+        double	v[3] = { A.x, A.y, 1.0 };
 
-		AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
-		AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
-	}
+        AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+        AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+    }
 
-	if( nu < 3 || !Solve_Quick( LHS, RHS, 6 ) )
-		KILL( Q );
-	else {
+    if( nu < 3 || !Solve_Quick( LHS, RHS, 6 ) )
+        KILL( Q );
+    else {
 
-		rgd->Regularize( RHS, 6, Wr );
+        rgd->Regularize( RHS, 6, Wr );
 
-		if( X_AS_AFF( RHS, 0 ).Squareness() > sqrtol )
-			KILL( Q );
-		else
-			CUTD( Q );
-	}
+        if( X_AS_AFF( RHS, 0 ).Squareness() > sqrtol )
+            KILL( Q );
+        else
+            CUTD( Q );
+    }
 
-	delete rgd;
+    delete rgd;
 }
 
 /* --------------------------------------------------------------- */
@@ -343,108 +343,108 @@ static void Cut_A2A( double *RHS, const Todo& Q, int ithr )
 
 static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 {
-	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 };
+    int	i1[5] = { 0, 1, 2, 6, 7 },
+        i2[5] = { 3, 4, 5, 6, 7 };
 
 // For rgn Q...
 
-	CRigid				*rgd;
-	const Rgns&			R  = vR[Q.iz];
-	const vector<int>&	vp = R.pts[Q.ir];
-	int					np = vp.size(),
-						nu = 0;	// count pts used
+    CRigid				*rgd;
+    const Rgns&			R  = vR[Q.iz];
+    const vector<int>&	vp = R.pts[Q.ir];
+    int					np = vp.size(),
+                        nu = 0;	// count pts used
 
-	if( regtype == 'R' )
-		rgd = new CRigid;
-	else
-		rgd = new CTrans;
+    if( regtype == 'R' )
+        rgd = new CRigid;
+    else
+        rgd = new CTrans;
 
-	double		LHS[8*8];
-	TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
-	TAffine*	Tb;
-	int			lastbi = -1;
+    double		LHS[8*8];
+    TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+    TAffine*	Tb;
+    int			lastbi = -1;
 
-	Zero_Quick( LHS, RHS, 8 );
+    Zero_Quick( LHS, RHS, 8 );
 
-	// For each of its points...
+    // For each of its points...
 
-	for( int ip = 0; ip < np; ++ip ) {
+    for( int ip = 0; ip < np; ++ip ) {
 
-		const CorrPnt&	C = vC[vp[ip]];
+        const CorrPnt&	C = vC[vp[ip]];
 
-		if( !C.used || C.z1 != C.z2 )
-			continue;
+        if( !C.used || C.z1 != C.z2 )
+            continue;
 
-		Point	A, B;
+        Point	A, B;
 
-		// Which of {1,2} is the A-side?
+        // Which of {1,2} is the A-side?
 
-		if( C.i1 == Q.ir ) {	// A is 1
+        if( C.i1 == Q.ir ) {	// A is 1
 
-			if( C.i2 != lastbi ) {
+            if( C.i2 != lastbi ) {
 
-				if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
-					continue;
+                if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+                    continue;
 
-				Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
-				lastbi = C.i2;
-			}
+                Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+                lastbi = C.i2;
+            }
 
-			Ta->Transform( A = C.p1 );
-			Tb->Transform( B = C.p2 );
+            Ta->Transform( A = C.p1 );
+            Tb->Transform( B = C.p2 );
 
-			B.x = Wb * B.x + (1 - Wb) * A.x;
-			B.y = Wb * B.y + (1 - Wb) * A.y;
-			A = C.p1;
+            B.x = Wb * B.x + (1 - Wb) * A.x;
+            B.y = Wb * B.y + (1 - Wb) * A.y;
+            A = C.p1;
 
-			rgd->Add( A, B );
-		}
-		else {	// A is 2
+            rgd->Add( A, B );
+        }
+        else {	// A is 2
 
-			if( C.i1 != lastbi ) {
+            if( C.i1 != lastbi ) {
 
-				if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
-					continue;
+                if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
+                    continue;
 
-				Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
-				lastbi = C.i1;
-			}
+                Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+                lastbi = C.i1;
+            }
 
-			Ta->Transform( A = C.p2 );
-			Tb->Transform( B = C.p1 );
+            Ta->Transform( A = C.p2 );
+            Tb->Transform( B = C.p1 );
 
-			B.x = Wb * B.x + (1 - Wb) * A.x;
-			B.y = Wb * B.y + (1 - Wb) * A.y;
-			A = C.p2;
+            B.x = Wb * B.x + (1 - Wb) * A.x;
+            B.y = Wb * B.y + (1 - Wb) * A.y;
+            A = C.p2;
 
-			rgd->Add( A, B );
-		}
+            rgd->Add( A, B );
+        }
 
-		++nu;
+        ++nu;
 
-		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+        double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
 
-		AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+        AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
 
-		v[3] = -A.x*B.y;
-		v[4] = -A.y*B.y;
+        v[3] = -A.x*B.y;
+        v[4] = -A.y*B.y;
 
-		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
-	}
+        AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+    }
 
-	if( nu < 4 || !Solve_Quick( LHS, RHS, 8 ) )
-		KILL( Q );
-	else {
+    if( nu < 4 || !Solve_Quick( LHS, RHS, 8 ) )
+        KILL( Q );
+    else {
 
-		rgd->Regularize( RHS, 8, Wr );
+        rgd->Regularize( RHS, 8, Wr );
 
-		if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
-			KILL( Q );
-		else
-			CUTD( Q );
-	}
+        if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
+            KILL( Q );
+        else
+            CUTD( Q );
+    }
 
-	delete rgd;
+    delete rgd;
 }
 
 /* --------------------------------------------------------------- */
@@ -453,114 +453,114 @@ static void Cut_A2H( double *RHS, const Todo& Q, int ithr )
 
 static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 {
-	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 };
+    int	i1[5] = { 0, 1, 2, 6, 7 },
+        i2[5] = { 3, 4, 5, 6, 7 };
 
 // For rgn Q...
 
-	CRigid				*rgd;
-	const Rgns&			R  = vR[Q.iz];
-	const vector<int>&	vp = R.pts[Q.ir];
-	int					np = vp.size(),
-						nu = 0;	// count pts used
+    CRigid				*rgd;
+    const Rgns&			R  = vR[Q.iz];
+    const vector<int>&	vp = R.pts[Q.ir];
+    int					np = vp.size(),
+                        nu = 0;	// count pts used
 
-	if( regtype == 'R' )
-		rgd = new CRigid;
-	else
-		rgd = new CTrans;
+    if( regtype == 'R' )
+        rgd = new CRigid;
+    else
+        rgd = new CTrans;
 
-	double		LHS[8*8];
-	THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
-	THmgphy*	Tb;
-	int			lastbi = -1;
+    double		LHS[8*8];
+    THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
+    THmgphy*	Tb;
+    int			lastbi = -1;
 
-	Zero_Quick( LHS, RHS, 8 );
+    Zero_Quick( LHS, RHS, 8 );
 
-	// For each of its points...
+    // For each of its points...
 
-	for( int ip = 0; ip < np; ++ip ) {
+    for( int ip = 0; ip < np; ++ip ) {
 
-		CorrPnt&	C = vC[vp[ip]];
+        CorrPnt&	C = vC[vp[ip]];
 
-		if( !C.used || C.z1 != C.z2 )
-			continue;
+        if( !C.used || C.z1 != C.z2 )
+            continue;
 
-		Point	A, B;
+        Point	A, B;
 
-		// Which of {1,2} is the A-side?
+        // Which of {1,2} is the A-side?
 
-		if( C.i1 == Q.ir ) {	// A is 1
+        if( C.i1 == Q.ir ) {	// A is 1
 
-			if( C.i2 != lastbi ) {
+            if( C.i2 != lastbi ) {
 
-				if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
-					continue;
+                if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) )
+                    continue;
 
-				Tb = &X_AS_HMY( Xs->X[C.z2], C.i2 );
-				lastbi = C.i2;
-			}
+                Tb = &X_AS_HMY( Xs->X[C.z2], C.i2 );
+                lastbi = C.i2;
+            }
 
-			Ta->Transform( A = C.p1 );
-			Tb->Transform( B = C.p2 );
+            Ta->Transform( A = C.p1 );
+            Tb->Transform( B = C.p2 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol )
-				continue;
+            if( pass > editdelay && A.DistSqr( B ) > Etol )
+                continue;
 
-			B.x = Wb * B.x + (1 - Wb) * A.x;
-			B.y = Wb * B.y + (1 - Wb) * A.y;
-			A = C.p1;
+            B.x = Wb * B.x + (1 - Wb) * A.x;
+            B.y = Wb * B.y + (1 - Wb) * A.y;
+            A = C.p1;
 
-			rgd->Add( A, B );
-		}
-		else {	// A is 2
+            rgd->Add( A, B );
+        }
+        else {	// A is 2
 
-			if( C.i1 != lastbi ) {
+            if( C.i1 != lastbi ) {
 
-				if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
-					continue;
+                if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) )
+                    continue;
 
-				Tb = &X_AS_HMY( Xs->X[C.z1], C.i1 );
-				lastbi = C.i1;
-			}
+                Tb = &X_AS_HMY( Xs->X[C.z1], C.i1 );
+                lastbi = C.i1;
+            }
 
-			Ta->Transform( A = C.p2 );
-			Tb->Transform( B = C.p1 );
+            Ta->Transform( A = C.p2 );
+            Tb->Transform( B = C.p1 );
 
-			if( pass > editdelay && A.DistSqr( B ) > Etol )
-				continue;
+            if( pass > editdelay && A.DistSqr( B ) > Etol )
+                continue;
 
-			B.x = Wb * B.x + (1 - Wb) * A.x;
-			B.y = Wb * B.y + (1 - Wb) * A.y;
-			A = C.p2;
+            B.x = Wb * B.x + (1 - Wb) * A.x;
+            B.y = Wb * B.y + (1 - Wb) * A.y;
+            A = C.p2;
 
-			rgd->Add( A, B );
-		}
+            rgd->Add( A, B );
+        }
 
-		++nu;
+        ++nu;
 
-		double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+        double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
 
-		AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+        AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
 
-		v[3] = -A.x*B.y;
-		v[4] = -A.y*B.y;
+        v[3] = -A.x*B.y;
+        v[4] = -A.y*B.y;
 
-		AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
-	}
+        AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+    }
 
-	if( nu < 4 || !Solve_Quick( LHS, RHS, 8 ) )
-		KILL( Q );
-	else {
+    if( nu < 4 || !Solve_Quick( LHS, RHS, 8 ) )
+        KILL( Q );
+    else {
 
-		rgd->Regularize( RHS, 8, Wr );
+        rgd->Regularize( RHS, 8, Wr );
 
-		if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
-			KILL( Q );
-		else
-			CUTD( Q );
-	}
+        if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol )
+            KILL( Q );
+        else
+            CUTD( Q );
+    }
 
-	delete rgd;
+    delete rgd;
 }
 
 /* --------------------------------------------------------------- */
@@ -569,163 +569,163 @@ static void Cut_H2H( double *RHS, const Todo& Q, int ithr )
 
 static void* _A2A( void* ithr )
 {
-	Todo	Q;
+    Todo	Q;
 
-	if( !Q.First( (long)ithr ) )
-		return NULL;
+    if( !Q.First( (long)ithr ) )
+        return NULL;
 
-	int	i1[3] = { 0, 1, 2 },
-		i2[3] = { 3, 4, 5 };
+    int	i1[3] = { 0, 1, 2 },
+        i2[3] = { 3, 4, 5 };
 
 // For each of my rgns...
 
-	do {
+    do {
 
-		CRigid			*rgd;
-		Rgns&			R  = vR[Q.iz];
-		vector<int>&	vp = R.pts[Q.ir];
-		int				np = vp.size(),
-						nu = 0;	// count pts used
+        CRigid			*rgd;
+        Rgns&			R  = vR[Q.iz];
+        vector<int>&	vp = R.pts[Q.ir];
+        int				np = vp.size(),
+                        nu = 0;	// count pts used
 
-		if( np < 3 ) {
-			KILL( Q );
-			continue;
-		}
+        if( np < 3 ) {
+            KILL( Q );
+            continue;
+        }
 
-		if( regtype == 'R' )
-			rgd = new CRigid;
-		else
-			rgd = new CTrans;
+        if( regtype == 'R' )
+            rgd = new CRigid;
+        else
+            rgd = new CTrans;
 
-		double		*RHS = X_AS_AFF( Xd->X[Q.iz], Q.ir ).t;
-		double		LHS[6*6];
-		TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
-		TAffine*	Tb;
-		int			lastbi,
-					lastbz	= -1;
+        double		*RHS = X_AS_AFF( Xd->X[Q.iz], Q.ir ).t;
+        double		LHS[6*6];
+        TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+        TAffine*	Tb;
+        int			lastbi,
+                    lastbz	= -1;
 
-		Zero_Quick( LHS, RHS, 6 );
+        Zero_Quick( LHS, RHS, 6 );
 
-		// Sort the points so that cummulative rounding
-		// error tends to be same independent of nwks.
+        // Sort the points so that cummulative rounding
+        // error tends to be same independent of nwks.
 
-		if( !pass )
-			sort( vp.begin(), vp.end(), SortPnts );
+        if( !pass )
+            sort( vp.begin(), vp.end(), SortPnts );
 
-		// For each of its points...
+        // For each of its points...
 
-		for( int ip = 0; ip < np; ++ip ) {
+        for( int ip = 0; ip < np; ++ip ) {
 
-			CorrPnt&	C = vC[vp[ip]];
+            CorrPnt&	C = vC[vp[ip]];
 
-			if( !C.used )
-				continue;
+            if( !C.used )
+                continue;
 
-			Point	A, B;
+            Point	A, B;
 
-			// Which of {1,2} is the A-side?
+            // Which of {1,2} is the A-side?
 
-			if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
+            if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
 
-				if( C.z2 != lastbz ) {
-					lastbz = C.z2;
-					lastbi = -1;
-				}
+                if( C.z2 != lastbz ) {
+                    lastbz = C.z2;
+                    lastbi = -1;
+                }
 
-				if( C.i2 != lastbi ) {
+                if( C.i2 != lastbi ) {
 
-					if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
+                    if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
 
-						// Here's a pnt that's 'used' referencing
-						// a rgn that's not. It's inefficient, so
-						// we'll get such points marked 'not used'.
+                        // Here's a pnt that's 'used' referencing
+                        // a rgn that's not. It's inefficient, so
+                        // we'll get such points marked 'not used'.
 
-						MARK( Todo( C.z2, C.i2 ) );
-						continue;
-					}
+                        MARK( Todo( C.z2, C.i2 ) );
+                        continue;
+                    }
 
-					Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
-					lastbi = C.i2;
-				}
+                    Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+                    lastbi = C.i2;
+                }
 
-				Ta->Transform( A = C.p1 );
-				Tb->Transform( B = C.p2 );
+                Ta->Transform( A = C.p1 );
+                Tb->Transform( B = C.p2 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol )
-					continue;
+                if( pass > editdelay && A.DistSqr( B ) > Etol )
+                    continue;
 
-				B.x = Wb * B.x + (1 - Wb) * A.x;
-				B.y = Wb * B.y + (1 - Wb) * A.y;
-				A = C.p1;
+                B.x = Wb * B.x + (1 - Wb) * A.x;
+                B.y = Wb * B.y + (1 - Wb) * A.y;
+                A = C.p1;
 
-				rgd->Add( A, B );
-			}
-			else {	// A is 2
+                rgd->Add( A, B );
+            }
+            else {	// A is 2
 
-				if( C.z1 != lastbz ) {
-					lastbz = C.z1;
-					lastbi = -1;
-				}
+                if( C.z1 != lastbz ) {
+                    lastbz = C.z1;
+                    lastbi = -1;
+                }
 
-				if( C.i1 != lastbi ) {
+                if( C.i1 != lastbi ) {
 
-					if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
+                    if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
 
-						// Here's a pnt that's 'used' referencing
-						// a rgn that's not. It's inefficient, so
-						// we'll get such points marked 'not used'.
+                        // Here's a pnt that's 'used' referencing
+                        // a rgn that's not. It's inefficient, so
+                        // we'll get such points marked 'not used'.
 
-						MARK( Todo( C.z1, C.i1 ) );
-						continue;
-					}
+                        MARK( Todo( C.z1, C.i1 ) );
+                        continue;
+                    }
 
-					Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
-					lastbi = C.i1;
-				}
+                    Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+                    lastbi = C.i1;
+                }
 
-				Ta->Transform( A = C.p2 );
-				Tb->Transform( B = C.p1 );
+                Ta->Transform( A = C.p2 );
+                Tb->Transform( B = C.p1 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol )
-					continue;
+                if( pass > editdelay && A.DistSqr( B ) > Etol )
+                    continue;
 
-				B.x = Wb * B.x + (1 - Wb) * A.x;
-				B.y = Wb * B.y + (1 - Wb) * A.y;
-				A = C.p2;
+                B.x = Wb * B.x + (1 - Wb) * A.x;
+                B.y = Wb * B.y + (1 - Wb) * A.y;
+                A = C.p2;
 
-				rgd->Add( A, B );
-			}
+                rgd->Add( A, B );
+            }
 
-			++nu;
+            ++nu;
 
-			double	v[3] = { A.x, A.y, 1.0 };
+            double	v[3] = { A.x, A.y, 1.0 };
 
-			AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
-			AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
-		}
+            AddConstraint_Quick( LHS, RHS, 6, 3, i1, v, B.x );
+            AddConstraint_Quick( LHS, RHS, 6, 3, i2, v, B.y );
+        }
 
-		if( nu < 3 )
-			KILL( Q );
-		else if( !Solve_Quick( LHS, RHS, 6 ) )
-			Cut_A2A( RHS, Q, (long)ithr );
-		else {
+        if( nu < 3 )
+            KILL( Q );
+        else if( !Solve_Quick( LHS, RHS, 6 ) )
+            Cut_A2A( RHS, Q, (long)ithr );
+        else {
 
-			rgd->Regularize( RHS, 6, Wr );
+            rgd->Regularize( RHS, 6, Wr );
 
-			if( pass >= editdelay
-				&& X_AS_AFF( RHS, 0 ).Squareness() > sqrtol ) {
+            if( pass >= editdelay
+                && X_AS_AFF( RHS, 0 ).Squareness() > sqrtol ) {
 
-				Cut_A2A( RHS, Q, (long)ithr );
-			}
-			else if( nu < np )
-				ShortenList( Q, (long)ithr, 3 );
-		}
+                Cut_A2A( RHS, Q, (long)ithr );
+            }
+            else if( nu < np )
+                ShortenList( Q, (long)ithr, 3 );
+        }
 
-		delete rgd;
+        delete rgd;
 
-	} while( Q.Next() );
+    } while( Q.Next() );
 
-	return NULL;
+    return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -748,160 +748,160 @@ static void* _A2A( void* ithr )
 //
 static void* _A2H( void* ithr )
 {
-	Todo	Q;
+    Todo	Q;
 
-	if( !Q.First( (long)ithr ) )
-		return NULL;
+    if( !Q.First( (long)ithr ) )
+        return NULL;
 
-	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 };
+    int	i1[5] = { 0, 1, 2, 6, 7 },
+        i2[5] = { 3, 4, 5, 6, 7 };
 
 // For each of my rgns...
 
-	do {
+    do {
 
-		CRigid			*rgd;
-		Rgns&			R  = vR[Q.iz];
-		vector<int>&	vp = R.pts[Q.ir];
-		int				np = vp.size(),
-						nu = 0;	// count pts used
+        CRigid			*rgd;
+        Rgns&			R  = vR[Q.iz];
+        vector<int>&	vp = R.pts[Q.ir];
+        int				np = vp.size(),
+                        nu = 0;	// count pts used
 
-		if( np < 4 ) {
-			KILL( Q );
-			continue;
-		}
+        if( np < 4 ) {
+            KILL( Q );
+            continue;
+        }
 
-		if( regtype == 'R' )
-			rgd = new CRigid;
-		else
-			rgd = new CTrans;
+        if( regtype == 'R' )
+            rgd = new CRigid;
+        else
+            rgd = new CTrans;
 
-		double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
-		double		LHS[8*8];
-		TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
-		TAffine*	Tb;
-		int			lastbi,
-					lastbz	= -1;
+        double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
+        double		LHS[8*8];
+        TAffine*	Ta = &X_AS_AFF( Xs->X[Q.iz], Q.ir );
+        TAffine*	Tb;
+        int			lastbi,
+                    lastbz	= -1;
 
-		Zero_Quick( LHS, RHS, 8 );
+        Zero_Quick( LHS, RHS, 8 );
 
-		// Sort the points so that cummulative rounding
-		// error tends to be same independent of nwks.
+        // Sort the points so that cummulative rounding
+        // error tends to be same independent of nwks.
 
-		if( !pass )
-			sort( vp.begin(), vp.end(), SortPnts );
+        if( !pass )
+            sort( vp.begin(), vp.end(), SortPnts );
 
-		// For each of its points...
+        // For each of its points...
 
-		for( int ip = 0; ip < np; ++ip ) {
+        for( int ip = 0; ip < np; ++ip ) {
 
-			const CorrPnt&	C = vC[vp[ip]];
+            const CorrPnt&	C = vC[vp[ip]];
 
-			if( !C.used )
-				continue;
+            if( !C.used )
+                continue;
 
-			Point	A, B;
+            Point	A, B;
 
-			// Which of {1,2} is the A-side?
+            // Which of {1,2} is the A-side?
 
-			if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
+            if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
 
-				if( C.z2 != lastbz ) {
-					lastbz = C.z2;
-					lastbi = -1;
-				}
+                if( C.z2 != lastbz ) {
+                    lastbz = C.z2;
+                    lastbi = -1;
+                }
 
-				if( C.i2 != lastbi ) {
+                if( C.i2 != lastbi ) {
 
-					if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
+                    if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
 
-						// Here's a pnt that's 'used' referencing
-						// a rgn that's not. It's inefficient, so
-						// we'll get such points marked 'not used'.
+                        // Here's a pnt that's 'used' referencing
+                        // a rgn that's not. It's inefficient, so
+                        // we'll get such points marked 'not used'.
 
-						MARK( Todo( C.z2, C.i2 ) );
-						continue;
-					}
+                        MARK( Todo( C.z2, C.i2 ) );
+                        continue;
+                    }
 
-					Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
-					lastbi = C.i2;
-				}
+                    Tb = &X_AS_AFF( Xs->X[C.z2], C.i2 );
+                    lastbi = C.i2;
+                }
 
-				Ta->Transform( A = C.p1 );
-				Tb->Transform( B = C.p2 );
+                Ta->Transform( A = C.p1 );
+                Tb->Transform( B = C.p2 );
 
-				B.x = Wb * B.x + (1 - Wb) * A.x;
-				B.y = Wb * B.y + (1 - Wb) * A.y;
-				A = C.p1;
+                B.x = Wb * B.x + (1 - Wb) * A.x;
+                B.y = Wb * B.y + (1 - Wb) * A.y;
+                A = C.p1;
 
-				rgd->Add( A, B );
-			}
-			else {	// A is 2
+                rgd->Add( A, B );
+            }
+            else {	// A is 2
 
-				if( C.z1 != lastbz ) {
-					lastbz = C.z1;
-					lastbi = -1;
-				}
+                if( C.z1 != lastbz ) {
+                    lastbz = C.z1;
+                    lastbi = -1;
+                }
 
-				if( C.i1 != lastbi ) {
+                if( C.i1 != lastbi ) {
 
-					if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
+                    if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
 
-						// Here's a pnt that's 'used' referencing
-						// a rgn that's not. It's inefficient, so
-						// we'll get those point marked 'not used'.
+                        // Here's a pnt that's 'used' referencing
+                        // a rgn that's not. It's inefficient, so
+                        // we'll get those point marked 'not used'.
 
-						MARK( Todo( C.z1, C.i1 ) );
-						continue;
-					}
+                        MARK( Todo( C.z1, C.i1 ) );
+                        continue;
+                    }
 
-					Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
-					lastbi = C.i1;
-				}
+                    Tb = &X_AS_AFF( Xs->X[C.z1], C.i1 );
+                    lastbi = C.i1;
+                }
 
-				Ta->Transform( A = C.p2 );
-				Tb->Transform( B = C.p1 );
+                Ta->Transform( A = C.p2 );
+                Tb->Transform( B = C.p1 );
 
-				B.x = Wb * B.x + (1 - Wb) * A.x;
-				B.y = Wb * B.y + (1 - Wb) * A.y;
-				A = C.p2;
+                B.x = Wb * B.x + (1 - Wb) * A.x;
+                B.y = Wb * B.y + (1 - Wb) * A.y;
+                A = C.p2;
 
-				rgd->Add( A, B );
-			}
+                rgd->Add( A, B );
+            }
 
-			++nu;
+            ++nu;
 
-			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+            double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
 
-			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+            AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
 
-			v[3] = -A.x*B.y;
-			v[4] = -A.y*B.y;
+            v[3] = -A.x*B.y;
+            v[4] = -A.y*B.y;
 
-			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
-		}
+            AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+        }
 
-		if( nu < 4 )
-			KILL( Q );
-		else if( !Solve_Quick( LHS, RHS, 8 ) )
-			Cut_A2H( RHS, Q, (long)ithr );
-		else {
+        if( nu < 4 )
+            KILL( Q );
+        else if( !Solve_Quick( LHS, RHS, 8 ) )
+            Cut_A2H( RHS, Q, (long)ithr );
+        else {
 
-			rgd->Regularize( RHS, 8, Wr );
+            rgd->Regularize( RHS, 8, Wr );
 
-			if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+            if( X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
 
-				Cut_A2H( RHS, Q, (long)ithr );
-			}
-			else if( nu < np )
-				ShortenList( Q, (long)ithr, 4 );
-		}
+                Cut_A2H( RHS, Q, (long)ithr );
+            }
+            else if( nu < np )
+                ShortenList( Q, (long)ithr, 4 );
+        }
 
-		delete rgd;
+        delete rgd;
 
-	} while( Q.Next() );
+    } while( Q.Next() );
 
-	return NULL;
+    return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -910,167 +910,167 @@ static void* _A2H( void* ithr )
 
 static void* _H2H( void* ithr )
 {
-	Todo	Q;
+    Todo	Q;
 
-	if( !Q.First( (long)ithr ) )
-		return NULL;
+    if( !Q.First( (long)ithr ) )
+        return NULL;
 
-	int	i1[5] = { 0, 1, 2, 6, 7 },
-		i2[5] = { 3, 4, 5, 6, 7 };
+    int	i1[5] = { 0, 1, 2, 6, 7 },
+        i2[5] = { 3, 4, 5, 6, 7 };
 
 // For each of my rgns...
 
-	do {
+    do {
 
-		CRigid			*rgd;
-		Rgns&			R  = vR[Q.iz];
-		vector<int>&	vp = R.pts[Q.ir];
-		int				np = vp.size(),
-						nu = 0;	// count pts used
+        CRigid			*rgd;
+        Rgns&			R  = vR[Q.iz];
+        vector<int>&	vp = R.pts[Q.ir];
+        int				np = vp.size(),
+                        nu = 0;	// count pts used
 
-		if( np < 4 ) {
-			KILL( Q );
-			continue;
-		}
+        if( np < 4 ) {
+            KILL( Q );
+            continue;
+        }
 
-		if( regtype == 'R' )
-			rgd = new CRigid;
-		else
-			rgd = new CTrans;
+        if( regtype == 'R' )
+            rgd = new CRigid;
+        else
+            rgd = new CTrans;
 
-		double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
-		double		LHS[8*8];
-		THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
-		THmgphy*	Tb;
-		int			lastbi,
-					lastbz	= -1;
+        double		*RHS = X_AS_HMY( Xd->X[Q.iz], Q.ir ).t;
+        double		LHS[8*8];
+        THmgphy*	Ta = &X_AS_HMY( Xs->X[Q.iz], Q.ir );
+        THmgphy*	Tb;
+        int			lastbi,
+                    lastbz	= -1;
 
-		Zero_Quick( LHS, RHS, 8 );
+        Zero_Quick( LHS, RHS, 8 );
 
-		// Sort the points so that cummulative rounding
-		// error tends to be same independent of nwks.
+        // Sort the points so that cummulative rounding
+        // error tends to be same independent of nwks.
 
-		if( !pass )
-			sort( vp.begin(), vp.end(), SortPnts );
+        if( !pass )
+            sort( vp.begin(), vp.end(), SortPnts );
 
-		// For each of its points...
+        // For each of its points...
 
-		for( int ip = 0; ip < np; ++ip ) {
+        for( int ip = 0; ip < np; ++ip ) {
 
-			CorrPnt&	C = vC[vp[ip]];
+            CorrPnt&	C = vC[vp[ip]];
 
-			if( !C.used )
-				continue;
+            if( !C.used )
+                continue;
 
-			Point	A, B;
+            Point	A, B;
 
-			// Which of {1,2} is the A-side?
+            // Which of {1,2} is the A-side?
 
-			if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
+            if( C.z1 == Q.iz && C.i1 == Q.ir ) {	// A is 1
 
-				if( C.z2 != lastbz ) {
-					lastbz = C.z2;
-					lastbi = -1;
-				}
+                if( C.z2 != lastbz ) {
+                    lastbz = C.z2;
+                    lastbi = -1;
+                }
 
-				if( C.i2 != lastbi ) {
+                if( C.i2 != lastbi ) {
 
-					if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
+                    if( !FLAG_ISUSED( vR[C.z2].flag[C.i2] ) ) {
 
-						// Here's a pnt that's 'used' referencing
-						// a rgn that's not. It's inefficient, so
-						// we'll get those point marked 'not used'.
+                        // Here's a pnt that's 'used' referencing
+                        // a rgn that's not. It's inefficient, so
+                        // we'll get those point marked 'not used'.
 
-						MARK( Todo( C.z2, C.i2 ) );
-						continue;
-					}
+                        MARK( Todo( C.z2, C.i2 ) );
+                        continue;
+                    }
 
-					Tb = &X_AS_HMY( Xs->X[C.z2], C.i2 );
-					lastbi = C.i2;
-				}
+                    Tb = &X_AS_HMY( Xs->X[C.z2], C.i2 );
+                    lastbi = C.i2;
+                }
 
-				Ta->Transform( A = C.p1 );
-				Tb->Transform( B = C.p2 );
+                Ta->Transform( A = C.p1 );
+                Tb->Transform( B = C.p2 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol )
-					continue;
+                if( pass > editdelay && A.DistSqr( B ) > Etol )
+                    continue;
 
-				B.x = Wb * B.x + (1 - Wb) * A.x;
-				B.y = Wb * B.y + (1 - Wb) * A.y;
-				A = C.p1;
+                B.x = Wb * B.x + (1 - Wb) * A.x;
+                B.y = Wb * B.y + (1 - Wb) * A.y;
+                A = C.p1;
 
-				rgd->Add( A, B );
-			}
-			else {	// A is 2
+                rgd->Add( A, B );
+            }
+            else {	// A is 2
 
-				if( C.z1 != lastbz ) {
-					lastbz = C.z1;
-					lastbi = -1;
-				}
+                if( C.z1 != lastbz ) {
+                    lastbz = C.z1;
+                    lastbi = -1;
+                }
 
-				if( C.i1 != lastbi ) {
+                if( C.i1 != lastbi ) {
 
-					if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
+                    if( !FLAG_ISUSED( vR[C.z1].flag[C.i1] ) ) {
 
-						// Here's a pnt that's 'used' referencing
-						// a rgn that's not. It's inefficient, so
-						// we'll get those point marked 'not used'.
+                        // Here's a pnt that's 'used' referencing
+                        // a rgn that's not. It's inefficient, so
+                        // we'll get those point marked 'not used'.
 
-						MARK( Todo( C.z1, C.i1 ) );
-						continue;
-					}
+                        MARK( Todo( C.z1, C.i1 ) );
+                        continue;
+                    }
 
-					Tb = &X_AS_HMY( Xs->X[C.z1], C.i1 );
-					lastbi = C.i1;
-				}
+                    Tb = &X_AS_HMY( Xs->X[C.z1], C.i1 );
+                    lastbi = C.i1;
+                }
 
-				Ta->Transform( A = C.p2 );
-				Tb->Transform( B = C.p1 );
+                Ta->Transform( A = C.p2 );
+                Tb->Transform( B = C.p1 );
 
-				if( pass > editdelay && A.DistSqr( B ) > Etol )
-					continue;
+                if( pass > editdelay && A.DistSqr( B ) > Etol )
+                    continue;
 
-				B.x = Wb * B.x + (1 - Wb) * A.x;
-				B.y = Wb * B.y + (1 - Wb) * A.y;
-				A = C.p2;
+                B.x = Wb * B.x + (1 - Wb) * A.x;
+                B.y = Wb * B.y + (1 - Wb) * A.y;
+                A = C.p2;
 
-				rgd->Add( A, B );
-			}
+                rgd->Add( A, B );
+            }
 
-			++nu;
+            ++nu;
 
-			double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
+            double	v[5] = { A.x, A.y, 1.0, -A.x*B.x, -A.y*B.x };
 
-			AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
+            AddConstraint_Quick( LHS, RHS, 8, 5, i1, v, B.x );
 
-			v[3] = -A.x*B.y;
-			v[4] = -A.y*B.y;
+            v[3] = -A.x*B.y;
+            v[4] = -A.y*B.y;
 
-			AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
-		}
+            AddConstraint_Quick( LHS, RHS, 8, 5, i2, v, B.y );
+        }
 
-		if( nu < 4 )
-			KILL( Q );
-		else if( !Solve_Quick( LHS, RHS, 8 ) )
-			Cut_H2H( RHS, Q, (long)ithr );
-		else {
+        if( nu < 4 )
+            KILL( Q );
+        else if( !Solve_Quick( LHS, RHS, 8 ) )
+            Cut_H2H( RHS, Q, (long)ithr );
+        else {
 
-			rgd->Regularize( RHS, 8, Wr );
+            rgd->Regularize( RHS, 8, Wr );
 
-			if( pass >= editdelay
-				&& X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
+            if( pass >= editdelay
+                && X_AS_HMY( RHS, 0 ).Squareness() > sqrtol ) {
 
-				Cut_H2H( RHS, Q, (long)ithr );
-			}
-			else if( nu < np )
-				ShortenList( Q, (long)ithr, 4 );
-		}
+                Cut_H2H( RHS, Q, (long)ithr );
+            }
+            else if( nu < np )
+                ShortenList( Q, (long)ithr, 4 );
+        }
 
-		delete rgd;
+        delete rgd;
 
-	} while( Q.Next() );
+    } while( Q.Next() );
 
-	return NULL;
+    return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -1109,86 +1109,86 @@ static void* _H2H( void* ithr )
 //
 static void UpdateFlags()
 {
-	int	ncut = 0, nkil = 0;
-	int	nt = vthr.size();
+    int	ncut = 0, nkil = 0;
+    int	nt = vthr.size();
 
 // For each thread's lists...
 
-	for( int it = 0; it < nt; ++it ) {
+    for( int it = 0; it < nt; ++it ) {
 
-		vector<Todo>&	vmrk = vthr[it].vmark;
-		vector<Todo>&	vcut = vthr[it].vcutd;
-		vector<Todo>&	vkil = vthr[it].vkill;
-		int				ne;	// n edits
+        vector<Todo>&	vmrk = vthr[it].vmark;
+        vector<Todo>&	vcut = vthr[it].vcutd;
+        vector<Todo>&	vkil = vthr[it].vkill;
+        int				ne;	// n edits
 
-		// Process marks
+        // Process marks
 
-		ne = vmrk.size();
+        ne = vmrk.size();
 
-		for( int ie = 0; ie < ne; ++ie ) {
+        for( int ie = 0; ie < ne; ++ie ) {
 
-			const Todo&		e  = vmrk[ie];
-			Rgns&			R  = vR[e.iz];
-			vector<int>&	vp = R.pts[e.ir];
-			int				np = vp.size();
+            const Todo&		e  = vmrk[ie];
+            Rgns&			R  = vR[e.iz];
+            vector<int>&	vp = R.pts[e.ir];
+            int				np = vp.size();
 
-			// mark all its pnts
-			for( int ip = 0; ip < np; ++ip )
-				vC[vp[ip]].used = false;
-		}
+            // mark all its pnts
+            for( int ip = 0; ip < np; ++ip )
+                vC[vp[ip]].used = false;
+        }
 
-		// Process cuts
+        // Process cuts
 
-		ne    = vcut.size();
-		ncut += ne;
+        ne    = vcut.size();
+        ncut += ne;
 
-		for( int ie = 0; ie < ne; ++ie ) {
+        for( int ie = 0; ie < ne; ++ie ) {
 
-			const Todo&		e  = vcut[ie];
-			Rgns&			R  = vR[e.iz];
-			vector<int>&	vp = R.pts[e.ir];
-			int				np = vp.size();
+            const Todo&		e  = vcut[ie];
+            Rgns&			R  = vR[e.iz];
+            vector<int>&	vp = R.pts[e.ir];
+            int				np = vp.size();
 
-			// mark rgn cutd
-			FLAG_ADDCUTD( R.flag[e.ir] );
+            // mark rgn cutd
+            FLAG_ADDCUTD( R.flag[e.ir] );
 
-			// mark its cross-pnts
-			for( int ip = 0; ip < np; ++ip ) {
+            // mark its cross-pnts
+            for( int ip = 0; ip < np; ++ip ) {
 
-				CorrPnt& C = vC[vp[ip]];
+                CorrPnt& C = vC[vp[ip]];
 
-				if( C.z1 != C.z2 )
-					C.used = false;
-			}
-		}
+                if( C.z1 != C.z2 )
+                    C.used = false;
+            }
+        }
 
-		// Process kills
+        // Process kills
 
-		ne    = vkil.size();
-		nkil += ne;
+        ne    = vkil.size();
+        nkil += ne;
 
-		for( int ie = 0; ie < ne; ++ie ) {
+        for( int ie = 0; ie < ne; ++ie ) {
 
-			const Todo&		e  = vkil[ie];
-			Rgns&			R  = vR[e.iz];
-			vector<int>&	vp = R.pts[e.ir];
-			int				np = vp.size();
+            const Todo&		e  = vkil[ie];
+            Rgns&			R  = vR[e.iz];
+            vector<int>&	vp = R.pts[e.ir];
+            int				np = vp.size();
 
-			// mark rgn killed
-			FLAG_ADDKILL( R.flag[e.ir] );
+            // mark rgn killed
+            FLAG_ADDKILL( R.flag[e.ir] );
 
-			// mark all its pnts
-			for( int ip = 0; ip < np; ++ip )
-				vC[vp[ip]].used = false;
-		}
-	}
+            // mark all its pnts
+            for( int ip = 0; ip < np; ++ip )
+                vC[vp[ip]].used = false;
+        }
+    }
 
 // Report activity this pass
 
-	if( ncut || nkil ) {
-		printf( "Pass %d: tiles [cutd, killed] = [%d, %d].\n",
-		pass, ncut, nkil );
-	}
+    if( ncut || nkil ) {
+        printf( "Pass %d: tiles [cutd, killed] = [%d, %d].\n",
+        pass, ncut, nkil );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -1199,20 +1199,20 @@ static void Do1Pass( EZThreadproc proc )
 {
 // multithreaded phase
 
-	vthr.clear();
-	vthr.resize( nthr );
+    vthr.clear();
+    vthr.resize( nthr );
 
-	if( !EZThreads( proc, nthr, 1, "Solveproc" ) )
-		exit( 42 );
+    if( !EZThreads( proc, nthr, 1, "Solveproc" ) )
+        exit( 42 );
 
 // single-threaded phase
 
-	UpdateFlags();
-	vthr.clear();
+    UpdateFlags();
+    vthr.clear();
 
 // synchronize
 
-	Xd->Updt();
+    Xd->Updt();
 }
 
 /* --------------------------------------------------------------- */
@@ -1232,9 +1232,9 @@ static void Do1Pass( EZThreadproc proc )
 //
 void SetSolveParams( int type, double inWr, double inEtol )
 {
-	Etol	= inEtol * inEtol;
-	Wr		= inWr;
-	regtype	= type;
+    Etol	= inEtol * inEtol;
+    Wr		= inWr;
+    regtype	= type;
 }
 
 /* --------------------------------------------------------------- */
@@ -1249,39 +1249,39 @@ void SetSolveParams( int type, double inWr, double inEtol )
 //
 void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 {
-	clock_t	t0 = StartTiming();
+    clock_t	t0 = StartTiming();
 
 /* ---------------------- */
 /* Mode specific settings */
 /* ---------------------- */
 
-	EZThreadproc	proc;
-	int				cS, cD;
+    EZThreadproc	proc;
+    int				cS, cD;
 
-	if( Xsrc.NE == 6 ) {
+    if( Xsrc.NE == 6 ) {
 
-		cS = 'A';
+        cS = 'A';
 
-		if( Xdst.NE == 6 ) {
-			editdelay	= max( iters / 4, 200 );
-			proc		= _A2A;
-			cD			= 'A';
-		}
-		else {
-			editdelay	= 0;	// not applied in A2H
-			proc		= _A2H;
-			cD			= 'H';
-		}
-	}
-	else {
-		editdelay	= max( iters / 100, 4 );
-		proc		= _H2H;
-		cS			= 'H';
-		cD			= 'H';
-	}
+        if( Xdst.NE == 6 ) {
+            editdelay	= max( iters / 4, 200 );
+            proc		= _A2A;
+            cD			= 'A';
+        }
+        else {
+            editdelay	= 0;	// not applied in A2H
+            proc		= _A2H;
+            cD			= 'H';
+        }
+    }
+    else {
+        editdelay	= max( iters / 100, 4 );
+        proc		= _H2H;
+        cS			= 'H';
+        cD			= 'H';
+    }
 
-	printf( "Solve: %c to %c (Wr %c, %g Etol %g iters %d)\n",
-	cS, cD, regtype, Wr, sqrt( Etol ), iters );
+    printf( "Solve: %c to %c (Wr %c, %g Etol %g iters %d)\n",
+    cS, cD, regtype, Wr, sqrt( Etol ), iters );
 
 /* -------- */
 /* Set nthr */
@@ -1290,36 +1290,36 @@ void Solve( XArray &Xsrc, XArray &Xdst, int iters )
 // Balance work/thread vs. thread overhead.
 // Revisit if workload altered.
 
-	const int minrgnsperthr = 8;
+    const int minrgnsperthr = 8;
 
-	int	nrgn = Todo::RgnCount();
+    int	nrgn = Todo::RgnCount();
 
-	nthr = maxthreads;
+    nthr = maxthreads;
 
-	while( nthr > 1 && nrgn < minrgnsperthr * nthr )
-		--nthr;
+    while( nthr > 1 && nrgn < minrgnsperthr * nthr )
+        --nthr;
 
-	printf( "NThrd: %d\n", nthr );
+    printf( "NThrd: %d\n", nthr );
 
 /* ------- */
 /* Iterate */
 /* ------- */
 
-	Xs = &Xsrc;
-	Xd = &Xdst;
+    Xs = &Xsrc;
+    Xd = &Xdst;
 
-	for( pass = 0; pass < iters; ++pass ) {
+    for( pass = 0; pass < iters; ++pass ) {
 
-		Do1Pass( proc );
+        Do1Pass( proc );
 
-		// swap Xs<->Xd
-		XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
+        // swap Xs<->Xd
+        XArray	*Xt = Xs; Xs = Xd; Xd = Xt;
 
-		if( !((long)DeltaSeconds( t0 ) % 300) )
-			fflush( stdout );
-	}
+        if( !((long)DeltaSeconds( t0 ) % 300) )
+            fflush( stdout );
+    }
 
-	StopTiming( stdout, "Solve", t0 );
+    StopTiming( stdout, "Solve", t0 );
 }
 
 

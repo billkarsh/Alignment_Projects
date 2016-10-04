@@ -4,7 +4,7 @@ rm -f sdall.txt
 
 for i in $(seq $1 $2)
 do
-	cat sd_$i.txt >> sdall.txt
+    cat sd_$i.txt >> sdall.txt
 done
 
 

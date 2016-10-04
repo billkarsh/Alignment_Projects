@@ -23,8 +23,8 @@
 
 class AIO {
 public:
-	int		z;
-	TAffine	A;
+    int		z;
+    TAffine	A;
 };
 
 /* --------------------------------------------------------------- */
@@ -46,71 +46,71 @@ static int			nthr;
 
 void* _RgdSums( void* ithr )
 {
-	int	nb = vA.size();
+    int	nb = vA.size();
 
 // For each B-layer...
 
-	for( int ib = (long)ithr; ib < nb; ib += nthr ) {
+    for( int ib = (long)ithr; ib < nb; ib += nthr ) {
 
-		// Form the sums
+        // Form the sums
 
-		CRigid					rgd;
-		int						ia	= ib + 1;
-		const Rgns&				Rb	= vR[ib];
-		const Rgns&				Ra	= vR[ia];
-		const vector<double>&	xb	= gX->X[ib];
-		const vector<double>&	xa	= gX->X[ia];
-		AIO&					A	= vA[ib];
+        CRigid					rgd;
+        int						ia	= ib + 1;
+        const Rgns&				Rb	= vR[ib];
+        const Rgns&				Ra	= vR[ia];
+        const vector<double>&	xb	= gX->X[ib];
+        const vector<double>&	xa	= gX->X[ia];
+        AIO&					A	= vA[ib];
 
-		// For each A-layer rgn...
+        // For each A-layer rgn...
 
-		for( int ir = 0; ir < Ra.nr; ++ir ) {
+        for( int ir = 0; ir < Ra.nr; ++ir ) {
 
-			if( !FLAG_ISUSED( Ra.flag[ir] ) )
-				continue;
+            if( !FLAG_ISUSED( Ra.flag[ir] ) )
+                continue;
 
-			const vector<int>&	P  = Ra.pts[ir];
-			const TAffine*		Ta = &X_AS_AFF( xa, ir );
-			const TAffine*		Tb;
-			int					lastb	= -1,
-								np		= P.size();
+            const vector<int>&	P  = Ra.pts[ir];
+            const TAffine*		Ta = &X_AS_AFF( xa, ir );
+            const TAffine*		Tb;
+            int					lastb	= -1,
+                                np		= P.size();
 
-			// For each of its points...
+            // For each of its points...
 
-			for( int ip = 0; ip < np; ++ip ) {
+            for( int ip = 0; ip < np; ++ip ) {
 
-				const CorrPnt&	C = vC[P[ip]];
+                const CorrPnt&	C = vC[P[ip]];
 
-				// Want only zA onto zB
+                // Want only zA onto zB
 
-				if( C.z1 != ia || C.z2 != ib )
-					continue;
+                if( C.z1 != ia || C.z2 != ib )
+                    continue;
 
-				if( C.i2 != lastb ) {
+                if( C.i2 != lastb ) {
 
-					if( !FLAG_ISUSED( Rb.flag[C.i2] ) )
-						continue;
+                    if( !FLAG_ISUSED( Rb.flag[C.i2] ) )
+                        continue;
 
-					Tb = &X_AS_AFF( xb, C.i2 );
-					lastb = C.i2;
-				}
+                    Tb = &X_AS_AFF( xb, C.i2 );
+                    lastb = C.i2;
+                }
 
-				Point	pa = C.p1,
-						pb = C.p2;
+                Point	pa = C.p1,
+                        pb = C.p2;
 
-				Ta->Transform( pa );
-				Tb->Transform( pb );
-				rgd.Add( pa, pb );
-			}
-		}
+                Ta->Transform( pa );
+                Tb->Transform( pb );
+                rgd.Add( pa, pb );
+            }
+        }
 
-		// Set transform
+        // Set transform
 
-		A.z = Ra.z;
-		rgd.Solve( A.A );
-	}
+        A.z = Ra.z;
+        rgd.Solve( A.A );
+    }
 
-	return NULL;
+    return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -121,19 +121,19 @@ void* _RgdSums( void* ithr )
 //
 static void CalcMyPairwiseTForms( XArray &X )
 {
-	gX = &X;
+    gX = &X;
 
-	int	nb = zohi - zolo;	// this many b-layers
+    int	nb = zohi - zolo;	// this many b-layers
 
-	vA.resize( nb );
+    vA.resize( nb );
 
-	nthr = maxthreads;
+    nthr = maxthreads;
 
-	if( nthr > nb )
-		nthr = nb;
+    if( nthr > nb )
+        nthr = nb;
 
-	if( !EZThreads( _RgdSums, nthr, 1, "_RgdSums" ) )
-		exit( 42 );
+    if( !EZThreads( _RgdSums, nthr, 1, "_RgdSums" ) )
+        exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -149,19 +149,19 @@ static void WriteMyTForms()
 {
 // If I'm not the last worker...
 
-	if( wkid >= nwks - 1 )
-		return;
+    if( wkid >= nwks - 1 )
+        return;
 
 // Each entry affects layer zA or higher, so write blocks:
 // 'zA A'
 
-	char	buf[32];
-	DskCreateDir( "Untwist", stdout );
-	sprintf( buf, "Untwist/%d.bin", wkid );
+    char	buf[32];
+    DskCreateDir( "Untwist", stdout );
+    sprintf( buf, "Untwist/%d.bin", wkid );
 
-	FILE	*f = FileOpenOrDie( buf, "wb" );
-	fwrite( &vA[0], sizeof(AIO), vA.size(), f );
-	fclose( f );
+    FILE	*f = FileOpenOrDie( buf, "wb" );
+    fwrite( &vA[0], sizeof(AIO), vA.size(), f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -177,37 +177,37 @@ static void WriteMyTForms()
 //
 static void AccumulateBefores( TAffine &A0 )
 {
-	int	z0		= vR[zolo].z,
-		zlast	= -1;
+    int	z0		= vR[zolo].z,
+        zlast	= -1;
 
-	for( int iw = 0; iw < wkid; ++iw ) {
+    for( int iw = 0; iw < wkid; ++iw ) {
 
-		char	buf[32];
-		sprintf( buf, "Untwist/%d.bin", iw );
+        char	buf[32];
+        sprintf( buf, "Untwist/%d.bin", iw );
 
-		int			n = (int)DskBytes( buf ) / sizeof(AIO);
-		vector<AIO>	aio( n );
+        int			n = (int)DskBytes( buf ) / sizeof(AIO);
+        vector<AIO>	aio( n );
 
-		FILE	*f = FileOpenOrDie( buf, "rb" );
-		fread( &aio[0], sizeof(AIO), n, f );
-		fclose( f );
+        FILE	*f = FileOpenOrDie( buf, "rb" );
+        fread( &aio[0], sizeof(AIO), n, f );
+        fclose( f );
 
-		for( int i = 0; i < n; ++i ) {
+        for( int i = 0; i < n; ++i ) {
 
-			const AIO&	A = aio[i];
+            const AIO&	A = aio[i];
 
-			if( A.z > z0 )
-				return;
+            if( A.z > z0 )
+                return;
 
-			// monotonic z rule
+            // monotonic z rule
 
-			if( A.z <= zlast )
-				continue;
+            if( A.z <= zlast )
+                continue;
 
-			A0		= A.A * A0;
-			zlast	= A.z;
-		}
-	}
+            A0		= A.A * A0;
+            zlast	= A.z;
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -218,26 +218,26 @@ static void AccumulateBefores( TAffine &A0 )
 //
 static void Apply( TAffine &A0 )
 {
-	int	nz = zohi - zolo + 1;
+    int	nz = zohi - zolo + 1;
 
-	for( int iz = (wkid ? 0 : 1); iz < nz; ++iz ) {
+    for( int iz = (wkid ? 0 : 1); iz < nz; ++iz ) {
 
-		if( iz )
-			A0 = vA[iz - 1].A * A0;
+        if( iz )
+            A0 = vA[iz - 1].A * A0;
 
-		const Rgns&		R = vR[iz];
-		vector<double>&	x = gX->X[iz];
+        const Rgns&		R = vR[iz];
+        vector<double>&	x = gX->X[iz];
 
-		for( int ir = 0; ir < R.nr; ++ir ) {
+        for( int ir = 0; ir < R.nr; ++ir ) {
 
-			if( !FLAG_ISUSED( R.flag[ir] ) )
-				continue;
+            if( !FLAG_ISUSED( R.flag[ir] ) )
+                continue;
 
-			TAffine& T = X_AS_AFF( x, ir );
+            TAffine& T = X_AS_AFF( x, ir );
 
-			T = A0 * T;
-		}
-	}
+            T = A0 * T;
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -253,30 +253,30 @@ static void Apply( TAffine &A0 )
 //
 void UntwistAffines( XArray &X )
 {
-	if( X.NE != 6 || zolo >= zohi )
-		return;
+    if( X.NE != 6 || zolo >= zohi )
+        return;
 
-	clock_t	t0 = StartTiming();
+    clock_t	t0 = StartTiming();
 
-	CalcMyPairwiseTForms( X );
-	WriteMyTForms();
+    CalcMyPairwiseTForms( X );
+    WriteMyTForms();
 
-	MPIWaitForOthers();
+    MPIWaitForOthers();
 
-	TAffine	A0;
-	AccumulateBefores( A0 );
+    TAffine	A0;
+    AccumulateBefores( A0 );
 
-	Apply( A0 );
-	vA.clear();
+    Apply( A0 );
+    vA.clear();
 
 // Cleanup
 
-	MPIWaitForOthers();
+    MPIWaitForOthers();
 
-	if( nwks > 1 && !wkid )
-		system( "rm -rf Untwist" );
+    if( nwks > 1 && !wkid )
+        system( "rm -rf Untwist" );
 
-	StopTiming( stdout, "Untwist", t0 );
+    StopTiming( stdout, "Untwist", t0 );
 }
 
 

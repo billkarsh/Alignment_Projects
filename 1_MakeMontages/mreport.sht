@@ -9,19 +9,19 @@
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 rm -rf MonSumy.txt
 
 for lyr in $(seq $1 $last)
 do
-	log=$lyr/montage/lsqw_0.txt
-	if [ -f "$log" ]
-	then
-		echo Z $lyr `grep -e "FINAL*" $log` >> MonSumy.txt
-	fi
+    log=$lyr/montage/lsqw_0.txt
+    if [ -f "$log" ]
+    then
+        echo Z $lyr `grep -e "FINAL*" $log` >> MonSumy.txt
+    fi
 done
 

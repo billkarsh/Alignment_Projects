@@ -52,30 +52,30 @@
 // assigned to the tri[] entries here.
 //
 static void BarycentricMatrices(
-	vector<triangle>		&tri,
-	const vector<vertex>	&ctl,
-	FILE*					flog )
+    vector<triangle>		&tri,
+    const vector<vertex>	&ctl,
+    FILE*					flog )
 {
-	int	ntri = tri.size();
+    int	ntri = tri.size();
 
-	for( int k = 0; k < ntri; ++k ) {
+    for( int k = 0; k < ntri; ++k ) {
 
-		triangle&	T  = tri[k];
-		vertex		v0 = ctl[T.v[0]],
-					v1 = ctl[T.v[1]],
-					v2 = ctl[T.v[2]];
-		double		a[3][3];
+        triangle&	T  = tri[k];
+        vertex		v0 = ctl[T.v[0]],
+                    v1 = ctl[T.v[1]],
+                    v2 = ctl[T.v[2]];
+        double		a[3][3];
 
-		fprintf( flog,
-		"Tri: (%d %d) (%d %d) (%d %d).\n",
-		v0.x, v0.y, v1.x, v1.y, v2.x, v2.y );
+        fprintf( flog,
+        "Tri: (%d %d) (%d %d) (%d %d).\n",
+        v0.x, v0.y, v1.x, v1.y, v2.x, v2.y );
 
-		a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
-		a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
-		a[2][0] =  1.0; a[2][1] =  1.0; a[2][2] =  1.0;
+        a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
+        a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
+        a[2][0] =  1.0; a[2][1] =  1.0; a[2][2] =  1.0;
 
-		Invert3x3Matrix( T.a, a );
-	}
+        Invert3x3Matrix( T.a, a );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -83,26 +83,26 @@ static void BarycentricMatrices(
 /* --------------------------------------------------------------- */
 
 static void ListVerticesMatlab(
-	const vector<triangle>	&tri,
-	const vector<vertex>	&vrt,
-	const char*				desc,
-	FILE*					flog )
+    const vector<triangle>	&tri,
+    const vector<vertex>	&vrt,
+    const char*				desc,
+    FILE*					flog )
 {
-	fprintf( flog, "\n---- Matlab %s ----\n", desc );
+    fprintf( flog, "\n---- Matlab %s ----\n", desc );
 
-	int	ntri = tri.size();
+    int	ntri = tri.size();
 
-	for( int k = 0; k < ntri; ++k ) {
+    for( int k = 0; k < ntri; ++k ) {
 
-		const triangle&	T  = tri[k];
-		vertex			v0 = vrt[T.v[0]],
-						v1 = vrt[T.v[1]],
-						v2 = vrt[T.v[2]];
+        const triangle&	T  = tri[k];
+        vertex			v0 = vrt[T.v[0]],
+                        v1 = vrt[T.v[1]],
+                        v2 = vrt[T.v[2]];
 
-		fprintf( flog,
-		"x=[%d %d %d %d]; y=[%d %d %d %d]; plot(x,y); hold on;\n",
-		v0.x, v1.x, v2.x, v0.x, v0.y, v1.y, v2.y, v0.y );
-	}
+        fprintf( flog,
+        "x=[%d %d %d %d]; y=[%d %d %d %d]; plot(x,y); hold on;\n",
+        v0.x, v1.x, v2.x, v0.x, v0.y, v1.y, v2.y, v0.y );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -123,36 +123,36 @@ static void ListVerticesMatlab(
 // as a function of changes in control points (mesh distortion).
 //
 static void PointsToMultipliers(
-	vector<vector<double> >	&am,
-	const vector<triangle>	&tri,
-	const vector<vertex>	&ctl,
-	const vector<Point>		&apts )
+    vector<vector<double> >	&am,
+    const vector<triangle>	&tri,
+    const vector<vertex>	&ctl,
+    const vector<Point>		&apts )
 {
-	int	npts = apts.size(),
-		nctl = ctl.size();
+    int	npts = apts.size(),
+        nctl = ctl.size();
 
-	am.resize( npts );
+    am.resize( npts );
 
-	for( int i = 0; i < npts; ++i ) {
+    for( int i = 0; i < npts; ++i ) {
 
-		Point			ap	= apts[i];
-		int				t	= BestTriangle( tri, ctl, ap );
-		const triangle&	T = tri[t];
-		double			m[3];
+        Point			ap	= apts[i];
+        int				t	= BestTriangle( tri, ctl, ap );
+        const triangle&	T = tri[t];
+        double			m[3];
 
-		m[0] = T.a[0][0]*ap.x + T.a[0][1]*ap.y + T.a[0][2];
-		m[1] = T.a[1][0]*ap.x + T.a[1][1]*ap.y + T.a[1][2];
-		m[2] = T.a[2][0]*ap.x + T.a[2][1]*ap.y + T.a[2][2];
+        m[0] = T.a[0][0]*ap.x + T.a[0][1]*ap.y + T.a[0][2];
+        m[1] = T.a[1][0]*ap.x + T.a[1][1]*ap.y + T.a[1][2];
+        m[2] = T.a[2][0]*ap.x + T.a[2][1]*ap.y + T.a[2][2];
 
-		// all multipliers zero...
-		vector<double>	mlong( nctl, 0.0 );
+        // all multipliers zero...
+        vector<double>	mlong( nctl, 0.0 );
 
-		// ...except these three
-		for( int j = 0; j < 3; ++j )
-			mlong[T.v[j]] = m[j];
+        // ...except these three
+        for( int j = 0; j < 3; ++j )
+            mlong[T.v[j]] = m[j];
 
-		am[i] = mlong;
-	}
+        am[i] = mlong;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -160,26 +160,26 @@ static void PointsToMultipliers(
 /* --------------------------------------------------------------- */
 
 static void ListPointsMatlab(
-	const vector<triangle>	&tri,
-	const vector<Point>		&pts,
-	const char*				desc,
-	FILE*					flog )
+    const vector<triangle>	&tri,
+    const vector<Point>		&pts,
+    const char*				desc,
+    FILE*					flog )
 {
-	fprintf( flog, "\n---- Matlab %s ----\n", desc );
+    fprintf( flog, "\n---- Matlab %s ----\n", desc );
 
-	int	ntri = tri.size();
+    int	ntri = tri.size();
 
-	for( int k = 0; k < ntri; ++k ) {
+    for( int k = 0; k < ntri; ++k ) {
 
-		const triangle&	T  = tri[k];
-		Point			v0 = pts[T.v[0]],
-						v1 = pts[T.v[1]],
-						v2 = pts[T.v[2]];
+        const triangle&	T  = tri[k];
+        Point			v0 = pts[T.v[0]],
+                        v1 = pts[T.v[1]],
+                        v2 = pts[T.v[2]];
 
-		fprintf( flog,
-		"x=[%f %f %f %f]; y=[%f %f %f %f]; plot(x,y); hold on;\n",
-		v0.x, v1.x, v2.x, v0.x, v0.y, v1.y, v2.y, v0.y );
-	}
+        fprintf( flog,
+        "x=[%f %f %f %f]; y=[%f %f %f %f]; plot(x,y); hold on;\n",
+        v0.x, v1.x, v2.x, v0.x, v0.y, v1.y, v2.y, v0.y );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -187,22 +187,22 @@ static void ListPointsMatlab(
 /* --------------------------------------------------------------- */
 
 static void ReportDeltaXY(
-	const vector<Point>	&cpts,
-	const vector<Point>	&bfor,
-	FILE*				flog )
+    const vector<Point>	&cpts,
+    const vector<Point>	&bfor,
+    FILE*				flog )
 {
-	fprintf( flog, "\n---- Deltas ----\n" );
+    fprintf( flog, "\n---- Deltas ----\n" );
 
-	int	nctl = cpts.size();
+    int	nctl = cpts.size();
 
-	for( int i = 0; i < nctl; ++i ) {
+    for( int i = 0; i < nctl; ++i ) {
 
-		double	d = cpts[i].Dist( bfor[i] );
+        double	d = cpts[i].Dist( bfor[i] );
 
-		fprintf( flog,
-		"id=%6d: dx=%8.2f dy=%8.2f d=%8.2f\n",
-		i, cpts[i].x - bfor[i].x, cpts[i].y - bfor[i].y, d );
-	}
+        fprintf( flog,
+        "id=%6d: dx=%8.2f dy=%8.2f d=%8.2f\n",
+        i, cpts[i].x - bfor[i].x, cpts[i].y - bfor[i].y, d );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -212,59 +212,59 @@ static void ReportDeltaXY(
 // Return true if overall area changes are within tolerances.
 //
 static bool CheckAreas(
-	const vector<triangle>	&tri,
-	const vector<Point>		&orig,
-	const vector<Point>		&cpts,
-	FILE*					flog )
+    const vector<triangle>	&tri,
+    const vector<Point>		&orig,
+    const vector<Point>		&cpts,
+    FILE*					flog )
 {
-	fprintf( flog, "\n---- Areas ----\n" );
+    fprintf( flog, "\n---- Areas ----\n" );
 
 /* --------------------------- */
 /* Get cumulative area changes */
 /* --------------------------- */
 
-	double	max_pct		= 0.0,
-			sum_A0		= 0.0,
-			sum_Anew	= 0.0;
-	int		ntri		= tri.size();
+    double	max_pct		= 0.0,
+            sum_A0		= 0.0,
+            sum_Anew	= 0.0;
+    int		ntri		= tri.size();
 
-	for( int k = 0; k < ntri; ++k ) {
+    for( int k = 0; k < ntri; ++k ) {
 
-		double	A0 = tri[k].Area( orig );
+        double	A0 = tri[k].Area( orig );
 
-		if( GBL.A.z != GBL.B.z ) {
+        if( GBL.A.z != GBL.B.z ) {
 
-			double	f = GBL.ctx.Tdfm.EffArea();
+            double	f = GBL.ctx.Tdfm.EffArea();
 
-			if( f < 0.99 || f > 1.01 ) {
+            if( f < 0.99 || f > 1.01 ) {
 
-				fprintf( flog,
-				"Modifying old area from %f to %f because scale"
-				" change was specified.\n", A0, A0 * f );
+                fprintf( flog,
+                "Modifying old area from %f to %f because scale"
+                " change was specified.\n", A0, A0 * f );
 
-				A0 *= f;
-			}
-		}
+                A0 *= f;
+            }
+        }
 
-		sum_A0 += A0;
+        sum_A0 += A0;
 
-		double	Anew	= tri[k].Area( cpts );
-		double	pct		= (Anew - A0) / A0 * 100.0;
+        double	Anew	= tri[k].Area( cpts );
+        double	pct		= (Anew - A0) / A0 * 100.0;
 
-		sum_Anew += Anew;
+        sum_Anew += Anew;
 
-		fprintf( flog,
-		"Triangle %d, area was %10.1f, is %10.1f, %6.1f%%\n",
-		k, A0, Anew, pct );
+        fprintf( flog,
+        "Triangle %d, area was %10.1f, is %10.1f, %6.1f%%\n",
+        k, A0, Anew, pct );
 
-		max_pct = fmax( max_pct, fabs( pct ) );
-	}
+        max_pct = fmax( max_pct, fabs( pct ) );
+    }
 
-	double sum_pct = (sum_Anew - sum_A0) / sum_A0 * 100.0;
+    double sum_pct = (sum_Anew - sum_A0) / sum_A0 * 100.0;
 
-	fprintf( flog,
-	"Combined: area was %10.1f, is %10.1f, %6.1f%%\n",
-	sum_A0, sum_Anew, sum_pct );
+    fprintf( flog,
+    "Combined: area was %10.1f, is %10.1f, %6.1f%%\n",
+    sum_A0, sum_Anew, sum_pct );
 
 /* ------------------ */
 /* Assess area change */
@@ -275,22 +275,22 @@ static bool CheckAreas(
 // If new tris cover wide area, use more generous TSC.
 //
 
-	double	sum_lim = GBL.mch.TSC;
+    double	sum_lim = GBL.mch.TSC;
 
-	if( sum_Anew > 500000 )
-		sum_lim *= 4.0/3.0;
+    if( sum_Anew > 500000 )
+        sum_lim *= 4.0/3.0;
 
-	if( max_pct > GBL.mch.TMC || fabs( sum_pct ) > sum_lim ) {
+    if( max_pct > GBL.mch.TMC || fabs( sum_pct ) > sum_lim ) {
 
-		fprintf( flog,
-		"FAIL: Area change too big"
-		" (max, sum) = (%8.2f%% %8.2f%%), (TMC TSC)=(%f %f).\n",
-		max_pct, sum_pct, GBL.mch.TMC, sum_lim );
+        fprintf( flog,
+        "FAIL: Area change too big"
+        " (max, sum) = (%8.2f%% %8.2f%%), (TMC TSC)=(%f %f).\n",
+        max_pct, sum_pct, GBL.mch.TMC, sum_lim );
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -298,101 +298,101 @@ static bool CheckAreas(
 /* --------------------------------------------------------------- */
 
 static void TransformsAndCenters(
-	vector<TAffine>			&transforms,
-	vector<Point>			&centers,
-	const vector<triangle>	&tri,
-	const vector<Point>		&orig,
-	const vector<Point>		&cpts,
-	const TAffine			&tr_guess,
-	FILE*					flog )
+    vector<TAffine>			&transforms,
+    vector<Point>			&centers,
+    const vector<triangle>	&tri,
+    const vector<Point>		&orig,
+    const vector<Point>		&cpts,
+    const TAffine			&tr_guess,
+    FILE*					flog )
 {
-	fprintf( flog, "\n---- Transforms ----\n" );
+    fprintf( flog, "\n---- Transforms ----\n" );
 
-	int	ntri = tri.size();
+    int	ntri = tri.size();
 
-	for( int k = 0; k < ntri; ++k ) {
+    for( int k = 0; k < ntri; ++k ) {
 
-		const triangle&	T  = tri[k];
-		int				i0 = T.v[0],
-						i1 = T.v[1],
-						i2 = T.v[2];
+        const triangle&	T  = tri[k];
+        int				i0 = T.v[0],
+                        i1 = T.v[1],
+                        i2 = T.v[2];
 
-		// Find transformation that maps original control points
-		// (orig) into optimized (cpts).
-		//
-		// Begin with a transform mapping a unit right triangle
-		// { (0,0), (1,0), (0,1) } in abstract global space to
-		// the respective orig vertices { o0, o1, o2 }. To see
-		// how simple this really is, just apply the TAffine (o)
-		// that we define below to each of the global vertices.
+        // Find transformation that maps original control points
+        // (orig) into optimized (cpts).
+        //
+        // Begin with a transform mapping a unit right triangle
+        // { (0,0), (1,0), (0,1) } in abstract global space to
+        // the respective orig vertices { o0, o1, o2 }. To see
+        // how simple this really is, just apply the TAffine (o)
+        // that we define below to each of the global vertices.
 
-		const Point&	o0 = orig[i0],
-						o1 = orig[i1],
-						o2 = orig[i2];
+        const Point&	o0 = orig[i0],
+                        o1 = orig[i1],
+                        o2 = orig[i2];
 
-		TAffine	o(	o1.x - o0.x, o2.x - o0.x, o0.x,
-					o1.y - o0.y, o2.y - o0.y, o0.y );
+        TAffine	o(	o1.x - o0.x, o2.x - o0.x, o0.x,
+                    o1.y - o0.y, o2.y - o0.y, o0.y );
 
-		// And make a like mapping from global space to (cpts)
+        // And make a like mapping from global space to (cpts)
 
-		const Point&	c0 = cpts[i0],
-						c1 = cpts[i1],
-						c2 = cpts[i2];
+        const Point&	c0 = cpts[i0],
+                        c1 = cpts[i1],
+                        c2 = cpts[i2];
 
-		TAffine	c(	c1.x - c0.x, c2.x - c0.x, c0.x,
-					c1.y - c0.y, c2.y - c0.y, c0.y );
+        TAffine	c(	c1.x - c0.x, c2.x - c0.x, c0.x,
+                    c1.y - c0.y, c2.y - c0.y, c0.y );
 
-		// Now make transform t = c * o-inv from orig to cpts
+        // Now make transform t = c * o-inv from orig to cpts
 
-		TAffine	t, oi;
+        TAffine	t, oi;
 
-		oi.InverseOf( o );
-		t = c * oi;
+        oi.InverseOf( o );
+        t = c * oi;
 
-		t.TPrint( flog );
+        t.TPrint( flog );
 
-		// Sanity check the "angular" change
+        // Sanity check the "angular" change
 
-		if(	(fabs( t.t[0] - 1.0 ) > 0.1 &&
-			 fabs( t.t[0] - tr_guess.t[0] ) > 0.1)
-			||
-			(fabs( t.t[4] - 1.0 ) > 0.1 &&
-			 fabs( t.t[4] - tr_guess.t[4] ) > 0.1) ) {
+        if(	(fabs( t.t[0] - 1.0 ) > 0.1 &&
+             fabs( t.t[0] - tr_guess.t[0] ) > 0.1)
+            ||
+            (fabs( t.t[4] - 1.0 ) > 0.1 &&
+             fabs( t.t[4] - tr_guess.t[4] ) > 0.1) ) {
 
-			fprintf( flog,
-			"Large deviation in t[0], t[4]: vertices %d %d %d\n",
-			i0, i1, i2 );
+            fprintf( flog,
+            "Large deviation in t[0], t[4]: vertices %d %d %d\n",
+            i0, i1, i2 );
 
-			fprintf( flog,
-			"orig (%f %f) (%f %f) (%f %f).\n",
-			o0.x, o0.y, o1.x, o1.y, o2.x, o2.y );
+            fprintf( flog,
+            "orig (%f %f) (%f %f) (%f %f).\n",
+            o0.x, o0.y, o1.x, o1.y, o2.x, o2.y );
 
-			fprintf( flog,
-			"cpts (%f %f) (%f %f) (%f %f)\n",
-			c0.x, c0.y, c1.x, c1.y, c2.x, c2.y );
-		}
+            fprintf( flog,
+            "cpts (%f %f) (%f %f) (%f %f)\n",
+            c0.x, c0.y, c1.x, c1.y, c2.x, c2.y );
+        }
 
-		transforms.push_back( t );
+        transforms.push_back( t );
 
-		// Each center is initially just a triangle centroid,
-		// although any point interior to triangle will do.
+        // Each center is initially just a triangle centroid,
+        // although any point interior to triangle will do.
 
-		double	cenx = (o0.x + o1.x + o2.x) / 3.0,
-				ceny = (o0.y + o1.y + o2.y) / 3.0;
+        double	cenx = (o0.x + o1.x + o2.x) / 3.0,
+                ceny = (o0.y + o1.y + o2.y) / 3.0;
 
-		// Now we jiggle along a line segment from centroid
-		// to vertex 0. The purpose is that in rare instances
-		// when affines are all the same because optimizer did
-		// nothing, if centers are also colinear, then solver
-		// matrices become degenerate. Jiggling avoids that.
+        // Now we jiggle along a line segment from centroid
+        // to vertex 0. The purpose is that in rare instances
+        // when affines are all the same because optimizer did
+        // nothing, if centers are also colinear, then solver
+        // matrices become degenerate. Jiggling avoids that.
 
-		double	seglenscl = double(rand()) / (10.0 * RAND_MAX);
+        double	seglenscl = double(rand()) / (10.0 * RAND_MAX);
 
-		cenx += seglenscl * (o0.x - cenx);
-		ceny += seglenscl * (o0.y - ceny);
+        cenx += seglenscl * (o0.x - cenx);
+        ceny += seglenscl * (o0.y - ceny);
 
-		centers.push_back( Point( cenx, ceny ) );
-	}
+        centers.push_back( Point( cenx, ceny ) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -411,48 +411,48 @@ static void TransformsAndCenters(
 // describe		- descriptive string for logs
 //
 double ImproveMesh(
-	vector<TAffine>			&transforms,
-	vector<Point>			&centers,
-	vector<triangle>		&tri,
-	const vector<vertex>	&ctl,
-	const vector<Point>		&apts,
-	const vector<double>	&av,
-	const vector<double>	&bimg,
-	int						w,
-	int						h,
-	const TAffine			&tr_guess,
-	double					threshold,
-	FILE					*flog,
-	const char				*describe )
+    vector<TAffine>			&transforms,
+    vector<Point>			&centers,
+    vector<triangle>		&tri,
+    const vector<vertex>	&ctl,
+    const vector<Point>		&apts,
+    const vector<double>	&av,
+    const vector<double>	&bimg,
+    int						w,
+    int						h,
+    const TAffine			&tr_guess,
+    double					threshold,
+    FILE					*flog,
+    const char				*describe )
 {
-	fprintf( flog, "\n---- ImproveMesh - %s ----\n", describe );
+    fprintf( flog, "\n---- ImproveMesh - %s ----\n", describe );
 
 /* ---------------------- */
 /* Init output transforms */
 /* ---------------------- */
 
-	transforms.clear();
-	centers.clear();
+    transforms.clear();
+    centers.clear();
 
 /* --------------------------------- */
 /* Make point-to-multiplier matrices */
 /* --------------------------------- */
 
-	BarycentricMatrices( tri, ctl, flog );
+    BarycentricMatrices( tri, ctl, flog );
 
 /* --------------------------------- */
 /* Report triangles in Matlab format */
 /* --------------------------------- */
 
-	ListVerticesMatlab( tri, ctl, "Vertices", flog );
+    ListVerticesMatlab( tri, ctl, "Vertices", flog );
 
 /* --------------------- */
 /* Points to multipliers */
 /* --------------------- */
 
-	vector<vector<double> >	am;
+    vector<vector<double> >	am;
 
-	PointsToMultipliers( am, tri, ctl, apts );
+    PointsToMultipliers( am, tri, ctl, apts );
 
 /* -------------------- */
 /* Init change tracking */
@@ -463,22 +463,22 @@ double ImproveMesh(
 // (2) bfor: are transformed to B-coords but not optimized
 // (3) cpts: are the optimized points
 
-	int				nctl = ctl.size();
-	vector<Point>	orig( nctl ), bfor, cpts;
+    int				nctl = ctl.size();
+    vector<Point>	orig( nctl ), bfor, cpts;
 
-	for( int k = 0; k < nctl; ++k )
-		orig[k] = Point( ctl[k].x, ctl[k].y );
+    for( int k = 0; k < nctl; ++k )
+        orig[k] = Point( ctl[k].x, ctl[k].y );
 
-	bfor = orig;
-	tr_guess.Transform( bfor );
+    bfor = orig;
+    tr_guess.Transform( bfor );
 
-	cpts = bfor;
+    cpts = bfor;
 
 /* ------------- */
 /* Optimize mesh */
 /* ------------- */
 
-	fprintf( flog, "\n---- ImproveControlPts ----\n" );
+    fprintf( flog, "\n---- ImproveControlPts ----\n" );
 
 // On entry, corr temporarily holds the desired final
 // threshold. On exit, corr is the mesh correlation.
@@ -495,51 +495,51 @@ double ImproveMesh(
 // For homogeneous EM case, mesh optimization works well and
 // is always recommended.
 
-	double	corr = threshold;
+    double	corr = threshold;
 
-	if( !GBL.ctx.OPT )
-		corr = -1;
+    if( !GBL.ctx.OPT )
+        corr = -1;
 
-	corr = ImproveControlPts(
-				cpts, am, av,
-				bimg, w, h,
-				flog, describe,
-				GBL.ctx.RIT, corr );
+    corr = ImproveControlPts(
+                cpts, am, av,
+                bimg, w, h,
+                flog, describe,
+                GBL.ctx.RIT, corr );
 
-	if( corr < threshold ) {
+    if( corr < threshold ) {
 
-		fprintf( flog,
-		"FAIL: ImproveMesh: corr=%f, below final thresh=%f\n",
-		corr, threshold );
+        fprintf( flog,
+        "FAIL: ImproveMesh: corr=%f, below final thresh=%f\n",
+        corr, threshold );
 
-		return corr;
-	}
+        return corr;
+    }
 
 /* -------------- */
 /* Report results */
 /* -------------- */
 
-	ListPointsMatlab( tri, orig, "A-Sys Originals", flog );
-	ListPointsMatlab( tri, bfor, "B-Sys Originals", flog );
-	ListPointsMatlab( tri, cpts, "B-Sys Optimized", flog );
+    ListPointsMatlab( tri, orig, "A-Sys Originals", flog );
+    ListPointsMatlab( tri, bfor, "B-Sys Originals", flog );
+    ListPointsMatlab( tri, cpts, "B-Sys Optimized", flog );
 
-	ReportDeltaXY( cpts, bfor, flog );
+    ReportDeltaXY( cpts, bfor, flog );
 
 /* ----------- */
 /* Check areas */
 /* ----------- */
 
-	if( !CheckAreas( tri, orig, cpts, flog ) )
-		return 0.0;
+    if( !CheckAreas( tri, orig, cpts, flog ) )
+        return 0.0;
 
 /* ------------------------------------------ */
 /* Get transform and center for each triangle */
 /* ------------------------------------------ */
 
-	TransformsAndCenters( transforms, centers,
-		tri, orig, cpts, tr_guess, flog );
+    TransformsAndCenters( transforms, centers,
+        tri, orig, cpts, tr_guess, flog );
 
-	return corr;
+    return corr;
 }
 
 

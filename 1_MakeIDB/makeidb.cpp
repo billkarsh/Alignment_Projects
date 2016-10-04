@@ -60,23 +60,23 @@
 class cArgs_idb {
 
 public:
-	const char	*infile,
-				*script,
-				*outdir;
-	int			zmin,
-				zmax;
+    const char	*infile,
+                *script,
+                *outdir;
+    int			zmin,
+                zmax;
 
 public:
-	cArgs_idb()
-	{
-		infile	=
-		outdir	= "NoSuch";	// prevent overwriting real dir
-		script	= NULL;
-		zmin	= 0;
-		zmax	= 32768;
-	};
+    cArgs_idb()
+    {
+        infile	=
+        outdir	= "NoSuch";	// prevent overwriting real dir
+        script	= NULL;
+        zmin	= 0;
+        zmax	= 32768;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -104,59 +104,59 @@ void cArgs_idb::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "makeidb.log", "w" );
+    flog = FileOpenOrDie( "makeidb.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Make img database: %s ", atime );
+    fprintf( flog, "Make img database: %s ", atime );
 
 // parse command line args
 
-	if( argc < 4 ) {
-		printf( "Usage: makeidb <source-file>"
-		" -script=scriptpath -idb=idbpath -z=i,j.\n" );
-		exit( 42 );
-	}
+    if( argc < 4 ) {
+        printf( "Usage: makeidb <source-file>"
+        " -script=scriptpath -idb=idbpath -z=i,j.\n" );
+        exit( 42 );
+    }
 
-	vector<int>	vi;
+    vector<int>	vi;
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArgStr( script, "-script=", argv[i] ) )
-			;
-		else if( GetArgStr( outdir, "-idb=", argv[i] ) )
-			;
-		else if( GetArgList( vi, "-z=", argv[i] ) ) {
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArgStr( script, "-script=", argv[i] ) )
+            ;
+        else if( GetArgStr( outdir, "-idb=", argv[i] ) )
+            ;
+        else if( GetArgList( vi, "-z=", argv[i] ) ) {
 
-			if( 2 == vi.size() ) {
-				zmin = vi[0];
-				zmax = vi[1];
-			}
-			else {
-				fprintf( flog,
-				"Bad format in -z [%s].\n", argv[i] );
-				exit( 42 );
-			}
-		}
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( 2 == vi.size() ) {
+                zmin = vi[0];
+                zmax = vi[1];
+            }
+            else {
+                fprintf( flog,
+                "Bad format in -z [%s].\n", argv[i] );
+                exit( 42 );
+            }
+        }
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n" );
-	fflush( flog );
+    fprintf( flog, "\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -167,25 +167,25 @@ static void Make_nmrc_paths()
 {
 // topdir gets the full path to the top directory
 
-	char	topdir[2048];
+    char	topdir[2048];
 
-	DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
+    DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
 
 // save mrc names in global vector and replace them in TS
 
-	int	nt = TS.vtil.size();
+    int	nt = TS.vtil.size();
 
-	for( int i = 0; i < nt; ++i ) {
+    for( int i = 0; i < nt; ++i ) {
 
-		CUTile&	U = TS.vtil[i];
-		char	path[2048];
+        CUTile&	U = TS.vtil[i];
+        char	path[2048];
 
-		sprintf( path, "%s/%d/nmrc/nmrc_%d_%d.png",
-			topdir, U.z, U.z, U.id );
+        sprintf( path, "%s/%d/nmrc/nmrc_%d_%d.png",
+            topdir, U.z, U.z, U.id );
 
-		vname0.push_back( U.name );
-		U.name = path;
-	}
+        vname0.push_back( U.name );
+        U.name = path;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -194,13 +194,13 @@ static void Make_nmrc_paths()
 
 static void CreateTopDir()
 {
-	char	name[2048];
+    char	name[2048];
 
 // gtopdir gets the full path to the top directory
-	DskAbsPath( gtopdir, sizeof(gtopdir), gArgs.outdir, flog );
+    DskAbsPath( gtopdir, sizeof(gtopdir), gArgs.outdir, flog );
 
 // create the top dir
-	DskCreateDir( gArgs.outdir, flog );
+    DskCreateDir( gArgs.outdir, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -209,20 +209,20 @@ static void CreateTopDir()
 
 static void WriteImageparamsFile()
 {
-	char	name[2048];
-	FILE	*f;
-	int		w, h;
+    char	name[2048];
+    FILE	*f;
+    int		w, h;
 
-	TS.GetTileDims( w, h );
+    TS.GetTileDims( w, h );
 
-	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
+    sprintf( name, "%s/imageparams.txt", gArgs.outdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
-	fprintf( f, "IDBPATH %s\n", gtopdir );
-	fprintf( f, "IMAGESIZE %d %d\n", w, h );
+    fprintf( f, "IDBPATH %s\n", gtopdir );
+    fprintf( f, "IMAGESIZE %d %d\n", w, h );
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -231,12 +231,12 @@ static void WriteImageparamsFile()
 
 static void CopyCropFile()
 {
-	if( !scr.croprectfile.empty() ) {
-		char	buf[2048];
-		sprintf( buf, "cp %s %s/crop.txt",
-			scr.croprectfile.c_str(), gArgs.outdir );
-		system( buf );
-	}
+    if( !scr.croprectfile.empty() ) {
+        char	buf[2048];
+        sprintf( buf, "cp %s %s/crop.txt",
+            scr.croprectfile.c_str(), gArgs.outdir );
+        system( buf );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -245,48 +245,48 @@ static void CopyCropFile()
 
 static void WriteFSubFile()
 {
-	char	buf[2048];
-	FILE	*f;
+    char	buf[2048];
+    FILE	*f;
 
-	sprintf( buf, "%s/fsub.sht", gArgs.outdir );
-	f = FileOpenOrDie( buf, "w", flog );
+    sprintf( buf, "%s/fsub.sht", gArgs.outdir );
+    f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# For layer range, convert mrc images and/or auto-generate foldmasks.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# > ./fsub.sht <zmin> [zmax]\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "export MRC_TRIM=12\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "nproc=%d\n",
-	scr.makefmjparam );
-	fprintf( f, "nslot=%d\n",
-	scr.makefmslots );
-	fprintf( f, "\n" );
-	fprintf( f, "if (($# == 1))\n" );
-	fprintf( f, "then\n" );
-	fprintf( f, "\tlast=$1\n" );
-	fprintf( f, "else\n" );
-	fprintf( f, "\tlast=$2\n" );
-	fprintf( f, "fi\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "for lyr in $(seq $1 $last)\n" );
-	fprintf( f, "do\n" );
-	fprintf( f, "\techo $lyr\n" );
-	fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
-	fprintf( f, "\tthen\n" );
-	fprintf( f, "\t\tcd $lyr\n" );
-	fprintf( f, "\t\tQSUB_1NODE.sht 1 \"makefm-$lyr\" \"-o /dev/null\" $nslot \"make -f make.fm -j $nproc EXTRA='\"\"'\"\n" );
-	fprintf( f, "\t\tcd ..\n" );
-	fprintf( f, "\tfi\n" );
-	fprintf( f, "done\n" );
-	fprintf( f, "\n" );
+    fprintf( f, "#!/bin/sh\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "# Purpose:\n" );
+    fprintf( f, "# For layer range, convert mrc images and/or auto-generate foldmasks.\n" );
+    fprintf( f, "#\n" );
+    fprintf( f, "# > ./fsub.sht <zmin> [zmax]\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "export MRC_TRIM=12\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "nproc=%d\n",
+    scr.makefmjparam );
+    fprintf( f, "nslot=%d\n",
+    scr.makefmslots );
+    fprintf( f, "\n" );
+    fprintf( f, "if (($# == 1))\n" );
+    fprintf( f, "then\n" );
+    fprintf( f, "\tlast=$1\n" );
+    fprintf( f, "else\n" );
+    fprintf( f, "\tlast=$2\n" );
+    fprintf( f, "fi\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "for lyr in $(seq $1 $last)\n" );
+    fprintf( f, "do\n" );
+    fprintf( f, "\techo $lyr\n" );
+    fprintf( f, "\tif [ -d \"$lyr\" ]\n" );
+    fprintf( f, "\tthen\n" );
+    fprintf( f, "\t\tcd $lyr\n" );
+    fprintf( f, "\t\tQSUB_1NODE.sht 1 \"makefm-$lyr\" \"-o /dev/null\" $nslot \"make -f make.fm -j $nproc EXTRA='\"\"'\"\n" );
+    fprintf( f, "\t\tcd ..\n" );
+    fprintf( f, "\tfi\n" );
+    fprintf( f, "done\n" );
+    fprintf( f, "\n" );
 
-	fclose( f );
-	FileScriptPerms( buf );
+    fclose( f );
+    FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -295,25 +295,25 @@ static void WriteFSubFile()
 
 static void WriteFReportFile()
 {
-	char	buf[2048];
-	FILE	*f;
+    char	buf[2048];
+    FILE	*f;
 
-	sprintf( buf, "%s/freport.sht", gArgs.outdir );
-	f = FileOpenOrDie( buf, "w", flog );
+    sprintf( buf, "%s/freport.sht", gArgs.outdir );
+    f = FileOpenOrDie( buf, "w", flog );
 
-	fprintf( f, "#!/bin/sh\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "# Purpose:\n" );
-	fprintf( f, "# Tabulate sizes of all stderr logs from foldmask generation.\n" );
-	fprintf( f, "#\n" );
-	fprintf( f, "# > ./freport.sht\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "\n" );
-	fprintf( f, "ls -l */makefm*.e* > FmErrs.txt\n" );
-	fprintf( f, "\n" );
+    fprintf( f, "#!/bin/sh\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "# Purpose:\n" );
+    fprintf( f, "# Tabulate sizes of all stderr logs from foldmask generation.\n" );
+    fprintf( f, "#\n" );
+    fprintf( f, "# > ./freport.sht\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "\n" );
+    fprintf( f, "ls -l */makefm*.e* > FmErrs.txt\n" );
+    fprintf( f, "\n" );
 
-	fclose( f );
-	FileScriptPerms( buf );
+    fclose( f );
+    FileScriptPerms( buf );
 }
 
 /* --------------------------------------------------------------- */
@@ -325,10 +325,10 @@ static void WriteFReportFile()
 //
 static void CreateLayerDir( char *lyrdir, int L )
 {
-	fprintf( flog, "\n\nCreateLayerDir: layer %d\n", L );
+    fprintf( flog, "\n\nCreateLayerDir: layer %d\n", L );
 
-	sprintf( lyrdir, "%s/%d", gArgs.outdir, L );
-	DskCreateDir( lyrdir, flog );
+    sprintf( lyrdir, "%s/%d", gArgs.outdir, L );
+    DskCreateDir( lyrdir, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -340,44 +340,44 @@ static void CreateLayerDir( char *lyrdir, int L )
 // Create corresponding folder=fm (or folder=fmd).
 //
 static void Make_TileToFM(
-	const char	*lyrdir,
-	const char	*file,
-	const char	*folder,
-	int			is0,
-	int			isN )
+    const char	*lyrdir,
+    const char	*file,
+    const char	*folder,
+    int			is0,
+    int			isN )
 {
 // Open file
 
-	char	name[2048];
-	FILE	*f;
+    char	name[2048];
+    FILE	*f;
 
-	sprintf( name, "%s/%s.txt", lyrdir, file );
+    sprintf( name, "%s/%s.txt", lyrdir, file );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // Header
 
-	fprintf( f, "ID\tPath\n" );
+    fprintf( f, "ID\tPath\n" );
 
 // Create fm dir
 
-	char	fmpath[2048];
+    char	fmpath[2048];
 
-	sprintf( fmpath, "%s/%d/%s", gtopdir, TS.vtil[is0].z, folder );
-	DskCreateDir( fmpath, flog );
+    sprintf( fmpath, "%s/%d/%s", gtopdir, TS.vtil[is0].z, folder );
+    DskCreateDir( fmpath, flog );
 
 // Write sorted entries
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		const CUTile&	U = TS.vtil[i];
+        const CUTile&	U = TS.vtil[i];
 
-		fprintf( f,
-			"%d\t%s/%s_%d_%d.png\n",
-			U.id, fmpath, folder, U.z, U.id );
-	}
+        fprintf( f,
+            "%d\t%s/%s_%d_%d.png\n",
+            U.id, fmpath, folder, U.z, U.id );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -391,29 +391,29 @@ static void Make_TileToFM(
 //
 static void Make_fmsame( const char *lyrdir, int is0, int isN )
 {
-	char	name[2048];
-	FILE	*f;
+    char	name[2048];
+    FILE	*f;
 
-	sprintf( name, "%s/fm.same", lyrdir );
+    sprintf( name, "%s/fm.same", lyrdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // Create fmpath
 
-	char	fmpath[2048];
+    char	fmpath[2048];
 
-	sprintf( fmpath, "%s/%d/fm", gtopdir, TS.vtil[is0].z );
+    sprintf( fmpath, "%s/%d/fm", gtopdir, TS.vtil[is0].z );
 
 // FOLDMAP2 entries
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		const CUTile&	U = TS.vtil[i];
+        const CUTile&	U = TS.vtil[i];
 
-		fprintf( f, "FOLDMAP2 %d.%d 1\n", U.z, U.id );
-	}
+        fprintf( f, "FOLDMAP2 %d.%d 1\n", U.z, U.id );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -429,14 +429,14 @@ static void Make_fmsame( const char *lyrdir, int is0, int isN )
 //
 static void ConvertSpaces( char *out, const char *in )
 {
-	while( *out++ = *in++ ) {
+    while( *out++ = *in++ ) {
 
-		if( in[-1] == ' ' ) {
+        if( in[-1] == ' ' ) {
 
-			out[-1]	= '\\';
-			*out++	= ' ';
-		}
-	}
+            out[-1]	= '\\';
+            *out++	= ' ';
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -448,81 +448,81 @@ static void ConvertSpaces( char *out, const char *in )
 //
 static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 {
-	char	name[2048];
-	FILE	*f;
+    char	name[2048];
+    FILE	*f;
 
-	sprintf( name, "%s/make.fm", lyrdir );
+    sprintf( name, "%s/make.fm", lyrdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // Master target depends on all others
 
-	fprintf( f, "all: " );
+    fprintf( f, "all: " );
 
-	for( int i = is0; i < isN; ++i )
-		fprintf( f, "fm/fm_%d_%d.png ", TS.vtil[is0].z, TS.vtil[i].id );
+    for( int i = is0; i < isN; ++i )
+        fprintf( f, "fm/fm_%d_%d.png ", TS.vtil[is0].z, TS.vtil[i].id );
 
-	fprintf( f, "\n\n" );
+    fprintf( f, "\n\n" );
 
 // Subtargets and rules
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		const CUTile&	U = TS.vtil[i];
+        const CUTile&	U = TS.vtil[i];
 
 #if 0
 // target with dependency
-		char dep[2048];
-		ConvertSpaces( dep, vname0[i].c_str() );
-		fprintf( f, "fm/fm_%d_%d.png: %s\n", U.z, U.id, dep );
+        char dep[2048];
+        ConvertSpaces( dep, vname0[i].c_str() );
+        fprintf( f, "fm/fm_%d_%d.png: %s\n", U.z, U.id, dep );
 #else
 // target only
-		fprintf( f, "fm/fm_%d_%d.png:\n", U.z, U.id );
+        fprintf( f, "fm/fm_%d_%d.png:\n", U.z, U.id );
 #endif
 
-		if( scr.usingfoldmasks ) {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=nmrc/nmrc_%d_%d.png'"
-				" '-fm=fm/fm_%d_%d.png'"
-				" '-fmd=fmd/fmd_%d_%d.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.z, U.id,
-				U.z, U.id,
-				U.z, U.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-fm=fm/fm_%d_%d.png'"
-				" '-fmd=fmd/fmd_%d_%d.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.z, U.id,
-				U.z, U.id );
-			}
-		}
-		else {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=nmrc/nmrc_%d_%d.png'"
-				" -nf ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.z, U.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" -nf ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str() );
-			}
-		}
-	}
+        if( scr.usingfoldmasks ) {
+            if( ismrc ) {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " '-nmrc=nmrc/nmrc_%d_%d.png'"
+                " '-fm=fm/fm_%d_%d.png'"
+                " '-fmd=fmd/fmd_%d_%d.png'"
+                " ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str(),
+                U.z, U.id,
+                U.z, U.id,
+                U.z, U.id );
+            }
+            else {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " '-fm=fm/fm_%d_%d.png'"
+                " '-fmd=fmd/fmd_%d_%d.png'"
+                " ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str(),
+                U.z, U.id,
+                U.z, U.id );
+            }
+        }
+        else {
+            if( ismrc ) {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " '-nmrc=nmrc/nmrc_%d_%d.png'"
+                " -nf ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str(),
+                U.z, U.id );
+            }
+            else {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " -nf ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str() );
+            }
+        }
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -533,32 +533,32 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 //
 static void ForEachLayer()
 {
-	int	is0, isN;
+    int	is0, isN;
 
-	TS.GetLayerLimits( is0 = 0, isN );
+    TS.GetLayerLimits( is0 = 0, isN );
 
-	while( isN != -1 ) {
+    while( isN != -1 ) {
 
-		char	lyrdir[2048];
+        char	lyrdir[2048];
 
-		CreateLayerDir( lyrdir, TS.vtil[is0].z );
+        CreateLayerDir( lyrdir, TS.vtil[is0].z );
 
-		TS.WriteTileToImage( gtopdir, false, ismrc, is0, isN );
+        TS.WriteTileToImage( gtopdir, false, ismrc, is0, isN );
 
-		if( scr.usingfoldmasks ) {
-			Make_TileToFM( lyrdir, "TileToFM",  "fm",  is0, isN );
-			Make_TileToFM( lyrdir, "TileToFMD", "fmd", is0, isN );
-			Make_MakeFM( lyrdir, is0, isN );
-		}
-		else {
-			if( ismrc )
-				Make_MakeFM( lyrdir, is0, isN );
-			else
-				Make_fmsame( lyrdir, is0, isN );
-		}
+        if( scr.usingfoldmasks ) {
+            Make_TileToFM( lyrdir, "TileToFM",  "fm",  is0, isN );
+            Make_TileToFM( lyrdir, "TileToFMD", "fmd", is0, isN );
+            Make_MakeFM( lyrdir, is0, isN );
+        }
+        else {
+            if( ismrc )
+                Make_MakeFM( lyrdir, is0, isN );
+            else
+                Make_fmsame( lyrdir, is0, isN );
+        }
 
-		TS.GetLayerLimits( is0 = isN, isN );
-	}
+        TS.GetLayerLimits( is0 = isN, isN );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -571,80 +571,80 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
-	TS.SetLogFile( flog );
+    TS.SetLogFile( flog );
 
-	int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
+    int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
 
-	if( !ReadScriptParams( scr, gArgs.script, flog ) )
-		goto exit;
+    if( !ReadScriptParams( scr, gArgs.script, flog ) )
+        goto exit;
 
 /* ---------------- */
 /* Read source file */
 /* ---------------- */
 
-	if( isrickfile )
-		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
-	else
-		TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
+    if( isrickfile )
+        TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
+    else
+        TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
 
-	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
+    fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
-	if( !TS.vtil.size() )
-		goto exit;
+    if( !TS.vtil.size() )
+        goto exit;
 
-	if( isrickfile )
-		TS.SetTileDimsFromImageFile();
+    if( isrickfile )
+        TS.SetTileDimsFromImageFile();
 
-	TS.SortAll_z_id();
+    TS.SortAll_z_id();
 
 /* ------------------ */
 /* Make XML if no IDB */
 /* ------------------ */
 
-	if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) ) {
+    if( !gArgs.outdir[0] || !strcmp( gArgs.outdir, "NoSuch" ) ) {
 
-		TS.WriteTrakEM2_EZ( "RawData.xml",
-			scr.xmlpixeltype, scr.xmlsclmin, scr.xmlsclmax );
+        TS.WriteTrakEM2_EZ( "RawData.xml",
+            scr.xmlpixeltype, scr.xmlsclmin, scr.xmlsclmax );
 
-		goto exit;
-	}
+        goto exit;
+    }
 
 /* ------------------------------------ */
 /* Redirect from mrc images to our nmrc */
 /* ------------------------------------ */
 
-	ismrc = FileIsExt( TS.vtil[0].name.c_str(), ".mrc" );
+    ismrc = FileIsExt( TS.vtil[0].name.c_str(), ".mrc" );
 
-	if( ismrc )
-		Make_nmrc_paths();
+    if( ismrc )
+        Make_nmrc_paths();
 
 /* --------------- */
 /* Create dir tree */
 /* --------------- */
 
-	CreateTopDir();
+    CreateTopDir();
 
-	WriteImageparamsFile();
-	CopyCropFile();
+    WriteImageparamsFile();
+    CopyCropFile();
 
-	if( scr.usingfoldmasks || ismrc ) {
-		WriteFSubFile();
-		WriteFReportFile();
-	}
+    if( scr.usingfoldmasks || ismrc ) {
+        WriteFSubFile();
+        WriteFReportFile();
+    }
 
-	ForEachLayer();
+    ForEachLayer();
 
 /* ---- */
 /* Done */
 /* ---- */
 
 exit:
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

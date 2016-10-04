@@ -15,69 +15,69 @@
 
 static bool ReadLog1( CLog &L, int z )
 {
-	char		buf[256];
-	sprintf( buf, "scplogs/scp_%d.log", z );
+    char		buf[256];
+    sprintf( buf, "scplogs/scp_%d.log", z );
 
-	if( !DskExists( buf ) )
-		return false;
+    if( !DskExists( buf ) )
+        return false;
 
-	FILE		*f = FileOpenOrDie( buf, "r" );
-	CLineScan	LS;
-	bool		gotM = false;
+    FILE		*f = FileOpenOrDie( buf, "r" );
+    CLineScan	LS;
+    bool		gotM = false;
 
-	while( LS.Get( f ) > 0 ) {
+    while( LS.Get( f ) > 0 ) {
 
-		if( LS.line[0] != '*' )
-			continue;
+        if( LS.line[0] != '*' )
+            continue;
 
-		char	key = LS.line[1];
+        char	key = LS.line[1];
 
-		LS.Get( f );
+        LS.Get( f );
 
-		if( key == 'M' ) {
+        if( key == 'M' ) {
 
-			CScapeMeta	&E = L.M;
+            CScapeMeta	&E = L.M;
 
-			sscanf( LS.line,
-			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
-			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
-			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
+            sscanf( LS.line,
+            "%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
+            &E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
+            &E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
 
-			gotM = true;
-		}
-		else if( key == 'A' ) {
+            gotM = true;
+        }
+        else if( key == 'A' ) {
 
-			CScapeMeta	&E = L.A;
+            CScapeMeta	&E = L.A;
 
-			sscanf( LS.line,
-			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
-			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
-			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
-		}
-		else if( key == 'B' ) {
+            sscanf( LS.line,
+            "%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
+            &E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
+            &E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
+        }
+        else if( key == 'B' ) {
 
-			CScapeMeta	&E = L.B;
+            CScapeMeta	&E = L.B;
 
-			sscanf( LS.line,
-			"%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
-			&E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
-			&E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
-		}
-		else if( key == 'T' ) {
+            sscanf( LS.line,
+            "%d %d [%lf,%lf,%lf,%lf] %d [%d,%d] [%lf,%lf]",
+            &E.z, &E.deg, &E.B.L, &E.B.R, &E.B.B, &E.B.T,
+            &E.scl, &E.ws, &E.hs, &E.x0, &E.y0 );
+        }
+        else if( key == 'T' ) {
 
-			double	*t = L.T.t;
+            double	*t = L.T.t;
 
-			sscanf( LS.line + 1,
-			"%lf,%lf,%lf,%lf,%lf,%lf",
-			&t[0], &t[1], &t[2],
-			&t[3], &t[4], &t[5] );
+            sscanf( LS.line + 1,
+            "%lf,%lf,%lf,%lf,%lf,%lf",
+            &t[0], &t[1], &t[2],
+            &t[3], &t[4], &t[5] );
 
-			break;
-		}
-	}
+            break;
+        }
+    }
 
-	fclose( f );
-	return gotM;
+    fclose( f );
+    return gotM;
 }
 
 /* --------------------------------------------------------------- */
@@ -86,26 +86,26 @@ static bool ReadLog1( CLog &L, int z )
 
 int ReadLogs( vector<CLog> &vL, int zmin, int zmax )
 {
-	for( int z = zmin; z <= zmax; ) {
+    for( int z = zmin; z <= zmax; ) {
 
-		CLog	L;
+        CLog	L;
 
-		L.A.z = -1;
+        L.A.z = -1;
 
-		if( ReadLog1( L, z ) ) {
+        if( ReadLog1( L, z ) ) {
 
-			vL.push_back( L );
+            vL.push_back( L );
 
-			if( L.A.z == -1 )
-				break;
+            if( L.A.z == -1 )
+                break;
 
-			z = L.A.z;
-		}
-		else
-			++z;
-	}
+            z = L.A.z;
+        }
+        else
+            ++z;
+    }
 
-	return vL.size();
+    return vL.size();
 }
 
 

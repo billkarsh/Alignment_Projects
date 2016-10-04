@@ -16,7 +16,7 @@ namespace Json {
  * It does not allow the destruction of a single object. All the allocated objects
  * can be destroyed at once. The memory can be either released or reused for future
  * allocation.
- * 
+ *
  * The in-place new operator must be used to construct the object using the pointer
  * returned by allocate.
  */
@@ -65,7 +65,7 @@ public:
             currentBatch_ = currentBatch_->next_;
 
          if ( !currentBatch_  ) // no free batch found, allocate a new one
-         { 
+         {
             currentBatch_ = allocateBatch( objectsPerPage_ );
             currentBatch_->next_ = batches_; // insert at the head of the list
             batches_ = currentBatch_;

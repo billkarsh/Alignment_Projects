@@ -8,8 +8,8 @@
 
 if (($# == 0))
 then
-	echo "Need layer number"
-	exit
+    echo "Need layer number"
+    exit
 fi
 
 cd $1
@@ -18,13 +18,13 @@ b=$(($1 - 1))
 
 for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
 do
-	echo $jb
-	cd $jb
-	rm -f p*
-	rm -f q*
-	hdr=$(printf "Atl\tAcr\tBtl\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
-	echo "$hdr" > "ThmPair_"$1"^"$b".txt"
-	cd ..
+    echo $jb
+    cd $jb
+    rm -f p*
+    rm -f q*
+    hdr=$(printf "Atl\tAcr\tBtl\tBcr\tErr\tDeg\tR\tT0\tT1\tX\tT3\tT4\tY\n")
+    echo "$hdr" > "ThmPair_"$1"^"$b".txt"
+    cd ..
 done
 
 cd ..

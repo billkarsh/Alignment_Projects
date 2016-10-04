@@ -11,10 +11,10 @@
 /* --------------------------------------------------------------- */
 
 void InSectionOverlap(
-	int				&Npts,
-	double*			&apts,
-	double*			&bpts,
-	const PixPair	&px,
-	FILE*			flog );
+    int				&Npts,
+    double*			&apts,
+    double*			&bpts,
+    const PixPair	&px,
+    FILE*			flog );
 
 

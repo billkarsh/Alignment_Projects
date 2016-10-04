@@ -10,9 +10,9 @@ dst=X_A_BIN_mons
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 rm -rf $dst
@@ -20,9 +20,9 @@ mkdir -p $dst
 
 for lyr in $(seq $1 $last)
 do
-	if [ -d "$lyr" ]
-	then
-		cp $lyr/montage/X_A_BIN/* $dst
-	fi
+    if [ -d "$lyr" ]
+    then
+        cp $lyr/montage/X_A_BIN/* $dst
+    fi
 done
 

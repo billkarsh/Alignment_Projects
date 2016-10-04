@@ -28,12 +28,12 @@
 
 class CArgs_xml {
 public:
-	char	*xmlfile;
-	int		z;
+    char	*xmlfile;
+    int		z;
 public:
-	CArgs_xml() : xmlfile(NULL), z(0) {};
+    CArgs_xml() : xmlfile(NULL), z(0) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -56,30 +56,30 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // parse command line args
 
-	if( argc < 3 ) {
-		printf(
-		"Usage: MRCSD1Lyr <xml-file> -z= [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf(
+        "Usage: MRCSD1Lyr <xml-file> -z= [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		if( argv[i][0] != '-' )
-			xmlfile = argv[i];
-		else if( GetArg( &z, "-z=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            xmlfile = argv[i];
+        else if( GetArg( &z, "-z=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
 // start log
 
-	char	buf[256];
+    char	buf[256];
 
-	sprintf( buf, "sd_%d.txt", z );
-	flog = FileOpenOrDie( buf, "w" );
+    sprintf( buf, "sd_%d.txt", z );
+    flog = FileOpenOrDie( buf, "w" );
 }
 
 /* --------------------------------------------------------------- */
@@ -88,32 +88,32 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static int GetSD( TiXmlElement* p )
 {
-	vector<uint16*>	vras;
-	uint32			w, h;
+    vector<uint16*>	vras;
+    uint32			w, h;
 
-	if( 1 > ReadRawMRCFile( vras, p->Attribute( "file_path" ),
-				w, h, NULL ) ) {
+    if( 1 > ReadRawMRCFile( vras, p->Attribute( "file_path" ),
+                w, h, NULL ) ) {
 
-		return 0;
-	}
+        return 0;
+    }
 
-	const uint16*	V = &vras[0][0];
-	double			sd, sm = 0.0, sm2 = 0.0;
-	int				n = w * h;
+    const uint16*	V = &vras[0][0];
+    double			sd, sm = 0.0, sm2 = 0.0;
+    int				n = w * h;
 
-	for( int i = 0; i < n; ++i ) {
+    for( int i = 0; i < n; ++i ) {
 
-		double	d = V[i];
+        double	d = V[i];
 
-		sm  += d;
-		sm2 += d * d;
-	}
+        sm  += d;
+        sm2 += d * d;
+    }
 
-	sd = sqrt( (sm2 - sm*sm/n) / (n - 1.0) );
+    sd = sqrt( (sm2 - sm*sm/n) / (n - 1.0) );
 
-	FreeMRC( vras );
+    FreeMRC( vras );
 
-	return (int)sd;
+    return (int)sd;
 }
 
 /* --------------------------------------------------------------- */
@@ -122,13 +122,13 @@ static int GetSD( TiXmlElement* p )
 
 static void GetTileSDs( TiXmlElement* layer, int z )
 {
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
 
-	for( ; p; p = p->NextSiblingElement() ) {
+    for( ; p; p = p->NextSiblingElement() ) {
 
-		fprintf( flog, "%d\t%d\t%d\n",
-		z, IDFromPatch( p ), GetSD( p ) );
-	}
+        fprintf( flog, "%d\t%d\t%d\n",
+        z, IDFromPatch( p ), GetSD( p ) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -141,25 +141,25 @@ static void Process()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.xmlfile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.xmlfile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* -------- */
 /* Do layer */
 /* -------- */
 
-	for( ; layer; layer = layer->NextSiblingElement() ) {
+    for( ; layer; layer = layer->NextSiblingElement() ) {
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > gArgs.z )
-			break;
+        if( z > gArgs.z )
+            break;
 
-		if( z < gArgs.z )
-			continue;
+        if( z < gArgs.z )
+            continue;
 
-		GetTileSDs( layer, z );
-	}
+        GetTileSDs( layer, z );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -172,22 +172,22 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ------- */
 /* Process */
 /* ------- */
 
-	Process();
+    Process();
 
 /* ---- */
 /* Done */
 /* ---- */
 
 //	VMStats( flog );
-	fclose( flog );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

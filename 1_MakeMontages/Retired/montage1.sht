@@ -19,7 +19,7 @@ cat $idb/$1/fm.same >> pts.all
 
 for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
 do
-	cat $jb/pts.same >> pts.all
+    cat $jb/pts.same >> pts.all
 done
 
 mv pts.all montage

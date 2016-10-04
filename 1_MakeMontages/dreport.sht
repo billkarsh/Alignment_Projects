@@ -11,9 +11,9 @@
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 ls -l */D*/qD*.e* > DownErrs.txt
@@ -25,16 +25,16 @@ touch DownNopts.txt
 
 for lyr in $(seq $1 $last)
 do
-	echo $lyr
-	if [ -d "$lyr" ]
-	then
-		for jb in $(ls -d $lyr/* | grep -E 'D[0-9]{1,}_[0-9]{1,}')
-		do
-			if [ -e $jb/make.down -a ! -e $jb/pts.down ]
-			then
-				echo "$jb" >> DownNopts.txt
-			fi
-		done
-	fi
+    echo $lyr
+    if [ -d "$lyr" ]
+    then
+        for jb in $(ls -d $lyr/* | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+        do
+            if [ -e $jb/make.down -a ! -e $jb/pts.down ]
+            then
+                echo "$jb" >> DownNopts.txt
+            fi
+        done
+    fi
 done
 

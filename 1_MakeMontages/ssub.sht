@@ -14,26 +14,26 @@ nslot=4
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 for lyr in $(seq $1 $last)
 do
-	echo $lyr
-	if [ -d "$lyr" ]
-	then
-		cd $lyr
+    echo $lyr
+    if [ -d "$lyr" ]
+    then
+        cd $lyr
 
-		for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
-		do
-			cd $jb
-			QSUB_1NODE.sht 2 "q$jb-$lyr" "-o /dev/null" $nslot "make -f make.same -j $nproc EXTRA='""'"
-			cd ..
-		done
+        for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+        do
+            cd $jb
+            QSUB_1NODE.sht 2 "q$jb-$lyr" "-o /dev/null" $nslot "make -f make.same -j $nproc EXTRA='""'"
+            cd ..
+        done
 
-		cd ..
-	fi
+        cd ..
+    fi
 done
 

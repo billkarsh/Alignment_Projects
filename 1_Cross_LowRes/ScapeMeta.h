@@ -13,18 +13,18 @@
 
 class CScapeMeta {
 public:
-	DBox	B;
-	double	x0, y0;
-	int		z,
-			deg,
-			scl,
-			ws, hs;
+    DBox	B;
+    double	x0, y0;
+    int		z,
+            deg,
+            scl,
+            ws, hs;
 };
 
 class CLog {
 public:
-	CScapeMeta	M, A, B;
-	TAffine		T;
+    CScapeMeta	M, A, B;
+    TAffine		T;
 };
 
 /* --------------------------------------------------------------- */

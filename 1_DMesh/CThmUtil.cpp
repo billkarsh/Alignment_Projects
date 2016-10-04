@@ -19,8 +19,8 @@
 
 bool CThmUtil::Echo( vector<TAffine> &guesses )
 {
-	guesses.push_back( Tab );
-	return true;
+    guesses.push_back( Tab );
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -29,18 +29,18 @@ bool CThmUtil::Echo( vector<TAffine> &guesses )
 
 bool CThmUtil::FromLog( vector<TAffine> &guesses )
 {
-	ThmPair	tpr;
-	int		ok;
+    ThmPair	tpr;
+    int		ok;
 
-	ok = ReadThmPair( tpr,
-			A.z, A.id, acr,
-			B.z, B.id, bcr, flog )
-		&& !tpr.err;
+    ok = ReadThmPair( tpr,
+            A.z, A.id, acr,
+            B.z, B.id, bcr, flog )
+        && !tpr.err;
 
-	if( ok )
-		guesses.push_back( tpr.T );
+    if( ok )
+        guesses.push_back( tpr.T );
 
-	return ok;
+    return ok;
 }
 
 /* --------------------------------------------------------------- */
@@ -51,13 +51,13 @@ bool CThmUtil::FromLog( vector<TAffine> &guesses )
 //
 static void RotateTab( TAffine &Tab, const TAffine &Tdfm, double ang0 )
 {
-	TAffine	R;
-	double	Vx = Tab.t[2],
-			Vy = Tab.t[5];
+    TAffine	R;
+    double	Vx = Tab.t[2],
+            Vy = Tab.t[5];
 
-	R.NUSetRot( ang0 * PI/180.0 );
-	Tab = R * Tdfm;
-	Tab.SetXY( Vx, Vy );
+    R.NUSetRot( ang0 * PI/180.0 );
+    Tab = R * Tdfm;
+    Tab.SetXY( Vx, Vy );
 }
 
 /* --------------------------------------------------------------- */
@@ -87,73 +87,73 @@ static void RotateTab( TAffine &Tab, const TAffine &Tdfm, double ang0 )
 //
 int CThmUtil::SetStartingAngle( const TAffine &Tdfm, double CTR )
 {
-	vector<ThmPair>	tpr;
-	int				ntpr, nprior = 0;
+    vector<ThmPair>	tpr;
+    int				ntpr, nprior = 0;
 
 // Handle modes N, C (includes M, Z)
 
-	if( MODE == 'N' || MODE == 'C' ) {
+    if( MODE == 'N' || MODE == 'C' ) {
 
-		if( CTR != 999.0 )
-			ang0 = CTR;
-		else
-			ang0 = 180.0/PI * Tab.GetRadians();
+        if( CTR != 999.0 )
+            ang0 = CTR;
+        else
+            ang0 = 180.0/PI * Tab.GetRadians();
 
-		nprior = 1;
-		goto adjust_olap;
-	}
+        nprior = 1;
+        goto adjust_olap;
+    }
 
 // Handle mode Y: Try to get prior angles
 
-	if( ReadAllThmPair( tpr, A.z, B.z, flog )
-		&& (ntpr = tpr.size()) ) {
+    if( ReadAllThmPair( tpr, A.z, B.z, flog )
+        && (ntpr = tpr.size()) ) {
 
-		vector<double>	A;
+        vector<double>	A;
 
-		for( int i = 0; i < ntpr; ++i ) {
+        for( int i = 0; i < ntpr; ++i ) {
 
-			if( !tpr[i].err )
-				A.push_back( tpr[i].A );
-		}
+            if( !tpr[i].err )
+                A.push_back( tpr[i].A );
+        }
 
-		if( (nprior = A.size()) >= 4 )
-			ang0 = MedianVal( A );
-		else
-			nprior = 0;
-	}
+        if( (nprior = A.size()) >= 4 )
+            ang0 = MedianVal( A );
+        else
+            nprior = 0;
+    }
 
 // Otherwise guess for denovo case
 
-	if( !nprior ) {
+    if( !nprior ) {
 
-		if( CTR != 999.0 )
-			ang0 = CTR;
-		else
-			ang0 = 180.0/PI * Tab.GetRadians();
-	}
+        if( CTR != 999.0 )
+            ang0 = CTR;
+        else
+            ang0 = 180.0/PI * Tab.GetRadians();
+    }
 
 // Force tiny ang0 to zero
 
-	if( fabs( ang0 ) < 0.001 )
-		ang0 = 0.0;
+    if( fabs( ang0 ) < 0.001 )
+        ang0 = 0.0;
 
 // Adjust OLAP2D_XL
 
 adjust_olap:
-	if( A.z != B.z ) {
+    if( A.z != B.z ) {
 
-		double	a = ang0 * PI/180.0,
-				c = cos( a ),
-				s = sin( a );
+        double	a = ang0 * PI/180.0,
+                c = cos( a ),
+                s = sin( a );
 
-		OLAP2D = long(OLAP2D / fmax( c*c, s*s ));
-	}
+        OLAP2D = long(OLAP2D / fmax( c*c, s*s ));
+    }
 
 // Adjust Tab
 
-	RotateTab( Tab, Tdfm, ang0 );
+    RotateTab( Tab, Tdfm, ang0 );
 
-	return nprior;
+    return nprior;
 }
 
 /* --------------------------------------------------------------- */
@@ -161,31 +161,31 @@ adjust_olap:
 /* --------------------------------------------------------------- */
 
 void CThmUtil::SubI_ThesePoints(
-	SubI					&S,
-	const vector<double>	&v,
-	const vector<Point>		&p )
+    SubI					&S,
+    const vector<double>	&v,
+    const vector<Point>		&p )
 {
-	IBox	B;
-	int		w	= px.ws,
-			np	= p.size();
+    IBox	B;
+    int		w	= px.ws,
+            np	= p.size();
 
-	BBoxFromPoints( B, p );
+    BBoxFromPoints( B, p );
 
-	S.v.resize( np );
-	S.p.resize( np );
+    S.v.resize( np );
+    S.p.resize( np );
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		const Point&	P = p[i];
+        const Point&	P = p[i];
 
-		S.v[i]		= v[int(P.x) + w * int(P.y)];
-		S.p[i].x	= P.x - B.L;
-		S.p[i].y	= P.y - B.B;
-	}
+        S.v[i]		= v[int(P.x) + w * int(P.y)];
+        S.p[i].x	= P.x - B.L;
+        S.p[i].y	= P.y - B.B;
+    }
 
-	S.O	= Point( B.L, B.B );
-	S.w = B.R - B.L + 1;
-	S.h = B.T - B.B + 1;
+    S.O	= Point( B.L, B.B );
+    S.w = B.R - B.L + 1;
+    S.h = B.T - B.B + 1;
 }
 
 /* --------------------------------------------------------------- */
@@ -193,43 +193,43 @@ void CThmUtil::SubI_ThesePoints(
 /* --------------------------------------------------------------- */
 
 bool CThmUtil::SubI_ThisBox(
-	SubI					&S,
-	const vector<double>	&v,
-	const vector<Point>		&p,
-	const IBox				&Bolap )
+    SubI					&S,
+    const vector<double>	&v,
+    const vector<Point>		&p,
+    const IBox				&Bolap )
 {
 // Select points in box
 
-	int	np = p.size();
+    int	np = p.size();
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		const Point&	P = p[i];
+        const Point&	P = p[i];
 
-		if( P.x >= Bolap.L && P.x <= Bolap.R &&
-			P.y >= Bolap.B && P.y <= Bolap.T ) {
+        if( P.x >= Bolap.L && P.x <= Bolap.R &&
+            P.y >= Bolap.B && P.y <= Bolap.T ) {
 
-			S.p.push_back( P );
-		}
-	}
+            S.p.push_back( P );
+        }
+    }
 
 // Enough points?
 
-	if( S.p.size() <= OLAP2D ) {
+    if( S.p.size() <= OLAP2D ) {
 
-		fprintf( flog,
-		"FAIL: SubI_ThisBox:"
-		" Small intersection %ld (required %ld).\n",
-		S.p.size(), OLAP2D );
+        fprintf( flog,
+        "FAIL: SubI_ThisBox:"
+        " Small intersection %ld (required %ld).\n",
+        S.p.size(), OLAP2D );
 
-		return false;
-	}
+        return false;
+    }
 
 // Set SubI
 
-	SubI_ThesePoints( S, v, S.p );
+    SubI_ThesePoints( S, v, S.p );
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -241,18 +241,18 @@ bool CThmUtil::SubI_ThisBox(
 // Return true always as convenience.
 //
 bool CThmUtil::Olap_WholeImage(
-	OlapRec				&olp,
-	const vector<Point>	&apts,
-	const vector<Point>	&bpts )
+    OlapRec				&olp,
+    const vector<Point>	&apts,
+    const vector<Point>	&bpts )
 {
-	fprintf( flog,
-	"Subimage: Using whole images, apix=%ld, bpix=%ld\n",
-	apts.size(), bpts.size() );
+    fprintf( flog,
+    "Subimage: Using whole images, apix=%ld, bpix=%ld\n",
+    apts.size(), bpts.size() );
 
-	SubI_ThesePoints( olp.a, *px.avs_aln, apts );
-	SubI_ThesePoints( olp.b, *px.bvs_aln, bpts );
+    SubI_ThesePoints( olp.a, *px.avs_aln, apts );
+    SubI_ThesePoints( olp.b, *px.bvs_aln, bpts );
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -260,51 +260,51 @@ bool CThmUtil::Olap_WholeImage(
 /* --------------------------------------------------------------- */
 
 bool CThmUtil::Olap_TheseBoxes_NoCR(
-	OlapRec		&olp,
-	const IBox	&Ba,
-	const IBox	&Bb )
+    OlapRec		&olp,
+    const IBox	&Ba,
+    const IBox	&Bb )
 {
-	int	WW = px.ws,
-		ow = Ba.R - Ba.L + 1,
-		oh = Ba.T - Ba.B + 1,
-		np = ow * oh;
+    int	WW = px.ws,
+        ow = Ba.R - Ba.L + 1,
+        oh = Ba.T - Ba.B + 1,
+        np = ow * oh;
 
-	fprintf( flog,
-	"Subimage: Using intersection, w=%d, h=%d, pix=%d\n",
-	ow, oh, np );
+    fprintf( flog,
+    "Subimage: Using intersection, w=%d, h=%d, pix=%d\n",
+    ow, oh, np );
 
 // Points
 
-	MakeZeroBasedPoints( olp.a.p, ow, oh );
-	olp.b.p = olp.a.p;
+    MakeZeroBasedPoints( olp.a.p, ow, oh );
+    olp.b.p = olp.a.p;
 
 // Values
 
-	const vector<double>&	av = *px.avs_aln;
-	const vector<double>&	bv = *px.bvs_aln;
+    const vector<double>&	av = *px.avs_aln;
+    const vector<double>&	bv = *px.bvs_aln;
 
-	olp.a.v.resize( np );
-	olp.b.v.resize( np );
+    olp.a.v.resize( np );
+    olp.b.v.resize( np );
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		int	y = i / ow;
-		int	x = i - ow * y;
+        int	y = i / ow;
+        int	x = i - ow * y;
 
-		olp.a.v[i] = av[Ba.L + x + WW*(Ba.B + y)];
-		olp.b.v[i] = bv[Bb.L + x + WW*(Bb.B + y)];
-	}
+        olp.a.v[i] = av[Ba.L + x + WW*(Ba.B + y)];
+        olp.b.v[i] = bv[Bb.L + x + WW*(Bb.B + y)];
+    }
 
 // Dimensions
 
-	olp.a.O	= Point( Ba.L, Ba.B );
-	olp.b.O	= Point( Bb.L, Bb.B );
-	olp.a.w = ow;
-	olp.b.w = ow;
-	olp.a.h = oh;
-	olp.b.h = oh;
+    olp.a.O	= Point( Ba.L, Ba.B );
+    olp.b.O	= Point( Bb.L, Bb.B );
+    olp.a.w = ow;
+    olp.b.w = ow;
+    olp.a.h = oh;
+    olp.b.h = oh;
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -317,32 +317,32 @@ bool CThmUtil::Olap_TheseBoxes_NoCR(
 //
 bool CThmUtil::Olap_WholeImage_NoCR( OlapRec &olp )
 {
-	int	w = px.ws,
-		h = px.hs;
+    int	w = px.ws,
+        h = px.hs;
 
-	fprintf( flog,
-	"Subimage: Using whole images, pix=%d\n", w * h );
+    fprintf( flog,
+    "Subimage: Using whole images, pix=%d\n", w * h );
 
 // Values
 
-	olp.a.v = *px.avs_aln;
-	olp.b.v = *px.bvs_aln;
+    olp.a.v = *px.avs_aln;
+    olp.b.v = *px.bvs_aln;
 
 // Points
 
-	MakeZeroBasedPoints( olp.a.p, w, h );
-	olp.b.p = olp.a.p;
+    MakeZeroBasedPoints( olp.a.p, w, h );
+    olp.b.p = olp.a.p;
 
 // Dimensions
 
-	olp.a.O	= Point( 0, 0 );
-	olp.b.O	= olp.a.O;
-	olp.a.w = w;
-	olp.b.w = w;
-	olp.a.h = h;
-	olp.b.h = h;
+    olp.a.O	= Point( 0, 0 );
+    olp.b.O	= olp.a.O;
+    olp.a.w = w;
+    olp.b.w = w;
+    olp.a.h = h;
+    olp.b.h = h;
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -353,24 +353,24 @@ void CThmUtil::GetOlapBoxes( IBox &Ba, IBox &Bb, double XYCONF )
 {
 // Get displacements of a in b-system
 
-	int	dx, dy;
+    int	dx, dy;
 
-	{
-		Point	XY;
+    {
+        Point	XY;
 
-		Tab.Transform( XY );
+        Tab.Transform( XY );
 
-		dx = int(XYCONF * XY.x / px.scl);
-		dy = int(XYCONF * XY.y / px.scl);
-	}
+        dx = int(XYCONF * XY.x / px.scl);
+        dy = int(XYCONF * XY.y / px.scl);
+    }
 
 // Use offsets and image size to determine
 // {Ba, Bb} overlap boxes.
 
-	int	w = px.ws,
-		h = px.hs;
+    int	w = px.ws,
+        h = px.hs;
 
-	BoxesFromShifts( Ba, Bb, w, h, w, h, dx, dy );
+    BoxesFromShifts( Ba, Bb, w, h, w, h, dx, dy );
 }
 
 /* --------------------------------------------------------------- */
@@ -383,46 +383,46 @@ void CThmUtil::GetOlapBoxes( IBox &Ba, IBox &Bb, double XYCONF )
 // Return true if non-empty olap.
 //
 bool CThmUtil::Crop(
-	OlapRec				&olp,
-	const ConnRegion	&acr,
-	const ConnRegion	&bcr,
-	double				XYCONF )
+    OlapRec				&olp,
+    const ConnRegion	&acr,
+    const ConnRegion	&bcr,
+    double				XYCONF )
 {
 // Use whole images if no confidence
 
-	if( !XYCONF )
-		return Olap_WholeImage( olp, acr.pts, bcr.pts );
+    if( !XYCONF )
+        return Olap_WholeImage( olp, acr.pts, bcr.pts );
 
 // Get overlap boxes
 
-	IBox	Ba, Bb;
+    IBox	Ba, Bb;
 
-	GetOlapBoxes( Ba, Bb, XYCONF );
+    GetOlapBoxes( Ba, Bb, XYCONF );
 
 // Test if sufficient overlap
 
-	int	ow		= Ba.R - Ba.L + 1,
-		oh		= Ba.T - Ba.B + 1,
-		min1d	= max( OLAP1D, 8 );
+    int	ow		= Ba.R - Ba.L + 1,
+        oh		= Ba.T - Ba.B + 1,
+        min1d	= max( OLAP1D, 8 );
 
-	if( ow < min1d || oh < min1d ) {
-		fprintf( flog, "Subimage: 1D overlap too small.\n" );
-		return Olap_WholeImage( olp, acr.pts, bcr.pts );
-	}
+    if( ow < min1d || oh < min1d ) {
+        fprintf( flog, "Subimage: 1D overlap too small.\n" );
+        return Olap_WholeImage( olp, acr.pts, bcr.pts );
+    }
 
 // Set using overlap
 
-	fprintf( flog,
-	"Subimage: Using intersection, w=%d, h=%d, pix=%d\n",
-	ow, oh, ow * oh );
+    fprintf( flog,
+    "Subimage: Using intersection, w=%d, h=%d, pix=%d\n",
+    ow, oh, ow * oh );
 
-	if( !SubI_ThisBox( olp.a, *px.avs_aln, acr.pts, Ba ) ||
-		!SubI_ThisBox( olp.b, *px.bvs_aln, bcr.pts, Bb ) ) {
+    if( !SubI_ThisBox( olp.a, *px.avs_aln, acr.pts, Ba ) ||
+        !SubI_ThisBox( olp.b, *px.bvs_aln, bcr.pts, Bb ) ) {
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -438,29 +438,29 @@ bool CThmUtil::Crop_NoCR( OlapRec &olp, double XYCONF )
 {
 // Use whole images if no confidence
 
-	if( !XYCONF )
-		return Olap_WholeImage_NoCR( olp );
+    if( !XYCONF )
+        return Olap_WholeImage_NoCR( olp );
 
 // Get overlap boxes
 
-	IBox	Ba, Bb;
+    IBox	Ba, Bb;
 
-	GetOlapBoxes( Ba, Bb, XYCONF );
+    GetOlapBoxes( Ba, Bb, XYCONF );
 
 // Test if sufficient overlap
 
-	int	ow		= Ba.R - Ba.L + 1,
-		oh		= Ba.T - Ba.B + 1,
-		min1d	= max( OLAP1D, 8 );
+    int	ow		= Ba.R - Ba.L + 1,
+        oh		= Ba.T - Ba.B + 1,
+        min1d	= max( OLAP1D, 8 );
 
-	if( ow < min1d || oh < min1d ) {
-		fprintf( flog, "Subimage: 1D overlap too small.\n" );
-		return Olap_WholeImage_NoCR( olp );
-	}
+    if( ow < min1d || oh < min1d ) {
+        fprintf( flog, "Subimage: 1D overlap too small.\n" );
+        return Olap_WholeImage_NoCR( olp );
+    }
 
 // Set using overlap
 
-	return Olap_TheseBoxes_NoCR( olp, Ba, Bb );
+    return Olap_TheseBoxes_NoCR( olp, Ba, Bb );
 }
 
 /* --------------------------------------------------------------- */
@@ -468,58 +468,58 @@ bool CThmUtil::Crop_NoCR( OlapRec &olp, double XYCONF )
 /* --------------------------------------------------------------- */
 
 bool CThmUtil::MakeThumbs(
-	ThmRec			&thm,
-	const OlapRec	&olp,
-	int				decfactor )
+    ThmRec			&thm,
+    const OlapRec	&olp,
+    int				decfactor )
 {
-	thm.av		= olp.a.v;
-	thm.bv		= olp.b.v;
-	thm.ap		= olp.a.p;
-	thm.bp		= olp.b.p;
-	thm.ftc.clear();
-	thm.reqArea	= OLAP2D;
-	thm.olap1D	= OLAP1D;
-	thm.scl		= decfactor;
+    thm.av		= olp.a.v;
+    thm.bv		= olp.b.v;
+    thm.ap		= olp.a.p;
+    thm.bp		= olp.b.p;
+    thm.ftc.clear();
+    thm.reqArea	= OLAP2D;
+    thm.olap1D	= OLAP1D;
+    thm.scl		= decfactor;
 
-	if( decfactor > 1 ) {
+    if( decfactor > 1 ) {
 
-		DecimateVector( thm.ap, thm.av, olp.a.w, olp.a.h, decfactor );
-		DecimateVector( thm.bp, thm.bv, olp.b.w, olp.b.h, decfactor );
+        DecimateVector( thm.ap, thm.av, olp.a.w, olp.a.h, decfactor );
+        DecimateVector( thm.bp, thm.bv, olp.b.w, olp.b.h, decfactor );
 
-		thm.reqArea	/= decfactor * decfactor;
-		thm.olap1D  /= decfactor;
+        thm.reqArea	/= decfactor * decfactor;
+        thm.olap1D  /= decfactor;
 
-		fprintf( flog,
-		"Thumbs: After decimation %ld pts, reqArea %ld, thmscl %d\n",
-		thm.ap.size(), thm.reqArea, thm.scl );
-	}
+        fprintf( flog,
+        "Thumbs: After decimation %ld pts, reqArea %ld, thmscl %d\n",
+        thm.ap.size(), thm.reqArea, thm.scl );
+    }
 
-	if( thm.ap.size() < thm.reqArea ) {
+    if( thm.ap.size() < thm.reqArea ) {
 
-		fprintf( flog,
-		"FAIL: Thumbs: Small intersection %ld (required %ld).\n",
-		 thm.ap.size(), thm.reqArea );
+        fprintf( flog,
+        "FAIL: Thumbs: Small intersection %ld (required %ld).\n",
+         thm.ap.size(), thm.reqArea );
 
-		return false;
-	}
+        return false;
+    }
 
-	if( !Normalize( thm.av ) ) {
+    if( !Normalize( thm.av ) ) {
 
-		fprintf( flog,
-		"FAIL: Thumbs: Image A intersection region: stdev = 0.\n" );
+        fprintf( flog,
+        "FAIL: Thumbs: Image A intersection region: stdev = 0.\n" );
 
-		return false;
-	}
+        return false;
+    }
 
-	if( !Normalize( thm.bv ) ) {
+    if( !Normalize( thm.bv ) ) {
 
-		fprintf( flog,
-		"FAIL: Thumbs: Image B intersection region: stdev = 0.\n" );
+        fprintf( flog,
+        "FAIL: Thumbs: Image B intersection region: stdev = 0.\n" );
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -527,74 +527,74 @@ bool CThmUtil::MakeThumbs(
 /* --------------------------------------------------------------- */
 
 bool CThmUtil::Disc(
-	CorRec			&best,
-	CThmScan		&S,
-	ThmRec			&thm,
-	const OlapRec	&olp,
-	int				PRETWEAK )
+    CorRec			&best,
+    CThmScan		&S,
+    ThmRec			&thm,
+    const OlapRec	&olp,
+    int				PRETWEAK )
 {
-	Point	delta, TaO = olp.a.O;
-	int		Ox, Oy, Rx;
+    Point	delta, TaO = olp.a.O;
+    int		Ox, Oy, Rx;
 
-	Tab.Transform( delta );
-	Tab.Apply_R_Part( TaO );
+    Tab.Transform( delta );
+    Tab.Apply_R_Part( TaO );
 
-	Ox = ROUND((delta.x / px.scl - olp.b.O.x + TaO.x) / thm.scl);
-	Oy = ROUND((delta.y / px.scl - olp.b.O.y + TaO.y) / thm.scl);
-	Rx = LIMXY / (px.scl * thm.scl);
+    Ox = ROUND((delta.x / px.scl - olp.b.O.x + TaO.x) / thm.scl);
+    Oy = ROUND((delta.y / px.scl - olp.b.O.y + TaO.y) / thm.scl);
+    Rx = LIMXY / (px.scl * thm.scl);
 
-	fprintf( flog, "SetDisc( %d, %d, %d, %d )\n", Ox, Oy, Rx, Rx );
+    fprintf( flog, "SetDisc( %d, %d, %d, %d )\n", Ox, Oy, Rx, Rx );
 
-	S.SetUseCorrR( true );
-	S.SetDisc( Ox, Oy, Rx, Rx );
-	S.RFromAngle( best, ang0, thm );
+    S.SetUseCorrR( true );
+    S.SetDisc( Ox, Oy, Rx, Rx );
+    S.RFromAngle( best, ang0, thm );
 
-	fprintf( flog,
-	"Initial: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
-	best.R, best.A, best.X, best.Y );
+    fprintf( flog,
+    "Initial: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
+    best.R, best.A, best.X, best.Y );
 
-	if( dbgCor )
-		return false;
+    if( dbgCor )
+        return false;
 
-	if( best.R < RTRSH ) {
+    if( best.R < RTRSH ) {
 
-		if( PRETWEAK ) {
+        if( PRETWEAK ) {
 
-			S.Pretweaks( best.R, ang0, thm );
-			S.RFromAngle( best, ang0, thm );
+            S.Pretweaks( best.R, ang0, thm );
+            S.RFromAngle( best, ang0, thm );
 
-			fprintf( flog,
-			"Tweaked: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
-			best.R, best.A, best.X, best.Y );
-		}
+            fprintf( flog,
+            "Tweaked: R=%6.3f, A=%8.3f, X=%8.2f, Y=%8.2f\n",
+            best.R, best.A, best.X, best.Y );
+        }
 
-		if( best.R < RTRSH ) {
+        if( best.R < RTRSH ) {
 
-			fprintf( flog,
-			"FAIL: Approx: MODE=N R=%g below thresh=%g\n",
-			best.R, RTRSH );
+            fprintf( flog,
+            "FAIL: Approx: MODE=N R=%g below thresh=%g\n",
+            best.R, RTRSH );
 
-			return Failure( best, errLowRPrior );
-		}
-	}
+            return Failure( best, errLowRPrior );
+        }
+    }
 
-	Point	dS(
-			(best.X - Ox) * (thm.scl * px.scl),
-			(best.Y - Oy) * (thm.scl * px.scl) );
-	int		dR = int(sqrt( dS.RSqr() ));
+    Point	dS(
+            (best.X - Ox) * (thm.scl * px.scl),
+            (best.Y - Oy) * (thm.scl * px.scl) );
+    int		dR = int(sqrt( dS.RSqr() ));
 
-	fprintf( flog,
-	"Peak-Disc: dR %d dX %d dY %d\n", dR, int(dS.x), int(dS.y) );
+    fprintf( flog,
+    "Peak-Disc: dR %d dX %d dY %d\n", dR, int(dS.x), int(dS.y) );
 
-	if( dR >= LIMXY ) {
+    if( dR >= LIMXY ) {
 
-		fprintf( flog,
-		"FAIL: Approx: Peak outside disc dR=%d\n", dR );
+        fprintf( flog,
+        "FAIL: Approx: Peak outside disc dR=%d\n", dR );
 
-		return Failure( best, errLowRPrior );
-	}
+        return Failure( best, errLowRPrior );
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -603,15 +603,15 @@ bool CThmUtil::Disc(
 
 void CThmUtil::DebugSweepKill( CThmScan &S, ThmRec thm )
 {
-	const double	center	= ang0;
-	const double	hlfwid	= HFANGPR;
-	const double	step	= 0.1;
+    const double	center	= ang0;
+    const double	hlfwid	= HFANGPR;
+    const double	step	= 0.1;
 
-	//const double	hlfwid	= 1.0;
-	//const double	step	= 0.01;
+    //const double	hlfwid	= 1.0;
+    //const double	step	= 0.01;
 
-	S.DebugAngs( A.z, A.id, B.z, B.id, center, hlfwid, step, thm );
-	exit( 42 );
+    S.DebugAngs( A.z, A.id, B.z, B.id, center, hlfwid, step, thm );
+    exit( 42 );
 }
 
 /* --------------------------------------------------------------- */
@@ -619,31 +619,31 @@ void CThmUtil::DebugSweepKill( CThmScan &S, ThmRec thm )
 /* --------------------------------------------------------------- */
 
 bool CThmUtil::Sweep(
-	CorRec		&best,
-	CThmScan	&S,
-	ThmRec		&thm,
-	int			nPrior )
+    CorRec		&best,
+    CThmScan	&S,
+    ThmRec		&thm,
+    int			nPrior )
 {
 // Debug and exit
 
-	//DebugSweepKill( S, thm );
+    //DebugSweepKill( S, thm );
 
-	if( dbgCor ) {
-		S.RFromAngle( best, ang0, thm );
-		return false;
-	}
+    if( dbgCor ) {
+        S.RFromAngle( best, ang0, thm );
+        return false;
+    }
 
 // Sweep
 
-	if( nPrior ) {
+    if( nPrior ) {
 
-		if( !S.UsePriorAngles( best, nPrior, ang0, HFANGPR, thm ) )
-			return Failure( best, S.GetErr() );
-	}
-	else if( !S.DenovoBestAngle( best, ang0, HFANGDN, 0.5, thm, true ) )
-		return Failure( best, S.GetErr() );
+        if( !S.UsePriorAngles( best, nPrior, ang0, HFANGPR, thm ) )
+            return Failure( best, S.GetErr() );
+    }
+    else if( !S.DenovoBestAngle( best, ang0, HFANGDN, 0.5, thm, true ) )
+        return Failure( best, S.GetErr() );
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -664,16 +664,16 @@ bool CThmUtil::Sweep(
 // which shows directly how to translate V to the image corner.
 //
 void CThmUtil::IsectToImageCoords(
-	CorRec		&best,
-	Point		aO,
-	const Point	&bO )
+    CorRec		&best,
+    Point		aO,
+    const Point	&bO )
 {
-	best.T.Apply_R_Part( aO );
+    best.T.Apply_R_Part( aO );
 
-	best.X += bO.x - aO.x;
-	best.Y += bO.y - aO.y;
+    best.X += bO.x - aO.x;
+    best.Y += bO.y - aO.y;
 
-	best.T.SetXY( best.X, best.Y );
+    best.T.SetXY( best.X, best.Y );
 }
 
 /* --------------------------------------------------------------- */
@@ -685,89 +685,89 @@ void CThmUtil::IsectToImageCoords(
 // ******************************
 
 static void SQD(
-	double			&sqd,
-	double			&prd,
-	int				&N,
-	const PixPair	&px,
-	const TAffine	&T )
+    double			&sqd,
+    double			&prd,
+    int				&N,
+    const PixPair	&px,
+    const TAffine	&T )
 {
-	sqd	= 0.0;
-	prd	= 0.0;
-	N	= 0;
+    sqd	= 0.0;
+    prd	= 0.0;
+    N	= 0;
 
-	const vector<double>&	av = *px.avs_vfy;
-	const vector<double>&	bv = *px.bvs_vfy;
+    const vector<double>&	av = *px.avs_vfy;
+    const vector<double>&	bv = *px.bvs_vfy;
 
-	vector<Point>	ap, bp;
-	int				w  = px.ws,
-					h  = px.hs,
-					np = w * h;
+    vector<Point>	ap, bp;
+    int				w  = px.ws,
+                    h  = px.hs,
+                    np = w * h;
 
 // Fill points
 
-	MakeZeroBasedPoints( ap, w, h );
-	bp = ap;
+    MakeZeroBasedPoints( ap, w, h );
+    bp = ap;
 
 // Sums
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		Point	p = ap[i];
+        Point	p = ap[i];
 
-		T.Transform( p );
+        T.Transform( p );
 
-		if( p.x >= 0.0 && p.x < w-1 &&
-			p.y >= 0.0 && p.y < h-1 ) {
+        if( p.x >= 0.0 && p.x < w-1 &&
+            p.y >= 0.0 && p.y < h-1 ) {
 
-			double	d = InterpolatePixel( p.x, p.y, bv, w );
+            double	d = InterpolatePixel( p.x, p.y, bv, w );
 
-			++N;
-			prd += av[i] * d;
-			d   -= av[i];
-			sqd += d * d;
-		}
-	}
+            ++N;
+            prd += av[i] * d;
+            d   -= av[i];
+            sqd += d * d;
+        }
+    }
 }
 
 
 void CThmUtil::RecordSumSqDif( const TAffine &T )
 {
-	CMutex	M;
-	char	name[256];
+    CMutex	M;
+    char	name[256];
 
-	sprintf( name, "sqd_%d_%d", A.z, B.z );
+    sprintf( name, "sqd_%d_%d", A.z, B.z );
 
-	if( M.Get( name ) ) {
+    if( M.Get( name ) ) {
 
-		sprintf( name, "SmSqDf_%d^%d.log", A.z, B.z );
+        sprintf( name, "SmSqDf_%d^%d.log", A.z, B.z );
 
-		FILE *f;
-		int  is;
+        FILE *f;
+        int  is;
 
-		f = fopen( name, "r" );
-		if( is = (f != NULL) )
-			fclose( f );
+        f = fopen( name, "r" );
+        if( is = (f != NULL) )
+            fclose( f );
 
-		f = fopen( name, "a" );
+        f = fopen( name, "a" );
 
-		if( f ) {
+        if( f ) {
 
-			if( !is )
-				fprintf( f, "TileA\tTileB\tSQ\tR\tN\tSQ/N\tR/N\n" );
+            if( !is )
+                fprintf( f, "TileA\tTileB\tSQ\tR\tN\tSQ/N\tR/N\n" );
 
-			double	sqd, prd;
-			int		N;
+            double	sqd, prd;
+            int		N;
 
-			SQD( sqd, prd, N, px, T );
+            SQD( sqd, prd, N, px, T );
 
-			fprintf( f, "%d\t%d\t%f\t%f\t%d\t%f\t%f\n",
-				A.id, B.id, sqd, prd, N, sqd/N, prd/N );
-			fflush( f );
-			fclose( f );
-		}
-	}
+            fprintf( f, "%d\t%d\t%f\t%f\t%d\t%f\t%f\n",
+                A.id, B.id, sqd, prd, N, sqd/N, prd/N );
+            fflush( f );
+            fclose( f );
+        }
+    }
 
-	M.Release();
+    M.Release();
 }
 
 /* --------------------------------------------------------------- */
@@ -776,12 +776,12 @@ void CThmUtil::RecordSumSqDif( const TAffine &T )
 
 void CThmUtil::FullScaleReportToLog( CorRec &best )
 {
-	best.T.MulXY( px.scl );
+    best.T.MulXY( px.scl );
 
-	fprintf( flog, "Approx: Returning A=%f, R=%f, X=%f, Y=%f\n",
-	best.A, best.R, best.T.t[2], best.T.t[5] );
+    fprintf( flog, "Approx: Returning A=%f, R=%f, X=%f, Y=%f\n",
+    best.A, best.R, best.T.t[2], best.T.t[5] );
 
-	best.T.TPrint( flog, "Approx: Best transform " );
+    best.T.TPrint( flog, "Approx: Best transform " );
 }
 
 /* --------------------------------------------------------------- */
@@ -789,20 +789,20 @@ void CThmUtil::FullScaleReportToLog( CorRec &best )
 /* --------------------------------------------------------------- */
 
 double CThmUtil::XYChange(
-	CorRec			CR,
-	ThmRec			&thm,
-	const OlapRec	&olp )
+    CorRec			CR,
+    ThmRec			&thm,
+    const OlapRec	&olp )
 {
-	CR.X *= thm.scl;
-	CR.Y *= thm.scl;
-	IsectToImageCoords( CR, olp.a.O, olp.b.O );
-	CR.T.MulXY( px.scl );
+    CR.X *= thm.scl;
+    CR.Y *= thm.scl;
+    IsectToImageCoords( CR, olp.a.O, olp.b.O );
+    CR.T.MulXY( px.scl );
 
-	TAffine	I;
-	I.InverseOf( Tab );
-	I = I * CR.T;
+    TAffine	I;
+    I.InverseOf( Tab );
+    I = I * CR.T;
 
-	return sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
+    return sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 }
 
 /* --------------------------------------------------------------- */
@@ -816,32 +816,32 @@ double CThmUtil::XYChange(
 //
 bool CThmUtil::Check_LIMXY( const TAffine &Tbest )
 {
-	TAffine	I;
+    TAffine	I;
 
 // Always report
 
-	Tab.TPrint( flog, "Approx: Orig transform " );
+    Tab.TPrint( flog, "Approx: Orig transform " );
 
-	I.InverseOf( Tab );
-	I = I * Tbest;
-	I  .TPrint( flog, "Approx: Idnt transform " );
+    I.InverseOf( Tab );
+    I = I * Tbest;
+    I  .TPrint( flog, "Approx: Idnt transform " );
 
-	double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
+    double	err = sqrt( I.t[2]*I.t[2] + I.t[5]*I.t[5] );
 
-	fprintf( flog, "Approx: err = %g, max = %d\n", err, LIMXY );
+    fprintf( flog, "Approx: err = %g, max = %d\n", err, LIMXY );
 
 // Optional rejection test
 
-	if( LIMXY && err > LIMXY ) {
+    if( LIMXY && err > LIMXY ) {
 
-		fprintf( flog,
-		"FAIL: Approx: Too different from Tab err=%g, max=%d\n",
-		err, LIMXY );
+        fprintf( flog,
+        "FAIL: Approx: Too different from Tab err=%g, max=%d\n",
+        err, LIMXY );
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* --------------------------------------------------------------- */
@@ -850,17 +850,17 @@ bool CThmUtil::Check_LIMXY( const TAffine &Tbest )
 
 void CThmUtil::TabulateResult( const CorRec &best, int err )
 {
-	if( !WTHMPR )
-		return;
+    if( !WTHMPR )
+        return;
 
-	ThmPair	tpr;
+    ThmPair	tpr;
 
-	tpr.T	= best.T;
-	tpr.A	= best.A;
-	tpr.R	= best.R;
-	tpr.err	= err;
+    tpr.T	= best.T;
+    tpr.A	= best.A;
+    tpr.R	= best.R;
+    tpr.err	= err;
 
-	WriteThmPair( tpr, A.z, A.id, acr, B.z, B.id, bcr );
+    WriteThmPair( tpr, A.z, A.id, acr, B.z, B.id, bcr );
 }
 
 /* --------------------------------------------------------------- */
@@ -869,8 +869,8 @@ void CThmUtil::TabulateResult( const CorRec &best, int err )
 
 bool CThmUtil::Failure( const CorRec &best, int err )
 {
-	TabulateResult( best, err );
-	return false;
+    TabulateResult( best, err );
+    return false;
 }
 
 /* --------------------------------------------------------------- */
@@ -890,11 +890,11 @@ bool CThmUtil::Failure( const CorRec &best, int err )
 // Return true if LIMXY passed.
 //
 bool CThmUtil::Finish(
-	CorRec			&best,
-	CThmScan		&S,
-	ThmRec			&thm,
-	const OlapRec	&olp,
-	int				TWEAKS )
+    CorRec			&best,
+    CThmScan		&S,
+    ThmRec			&thm,
+    const OlapRec	&olp,
+    int				TWEAKS )
 {
 // Tweaks
 //
@@ -905,69 +905,69 @@ bool CThmUtil::Finish(
 // result of tweaking further be closer to the expected result.
 // Otherwise we reject the tweaks and revert.
 
-	if( TWEAKS ) {
+    if( TWEAKS ) {
 
-		if( A.z != B.z && MODE == 'N' ) {
+        if( A.z != B.z && MODE == 'N' ) {
 
-			CorRec	CR0 = best;
-			TAffine	Tptwk;
-			double	err, err0;
+            CorRec	CR0 = best;
+            TAffine	Tptwk;
+            double	err, err0;
 
-			err0 = XYChange( best, thm, olp );
-			S.GetTptwk( Tptwk );
+            err0 = XYChange( best, thm, olp );
+            S.GetTptwk( Tptwk );
 
-			S.PostTweaks( best, thm );
+            S.PostTweaks( best, thm );
 
-			err = XYChange( best, thm, olp );
+            err = XYChange( best, thm, olp );
 
-			fprintf( flog,
-			"Approx: Tweak effect on R: before %g after %g -- ",
-			err0, err );
+            fprintf( flog,
+            "Approx: Tweak effect on R: before %g after %g -- ",
+            err0, err );
 
-			if( err > err0 && err > 0.66 * LIMXY ) {
-				fprintf( flog, "revert.\n" );
-				S.SetTptwk( Tptwk );
-				best = CR0;
-			}
-			else
-				fprintf( flog, "keep.\n" );
-		}
-		else
-			S.PostTweaks( best, thm );
-	}
+            if( err > err0 && err > 0.66 * LIMXY ) {
+                fprintf( flog, "revert.\n" );
+                S.SetTptwk( Tptwk );
+                best = CR0;
+            }
+            else
+                fprintf( flog, "keep.\n" );
+        }
+        else
+            S.PostTweaks( best, thm );
+    }
 
 // Undo thumb scaling
 
-	best.X *= thm.scl;
-	best.Y *= thm.scl;
+    best.X *= thm.scl;
+    best.Y *= thm.scl;
 
 // Full resolution (px.scl) adjustment
 
-	if( !MakeThumbs( thm, olp, 1 ) )
-		return false;
+    if( !MakeThumbs( thm, olp, 1 ) )
+        return false;
 
-	S.FinishAtFullRes( best, thm );
+    S.FinishAtFullRes( best, thm );
 
 // Translate coords
 
-	IsectToImageCoords( best, olp.a.O, olp.b.O );
+    IsectToImageCoords( best, olp.a.O, olp.b.O );
 
 // Make Reports
 
-	//RecordSumSqDif( best.T );
+    //RecordSumSqDif( best.T );
 
-	FullScaleReportToLog( best );
+    FullScaleReportToLog( best );
 
 // Sanity check translation
 
-	if( !Check_LIMXY( best.T ) )
-		return false;
+    if( !Check_LIMXY( best.T ) )
+        return false;
 
 // Tabulate
 
-	TabulateResult( best, S.GetErr() );
+    TabulateResult( best, S.GetErr() );
 
-	return true;
+    return true;
 }
 
 

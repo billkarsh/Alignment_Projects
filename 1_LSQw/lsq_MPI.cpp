@@ -14,7 +14,7 @@
 /* --------------------------------------------------------------- */
 
 int	wkid = 0,	// my worker id (main=0)
-	nwks = 1;	// total number workers
+    nwks = 1;	// total number workers
 
 
 
@@ -32,70 +32,70 @@ void MPIInit( int& argc, char**& argv )
 {
 // Look for the -nwks=j argument
 
-	for( int i = 1; i < argc; ++i ) {
-		if( GetArg( &nwks, "-nwks=%d", argv[i] ) )
-			break;
-	}
+    for( int i = 1; i < argc; ++i ) {
+        if( GetArg( &nwks, "-nwks=%d", argv[i] ) )
+            break;
+    }
 
 // Get wkid
 
-	int	thrdtype = -1;
+    int	thrdtype = -1;
 
-	if( nwks > 1 ) {
+    if( nwks > 1 ) {
 
-		// Start MPI
+        // Start MPI
 
-		MPI_Init_thread( &argc, &argv,
-			MPI_THREAD_FUNNELED, &thrdtype );
+        MPI_Init_thread( &argc, &argv,
+            MPI_THREAD_FUNNELED, &thrdtype );
 
-		MPI_Comm_rank( MPI_COMM_WORLD, &wkid );
-	}
+        MPI_Comm_rank( MPI_COMM_WORLD, &wkid );
+    }
 
 // Create log file 'lsqw_i'
 
-	char slog[32];
-	sprintf( slog, "lsqw_%d.txt", wkid );
-	freopen( slog, "w", stdout );
+    char slog[32];
+    sprintf( slog, "lsqw_%d.txt", wkid );
+    freopen( slog, "w", stdout );
 
-	printf( "---- Read params ----\n" );
+    printf( "---- Read params ----\n" );
 
 // MPI sanity checks
 
-	if( nwks > 1 ) {
+    if( nwks > 1 ) {
 
-		// Verify worker count
+        // Verify worker count
 
-		int	size;
+        int	size;
 
-		MPI_Comm_size( MPI_COMM_WORLD, &size );
+        MPI_Comm_size( MPI_COMM_WORLD, &size );
 
-		if( size != nwks ) {
+        if( size != nwks ) {
 
-			printf(
-			"MPI: Bad worker count: %d, expected %d\n.",
-			size, nwks );
+            printf(
+            "MPI: Bad worker count: %d, expected %d\n.",
+            size, nwks );
 
-			MPIExit();
-			exit( 42 );
-		}
+            MPIExit();
+            exit( 42 );
+        }
 
-		// Verify desired threading type.
-		// Funneled means that the application can use
-		// multiple threads but MPI communicates only
-		// with the main thread.
+        // Verify desired threading type.
+        // Funneled means that the application can use
+        // multiple threads but MPI communicates only
+        // with the main thread.
 
-		if( thrdtype != MPI_THREAD_FUNNELED ) {
+        if( thrdtype != MPI_THREAD_FUNNELED ) {
 
-			printf(
-			"MPI: Not funneled thread type."
-			" Try linking with -mt_mpi.\n" );
+            printf(
+            "MPI: Not funneled thread type."
+            " Try linking with -mt_mpi.\n" );
 
-			MPIExit();
-			exit( 42 );
-		}
-	}
+            MPIExit();
+            exit( 42 );
+        }
+    }
 
-	printf( "Worker %d / %d\n", wkid, nwks );
+    printf( "Worker %d / %d\n", wkid, nwks );
 }
 
 /* --------------------------------------------------------------- */
@@ -104,8 +104,8 @@ void MPIInit( int& argc, char**& argv )
 
 void MPIExit()
 {
-	if( nwks > 1 )
-		MPI_Finalize();
+    if( nwks > 1 )
+        MPI_Finalize();
 }
 
 /* --------------------------------------------------------------- */
@@ -116,8 +116,8 @@ void MPIExit()
 //
 void MPIWaitForOthers()
 {
-	if( nwks > 1 )
-		MPI_Barrier( MPI_COMM_WORLD );
+    if( nwks > 1 )
+        MPI_Barrier( MPI_COMM_WORLD );
 }
 
 /* --------------------------------------------------------------- */
@@ -126,8 +126,8 @@ void MPIWaitForOthers()
 
 bool MPISend( void* buf, int bytes, int wdst, int tag )
 {
-	return MPI_SUCCESS ==
-	MPI_Ssend( buf, bytes, MPI_CHAR, wdst, tag, MPI_COMM_WORLD );
+    return MPI_SUCCESS ==
+    MPI_Ssend( buf, bytes, MPI_CHAR, wdst, tag, MPI_COMM_WORLD );
 }
 
 /* --------------------------------------------------------------- */
@@ -136,10 +136,10 @@ bool MPISend( void* buf, int bytes, int wdst, int tag )
 
 bool MPIRecv( void* buf, int bytes, int wsrc, int tag )
 {
-	MPI_Status	st;
+    MPI_Status	st;
 
-	return MPI_SUCCESS ==
-	MPI_Recv( buf, bytes, MPI_CHAR, wsrc, tag, MPI_COMM_WORLD, &st );
+    return MPI_SUCCESS ==
+    MPI_Recv( buf, bytes, MPI_CHAR, wsrc, tag, MPI_COMM_WORLD, &st );
 }
 
 

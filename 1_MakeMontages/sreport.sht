@@ -11,9 +11,9 @@
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 ls -l */S*/qS*.e* > SameErrs.txt
@@ -25,16 +25,16 @@ touch SameNopts.txt
 
 for lyr in $(seq $1 $last)
 do
-	echo $lyr
-	if [ -d "$lyr" ]
-	then
-		for jb in $(ls -d $lyr/* | grep -E 'S[0-9]{1,}_[0-9]{1,}')
-		do
-			if [ ! -e $jb/pts.same ]
-			then
-				echo "$jb" >> SameNopts.txt
-			fi
-		done
-	fi
+    echo $lyr
+    if [ -d "$lyr" ]
+    then
+        for jb in $(ls -d $lyr/* | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+        do
+            if [ ! -e $jb/pts.same ]
+            then
+                echo "$jb" >> SameNopts.txt
+            fi
+        done
+    fi
 done
 

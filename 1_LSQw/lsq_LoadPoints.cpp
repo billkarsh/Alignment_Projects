@@ -36,9 +36,9 @@ static pthread_mutex_t	mutex_fpnts = PTHREAD_MUTEX_INITIALIZER;
 
 char* CLoadPoints::NameBinary( char *buf )
 {
-	sprintf( buf, "%s/pnts_%d_%d_%d.bin",
-		cachedir, wkid, vR[zolo].z, vR[zohi].z );
-	return buf;
+    sprintf( buf, "%s/pnts_%d_%d_%d.bin",
+        cachedir, wkid, vR[zolo].z, vR[zohi].z );
+    return buf;
 }
 
 /* --------------------------------------------------------------- */
@@ -47,8 +47,8 @@ char* CLoadPoints::NameBinary( char *buf )
 
 bool CLoadPoints::IsBinary()
 {
-	char	buf[2048];
-	return DskExists( NameBinary( buf ) );
+    char	buf[2048];
+    return DskExists( NameBinary( buf ) );
 }
 
 /* --------------------------------------------------------------- */
@@ -56,15 +56,15 @@ bool CLoadPoints::IsBinary()
 /* --------------------------------------------------------------- */
 
 void CLoadPoints::AppendJobs(
-	int			z,
-	int			SorD,
-	int			xhi,
-	int			yhi )
+    int			z,
+    int			SorD,
+    int			xhi,
+    int			yhi )
 {
-	for( int y = 0; y <= yhi; ++y ) {
-		for( int x = 0; x <= xhi; ++x )
-			vJ.push_back( CJob( z, SorD, x, y ) );
-	}
+    for( int y = 0; y <= yhi; ++y ) {
+        for( int x = 0; x <= xhi; ++x )
+            vJ.push_back( CJob( z, SorD, x, y ) );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -73,45 +73,45 @@ void CLoadPoints::AppendJobs(
 
 void* _Gather( void* ithr )
 {
-	const int		ngrow = 1000;
-	int				nmax = ngrow;
-	vector<CorrPnt>	vc( nmax );
+    const int		ngrow = 1000;
+    int				nmax = ngrow;
+    vector<CorrPnt>	vc( nmax );
 
-	for( int j = (long)ithr; j < ME->njob; j += ME->nthr ) {
+    for( int j = (long)ithr; j < ME->njob; j += ME->nthr ) {
 
-		CLoadPoints::CJob	&J = ME->vJ[j];
+        CLoadPoints::CJob	&J = ME->vJ[j];
 
-		char	buf[2048];
-		sprintf( buf, "%s/%d/%c%d_%d/pts.%s",
-		ME->tempdir, J.z, J.SorD, J.x, J.y,
-		(J.SorD == 'S' ? "same" : "down") );
+        char	buf[2048];
+        sprintf( buf, "%s/%d/%c%d_%d/pts.%s",
+        ME->tempdir, J.z, J.SorD, J.x, J.y,
+        (J.SorD == 'S' ? "same" : "down") );
 
-		FILE	*f = fopen( buf, "r" );
+        FILE	*f = fopen( buf, "r" );
 
-		if( f ) {
+        if( f ) {
 
-			int	n = 0;
+            int	n = 0;
 
-			for(;;) {
+            for(;;) {
 
-				if( n >= nmax )
-					vc.resize( nmax += ngrow );
+                if( n >= nmax )
+                    vc.resize( nmax += ngrow );
 
-				if( vc[n].FromFile( f ) )
-					++n;
-				else
-					break;
-			}
+                if( vc[n].FromFile( f ) )
+                    ++n;
+                else
+                    break;
+            }
 
-			fclose( f );
+            fclose( f );
 
-			pthread_mutex_lock( &mutex_fpnts );
-			fwrite( &vc[0], sizeof(CorrPnt), n, ME->fpnts );
-			pthread_mutex_unlock( &mutex_fpnts );
-		}
-	}
+            pthread_mutex_lock( &mutex_fpnts );
+            fwrite( &vc[0], sizeof(CorrPnt), n, ME->fpnts );
+            pthread_mutex_unlock( &mutex_fpnts );
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
 /* --------------------------------------------------------------- */
@@ -120,48 +120,48 @@ void* _Gather( void* ithr )
 
 void CLoadPoints::MakeBinary()
 {
-	clock_t	t0 = StartTiming();
+    clock_t	t0 = StartTiming();
 
 // Output binary points file
 
-	char	buf[2048];
-	fpnts = FileOpenOrDie( NameBinary( buf ), "wb" );
+    char	buf[2048];
+    fpnts = FileOpenOrDie( NameBinary( buf ), "wb" );
 
 // Create list of input file specs.
 // Load sames only for the inner layers.
 // Load downs for all layers but the lowest.
 
-	int	nL = vL.size();
+    int	nL = vL.size();
 
-	for( int iL = 0; iL < nL; ++iL ) {
+    for( int iL = 0; iL < nL; ++iL ) {
 
-		const Layer&	L	= vL[iL];
-		int				iz	= mZ.find( L.z )->second;
+        const Layer&	L	= vL[iL];
+        int				iz	= mZ.find( L.z )->second;
 
-		if( iz >= zilo && iz <= zihi )
-			AppendJobs( L.z, 'S', L.sx, L.sy );
+        if( iz >= zilo && iz <= zihi )
+            AppendJobs( L.z, 'S', L.sx, L.sy );
 
-		if( iz )
-			AppendJobs( L.z, 'D', L.dx, L.dy );
-	}
+        if( iz )
+            AppendJobs( L.z, 'D', L.dx, L.dy );
+    }
 
-	njob = vJ.size();
+    njob = vJ.size();
 
 // Create reader threads to scan points
 
-	nthr = maxthreads;
+    nthr = maxthreads;
 
-	if( nthr > njob )
-		nthr = njob;
+    if( nthr > njob )
+        nthr = njob;
 
-	if( !EZThreads( _Gather, nthr, 1, "_Gather" ) )
-		exit( 42 );
+    if( !EZThreads( _Gather, nthr, 1, "_Gather" ) )
+        exit( 42 );
 
-	fclose( fpnts );
-	pthread_mutex_destroy( &mutex_fpnts );
-	vJ.clear();
+    fclose( fpnts );
+    pthread_mutex_destroy( &mutex_fpnts );
+    vJ.clear();
 
-	StopTiming( stdout, "WrBin", t0 );
+    StopTiming( stdout, "WrBin", t0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -170,18 +170,18 @@ void CLoadPoints::MakeBinary()
 
 void CLoadPoints::LoadBinary()
 {
-	clock_t	t0 = StartTiming();
+    clock_t	t0 = StartTiming();
 
-	char	buf[2048];
-	long	n = (long)DskBytes( NameBinary( buf ) ) / sizeof(CorrPnt);
+    char	buf[2048];
+    long	n = (long)DskBytes( NameBinary( buf ) ) / sizeof(CorrPnt);
 
-	vC.resize( n );
+    vC.resize( n );
 
-	FILE	*f = FileOpenOrDie( buf, "rb" );
-	fread( &vC[0], sizeof(CorrPnt), n, f );
-	fclose( f );
+    FILE	*f = FileOpenOrDie( buf, "rb" );
+    fread( &vC[0], sizeof(CorrPnt), n, f );
+    fclose( f );
 
-	StopTiming( stdout, "RdBin", t0 );
+    StopTiming( stdout, "RdBin", t0 );
 }
 
 /* --------------------------------------------------------------- */
@@ -190,24 +190,24 @@ void CLoadPoints::LoadBinary()
 
 void CLoadPoints::Load( const char *tempdir, const char *cachedir )
 {
-	printf( "\n---- Loading points ----\n" );
+    printf( "\n---- Loading points ----\n" );
 
-	clock_t	t0 = StartTiming();
+    clock_t	t0 = StartTiming();
 
-	ME				= this;
-	this->tempdir	= tempdir;
-	this->cachedir	= cachedir;
+    ME				= this;
+    this->tempdir	= tempdir;
+    this->cachedir	= cachedir;
 
-	if( !IsBinary() )
-		MakeBinary();
+    if( !IsBinary() )
+        MakeBinary();
 
-	LoadBinary();
+    LoadBinary();
 
-	RemapIndices();
+    RemapIndices();
 
-	StopTiming( stdout, "Total", t0 );
+    StopTiming( stdout, "Total", t0 );
 
-	printf( "Loaded %ld point pairs.\n", vC.size() );
+    printf( "Loaded %ld point pairs.\n", vC.size() );
 }
 
 

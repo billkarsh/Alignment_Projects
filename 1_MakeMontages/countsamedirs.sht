@@ -10,26 +10,26 @@ export MRC_TRIM=12
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 cnt=0
 
 for lyr in $(seq $1 $last)
 do
-	if [ -d "$lyr" ]
-	then
-		cd $lyr
+    if [ -d "$lyr" ]
+    then
+        cd $lyr
 
-		for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
-		do
-			cnt=$(($cnt+1))
-		done
+        for jb in $(ls -d * | grep -E 'S[0-9]{1,}_[0-9]{1,}')
+        do
+            cnt=$(($cnt+1))
+        done
 
-		echo z= $lyr  cum= $cnt
-		cd ..
-	fi
+        echo z= $lyr  cum= $cnt
+        cd ..
+    fi
 done
 

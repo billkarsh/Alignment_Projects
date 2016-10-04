@@ -14,7 +14,7 @@
 bool GetTileSpecFromURL( PicSpec &P, const char *pat, char *argv );
 #else
 bool GetTileSpecFromURL( PicSpec &P, const char *pat, char *argv )
-	{return false;}
+    {return false;}
 #endif
 
 

@@ -66,10 +66,10 @@
 
 static string stripQuotes( string &s )
 {
-	if( s.find( "\"" ) == 0 )
-		return s.substr( 1, s.length() - 2 );
-	else
-		return s;
+    if( s.find( "\"" ) == 0 )
+        return s.substr( 1, s.length() - 2 );
+    else
+        return s;
 }
 
 /* --------------------------------------------------------------- */
@@ -86,43 +86,43 @@ static string stripQuotes( string &s )
 //
 static bool copy_img_from_URL( string &output_path, string url )
 {
-	CURL	*easy_handle = curl_easy_init();
-	bool	ok = false;
+    CURL	*easy_handle = curl_easy_init();
+    bool	ok = false;
 
-	if( easy_handle ) {
+    if( easy_handle ) {
 
-		string	suffix = url.substr( url.find_last_of(".") );
+        string	suffix = url.substr( url.find_last_of(".") );
 
-		output_path	= tmpnam( NULL ) + suffix;
+        output_path	= tmpnam( NULL ) + suffix;
 
-		// Open file
+        // Open file
 
-		FILE	*fp = fopen( output_path.c_str(), "wb" );
+        FILE	*fp = fopen( output_path.c_str(), "wb" );
 
-		if( !fp ) {
-			(void)perror( "Extract: The following error occurred: " );
-			goto exit;
-		}
+        if( !fp ) {
+            (void)perror( "Extract: The following error occurred: " );
+            goto exit;
+        }
 
-		curl_easy_setopt( easy_handle, CURLOPT_URL, url.c_str() );
-		curl_easy_setopt( easy_handle, CURLOPT_WRITEFUNCTION, NULL );
-		curl_easy_setopt( easy_handle, CURLOPT_WRITEDATA, fp );
+        curl_easy_setopt( easy_handle, CURLOPT_URL, url.c_str() );
+        curl_easy_setopt( easy_handle, CURLOPT_WRITEFUNCTION, NULL );
+        curl_easy_setopt( easy_handle, CURLOPT_WRITEDATA, fp );
 
-		// Grab image
+        // Grab image
 
-		CURLcode	imgresult = curl_easy_perform( easy_handle );
+        CURLcode	imgresult = curl_easy_perform( easy_handle );
 
-		if( imgresult )
-			fprintf( stderr, "Extract: Cannot grab the image.\n" );
-		else
-			ok = true;
+        if( imgresult )
+            fprintf( stderr, "Extract: Cannot grab the image.\n" );
+        else
+            ok = true;
 
-		fclose( fp );
-	}
+        fclose( fp );
+    }
 
 exit:
-	curl_easy_cleanup( easy_handle );
-	return ok;
+    curl_easy_cleanup( easy_handle );
+    return ok;
 }
 
 /* --------------------------------------------------------------- */
@@ -133,12 +133,12 @@ exit:
 //
 static string url_to_path( string &url )
 {
-	string	prefix = "file:";
+    string	prefix = "file:";
 
-	if( url.find( prefix ) == 0 )
-		return url.substr( prefix.length() );
-	else
-		return url;
+    if( url.find( prefix ) == 0 )
+        return url.substr( prefix.length() );
+    else
+        return url;
 }
 
 /* --------------------------------------------------------------- */
@@ -146,49 +146,49 @@ static string url_to_path( string &url )
 /* --------------------------------------------------------------- */
 
 static void Tokenize(
-	vector<string>	&tokens,
-	const string	&str,
-	const string	&delimiters,
-	bool			stripQ )
+    vector<string>	&tokens,
+    const string	&str,
+    const string	&delimiters,
+    bool			stripQ )
 {
-	string::size_type	start, stop = 0;
+    string::size_type	start, stop = 0;
 
-	for(;;) {
+    for(;;) {
 
-		start = str.find_first_not_of( delimiters, stop );
+        start = str.find_first_not_of( delimiters, stop );
 
-		if( start == string::npos )
-			return;
+        if( start == string::npos )
+            return;
 
-		stop = str.find_first_of( delimiters, start + 1 );
+        stop = str.find_first_of( delimiters, start + 1 );
 
-		string	tok = str.substr( start, stop - start );
-		
-		if( stripQ )
-			tokens.push_back( stripQuotes( tok ) );
-		else
-			tokens.push_back( tok );
-	}
+        string	tok = str.substr( start, stop - start );
+
+        if( stripQ )
+            tokens.push_back( stripQuotes( tok ) );
+        else
+            tokens.push_back( tok );
+    }
 }
 
 
 static size_t WriteCallback( void *src, size_t size, size_t nmemb, void *dst )
 {
-	size_t	bytes = size * nmemb;
+    size_t	bytes = size * nmemb;
 
-	((std::string*)dst)->append( (char*)src, bytes );
+    ((std::string*)dst)->append( (char*)src, bytes );
 
-	return bytes;
+    return bytes;
 }
 
 
 #define	GETDOUBLE( field, name )										\
-	if( !tokens2[0].compare( name ) )									\
-		{field = strtod( tokens2[2].c_str(), NULL );}
+    if( !tokens2[0].compare( name ) )									\
+        {field = strtod( tokens2[2].c_str(), NULL );}
 
 #define	GETSTRING( field, name )										\
-	if( !tokens2[0].compare( name ) )									\
-		{field = tokens2[2];}
+    if( !tokens2[0].compare( name ) )									\
+        {field = tokens2[2];}
 
 
 // URL examples:
@@ -203,59 +203,59 @@ static size_t WriteCallback( void *src, size_t size, size_t nmemb, void *dst )
 //
 bool GetTileSpecFromURL( PicSpec &P, const char *pat, char *argv )
 {
-	int	len = strlen( pat );
+    int	len = strlen( pat );
 
-	if( !strncmp( argv, pat, len ) ) {
+    if( !strncmp( argv, pat, len ) ) {
 
-		std::string	readBuffer;
-		CURL		*easy_handle = curl_easy_init();
-		CURLcode	res;
+        std::string	readBuffer;
+        CURL		*easy_handle = curl_easy_init();
+        CURLcode	res;
 
 //		curl_easy_setopt( easy_handle, CURLOPT_VERBOSE, 1L );
-		curl_easy_setopt( easy_handle, CURLOPT_URL, argv + len );
-		curl_easy_setopt( easy_handle, CURLOPT_WRITEFUNCTION, WriteCallback );
-		curl_easy_setopt( easy_handle, CURLOPT_WRITEDATA, &readBuffer );
+        curl_easy_setopt( easy_handle, CURLOPT_URL, argv + len );
+        curl_easy_setopt( easy_handle, CURLOPT_WRITEFUNCTION, WriteCallback );
+        curl_easy_setopt( easy_handle, CURLOPT_WRITEDATA, &readBuffer );
 
-		res = curl_easy_perform( easy_handle );
-		curl_easy_cleanup( easy_handle );
+        res = curl_easy_perform( easy_handle );
+        curl_easy_cleanup( easy_handle );
 
-		if( res ) {
-			fprintf( stderr, "jtile: Can't parse [%s].\n", argv );
-			return false;
-		}
+        if( res ) {
+            fprintf( stderr, "jtile: Can't parse [%s].\n", argv );
+            return false;
+        }
 
-		vector<string>	tokens;
-		Tokenize( tokens, readBuffer, "\n", false );
+        vector<string>	tokens;
+        Tokenize( tokens, readBuffer, "\n", false );
 
-		for( int i = 0, n = tokens.size(); i < n; ++i )  {
+        for( int i = 0, n = tokens.size(); i < n; ++i )  {
 
-			vector<string>	tokens2;
-			Tokenize( tokens2, tokens[i], " ,\n", true );
+            vector<string>	tokens2;
+            Tokenize( tokens2, tokens[i], " ,\n", true );
 
-			if( tokens2.size() != 3 )
-				continue;
+            if( tokens2.size() != 3 )
+                continue;
 
-			GETDOUBLE( P.z, "z" );
-			GETSTRING( P.t2i.path, "imageUrl" );
-			GETDOUBLE( P.t2i.T.t[2], "stageX" );
-			GETDOUBLE( P.t2i.T.t[5], "stageY" );
-			GETDOUBLE( P.t2i.col, "imageCol" );
-			GETDOUBLE( P.t2i.row, "imageRow" );
-			GETDOUBLE( P.t2i.cam, "camera" );
-		}
+            GETDOUBLE( P.z, "z" );
+            GETSTRING( P.t2i.path, "imageUrl" );
+            GETDOUBLE( P.t2i.T.t[2], "stageX" );
+            GETDOUBLE( P.t2i.T.t[5], "stageY" );
+            GETDOUBLE( P.t2i.col, "imageCol" );
+            GETDOUBLE( P.t2i.row, "imageRow" );
+            GETDOUBLE( P.t2i.cam, "camera" );
+        }
 
 //		copy_img_from_URL( P.t2i.path, P.t2i.path );
-		P.t2i.path	= url_to_path( P.t2i.path );
-		P.t2i.id	= -1;
+        P.t2i.path	= url_to_path( P.t2i.path );
+        P.t2i.id	= -1;
 
-		if( P.t2i.path.size() > 0 ) {
+        if( P.t2i.path.size() > 0 ) {
 
-			P.id = -1;
-			return true;
-		}
-	}
+            P.id = -1;
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 #endif	// USE_CURL

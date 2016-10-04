@@ -28,12 +28,12 @@ using namespace std;
 
 class CArgs_xml {
 public:
-	char	*xmlfile,
-			*txtfile;
+    char	*xmlfile,
+            *txtfile;
 public:
-	CArgs_xml() : xmlfile(NULL), txtfile(NULL) {};
+    CArgs_xml() : xmlfile(NULL), txtfile(NULL) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -60,33 +60,33 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "DelTiles.log", "w" );
+    flog = FileOpenOrDie( "DelTiles.log", "w" );
 
 // parse command line args
 
-	if( argc < 3 ) {
-		printf(
-		"Usage: DelTiles <xml-file> <txt-file> [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 3 ) {
+        printf(
+        "Usage: DelTiles <xml-file> <txt-file> [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		if( argv[i][0] != '-' ) {
+        if( argv[i][0] != '-' ) {
 
-			if( !xmlfile )
-				xmlfile = argv[i];
-			else
-				txtfile = argv[i];
-		}
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+            if( !xmlfile )
+                xmlfile = argv[i];
+            else
+                txtfile = argv[i];
+        }
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n\n" );
-	fflush( flog );
+    fprintf( flog, "\n\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -95,29 +95,29 @@ void CArgs_xml::SetCmdLine( int argc, char* argv[] )
 
 static void LoadList()
 {
-	FILE		*f	= FileOpenOrDie( gArgs.txtfile, "r", flog );
-	CLineScan	LS;
+    FILE		*f	= FileOpenOrDie( gArgs.txtfile, "r", flog );
+    CLineScan	LS;
 
-	for(;;) {
+    for(;;) {
 
-		if( LS.Get( f ) <= 0 )
-			break;
+        if( LS.Get( f ) <= 0 )
+            break;
 
-		MZID	R;
+        MZID	R;
 
-		sscanf( LS.line, "%d\t%d", &R.z, &R.id );
+        sscanf( LS.line, "%d\t%d", &R.z, &R.id );
 
-		if( R.z < zlo )
-			zlo = R.z;
+        if( R.z < zlo )
+            zlo = R.z;
 
-		if( R.z > zhi )
-			zhi = R.z;
+        if( R.z > zhi )
+            zhi = R.z;
 
-		Z.insert( R.z );
-		M.insert( R );
-	}
+        Z.insert( R.z );
+        M.insert( R );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -126,21 +126,21 @@ static void LoadList()
 
 static void DeleteTiles( TiXmlElement* layer, int z )
 {
-	MZID			key;
-	TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
-	TiXmlElement*	nextT;
+    MZID			key;
+    TiXmlElement*	p = layer->FirstChildElement( "t2_patch" );
+    TiXmlElement*	nextT;
 
-	key.z = z;
+    key.z = z;
 
-	for( ; p; p = nextT ) {
+    for( ; p; p = nextT ) {
 
-		nextT = p->NextSiblingElement();
+        nextT = p->NextSiblingElement();
 
-		key.id = IDFromPatch( p );
+        key.id = IDFromPatch( p );
 
-		if( M.find( key ) != M.end() )
-			layer->RemoveChild( p );
-	}
+        if( M.find( key ) != M.end() )
+            layer->RemoveChild( p );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -153,39 +153,39 @@ static void Edit()
 /* Open */
 /* ---- */
 
-	XML_TKEM		xml( gArgs.xmlfile, flog );
-	TiXmlElement*	layer	= xml.GetFirstLayer();
+    XML_TKEM		xml( gArgs.xmlfile, flog );
+    TiXmlElement*	layer	= xml.GetFirstLayer();
 
 /* --------- */
 /* Do layers */
 /* --------- */
 
-	TiXmlNode*		lyrset	= layer->Parent();
-	TiXmlElement*	nextL;
+    TiXmlNode*		lyrset	= layer->Parent();
+    TiXmlElement*	nextL;
 
-	for( ; layer; layer = nextL ) {
+    for( ; layer; layer = nextL ) {
 
-		nextL = layer->NextSiblingElement();
+        nextL = layer->NextSiblingElement();
 
-		int	z = atoi( layer->Attribute( "z" ) );
+        int	z = atoi( layer->Attribute( "z" ) );
 
-		if( z > zhi )
-			break;
+        if( z > zhi )
+            break;
 
-		if( z < zlo || Z.find( z ) == Z.end() )
-			continue;
+        if( z < zlo || Z.find( z ) == Z.end() )
+            continue;
 
-		DeleteTiles( layer, z );
+        DeleteTiles( layer, z );
 
-		if( !layer->FirstChildElement( "t2_patch" ) )
-			lyrset->RemoveChild( layer );
-	}
+        if( !layer->FirstChildElement( "t2_patch" ) )
+            lyrset->RemoveChild( layer );
+    }
 
 /* ---- */
 /* Save */
 /* ---- */
 
-	xml.Save( "xmltmp.txt", true );
+    xml.Save( "xmltmp.txt", true );
 }
 
 /* --------------------------------------------------------------- */
@@ -198,28 +198,28 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ---------------- */
 /* Map (z,id) to sd */
 /* ---------------- */
 
-	LoadList();
+    LoadList();
 
 /* ---- */
 /* Edit */
 /* ---- */
 
-	Edit();
+    Edit();
 
 /* ---- */
 /* Done */
 /* ---- */
 
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

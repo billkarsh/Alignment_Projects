@@ -13,15 +13,15 @@
 /* --------------------------------------------------------------- */
 
 bool ApproximateMatch_NoCR(
-	vector<TAffine>	&guesses,
-	const PixPair	&px,
-	FILE*			flog );
+    vector<TAffine>	&guesses,
+    const PixPair	&px,
+    FILE*			flog );
 
 bool ApproximateMatch(
-	vector<TAffine>		&guesses,
-	const PixPair		&px,
-	const ConnRegion	&acr,
-	const ConnRegion	&bcr,
-	FILE*				flog );
+    vector<TAffine>		&guesses,
+    const PixPair		&px,
+    const ConnRegion	&acr,
+    const ConnRegion	&bcr,
+    FILE*				flog );
 
 
