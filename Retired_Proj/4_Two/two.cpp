@@ -31,13 +31,13 @@ double THRESHOLD = 0.25;  // lowest correlation considered a match
 class Picture : public PicBase {
 
 public:
-	double	dist_from_center;	// distance from center if exists
+    double	dist_from_center;	// distance from center if exists
 
 public:
-	Picture()	{dist_from_center = 0.0;};
+    Picture()	{dist_from_center = 0.0;};
 
-	bool operator < ( const Picture &rhs ) const
-		{return dist_from_center < rhs.dist_from_center;};
+    bool operator < ( const Picture &rhs ) const
+        {return dist_from_center < rhs.dist_from_center;};
 };
 
 
@@ -75,9 +75,9 @@ if( corr < cthresh ) {  // if unexpected, dump out data passed in for debugging
         printf("(%.3f %.3f) ", cpts[i].x, cpts[i].y);
     printf("corr=%f\n", corr);
     for(int i=0; i<lambda.size(); i++) {
-	printf("---i=%d\n",i);
-	for(int j=0; j<lambda[i].size(); j++)
-	    printf("%.4f ", lambda[i][j]);
+    printf("---i=%d\n",i);
+    for(int j=0; j<lambda[i].size(); j++)
+        printf("%.4f ", lambda[i][j]);
         printf("\n spv=%f Tpixels=%f\n", spv[i], Tpixels[i]);
         }
     exit( 42 );
@@ -94,7 +94,7 @@ for(double step=10; step > 0.05; ) {
     double sum2 = 0.0;  // sum of squares
     for(int i=0; i<cderivs.size(); i++) {
         Point p = cderivs[i];
-	sum2 += p.x*p.x + p.y*p.y;
+    sum2 += p.x*p.x + p.y*p.y;
         }
     double mag = sqrt(sum2);  // length of the vector
     // find the new (and hopefully improved) control points
@@ -108,12 +108,12 @@ for(double step=10; step > 0.05; ) {
     GradDescStep( Tpixels, newderivs, newpts, lambda, spv, image2, w, h );
     double c = CorrVectors(NULL, spv, Tpixels, &nnz);
     if( c > corr ) { // new point is better
-	corr = c;
+    corr = c;
         cpts = newpts;
         cderivs = newderivs;
         }
     else
-	step = step / 2;
+    step = step / 2;
     }
 return corr;
 }
@@ -202,10 +202,10 @@ for(double step=1; step > 0.05; ) {
     vector<double> Tpixels;          // Get the pixel values
     ValuesFromImageAndPoints( Tpixels, dvx, dvy, image2, 4096, Tpoints, spv );
     if( fabs(dvx) < 1.0E-6 && fabs(dvy) < 1.0E-6 ) {
-	printf("No derivatives!\n");
-	fprintf(flog,"No derivatives!\n");
+    printf("No derivatives!\n");
+    fprintf(flog,"No derivatives!\n");
         exit( 42 );
-	}
+    }
     //Normalize(Tpixels);
     Point cog;  // Center of gravity
     cog = FindCOG(Plist, Tpixels);
@@ -224,19 +224,19 @@ for(double step=1; step > 0.05; ) {
     R.SetCWRot( rot * step, cog );
     t2 = R * t;
 
-	vector<Point> Tpoints = Plist;   //   Start with locs in source
-	t2.Transform( Tpoints );            // Transform to locations in target
+    vector<Point> Tpoints = Plist;   //   Start with locs in source
+    t2.Transform( Tpoints );            // Transform to locations in target
         double junk1, junk2;
-	ValuesFromImageAndPoints( Tpixels, junk1, junk2, image2, 4096, Tpoints, spv );
-	//Normalize(Tpixels);
-	double nc = CorrVectors(NULL, spv, Tpixels);
-	printf(" rotated case %d: correlation is %f\n", rot, nc);
-	if (nc > best_so_far){
-	    best_so_far = nc;
-	    bdir = 10;
+    ValuesFromImageAndPoints( Tpixels, junk1, junk2, image2, 4096, Tpoints, spv );
+    //Normalize(Tpixels);
+    double nc = CorrVectors(NULL, spv, Tpixels);
+    printf(" rotated case %d: correlation is %f\n", rot, nc);
+    if (nc > best_so_far){
+        best_so_far = nc;
+        bdir = 10;
             tbest = t2;
-	    }
-	}
+        }
+    }
 
     // make steps of this size until no more improvement
     double best_rot = best_so_far;  // best result from rotations
@@ -245,32 +245,32 @@ for(double step=1; step > 0.05; ) {
     TAffine t2 = t;
     do {
         prev = nc;
-	double norm = sqrt(dvx*dvx + dvy*dvy);
-	double sx = step*dvx/norm;  // direction sin()
-	double sy = step*dvy/norm;
-	printf("step is %f %f\n", sx, sy);
-	t2.AddXY( sx, sy );
-	Tpoints = Plist;   //   Start with locs in source
-	t2.Transform( Tpoints );            // Transform to locations in target
+    double norm = sqrt(dvx*dvx + dvy*dvy);
+    double sx = step*dvx/norm;  // direction sin()
+    double sy = step*dvy/norm;
+    printf("step is %f %f\n", sx, sy);
+    t2.AddXY( sx, sy );
+    Tpoints = Plist;   //   Start with locs in source
+    t2.Transform( Tpoints );            // Transform to locations in target
         double pdvx=dvx, pdvy=dvy; // just for comparing real with prediction
-	ValuesFromImageAndPoints( Tpixels, dvx, dvy, image2, 4096, Tpoints, spv );
-	//Normalize(Tpixels);
-	nc = CorrVectors(NULL, spv, Tpixels, &nnz);
-	printf(" predict %f, real correlation is %f\n", prev+sx*pdvx/nnz+sy*pdvy/nnz, nc);
-	if (nc > best_so_far){
-	    best_so_far = nc;
+    ValuesFromImageAndPoints( Tpixels, dvx, dvy, image2, 4096, Tpoints, spv );
+    //Normalize(Tpixels);
+    nc = CorrVectors(NULL, spv, Tpixels, &nnz);
+    printf(" predict %f, real correlation is %f\n", prev+sx*pdvx/nnz+sy*pdvy/nnz, nc);
+    if (nc > best_so_far){
+        best_so_far = nc;
             tbest = t2;
-	    bdir = 1;
-	    }
+        bdir = 1;
+        }
         }
     while(nc > prev && nc > best_rot);
 
     // Now tried two rotations and a direction; pick the best if any were better
     if( bdir >= 0 ) { //we found a better transform
          t = tbest;
-	 }
+     }
     else // nothing was better; reduce step size
-	step = step/2;
+    step = step/2;
     }
 */
 // Now t is the best transform we can find.
@@ -293,7 +293,7 @@ vector<double> v2;
 int npixels = vp[i].w*vp[i].h;
 for(int k=0; k<npixels; k++)
     if( vp[i].raster[k] > 0 )
-	v2.push_back(vp[i].raster[k]);
+    v2.push_back(vp[i].raster[k]);
 printf("Image i: %d real pixels, %f percent\n", v2.size(), v2.size()*100.0/npixels);
 double mean2, std2;
 Stats(v2, mean2, std2);  // find existing statistics
@@ -306,7 +306,7 @@ for(int k=0; k<npixels; k++) {
     int x = k - vp[i].w * y;
     double pix = vp[i].raster[k];
     if (pix == 0)    // background pixels
-	pix = mean2;  // will be set to the mean value (0)
+    pix = mean2;  // will be set to the mean value (0)
     image2[x + 4096*y] = (pix-mean2)/std2;
     }
 
@@ -321,10 +321,10 @@ for(int k=0; k<vp[j].w*vp[j].h; k++) {
     vp[j].tr.Transform( pt );  // now in global space
     vp[i].Inverse.Transform( pt ); // Into the space of picture i
     if( pt.x >= 0.0 && pt.x < vp[i].w && pt.y > 0.0 && pt.y < vp[i].h ) {
-	//printf("pt: x,y=%f %f\n", pt.x, pt.y);
-	pts.push_back(pt);
-	vals.push_back(vp[j].raster[k]);
-	}
+    //printf("pt: x,y=%f %f\n", pt.x, pt.y);
+    pts.push_back(pt);
+    vals.push_back(vp[j].raster[k]);
+    }
     }
 printf("There are %d overlap pixels\n", pts.size() );
 if( pts.size() < 10000 ) {
@@ -372,42 +372,42 @@ bool neighbor(vector<Picture> &vp, int i, int j, int pass)
     printf("Compare pass %d, %d to %d: [%f %f] [%f %f]\n", pass, i, j, xmin, xmax, ymin, ymax);
     double half = vp[i].w/2;
     if( pass == 2 )
-	return xmax > xmin && ymax > ymin && (xmax - xmin > half || ymax - ymin > half);
+    return xmax > xmin && ymax > ymin && (xmax - xmin > half || ymax - ymin > half);
     bool status = false; // assume no overlap
     double xshift=0, yshift=0;   // possible shifts to correct
     double area = (xmax-xmin)*(ymax-ymin);
     if( xmax > xmin && ymax > ymin && area > vp[i].w*0.666*OVERLAP ) {  // at least 2/3 the expected overlap
-	status = true;  // they do overlap in any case
+    status = true;  // they do overlap in any case
         if (area < vp[i].w*1.3333*OVERLAP)  // if more than this, trim it back
-	    return true;
+        return true;
         // otherwise maybe too big; could need to shift
         if( ymax - ymin > half && xmin == 0 && xmax > OVERLAP )
             xshift = OVERLAP - xmax;
         if( ymax - ymin > half && xmax == vp[i].w-1 && xmin < vp[i].w-OVERLAP )
-	    xshift = vp[i].w-OVERLAP - xmin;
+        xshift = vp[i].w-OVERLAP - xmin;
         if( xmax - xmin > half && ymin == 0 && ymax > OVERLAP )
             yshift = OVERLAP - ymax;
         if( xmax - xmin > half && ymax == vp[i].h-1 && ymin < vp[i].h-OVERLAP )
-	    yshift = vp[i].h-OVERLAP - ymin;
-	}
+        yshift = vp[i].h-OVERLAP - ymin;
+    }
     // Another case is that they should overlap, but don't really.  Tell this if there is
     // at least a half picture overlap in one direction, but a less than half picture gap
     // in the other.
     if( ymax-ymin > half && xmin > vp[i].w-OVERLAP && xmin < vp[i].w + half ) { // to the right
         status = true;
-	xshift = vp[i].w - OVERLAP - xmin;
+    xshift = vp[i].w - OVERLAP - xmin;
         }
     if( ymax-ymin > half && xmax < OVERLAP && xmax > -half ) { // to the left
         status = true;
-	xshift = OVERLAP - xmax;
+    xshift = OVERLAP - xmax;
         }
     if( xmax-xmin > half && ymin > vp[i].h-OVERLAP && ymin < vp[i].h + half ) { // to the top
         status = true;
-	yshift = vp[i].h - OVERLAP - ymin;
+    yshift = vp[i].h - OVERLAP - ymin;
         }
     if( xmax-xmin > half && ymax < OVERLAP && ymax > -half ) { // to the bottom
         status = true;
-	yshift = OVERLAP - ymax;
+    yshift = OVERLAP - ymax;
         }
     if( status ) {
         printf("Crude shift: dx=%f dy=%f\n", xshift, yshift);
@@ -434,13 +434,13 @@ for(; Nnot > 0; Nnot--) {
     bool found = false;
     for(i=0; i<vp.size() && !found; i++) {
         for(j=0; j<vp.size() && !found; j++)
-	    found = aligned[i] && (!aligned[j]) && neighbor(vp,i,j, pass);
+        found = aligned[i] && (!aligned[j]) && neighbor(vp,i,j, pass);
         }
     if( !found ) {
         printf("No aligned-unaligned neighboring pair\n");
         fprintf(flog,"No aligned-unaligned neighboring pair\n");
-	exit( 42 );
-	}
+    exit( 42 );
+    }
     i--; j--;  //loops incremented once more after finding
     AlignAPair(vp, i, j, flog, pass);
     aligned[j] = true;
@@ -465,7 +465,7 @@ for( int k = 0; k < np; ++k ) {
     int y = k/w;
     int x = k-w*y;
     if( x >= xmin && x <= xmax && y >= ymin && y <= ymax )
-	px.push_back(vp[j].raster[k]);
+    px.push_back(vp[j].raster[k]);
     }
 double avg, std;
 Stats(px, avg, std);  // we now have the mean and standard deviation
@@ -482,7 +482,7 @@ for(int k=0; k<np; k++) {
     int y = k/w;
     int x = k-w*y;
     if( x >= xmin && x <= xmax && y >= ymin && y <= ymax )
-	fr[x+N*y] = (vp[j].raster[k] - avg)/std;
+    fr[x+N*y] = (vp[j].raster[k] - avg)/std;
     }
 
 // Now fft it
@@ -506,22 +506,22 @@ for(int k=0; k<N*N; k++) {
     if (x >= N/2) x = x-N;
     if (y >= N/2) y = y-N;
     if( fr[k]/norm > biggest ) {
-	biggest = fr[k]/norm;
-	bigx = x; bigy = y;
-	}
+    biggest = fr[k]/norm;
+    bigx = x; bigy = y;
+    }
     }
 
 PrintCorLandscape( biggest, bigx, bigy, 0, 0, 0,
-	6, 2, &fr[0], N, N, norm, stdout );
+    6, 2, &fr[0], N, N, norm, stdout );
 
 printf( "Sub-correlate: Maximum %f at (%d, %d).\n",
-	biggest, bigx, bigy );
+    biggest, bigx, bigy );
 
 Point	pt( bigx, bigy );
 ParabPeakFFT( pt.x, pt.y, 1, &fr[0], N, N );
 
 printf( "Sub-correlate: Final at (%f, %f).\n",
-	pt.x, pt.y );
+    pt.x, pt.y );
 
 return pt;
 }
@@ -546,12 +546,12 @@ double ai = atan2(i2.y-i1.y, i2.x-i1.x);
 double aj = atan2(j2.y-j1.y, j2.x-j1.x);
 printf("Scale %f, angle %f radians, distance %f\n", scale, ai-aj, i1.Dist( i2 ) );
 TAffine tf(
-	scale*cos(ai-aj),
-	scale*(-sin(ai-aj)),
-	0.0,
-	-tf.t[1],
-	tf.t[0],
-	0.0 );
+    scale*cos(ai-aj),
+    scale*(-sin(ai-aj)),
+    0.0,
+    -tf.t[1],
+    tf.t[0],
+    0.0 );
 // now transform the first point and make sure it ends up in the right place
 Point p(j1.x,j1.y);
 tf.Transform( p );
@@ -683,20 +683,20 @@ for(int k=0; k<N*N; k++) {
     int yspan = vp[i].h - iabs(y);
     double norm;
     if (xspan > 0 && yspan > 0 && xspan*yspan > 40*vp[i].w)  // need at least 40 pixels
-	norm = double(xspan)*yspan;  // avoid overflow
+    norm = double(xspan)*yspan;  // avoid overflow
     else
-	norm = 1.0E30; // really big, so this can't be a winner
+    norm = 1.0E30; // really big, so this can't be a winner
     double nfeat = norm / 2500;  // feature is typically 50x50, at least
     norm = norm *(1.0+ 2/sqrt(nfeat)); // add 2 standard deviations
     if( fr[k]/norm > biggest ) {
-	biggest = fr[k]/norm;
-	bigx = x; bigy = y;
-	}
+    biggest = fr[k]/norm;
+    bigx = x; bigy = y;
+    }
     int xp = x-y;  // rotate coordinate frame by 45 deg ccw (plus scaling, which
     int yp = x+y;  // we don't care about
     int indx = (yp>0)*2 + (xp>0); //0 = west, 1 = south, 2 = north, 3 = east
     if( fr[k]/norm > best[indx].val )
-	best[indx] = CorrCand(x,y,fr[k]/norm);
+    best[indx] = CorrCand(x,y,fr[k]/norm);
     }
 // Look at different directions.  Not used for now.
 printf("west %d %d %f, south %d %d %f, north %d %d %f, east %d %d %f\n",
@@ -710,24 +710,24 @@ double ls = 0.0; // local sum
 int ln = 0;
 double peak;
 vector<double>ring;  // ring of non-weighted correlations bigger (expect none for a real peak)
-		     // will contain all those RAD away, plus the center point
+             // will contain all those RAD away, plus the center point
 const int RAD = 3;
 for(int iy=-4; iy <=4; iy += 1) {
     int ay = bigy + iy;
     //printf("biggest %f, y=%d, tx, ty, radius= %d %d %d\n", biggest, ay, tx, ty, radius);
     if( ay < 0 )
-	ay += N;
+    ay += N;
     for(int ix=-4; ix<=4; ix += 1) {
-	int ax = bigx + ix;
-	if( ax < 0 )
-	    ax += N;
-	double val = fr[ax + N*ay]/(N*N);
-	printf("%8.1f ",val);
-	if( (iabs(iy) == RAD && iabs(ix) <= RAD) || (iabs(iy)<=RAD && iabs(ix)==RAD) || (ix == 0 && iy == 0) )
-	    ring.push_back(val);
+    int ax = bigx + ix;
+    if( ax < 0 )
+        ax += N;
+    double val = fr[ax + N*ay]/(N*N);
+    printf("%8.1f ",val);
+    if( (iabs(iy) == RAD && iabs(ix) <= RAD) || (iabs(iy)<=RAD && iabs(ix)==RAD) || (ix == 0 && iy == 0) )
+        ring.push_back(val);
         ls += val; ln++;  // for average
         if (ix == 0 && iy == 0) peak = val;
-	}
+    }
     printf("\n");
     }
 int non = 0;
@@ -759,41 +759,41 @@ int nbad = 0;
 if( xmax-xmin > ymax-ymin ) {  // cut with a vertical line
     int xmid = (xmin+xmax)/2;
     for(int q=0; q<4; q++) {
-	int x1 = xmin + int(double(q)/4*(xmax-xmin));
-	int x2 = xmin + int(double(q+1)/4*(xmax-xmin));
-	printf("\n");
-	printf("---Small area test--- x=[%d %d] y=[%d %d]\n", x1, x2, ymin, ymax);
-	Point out = t.Match(vp[j], j, x1+1, ymin+1, x2-1, ymax-1);
-	double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
-	printf("  consistent within %f pixels\n", d);
-	if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {
-	    Point Pj(double(x1+x2)/2.0, double(ymin+ymax)/2.0); // middle of patch, in j's frame
-	    Point Pi(out.x+Pj.x, out.y+Pj.y);
-	    cpi.push_back(Pi); cpj.push_back(Pj);
-	    }
-	else
-	    nbad++;
-	}
+    int x1 = xmin + int(double(q)/4*(xmax-xmin));
+    int x2 = xmin + int(double(q+1)/4*(xmax-xmin));
+    printf("\n");
+    printf("---Small area test--- x=[%d %d] y=[%d %d]\n", x1, x2, ymin, ymax);
+    Point out = t.Match(vp[j], j, x1+1, ymin+1, x2-1, ymax-1);
+    double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
+    printf("  consistent within %f pixels\n", d);
+    if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {
+        Point Pj(double(x1+x2)/2.0, double(ymin+ymax)/2.0); // middle of patch, in j's frame
+        Point Pi(out.x+Pj.x, out.y+Pj.y);
+        cpi.push_back(Pi); cpj.push_back(Pj);
+        }
+    else
+        nbad++;
+    }
     }
 else { // cut with a horizontal line
     int ymid = (ymin+ymax)/2;
     for(int q=0; q<4; q++) {
-	int y1 = ymin + int(double(q)/4*(ymax-ymin));
-	int y2 = ymin + int(double(q+1)/4*(ymax-ymin));
-	printf("\n");
-	printf("---Small area test--- x=[%d %d] y=[%d %d]\n", xmin, xmax, y1, y2);
-	//Point out = SubCorrelate(vp,i,j,xmin+1,y1+1,xmax-1,y2-1);
-	Point out=t.Match(vp[j], j, xmin+1, y1+1, xmax-1, y2-1);
-	double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
-	printf("  consistent within %f pixels\n", d);
-	if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {  // limit of 10 for center matches, 20 otherwise
-	    Point Pj(double(xmin+xmax)/2.0, double(y1+y2)/2.0); // middle of patch, in j's frame
-	    Point Pi(out.x+Pj.x, out.y+Pj.y);
-	    cpi.push_back(Pi); cpj.push_back(Pj);
-	    }
-	else
-	    nbad++;
-	}
+    int y1 = ymin + int(double(q)/4*(ymax-ymin));
+    int y2 = ymin + int(double(q+1)/4*(ymax-ymin));
+    printf("\n");
+    printf("---Small area test--- x=[%d %d] y=[%d %d]\n", xmin, xmax, y1, y2);
+    //Point out = SubCorrelate(vp,i,j,xmin+1,y1+1,xmax-1,y2-1);
+    Point out=t.Match(vp[j], j, xmin+1, y1+1, xmax-1, y2-1);
+    double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
+    printf("  consistent within %f pixels\n", d);
+    if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {  // limit of 10 for center matches, 20 otherwise
+        Point Pj(double(xmin+xmax)/2.0, double(y1+y2)/2.0); // middle of patch, in j's frame
+        Point Pi(out.x+Pj.x, out.y+Pj.y);
+        cpi.push_back(Pi); cpj.push_back(Pj);
+        }
+    else
+        nbad++;
+    }
     }
 if( nbad > 1 ) {  // get rid of any eqns that were generated
     printf("%d bad points - no correlations generated\n", nbad);
@@ -824,39 +824,39 @@ vector<double> rhs;
 // Now find the correlations among the pairs
 for(int i=0; i<vp.size(); i++) {
     for(int j=i+1; j<vp.size(); j++) {
-	printf("\nChecking %d to %d\n", i, j);
+    printf("\nChecking %d to %d\n", i, j);
         printf(" Initial transform %d: ", i); vp[i].tr.TPrint();
         printf(" Initial transform %d: ", j); vp[j].tr.TPrint();
         // transform jth image's bounding box to ith image coords, just for fun
         Point bb1(0.0,0.0); Point bb2(vp[j].w, vp[j].h);
-	vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
-	vp[i].Inverse.Transform( bb1 ); vp[i].Inverse.Transform( bb2 );
-	printf("In frame of image %d, image %d is [%f %f] to [%f %f]\n",
-	 i, j, bb1.x, bb1.y, bb2.x, bb2.y);
+    vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
+    vp[i].Inverse.Transform( bb1 ); vp[i].Inverse.Transform( bb2 );
+    printf("In frame of image %d, image %d is [%f %f] to [%f %f]\n",
+     i, j, bb1.x, bb1.y, bb2.x, bb2.y);
 
         // first look and see if we have any cached correspondences:
         vector<Point>	cpi, cpj;
         int nc = CI->Find( vp[i].fname, vp[j].fname, cpi, cpj );
         printf(" Got %d saved points\n", nc);
         //for(int k=0; k<cpi.size(); k++) {
-	    //Mangle(cpi[k], vp[i].w, vp[i].h);
-	    //Mangle(cpj[k], vp[j].w, vp[j].h);
+        //Mangle(cpi[k], vp[i].w, vp[i].h);
+        //Mangle(cpj[k], vp[j].w, vp[j].h);
             //}
 
         //if( nc == 0 ) {
             //FindCorrPoints(vp, i, j, cpi, cpj);
             // are there any correspondence points?  If so add to list
             //if( cpi.size() > 0 )
-	        //CI->Add( vp[i].fname, vp[j].fname, cpi, cpj );
+            //CI->Add( vp[i].fname, vp[j].fname, cpi, cpj );
             //}
         // generate equations from points, if any
         for(int k=0; k<cpi.size(); k++) {
             if( TrOnly )
-	        WriteEqns2(feq, vp, i, cpi[k], j, cpj[k], eqns, rhs);
+            WriteEqns2(feq, vp, i, cpi[k], j, cpj[k], eqns, rhs);
             else
-	        WriteEqns6(feq, vp, i, cpi[k], j, cpj[k], eqns, rhs);
+            WriteEqns6(feq, vp, i, cpi[k], j, cpj[k], eqns, rhs);
             }
-	}
+    }
 
     // for all except the first, add some preference for a square soln (rotation and scaling only)
     if( i != 0 && !TrOnly ) {
@@ -902,7 +902,7 @@ for(int j=1; j<vp.size(); j++) {
         }
     else {
         vp[j].tr.CopyIn( &x[(j-1)*6] );
-	}
+    }
     scale = sqrt(pow(vp[j].tr.t[0], 2.0) + pow(vp[j].tr.t[1],2.0) );
     angle = vp[j].tr.GetRadians() * 180.0/PI;
     printf(" is %7.4f %6.3f: ", scale, angle); vp[j].tr.TPrint();
@@ -922,7 +922,7 @@ for(int i=0; i<eqns.size(); i++) {
     // does it contain an X term?  If so, this and the next equation form a pair
     bool xterm = false;
     for(int j=2; j<eqns[i].size(); j += 6)
-	xterm |= (eqns[i][j] != 0.0);
+    xterm |= (eqns[i][j] != 0.0);
     if( xterm ) {
         double xerr = rhs[i] - rslt[i];
         double yerr = rhs[i+1] - rslt[i+1];
@@ -931,7 +931,7 @@ for(int i=0; i<eqns.size(); i++) {
         avg += emag;
         err2 += emag*emag;
         max_err = fmax(max_err, emag);
-	npts++;
+    npts++;
         i++;
         }
     }
@@ -967,57 +967,57 @@ for(int j=0; j<npixels2; j++) {
     bool first = true; // for composite image, will take first match, since they
                        // are sorted by size.  For color image, combine all
     for(int k=0; k<vp.size(); k++) {
-	Point p2(pt.x, pt.y);
-	vp[k].Inverse.Transform( p2 );
+    Point p2(pt.x, pt.y);
+    vp[k].Inverse.Transform( p2 );
         //printf("Image %d: %f %f\n", p2.x, p2.y);
-	// is the point within the image?
-	if( p2.x >= 0 && p2.x < vp[k].w-1 && p2.y >= 0 && p2.y < vp[k].h-1 ) {
-	    int xll = int(p2.x);
-	    int yll = int(p2.y);
+    // is the point within the image?
+    if( p2.x >= 0 && p2.x < vp[k].w-1 && p2.y >= 0 && p2.y < vp[k].h-1 ) {
+        int xll = int(p2.x);
+        int yll = int(p2.y);
             if( map != NULL ) { // the image is sub-divided by a map.
                 // the map is in full scale coordinates
                 int mx = xll*sc;
                 int my = yll*sc;
-		int id = map[mx+(vp[k].w*sc)*my];
+        int id = map[mx+(vp[k].w*sc)*my];
                 if( id >= 10 ) { // we have a better mapping
                     Point p3(pt); // global point
-		    tfs[id-10].Transform( p3 );
-		    if( p3.x >= 0 && p3.x < vp[k].w-1 && p3.y >= 0 && p3.y < vp[k].h-1 ) {
-			p2 = p3;
-			xll = int(p2.x);
-			yll = int(p2.y);
-			}
-		    }
-		}
+            tfs[id-10].Transform( p3 );
+            if( p3.x >= 0 && p3.x < vp[k].w-1 && p3.y >= 0 && p3.y < vp[k].h-1 ) {
+            p2 = p3;
+            xll = int(p2.x);
+            yll = int(p2.y);
+            }
+            }
+        }
 
-	    double val = InterpolatePixel( p2.x, p2.y, vp[k].raster, vp[k].w );
+        double val = InterpolatePixel( p2.x, p2.y, vp[k].raster, vp[k].w );
 
         // create a negative image of higher contrast
-	    int pix = int(127 + 2*(127-val) +0.5);  // rounding
-		if( pix < 0 )
-			pix = 0;
-		else if( pix > 255 )
-			pix = 255;
-	    //printf("set [%d,%d] to %f\n", x, y, val);
-	    if( first ) {  // if the first of the image group to set this pixel
+        int pix = int(127 + 2*(127-val) +0.5);  // rounding
+        if( pix < 0 )
+            pix = 0;
+        else if( pix > 255 )
+            pix = 255;
+        //printf("set [%d,%d] to %f\n", x, y, val);
+        if( first ) {  // if the first of the image group to set this pixel
                 if (col == 'W') // set R, G, and B
-	            bw[x+w2*y] = 0xFF000000 | (pix<<16) | (pix << 8) | pix;
+                bw[x+w2*y] = 0xFF000000 | (pix<<16) | (pix << 8) | pix;
                 else {
                     int shift = (col == 'R' ? 0 : (col == 'G' ? 8 : 16));
                     //printf("shift, pix %d %d\n", shift, pix);
                     //printf("was 0x%x\n", bw[x+w2*y]);
-		    bw[x+w2*y] |= (pix << shift);
+            bw[x+w2*y] |= (pix << shift);
                     //printf(" is 0x%x\n", bw[x+w2*y]);
                     }
                 first = false;
-	        nvpix++;
+            nvpix++;
                 }
             int dcolor = k % 3; // drawing color
             // invert the pixels for the color image
             pix = 255 - pix;
-	    color[x+w2*y] |= (pix << (8*dcolor));
+        color[x+w2*y] |= (pix << (8*dcolor));
             }
-	}
+    }
     }
 return nvpix;
 }
@@ -1039,15 +1039,15 @@ for(int dir=0; dir<8; dir++) { // try 8 directions
         x += dxs[dir];
         y += dys[dir];
         if( x > rad && x < a[k].w-rad && y > rad && y < a[k].h-rad ) { // inside a
-	    Point p(x,y), s(x,y);
+        Point p(x,y), s(x,y);
             printf(" In frame a, %f %f\n", p.x, p.y);
             a[k].tr.Transform( p ); // into global space
-	    b[j].Inverse.Transform( p ); // back into b's space
+        b[j].Inverse.Transform( p ); // back into b's space
             printf(" In frame b, %f %f\n", p.x, p.y);
             if (p.x > rad && p.x < b[j].w-rad && p.y > rad && y < b[j].h-rad)  // inside b
                 save = s; // OK, it's good.  Save it
             }
-	}
+    }
     centers.push_back(save);
     }
 }
@@ -1097,7 +1097,7 @@ for( child; child; child=child->NextSiblingElement() ) {
         printf("%7.4f %8.4f %12.2f\n%7.4f %8.4f %12.2f\n", a,b,c,d,e,f);
         //printf("%7.4f %8.4f %12.2f\n%7.4f %8.4f %12.2f\n", a,b,c,d,e,f);
         im.transforms.push_back( TAffine(a, b, c, d, e, f) );
-	}
+    }
     mapv.push_back(im);
     }
 return 0;
@@ -1121,12 +1121,12 @@ for(int i=0; i<w*h; i++) {
     Point d(pt.x-center.x, pt.y-center.y);
     double dist = sqrt(d.x*d.x + d.y*d.y);
     if( dist <= radius ) {
-	//printf("pt: x,y=%f %f\n", pt.x, pt.y);
-	pts.push_back(pt);
-	vals.push_back(raster[i]);
-	}
+    //printf("pt: x,y=%f %f\n", pt.x, pt.y);
+    pts.push_back(pt);
+    vals.push_back(raster[i]);
+    }
     //else  // so we can look at it...
-	//above[k].raster[i] = 0;
+    //above[k].raster[i] = 0;
     }
 }
 
@@ -1142,7 +1142,7 @@ int xll =  BIG, yll =  BIG;
 int xur = -BIG, yur = -BIG;
 for(int i=0; i<pts.size(); i++) {
     if( pts[i].x > xmin && pts[i].x <xmax && pts[i].y > ymin && pts[i].y < ymax ) {
-	vp.push_back(pts[i]);
+    vp.push_back(pts[i]);
         xll = min(xll, int(pts[i].x));
         yll = min(yll, int(pts[i].y));
         xur = max(xur, int(pts[i].x));
@@ -1154,18 +1154,18 @@ if( vp.size() > 300000 ) { // too big; should be programmable
     // slice in X or Y?
     if( xur-xll > yur - yll ) { // wider than tall.  Slice at X
         sort(vp.begin(), vp.end(), sort_by_x);
-	double split = vp[vp.size()/2].x + 0.5;  // make 2 equal pt-count groups
+    double split = vp[vp.size()/2].x + 0.5;  // make 2 equal pt-count groups
         printf("splitting in x at %f\n", split);
-	MakeSubregions(vp, xll-0.5, split, yll-0.5, yur+0.5, out);
-	MakeSubregions(vp, split, xmax+0.5,yll-0.5, yur+0.5, out);
+    MakeSubregions(vp, xll-0.5, split, yll-0.5, yur+0.5, out);
+    MakeSubregions(vp, split, xmax+0.5,yll-0.5, yur+0.5, out);
         }
     else {
         sort(vp.begin(), vp.end(), sort_by_y);
-	double split = vp[vp.size()/2].y + 0.5;
+    double split = vp[vp.size()/2].y + 0.5;
         printf("splitting in y at %f\n", split);
-	MakeSubregions(vp, xll-0.5, xur+0.5, yll-0.5, split, out);
-	MakeSubregions(vp, xll-0.5, xur+0.5, split, yur+0.5, out);
-	}
+    MakeSubregions(vp, xll-0.5, xur+0.5, yll-0.5, split, out);
+    MakeSubregions(vp, xll-0.5, xur+0.5, split, yur+0.5, out);
+    }
     }
 else { // OK size, just push the region onto the output stack
     ConnRegion cr;
@@ -1209,7 +1209,7 @@ class qe {
   public:
     qe(int t, double c){to = t; cost = c;}
     bool operator < ( const qe &a ) const
-		{return cost > a.cost;};  // priority is less if cost is higher
+        {return cost > a.cost;};  // priority is less if cost is higher
     int to;  // we know how to get to the node 'to' for total cost 'cost'
     double cost;
     };
@@ -1272,16 +1272,16 @@ for(; !(x == x0 && y == y0 && dir != 0); ) {
     for(int k=1; k<=8; k++) {  // one of these directions MUST be non-zero
         int j = (op+k)%8;
         int dx = dxs[j];
-	int dy = dys[j];
-	if( map[x+dx + w*(y+dy)] ) {
+    int dy = dys[j];
+    if( map[x+dx + w*(y+dy)] ) {
             vertex vtx(x,y,j);
             vertices.push_back(vtx);
-	    x = x+dx;
-	    y = y+dy;
-	    dir = j;
-	    break;
-	    }
-	}
+        x = x+dx;
+        y = y+dy;
+        dir = j;
+        break;
+        }
+    }
     }
 
 // Now compress all the identical edges.  Only save vertices whose direction is different than previous one
@@ -1291,10 +1291,10 @@ for(int i=0; i<N; i++) {
     int prev = (i+N-1)%N;  // since using mod N, adding N-1 is same as subtracting 1
     //printf("[%d].dir = %d, prev [%d].dir = %d\n", i, vertices[i].dir, prev, vertices[prev].dir);
     if( vertices[i].dir != vertices[prev].dir ) {
-	vertex v = vertices[i];
+    vertex v = vertices[i];
         v.orig = i;       // was originally the ith vertex
         small.push_back(v);
-	}
+    }
     }
 printf("Had %d original vertices, now %d\n", N, small.size() );
 
@@ -1308,13 +1308,13 @@ for(int i=0; i<small.size(); i++) {
     if( len > minl*2.0 ) {
         int ins = int(len/(minl*1.5)); // how many to insert
         for(int j=1; j<=ins; j++) {
-	    double frac = double(j)/(ins+1);
+        double frac = double(j)/(ins+1);
             vertex nv(int(small[i].x+dx*frac), int(small[i].y+dy*frac), 0);
             printf("Inserting at (%d %d)\n", nv.x, nv.y);
             vector<vertex>::iterator it = small.begin();
-	    small.insert(it+i+j, nv);
-	    }
-	}
+        small.insert(it+i+j, nv);
+        }
+    }
     }
 
 for(int i=0; i<small.size(); i++)
@@ -1342,25 +1342,25 @@ while (!q.empty()) {
     q.pop();
     printf("can get from node 0 to %d for a total cost of %f\n", tp.to, tp.cost);
     if (tp.cost > graph[tp.to].cost) // we already knew how to get here for cheaper
-	continue;
+    continue;
     if( tp.to == graph.size()-1 )
-	break;
+    break;
     // we need to examine all the fanouts of this node
     int s = tp.to;  // the source node
     for(int j=s+1; j<graph.size(); j++) {
         int dx = graph[j].x - graph[s].x;
-	int dy = graph[j].y - graph[s].y;
-	double len = sqrt(dx*dx + dy*dy);
-	//printf("len=%f\n", len);
-	if( minl <= len && len <= 2*minl ) {
-	    double cost =  graph[s].cost + CostOfApprox(s, j, graph);
+    int dy = graph[j].y - graph[s].y;
+    double len = sqrt(dx*dx + dy*dy);
+    //printf("len=%f\n", len);
+    if( minl <= len && len <= 2*minl ) {
+        double cost =  graph[s].cost + CostOfApprox(s, j, graph);
             if( cost < graph[j].cost ) {// we've found a better way to get there
-		graph[j].cost = cost;
-		graph[j].back = s;
-		q.push(qe(j, cost));
-	 	}
-	    }
-	}
+        graph[j].cost = cost;
+        graph[j].back = s;
+        q.push(qe(j, cost));
+        }
+        }
+    }
     }
 
 if( graph[graph.size()-1].cost == BIG ) {
@@ -1385,7 +1385,7 @@ for(int i=0; i<w*h; i++) {
         int y = i / w;
         int x = i - w * y;
         printf("Add vertex at (%d %d)\n", x, y);
-	vertex newv(x,y,0);
+    vertex newv(x,y,0);
         RemoveFromMap( map, w, h, newv, minl );
         internal.push_back(newv);
         }
@@ -1402,10 +1402,10 @@ for(; edges.size() > 0; ) {
     // print all edges in matlab format
     printf("\n--------- Start matlab format ------------------\n");
     for(int j=0; j<edges.size(); j++) {
-	printf("x=[%d %d]; y=[%d %d]; plot(x,y); hold on;", edges[j].v[0].x, edges[j].v[1].x, edges[j].v[0].y, edges[j].v[1].y);
+    printf("x=[%d %d]; y=[%d %d]; plot(x,y); hold on;", edges[j].v[0].x, edges[j].v[1].x, edges[j].v[0].y, edges[j].v[1].y);
         if( j > 0 && (j%2) == 0 )
-	    printf("\n");
-	}
+        printf("\n");
+    }
     printf("\n");
     // we'll use the last edge, since it's the easiest one to delete.
     vertex va(edges[edges.size()-1].v[0]);
@@ -1422,22 +1422,22 @@ for(; edges.size() > 0; ) {
         double d = vmid.DistSqr( vc );
         //printf("#1 (%d %d) dist %f %d\n", vc.x, vc.y, d, LeftSide(va, vb, vc) );
         if( LeftSide(va, vb, vc) && d < bestd && (!AnyCrossing(edges, va, vc)) && (!AnyCrossing(edges, vb, vc))  ) {
-	    ii = j; id = 0; bestd = d;
-	    }
+        ii = j; id = 0; bestd = d;
+        }
         vc = edges[j].v[1];
         d = vmid.DistSqr( vc );
         //printf("#2 (%d %d) dist %f %d\n", vc.x, vc.y, d, LeftSide(va, vb, vc) );
         if( LeftSide(va, vb, vc) && d < bestd && (!AnyCrossing(edges, va, vc)) && (!AnyCrossing(edges, vb, vc))  ) {
-	    ii = j; id = 1; bestd = d;
-	    }
+        ii = j; id = 1; bestd = d;
+        }
         }
     for(int j=0; j<internal.size(); j++) {
         vertex vc(internal[j]);
         double d = vmid.DistSqr( vc );
         //printf("#3 (%d %d) dist %f %d\n", vc.x, vc.y, d, LeftSide(va, vb, vc) );
         if( LeftSide(va, vb, vc) && d < bestd && (!AnyCrossing(edges, va, vc)) && (!AnyCrossing(edges, vb, vc))  ) {
-	    ii = j; id = -1; bestd = d;
-	    }
+        ii = j; id = -1; bestd = d;
+        }
         }
     vertex vc = id < 0 ? internal[ii] : edges[ii].v[id];
     // now the triangle goes va->vb->vc->va
@@ -1445,16 +1445,16 @@ for(; edges.size() > 0; ) {
     triangle t;
     vector<vertex> temp; temp.push_back(va); temp.push_back(vb); temp.push_back(vc);
     for(int j=0; j<3; j++) {
-	int k;
-	for(k=0; k<ControlPoints.size(); k++)
-	    if( ControlPoints[k] == temp[j] ) {
-		t.v[j] = k;
-		break;
-	    }
+    int k;
+    for(k=0; k<ControlPoints.size(); k++)
+        if( ControlPoints[k] == temp[j] ) {
+        t.v[j] = k;
+        break;
+        }
         if( k == ControlPoints.size() ) { // did not find it; add it
             ControlPoints.push_back(temp[j]);
             t.v[j] = k;
-	    }
+        }
         }
     tris.push_back(t);
     // for the edges vb->vc and vc->va, if they are in the list of edges, remove them
@@ -1462,26 +1462,26 @@ for(; edges.size() > 0; ) {
     lineseg newone(vb,vc);
     int start = edges.size();
     for(int j=0; j<start; j++) {
-	if( edges[j] == newone ) {
-	    edges.erase(edges.begin()+j);
-	    break;
-	    }
+    if( edges[j] == newone ) {
+        edges.erase(edges.begin()+j);
+        break;
+        }
         }
     if(edges.size() == start)
-	edges.push_back(lineseg(vc,vb));
+    edges.push_back(lineseg(vc,vb));
     lineseg newtwo(vc,va);
     start = edges.size();
     for(int j=0; j<start; j++) {
-	if( edges[j] == newtwo ) {
-	    edges.erase(edges.begin()+j);
-	    break;
-	    }
+    if( edges[j] == newtwo ) {
+        edges.erase(edges.begin()+j);
+        break;
+        }
         }
     if(edges.size() == start)
-	edges.push_back(lineseg(va,vc));
+    edges.push_back(lineseg(va,vc));
     // if the edge came from the internal list, it's internal no longer, so remove it.
     if( id == -1 )
-	internal.erase(internal.begin() + ii);
+    internal.erase(internal.begin() + ii);
     }
 printf("Got %d triangles using %d control points\n", tris.size(), ControlPoints.size() );
 
@@ -1531,7 +1531,7 @@ for(int i=0; i<npixels; i++) {
     int y = int(b.pts[i].y);
     double pix = (pb.raster[x + w*y] - mean2)/std2;
     if (abs(pix) > 2)    // outlying pixel value
-	pix = 0.0;  // will be set to the mean value (0)
+    pix = 0.0;  // will be set to the mean value (0)
     image2[x + 4096*y] = pix;
     IsIn[x + w*y] = 1;
     }
@@ -1590,10 +1590,10 @@ for(int i=0; i<subs.size(); i++) {
     printf("\n %d pts, x=[%d %d], y = [%d %d]\n", subs[i].pts.size(), subs[i].B.L, subs[i].B.R, subs[i].B.B, subs[i].B.T);
     vector<double> vals;
     for(int k=0; k<subs[i].pts.size(); k++) {
-	int ix = int(subs[i].pts[k].x);
-	int iy = int(subs[i].pts[k].y);
-	vals.push_back(pa.raster[ix + w*iy]);
-	}
+    int ix = int(subs[i].pts[k].x);
+    int iy = int(subs[i].pts[k].y);
+    vals.push_back(pa.raster[ix + w*iy]);
+    }
     Normalize(vals);
     //WriteDebugImage(subs[i].pts, vals, 100 + 100*j + i);
     double	c = CorrPatchToImage( subs[i].dx, subs[i].dy, subs[i].pts, vals, image2, 0, 0, 4000, true );
@@ -1607,24 +1607,24 @@ double corr_of_best = 0.0;   // and correlation of that one
 for(int i=0; i<subs.size(); i++) {
     int close = 0; // count how many are close to this offset (use 15 pixels)
     for(int k=0; k<subs.size(); k++) {
-	if( fabs(subs[i].dx-subs[k].dx) < 15.0 && fabs(subs[i].dy - subs[k].dy) < 15.0 )
-	    close++;
-	}
+    if( fabs(subs[i].dx-subs[k].dx) < 15.0 && fabs(subs[i].dy - subs[k].dy) < 15.0 )
+        close++;
+    }
     if( close > cbest || (close == cbest && tcor[i] > corr_of_best) ) {  // more close matches than any other point?
-	best = i;
-	cbest = close;
-	corr_of_best = tcor[i];
-	}
+    best = i;
+    cbest = close;
+    corr_of_best = tcor[i];
+    }
     }
 printf("OK, best correlation is sub-region %d, %d are close, correlation %f\n", best, cbest, tcor[best]);
 TAffine tr_guess; // our best guess at the transform relating
 if( tcor[best] > 0.25 ) {  // just guessing here
     vector<double> vals;                             // should make a routine
     for(int k=0; k<subs[best].pts.size(); k++) {
-	int ix = int(subs[best].pts[k].x);
-	int iy = int(subs[best].pts[k].y);
-	vals.push_back(pa.raster[ix + w*iy]);
-	}
+    int ix = int(subs[best].pts[k].x);
+    int iy = int(subs[best].pts[k].y);
+    vals.push_back(pa.raster[ix + w*iy]);
+    }
     Normalize(vals);
     double c=ImproveCorrelation(subs[best].pts, vals, image2, subs[best].dx, subs[best].dy, tr_guess, flog);
     tr_guess.TPrint( stdout, "Best guess transform: " );
@@ -1633,103 +1633,103 @@ if( tcor[best] > 0.25 ) {  // just guessing here
     // by 10 pixels or so, so we'll need to fix it later, but it's a good guess
     vector<Point> newpts;
     for(int i=0; i<a.pts.size(); i++) {
-	Point p(a.pts[i]);
-	tr_guess.Transform( p );
+    Point p(a.pts[i]);
+    tr_guess.Transform( p );
         int ix = int(p.x);   // approximate target pixel
         int iy = int(p.y);
-	if( ix >= 0 && ix < w && iy >= 0 && iy < h && IsIn[ix + w*iy] != 0 )
-	    newpts.push_back(a.pts[i]);
-	}
+    if( ix >= 0 && ix < w && iy >= 0 && iy < h && IsIn[ix + w*iy] != 0 )
+        newpts.push_back(a.pts[i]);
+    }
     // some quality checks should go here
     printf("Roughly %d pixels map to the image below\n", newpts.size());
     // Now divide again, could be very different
     CreateOutline(newpts, ControlPoints, tris);
     // for each triangle, create a matrix that transforms to barycentric coordinates
     for(int k=0; k<tris.size(); k++) {
-	vertex v0 = ControlPoints[tris[k].v[0]], v1 = ControlPoints[tris[k].v[1]], v2 = ControlPoints[tris[k].v[2]];
-	printf("Tri: (%d %d) (%d %d) (%d %d)\n", v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-	double a[3][3];
-	a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
-	a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
-	a[2][0] = 1.0;       a[2][1] = 1.0;       a[2][2] = 1.0;
-	Invert3x3Matrix(tris[k].a, a);
-	}
+    vertex v0 = ControlPoints[tris[k].v[0]], v1 = ControlPoints[tris[k].v[1]], v2 = ControlPoints[tris[k].v[2]];
+    printf("Tri: (%d %d) (%d %d) (%d %d)\n", v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
+    double a[3][3];
+    a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
+    a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
+    a[2][0] = 1.0;       a[2][1] = 1.0;       a[2][2] = 1.0;
+    Invert3x3Matrix(tris[k].a, a);
+    }
     for(int k=0; k<tris.size(); k++) {  // write in matlab form
-	vertex v0 = ControlPoints[tris[k].v[0]], v1 = ControlPoints[tris[k].v[1]], v2 = ControlPoints[tris[k].v[2]];
-	printf("x=[%d %d %d %d]; y=[%d %d %d %d]; plot(x,y); hold on;\n", v0.x, v1.x, v2.x, v0.x,
-	 v0.y, v1.y, v2.y, v0.y);
-	}
+    vertex v0 = ControlPoints[tris[k].v[0]], v1 = ControlPoints[tris[k].v[1]], v2 = ControlPoints[tris[k].v[2]];
+    printf("x=[%d %d %d %d]; y=[%d %d %d %d]; plot(x,y); hold on;\n", v0.x, v1.x, v2.x, v0.x,
+     v0.y, v1.y, v2.y, v0.y);
+    }
     subs.clear(); subs.insert(subs.begin(), tris.size(), ConnRegion());
 
     // assign each point to one of the sub-regions
     int next_id = map1.transforms.size() + 10;
     vector<vector<double> >lambda;
     for(int k=0; k<newpts.size(); k++) {
-	Point pt = newpts[k];
-	int reg = BestTriangle( tris, ControlPoints, pt );
-	subs[reg].pts.push_back(pt);
-	subs[reg].B.L = min(subs[reg].B.L, int(pt.x));
-	subs[reg].B.B = min(subs[reg].B.B, int(pt.y));
-	subs[reg].B.R = max(subs[reg].B.R, int(pt.x));
-	subs[reg].B.T = max(subs[reg].B.T, int(pt.y));
-	// Map the point into barycentric coordinates for its triangle
-	//vertex v0 = ControlPoints[tris[reg].v[0]], v1 = ControlPoints[tris[reg].v[1]], v2 = ControlPoints[tris[reg].v[2]];
-	//printf(" pt (%f %f) in tri: (%d %d) (%d %d) (%d %d)\n", pt.x, pt.y, v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-	double l[3];
-	l[0] = tris[reg].a[0][0]*pt.x + tris[reg].a[0][1]*pt.y + tris[reg].a[0][2]*1.0;
-	l[1] = tris[reg].a[1][0]*pt.x + tris[reg].a[1][1]*pt.y + tris[reg].a[1][2]*1.0;
-	l[2] = tris[reg].a[2][0]*pt.x + tris[reg].a[2][1]*pt.y + tris[reg].a[2][2]*1.0;
-	//printf("prop %f %f %f\n", l[0], l[1], l[2]);
-	vector<double>lam(ControlPoints.size(), 0.0);
-	for(int m=0; m<3; m++)
-	    lam[tris[reg].v[m]] = l[m];
-	//for(int m=0; m<lam.size(); m++)
-	    //printf("%.4f ", lam[m]);
-	//printf("\n");
-	lambda.push_back(lam);
+    Point pt = newpts[k];
+    int reg = BestTriangle( tris, ControlPoints, pt );
+    subs[reg].pts.push_back(pt);
+    subs[reg].B.L = min(subs[reg].B.L, int(pt.x));
+    subs[reg].B.B = min(subs[reg].B.B, int(pt.y));
+    subs[reg].B.R = max(subs[reg].B.R, int(pt.x));
+    subs[reg].B.T = max(subs[reg].B.T, int(pt.y));
+    // Map the point into barycentric coordinates for its triangle
+    //vertex v0 = ControlPoints[tris[reg].v[0]], v1 = ControlPoints[tris[reg].v[1]], v2 = ControlPoints[tris[reg].v[2]];
+    //printf(" pt (%f %f) in tri: (%d %d) (%d %d) (%d %d)\n", pt.x, pt.y, v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
+    double l[3];
+    l[0] = tris[reg].a[0][0]*pt.x + tris[reg].a[0][1]*pt.y + tris[reg].a[0][2]*1.0;
+    l[1] = tris[reg].a[1][0]*pt.x + tris[reg].a[1][1]*pt.y + tris[reg].a[1][2]*1.0;
+    l[2] = tris[reg].a[2][0]*pt.x + tris[reg].a[2][1]*pt.y + tris[reg].a[2][2]*1.0;
+    //printf("prop %f %f %f\n", l[0], l[1], l[2]);
+    vector<double>lam(ControlPoints.size(), 0.0);
+    for(int m=0; m<3; m++)
+        lam[tris[reg].v[m]] = l[m];
+    //for(int m=0; m<lam.size(); m++)
+        //printf("%.4f ", lam[m]);
+    //printf("\n");
+    lambda.push_back(lam);
         for(int x=0; x<sc; x++)  // array ids is at original scale
-	    for(int y=0; y<sc; y++)
-	        ids[sc*int(pt.x)+x + fullw*(sc*int(pt.y)+y)] = next_id + reg;
-	}
+        for(int y=0; y<sc; y++)
+            ids[sc*int(pt.x)+x + fullw*(sc*int(pt.y)+y)] = next_id + reg;
+    }
     // optimize the mesh.
     vector<double> spv;  // create a normalized array of source pixel values
     for(int k=0; k<newpts.size(); k++) {
-	int ix = int(newpts[k].x);
-	int iy = int(newpts[k].y);
-	spv.push_back(pa.raster[ix + w*iy]);
-	}
+    int ix = int(newpts[k].x);
+    int iy = int(newpts[k].y);
+    spv.push_back(pa.raster[ix + w*iy]);
+    }
     Normalize(spv);
     // next, transform the control points to the target frame
     vector<Point> cpts; // make a real-valued copy
     for(int k=0; k<ControlPoints.size(); k++)
-	cpts.push_back(Point(ControlPoints[k].x, ControlPoints[k].y));
+    cpts.push_back(Point(ControlPoints[k].x, ControlPoints[k].y));
     vector<Point> orig = cpts;
     tr_guess.Transform( cpts );
     // call the optimizer to find a better spot for the control points
     ImproveControlPts(cpts, lambda, spv, image2, 4096, 4096, flog);
     // compute a transform, and a center, for each triangle
     for(int k=0; k<tris.size(); k++) {
-	int i0 = tris[k].v[0];
-	int i1 = tris[k].v[1];
-	int i2 = tris[k].v[2];
-	// Now, find a transformation that maps ORIG into the new cpts
-	// first, create a transform that maps a unit right triangle to the original pts
-	TAffine o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
-	 orig[i1].y-orig[i0].y, orig[i2].y-orig[i0].y, orig[i0].y);
-	// now one that maps the final optimized control points to the unit right triangle
-	TAffine c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
-	 cpts[i1].y-cpts[i0].y, cpts[i2].y-cpts[i0].y, cpts[i0].y);
-	// now, to get from the original to the final, apply o^-1, then c;
-	TAffine oi, t;
-	oi.InverseOf( o );
-	//TAffine temp;
-	t = c * oi;
-	t.TPrint();
-	map1.transforms.push_back( t );
-	double sumx = orig[i0].x + orig[i1].x + orig[i2].x;
-	double sumy = orig[i0].y + orig[i1].y + orig[i2].y;
-	map1.centers.push_back(Point(sumx/3.0, sumy/3.0));
-	}
+    int i0 = tris[k].v[0];
+    int i1 = tris[k].v[1];
+    int i2 = tris[k].v[2];
+    // Now, find a transformation that maps ORIG into the new cpts
+    // first, create a transform that maps a unit right triangle to the original pts
+    TAffine o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
+     orig[i1].y-orig[i0].y, orig[i2].y-orig[i0].y, orig[i0].y);
+    // now one that maps the final optimized control points to the unit right triangle
+    TAffine c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
+     cpts[i1].y-cpts[i0].y, cpts[i2].y-cpts[i0].y, cpts[i0].y);
+    // now, to get from the original to the final, apply o^-1, then c;
+    TAffine oi, t;
+    oi.InverseOf( o );
+    //TAffine temp;
+    t = c * oi;
+    t.TPrint();
+    map1.transforms.push_back( t );
+    double sumx = orig[i0].x + orig[i1].x + orig[i2].x;
+    double sumy = orig[i0].y + orig[i1].y + orig[i2].y;
+    map1.centers.push_back(Point(sumx/3.0, sumy/3.0));
+    }
     }
 
 for(int i=0; i<map1.centers.size(); i++) {
@@ -1752,34 +1752,34 @@ for(int i=0; i<map1.centers.size(); i++) {
 // flog					- some details written here
 //
 void PipelineDeformableMap(
-	int				&Ntrans,
-	double*			&array_of_transforms,
-	uint16*			map_mask,
-	const uint8*	AboveRaster,
-	const uint8*	fold_mask_above,
-	const uint8*	BelowRaster,
-	const uint8*	fold_mask_below,
-	int				w,
-	int				h,
-	FILE*			fout,
-	FILE*			flog )
+    int				&Ntrans,
+    double*			&array_of_transforms,
+    uint16*			map_mask,
+    const uint8*	AboveRaster,
+    const uint8*	fold_mask_above,
+    const uint8*	BelowRaster,
+    const uint8*	fold_mask_below,
+    int				w,
+    int				h,
+    FILE*			fout,
+    FILE*			flog )
 {
 Picture above, below; // convert to this for sake of compatibility
-	above.SetExternal( AboveRaster, w, h );
-	below.SetExternal( BelowRaster, w, h );
+    above.SetExternal( AboveRaster, w, h );
+    below.SetExternal( BelowRaster, w, h );
 
 //create smaller (at most 2Kx2K pixels, if original was bigger
 above.DownsampleIfNeeded( flog );
 below.DownsampleIfNeeded( flog );
 
 // Create the connected region lists.  Note that the connected region lists are always at the reduced resolution, if this is used.
-	vector<ConnRegion>	Acr, Bcr;
+    vector<ConnRegion>	Acr, Bcr;
 
-	ConnRgnsFromFoldMask( Acr, fold_mask_above,
-		w, h, above.scale, BIG, flog );
+    ConnRgnsFromFoldMask( Acr, fold_mask_above,
+        w, h, above.scale, BIG, flog );
 
-	ConnRgnsFromFoldMask( Bcr, fold_mask_below,
-		w, h, below.scale, BIG, flog );
+    ConnRgnsFromFoldMask( Bcr, fold_mask_below,
+        w, h, below.scale, BIG, flog );
 
 memset( map_mask, 0, w * h * sizeof(uint16) );
 
@@ -1789,7 +1789,7 @@ for(int i = 0; i <Acr.size(); i++) {
     for(int j=0; j < Bcr.size(); j++) {
         printf("Looking for mapping from region %d of 'above' to region '%d' of below\n", i, j);
         RegionToRegionMap(above, Acr[i], below, Bcr[j], map_mask, map1, flog);
-	}
+    }
     }
 // Now package the transforms in the way the MatLab code would like to see them.
 printf("Modifying transforms: above.scale=%d\n", above.scale);
@@ -1819,97 +1819,97 @@ for(int i=0; i<Ntrans; i++) {
 //
 void ImageToFoldMap( Picture &pic, uint8* foldMask )
 {
-	vector<ConnRegion>	cr;
-	vector<double>		v;
-	uint8				*raster	= pic.raster;
-	double				mean, std;
-	double				thresh	= 4.0;
-	int					w		= pic.w;
-	int					h		= pic.h;
-	int					npixels	= w * h;
-	int					nbig	= 0;
-	int					i;
+    vector<ConnRegion>	cr;
+    vector<double>		v;
+    uint8				*raster	= pic.raster;
+    double				mean, std;
+    double				thresh	= 4.0;
+    int					w		= pic.w;
+    int					h		= pic.h;
+    int					npixels	= w * h;
+    int					nbig	= 0;
+    int					i;
 
 // Experiment: overlap with multiple regions
 
-	bool within_section = false;
-	if( within_section ) {
-		SetWithinSectionBorders( foldMask, w, h );
-		return;
-	}
+    bool within_section = false;
+    if( within_section ) {
+        SetWithinSectionBorders( foldMask, w, h );
+        return;
+    }
 
 // Find mean and std dev of non-zero pixels
 
-	StatsRasterNonZeros( raster, npixels, mean, std );
+    StatsRasterNonZeros( raster, npixels, mean, std );
 
 // Make a normalized copy of the raster.
 // Do not copy any pixels next to black (val = 0) pixels,
 // since they themselves are dubious.
 
-	v.reserve( npixels );
+    v.reserve( npixels );
 
-	for( i = 0; i < npixels; ++i ) {
+    for( i = 0; i < npixels; ++i ) {
 
-		int	y	= i / w;
-		int	x	= i - w * y;
-		int	pix;
+        int	y	= i / w;
+        int	x	= i - w * y;
+        int	pix;
 
-		if( !(pix	= raster[i]) )
-			;
-		else if( x-1 >= 0 && raster[i-1] == 0 ) pix = 0;
-		else if( x+1 <  w && raster[i+1] == 0 ) pix = 0;
-		else if( y-1 >= 0 && raster[i-w] == 0 ) pix = 0;
-		else if( y+1 <  h && raster[i+w] == 0 ) pix = 0;
+        if( !(pix	= raster[i]) )
+            ;
+        else if( x-1 >= 0 && raster[i-1] == 0 ) pix = 0;
+        else if( x+1 <  w && raster[i+1] == 0 ) pix = 0;
+        else if( y-1 >= 0 && raster[i-w] == 0 ) pix = 0;
+        else if( y+1 <  h && raster[i+w] == 0 ) pix = 0;
 
-		v.push_back( (pix-mean)/std );
-	}
+        v.push_back( (pix-mean)/std );
+    }
 
 // Set threshold for connected pixels
 
-	if( mean - thresh * std < 1 ) {
+    if( mean - thresh * std < 1 ) {
 
-		thresh = mean / std * 0.95;
+        thresh = mean / std * 0.95;
 
-		printf(
-		"Foldmap: Forced to reduce threshold to %f\n", thresh );
-	}
+        printf(
+        "Foldmap: Forced to reduce threshold to %f\n", thresh );
+    }
 
-	const char *p = getenv( "FoldMaskThreshold" );
+    const char *p = getenv( "FoldMaskThreshold" );
 
-	if( p ) {
+    if( p ) {
 
-		thresh = atof( p );
+        thresh = atof( p );
 
-		printf(
-		"Foldmap: Environment variable over-ride of"
-		" threshold to %f\n", thresh );
-	}
+        printf(
+        "Foldmap: Environment variable over-ride of"
+        " threshold to %f\n", thresh );
+    }
 
 // Now find the connected regions
 
-	for( i = 0; i < npixels; ++i ) {
+    for( i = 0; i < npixels; ++i ) {
 
-		if( v[i] > -thresh ) {
+        if( v[i] > -thresh ) {
 
-			ConnRegion	c;
-			int			npts;
+            ConnRegion	c;
+            int			npts;
 
-			npts = Propagate( c.pts, v, w, h, i,
-					-thresh, -thresh - 1.0 );
+            npts = Propagate( c.pts, v, w, h, i,
+                    -thresh, -thresh - 1.0 );
 
-			printf(
-			"ImageToFoldMap: ConnRegion with %d pixels.\n", npts );
+            printf(
+            "ImageToFoldMap: ConnRegion with %d pixels.\n", npts );
 
-			if( npts > 100000 ) {
-				cr.push_back( c );
-				++nbig;
-			}
-		}
-	}
+            if( npts > 100000 ) {
+                cr.push_back( c );
+                ++nbig;
+            }
+        }
+    }
 
 // Final accounting
 
-	SetBoundsAndColors( cr, foldMask, w, h );
+    SetBoundsAndColors( cr, foldMask, w, h );
 }
 
 
@@ -1939,15 +1939,15 @@ for(int i=1; i<argc; i++) {
     // process arguments here
     fprintf(flog,"%s ", argv[i]);
     if( strcmp(argv[i],"-o") == 0 && i+1 < argc )
-	OVERLAP = atoi(argv[i+1]);
+    OVERLAP = atoi(argv[i+1]);
     if( strcmp(argv[i],"-t") == 0 && i+1 < argc )
-	THRESHOLD = atof(argv[i+1]);
+    THRESHOLD = atof(argv[i+1]);
     if( strcmp(argv[i],"-r") == 0 && i+1 < argc )
-	RADIUS = atoi(argv[i+1]);
+    RADIUS = atoi(argv[i+1]);
     if( strcmp(argv[i],"-f") == 0 )
-	WriteBack = true;
+    WriteBack = true;
     if( strcmp(argv[i],"-tr") == 0 )
-	TrOnly = true;
+    TrOnly = true;
     }
 fflush(flog);
 printf("Overlap %d, radius %d, threshold %f\n", OVERLAP, RADIUS, THRESHOLD);
@@ -1978,7 +1978,7 @@ above.push_back(p);
 sort(above.begin(), above.end());
 for(int j=0; j<above.size(); j++) {
     //printf("Above: z=%d, distance=%f\n", above[j].z, above[j].dist_from_center);
-	above[j].LoadOriginal( argv[2], flog, false );
+    above[j].LoadOriginal( argv[2], flog, false );
     above[j].Inverse.InverseOf( above[j].tr );
     }
 // same for the layer below
@@ -2011,10 +2011,10 @@ int		Ntrans = 0;
 double	*array_of_transforms;
 
 PipelineDeformableMap(
-	Ntrans, array_of_transforms, rmap,
-	above[0].raster, fold_mask_above,
-	below[0].raster, fold_mask_below,
-	w, h, flog, flog );
+    Ntrans, array_of_transforms, rmap,
+    above[0].raster, fold_mask_above,
+    below[0].raster, fold_mask_below,
+    w, h, flog, flog );
 
 uint8 *fake = (uint8*)malloc(npixels*sizeof(uint8)); // convert to 8 bit for debugging, since gimp can't do 16.
 for(int i=0; i<npixels; i++)
@@ -2054,8 +2054,8 @@ printf("  w %d, h %d, %d pixels in comparison image; w,h,npixels %d %d %d\n", w2
 raster2 = (uint32*)RasterAlloc( npixels2 * sizeof(uint32 ));
 
 float *rt  = (float*)RasterAlloc( npixels2 * sizeof(float) );
-									 // since we will write partial pixel
-									 // values here, and so should not truncate
+                                     // since we will write partial pixel
+                                     // values here, and so should not truncate
 // Find a center for each region.   We have a map for image 'above'.  Make one for image 'below'
 vector<uint16>bmap(npixels,0);
 printf("Going to allocate the counts\n");
@@ -2068,19 +2068,19 @@ for(int x=0; x<w; x++) {
     for(int y=0; y<h; y++) {
         int n = rmap[x + w*y];
         if( n-10 >= Ntrans ) {
-	    printf("odd - n=%d, Ntrans=%d\n", n, Ntrans);
+        printf("odd - n=%d, Ntrans=%d\n", n, Ntrans);
             exit(-1);
             }
-	if( n >= 10 ) {
-	    sums[n-10].x += x;
+    if( n >= 10 ) {
+        sums[n-10].x += x;
             sums[n-10].y += y;
             pcount[n-10]++;
             Point p(x,y);
-	    tfs[n-10].Transform( p );
+        tfs[n-10].Transform( p );
             int ix = int(p.x);
             int iy = int(p.y);
             if( ix >= 0 && ix < w && iy >= 0 && iy < h )
-		bmap[ix + w*iy] = n;
+        bmap[ix + w*iy] = n;
             }
         }
     }
@@ -2108,24 +2108,24 @@ for(int i=0; i<npixels; i++) {
     int mv = bmap[i];  // get the map value (map is at full size
     Point p(ix, iy);
     if (mv >= 10)            // transform is defined, see where it goes
-	ifs[mv-10].Transform( p );
+    ifs[mv-10].Transform( p );
     else { // not strictly defined...
-	double dbest = 1.0E30;
+    double dbest = 1.0E30;
         int best = -1;
         for(int q=0; q < Ntrans; q++) {
-	    double dx = ix-sums[q].x;
+        double dx = ix-sums[q].x;
             double dy = iy-sums[q].y;
-	    double d = dx*dx + dy*dy;   // no need for sqrt, it's monotonic
-	    if( d < dbest ) {
-		dbest = d;
-	        best = q;
-	        }
-	    }
+        double d = dx*dx + dy*dy;   // no need for sqrt, it's monotonic
+        if( d < dbest ) {
+        dbest = d;
+            best = q;
+            }
+        }
         // now see, if using the best transform, if it's in the target image
         ifs[best].Transform( p );
         if( p.x >= 0.0 && p.x < w && p.y >= 0.0 && p.y < h )
-	    continue; // do not want to set it.
-	}
+        continue; // do not want to set it.
+    }
     // so now p is point, transformed into image 'above'.  Subtract (xmin, ymin) to get coordinate in image
     p.x -= xmin;
     p.y -= ymin;
@@ -2135,10 +2135,10 @@ for(int i=0; i<npixels; i++) {
 for(int i=0; i<npixels2; i++) {
     if( rt[i] > 0.0 ) {
         int pix = int(127 + (127-rt[i])*2);
-		if( pix < 0 )
-			pix = 0;
-		else if( pix > 255 )
-			pix = 255;
+        if( pix < 0 )
+            pix = 0;
+        else if( pix > 255 )
+            pix = 255;
         raster2[i] |= pix;
         }
     }
@@ -2147,14 +2147,14 @@ for(int i=0; i<npixels; i++) {
     int iy = i / w;
     int ix = i - w * iy;
     int pix = 127 + (127 - above[0].raster[i]) * 2;  // invert and contrast stretch
-	if( pix < 0 )
-		pix = 0;
-	else if( pix > 255 )
-		pix = 255;
+    if( pix < 0 )
+        pix = 0;
+    else if( pix > 255 )
+        pix = 255;
     ix -= xmin;
     iy -= ymin;
     if( ix >= 0 && ix < w2 && iy >= 0 && iy < h2 )  // This test should not be needed
-	raster2[ix + w2*iy] |= (pix << 8);
+    raster2[ix + w2*iy] |= (pix << 8);
     }
 
 // Write it out
@@ -2185,8 +2185,8 @@ uint8 *raster = above[0].raster;
 npixels = w * h;
 
 // Find mean and std dev of non-zero pixels
-	double	mean, std;
-	StatsRasterNonZeros( raster, npixels, mean, std );
+    double	mean, std;
+    StatsRasterNonZeros( raster, npixels, mean, std );
 
 // Make a normalized copy of the raster.  Do not copy any pixels next to black pixels
 // since they themselves are dubious.
@@ -2217,10 +2217,10 @@ int start = 0;
 for(int k=0;;){
     int i;
     for(i=start; i<npixels; i++)  // find first good pixel
-	 if( v[i] > -thresh )
-	    break;
+     if( v[i] > -thresh )
+        break;
     if (i >= npixels)             // if there are not any, then all done
-	break;
+    break;
     // found at least one pixel.  Find all connected ones.
     //printf("found v[%d] = %f\n", i, v[i]);
     start = i+1;  // next time, start here...
@@ -2229,31 +2229,31 @@ for(int k=0;;){
     //printf("push %d\n", i);
     st.push(i);
     while(!st.empty()) {
-	int j = st.top();
-	//printf("pop %d, val %f\n",j, v[j]);
-	st.pop();
-	//if( fabs(v[j]) < thresh ) {
-	if( v[j] > -thresh ) {
-	    int y = j / w;
-	    int x = j - w * y;
-	    //printf("j, x, y = %d %d %d, v=%f\n", j, x, y, v[j]);
-	    Point p(x,y);
-	    c.pts.push_back(p);
-	    v[j] = -5.0;
-	    if (x-1 >= 0) st.push(j-1);
-	    if (x+1 < w)  st.push(j+1);
-	    if (y-1 >= 0) st.push(j-w);
-	    if (y+1 < h)  st.push(j+w);
-	    }
-	}
+    int j = st.top();
+    //printf("pop %d, val %f\n",j, v[j]);
+    st.pop();
+    //if( fabs(v[j]) < thresh ) {
+    if( v[j] > -thresh ) {
+        int y = j / w;
+        int x = j - w * y;
+        //printf("j, x, y = %d %d %d, v=%f\n", j, x, y, v[j]);
+        Point p(x,y);
+        c.pts.push_back(p);
+        v[j] = -5.0;
+        if (x-1 >= 0) st.push(j-1);
+        if (x+1 < w)  st.push(j+1);
+        if (y-1 >= 0) st.push(j-w);
+        if (y+1 < h)  st.push(j+w);
+        }
+    }
     printf("Connected region of %d pixels\n", c.pts.size());
     if( c.pts.size() > 200000 ) {
-	nbig++;
-	cr.push_back(c);
-	BBoxFromPoints( cr[k].B, cr[k].pts );
-	printf("region size is [%d %d] in x, [%d %d] in y\n",
-	 cr[k].B.L, cr[k].B.R, cr[k].B.B, cr[k].B.T);
-	k++;
+    nbig++;
+    cr.push_back(c);
+    BBoxFromPoints( cr[k].B, cr[k].pts );
+    printf("region size is [%d %d] in x, [%d %d] in y\n",
+     cr[k].B.L, cr[k].B.R, cr[k].B.B, cr[k].B.T);
+    k++;
         }
     }
 
@@ -2263,9 +2263,9 @@ int bc_size = -1; // and its size
 for(int k=0; k<cr.size(); k++) {
     //printf(" looking %d, %d\n", cr[k].pts.size(), bc_size );
     if( int(cr[k].pts.size()) > bc_size ) {
-	bc_size = cr[k].pts.size();
-	bc = k;
-	}
+    bc_size = cr[k].pts.size();
+    bc = k;
+    }
     }
 if( bc_size <= 0 ) {
     printf("This cannot happen - bc_size=%d\n", bc_size);
@@ -2283,7 +2283,7 @@ npixels = below[0].w*below[0].h;
 MeanStd mm;
 for(int i=0; i<npixels; i++) {
     if( below[0].raster[i] > 0 )
-	mm.Element(below[0].raster[i]);
+    mm.Element(below[0].raster[i]);
     }
 printf("below: %d real pixels, %f percent\n", mm.HowMany(), mm.HowMany()*100.0/npixels);
 double mean2, std2;
@@ -2298,7 +2298,7 @@ for(int i=0; i<npixels; i++) {
     int x = i - below[0].w * y;
     double pix = (below[0].raster[i] - mean2)/std2;
     if (abs(pix) > 2)    // outlying pixel value
-	pix = 0.0;  // will be set to the mean value (0)
+    pix = 0.0;  // will be set to the mean value (0)
     image2[x + 4096*y] = pix;
     }
 
@@ -2308,9 +2308,9 @@ if( sc > 1 ) { // then we have a copy with more than 2Kx2K resolution
     int np3 = npixels*sc*sc;
     MeanStd m3;
     for(int i=0; i<np3; i++) {
-	if( below[0].original[i] > 0 )
-	    m3.Element(below[0].original[i]);
-	}
+    if( below[0].original[i] > 0 )
+        m3.Element(below[0].original[i]);
+    }
     double mean3, std3;
     m3.Stats(mean3, std3);  // find existing statistics
     printf("Of the full resolution target image,  mean= %f and std dev = %f\n", mean3, std3);
@@ -2318,13 +2318,13 @@ if( sc > 1 ) { // then we have a copy with more than 2Kx2K resolution
     image3.insert(image3.begin(), 4096*4096-1, 0.0); // is there a better way?
     int bigw = below[0].w*sc;
     for(int i=0; i<np3; i++) {
-	int y = i / bigw;
-	int x = i - bigw * y;
-	double pix = below[0].original[i];
-	if (pix == 0)    // background pixels
-	    pix = mean3;  // will be set to the mean value (0)
-	image3[x + 4096*y] = (pix-mean3)/std3;
-	}
+    int y = i / bigw;
+    int x = i - bigw * y;
+    double pix = below[0].original[i];
+    if (pix == 0)    // background pixels
+        pix = mean3;  // will be set to the mean value (0)
+    image3[x + 4096*y] = (pix-mean3)/std3;
+    }
     }
 
 // create a map image.  For every pixel in A, tell the closest control point.  0-9  reserved for 'no data',
@@ -2349,39 +2349,39 @@ for(int j=0; j<cr.size(); j++) {
     // assign each point to one of the sub-regions
     for(int k=0; k<cr[j].pts.size(); k++) {
         Point pt = cr[j].pts[k];
-	int reg = BestTriangle( tris, ControlPoints, pt );
+    int reg = BestTriangle( tris, ControlPoints, pt );
         subs[reg].pts.push_back(pt);
-	subs[reg].B.L = min(subs[reg].B.L, int(pt.x));
-	subs[reg].B.B = min(subs[reg].B.B, int(pt.y));
-	subs[reg].B.R = max(subs[reg].B.R, int(pt.x));
-	subs[reg].B.T = max(subs[reg].B.T, int(pt.y));
+    subs[reg].B.L = min(subs[reg].B.L, int(pt.x));
+    subs[reg].B.B = min(subs[reg].B.B, int(pt.y));
+    subs[reg].B.R = max(subs[reg].B.R, int(pt.x));
+    subs[reg].B.T = max(subs[reg].B.T, int(pt.y));
         }
     // Now, try to match each constituent triangle by itself.  Save the results in vector tcorr and dx,dy of vector 'subs'
     vector<double> tcor;
     for(int i=0; i<subs.size(); i++) {
-	printf("\n %d pts, x=[%d %d], y = [%d %d]\n", subs[i].pts.size(), subs[i].B.L, subs[i].B.R, subs[i].B.B, subs[i].B.T);
+    printf("\n %d pts, x=[%d %d], y = [%d %d]\n", subs[i].pts.size(), subs[i].B.L, subs[i].B.R, subs[i].B.B, subs[i].B.T);
         vector<double> vals;
         for(int k=0; k<subs[i].pts.size(); k++) {
-	    int ix = int(subs[i].pts[k].x);
-	    int iy = int(subs[i].pts[k].y);
+        int ix = int(subs[i].pts[k].x);
+        int iy = int(subs[i].pts[k].y);
             vals.push_back(raster[ix + w*iy]);
-	    }
-	Normalize(vals);
+        }
+    Normalize(vals);
         //WriteDebugImage(subs[i].pts, vals, 100 + 100*j + i);
-	double	c = CorrPatchToImage( subs[i].dx, subs[i].dy, subs[i].pts, vals, image2, 0, 0, 4000, true );
+    double	c = CorrPatchToImage( subs[i].dx, subs[i].dy, subs[i].pts, vals, image2, 0, 0, 4000, true );
         tcor.push_back(c);
-	printf(" c = %f, deltas are %f %f\n", c, subs[i].dx, subs[i].dy);
-	}
+    printf(" c = %f, deltas are %f %f\n", c, subs[i].dx, subs[i].dy);
+    }
     // Now, find a 'concensus' transform - one that many triangles agree on
     int best = -1;
     int cbest = 0;  // Number of close matchs to the best one found
     double corr_of_best = 0.0;   // and correlation of that one
     for(int i=0; i<subs.size(); i++) {
-	int close = 0; // count how many are close to this offset (use 15 pixels)
+    int close = 0; // count how many are close to this offset (use 15 pixels)
         for(int k=0; k<subs.size(); k++) {
-	    if( fabs(subs[i].dx-subs[k].dx) < 15.0 && fabs(subs[i].dy - subs[k].dy) < 15.0 )
-		close++;
-	    }
+        if( fabs(subs[i].dx-subs[k].dx) < 15.0 && fabs(subs[i].dy - subs[k].dy) < 15.0 )
+        close++;
+        }
         if( close > cbest || (close == cbest && tcor[i] > corr_of_best) ) {  // more close matches than any other point?
             best = i;
             cbest = close;
@@ -2393,112 +2393,112 @@ for(int j=0; j<cr.size(); j++) {
     if( cbest >= 2 && tcor[best] > 0.25 ) {  // just guessing here.  Need two triangle match, better corr > 0.25
         vector<double> vals;                             // should make a routine
         for(int k=0; k<subs[best].pts.size(); k++) {
-	    int ix = int(subs[best].pts[k].x);
-	    int iy = int(subs[best].pts[k].y);
+        int ix = int(subs[best].pts[k].x);
+        int iy = int(subs[best].pts[k].y);
             vals.push_back(raster[ix + w*iy]);
-	    }
-	Normalize(vals);
-	c=ImproveCorrelation(subs[best].pts, vals, image2, subs[best].dx, subs[best].dy, tr_guess, flog);
+        }
+    Normalize(vals);
+    c=ImproveCorrelation(subs[best].pts, vals, image2, subs[best].dx, subs[best].dy, tr_guess, flog);
         tr_guess.TPrint( stdout, "Best guess transform: " );
 
-	// now using the guess, keep only those points that map to the below image.  (this could be off
-	// by 10 pixels or so, so we'll need to fix it later, but it's a good guess
-	vector<Point> newpts;
+    // now using the guess, keep only those points that map to the below image.  (this could be off
+    // by 10 pixels or so, so we'll need to fix it later, but it's a good guess
+    vector<Point> newpts;
         for(int i=0; i<cr[j].pts.size(); i++) {
-	    Point p(cr[j].pts[i]);
-	    tr_guess.Transform( p );
-	    if( p.x >= 0 && p.x < below[0].w && p.y >= 0 && p.y < below[0].h )
-		newpts.push_back(cr[j].pts[i]);
-	    }
+        Point p(cr[j].pts[i]);
+        tr_guess.Transform( p );
+        if( p.x >= 0 && p.x < below[0].w && p.y >= 0 && p.y < below[0].h )
+        newpts.push_back(cr[j].pts[i]);
+        }
         // some quality checks should go here
         printf("About %d pixels map to the image below\n", newpts.size());
-	//MakeSubregions(newpts, -cb, cb, -cb, cb, subs);  // divide again, could be very different
-	CreateOutline(newpts, ControlPoints, tris);
+    //MakeSubregions(newpts, -cb, cb, -cb, cb, subs);  // divide again, could be very different
+    CreateOutline(newpts, ControlPoints, tris);
         // for each triangle, create a matrix that transforms to barycentric coordinates
         for(int k=0; k<tris.size(); k++) {
             vertex v0 = ControlPoints[tris[k].v[0]], v1 = ControlPoints[tris[k].v[1]], v2 = ControlPoints[tris[k].v[2]];
             printf("Tri: (%d %d) (%d %d) (%d %d)\n", v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-	    double a[3][3];
-	    a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
-	    a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
-	    a[2][0] = 1.0;       a[2][1] = 1.0;       a[2][2] = 1.0;
-	    Invert3x3Matrix(tris[k].a, a);
-	    }
+        double a[3][3];
+        a[0][0] = v0.x; a[0][1] = v1.x; a[0][2] = v2.x;
+        a[1][0] = v0.y; a[1][1] = v1.y; a[1][2] = v2.y;
+        a[2][0] = 1.0;       a[2][1] = 1.0;       a[2][2] = 1.0;
+        Invert3x3Matrix(tris[k].a, a);
+        }
         for(int k=0; k<tris.size(); k++) {  // write in matlab form
             vertex v0 = ControlPoints[tris[k].v[0]], v1 = ControlPoints[tris[k].v[1]], v2 = ControlPoints[tris[k].v[2]];
             printf("x=[%d %d %d %d]; y=[%d %d %d %d]; plot(x,y); hold on;\n", v0.x, v1.x, v2.x, v0.x,
-	     v0.y, v1.y, v2.y, v0.y);
-	    }
+         v0.y, v1.y, v2.y, v0.y);
+        }
         subs.clear(); subs.insert(subs.begin(), tris.size(), ConnRegion());
 
-	// assign each point to one of the sub-regions
-	vector<vector<double> >lambda;
-	for(int k=0; k<newpts.size(); k++) {
-	    Point pt = newpts[k];
-	    int reg = BestTriangle( tris, ControlPoints, pt );
-	    subs[reg].pts.push_back(pt);
-	    subs[reg].B.L = min(subs[reg].B.L, int(pt.x));
-	    subs[reg].B.B = min(subs[reg].B.B, int(pt.y));
-	    subs[reg].B.R = max(subs[reg].B.R, int(pt.x));
-	    subs[reg].B.T = max(subs[reg].B.T, int(pt.y));
-	    // Map the point into barycentric coordinates for its triangle
+    // assign each point to one of the sub-regions
+    vector<vector<double> >lambda;
+    for(int k=0; k<newpts.size(); k++) {
+        Point pt = newpts[k];
+        int reg = BestTriangle( tris, ControlPoints, pt );
+        subs[reg].pts.push_back(pt);
+        subs[reg].B.L = min(subs[reg].B.L, int(pt.x));
+        subs[reg].B.B = min(subs[reg].B.B, int(pt.y));
+        subs[reg].B.R = max(subs[reg].B.R, int(pt.x));
+        subs[reg].B.T = max(subs[reg].B.T, int(pt.y));
+        // Map the point into barycentric coordinates for its triangle
             //vertex v0 = ControlPoints[tris[reg].v[0]], v1 = ControlPoints[tris[reg].v[1]], v2 = ControlPoints[tris[reg].v[2]];
             //printf(" pt (%f %f) in tri: (%d %d) (%d %d) (%d %d)\n", pt.x, pt.y, v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-	    double l[3];
-	    l[0] = tris[reg].a[0][0]*pt.x + tris[reg].a[0][1]*pt.y + tris[reg].a[0][2]*1.0;
-	    l[1] = tris[reg].a[1][0]*pt.x + tris[reg].a[1][1]*pt.y + tris[reg].a[1][2]*1.0;
-	    l[2] = tris[reg].a[2][0]*pt.x + tris[reg].a[2][1]*pt.y + tris[reg].a[2][2]*1.0;
+        double l[3];
+        l[0] = tris[reg].a[0][0]*pt.x + tris[reg].a[0][1]*pt.y + tris[reg].a[0][2]*1.0;
+        l[1] = tris[reg].a[1][0]*pt.x + tris[reg].a[1][1]*pt.y + tris[reg].a[1][2]*1.0;
+        l[2] = tris[reg].a[2][0]*pt.x + tris[reg].a[2][1]*pt.y + tris[reg].a[2][2]*1.0;
             //printf("prop %f %f %f\n", l[0], l[1], l[2]);
             vector<double>lam(ControlPoints.size(), 0.0);
             for(int m=0; m<3; m++)
-		lam[tris[reg].v[m]] = l[m];
+        lam[tris[reg].v[m]] = l[m];
             //for(int m=0; m<lam.size(); m++)
-		//printf("%.4f ", lam[m]);
+        //printf("%.4f ", lam[m]);
             //printf("\n");
             lambda.push_back(lam);
             ids[int(pt.x) + w*int(pt.y)] = next_id + reg;
-	    }
+        }
         next_id += tris.size();
         // optimize the mesh.
         vector<double> spv;  // create a normalized array of source pixel values
         for(int k=0; k<newpts.size(); k++) {
-	    int ix = int(newpts[k].x);
-	    int iy = int(newpts[k].y);
+        int ix = int(newpts[k].x);
+        int iy = int(newpts[k].y);
             spv.push_back(raster[ix + w*iy]);
-	    }
-	Normalize(spv);
+        }
+    Normalize(spv);
         // next, transform the control points to the target frame
         vector<Point> cpts; // make a real-valued copy
-	for(int k=0; k<ControlPoints.size(); k++)
-	    cpts.push_back(Point(ControlPoints[k].x, ControlPoints[k].y));
+    for(int k=0; k<ControlPoints.size(); k++)
+        cpts.push_back(Point(ControlPoints[k].x, ControlPoints[k].y));
         vector<Point> orig = cpts;
         tr_guess.Transform( cpts );
-	// call the optimizer to find a better spot for the control points
-	ImproveControlPts(cpts, lambda, spv, image2, 4096, 4096, flog);
+    // call the optimizer to find a better spot for the control points
+    ImproveControlPts(cpts, lambda, spv, image2, 4096, 4096, flog);
         // compute a transform, and a center, for each triangle
         for(int k=0; k<tris.size(); k++) {
             int i0 = tris[k].v[0];
             int i1 = tris[k].v[1];
             int i2 = tris[k].v[2];
-	    // Now, find a transformation that maps ORIG into the new cpts
-	    // first, create a transform that maps a unit right triangle to the original pts
-	    TAffine o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
-	     orig[i1].y-orig[i0].y, orig[i2].y-orig[i0].y, orig[i0].y);
-	    // now one that maps the final optimized control points to the unit right triangle
-	    TAffine c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
-	     cpts[i1].y-cpts[i0].y, cpts[i2].y-cpts[i0].y, cpts[i0].y);
-	    // now, to get from the original to the final, apply o^-1, then c;
-	    TAffine oi, t;
-	    oi.InverseOf( o );
-	    //TAffine temp;
-	    t = c * oi;
-	    t.TPrint();
+        // Now, find a transformation that maps ORIG into the new cpts
+        // first, create a transform that maps a unit right triangle to the original pts
+        TAffine o(orig[i1].x-orig[i0].x, orig[i2].x-orig[i0].x, orig[i0].x,
+         orig[i1].y-orig[i0].y, orig[i2].y-orig[i0].y, orig[i0].y);
+        // now one that maps the final optimized control points to the unit right triangle
+        TAffine c(cpts[i1].x-cpts[i0].x, cpts[i2].x-cpts[i0].x, cpts[i0].x,
+         cpts[i1].y-cpts[i0].y, cpts[i2].y-cpts[i0].y, cpts[i0].y);
+        // now, to get from the original to the final, apply o^-1, then c;
+        TAffine oi, t;
+        oi.InverseOf( o );
+        //TAffine temp;
+        t = c * oi;
+        t.TPrint();
             map1.transforms.push_back( t );
             double sumx = orig[i0].x + orig[i1].x + orig[i2].x;
             double sumy = orig[i0].y + orig[i1].y + orig[i2].y;
             map1.centers.push_back(Point(sumx/3.0, sumy/3.0));
-	    }
-	}
+        }
+    }
     }
 
 for(int i=0; i<map1.centers.size(); i++) {
@@ -2517,15 +2517,15 @@ int k;
 for(k=0; k<mapv.size(); k++) {
     if( mapv[k].fname == argv[1] ) {  // found the name; use old map file name
         map1.mname = mapv[k].mname;
-	mapv[k] = map1;
+    mapv[k] = map1;
         break;
-	}
+    }
     }
 if( k == mapv.size() ) {    // we did not find it, so add it
     int m = -1;
     for(int j=0; j<mapv.size(); j++) {
-	size_t p2 = mapv[j].mname.find_last_of('.')-1;    // one before the last dot
-	size_t p1 = mapv[j].mname.find_last_of('.', p2);
+    size_t p2 = mapv[j].mname.find_last_of('.')-1;    // one before the last dot
+    size_t p1 = mapv[j].mname.find_last_of('.', p2);
         int n = atoi(mapv[j].mname.substr(p1+1,p2-p1).c_str() );
         m = max(m, n);
         }
@@ -2548,9 +2548,9 @@ for(k=0; k<mapv.size(); k++) {
     // write the transforms
     for(int j=0; j<mapv[k].transforms.size(); j++) {
         TAffine a = mapv[k].transforms[j];
-	fprintf(fm, "  <map id=\"%d\" transform=\"%f %f %f %f %f %f\"/>\n",
+    fprintf(fm, "  <map id=\"%d\" transform=\"%f %f %f %f %f %f\"/>\n",
          j+10, a.t[0], a.t[1], a.t[3], a.t[4], a.t[2]*sc, a.t[5]*sc);
-	}
+    }
     fprintf(fm, " </entry>\n");
     }
 fprintf(fm, "</local_maps>\n");
@@ -2562,12 +2562,12 @@ uint8 *save_ids = ids;
 save_ids = (uint8*)RasterAlloc( fullw * fullh * sizeof(uint8) );
 for(int ix=0; ix<w; ix++) {
     for(int iy=0; iy<h; iy++) {
-	int jx = ix*sc;
-	int jy = iy*sc;
-	for(int dx=0; dx<sc; dx++)
-	    for(int dy=0; dy<sc; dy++)
-		save_ids[jx+dx + fullw*(jy+dy)] = ids[ix+w*iy];
-	}
+    int jx = ix*sc;
+    int jy = iy*sc;
+    for(int dx=0; dx<sc; dx++)
+        for(int dy=0; dy<sc; dy++)
+        save_ids[jx+dx + fullw*(jy+dy)] = ids[ix+w*iy];
+    }
     }
 
 // write this out as (argv[2]-.tif).map.%d.tif so we can look at it.
@@ -2594,8 +2594,8 @@ npixels2 = w2 * h2;
 raster2 = (uint32*)RasterAlloc( npixels2 * sizeof(uint32) );      // monochrome - specify plane or white
 
 rt  = (float*)RasterAlloc( npixels2 * sizeof(float) );            // a temporary layer.  It's made of floats
-									 // since we will write partial pixel
-									 // values here, and so should not truncate
+                                     // since we will write partial pixel
+                                     // values here, and so should not truncate
 
 for(int k=0; k<npixels2; k++) {
     raster2[k] = 0xFF000000;       // set the alpha channel
@@ -2613,24 +2613,24 @@ for(int i=0; i<npixels; i++) {
     int mv = ids[i];  // get the map value
     Point p(ix, iy);
     if (mv >= 10)            // transform is defined, see where it goes
-	map1.transforms[mv-10].Transform( p );
+    map1.transforms[mv-10].Transform( p );
     else { // not strictly defined...
-	double dbest = 1.0E30;
+    double dbest = 1.0E30;
         int best = -1;
         for(int q=0; q < map1.centers.size(); q++) {
-	    double dx = ix-map1.centers[q].x;
+        double dx = ix-map1.centers[q].x;
             double dy = iy-map1.centers[q].y;
-	    double d = dx*dx + dy*dy;   // no need for sqrt, it's monotonic
-	    if( d < dbest ) {
-		dbest = d;
-	        best = q;
-	        }
-	    }
+        double d = dx*dx + dy*dy;   // no need for sqrt, it's monotonic
+        if( d < dbest ) {
+        dbest = d;
+            best = q;
+            }
+        }
         // now see, if using the best transform, if it's in the target image
         map1.transforms[best].Transform( p );
         if( p.x >= 0.0 && p.x < below[0].w && p.y >= 0.0 && p.y < below[0].h )
-	    continue; // do not want to set it.
-	}
+        continue; // do not want to set it.
+    }
     // so now p is the transformed point.  Subtract (xmin, ymin) to get coordinate in image
     p.x -= xmin;
     p.y -= ymin;
@@ -2640,10 +2640,10 @@ for(int i=0; i<npixels; i++) {
 for(int i=0; i<npixels2; i++) {
     if( rt[i] > 0.0 ) {
         int pix = int(127 + (127-rt[i])*2);
-		if( pix < 0 )
-			pix = 0;
-		else if( pix > 255 )
-			pix = 255;
+        if( pix < 0 )
+            pix = 0;
+        else if( pix > 255 )
+            pix = 255;
         raster2[i] |= pix;
         }
     }
@@ -2652,14 +2652,14 @@ for(int i=0; i<npixels; i++) {
     int iy = i / w;
     int ix = i - w * iy;
     int pix = 127 + (127 - below[0].raster[i]) * 2;  // invert and contrast stretch
-	if( pix < 0 )
-		pix = 0;
-	else if( pix > 255 )
-		pix = 255;
+    if( pix < 0 )
+        pix = 0;
+    else if( pix > 255 )
+        pix = 255;
     ix -= xmin;
     iy -= ymin;
     if( ix >= 0 && ix < w2 && iy >= 0 && iy < h2 )  // it's in the output image
-	raster2[ix + w2*iy] |= (pix << 8);
+    raster2[ix + w2*iy] |= (pix << 8);
     }
 
 // Write it out
@@ -2682,86 +2682,86 @@ for(int j=0; j<below.size(); j++) {
         // transfers above's bounding box to below's coordinate system
         printf("orig size %d %d\n", above[k].w, above[k].h);
         Point bb1(0.0,0.0);       Point bb2(0.0 , above[k].h-1);  // corners of image
-	Point bb3(above[k].w-1,0.0); Point bb4(above[k].w-1, above[k].h-1);  // corners of image
-	printf("orig pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
-	above[k].tr.Transform( bb1 ); above[k].tr.Transform( bb2 ); // into global space
-	above[k].tr.Transform( bb3 ); above[k].tr.Transform( bb4 );
-	printf(" global pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
-	below[j].Inverse.Transform( bb1 ); below[j].Inverse.Transform( bb2 );
-	below[j].Inverse.Transform( bb3 ); below[j].Inverse.Transform( bb4 );
-	printf("transformed pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
-	double xll = min(bb1.x, min(bb2.x, min(bb3.x, bb4.x)));  // probably not needed,
-	double yll = min(bb1.y, min(bb2.y, min(bb3.y, bb4.y)));  // since transforms are similar
-	double xur = max(bb1.x, max(bb2.x, max(bb3.x, bb4.x)));
-	double yur = max(bb1.y, max(bb2.y, max(bb3.y, bb4.y)));
-	double oxmax = min(double(below[j].w-1), xur);
-	double oxmin = max(0.0, xll);
-	double oymax = min(double(below[j].h-1), yur);
-	double oymin = max(0.0, yll);
-	if( oxmax > oxmin && oymax > oymin ) {
-	    printf( "\nOverlap: xrange [%.1f %.1f]; yrange [%.1f %.1f]\n", oxmin, oxmax, oymin, oymax);
-	    printf(" for file '%s'\n", below[j].fname.c_str() );
+    Point bb3(above[k].w-1,0.0); Point bb4(above[k].w-1, above[k].h-1);  // corners of image
+    printf("orig pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
+    above[k].tr.Transform( bb1 ); above[k].tr.Transform( bb2 ); // into global space
+    above[k].tr.Transform( bb3 ); above[k].tr.Transform( bb4 );
+    printf(" global pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
+    below[j].Inverse.Transform( bb1 ); below[j].Inverse.Transform( bb2 );
+    below[j].Inverse.Transform( bb3 ); below[j].Inverse.Transform( bb4 );
+    printf("transformed pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
+    double xll = min(bb1.x, min(bb2.x, min(bb3.x, bb4.x)));  // probably not needed,
+    double yll = min(bb1.y, min(bb2.y, min(bb3.y, bb4.y)));  // since transforms are similar
+    double xur = max(bb1.x, max(bb2.x, max(bb3.x, bb4.x)));
+    double yur = max(bb1.y, max(bb2.y, max(bb3.y, bb4.y)));
+    double oxmax = min(double(below[j].w-1), xur);
+    double oxmin = max(0.0, xll);
+    double oymax = min(double(below[j].h-1), yur);
+    double oymin = max(0.0, yll);
+    if( oxmax > oxmin && oymax > oymin ) {
+        printf( "\nOverlap: xrange [%.1f %.1f]; yrange [%.1f %.1f]\n", oxmin, oxmax, oymin, oymax);
+        printf(" for file '%s'\n", below[j].fname.c_str() );
             Point centerb((oxmin+oxmax)/2.0, (oymin+oymax)/2.0);
             Point centera(centerb);
             below[j].tr.Transform( centera );
             above[k].Inverse.Transform( centera );
             printf("Initial guess: below (%f %f) -> above (%f %f)\n", centerb.x, centerb.y, centera.x, centera.y);
-	    // Compute the mean and std deviation of the first using only the 'real' pixels -
-	    // those that are >0, and hence not part of the background.
-	    printf("Aligning images %d and %d\n", j, k);
-	    int npixels = below[j].w*below[j].h;
+        // Compute the mean and std deviation of the first using only the 'real' pixels -
+        // those that are >0, and hence not part of the background.
+        printf("Aligning images %d and %d\n", j, k);
+        int npixels = below[j].w*below[j].h;
             MeanStd m;
-	    for(int i=0; i<npixels; i++) {
-		if( below[j].raster[i] > 0 )
-		    m.Element(below[k].raster[i]);
-		}
-	    printf("below: %d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/npixels);
-	    double mean2, std2;
-	    m.Stats(mean2, std2);  // find existing statistics
-	    printf("Of the target image,  mean= %f and std dev = %f\n", mean2, std2);
+        for(int i=0; i<npixels; i++) {
+        if( below[j].raster[i] > 0 )
+            m.Element(below[k].raster[i]);
+        }
+        printf("below: %d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/npixels);
+        double mean2, std2;
+        m.Stats(mean2, std2);  // find existing statistics
+        printf("Of the target image,  mean= %f and std dev = %f\n", mean2, std2);
 
             // Make a 4Kx4K normalized copy, with image in lower left 2Kx2K, so FFT will work.
             // Background pixels map to zero
-	    vector<double> image2(4096*4096, 0.0);
-	    for(int i=0; i<npixels; i++) {
-		int y = i / below[j].w;
-		int x = i - below[j].w * y;
-		double pix = below[j].raster[i];
-		if (pix == 0)    // background pixels
-		    pix = mean2;  // will be set to the mean value (0)
-		image2[x + 4096*y] = (pix-mean2)/std2;
-		}
+        vector<double> image2(4096*4096, 0.0);
+        for(int i=0; i<npixels; i++) {
+        int y = i / below[j].w;
+        int x = i - below[j].w * y;
+        double pix = below[j].raster[i];
+        if (pix == 0)    // background pixels
+            pix = mean2;  // will be set to the mean value (0)
+        image2[x + 4096*y] = (pix-mean2)/std2;
+        }
 
-	    // Now, for the other image, do this
-	    // Find the points in image that map onto the first picture
-	    vector<Point> pts;
-	    vector<double> vals;
-	    for(int i=0; i<above[k].w*above[k].h; i++) {
-		int y = i / above[k].w;
-		int x = i - above[k].w * y;
-		Point pt(x,y);            // Coordinates in picture j
+        // Now, for the other image, do this
+        // Find the points in image that map onto the first picture
+        vector<Point> pts;
+        vector<double> vals;
+        for(int i=0; i<above[k].w*above[k].h; i++) {
+        int y = i / above[k].w;
+        int x = i - above[k].w * y;
+        Point pt(x,y);            // Coordinates in picture j
                 Point d(pt.x-centera.x, pt.y-centera.y);
                 double dist = sqrt(d.x*d.x + d.y*d.y);
-		if( dist <= RADIUS ) { // for now
-		    //printf("pt: x,y=%f %f\n", pt.x, pt.y);
-		    pts.push_back(pt);
-		    vals.push_back(above[k].raster[i]);
-		    //vals.push_back(below[j].raster[i+6050]);  // just testing
-		    }
+        if( dist <= RADIUS ) { // for now
+            //printf("pt: x,y=%f %f\n", pt.x, pt.y);
+            pts.push_back(pt);
+            vals.push_back(above[k].raster[i]);
+            //vals.push_back(below[j].raster[i+6050]);  // just testing
+            }
                 //else  // so we can look at it...
                     //above[k].raster[i] = 0;
-		}
-	    printf("There are %d overlap pixels\n", pts.size() );
-	    if( pts.size() < 10000 ) {
-		printf("Not enough pixels.\n");
-		fprintf(flog,"Not enough pixels.\n");
-		exit( 42 );
-		}
-	    Normalize(vals);
-	    double	dx, dy;
-	    double	c = CorrPatchToImage( dx, dy, pts, vals, image2, 0, 0, 4000, true );
-	    printf(" c = %f, deltas are %f %f\n", c, dx, dy);
-	    c=ImproveCorrelation(pts, vals, image2, dx, dy, tr_guess, flog);
+        }
+        printf("There are %d overlap pixels\n", pts.size() );
+        if( pts.size() < 10000 ) {
+        printf("Not enough pixels.\n");
+        fprintf(flog,"Not enough pixels.\n");
+        exit( 42 );
+        }
+        Normalize(vals);
+        double	dx, dy;
+        double	c = CorrPatchToImage( dx, dy, pts, vals, image2, 0, 0, 4000, true );
+        printf(" c = %f, deltas are %f %f\n", c, dx, dy);
+        c=ImproveCorrelation(pts, vals, image2, dx, dy, tr_guess, flog);
             Point cb(centera.x+dx, centera.y+dy);
             Point save(centera);
             printf("Disk around spot (%f %f) in above should map to (%f %f) in below\n",
@@ -2774,7 +2774,7 @@ for(int j=0; j<below.size(); j++) {
             above[k].tr = below[j].tr * tr_guess;
             above[k].Inverse.InverseOf( above[k].tr );
             }
-	}
+    }
     }
 above[0].tr.TPrint( stdout, "New and improved: " );
 
@@ -2785,133 +2785,133 @@ for(int j=0; j<below.size(); j++) {
         // transfers above's bounding box to below's coordinate system
         printf("orig size %d %d\n", above[k].w, above[k].h);
         Point bb1(0.0,0.0);       Point bb2(0.0 , above[k].h-1);  // corners of image
-	Point bb3(above[k].w-1,0.0); Point bb4(above[k].w-1, above[k].h-1);  // corners of image
-	printf("orig pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
-	above[k].tr.Transform( bb1 ); above[k].tr.Transform( bb2 ); // into global space
-	above[k].tr.Transform( bb3 ); above[k].tr.Transform( bb4 );
-	printf(" global pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
-	below[j].Inverse.Transform( bb1 ); below[j].Inverse.Transform( bb2 );
-	below[j].Inverse.Transform( bb3 ); below[j].Inverse.Transform( bb4 );
-	printf("transformed pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
-	double xll = min(bb1.x, min(bb2.x, min(bb3.x, bb4.x)));  // probably not needed,
-	double yll = min(bb1.y, min(bb2.y, min(bb3.y, bb4.y)));  // since transforms are similar
-	double xur = max(bb1.x, max(bb2.x, max(bb3.x, bb4.x)));
-	double yur = max(bb1.y, max(bb2.y, max(bb3.y, bb4.y)));
-	double oxmax = min(double(below[j].w-1), xur);
-	double oxmin = max(0.0, xll);
-	double oymax = min(double(below[j].h-1), yur);
-	double oymin = max(0.0, yll);
-	if( oxmax > oxmin && oymax > oymin ) {
-	    printf( "\nOverlap: xrange [%.1f %.1f]; yrange [%.1f %.1f]\n", oxmin, oxmax, oymin, oymax);
-	    printf(" for file '%s'\n", below[j].fname.c_str() );
+    Point bb3(above[k].w-1,0.0); Point bb4(above[k].w-1, above[k].h-1);  // corners of image
+    printf("orig pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
+    above[k].tr.Transform( bb1 ); above[k].tr.Transform( bb2 ); // into global space
+    above[k].tr.Transform( bb3 ); above[k].tr.Transform( bb4 );
+    printf(" global pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
+    below[j].Inverse.Transform( bb1 ); below[j].Inverse.Transform( bb2 );
+    below[j].Inverse.Transform( bb3 ); below[j].Inverse.Transform( bb4 );
+    printf("transformed pts %f %f %f %f %f %f %f %f\n", bb1.x, bb1.y, bb2.x, bb2.y, bb3.x, bb3.y, bb4.x, bb4.y);
+    double xll = min(bb1.x, min(bb2.x, min(bb3.x, bb4.x)));  // probably not needed,
+    double yll = min(bb1.y, min(bb2.y, min(bb3.y, bb4.y)));  // since transforms are similar
+    double xur = max(bb1.x, max(bb2.x, max(bb3.x, bb4.x)));
+    double yur = max(bb1.y, max(bb2.y, max(bb3.y, bb4.y)));
+    double oxmax = min(double(below[j].w-1), xur);
+    double oxmin = max(0.0, xll);
+    double oymax = min(double(below[j].h-1), yur);
+    double oymin = max(0.0, yll);
+    if( oxmax > oxmin && oymax > oymin ) {
+        printf( "\nOverlap: xrange [%.1f %.1f]; yrange [%.1f %.1f]\n", oxmin, oxmax, oymin, oymax);
+        printf(" for file '%s'\n", below[j].fname.c_str() );
             Point centerb((oxmin+oxmax)/2.0, (oymin+oymax)/2.0);
             Point centera(centerb);
             below[j].tr.Transform( centera );
             above[k].Inverse.Transform( centera );
             printf("Initial guess: below (%f %f) -> above (%f %f)\n", centerb.x, centerb.y, centera.x, centera.y);
-	    // Compute the mean and std deviation of the first using only the 'real' pixels -
-	    // those that are >0, and hence not part of the background.
-	    printf("Aligning images %d and %d\n", j, k);
-	    int npixels = below[j].w*below[j].h;
+        // Compute the mean and std deviation of the first using only the 'real' pixels -
+        // those that are >0, and hence not part of the background.
+        printf("Aligning images %d and %d\n", j, k);
+        int npixels = below[j].w*below[j].h;
             MeanStd m;
-	    for(int i=0; i<npixels; i++) {
-		if( below[j].raster[i] > 0 )
-		    m.Element(below[k].raster[i]);
-		}
-	    printf("below: %d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/npixels);
-	    double mean2, std2;
-	    m.Stats(mean2, std2);  // find existing statistics
-	    printf("Of the target image,  mean= %f and std dev = %f\n", mean2, std2);
+        for(int i=0; i<npixels; i++) {
+        if( below[j].raster[i] > 0 )
+            m.Element(below[k].raster[i]);
+        }
+        printf("below: %d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/npixels);
+        double mean2, std2;
+        m.Stats(mean2, std2);  // find existing statistics
+        printf("Of the target image,  mean= %f and std dev = %f\n", mean2, std2);
 
             // Make a 4Kx4K image, with the data of at most 2Kx2K in the lower left corner.
             // This prevents wrap-around, and is needed for the FFT matching.
             // The data is normalized, and the background pixels map to zero
-	    vector<double> image2(4096*4096, 0.0);
-	    for(int i=0; i<npixels; i++) {
-		int y = i / below[j].w;
-		int x = i - below[j].w * y;
-		double pix = below[j].raster[i];
-		if (pix == 0)    // background pixels
-		    pix = mean2;  // will be set to the mean value (0)
-		image2[x + 4096*y] = (pix-mean2)/std2;
-		}
+        vector<double> image2(4096*4096, 0.0);
+        for(int i=0; i<npixels; i++) {
+        int y = i / below[j].w;
+        int x = i - below[j].w * y;
+        double pix = below[j].raster[i];
+        if (pix == 0)    // background pixels
+            pix = mean2;  // will be set to the mean value (0)
+        image2[x + 4096*y] = (pix-mean2)/std2;
+        }
             vector<double>image3;
             if( below[j].scale > 1 ) { // then we have a copy with more than 2Kx2K resolution
                 int np3 = npixels*below[j].scale*below[j].scale;
-		MeanStd m3;
-		for(int i=0; i<np3; i++) {
-		    if( below[j].original[i] > 0 )
-			m3.Element(below[j].original[i]);
-		    }
-		double mean3, std3;
-		m3.Stats(mean3, std3);  // find existing statistics
-		printf("Of the full resolution target image,  mean= %f and std dev = %f\n", mean3, std3);
-		image3.push_back(0.0);
+        MeanStd m3;
+        for(int i=0; i<np3; i++) {
+            if( below[j].original[i] > 0 )
+            m3.Element(below[j].original[i]);
+            }
+        double mean3, std3;
+        m3.Stats(mean3, std3);  // find existing statistics
+        printf("Of the full resolution target image,  mean= %f and std dev = %f\n", mean3, std3);
+        image3.push_back(0.0);
                 image3.insert(image3.begin(), 4096*4096-1, 0.0); // is there a better way?
                 int bigw = below[j].w*below[j].scale;
-		for(int i=0; i<np3; i++) {
-		    int y = i / bigw;
-		    int x = i - bigw * y;
-		    double pix = below[j].original[i];
-		    if (pix == 0)    // background pixels
-			pix = mean3;  // will be set to the mean value (0)
-		    image3[x + 4096*y] = (pix-mean3)/std3;
-		    }
-		}
+        for(int i=0; i<np3; i++) {
+            int y = i / bigw;
+            int x = i - bigw * y;
+            double pix = below[j].original[i];
+            if (pix == 0)    // background pixels
+            pix = mean3;  // will be set to the mean value (0)
+            image3[x + 4096*y] = (pix-mean3)/std3;
+            }
+        }
 
-	    // now, find a number of points, in above's coordinates,
-	    // that extend as far as possible but still map into 'below'
+        // now, find a number of points, in above's coordinates,
+        // that extend as far as possible but still map into 'below'
             map1.centers.push_back(centera);
-	    FindMoreSpots(below, j, above, k, map1.centers, centera.x, centera.y);
+        FindMoreSpots(below, j, above, k, map1.centers, centera.x, centera.y);
             for(int q=0; q<map1.centers.size(); q++)
-		printf("Center at (%f %f)\n", map1.centers[q].x, map1.centers[q].y);
+        printf("Center at (%f %f)\n", map1.centers[q].x, map1.centers[q].y);
 
-	    // Now, for the other image, do this
-	    // Find the points in image that map onto the first picture
-	    for(int m=0; m<map1.centers.size(); m++) {
+        // Now, for the other image, do this
+        // Find the points in image that map onto the first picture
+        for(int m=0; m<map1.centers.size(); m++) {
                 printf("----------- Looking at (%f %f) ------------\n", map1.centers[m].x, map1.centers[m].y);
-	        vector<Point> pts;
-	        vector<double> vals;
+            vector<Point> pts;
+            vector<double> vals;
                 CircleFromRaster(above[k].raster, above[k].w, above[k].h, map1.centers[m], RADIUS, pts, vals);
-		printf("There are %d overlap pixels\n", pts.size() );
-		if( pts.size() < 10000 ) {
-		    printf("Not enough pixels.\n");
-		    fprintf(flog,"Not enough pixels.\n");
-		    exit( 42 );
-		    }
-		Normalize(vals);
+        printf("There are %d overlap pixels\n", pts.size() );
+        if( pts.size() < 10000 ) {
+            printf("Not enough pixels.\n");
+            fprintf(flog,"Not enough pixels.\n");
+            exit( 42 );
+            }
+        Normalize(vals);
                 vector<Point> copy = pts;
                 tr_guess.Transform( copy );
                 // now we would expect dx, dy to be small
-		double	dx, dy;
-		double	c = CorrPatchToImage( dx, dy, copy, vals, image2, 0, 0, 4000, true );
-		printf(" c = %f, deltas are %f %f\n", c, dx, dy);
-		TAffine tr = tr_guess;
+        double	dx, dy;
+        double	c = CorrPatchToImage( dx, dy, copy, vals, image2, 0, 0, 4000, true );
+        printf(" c = %f, deltas are %f %f\n", c, dx, dy);
+        TAffine tr = tr_guess;
                 tr.t[2] += dx;
                 tr.t[5] += dy;
-		c=ImproveCorrelation(pts, vals, image2, double(BIG), double(BIG), tr, flog);   // BIG->use starting tr
+        c=ImproveCorrelation(pts, vals, image2, double(BIG), double(BIG), tr, flog);   // BIG->use starting tr
                 if( above[k].scale > 1 ) { // improve further, if we can
                     tr.TPrint( stdout, "--- Full res improve: " );
                     int sc = above[k].scale;
                     Point nc(map1.centers[m].x*sc, map1.centers[m].y*sc);
-		    CircleFromRaster(above[k].original, above[k].w*sc, above[k].h*sc, nc, RADIUS*sc, pts, vals);
+            CircleFromRaster(above[k].original, above[k].w*sc, above[k].h*sc, nc, RADIUS*sc, pts, vals);
                     TAffine bigtr = tr;
                     bigtr.t[2] *= sc; bigtr.t[5] *= sc;  // scale up to full image
-		    c=ImproveCorrelation(pts, vals, image3, double(BIG), double(BIG), bigtr, flog);   // BIG->use starting tr
+            c=ImproveCorrelation(pts, vals, image3, double(BIG), double(BIG), bigtr, flog);   // BIG->use starting tr
                     bigtr.TPrint( stdout, "--- Full res result: " );
                     bigtr.t[2] /= sc; bigtr.t[5] /= sc;  // scale back to 2K size
                     tr = bigtr;
-		    }
+            }
                 map1.transforms.push_back(tr);
                 fprintf(flog," %f", c);
-		}
-	    // We have a better transformation tr, that map1 points in 'above' to points in 'below'
-	    // so B^-1(A(pt)) = tr;  so A = B*tr;
-	    // use the 0th transform since that's centered.
-	    above[k].tr = below[j].tr * map1.transforms[0];
-	    above[k].Inverse.InverseOf( above[k].tr );
+        }
+        // We have a better transformation tr, that map1 points in 'above' to points in 'below'
+        // so B^-1(A(pt)) = tr;  so A = B*tr;
+        // use the 0th transform since that's centered.
+        above[k].tr = below[j].tr * map1.transforms[0];
+        above[k].Inverse.InverseOf( above[k].tr );
             }
-	}
+    }
     }
 // Original may have been bigger than the 2Kx2k we use for processing; scale the centers and transforms back up
 sc = above[0].scale;
@@ -2931,25 +2931,25 @@ fullh = above[0].h*sc;
 ids = (uint8*)malloc(fullw*fullh*sizeof(uint8));
 for(int ix=0; ix<fullw; ix++) {
     for(int iy=0; iy<fullh; iy++) {
-	double dbest = 1.0E30;
+    double dbest = 1.0E30;
         int best = -1;
         for(int q=0; q < map1.centers.size(); q++) {
-	    double dx = ix-map1.centers[q].x;
+        double dx = ix-map1.centers[q].x;
             double dy = iy-map1.centers[q].y;
-	    double d = dx*dx + dy*dy;   // no need for sqrt, it's monotonic
-	    if( d < dbest ) {
-		dbest = d;
-	        best = q;
-	        }
-	    }
+        double d = dx*dx + dy*dy;   // no need for sqrt, it's monotonic
+        if( d < dbest ) {
+        dbest = d;
+            best = q;
+            }
+        }
         // now see, if using the best transform, if it's in the target image
         Point p(ix, iy);
         map1.transforms[best].Transform( p );
         if( p.x >= 0.0 && p.x < (below[0].w)*sc && p.y >= 0.0 && p.y < (below[0].h)*sc )
-	    ids[ix+fullw*iy] = best+10;
+        ids[ix+fullw*iy] = best+10;
         else
             ids[ix+fullw*iy] = 0;  // does not map to anything
-	}
+    }
     }
 
 // Read any existing mapping files
@@ -2961,15 +2961,15 @@ map1.mname = "map.tif";
 for(k=0; k<mapv.size(); k++) {
     if( mapv[k].fname == argv[1] ) {  // found the name; use old map file name
         map1.mname = mapv[k].mname;
-	mapv[k] = map1;
+    mapv[k] = map1;
         break;
-	}
+    }
     }
 if( k == mapv.size() ) {    // we did not find it, so add it
     int m = -1;
     for(int j=0; j<mapv.size(); j++) {
-	size_t p2 = mapv[j].mname.find_last_of('.')-1;    // one before the last dot
-	size_t p1 = mapv[j].mname.find_last_of('.', p2);
+    size_t p2 = mapv[j].mname.find_last_of('.')-1;    // one before the last dot
+    size_t p1 = mapv[j].mname.find_last_of('.', p2);
         int n = atoi(mapv[j].mname.substr(p1+1,p2-p1).c_str() );
         m = max(m, n);
         }
@@ -2992,9 +2992,9 @@ for(k=0; k<mapv.size(); k++) {
     // write the transforms
     for(int j=0; j<mapv[k].transforms.size(); j++) {
         TAffine a = mapv[k].transforms[j];
-	fprintf(fm, "  <map id=\"%d\" transform=\"%f %f %f %f %f %f\"/>\n",
+    fprintf(fm, "  <map id=\"%d\" transform=\"%f %f %f %f %f %f\"/>\n",
          j+10, a.t[0], a.t[1], a.t[3], a.t[4], a.t[2], a.t[5]);
-	}
+    }
     fprintf(fm, " </entry>\n");
     }
 fprintf(fm, "</local_maps>\n");
@@ -3041,18 +3041,18 @@ for(int j=0; j<map1.centers.size(); j++) {
     TAffine temp;
     temp.InverseOf( map1.transforms[j] );
     for(int k=0; k<2*3.14159*RADIUS; k++) { // write points
-	double ang=double(k)/RADIUS;
+    double ang=double(k)/RADIUS;
         for(int r = RADIUS-1; r<=RADIUS+1; r++) {
-	    double dx = r*cos(ang);
-	    double dy = r*sin(ang);
-	    Point p(map1.centers[j].x + dx, map1.centers[j].y + dy);
-	    temp.Transform( p );
-	    int ix = int(p.x+0.5 - xmin);
-	    int iy = int(p.y+0.5 - ymin);
-	    if( ix >= 0 && ix < w2 && iy >= 0 && iy < h2 )
-		raster2[ix + w2*iy] |= (255 << 16);
-	    }
-	}
+        double dx = r*cos(ang);
+        double dy = r*sin(ang);
+        Point p(map1.centers[j].x + dx, map1.centers[j].y + dy);
+        temp.Transform( p );
+        int ix = int(p.x+0.5 - xmin);
+        int iy = int(p.y+0.5 - ymin);
+        if( ix >= 0 && ix < w2 && iy >= 0 && iy < h2 )
+        raster2[ix + w2*iy] |= (255 << 16);
+        }
+    }
     }
 printf("Synthesized image has %d valid pixels\n", nvpix);
 

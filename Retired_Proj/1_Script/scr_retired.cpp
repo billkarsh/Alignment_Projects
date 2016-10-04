@@ -17,20 +17,20 @@
 //
 static void Make_MakePts( const char *lyrdir, int L )
 {
-	char	name[2048];
-	FILE	*f;
+    char	name[2048];
+    FILE	*f;
 
-	fprintf( flog, "--Make_MakePts: layer %d\n", L );
+    fprintf( flog, "--Make_MakePts: layer %d\n", L );
 
-	sprintf( name, "%s/make.pts", lyrdir );
+    sprintf( name, "%s/make.pts", lyrdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // master target depends on all others
 
-	//fprintf( f, "all: pts.same pts.same.nf pts.up pts.down\n\n" );
-	//fprintf( f, "all: pts.same pts.up pts.down\n\n" );
-	fprintf( f, "all: pts.same pts.down\n\n" );
+    //fprintf( f, "all: pts.same pts.same.nf pts.up pts.down\n\n" );
+    //fprintf( f, "all: pts.same pts.up pts.down\n\n" );
+    fprintf( f, "all: pts.same pts.down\n\n" );
 
 // subtargets and rules
 
@@ -46,7 +46,7 @@ static void Make_MakePts( const char *lyrdir, int L )
     fprintf( f, "pts.down:\n" );
     fprintf( f, "\talign -fpts.down make.down\n");
 
-	fclose( f );
+    fclose( f );
 }
 
 

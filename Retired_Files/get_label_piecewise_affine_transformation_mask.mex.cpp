@@ -25,33 +25,33 @@
 void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
 
   mexPrintf("START: get_label_piecewise_affine_transformation_mask\n");
-	if(nrhs==0){
-		if(nlhs==1){
-			plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
-			*mxGetPr(plhs[0]) = 1;
-			return;
-		}
-		mexPrintf("Usage mapped_label = get_label_piecewise_affine_transformation_mask(label_map, transform_id_map, transforms, mask);\n");
-		mexPrintf("input params:\n");
-		mexPrintf("\t1. label map that is to be mapped by the piecewise affine transformation PxQ double\n");
-		mexPrintf("\t2. transformation ids for the piecewise affine transform MxN uint32\n");
-		mexPrintf("\t3. list of affine transforms 6xT double\n");
+    if(nrhs==0){
+        if(nlhs==1){
+            plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
+            *mxGetPr(plhs[0]) = 1;
+            return;
+        }
+        mexPrintf("Usage mapped_label = get_label_piecewise_affine_transformation_mask(label_map, transform_id_map, transforms, mask);\n");
+        mexPrintf("input params:\n");
+        mexPrintf("\t1. label map that is to be mapped by the piecewise affine transformation PxQ double\n");
+        mexPrintf("\t2. transformation ids for the piecewise affine transform MxN uint32\n");
+        mexPrintf("\t3. list of affine transforms 6xT double\n");
     mexPrintf("\t4. default value scalar double\n");
-		mexPrintf("\t5. mask with transformation ids MxN uint32 (optional)\n");
-		mexPrintf("output:\n");
-		mexPrintf("\t1. mapped labels PxQ double\n");
-		return;
-	}
-	if(nrhs<3 || nrhs>6){
-		mexErrMsgTxt("Wrong number of inputs\n");
-		return;
-	}
+        mexPrintf("\t5. mask with transformation ids MxN uint32 (optional)\n");
+        mexPrintf("output:\n");
+        mexPrintf("\t1. mapped labels PxQ double\n");
+        return;
+    }
+    if(nrhs<3 || nrhs>6){
+        mexErrMsgTxt("Wrong number of inputs\n");
+        return;
+    }
 
-	int numDim = mxGetNumberOfDimensions(prhs[0]);
-	if(numDim>2){
-		mexErrMsgTxt("Wrong no. of dimensions for arg. 1\n");
-		return;
-	}
+    int numDim = mxGetNumberOfDimensions(prhs[0]);
+    if(numDim>2){
+        mexErrMsgTxt("Wrong no. of dimensions for arg. 1\n");
+        return;
+    }
 
   const mxArray * label_map_mx = prhs[0];
   const mxArray * transform_map_mx = prhs[1];
@@ -68,13 +68,13 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
     mask_mx = prhs[4];
   }
 
-	const int * sizeCanvas;
-	sizeCanvas = mxGetDimensions(label_map_mx);
-	int width_canvas = sizeCanvas[1], height_canvas = sizeCanvas[0];
+    const int * sizeCanvas;
+    sizeCanvas = mxGetDimensions(label_map_mx);
+    int width_canvas = sizeCanvas[1], height_canvas = sizeCanvas[0];
   mexPrintf("width_canvas:%d, height_canvas:%d\n", width_canvas, height_canvas);
-	const int * sizeImage;
-	sizeImage = mxGetDimensions(transform_map_mx);
-	int width_image = sizeImage[1], height_image = sizeImage[0];
+    const int * sizeImage;
+    sizeImage = mxGetDimensions(transform_map_mx);
+    int width_image = sizeImage[1], height_image = sizeImage[0];
   mexPrintf("width_image:%d, height_image:%d\n", width_image, height_image);
 
   double * label_map = mxGetPr(label_map_mx);
@@ -118,5 +118,5 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
     }
   }
   mexPrintf("STOP: get_label_piecewise_affine_transformation_mask\n");
-	return;
+    return;
 }

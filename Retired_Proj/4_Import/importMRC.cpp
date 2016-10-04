@@ -31,7 +31,7 @@ int npixels = w * h;
 if( one_region ) {
     printf("Generating one uniform region\n");
     for(int i=0; i<npixels; i++)
-	FoldMask[i] = 1;
+    FoldMask[i] = 1;
     return;
     }
 
@@ -42,7 +42,7 @@ MeanStd m;
 for(int i=0; i<npixels; i++) {
     uint8 pix = raster[i];
     if( pix >= SAT && pix <= 255-SAT )
-	m.Element(raster[i]);
+    m.Element(raster[i]);
     }
 printf("%d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/npixels);
 
@@ -51,10 +51,10 @@ if(m.HowMany()/double(npixels) < 0.9) {
     SAT = 1;
     m.Reset();
     for(int i=0; i<npixels; i++) {
-	uint8 pix = raster[i];
-	if( pix >= SAT && pix <= 255-SAT )
-	    m.Element(raster[i]);
-	}
+    uint8 pix = raster[i];
+    if( pix >= SAT && pix <= 255-SAT )
+        m.Element(raster[i]);
+    }
     printf("%d real pixels, %f percent\n", m.HowMany(), m.HowMany()*100.0/npixels);
     }
 
@@ -68,10 +68,10 @@ printf("Of the above image points, mean= %f and std dev = %f\n", mean, std);
 if( mean + 2.5*std < 255 ) {
     printf("Removing white pixels\n");
     for(int i=0; i<npixels; i++) {
-	uint8 pix = raster[i];
-	if (pix > 255-SAT)           // too bright is just as bad as too dark - not useful info
-	    raster[i] = 0;
-	}
+    uint8 pix = raster[i];
+    if (pix > 255-SAT)           // too bright is just as bad as too dark - not useful info
+        raster[i] = 0;
+    }
     }
 
 // Now find the connected regions.  We want to ignore very black pixels as folds, and those
@@ -87,11 +87,11 @@ if( mean - thresh*std < 1 ) {  // but if not, pick a value that is feasible
     thresh = mean/std*0.95;   // set to 95% of the way to 0
     printf("Forced to reduce threshold to %f std dev.\n", thresh);
     if( thresh < 2.0 ) {       // we'll get too many black, and fragment the area
-	thresh = (mean - 0.5)/std;  // set threshold to a pixel value of 0.5 (on scale of 255)
-	printf("Desperate measures.  Changing threshold to %f, so only v=0 pixels are out.\n", thresh);
+    thresh = (mean - 0.5)/std;  // set threshold to a pixel value of 0.5 (on scale of 255)
+    printf("Desperate measures.  Changing threshold to %f, so only v=0 pixels are out.\n", thresh);
         printf("Also disabling black pixel expansion\n");
-	D = 0;
-	}
+    D = 0;
+    }
     }
 if( FoldMaskThresholdOverride != 0.0 ) {
     thresh = FoldMaskThresholdOverride;
@@ -114,27 +114,27 @@ if( remove_low_contrast ) {
     int ny = (w-128)/32+1;
     double dy = (w-128)/double(ny);
     vector<int> zap_me;        // save list of pixels to be zapped, since cannot zap on the fly without
-			       // munging the overlapping squares
+                   // munging the overlapping squares
     for(double y=0; y< (h-127); y += dy) {
-	int ymin = min(int(y), h-128);  // just in case
-	int ymax = ymin+127;
-	for(double x=0; x< (w-127); x += dx) {
-	    int xmin = min(int(x), w-128);
-	    int xmax = xmin+127;
-	    vector<double>local(128*128);
-	    //printf("xmin, ymin = (%d %d)\n", xmin, ymin);
-	    for(int ix=xmin; ix <= xmax; ix++)
-		for(int iy=ymin; iy <= ymax; iy++)
-		    local[(ix-xmin) + 128*(iy-ymin)] = v[ix + w*iy];
-	    if( IsLowContrast(local, std) ) {
-		for(int ix=xmin; ix <= xmax; ix++)
-		    for(int iy=ymin; iy <= ymax; iy++)
-			zap_me.push_back(ix + w*iy);
-		}
-	    }
-	}
+    int ymin = min(int(y), h-128);  // just in case
+    int ymax = ymin+127;
+    for(double x=0; x< (w-127); x += dx) {
+        int xmin = min(int(x), w-128);
+        int xmax = xmin+127;
+        vector<double>local(128*128);
+        //printf("xmin, ymin = (%d %d)\n", xmin, ymin);
+        for(int ix=xmin; ix <= xmax; ix++)
+        for(int iy=ymin; iy <= ymax; iy++)
+            local[(ix-xmin) + 128*(iy-ymin)] = v[ix + w*iy];
+        if( IsLowContrast(local, std) ) {
+        for(int ix=xmin; ix <= xmax; ix++)
+            for(int iy=ymin; iy <= ymax; iy++)
+            zap_me.push_back(ix + w*iy);
+        }
+        }
+    }
     for(int i=0; i<zap_me.size(); i++)
-	v[zap_me[i]] = -thresh - 100.0;  // sure to be bad
+    v[zap_me[i]] = -thresh - 100.0;  // sure to be bad
     }
 
 // for those that should not be included, remove all pixels within distance D as well.  This will
@@ -142,7 +142,7 @@ if( remove_low_contrast ) {
 vector<int> remove;  // indices of points to be removed.
 for(int i=0; i<npixels; i++)
     if( v[i] < -thresh )
-	remove.push_back(i);
+    remove.push_back(i);
 for(int ii=0; ii<remove.size(); ii++) {
     int i = remove[ii];
     int y = i / w;
@@ -152,33 +152,33 @@ for(int ii=0; ii<remove.size(); ii++) {
     int y0 = max(y-D,0);
     int y1 = min(y+D,h-1);
     for(int xx = x0; xx <= x1; xx++) {
-	for(int yy = y0; yy <= y1; yy++) {
-	    v[xx+w*yy] = -thresh - 1.0;   // set to a value that is more than enough black
+    for(int yy = y0; yy <= y1; yy++) {
+        v[xx+w*yy] = -thresh - 1.0;   // set to a value that is more than enough black
             }
         }
     }
 
 // Now find the connected regions
 
-	for( int i = 0; i < npixels; ++i ) {
+    for( int i = 0; i < npixels; ++i ) {
 
-		if( v[i] > -thresh ) {
+        if( v[i] > -thresh ) {
 
-			ConnRegion	c;
-			int			npts;
+            ConnRegion	c;
+            int			npts;
 
-			npts = Propagate( c.pts, v, w, h, i,
-					-thresh, -thresh - 1.0 );
+            npts = Propagate( c.pts, v, w, h, i,
+                    -thresh, -thresh - 1.0 );
 
-			printf(
-			"ImageToFoldMap: ConnRegion with %d pixels.\n", npts );
+            printf(
+            "ImageToFoldMap: ConnRegion with %d pixels.\n", npts );
 
-			if( npts > 90000 ) {	// want 100k, but we shrank it
-				cr.push_back( c );
-				++nbig;
-			}
-		}
-	}
+            if( npts > 90000 ) {	// want 100k, but we shrank it
+                cr.push_back( c );
+                ++nbig;
+            }
+        }
+    }
 
  // Final accounting
 
@@ -233,7 +233,7 @@ else if( what == 7 ) {
     double foo;
     uint8 *cp = (uint8*)&foo;
     for(int i=0; i<8; i++)
-	cp[i] = val[i];
+    cp[i] = val[i];
     printf(" (%16.8f)", foo);
     }
 else if( what == 3 ) {
@@ -257,7 +257,7 @@ Ind(indent); printf("%d structures in array\n", nitems);
 for(int i=0; i<nitems; i++) {
     Ind(indent); printf("Reading entry %d\n", i);
     for(int j=0; j<in_record.size(); j++)
-	ReadOneDM3(fp, in_record[j], indent);
+    ReadOneDM3(fp, in_record[j], indent);
     }
 }
 
@@ -268,17 +268,17 @@ if( what == 3 ) { // array of longs
     v.resize(n);  // make sure it's big enough
     size_t items = fread(&(v[0]), sizeof(int), n, fp);
     for(int i=0; i<min(5,n); i++) {
-	Ind(indent); printf("32 bit[%d} = %d\n", i, v[i]); }
+    Ind(indent); printf("32 bit[%d} = %d\n", i, v[i]); }
     }
 else if( what == 2 ) {  // array of shorts
     vector<uint16> dat(n);
     size_t items = fread(&(dat[0]), sizeof(int), n, fp);
     for(int i=0; i<min(5,n); i++) {
-	Ind(indent); printf("16 bit[%d} = %d\n", i, dat[i]); }
+    Ind(indent); printf("16 bit[%d} = %d\n", i, dat[i]); }
     }
 else { // anything else, read one at a time
     for(int l=0; l<n; l++)
-	ReadOneDM3(fp, what, indent);
+    ReadOneDM3(fp, what, indent);
     }
 }
 
@@ -304,10 +304,10 @@ for(int i=0; i<ntags; i++) {
     fread((void*) &(label[0]), sizeof(char), label_size, fp);
     label.push_back(0);  // add a terminator
     //for(int j=0; j<label_size; j++)
-	//printf("Char '%c', int %d\n", label[j], label[j]);
+    //printf("Char '%c', int %d\n", label[j], label[j]);
     Ind(indent); printf("string is '%s'\n", &(label[0]) );
     if( TagHeader[0] == 20 )
-	ReadDM3TagGroup(fp, v, w, h, indent+1);  // it's a hierarchical group
+    ReadDM3TagGroup(fp, v, w, h, indent+1);  // it's a hierarchical group
     else if( TagHeader[0] == 21 ) {
         uint8	TagType[8];
         size_t items = fread(TagType, sizeof(uint8), 8, fp);
@@ -322,38 +322,38 @@ for(int i=0; i<ntags; i++) {
         for(int kk=0; kk<ndefs*4; kk += 4) {
             int k = kk/4;
             defs[k] = (temp[kk] << 24) + (temp[kk+1] << 16) + (temp[kk+2] << 8) + temp[kk+3];
-	    Ind(indent);printf("Def word[%d] = %d\n", k, defs[k]);
+        Ind(indent);printf("Def word[%d] = %d\n", k, defs[k]);
             }
         if( defs[0] == 15 ) {
-	     Ind(indent);printf("This is a struct with %d components\n", defs[2]);
+         Ind(indent);printf("This is a struct with %d components\n", defs[2]);
              for(int l=0; l<defs[2]; l++) {
-		Ind(indent);printf("Component %d is a %d\n", l, defs[4+2*l]);
+        Ind(indent);printf("Component %d is a %d\n", l, defs[4+2*l]);
                 ReadOneDM3(fp, defs[4+2*l], indent);
-		}
-	     }
+        }
+         }
         else if( defs[0] == 20 && defs[1] == 15 )
-	     ReadArrayOfStructs(fp, defs, indent);
+         ReadArrayOfStructs(fp, defs, indent);
         else if( defs[0] == 20 ) {
-	     Ind(indent);printf("Array of type %d, %d entries\n", defs[1], defs[2]);
+         Ind(indent);printf("Array of type %d, %d entries\n", defs[1], defs[2]);
              ReadSimpleArray(fp, defs[1], defs[2], v, indent);
-	     }
+         }
         else if( ndefs == 1 ) {
-	     Ind(indent);printf("Read a simple type\n");
+         Ind(indent);printf("Read a simple type\n");
              int got = ReadOneDM3(fp, defs[0], indent);  // only returned for ints
              if (strcmp(&label[0], "width") == 0)        // but w and h are integer valued
-		w = got;
+        w = got;
              if( strcmp(&label[0], "height") == 0 )
-		h = got;
-	     }
+        h = got;
+         }
         else {
-	     Ind(indent);printf("Not known %d\n");
-	     exit( 42 );
+         Ind(indent);printf("Not known %d\n");
+         exit( 42 );
              }
-	}
+    }
     else {
-	Ind(indent);printf("expected only 20 or 21 here, got %d\n", TagHeader[0]);
-	exit( 42 );
-	}
+    Ind(indent);printf("expected only 20 or 21 here, got %d\n", TagHeader[0]);
+    exit( 42 );
+    }
     }
 }
 uint16* ReadADM3File(const char *name, uint32 &w, uint32 &h, FILE *flog, bool Transpose)
@@ -415,23 +415,23 @@ int trim = 0;
 vector<char *> noa;  // non-option arguments
 for(int i=1; i<argc; i++) {
     if( argv[i][0] != '-' )
-	noa.push_back(argv[i]);
+    noa.push_back(argv[i]);
     else if( strncmp(argv[i], "-energy=",8) == 0 ) {
-	EnergyThreshold = atof(argv[i]+8);
+    EnergyThreshold = atof(argv[i]+8);
         printf("Energy Threshold now %f\n", EnergyThreshold);
-	}
+    }
     else if( strncmp(argv[i], "-gauss=",7) == 0 ) {
-	Ngauss = atoi(argv[i]+7);
+    Ngauss = atoi(argv[i]+7);
         printf("Now using %d gaussians for image normalization\n", Ngauss);
-	}
+    }
     else if( strncmp(argv[i],"-trim=",6) == 0 ) {
-	trim = atoi(argv[i]+6);
+    trim = atoi(argv[i]+6);
         printf("Trimming %d pixels off each edge.\n", trim);
-	}
+    }
     else {
-	printf("Unknown option %s\n", argv[3]);
-	return 42;
-	}
+    printf("Unknown option %s\n", argv[3]);
+    return 42;
+    }
     }
 bool Transpose = false;
 // if it ends with .mrc, use the MRC file reader, otherwise bomb
@@ -458,7 +458,7 @@ int newp = neww*newh;
 vector<double> vals(newp);
 for(int x=0; x<neww; x++)
     for(int y=0; y<newh; y++)
-	vals[x+neww*y] = raster[trim + x + w*(trim+y)];
+    vals[x+neww*y] = raster[trim + x + w*(trim+y)];
 
 // convert to a mean of 0 and a std dev of 1
 Normalize(vals);

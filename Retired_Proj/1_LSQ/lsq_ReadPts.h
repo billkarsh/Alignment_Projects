@@ -17,19 +17,19 @@ using namespace std;
 /* --------------------------------------------------------------- */
 
 void ReadPts_StrTags(
-	FILE		*FOUT,
-	CNX			*cnx,
-	SML			*sml,
-	int			(*IDFromName)( const char *name ),
-	const char	*dirfile,
-	const char	*ptsfile );
+    FILE		*FOUT,
+    CNX			*cnx,
+    SML			*sml,
+    int			(*IDFromName)( const char *name ),
+    const char	*dirfile,
+    const char	*ptsfile );
 
 void ReadPts_NumTags(
-	FILE		*FOUT,
-	CNX			*cnx,
-	SML			*sml,
-	const char	*ptsfile,
-	int			davinocorn );
+    FILE		*FOUT,
+    CNX			*cnx,
+    SML			*sml,
+    const char	*ptsfile,
+    int			davinocorn );
 
 /* --------------------------------------------------------------- */
 /* Globals ------------------------------------------------------- */

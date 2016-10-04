@@ -14,24 +14,24 @@ nslot=4
 
 if (($# == 1))
 then
-	last=$1
+    last=$1
 else
-	last=$2
+    last=$2
 fi
 
 for lyr in $(seq $1 $last)
 do
-	echo $lyr
-	if [ -d "$lyr" ]
-	then
-		cd $lyr/S0_0
-		QSUB_1NODE.sht 2 "qS0_0-$lyr" "-o /dev/null" $nslot "make -f make.same -j $nproc EXTRA='""'"
-		if (($lyr > $1))
-		then
-			cd ../D0_0
-			QSUB_1NODE.sht 3 "qD0_0-$lyr" "-o /dev/null" $nslot "make -f make.down -j $nproc EXTRA='""'"
-		fi
-		cd ../..
-	fi
+    echo $lyr
+    if [ -d "$lyr" ]
+    then
+        cd $lyr/S0_0
+        QSUB_1NODE.sht 2 "qS0_0-$lyr" "-o /dev/null" $nslot "make -f make.same -j $nproc EXTRA='""'"
+        if (($lyr > $1))
+        then
+            cd ../D0_0
+            QSUB_1NODE.sht 3 "qD0_0-$lyr" "-o /dev/null" $nslot "make -f make.down -j $nproc EXTRA='""'"
+        fi
+        cd ../..
+    fi
 done
 

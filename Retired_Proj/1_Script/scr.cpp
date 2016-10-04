@@ -24,9 +24,9 @@
 
 class Pair {
 public:
-	int	a, b;
+    int	a, b;
 public:
-	Pair( int a, int b ) : a(a), b(b) {};
+    Pair( int a, int b ) : a(a), b(b) {};
 };
 
 /* --------------------------------------------------------------- */
@@ -36,27 +36,27 @@ public:
 class CArgs_scr {
 
 public:
-	const char	*infile,
-				*outdir;
-	int			zmin,
-				zmax;
-	bool		Connect,		// just connect two layers
-				NoFolds,
-				NoDirs;
+    const char	*infile,
+                *outdir;
+    int			zmin,
+                zmax;
+    bool		Connect,		// just connect two layers
+                NoFolds,
+                NoDirs;
 
 public:
-	CArgs_scr()
-	{
-		infile		=
-		outdir		= "NoSuch";	// prevent overwriting real dir
-		zmin		= 0;
-		zmax		= 32768;
-		Connect		= false;
-		NoFolds		= false;
-		NoDirs		= false;
-	};
+    CArgs_scr()
+    {
+        infile		=
+        outdir		= "NoSuch";	// prevent overwriting real dir
+        zmin		= 0;
+        zmax		= 32768;
+        Connect		= false;
+        NoFolds		= false;
+        NoDirs		= false;
+    };
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -69,7 +69,7 @@ static CTileSet			TS;
 static vector<string>	vname0;
 static FILE*			flog	= NULL;
 static int				gZMax	= 0,
-						ismrc	= false;
+                        ismrc	= false;
 
 
 
@@ -84,52 +84,52 @@ void CArgs_scr::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "scr.log", "w" );
+    flog = FileOpenOrDie( "scr.log", "w" );
 
 // log start time
 
-	time_t	t0 = time( NULL );
-	char	atime[32];
+    time_t	t0 = time( NULL );
+    char	atime[32];
 
-	strcpy( atime, ctime( &t0 ) );
-	atime[24] = '\0';	// remove the newline
+    strcpy( atime, ctime( &t0 ) );
+    atime[24] = '\0';	// remove the newline
 
-	fprintf( flog, "Make scripts: %s ", atime );
+    fprintf( flog, "Make scripts: %s ", atime );
 
 // parse command line args
 
-	if( argc < 2 ) {
-		printf( "Usage: scr <source-file> [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 2 ) {
+        printf( "Usage: scr <source-file> [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		// echo to log
-		fprintf( flog, "%s ", argv[i] );
+        // echo to log
+        fprintf( flog, "%s ", argv[i] );
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
-			;
-		else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
-			;
-		else if( IsArg( "-connect", argv[i] ) )
-			Connect = true;
-		else if( IsArg( "-nf", argv[i] ) )
-			NoFolds = true;
-		else if( IsArg( "-nd", argv[i] ) )
-			NoFolds = NoDirs = true;
-		else if( GetArgStr( outdir, "-d=", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option [%s].\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArg( &zmin, "-zmin=%d", argv[i] ) )
+            ;
+        else if( GetArg( &zmax, "-zmax=%d", argv[i] ) )
+            ;
+        else if( IsArg( "-connect", argv[i] ) )
+            Connect = true;
+        else if( IsArg( "-nf", argv[i] ) )
+            NoFolds = true;
+        else if( IsArg( "-nd", argv[i] ) )
+            NoFolds = NoDirs = true;
+        else if( GetArgStr( outdir, "-d=", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option [%s].\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
-	fprintf( flog, "\n" );
-	fflush( flog );
+    fprintf( flog, "\n" );
+    fflush( flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -140,25 +140,25 @@ static void Make_nmrc_paths()
 {
 // topdir gets the full path to the top directory
 
-	char	topdir[2048];
+    char	topdir[2048];
 
-	DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
+    DskAbsPath( topdir, sizeof(topdir), gArgs.outdir, flog );
 
 // save mrc names in global vector and replace them in TS
 
-	int	nt = TS.vtil.size();
+    int	nt = TS.vtil.size();
 
-	for( int i = 0; i < nt; ++i ) {
+    for( int i = 0; i < nt; ++i ) {
 
-		CUTile&	U = TS.vtil[i];
-		char	path[2048];
+        CUTile&	U = TS.vtil[i];
+        char	path[2048];
 
-		sprintf( path, "%s/%d/%d/nmrc_%d_%d.png",
-			topdir, U.z, U.id, U.z, U.id );
+        sprintf( path, "%s/%d/%d/nmrc_%d_%d.png",
+            topdir, U.z, U.id, U.z, U.id );
 
-		vname0.push_back( U.name );
-		U.name = path;
-	}
+        vname0.push_back( U.name );
+        U.name = path;
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -167,17 +167,17 @@ static void Make_nmrc_paths()
 
 static void CreateTopDir()
 {
-	char	name[2048];
+    char	name[2048];
 
 // gtopdir gets the full path to the top directory
-	DskAbsPath( gtopdir, sizeof(gtopdir), gArgs.outdir, flog );
+    DskAbsPath( gtopdir, sizeof(gtopdir), gArgs.outdir, flog );
 
 // create the top dir
-	DskCreateDir( gArgs.outdir, flog );
+    DskCreateDir( gArgs.outdir, flog );
 
 // create stack subdir
-	sprintf( name, "%s/stack", gArgs.outdir );
-	DskCreateDir( name, flog );
+    sprintf( name, "%s/stack", gArgs.outdir );
+    DskCreateDir( name, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -186,19 +186,19 @@ static void CreateTopDir()
 
 static void WriteImageparamsFile()
 {
-	char	name[2048];
-	FILE	*f;
-	int		w, h;
+    char	name[2048];
+    FILE	*f;
+    int		w, h;
 
-	TS.GetTileDims( w, h );
+    TS.GetTileDims( w, h );
 
-	sprintf( name, "%s/imageparams.txt", gArgs.outdir );
+    sprintf( name, "%s/imageparams.txt", gArgs.outdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
-	fprintf( f, "IMAGESIZE %d %d\n", w, h );
+    fprintf( f, "IMAGESIZE %d %d\n", w, h );
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -214,10 +214,10 @@ static void WriteImageparamsFile()
 //
 static void CreateLayerDir( char *lyrdir, int L )
 {
-	fprintf( flog, "\n\nCreateLayerDir: layer %d\n", L );
+    fprintf( flog, "\n\nCreateLayerDir: layer %d\n", L );
 
-	sprintf( lyrdir, "%s/%d", gArgs.outdir, L );
-	DskCreateDir( lyrdir, flog );
+    sprintf( lyrdir, "%s/%d", gArgs.outdir, L );
+    DskCreateDir( lyrdir, flog );
 }
 
 /* --------------------------------------------------------------- */
@@ -234,16 +234,16 @@ static void CreateLayerDir( char *lyrdir, int L )
 //
 static void CreateTileSubdirs( const char *lyrdir, int is0, int isN )
 {
-	fprintf( flog, "--CreateTileSubdirs: layer %d\n",
-		TS.vtil[is0].z );
+    fprintf( flog, "--CreateTileSubdirs: layer %d\n",
+        TS.vtil[is0].z );
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		char	subdir[2048];
+        char	subdir[2048];
 
-		sprintf( subdir, "%s/%d", lyrdir, TS.vtil[i].id );
-		DskCreateDir( subdir, flog );
-	}
+        sprintf( subdir, "%s/%d", lyrdir, TS.vtil[i].id );
+        DskCreateDir( subdir, flog );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -255,30 +255,30 @@ static void OneTprFile( const char *lyrdir, int a, int b )
     char	name[2048];
     FILE	*f;
 
-	sprintf( name, "%s/ThmPair_%d^%d.txt", lyrdir, a, b );
-	f = FileOpenOrDie( name, "w", flog );
-	WriteThmPairHdr( f );
-	fclose( f );
+    sprintf( name, "%s/ThmPair_%d^%d.txt", lyrdir, a, b );
+    f = FileOpenOrDie( name, "w", flog );
+    WriteThmPairHdr( f );
+    fclose( f );
 }
 
 
 // For a layer, make ThmPair files for this and adjacent layers.
 //
 static void Make_ThmPairFile(
-	const char				*lyrdir,
-	int						is0,
-	int						id0,
-	int						iu0 )
+    const char				*lyrdir,
+    int						is0,
+    int						id0,
+    int						iu0 )
 {
-	fprintf( flog, "--Make_ThmPairFile: layer %d\n", TS.vtil[is0].z );
+    fprintf( flog, "--Make_ThmPairFile: layer %d\n", TS.vtil[is0].z );
 
-	OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[is0].z );
+    OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[is0].z );
 
-	if( id0 != -1 )
-		OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[id0].z );
+    if( id0 != -1 )
+        OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[id0].z );
 
-	//if( iu0 != -1 )
-	//	OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[iu0].z );
+    //if( iu0 != -1 )
+    //	OneTprFile( lyrdir, TS.vtil[is0].z, TS.vtil[iu0].z );
 }
 
 /* --------------------------------------------------------------- */
@@ -298,12 +298,12 @@ static void Make_ThmPairFile(
 //
 static bool ABOlap( int a, int b )
 {
-	double	A = TS.ABOlap( a, b );
+    double	A = TS.ABOlap( a, b );
 
-	fprintf( flog, "----ABOlap: Tile %3d - %3d; area frac %f\n",
-	TS.vtil[a].id, TS.vtil[b].id, A );
+    fprintf( flog, "----ABOlap: Tile %3d - %3d; area frac %f\n",
+    TS.vtil[a].id, TS.vtil[b].id, A );
 
-	return A > minolap;
+    return A > minolap;
 }
 
 /* --------------------------------------------------------------- */
@@ -319,14 +319,14 @@ static bool ABOlap( int a, int b )
 //
 static void ConvertSpaces( char *out, const char *in )
 {
-	while( *out++ = *in++ ) {
+    while( *out++ = *in++ ) {
 
-		if( in[-1] == ' ' ) {
+        if( in[-1] == ' ' ) {
 
-			out[-1]	= '\\';
-			*out++	= ' ';
-		}
-	}
+            out[-1]	= '\\';
+            *out++	= ' ';
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -338,39 +338,39 @@ static void ConvertSpaces( char *out, const char *in )
 // {"same", "up", "down"}.
 //
 static void WriteThumbMakeFile(
-	const char				*lyrdir,
-	const char				*mkname,
-	const vector<Pair>		&P )
+    const char				*lyrdir,
+    const char				*mkname,
+    const vector<Pair>		&P )
 {
     char	name[2048];
-	FILE	*f;
-	int		np = P.size();
+    FILE	*f;
+    int		np = P.size();
 
 // open the file
 
-	sprintf( name, "%s/thumbs.%s", lyrdir, mkname );
+    sprintf( name, "%s/thumbs.%s", lyrdir, mkname );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // write 'all' targets line
 
-	fprintf( f, "all:\n" );
+    fprintf( f, "all:\n" );
 
 // rule lines
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
+        const CUTile&	A = TS.vtil[P[i].a];
+        const CUTile&	B = TS.vtil[P[i].b];
 
-		fprintf( f,
-		"\tthumbs %d.%d^%d.%d ${EXTRA}\n",
-		A.z, A.id, B.z, B.id );
-	}
+        fprintf( f,
+        "\tthumbs %d.%d^%d.%d ${EXTRA}\n",
+        A.z, A.id, B.z, B.id );
+    }
 
-	fprintf( f, "\n" );
+    fprintf( f, "\n" );
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -384,24 +384,24 @@ static void WriteThumbMakeFile(
 //
 static void Make_ThumbsSame( const char *lyrdir, int is0, int isN )
 {
-	vector<Pair>	P;
+    vector<Pair>	P;
 
-	fprintf( flog, "--Make_ThumbsSame: layer %d\n", TS.vtil[is0].z );
+    fprintf( flog, "--Make_ThumbsSame: layer %d\n", TS.vtil[is0].z );
 
 // collect job indices
 
-	for( int a = is0; a < isN; ++a ) {
+    for( int a = is0; a < isN; ++a ) {
 
-		for( int b = a + 1; b < isN; ++b ) {
+        for( int b = a + 1; b < isN; ++b ) {
 
-			if( ABOlap( a, b ) )
-				P.push_back( Pair( a, b ) );
-		}
-	}
+            if( ABOlap( a, b ) )
+                P.push_back( Pair( a, b ) );
+        }
+    }
 
 // write jobs
 
-	WriteThumbMakeFile( lyrdir, "same", P );
+    WriteThumbMakeFile( lyrdir, "same", P );
 }
 
 /* --------------------------------------------------------------- */
@@ -414,37 +414,37 @@ static void Make_ThumbsSame( const char *lyrdir, int is0, int isN )
 // (a, b) = (source[this layer], target[below layer]).
 //
 static void Make_ThumbsDown(
-	const char				*lyrdir,
-	int						is0,
-	int						isN,
-	int						id0,
-	int						idN )
+    const char				*lyrdir,
+    int						is0,
+    int						isN,
+    int						id0,
+    int						idN )
 {
-	vector<Pair>	P;
+    vector<Pair>	P;
 
-	fprintf( flog, "--Make_ThumbsDown: layer %d ^ %d\n",
-		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
+    fprintf( flog, "--Make_ThumbsDown: layer %d ^ %d\n",
+        TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
 
-	if( id0 == -1 )
-		goto write;
+    if( id0 == -1 )
+        goto write;
 
 // collect job indices
 
-	for( int a = is0; a < isN; ++a ) {
+    for( int a = is0; a < isN; ++a ) {
 
-		for( int b = id0; b < idN; ++b ) {
+        for( int b = id0; b < idN; ++b ) {
 
-			if( ABOlap( a, b ) )
-				P.push_back( Pair( a, b ) );
-		}
-	}
+            if( ABOlap( a, b ) )
+                P.push_back( Pair( a, b ) );
+        }
+    }
 
 // write jobs
 
 write:
-	WriteThumbMakeFile( lyrdir, "down", P );
+    WriteThumbMakeFile( lyrdir, "down", P );
 }
 
 /* --------------------------------------------------------------- */
@@ -456,83 +456,83 @@ write:
 //
 static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 {
-	char	name[2048];
-	FILE	*f;
+    char	name[2048];
+    FILE	*f;
 
-	fprintf( flog, "--Make_MakeFM: layer %d\n", TS.vtil[is0].z );
+    fprintf( flog, "--Make_MakeFM: layer %d\n", TS.vtil[is0].z );
 
-	sprintf( name, "%s/make.fm", lyrdir );
+    sprintf( name, "%s/make.fm", lyrdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // master target depends on all others
 
-	fprintf( f, "all: " );
+    fprintf( f, "all: " );
 
-	for( int i = is0; i < isN; ++i )
-		fprintf( f, "%d/fm.png ", TS.vtil[i].id );
+    for( int i = is0; i < isN; ++i )
+        fprintf( f, "%d/fm.png ", TS.vtil[i].id );
 
-	fprintf( f, "\n\n" );
+    fprintf( f, "\n\n" );
 
 // subtargets and rules
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		const CUTile&	U = TS.vtil[i];
+        const CUTile&	U = TS.vtil[i];
 
 #if 0
 // target with dependency
-		char dep[2048];
-		ConvertSpaces( dep, vname0[i].c_str() );
-		fprintf( f, "%d/fm.png: %s\n", U.id, dep );
+        char dep[2048];
+        ConvertSpaces( dep, vname0[i].c_str() );
+        fprintf( f, "%d/fm.png: %s\n", U.id, dep );
 #else
 // target only
-		fprintf( f, "%d/fm.png:\n", U.id );
+        fprintf( f, "%d/fm.png:\n", U.id );
 #endif
 
-		if( gArgs.NoFolds ) {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=%d/nmrc_%d_%d.png'"
-				" -nf ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.id, U.z, U.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" -nf ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str() );
-			}
-		}
-		else {
-			if( ismrc ) {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-nmrc=%d/nmrc_%d_%d.png'"
-				" '-fm=%d/fm.png'"
-				" '-fmd=%d/fmd.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.id, U.z, U.id,
-				U.id,
-				U.id );
-			}
-			else {
-				fprintf( f,
-				"\ttiny %d %d '%s'"
-				" '-fm=%d/fm.png'"
-				" '-fmd=%d/fmd.png'"
-				" ${EXTRA}\n",
-				U.z, U.id, vname0[i].c_str(),
-				U.id,
-				U.id );
-			}
-		}
-	}
+        if( gArgs.NoFolds ) {
+            if( ismrc ) {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " '-nmrc=%d/nmrc_%d_%d.png'"
+                " -nf ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str(),
+                U.id, U.z, U.id );
+            }
+            else {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " -nf ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str() );
+            }
+        }
+        else {
+            if( ismrc ) {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " '-nmrc=%d/nmrc_%d_%d.png'"
+                " '-fm=%d/fm.png'"
+                " '-fmd=%d/fmd.png'"
+                " ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str(),
+                U.id, U.z, U.id,
+                U.id,
+                U.id );
+            }
+            else {
+                fprintf( f,
+                "\ttiny %d %d '%s'"
+                " '-fm=%d/fm.png'"
+                " '-fmd=%d/fmd.png'"
+                " ${EXTRA}\n",
+                U.z, U.id, vname0[i].c_str(),
+                U.id,
+                U.id );
+            }
+        }
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -546,25 +546,25 @@ static void Make_MakeFM( const char *lyrdir, int is0, int isN )
 //
 static void Make_fmsame( const char *lyrdir, int is0, int isN )
 {
-	char	name[2048];
-	FILE	*f;
+    char	name[2048];
+    FILE	*f;
 
-	fprintf( flog, "--Make_fmsame: layer %d\n", TS.vtil[is0].z );
+    fprintf( flog, "--Make_fmsame: layer %d\n", TS.vtil[is0].z );
 
-	sprintf( name, "%s/fm.same", lyrdir );
+    sprintf( name, "%s/fm.same", lyrdir );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // FOLDMAP2 entries
 
-	for( int i = is0; i < isN; ++i ) {
+    for( int i = is0; i < isN; ++i ) {
 
-		const CUTile&	U = TS.vtil[i];
+        const CUTile&	U = TS.vtil[i];
 
-		fprintf( f, "FOLDMAP2 %d.%d 1\n", U.z, U.id );
-	}
+        fprintf( f, "FOLDMAP2 %d.%d 1\n", U.z, U.id );
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -576,81 +576,81 @@ static void Make_fmsame( const char *lyrdir, int is0, int isN )
 // {"same", "up", "down"}.
 //
 static void WriteMakeFile(
-	const char				*lyrdir,
-	const char				*mkname,
-	const vector<Pair>		&P )
+    const char				*lyrdir,
+    const char				*mkname,
+    const vector<Pair>		&P )
 {
     char	name[2048];
-	FILE	*f;
-	int		np = P.size();
+    FILE	*f;
+    int		np = P.size();
 
 // open the file
 
-	sprintf( name, "%s/make.%s", lyrdir, mkname );
+    sprintf( name, "%s/make.%s", lyrdir, mkname );
 
-	f = FileOpenOrDie( name, "w", flog );
+    f = FileOpenOrDie( name, "w", flog );
 
 // write 'all' targets line
 
-	fprintf( f, "all: " );
+    fprintf( f, "all: " );
 
-	for( int i = 0; i < np; ++i ) {
+    for( int i = 0; i < np; ++i ) {
 
-		const CUTile&	A = TS.vtil[P[i].a];
-		const CUTile&	B = TS.vtil[P[i].b];
+        const CUTile&	A = TS.vtil[P[i].a];
+        const CUTile&	B = TS.vtil[P[i].b];
 
-		fprintf( f, "%d/%d.%d.map.tif ", A.id, B.z, B.id );
-	}
+        fprintf( f, "%d/%d.%d.map.tif ", A.id, B.z, B.id );
+    }
 
-	fprintf( f, "\n\n" );
+    fprintf( f, "\n\n" );
 
 // Write each 'target: dependencies' line
 //		and each 'rule' line
 
-	if( gArgs.NoFolds ) {
+    if( gArgs.NoFolds ) {
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			const CUTile&	A = TS.vtil[P[i].a];
-			const CUTile&	B = TS.vtil[P[i].b];
+            const CUTile&	A = TS.vtil[P[i].a];
+            const CUTile&	B = TS.vtil[P[i].b];
 
-			fprintf( f,
-			"%d/%d.%d.map.tif:\n",
-			A.id, B.z, B.id );
+            fprintf( f,
+            "%d/%d.%d.map.tif:\n",
+            A.id, B.z, B.id );
 
-			fprintf( f,
-			"\tptest %d.%d^%d.%d -nf ${EXTRA}\n\n",
-			A.z, A.id, B.z, B.id );
-		}
-	}
-	else {
+            fprintf( f,
+            "\tptest %d.%d^%d.%d -nf ${EXTRA}\n\n",
+            A.z, A.id, B.z, B.id );
+        }
+    }
+    else {
 
-		for( int i = 0; i < np; ++i ) {
+        for( int i = 0; i < np; ++i ) {
 
-			const CUTile&	A = TS.vtil[P[i].a];
-			const CUTile&	B = TS.vtil[P[i].b];
-			char depA[2048], depB[2048];
+            const CUTile&	A = TS.vtil[P[i].a];
+            const CUTile&	B = TS.vtil[P[i].b];
+            char depA[2048], depB[2048];
 
-			ConvertSpaces( depA, A.name.c_str() );
-			ConvertSpaces( depB, B.name.c_str() );
+            ConvertSpaces( depA, A.name.c_str() );
+            ConvertSpaces( depB, B.name.c_str() );
 
-			fprintf( f,
-			"%d/%d.%d.map.tif:"
-			" %s %s"
-			" ../%d/%d/fm.png"
-			" ../%d/%d/fm.png\n",
-			A.id, B.z, B.id,
-			depA, depB,
-			A.z, A.id,
-			B.z, B.id );
+            fprintf( f,
+            "%d/%d.%d.map.tif:"
+            " %s %s"
+            " ../%d/%d/fm.png"
+            " ../%d/%d/fm.png\n",
+            A.id, B.z, B.id,
+            depA, depB,
+            A.z, A.id,
+            B.z, B.id );
 
-			fprintf( f,
-			"\tptest %d.%d^%d.%d ${EXTRA}\n\n",
-			A.z, A.id, B.z, B.id );
-		}
-	}
+            fprintf( f,
+            "\tptest %d.%d^%d.%d ${EXTRA}\n\n",
+            A.z, A.id, B.z, B.id );
+        }
+    }
 
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -664,24 +664,24 @@ static void WriteMakeFile(
 //
 static void Make_MakeSame( const char *lyrdir, int is0, int isN )
 {
-	vector<Pair>	P;
+    vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeSame: layer %d\n", TS.vtil[is0].z );
+    fprintf( flog, "--Make_MakeSame: layer %d\n", TS.vtil[is0].z );
 
 // collect job indices
 
-	for( int a = is0; a < isN; ++a ) {
+    for( int a = is0; a < isN; ++a ) {
 
-		for( int b = a + 1; b < isN; ++b ) {
+        for( int b = a + 1; b < isN; ++b ) {
 
-			if( ABOlap( a, b ) )
-				P.push_back( Pair( a, b ) );
-		}
-	}
+            if( ABOlap( a, b ) )
+                P.push_back( Pair( a, b ) );
+        }
+    }
 
 // write jobs
 
-	WriteMakeFile( lyrdir, "same", P );
+    WriteMakeFile( lyrdir, "same", P );
 }
 
 /* --------------------------------------------------------------- */
@@ -694,37 +694,37 @@ static void Make_MakeSame( const char *lyrdir, int is0, int isN )
 // (a, b) = (source[this layer], target[below layer]).
 //
 static void Make_MakeDown(
-	const char				*lyrdir,
-	int						is0,
-	int						isN,
-	int						id0,
-	int						idN )
+    const char				*lyrdir,
+    int						is0,
+    int						isN,
+    int						id0,
+    int						idN )
 {
-	vector<Pair>	P;
+    vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeDown: layer %d ^ %d\n",
-		TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
+    fprintf( flog, "--Make_MakeDown: layer %d ^ %d\n",
+        TS.vtil[is0].z, (id0 != -1 ? TS.vtil[id0].z : -1) );
 
 // write dummy file even if no targets
 
-	if( id0 == -1 )
-		goto write;
+    if( id0 == -1 )
+        goto write;
 
 // collect job indices
 
-	for( int a = is0; a < isN; ++a ) {
+    for( int a = is0; a < isN; ++a ) {
 
-		for( int b = id0; b < idN; ++b ) {
+        for( int b = id0; b < idN; ++b ) {
 
-			if( ABOlap( a, b ) )
-				P.push_back( Pair( a, b ) );
-		}
-	}
+            if( ABOlap( a, b ) )
+                P.push_back( Pair( a, b ) );
+        }
+    }
 
 // write jobs
 
 write:
-	WriteMakeFile( lyrdir, "down", P );
+    WriteMakeFile( lyrdir, "down", P );
 }
 
 /* --------------------------------------------------------------- */
@@ -737,37 +737,37 @@ write:
 // (a, b) = (source[this layer], target[above layer]).
 //
 static void Make_MakeUp(
-	const char				*lyrdir,
-	int						is0,
-	int						isN,
-	int						iu0,
-	int						iuN )
+    const char				*lyrdir,
+    int						is0,
+    int						isN,
+    int						iu0,
+    int						iuN )
 {
-	vector<Pair>	P;
+    vector<Pair>	P;
 
-	fprintf( flog, "--Make_MakeUp: layer %d ^ %d\n",
-		TS.vtil[is0].z, (iu0 != -1 ? TS.vtil[iu0].z : -1) );
+    fprintf( flog, "--Make_MakeUp: layer %d ^ %d\n",
+        TS.vtil[is0].z, (iu0 != -1 ? TS.vtil[iu0].z : -1) );
 
 // write dummy file even if no targets
 
-	if( iu0 == -1 )
-		goto write;
+    if( iu0 == -1 )
+        goto write;
 
 // collect job indices
 
-	for( int a = is0; a < isN; ++a ) {
+    for( int a = is0; a < isN; ++a ) {
 
-		for( int b = iu0; b < iuN; ++b ) {
+        for( int b = iu0; b < iuN; ++b ) {
 
-			if( ABOlap( a, b ) )
-				P.push_back( Pair( a, b ) );
-		}
-	}
+            if( ABOlap( a, b ) )
+                P.push_back( Pair( a, b ) );
+        }
+    }
 
 // write jobs
 
 write:
-	WriteMakeFile( lyrdir, "up", P );
+    WriteMakeFile( lyrdir, "up", P );
 }
 
 /* --------------------------------------------------------------- */
@@ -778,49 +778,49 @@ write:
 //
 static void ForEachLayer()
 {
-	int		id0, idN, is0, isN, iu0, iuN;
+    int		id0, idN, is0, isN, iu0, iuN;
 
-	id0 = -1;
-	idN = -1;
-	TS.GetLayerLimits( is0 = 0, isN );
-	TS.GetLayerLimits( iu0 = isN, iuN );
+    id0 = -1;
+    idN = -1;
+    TS.GetLayerLimits( is0 = 0, isN );
+    TS.GetLayerLimits( iu0 = isN, iuN );
 
-	while( isN != -1 ) {
+    while( isN != -1 ) {
 
-		char	lyrdir[2048];
+        char	lyrdir[2048];
 
-		CreateLayerDir( lyrdir, TS.vtil[is0].z );
+        CreateLayerDir( lyrdir, TS.vtil[is0].z );
 
-		if( !gArgs.NoDirs )
-			CreateTileSubdirs( lyrdir, is0, isN );
+        if( !gArgs.NoDirs )
+            CreateTileSubdirs( lyrdir, is0, isN );
 
-		TS.WriteTileToImage( gtopdir, false, false, is0, isN );
+        TS.WriteTileToImage( gtopdir, false, false, is0, isN );
 
-		Make_ThmPairFile( lyrdir, is0, id0, iu0 );
+        Make_ThmPairFile( lyrdir, is0, id0, iu0 );
 
-		//Make_ThumbsSame( lyrdir, is0, isN );
-		//Make_ThumbsDown( lyrdir, is0, isN, id0, idN );
+        //Make_ThumbsSame( lyrdir, is0, isN );
+        //Make_ThumbsDown( lyrdir, is0, isN, id0, idN );
 
-		if( gArgs.NoFolds ) {
+        if( gArgs.NoFolds ) {
 
-			if( ismrc )
-				Make_MakeFM( lyrdir, is0, isN );
-			else
-				Make_fmsame( lyrdir, is0, isN );
-		}
-		else
-			Make_MakeFM( lyrdir, is0, isN );
+            if( ismrc )
+                Make_MakeFM( lyrdir, is0, isN );
+            else
+                Make_fmsame( lyrdir, is0, isN );
+        }
+        else
+            Make_MakeFM( lyrdir, is0, isN );
 
-		Make_MakeSame( lyrdir, is0, isN );
-		Make_MakeDown( lyrdir, is0, isN, id0, idN );
-		//Make_MakeUp( lyrdir, is0, isN, iu0, iuN );
+        Make_MakeSame( lyrdir, is0, isN );
+        Make_MakeDown( lyrdir, is0, isN, id0, idN );
+        //Make_MakeUp( lyrdir, is0, isN, iu0, iuN );
 
-		id0 = is0;
-		idN = isN;
-		is0 = iu0;
-		isN = iuN;
-		TS.GetLayerLimits(  iu0 = iuN, iuN );
-	}
+        id0 = is0;
+        idN = isN;
+        is0 = iu0;
+        isN = iuN;
+        TS.GetLayerLimits(  iu0 = iuN, iuN );
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -833,35 +833,35 @@ int main( int argc, char* argv[] )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
-	TS.SetLogFile( flog );
+    TS.SetLogFile( flog );
 
 /* ---------------- */
 /* Read source file */
 /* ---------------- */
 
-	int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
+    int		isrickfile = !FileIsExt( gArgs.infile, ".xml" );
 
-	if( isrickfile )
-		TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
-	else
-		TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
+    if( isrickfile )
+        TS.FillFromRickFile( gArgs.infile, gArgs.zmin, gArgs.zmax );
+    else
+        TS.FillFromTrakEM2( gArgs.infile, gArgs.zmin, gArgs.zmax );
 
-	fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
+    fprintf( flog, "Got %d images.\n", (int)TS.vtil.size() );
 
-	if( !TS.vtil.size() )
-		goto exit;
+    if( !TS.vtil.size() )
+        goto exit;
 
-	if( isrickfile )
-		TS.SetTileDimsFromImageFile();
+    if( isrickfile )
+        TS.SetTileDimsFromImageFile();
 
-	TS.SortAll_z_r();
+    TS.SortAll_z_r();
 
-	ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
+    ismrc = strstr( TS.vtil[0].name.c_str(), ".mrc" ) != NULL;
 
-	if( ismrc )
-		Make_nmrc_paths();
+    if( ismrc )
+        Make_nmrc_paths();
 
 /* ------------------- */
 /* Handle connect mode */
@@ -870,57 +870,57 @@ int main( int argc, char* argv[] )
 // Connect mode expects exactly two adjacent layers
 // and creates only make.up and make.down for them.
 
-	if( gArgs.Connect ) {
+    if( gArgs.Connect ) {
 
-		int	nt = TS.vtil.size();
+        int	nt = TS.vtil.size();
 
-		if( nt < 2 || TS.vtil[0].z != TS.vtil[nt-1].z - 1 ) {
+        if( nt < 2 || TS.vtil[0].z != TS.vtil[nt-1].z - 1 ) {
 
-			fprintf( flog,
-			"Bogons! Expected two consecutive layers for"
-			" connect mode.\n" );
-			exit( 42 );
-		}
+            fprintf( flog,
+            "Bogons! Expected two consecutive layers for"
+            " connect mode.\n" );
+            exit( 42 );
+        }
 
-		char	lyrdir[2048];
-		int		is0, isN, iu0, iuN;
+        char	lyrdir[2048];
+        int		is0, isN, iu0, iuN;
 
-		// makeUp for layer 0 onto 1
+        // makeUp for layer 0 onto 1
 
-		TS.GetLayerLimits( is0 = 0, isN );
-		iu0 = isN;
-		iuN = nt;
+        TS.GetLayerLimits( is0 = 0, isN );
+        iu0 = isN;
+        iuN = nt;
 
-		//sprintf( lyrdir, "%s/0", gArgs.outdir );
-		//Make_MakeUp( lyrdir, is0, isN, iu0, iuN );
+        //sprintf( lyrdir, "%s/0", gArgs.outdir );
+        //Make_MakeUp( lyrdir, is0, isN, iu0, iuN );
 
-		// makeDown for layer 1 onto 0
+        // makeDown for layer 1 onto 0
 
-		sprintf( lyrdir, "%s/1", gArgs.outdir );
-		Make_MakeDown( lyrdir, iu0, iuN, is0, isN );
+        sprintf( lyrdir, "%s/1", gArgs.outdir );
+        Make_MakeDown( lyrdir, iu0, iuN, is0, isN );
 
-		goto exit;
-	}
+        goto exit;
+    }
 
 /* --------------- */
 /* Create dir tree */
 /* --------------- */
 
-	CreateTopDir();
+    CreateTopDir();
 
-	WriteImageparamsFile();
+    WriteImageparamsFile();
 
-	ForEachLayer();
+    ForEachLayer();
 
 /* ---- */
 /* Done */
 /* ---- */
 
 exit:
-	fprintf( flog, "\n" );
-	fclose( flog );
+    fprintf( flog, "\n" );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

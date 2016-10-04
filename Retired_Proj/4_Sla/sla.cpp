@@ -24,8 +24,8 @@ double THRESHOLD = 0.25;  // lowest correlation considered a match
 class Picture : public PicBase {
 
 public:
-	bool operator < ( const Picture &rhs ) const
-		{return z < rhs.z || (z == rhs.z && tr.t[2] < rhs.tr.t[2]);};
+    bool operator < ( const Picture &rhs ) const
+        {return z < rhs.z || (z == rhs.z && tr.t[2] < rhs.tr.t[2]);};
 };
 
 
@@ -55,10 +55,10 @@ for(double step=1; step > 0.05; ) {
     vector<double> Tpixels;          // Get the pixel values
     ValuesFromImageAndPoints( Tpixels, dvx, dvy, image2, 4096, Tpoints, spv );
     if( fabs(dvx) < 1.0E-6 && fabs(dvy) < 1.0E-6 ) {
-	printf("No derivatives!\n");
-	fprintf(flog,"No derivatives!\n");
+    printf("No derivatives!\n");
+    fprintf(flog,"No derivatives!\n");
         exit( 42 );
-	}
+    }
     //Normalize(Tpixels);
     Point cog;  // Center of gravity
     cog = FindCOG(Plist, Tpixels);
@@ -76,24 +76,24 @@ for(double step=1; step > 0.05; ) {
     double nc = prev;     // new correlation
     do {
         prev = nc;
-	double norm = sqrt(dvx*dvx + dvy*dvy);
-	double sx = step*dvx/norm;  // direction sin()
-	double sy = step*dvy/norm;
-	printf("step is %f %f\n", sx, sy);
-	TAffine t2( t );
-	t2.AddXY( sx, sy );
-	Tpoints = Plist;   //   Start with locs in source
-	t2.Transform( Tpoints );            // Transform to locations in target
+    double norm = sqrt(dvx*dvx + dvy*dvy);
+    double sx = step*dvx/norm;  // direction sin()
+    double sy = step*dvy/norm;
+    printf("step is %f %f\n", sx, sy);
+    TAffine t2( t );
+    t2.AddXY( sx, sy );
+    Tpoints = Plist;   //   Start with locs in source
+    t2.Transform( Tpoints );            // Transform to locations in target
         double pdvx=dvx, pdvy=dvy; // just for comparing real with prediction
-	ValuesFromImageAndPoints( Tpixels, dvx, dvy, image2, 4096, Tpoints, spv );
-	//Normalize(Tpixels);
-	nc = CorrVectors(NULL, spv, Tpixels, &nnz);
-	printf(" predict %f, real correlation is %f\n", prev+sx*pdvx/nnz+sy*pdvy/nnz, nc);
-	if (nc > best_so_far){
-	    best_so_far = nc;
-	    tbest.CopyIn( t2 );
-	    bdir = 1;
-	    }
+    ValuesFromImageAndPoints( Tpixels, dvx, dvy, image2, 4096, Tpoints, spv );
+    //Normalize(Tpixels);
+    nc = CorrVectors(NULL, spv, Tpixels, &nnz);
+    printf(" predict %f, real correlation is %f\n", prev+sx*pdvx/nnz+sy*pdvy/nnz, nc);
+    if (nc > best_so_far){
+        best_so_far = nc;
+        tbest.CopyIn( t2 );
+        bdir = 1;
+        }
         }
     while(nc > prev);
 
@@ -103,25 +103,25 @@ for(double step=1; step > 0.05; ) {
     R.SetCWRot( rot * step, cog );
     t2 = R * t;
 
-	vector<Point> Tpoints = Plist;   //   Start with locs in source
-	t2.Transform( Tpoints );            // Transform to locations in target
+    vector<Point> Tpoints = Plist;   //   Start with locs in source
+    t2.Transform( Tpoints );            // Transform to locations in target
         double junk1, junk2;
-	ValuesFromImageAndPoints( Tpixels, junk1, junk2, image2, 4096, Tpoints, spv );
-	//Normalize(Tpixels);
-	double nc = CorrVectors(NULL, spv, Tpixels);
-	printf(" rotated case %d: correlation is %f\n", rot, nc);
-	if (nc > best_so_far){
-	    best_so_far = nc;
-	    bdir = 10;
-	    tbest.CopyIn( t2 );
-	    }
-	}
+    ValuesFromImageAndPoints( Tpixels, junk1, junk2, image2, 4096, Tpoints, spv );
+    //Normalize(Tpixels);
+    double nc = CorrVectors(NULL, spv, Tpixels);
+    printf(" rotated case %d: correlation is %f\n", rot, nc);
+    if (nc > best_so_far){
+        best_so_far = nc;
+        bdir = 10;
+        tbest.CopyIn( t2 );
+        }
+    }
     // Now tried 8 directions and two rotations; pick the best if any were better
     if( bdir >= 0 ) { //we found a better transform
-	 t.CopyIn( tbest );
-	 }
+     t.CopyIn( tbest );
+     }
     else // nothing was better; reduce step size
-	step = step/2;
+    step = step/2;
     }
 // Now t is the best transform we can find.
 printf(
@@ -144,7 +144,7 @@ vector<double> v2;
 int npixels = vp[i].w*vp[i].h;
 for(int k=0; k<npixels; k++)
     if( (vp[i].raster[k]) > 0 )
-	v2.push_back(vp[i].raster[k]);
+    v2.push_back(vp[i].raster[k]);
 printf("Image i: %d real pixels, %f percent\n", v2.size(), v2.size()*100.0/npixels);
 double mean2, std2;
 Stats(v2, mean2, std2);  // find existing statistics
@@ -157,7 +157,7 @@ for(int k=0; k<npixels; k++) {
     int x = k - vp[i].w * y;
     double pix = vp[i].raster[k];
     if (pix == 0)    // background pixels
-	pix = mean2;  // will be set to the mean value (0)
+    pix = mean2;  // will be set to the mean value (0)
     image2[x + 4096*y] = (pix-mean2)/std2;
     }
 
@@ -172,10 +172,10 @@ for(int k=0; k<vp[j].w*vp[j].h; k++) {
     vp[j].tr.Transform( pt );  // now in global space
     vp[i].Inverse.Transform( pt ); // Into the space of picture i
     if( pt.x >= 0.0 && pt.x < vp[i].w && pt.y > 0.0 && pt.y < vp[i].h ) {
-	//printf("pt: x,y=%f %f\n", pt.x, pt.y);
-	pts.push_back(pt);
-	vals.push_back(vp[j].raster[k]);
-	}
+    //printf("pt: x,y=%f %f\n", pt.x, pt.y);
+    pts.push_back(pt);
+    vals.push_back(vp[j].raster[k]);
+    }
     }
 printf("There are %d overlap pixels\n", pts.size() );
 if( pts.size() < 10000 ) {
@@ -222,42 +222,42 @@ bool neighbor(vector<Picture> &vp, int i, int j, int pass)
     printf("Compare pass %d, %d to %d: [%f %f] [%f %f]\n", pass, i, j, xmin, xmax, ymin, ymax);
     double half = vp[i].w/2;
     if( pass == 2 )
-	return xmax > xmin && ymax > ymin && (xmax - xmin > half || ymax - ymin > half);
+    return xmax > xmin && ymax > ymin && (xmax - xmin > half || ymax - ymin > half);
     bool status = false; // assume no overlap
     double xshift=0, yshift=0;   // possible shifts to correct
     double area = (xmax-xmin)*(ymax-ymin);
     if( xmax > xmin && ymax > ymin && area > vp[i].w*0.666*OVERLAP ) {  // at least 2/3 the expected overlap
-	status = true;  // they do overlap in any case
+    status = true;  // they do overlap in any case
         if (area < vp[i].w*1.3333*OVERLAP)  // if more than this, trim it back
-	    return true;
+        return true;
         // otherwise maybe too big; could need to shift
         if( ymax - ymin > half && xmin == 0 && xmax > OVERLAP )
             xshift = OVERLAP - xmax;
         if( ymax - ymin > half && xmax == vp[i].w-1 && xmin < vp[i].w-OVERLAP )
-	    xshift = vp[i].w-OVERLAP - xmin;
+        xshift = vp[i].w-OVERLAP - xmin;
         if( xmax - xmin > half && ymin == 0 && ymax > OVERLAP )
             yshift = OVERLAP - ymax;
         if( xmax - xmin > half && ymax == vp[i].h-1 && ymin < vp[i].h-OVERLAP )
-	    yshift = vp[i].h-OVERLAP - ymin;
-	}
+        yshift = vp[i].h-OVERLAP - ymin;
+    }
     // Another case is that they should overlap, but don't really.  Tell this if there is
     // at least a half picture overlap in one direction, but a less than half picture gap
     // in the other.
     if( ymax-ymin > half && xmin > vp[i].w-OVERLAP && xmin < vp[i].w + half ) { // to the right
         status = true;
-	xshift = vp[i].w - OVERLAP - xmin;
+    xshift = vp[i].w - OVERLAP - xmin;
         }
     if( ymax-ymin > half && xmax < OVERLAP && xmax > -half ) { // to the left
         status = true;
-	xshift = OVERLAP - xmax;
+    xshift = OVERLAP - xmax;
         }
     if( xmax-xmin > half && ymin > vp[i].h-OVERLAP && ymin < vp[i].h + half ) { // to the top
         status = true;
-	yshift = vp[i].h - OVERLAP - ymin;
+    yshift = vp[i].h - OVERLAP - ymin;
         }
     if( xmax-xmin > half && ymax < OVERLAP && ymax > -half ) { // to the bottom
         status = true;
-	yshift = OVERLAP - ymax;
+    yshift = OVERLAP - ymax;
         }
     if( status ) {
         printf("Crude shift: dx=%f dy=%f\n", xshift, yshift);
@@ -284,13 +284,13 @@ for(; Nnot > 0; Nnot--) {
     bool found = false;
     for(i=0; i<vp.size() && !found; i++) {
         for(j=0; j<vp.size() && !found; j++)
-	    found = aligned[i] && (!aligned[j]) && neighbor(vp,i,j, pass);
+        found = aligned[i] && (!aligned[j]) && neighbor(vp,i,j, pass);
         }
     if( !found ) {
         printf("No aligned-unaligned neighboring pair\n");
         fprintf(flog,"No aligned-unaligned neighboring pair\n");
-	exit( 42 );
-	}
+    exit( 42 );
+    }
     i--; j--;  //loops incremented once more after finding
     AlignAPair(vp, i, j, flog, pass);
     aligned[j] = true;
@@ -317,7 +317,7 @@ for(int k=0; k<np; k++) {
     int y = k/w;
     int x = k-w*y;
     if( x >= xmin && x <= xmax && y >= ymin && y <= ymax )
-	px.push_back(vp[j].raster[k]);
+    px.push_back(vp[j].raster[k]);
     }
 double avg, std;
 Stats(px, avg, std);  // we now have the mean and standard deviation
@@ -334,7 +334,7 @@ for(int k=0; k<np; k++) {
     int y = k/w;
     int x = k-w*y;
     if( x >= xmin && x <= xmax && y >= ymin && y <= ymax )
-	fr[x+N*y] = ((vp[j].raster[k]) - avg)/std;
+    fr[x+N*y] = ((vp[j].raster[k]) - avg)/std;
     }
 
 // Now fft it
@@ -358,22 +358,22 @@ for(int k=0; k<N*N; k++) {
     if (x >= N/2) x = x-N;
     if (y >= N/2) y = y-N;
     if( fr[k]/norm > biggest ) {
-	biggest = fr[k]/norm;
-	bigx = x; bigy = y;
-	}
+    biggest = fr[k]/norm;
+    bigx = x; bigy = y;
+    }
     }
 
 PrintCorLandscape( biggest, bigx, bigy, 0, 0, 0,
-	6, 2, &fr[0], N, N, norm, stdout );
+    6, 2, &fr[0], N, N, norm, stdout );
 
 printf( "Sub-correlate: Maximum %f at (%d, %d).\n",
-	biggest, bigx, bigy );
+    biggest, bigx, bigy );
 
 Point	pt( bigx, bigy );
 ParabPeakFFT( pt.x, pt.y, 1, &fr[0], N, N );
 
 printf( "Sub-correlate: Final at (%f, %f).\n",
-	pt.x, pt.y );
+    pt.x, pt.y );
 
 return pt;
 }
@@ -398,12 +398,12 @@ double ai = atan2(i2.y-i1.y, i2.x-i1.x);
 double aj = atan2(j2.y-j1.y, j2.x-j1.x);
 printf("Scale %f, angle %f radians, distance %f\n", scale, ai-aj, i1.Dist( i2 ) );
 TAffine tf(
-	scale*cos(ai-aj),
-	scale*(-sin(ai-aj)),
-	0.0,
-	-tf.t[1],
-	tf.t[0],
-	0.0 );
+    scale*cos(ai-aj),
+    scale*(-sin(ai-aj)),
+    0.0,
+    -tf.t[1],
+    tf.t[0],
+    0.0 );
 // now transform the first point and make sure it ends up in the right place
 Point p(j1.x,j1.y);
 tf.Transform( p );
@@ -507,20 +507,20 @@ for(int k=0; k<N*N; k++) {
     int yspan = vp[i].h - iabs(y);
     double norm;
     if (xspan > 0 && yspan > 0 && xspan*yspan > 40*vp[i].w)  // need at least 40 pixels
-	norm = double(xspan)*yspan;  // avoid overflow
+    norm = double(xspan)*yspan;  // avoid overflow
     else
-	norm = 1.0E30; // really big, so this can't be a winner
+    norm = 1.0E30; // really big, so this can't be a winner
     double nfeat = norm / 2500;  // feature is typically 50x50, at least
     norm = norm *(1.0+ 2/sqrt(nfeat)); // add 2 standard deviations
     if( fr[k]/norm > biggest ) {
-	biggest = fr[k]/norm;
-	bigx = x; bigy = y;
-	}
+    biggest = fr[k]/norm;
+    bigx = x; bigy = y;
+    }
     int xp = x-y;  // rotate coordinate frame by 45 deg ccw (plus scaling, which
     int yp = x+y;  // we don't care about
     int indx = (yp>0)*2 + (xp>0); //0 = west, 1 = south, 2 = north, 3 = east
     if( fr[k]/norm > best[indx].val )
-	best[indx] = CorrCand(x,y,fr[k]/norm);
+    best[indx] = CorrCand(x,y,fr[k]/norm);
     }
 // Look at different directions.  Not used for now.
 printf("west %d %d %f, south %d %d %f, north %d %d %f, east %d %d %f\n",
@@ -534,24 +534,24 @@ double ls = 0.0; // local sum
 int ln = 0;
 double peak;
 vector<double>ring;  // ring of non-weighted correlations bigger (expect none for a real peak)
-		     // will contain all those RAD away, plus the center point
+             // will contain all those RAD away, plus the center point
 const int RAD = 3;
 for(int iy=-4; iy <=4; iy += 1) {
     int ay = bigy + iy;
     //printf("biggest %f, y=%d, tx, ty, radius= %d %d %d\n", biggest, ay, tx, ty, radius);
     if( ay < 0 )
-	ay += N;
+    ay += N;
     for(int ix=-4; ix<=4; ix += 1) {
-	int ax = bigx + ix;
-	if( ax < 0 )
-	    ax += N;
-	double val = fr[ax + N*ay]/(N*N);
-	printf("%8.1f ",val);
-	if( (iabs(iy) == RAD && iabs(ix) <= RAD) || (iabs(iy)<=RAD && iabs(ix)==RAD) || (ix == 0 && iy == 0) )
-	    ring.push_back(val);
+    int ax = bigx + ix;
+    if( ax < 0 )
+        ax += N;
+    double val = fr[ax + N*ay]/(N*N);
+    printf("%8.1f ",val);
+    if( (iabs(iy) == RAD && iabs(ix) <= RAD) || (iabs(iy)<=RAD && iabs(ix)==RAD) || (ix == 0 && iy == 0) )
+        ring.push_back(val);
         ls += val; ln++;  // for average
         if (ix == 0 && iy == 0) peak = val;
-	}
+    }
     printf("\n");
     }
 int non = 0;
@@ -583,41 +583,41 @@ int nbad = 0;
 if( xmax-xmin > ymax-ymin ) {  // cut with a vertical line
     int xmid = (xmin+xmax)/2;
     for(int q=0; q<4; q++) {
-	int x1 = xmin + int(double(q)/4*(xmax-xmin));
-	int x2 = xmin + int(double(q+1)/4*(xmax-xmin));
-	printf("\n");
-	printf("---Small area test--- x=[%d %d] y=[%d %d]\n", x1, x2, ymin, ymax);
-	Point out = t.Match(vp[j], j, x1+1, ymin+1, x2-1, ymax-1);
-	double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
-	printf("  consistent within %f pixels\n", d);
-	if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {
-	    Point Pj(double(x1+x2)/2.0, double(ymin+ymax)/2.0); // middle of patch, in j's frame
-	    Point Pi(out.x+Pj.x, out.y+Pj.y);
-	    cpi.push_back(Pi); cpj.push_back(Pj);
-	    }
-	else
-	    nbad++;
-	}
+    int x1 = xmin + int(double(q)/4*(xmax-xmin));
+    int x2 = xmin + int(double(q+1)/4*(xmax-xmin));
+    printf("\n");
+    printf("---Small area test--- x=[%d %d] y=[%d %d]\n", x1, x2, ymin, ymax);
+    Point out = t.Match(vp[j], j, x1+1, ymin+1, x2-1, ymax-1);
+    double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
+    printf("  consistent within %f pixels\n", d);
+    if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {
+        Point Pj(double(x1+x2)/2.0, double(ymin+ymax)/2.0); // middle of patch, in j's frame
+        Point Pi(out.x+Pj.x, out.y+Pj.y);
+        cpi.push_back(Pi); cpj.push_back(Pj);
+        }
+    else
+        nbad++;
+    }
     }
 else { // cut with a horizontal line
     int ymid = (ymin+ymax)/2;
     for(int q=0; q<4; q++) {
-	int y1 = ymin + int(double(q)/4*(ymax-ymin));
-	int y2 = ymin + int(double(q+1)/4*(ymax-ymin));
-	printf("\n");
-	printf("---Small area test--- x=[%d %d] y=[%d %d]\n", xmin, xmax, y1, y2);
-	//Point out = SubCorrelate(vp,i,j,xmin+1,y1+1,xmax-1,y2-1);
-	Point out=t.Match(vp[j], j, xmin+1, y1+1, xmax-1, y2-1);
-	double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
-	printf("  consistent within %f pixels\n", d);
-	if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {  // limit of 10 for center matches, 20 otherwise
-	    Point Pj(double(xmin+xmax)/2.0, double(y1+y2)/2.0); // middle of patch, in j's frame
-	    Point Pi(out.x+Pj.x, out.y+Pj.y);
-	    cpi.push_back(Pi); cpj.push_back(Pj);
-	    }
-	else
-	    nbad++;
-	}
+    int y1 = ymin + int(double(q)/4*(ymax-ymin));
+    int y2 = ymin + int(double(q+1)/4*(ymax-ymin));
+    printf("\n");
+    printf("---Small area test--- x=[%d %d] y=[%d %d]\n", xmin, xmax, y1, y2);
+    //Point out = SubCorrelate(vp,i,j,xmin+1,y1+1,xmax-1,y2-1);
+    Point out=t.Match(vp[j], j, xmin+1, y1+1, xmax-1, y2-1);
+    double d = sqrt(pow(out.x-bigx,2.0) + pow(out.y-bigy, 2.0));
+    printf("  consistent within %f pixels\n", d);
+    if( d < ((q==1 || q==2)? 15.0 : 30.0) ) {  // limit of 10 for center matches, 20 otherwise
+        Point Pj(double(xmin+xmax)/2.0, double(y1+y2)/2.0); // middle of patch, in j's frame
+        Point Pi(out.x+Pj.x, out.y+Pj.y);
+        cpi.push_back(Pi); cpj.push_back(Pj);
+        }
+    else
+        nbad++;
+    }
     }
 if( nbad > 1 ) {  // get rid of any eqns that were generated
     printf("%d bad points - no correlations generated\n", nbad);
@@ -648,15 +648,15 @@ vector<double> rhs;
 // Now find the correlations among the pairs
 for(int i=0; i<vp.size(); i++) {
     for(int j=i+1; j<vp.size(); j++) {
-	printf("\nChecking %d to %d\n", i, j);
+    printf("\nChecking %d to %d\n", i, j);
         printf(" Initial transform %d: ", i); vp[i].tr.TPrint();
         printf(" Initial transform %d: ", j); vp[j].tr.TPrint();
         // transform jth image's bounding box to ith image coords, just for fun
         Point bb1(0.0,0.0); Point bb2(vp[j].w, vp[j].h);
-	vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
-	vp[i].Inverse.Transform( bb1 ); vp[i].Inverse.Transform( bb2 );
-	printf("In frame of image %d, image %d is [%f %f] to [%f %f]\n",
-	 i, j, bb1.x, bb1.y, bb2.x, bb2.y);
+    vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
+    vp[i].Inverse.Transform( bb1 ); vp[i].Inverse.Transform( bb2 );
+    printf("In frame of image %d, image %d is [%f %f] to [%f %f]\n",
+     i, j, bb1.x, bb1.y, bb2.x, bb2.y);
 
         // first look and see if we have any cached correspondences:
         vector<Point>	cpi, cpj;
@@ -667,12 +667,12 @@ for(int i=0; i<vp.size(); i++) {
             FindCorrPoints(vp, i, j, cpi, cpj, flog);
             // are there any correspondence points?  If so add to list
             if( cpi.size() > 0 )
-	        CI->Add( vp[i].fname, vp[j].fname, cpi, cpj );
+            CI->Add( vp[i].fname, vp[j].fname, cpi, cpj );
             }
         // generate equations from points, if any
         for(int k=0; k<cpi.size(); k++)
-	    WriteEqns(feq, vp, i, cpi[k], j, cpj[k], eqns, rhs);
-	}
+        WriteEqns(feq, vp, i, cpi[k], j, cpj[k], eqns, rhs);
+    }
 
     // for all except the first, add some preference for a square soln (rotation and scaling only)
     if( i != 0 ) {
@@ -721,7 +721,7 @@ for(int i=0; i<eqns.size(); i++) {
     // does it contain an X term?  If so, this and the next equation form a pair
     bool xterm = false;
     for(int j=2; j<eqns[i].size(); j += 6)
-	xterm |= (eqns[i][j] != 0.0);
+    xterm |= (eqns[i][j] != 0.0);
     if( xterm ) {
         double xerr = rhs[i] - rslt[i];
         double yerr = rhs[i+1] - rslt[i+1];
@@ -730,7 +730,7 @@ for(int i=0; i<eqns.size(); i++) {
         avg += emag;
         err2 += emag*emag;
         max_err = fmax(max_err, emag);
-	npts++;
+    npts++;
         i++;
         }
     }
@@ -768,15 +768,15 @@ fprintf(flog,"Unfold: %s ", atime);
 for(int i=1; i<argc; i++) {
     fprintf(flog,"%s ", argv[i]);
     if( strcmp(argv[i],"-o") == 0 && i+1 < argc )
-	OVERLAP = atoi(argv[i+1]);
+    OVERLAP = atoi(argv[i+1]);
     if( strcmp(argv[i],"-t") == 0 && i+1 < argc )
-	THRESHOLD = atof(argv[i+1]);
+    THRESHOLD = atof(argv[i+1]);
     if( strcmp(argv[i],"-r") == 0 && i+1 < argc )
-	RADIUS = atoi(argv[i+1]);
+    RADIUS = atoi(argv[i+1]);
     if( strcmp(argv[i],"-f") == 0 )
-	WriteBack = true;
+    WriteBack = true;
     if( strcmp(argv[i],"-a") == 0 )
-	FromAbove = true;
+    FromAbove = true;
     }
 fflush(flog);
 printf("Overlap %d, radius %d, threshold %f\n", OVERLAP, RADIUS, THRESHOLD);
@@ -814,7 +814,7 @@ for( child; child; child=child->NextSiblingElement() ) {
     TiXmlElement*	c2;
     c2 = child->FirstChildElement("t2_patch");
     for( c2; c2; c2=c2->NextSiblingElement() ) {
-	//printf("got a <t2_patch>\n");
+    //printf("got a <t2_patch>\n");
         const char *tf  = c2->Attribute("transform");
         const char *fp  = c2->Attribute("file_path");
         //printf("File is '%s'\n, transform is '%s'\n", fp, tf);
@@ -827,7 +827,7 @@ for( child; child; child=child->NextSiblingElement() ) {
         p.h = int(atof(c2->Attribute("height")));
         p.Inverse.InverseOf( p.tr );
         vp.push_back(p);
-	}
+    }
     }
 
 // OK, look for a name containing argv[2], then open that...
@@ -837,9 +837,9 @@ int i;
 for(i=0; i<vp.size(); i++){
     int j = vp[i].fname.find(argv[2]);
     if( j != string::npos ) {
-	strcpy(fname, vp[i].fname.c_str());
-	break;
-	}
+    strcpy(fname, vp[i].fname.c_str());
+    break;
+    }
     }
 
 // read in any existing correlations
@@ -850,30 +850,30 @@ sort(vp.begin(), vp.end());
 for(i=0; i<vp.size(); i++) {
     if( i > 0 && vp[i].z != vp[i-1].z ) {
         printf("Finished layer %d\n", vp[i-1].z);
-	CI->Write( "Corr.xml" );
+    CI->Write( "Corr.xml" );
         // free all the memory
         for(int j=0; j<i; j++) {
             if( vp[j].raster != NULL )
-	        RasterFree(vp[j].raster);
-	        vp[j].fft_of_frame.clear();
-	    }
+            RasterFree(vp[j].raster);
+            vp[j].fft_of_frame.clear();
+        }
         }
     printf("Looking for neighbors of z=%d x=%f\n", vp[i].z, vp[i].tr.t[2]);
     for(int j=i+1; j<vp.size() && vp[j].z == vp[i].z; j++) {
         Point bb1(0.0,0.0); Point bb2(vp[j].w, vp[j].h);
-	vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
-	vp[i].Inverse.Transform( bb1 ); vp[i].Inverse.Transform( bb2 );
+    vp[j].tr.Transform( bb1 ); vp[j].tr.Transform( bb2 );
+    vp[i].Inverse.Transform( bb1 ); vp[i].Inverse.Transform( bb2 );
         int s = vp[i].w;
         if( bb2.x < -s/2 || bb1.x >1.5*s || bb2.y < -s/2 || bb1.y > 1.5*s )
-	    continue;
-	printf("In frame of image %d, image %d is [%f %f] to [%f %f]\n",
-	 i, j, bb1.x, bb1.y, bb2.x, bb2.y);
+        continue;
+    printf("In frame of image %d, image %d is [%f %f] to [%f %f]\n",
+     i, j, bb1.x, bb1.y, bb2.x, bb2.y);
         vector<Point> cpi, cpj;
         FindCorrPoints(vp, i, j, cpi, cpj, flog);
         // are there any correspondence points?  If so add to list
         if( cpi.size() > 0 )
             CI->Add( vp[i].fname, vp[j].fname, cpi, cpj );
-	}
+    }
     }
 CI->Write( "Corr.xml" );
 

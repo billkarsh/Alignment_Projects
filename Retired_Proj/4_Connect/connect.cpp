@@ -20,13 +20,13 @@ using namespace std;
 class Picture : public PicBase {
 
 public:
-	double	dist_from_center;	// distance from center if exists
+    double	dist_from_center;	// distance from center if exists
 
 public:
-	Picture()	{dist_from_center = 0.0;};
+    Picture()	{dist_from_center = 0.0;};
 
-	bool operator < ( const Picture &rhs ) const
-		{return dist_from_center < rhs.dist_from_center;};
+    bool operator < ( const Picture &rhs ) const
+        {return dist_from_center < rhs.dist_from_center;};
 };
 
 
@@ -42,7 +42,7 @@ class Error {
     int which;  // which constraint
     double amt;
     bool operator < ( const Error &rhs ) const
-		{return amt < rhs.amt;};
+        {return amt < rhs.amt;};
     };
 
 class CorrPts {
@@ -58,14 +58,14 @@ class CorrPts {
 
 static void PrintMagnitude( const vector<double> &X )
 {
-	int	k = X.size() - 6;
+    int	k = X.size() - 6;
 
-	if( k >= 0 ) {
+    if( k >= 0 ) {
 
-		double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
+        double	mag	= sqrt( X[k]*X[k] + X[k+1]*X[k+1] );
 
-		printf( "Final magnitude is %g\n", mag );
-	}
+        printf( "Final magnitude is %g\n", mag );
+    }
 }
 
 
@@ -105,8 +105,8 @@ for(int i=0; i<p1.size(); i++) {
     sum += dx*dx + dy*dy;
     if( print ) {
         printf("(%8.2f %8.2f) -> (%8.2f %8.2f) =? (%8.2f %8.2f) d=%8.2f\n",
-	p1[i].x, p1[i].y, px, py, p2[i].x, p2[i].y, sqrt(dx*dx + dy*dy) );
-	}
+    p1[i].x, p1[i].y, px, py, p2[i].x, p2[i].y, sqrt(dx*dx + dy*dy) );
+    }
     }
 double rms = sqrt(sum/p1.size());
 if( print ) {
@@ -198,7 +198,7 @@ if( n1 < 0 || n1 >= ConnTable.size() || n2 < 0 || n2 >= ConnTable.size()  ) {
 int j;
 for(j=0; j<ConnTable[n1].Which.size(); j++)
     if( ConnTable[n1].Which[j] == n2 )
-	break;
+    break;
 if( j >= ConnTable[n1].Which.size() ) {
     ConnTable[n1].Which.push_back(n2);
     ConnTable[n1].HowMany.push_back(0);
@@ -208,7 +208,7 @@ ConnTable[n1].HowMany[j]++;
 //Now the same for n2
 for(j=0; j<ConnTable[n2].Which.size(); j++)
     if( ConnTable[n2].Which[j] == n1 )
-	break;
+    break;
 if( j >= ConnTable[n2].Which.size() ) {
     ConnTable[n2].Which.push_back(n1);
     ConnTable[n2].HowMany.push_back(0);
@@ -222,7 +222,7 @@ string LookupByNumber(map<string,int> &mapping, int k)
 map<string,int>::iterator it;
 for(it=mapping.begin(); it != mapping.end(); it++) {
     if( it->second == k )
-	return it->first;
+    return it->first;
     }
 printf("looking for %d, not there?\n", k);
 exit( 42 );
@@ -235,7 +235,7 @@ int FindZ(const char *name, vector<char *> &dnames, vector<int> &lnums)
 {
 for(int i=0; i<dnames.size(); i++) {
     if( strstr(name, dnames[i]) != NULL )
-	return lnums[i];
+    return lnums[i];
     }
 return 0;  // not found, return layer 0
 }
@@ -269,32 +269,32 @@ FILE		*fdir = FileOpenOrDie( name, "r" );
 CLineScan	LS;
 
 for(;;) {
-	if( LS.Get( fdir ) <= 0 )
-		break;
+    if( LS.Get( fdir ) <= 0 )
+        break;
    if( strncmp(LS.line,"TRANSFORM",9) == 0 ) {
         char fname[10240];
         double a,b,c,d,e,f;
         if( sscanf(LS.line+9,"%s %lf %lf %lf %lf %lf %lf", fname, &a, &b, &c, &d, &e, &f) != 7 ) {
-	    printf("Not expecting this IMAGESIZE: '%s'\n", LS.line);
-	    exit( 42 );
-	    }
+        printf("Not expecting this IMAGESIZE: '%s'\n", LS.line);
+        exit( 42 );
+        }
         Picture p;
         p.fname = strtok(fname," ':\n");
         p.tr = TAffine(a,b,c,d,e,f);
         ps.push_back(p);
-	}
+    }
    if( strncmp(LS.line,"IMAGESIZE",9) == 0 ) {
         if( sscanf(LS.line+9,"%lf %lf", &w, &h) != 2 ) {
-	    printf("Not expecting this IMAGESIZE: '%s'\n", LS.line);
-	    exit( 42 );
-	    }
-	}
+        printf("Not expecting this IMAGESIZE: '%s'\n", LS.line);
+        exit( 42 );
+        }
+    }
    if( strncmp(LS.line,"BBOX",4) == 0 ) {
         if( sscanf(LS.line+4,"%lf %lf %lf %lf", &xmin, &ymin, &xmax, &ymax) != 4 ) {
-	    printf("Not expecting this BBOX: '%s'\n", LS.line);
-	    exit( 42 );
-	    }
-	}
+        printf("Not expecting this BBOX: '%s'\n", LS.line);
+        exit( 42 );
+        }
+    }
 }
 
 printf("read %d transform statements\n", ps.size());
@@ -332,9 +332,9 @@ CLineScan	LS;
 int HowMany = 4;  // How many to try
 for(int i=0; i<argc; i++) {
     if( strncmp(argv[i],"-N=",3) == 0 ) {
-	HowMany = atoi(argv[i]+3);
-	printf("Will try %d central images\n", HowMany);
-	}
+    HowMany = atoi(argv[i]+3);
+    printf("Will try %d central images\n", HowMany);
+    }
     }
 
 vector<Picture> l1, l2;
@@ -349,27 +349,27 @@ vector<int> lnums;    // layer numbers
 vector<char*> dnames; // directory names where these layers are found
 if( argc > 3 ) {
 
-	FILE	*fdir = FileOpenOrDie( argv[3], "r" );
+    FILE	*fdir = FileOpenOrDie( argv[3], "r" );
 
-	for(;;) {
+    for(;;) {
 
-		if( LS.Get( fdir ) <= 0 )
-			break;
-		if( strncmp(LS.line,"DIR",3) == 0 ) {      // simply store directory string
-			char *anum = strtok(LS.line+3," ");  // and layer number in parallel
-			char *dname = strtok(NULL," \n");     // vectors
-			dnames.push_back(strdup(dname));
-			lnums.push_back(atoi(anum));
-			//printf("got %s = %s\n", anum, dname);
-		}
-		else {
-			printf("Bad line '%s' in dir file\n", LS.line);
-			exit( 42 );
-		}
-	}
+        if( LS.Get( fdir ) <= 0 )
+            break;
+        if( strncmp(LS.line,"DIR",3) == 0 ) {      // simply store directory string
+            char *anum = strtok(LS.line+3," ");  // and layer number in parallel
+            char *dname = strtok(NULL," \n");     // vectors
+            dnames.push_back(strdup(dname));
+            lnums.push_back(atoi(anum));
+            //printf("got %s = %s\n", anum, dname);
+        }
+        else {
+            printf("Bad line '%s' in dir file\n", LS.line);
+            exit( 42 );
+        }
+    }
 
-	fclose(fdir);
-	printf("Read %d name:layer-number pairs.\n", dnames.size());
+    fclose(fdir);
+    printf("Read %d name:layer-number pairs.\n", dnames.size());
 }
 
 if( l1.size() < 1 || l2.size() < 1 ) {
@@ -396,14 +396,14 @@ if( z1 + 1 != z2 ) {
 int k=0;
 for(int i=0; i<l1.size(); i++) {
     if( FindZ( NM(l1[i]), dnames, lnums ) == z1 )
-	l1[k++]  = l1[i];
+    l1[k++]  = l1[i];
     }
 l1.erase(l1.begin()+k, l1.end());
 
 k=0;
 for(int i=0; i<l2.size(); i++) {
     if( FindZ( NM(l2[i]), dnames, lnums) == z2 )
-	l2[k++]  = l2[i];
+    l2[k++]  = l2[i];
     }
 l2.erase(l2.begin()+k, l2.end());
 printf("After layer pruning: %d bottom, %d top.\n", l1.size(), l2.size());
@@ -423,8 +423,8 @@ for(int i=0; i<HowMany && i < l1.size(); i++) {
     int num1 = GetImageNumber( NM(l1[i]) );
     for(int j=0; j<HowMany && j < l2.size(); j++) {
         int num2 = GetImageNumber( NM(l2[j]) );
-	fprintf(fp_up, "%d/%d.%d.map.tif ", num1, z2, num2);
-	}
+    fprintf(fp_up, "%d/%d.%d.map.tif ", num1, z2, num2);
+    }
     }
 fprintf(fp_up, "\n\n");
 
@@ -433,13 +433,13 @@ for(int i=0; i<HowMany && i < l1.size(); i++) {
     int num1 = GetImageNumber( NM(l1[i]) );
     for(int j=0; j<HowMany && j < l2.size(); j++) {
         int num2 = GetImageNumber( NM(l2[j]) );
-	fprintf(fp_up, "%d/%d.%d.map.tif: %s %s\n", num1, z2, num2, NM(l2[j]), NM(l1[i]) );
-	fprintf(fp_up, "	ptest '%s' '%s' ../%d/%d/fm.tif %d/fm.tif ../%d/%d/%d.%d.tf.txt ../%d/%d/%d.%d.map.tif ${EXTRA}\n",
-	 NM(l2[j]), NM(l1[i]), z2, num2, num1,
+    fprintf(fp_up, "%d/%d.%d.map.tif: %s %s\n", num1, z2, num2, NM(l2[j]), NM(l1[i]) );
+    fprintf(fp_up, "	ptest '%s' '%s' ../%d/%d/fm.tif %d/fm.tif ../%d/%d/%d.%d.tf.txt ../%d/%d/%d.%d.map.tif ${EXTRA}\n",
+     NM(l2[j]), NM(l1[i]), z2, num2, num1,
          z1, num1, z2, num2,
          z1, num1, z2, num2);
         fprintf(fp_up, "\n");
-	}
+    }
     }
 fclose(fp_up);
 
@@ -451,8 +451,8 @@ for(int i=0; i<HowMany && i < l2.size(); i++) {
     int num1 = GetImageNumber( NM(l2[i]) );
     for(int j=0; j<HowMany && j < l1.size(); j++) {
         int num2 = GetImageNumber( NM(l1[j]) );
-	fprintf(fp_down, "%d/%d.%d.map.tif ", num1, z1, num2);
-	}
+    fprintf(fp_down, "%d/%d.%d.map.tif ", num1, z1, num2);
+    }
     }
 fprintf(fp_down, "\n\n");
 
@@ -461,13 +461,13 @@ for(int i=0; i<HowMany && i < l2.size(); i++) {
     int num1 = GetImageNumber( NM(l2[i]) );
     for(int j=0; j<HowMany && j < l1.size(); j++) {
         int num2 = GetImageNumber( NM(l1[j]) );
-	fprintf(fp_down, "%d/%d.%d.map.tif: %s %s\n", num1, z1, num2, NM(l1[j]), NM(l2[i]) );
-	fprintf(fp_down, "	ptest '%s' '%s' ../%d/%d/fm.tif %d/fm.tif ../%d/%d/%d.%d.tf.txt ../%d/%d/%d.%d.map.tif ${EXTRA}\n",
-	 NM(l1[j]), NM(l2[i]), z1, num2, num1,
+    fprintf(fp_down, "%d/%d.%d.map.tif: %s %s\n", num1, z1, num2, NM(l1[j]), NM(l2[i]) );
+    fprintf(fp_down, "	ptest '%s' '%s' ../%d/%d/fm.tif %d/fm.tif ../%d/%d/%d.%d.tf.txt ../%d/%d/%d.%d.map.tif ${EXTRA}\n",
+     NM(l1[j]), NM(l2[i]), z1, num2, num1,
          z2, num1, z1, num2,
          z2, num1, z1, num2);
         fprintf(fp_down, "\n");
-	}
+    }
     }
 fclose(fp_down);
 
@@ -483,30 +483,30 @@ map<string,int> mapping;   // maps the name to a zero based index
 char name1[10240], name2[10240];  // make big enough to avoid obvious problems
 
 for(;;) {
-	if( LS.Get( FP ) <= 0 )
-		break;
+    if( LS.Get( FP ) <= 0 )
+        break;
     if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
         if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, &name2, &x2, &y2) != 6 )
-	    break;
+        break;
         int n1 = LookupAddIfNeeded(name1, mapping, nt);
         int n2 = LookupAddIfNeeded(name2, mapping, nt);
         nc++;
         AddCorrespondence(n1, n2);
         AddPairwisePoints(name1, x1, y1, name2, x2, y2);
-	}
+    }
 }
 
 // Look for suspiciouos connections. Save in a table of bad pairs
 set<string> BadPairs;
 for(int i=0; i<ConnTable.size(); i++) {
     for(int k=0; k<ConnTable[i].HowMany.size(); k++) {
-	if( ConnTable[i].HowMany[k] < 3 ) {
-	    printf("Odd... only one connection %d %d\n", i, ConnTable[i].Which[k]);
+    if( ConnTable[i].HowMany[k] < 3 ) {
+        printf("Odd... only one connection %d %d\n", i, ConnTable[i].Which[k]);
             BadPairs.insert(LookupByNumber(mapping, i) + string(",") +
-	     LookupByNumber(mapping, ConnTable[i].Which[k]) );
+         LookupByNumber(mapping, ConnTable[i].Which[k]) );
             }
-	}
+    }
     }
 // Likewise, if three or more corresponding points, see if they are all consistent
 map<string,int>::iterator pi;  // iterator over all pairs
@@ -516,8 +516,8 @@ for(pi=PairIndex.begin(); pi != PairIndex.end(); pi++) {
         if( RMS > 50.0 ) { // rough limit
             printf("Testing pair: '%s'\n", (pi->first).c_str());
             CanAlign(AllPts[pi->second].pa, AllPts[pi->second].pb, true); // this time print
-	    }
-	}
+        }
+    }
     }
 
 // Find the connected components
@@ -527,23 +527,23 @@ for(int i=0; i<ConnTable.size(); i++)
 for(int i=0; i<ConnTable.size(); i++) {
     if( ConnTable[i].used == false ) {
         int got = 0;
-	printf("Starting connected components with entry %d\n", i);
+    printf("Starting connected components with entry %d\n", i);
         stack<int> s;
         s.push(i);
         while (!s.empty()) {
-	    int j = s.top(); s.pop();  // remove top element
+        int j = s.top(); s.pop();  // remove top element
             if( !ConnTable[j].used ) {
-		ConnTable[j].used = true;
+        ConnTable[j].used = true;
                 got++;
                 if (i != 0) // not part of first connected component
-		    ignore.push_back(j);
-	        for(int k=0; k<ConnTable[j].Which.size(); k++)
+            ignore.push_back(j);
+            for(int k=0; k<ConnTable[j].Which.size(); k++)
                     if (ConnTable[j].HowMany[k] >= 3)  // only use images connected by at least 3 pts
-		        s.push(ConnTable[j].Which[k]);
-		}
-	    }
+                s.push(ConnTable[j].Which[k]);
+        }
+        }
         printf("Got %d components\n", got);
-	}
+    }
     }
 set<string> ignore_names;
 for(int i=0; i<ignore.size(); i++) {
@@ -561,24 +561,24 @@ nt = 0;
 nc = 0;
 
 for(;;) {
-	if( LS.Get( FP ) <= 0 )
-		break;
+    if( LS.Get( FP ) <= 0 )
+        break;
     if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
         if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, &name2, &x2, &y2) != 6 )
-	    break;
+        break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
-	    continue;
+        continue;
         int n1 = LookupAddIfNeeded(name1, mapping, nt);
         int n2 = LookupAddIfNeeded(name2, mapping, nt);
         nc++;
-	}
+    }
     else if( strncmp(LS.line,"IMAGESIZE",9) == 0 ) {
         if( sscanf(LS.line+9, "%d %d", &w, &h) != 2 ) {
-	    printf("Bad image size line '%s'\n", LS.line);
-	    return 42;
-	    }
-	}
+        printf("Bad image size line '%s'\n", LS.line);
+        return 42;
+        }
+    }
 }
 
 printf("Image size is w=%d h=%d\n", w, h);
@@ -603,20 +603,20 @@ rewind(FP);
 vector<int> z(nt, -1);
 
 for(;;) {
-	if( LS.Get( FP ) <= 0 )
-		break;
+    if( LS.Get( FP ) <= 0 )
+        break;
     if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
         if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
-	    break;
+        break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
-	    continue;
+        continue;
         int t1 = LookupAddIfNeeded(name1, mapping, nt);
         if( z[t1] == -1 )
-	    z[t1] = FindZ(name1, dnames, lnums);
+        z[t1] = FindZ(name1, dnames, lnums);
         int t2 = LookupAddIfNeeded(name2, mapping, nt);
         if( z[t2] == -1 )
-	    z[t2] = FindZ(name2, dnames, lnums);
+        z[t2] = FindZ(name2, dnames, lnums);
         x1 /= scale; y1 /= scale; x2 /= scale; y2 /= scale;
         int j = t1*6;  // variable number
         int k = t2*6;
@@ -627,11 +627,11 @@ for(;;) {
         AddConstraint(LHS, RHS, 6, i2     , vals, 0.0);   // 0.0 is the right hand side of the constraint
         }
     else if( strncmp(LS.line,"FOLDMAP",7) == 0 )
-	fprintf(FOUT, "%s", LS.line);
+    fprintf(FOUT, "%s", LS.line);
     else if (strncmp(LS.line,"IMAGESIZE",9) != 0){
-	printf("Unknown line type '%s'", LS.line);
-	return 42;
-	}
+    printf("Unknown line type '%s'", LS.line);
+    return 42;
+    }
 }
 
 // OK, add constraints for the initial square
@@ -672,7 +672,7 @@ int nwbest, nebest, swbest, sebest;
 double nw = -MAXINT, ne = -MAXINT, se = -MAXINT, sw = -MAXINT;
 for(int i=0; i<nt; i++) {
     if( z[i] != lownum )
-	continue;
+    continue;
     int j = i*6;
     double t;
     t =  X[j+2] + X[j+5];
@@ -737,11 +737,11 @@ for(int i=0; i<nt; i++) {
     for(int k=0; k<4; k++) {
         double x = X[j  ]*pts[k].x + X[j+1]*pts[k].y + X[j+2];
         double y = X[j+3]*pts[k].x + X[j+4]*pts[k].y + X[j+5];
-	xmin = fmin(xmin, x);
-	ymin = fmin(ymin, y);
-	xmax = fmax(xmax, x);
-	ymax = fmax(ymax, y);
-	}
+    xmin = fmin(xmin, x);
+    ymin = fmin(ymin, y);
+    xmax = fmax(xmax, x);
+    ymax = fmax(ymax, y);
+    }
     }
 printf("Bounds of global image are x=[%f %f] y=[%f %f]\n", xmin, xmax, ymin, ymax);
 
@@ -781,14 +781,14 @@ double biggest = 0.0;
 int nn = 0;
 
 for(;;) {
-	if( LS.Get( FP ) <= 0 )
-		break;
+    if( LS.Get( FP ) <= 0 )
+        break;
     if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
         if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
-	    break;
+        break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
-	    continue;
+        continue;
         int t1 = LookupAddIfNeeded(name1, mapping, nt);
         int t2 = LookupAddIfNeeded(name2, mapping, nt);
         int j = t1*6;  // variable number
@@ -824,14 +824,14 @@ rewind(FP);
 nn = 0;
 
 for(;;) {
-	if( LS.Get( FP ) <= 0 )
-		break;
+    if( LS.Get( FP ) <= 0 )
+        break;
     if( strncmp(LS.line,"POINT",5) == 0 ) {
         double x1, y1, x2, y2;
         if( sscanf(LS.line+5, "%s %lf %lf %s %lf %lf", name1, &x1, &y1, name2, &x2, &y2) != 6 )
-	    break;
+        break;
         if(InIgnoreNames(ignore_names, BadPairs, name1, name2))
-	    continue;
+        continue;
         int t1 = LookupAddIfNeeded(name1, mapping, nt);
         int t2 = LookupAddIfNeeded(name2, mapping, nt);
         int j = t1*6;  // variable number
@@ -844,8 +844,8 @@ for(;;) {
         double dy = gy1 - gy2;
         double err = dx*dx + dy*dy;
         if( err >= big ) {
-	    printf("'%s' '%s' %f\n", name1, name2, sqrt(err));
-	    }
+        printf("'%s' '%s' %f\n", name1, name2, sqrt(err));
+        }
         nn++;
         }
 }

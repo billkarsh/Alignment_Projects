@@ -18,10 +18,10 @@ using namespace std;
 
 class DIR {
 private:
-	map<string,int>	dirTbl;
+    map<string,int>	dirTbl;
 public:
-	void ReadDIRFile( const char *dirfile, FILE *FOUT );
-	int  ZFromName( const char *name ) const;
+    void ReadDIRFile( const char *dirfile, FILE *FOUT );
+    int  ZFromName( const char *name ) const;
 };
 
 

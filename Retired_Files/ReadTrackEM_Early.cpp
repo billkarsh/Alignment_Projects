@@ -41,7 +41,7 @@ for( child; child; child=child->NextSiblingElement() ) {
     TiXmlElement*	c2;
     c2 = child->FirstChildElement("t2_patch");
     for( c2; c2; c2=c2->NextSiblingElement() ) {
-	//printf("got a <t2_patch>\n");
+    //printf("got a <t2_patch>\n");
         const char *tf  = c2->Attribute("transform");
         const char *fp  = c2->Attribute("file_path");
         //printf("File is '%s'\n, transform is '%s'\n", fp, tf);
@@ -49,10 +49,10 @@ for( child; child; child=child->NextSiblingElement() ) {
         p.tr.ScanTrackEM2( tf );
         p.z = int(atof(attr)+0.5);
         p.fname = fp;
-		p.w = int(atof(c2->Attribute("width")));
+        p.w = int(atof(c2->Attribute("width")));
         p.h = int(atof(c2->Attribute("height")));
         vp.push_back(p);
-	}
+    }
     }
 return 0;
 }

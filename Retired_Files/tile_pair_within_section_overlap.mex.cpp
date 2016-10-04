@@ -45,9 +45,9 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
   const mxArray * image_1_mx = prhs[0];
   const mxArray * image_2_mx = prhs[1];
 
-	const int * sizeImage;
-	sizeImage = mxGetDimensions(image_1_mx);
-	int width = sizeImage[1], height = sizeImage[0];
+    const int * sizeImage;
+    sizeImage = mxGetDimensions(image_1_mx);
+    int width = sizeImage[1], height = sizeImage[0];
 
   unsigned char * image_1 = (unsigned char *) mxGetPr(image_1_mx);
   unsigned char * image_2 = (unsigned char *) mxGetPr(image_2_mx);

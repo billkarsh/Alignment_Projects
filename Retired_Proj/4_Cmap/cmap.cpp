@@ -33,7 +33,7 @@ FILE	*ft = FileOpenOrDie( name, "r" );
 for(;;) {
     double a,b,c,d,e,f;
     if( fscanf(ft, "%lf %lf %lf %lf %lf %lf", &a, &b, &c, &d, &e, &f) != 6 )
-	break;
+    break;
     TAffine t(a,c,e,b,d,f);  // file is in matlab order
     ts.push_back(t);
     }
@@ -64,21 +64,21 @@ for(int i=1; i<argc; i++) {
     // process arguments here
     fprintf(flog,"%s ", argv[i]);
     if( strcmp(argv[i],"-o") == 0 && i+1 < argc )
-	OVERLAP = atoi(argv[i+1]);
+    OVERLAP = atoi(argv[i+1]);
     if( strcmp(argv[i],"-t") == 0 && i+1 < argc )
-	THRESHOLD = atof(argv[i+1]);
+    THRESHOLD = atof(argv[i+1]);
     if( strcmp(argv[i],"-r") == 0 && i+1 < argc )
-	RADIUS = atoi(argv[i+1]);
+    RADIUS = atoi(argv[i+1]);
     if( strcmp(argv[i],"-f") == 0 )
-	WriteBack = true;
+    WriteBack = true;
     if( strcmp(argv[i],"-tr") == 0 )
-	Transpose = true;
+    Transpose = true;
     if( strcmp(argv[i],"-ws") == 0 )
-	WithinSection = true;
+    WithinSection = true;
     if( strcmp(argv[i],"-af") == 0 )
-	AllFiles = true;
+    AllFiles = true;
     if( strcmp(argv[i],"-tnc") == 0 )
-	TestingNormCorr = true;
+    TestingNormCorr = true;
     }
 if( AllFiles && argc < 7 ) {
     printf("Not enough args for '-af' option.\n");
@@ -125,41 +125,41 @@ for(int i=0; i<w1*h1; i++) {
     int x = i - w1 * y;
 
     if( amap[i] == 0 && bmap[i] == 0 ) {
-	nmb++;
-	raster[i] |= 0x808080;  // medium gray
+    nmb++;
+    raster[i] |= 0x808080;  // medium gray
         }
     else if( amap[i] != 0 && bmap[i] == 0 ) {
-	ao++;
-	raster[i] |= 0xA0A0A0;  // lighter gray
-	}
+    ao++;
+    raster[i] |= 0xA0A0A0;  // lighter gray
+    }
     else if( amap[i] == 0 && bmap[i] != 0 ) {
-	bo++;
-	raster[i] |= 0x606060;  // darker gray
-	}
+    bo++;
+    raster[i] |= 0x606060;  // darker gray
+    }
     else { // both are mapped
-	Point pa(x,y), pb(x,y);
-	at[amap[i]-10].Transform( pa );
-	bt[bmap[i]-10].Transform( pb );
-	double d2 = (pa.x-pb.x)*(pa.x-pb.x) + (pa.y-pb.y)*(pa.y-pb.y);
+    Point pa(x,y), pb(x,y);
+    at[amap[i]-10].Transform( pa );
+    bt[bmap[i]-10].Transform( pb );
+    double d2 = (pa.x-pb.x)*(pa.x-pb.x) + (pa.y-pb.y)*(pa.y-pb.y);
         double d = sqrt(d2);
         if( np++ < plimit )
-	    printf("%d,%d -> %d(%9.2f %9.2f) : %d(%9.2f %9.2f) = %f\n", x, y, amap[i], pa.x, pa.y, bmap[i], pb.x, pb.y, d);
+        printf("%d,%d -> %d(%9.2f %9.2f) : %d(%9.2f %9.2f) = %f\n", x, y, amap[i], pa.x, pa.y, bmap[i], pb.x, pb.y, d);
         stats.Element(d);
         peak = max(peak, d);
-	if( d <= 1.0 ) {
-	    int color =  127 + int(d*10)*12;
+    if( d <= 1.0 ) {
+        int color =  127 + int(d*10)*12;
             raster[i] |= (color << 8);  // green
-	    }
+        }
         else if( d < 3.0 ) {
-	    int color =  127 + int((d-1)*10)*6;
+        int color =  127 + int((d-1)*10)*6;
             raster[i] |= (color << 16);  // blue
-	    }
+        }
         else {
             int color = 127 + int(d-3)*6;
             if (color > 255) color = 255;
-	    raster[i] |= color;
-	    }
-	}
+        raster[i] |= color;
+        }
+    }
     }
 
 // Write it out

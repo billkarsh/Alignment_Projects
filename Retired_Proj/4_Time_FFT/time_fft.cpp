@@ -44,13 +44,13 @@ for(int i=0; i<n1; i++) {
     fftw_execute(p1); /* repeat as needed */
     fftw_execute(p2);
     for(int j=0; j<M; j++)
-	out1[j] = out1[j]*conj(out2[j]);
+    out1[j] = out1[j]*conj(out2[j]);
     fftw_execute(p3);
     big=-1.0E30;
     bigj = -1;
     for(int j=0; j<N*N; j++) {
-	if( out[j] > big ) {
-	   big = out[j];
+    if( out[j] > big ) {
+       big = out[j];
            bigj = j;
            }
         }

@@ -15,18 +15,18 @@ cp imageparams.txt pts.all
 
 for lyr in $(seq $1 $2)
 do
-	cat $idb/$lyr/fm.same >> pts.all
+    cat $idb/$lyr/fm.same >> pts.all
 done
 
 for lyr in $(seq $1 $2)
 do
-	echo $lyr
-	if (($lyr == $1))
-	then
-		cat $lyr/S0_0/pts.same >> pts.all
-	else
-		cat $lyr/{S0_0/pts.same,D0_0/pts.down} >> pts.all
-	fi
+    echo $lyr
+    if (($lyr == $1))
+    then
+        cat $lyr/S0_0/pts.same >> pts.all
+    else
+        cat $lyr/{S0_0/pts.same,D0_0/pts.down} >> pts.all
+    fi
 done
 
 mv pts.all stack

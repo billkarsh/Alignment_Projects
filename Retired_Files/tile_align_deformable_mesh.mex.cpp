@@ -59,9 +59,9 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
   else
     params = (char *)calloc(1, sizeof(char));  // make an empty string
 
-	const int * sizeImage;
-	sizeImage = mxGetDimensions(image_1_mx);
-	int width = sizeImage[1], height = sizeImage[0];
+    const int * sizeImage;
+    sizeImage = mxGetDimensions(image_1_mx);
+    int width = sizeImage[1], height = sizeImage[0];
 
   unsigned char * image_1 = (unsigned char *) mxGetPr(image_1_mx);
   unsigned char * fold_mask_1 = (unsigned char *) mxGetPr(fold_mask_1_mx);

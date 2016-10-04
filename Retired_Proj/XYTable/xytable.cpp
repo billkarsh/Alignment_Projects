@@ -19,16 +19,16 @@
 
 class Entry {
 public:
-	TAffine	T;
-	int		z, id;
+    TAffine	T;
+    int		z, id;
 };
 
 
 class CTbl {
 public:
-	vector<Entry>	vE;
+    vector<Entry>	vE;
 public:
-	void GetFile( const char *name );
+    void GetFile( const char *name );
 };
 
 /* --------------------------------------------------------------- */
@@ -37,12 +37,12 @@ public:
 
 class CArgs_xytbl {
 public:
-	char	*infile;
-	int		z;
+    char	*infile;
+    int		z;
 public:
-	CArgs_xytbl() : infile(NULL), z(-1) {};
+    CArgs_xytbl() : infile(NULL), z(-1) {};
 
-	void SetCmdLine( int argc, char* argv[] );
+    void SetCmdLine( int argc, char* argv[] );
 };
 
 /* --------------------------------------------------------------- */
@@ -66,30 +66,30 @@ void CArgs_xytbl::SetCmdLine( int argc, char* argv[] )
 {
 // start log
 
-	flog = FileOpenOrDie( "xytable.txt", "w" );
+    flog = FileOpenOrDie( "xytable.txt", "w" );
 
 // parse command line args
 
-	if( argc < 2 ) {
-		printf( "Usage: xytable fileA [options].\n" );
-		exit( 42 );
-	}
+    if( argc < 2 ) {
+        printf( "Usage: xytable fileA [options].\n" );
+        exit( 42 );
+    }
 
-	for( int i = 1; i < argc; ++i ) {
+    for( int i = 1; i < argc; ++i ) {
 
-		if( argv[i][0] != '-' )
-			infile = argv[i];
-		else if( GetArg( &z, "-z=%d", argv[i] ) )
-			;
-		else {
-			printf( "Did not understand option '%s'.\n", argv[i] );
-			exit( 42 );
-		}
-	}
+        if( argv[i][0] != '-' )
+            infile = argv[i];
+        else if( GetArg( &z, "-z=%d", argv[i] ) )
+            ;
+        else {
+            printf( "Did not understand option '%s'.\n", argv[i] );
+            exit( 42 );
+        }
+    }
 
 // headers
 
-	fprintf( flog, "Za\tTa\tZb\tTb\tX\tY\n" );
+    fprintf( flog, "Za\tTa\tZb\tTb\tX\tY\n" );
 }
 
 /* --------------------------------------------------------------- */
@@ -98,36 +98,36 @@ void CArgs_xytbl::SetCmdLine( int argc, char* argv[] )
 
 void CTbl::GetFile( const char *name )
 {
-	FILE		*f = FileOpenOrDie( name, "r" );
-	CLineScan	LS;
+    FILE		*f = FileOpenOrDie( name, "r" );
+    CLineScan	LS;
 
-	if( LS.Get( f ) <= 0 )
-		goto close;
+    if( LS.Get( f ) <= 0 )
+        goto close;
 
-	for(;;) {
+    for(;;) {
 
-		Entry	E;
-		int		rgn;
+        Entry	E;
+        int		rgn;
 
-		if( LS.Get( f ) <= 0 )
-			break;
+        if( LS.Get( f ) <= 0 )
+            break;
 
-		sscanf( LS.line,
-		"%d\t%d\t%d"
-		"\t%lf\t%lf\t%lf"
-		"\t%lf\t%lf\t%lf",
-		&E.z, &E.id, &rgn,
-		&E.T.t[0], &E.T.t[1], &E.T.t[2],
-		&E.T.t[3], &E.T.t[4], &E.T.t[5] );
+        sscanf( LS.line,
+        "%d\t%d\t%d"
+        "\t%lf\t%lf\t%lf"
+        "\t%lf\t%lf\t%lf",
+        &E.z, &E.id, &rgn,
+        &E.T.t[0], &E.T.t[1], &E.T.t[2],
+        &E.T.t[3], &E.T.t[4], &E.T.t[5] );
 
-		if( gArgs.z >= 0 && E.z != gArgs.z )
-			continue;
+        if( gArgs.z >= 0 && E.z != gArgs.z )
+            continue;
 
-		vE.push_back( E );
-	}
+        vE.push_back( E );
+    }
 
 close:
-	fclose( f );
+    fclose( f );
 }
 
 /* --------------------------------------------------------------- */
@@ -136,33 +136,33 @@ close:
 
 static void Record()
 {
-	int	n = A.vE.size();
+    int	n = A.vE.size();
 
-	for( int i = 0; i < n - 1; ++i ) {
+    for( int i = 0; i < n - 1; ++i ) {
 
-		const Entry&	ei = A.vE[i];
+        const Entry&	ei = A.vE[i];
 
-		for( int j = i + 1; j < n; ++j ) {
+        for( int j = i + 1; j < n; ++j ) {
 
-			const Entry&	ej = A.vE[j];
+            const Entry&	ej = A.vE[j];
 
-			TAffine	ab;
+            TAffine	ab;
 
-			ab.FromAToB( ei.T, ej.T );
+            ab.FromAToB( ei.T, ej.T );
 
-			if( fabs( ab.t[2] ) > 4096 ||
-				fabs( ab.t[5] ) > 4096 ) {
+            if( fabs( ab.t[2] ) > 4096 ||
+                fabs( ab.t[5] ) > 4096 ) {
 
-				continue;
-			}
+                continue;
+            }
 
-			fprintf( flog,
-			"%d\t%d\t%d\t%d"
-			"\t%f\t%f\n",
-			ei.z, ei.id, ej.z, ej.id,
-			ab.t[2], ab.t[5] );
-		}
-	}
+            fprintf( flog,
+            "%d\t%d\t%d\t%d"
+            "\t%f\t%f\n",
+            ei.z, ei.id, ej.z, ej.id,
+            ab.t[2], ab.t[5] );
+        }
+    }
 }
 
 /* --------------------------------------------------------------- */
@@ -175,28 +175,28 @@ int main( int argc, char **argv )
 /* Parse command line */
 /* ------------------ */
 
-	gArgs.SetCmdLine( argc, argv );
+    gArgs.SetCmdLine( argc, argv );
 
 /* ---- */
 /* Read */
 /* ---- */
 
-	A.GetFile( gArgs.infile );
+    A.GetFile( gArgs.infile );
 
 /* ----- */
 /* Print */
 /* ----- */
 
-	Record();
+    Record();
 
 /* ---- */
 /* Done */
 /* ---- */
 
 exit:
-	fclose( flog );
+    fclose( flog );
 
-	return 0;
+    return 0;
 }
 
 

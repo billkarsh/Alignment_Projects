@@ -57,28 +57,28 @@ int main(int argc, char* argv[])
 
         // Now try to find a transform with a good match.
         for(double step=1; step > 0.05; ) {
-	    vector<Point> Tpoints = Plist;   //   Start with locs in source
-	    t.Transform( Tpoints );            // Transform to locations in target
-	    vector<double> Tpixels;          // Get the pixel values
-	    ValuesFromImageAndPoints(Tpixels, raster2, w, Tpoints);
-	    Normalize(Tpixels);
+        vector<Point> Tpoints = Plist;   //   Start with locs in source
+        t.Transform( Tpoints );            // Transform to locations in target
+        vector<double> Tpixels;          // Get the pixel values
+        ValuesFromImageAndPoints(Tpixels, raster2, w, Tpoints);
+        Normalize(Tpixels);
             double start = CorrVectors(NULL, spv, Tpixels);
-	    printf(" %f %f %f %f %f %f: correlation %f\n",
+        printf(" %f %f %f %f %f %f: correlation %f\n",
              t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5], start);
             double best_so_far = start;
             TAffine tbest;  // best transform found
             int bdir = -1;  // flag to tell what the best direction is
             for(int dir=0; dir < 8; dir++) {
-		double sx = step*cos(dir/8.0*2*PI);
-		double sy = step*sin(dir/8.0*2*PI);
+        double sx = step*cos(dir/8.0*2*PI);
+        double sy = step*sin(dir/8.0*2*PI);
                 TAffine t2( t );
                 t2.AddXY( sx, sy );
-		vector<Point> Tpoints = Plist;   //   Start with locs in source
-		t2.Transform( Tpoints );            // Transform to locations in target
-		ValuesFromImageAndPoints(Tpixels, raster2, w, Tpoints);
-		Normalize(Tpixels);
+        vector<Point> Tpoints = Plist;   //   Start with locs in source
+        t2.Transform( Tpoints );            // Transform to locations in target
+        ValuesFromImageAndPoints(Tpixels, raster2, w, Tpoints);
+        Normalize(Tpixels);
                 double nc = CorrVectors(NULL, spv, Tpixels);
-	        //printf(" case %d: correlation is %f\n", dir, nc);
+            //printf(" case %d: correlation is %f\n", dir, nc);
                 if (nc > best_so_far){
                     best_so_far = nc;
                     tbest.CopyIn( t2 );
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
                     }
                 }
             Point cog;  // Center of gravity
-	    cog = FindCOG(Plist);
+        cog = FindCOG(Plist);
             //printf("original GOG is %f %f\n", cog.x, cog.y);
 
             for(int rot = -1; rot<2; rot += 2) {  // try two rotations, too
@@ -95,12 +95,12 @@ int main(int argc, char* argv[])
                 R.SetCWRot( rot * step, cog );
                 t2 = R * t;
 
-		vector<Point> Tpoints = Plist;   //   Start with locs in source
-		t2.Transform( Tpoints );            // Transform to locations in target
-		ValuesFromImageAndPoints(Tpixels, raster2, w, Tpoints);
-		Normalize(Tpixels);
+        vector<Point> Tpoints = Plist;   //   Start with locs in source
+        t2.Transform( Tpoints );            // Transform to locations in target
+        ValuesFromImageAndPoints(Tpixels, raster2, w, Tpoints);
+        Normalize(Tpixels);
                 double nc = CorrVectors(NULL, spv, Tpixels);
-	        //printf(" rotated case %d: correlation is %f\n", rot, nc);
+            //printf(" rotated case %d: correlation is %f\n", rot, nc);
                 if (nc > best_so_far){
                     best_so_far = nc;
                     bdir = 10;
@@ -116,14 +116,14 @@ int main(int argc, char* argv[])
             }
         // Now t is the best transform we can find.
 
-	DrawLine(r2, w, h, p1.x, p1.y, p2.x, p2.y);
-	DrawLine(r2, w, h, p2.x, p2.y, p3.x, p3.y);
-	DrawLine(r2, w, h, p3.x, p3.y, p1.x, p1.y);
+    DrawLine(r2, w, h, p1.x, p1.y, p2.x, p2.y);
+    DrawLine(r2, w, h, p2.x, p2.y, p3.x, p3.y);
+    DrawLine(r2, w, h, p3.x, p3.y, p1.x, p1.y);
         t.Transform( tri );
         printf("Drew one\n");
         for(int i=0; i<3; i++) {
             int j = (i+1)%3;
-	    DrawLine(rt, w2, h2, tri[i].x, tri[i].y, tri[j].x, tri[j].y);
+        DrawLine(rt, w2, h2, tri[i].x, tri[i].y, tri[j].x, tri[j].y);
             }
         printf("Drew two\n");
         }
@@ -132,8 +132,8 @@ int main(int argc, char* argv[])
    RasterFree(raster2);
 
 // Write results
-	Raster8ToTif8( "s.tif", r2, w, h );
-	Raster8ToTif8( "t.tif", rt, w2, h2 );
+    Raster8ToTif8( "s.tif", r2, w, h );
+    Raster8ToTif8( "t.tif", rt, w2, h2 );
 
     return 0;
 }

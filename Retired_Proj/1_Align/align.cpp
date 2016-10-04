@@ -40,11 +40,11 @@ uint8 *ReadTiffWithCache(char *name, uint32 &w, uint32 &h, FILE *flog, bool Tran
 Tick++;
 for(int i=0; i<TiffCache.size(); i++) {
     if( strcmp(TiffCache[i].name, name) == 0 ) {
-	w = TiffCache[i].w;
-	h = TiffCache[i].h;
+    w = TiffCache[i].w;
+    h = TiffCache[i].h;
         TiffCache[i].last_used = Tick;
-	return TiffCache[i].raster;
-	}
+    return TiffCache[i].raster;
+    }
     }
 // Not in the cache, so read it
 TiffInfo ti;
@@ -61,10 +61,10 @@ if( TiffCache.size() <= CSIZE ) {
 else { // find the last used one, and replace it
     int old = Tick;
     for(int i=0; i<TiffCache.size(); i++) {
-	if( TiffCache[i].last_used < old ) {
-	    old = TiffCache[i].last_used;
+    if( TiffCache[i].last_used < old ) {
+        old = TiffCache[i].last_used;
             oldest = i;
-	    }
+        }
         }
     free(TiffCache[oldest].name);
     RasterFree(TiffCache[oldest].raster);
@@ -88,13 +88,13 @@ return TiffCache[oldest].raster;
 // noa[6] = transform file (tif)
 //
 static void ReadAFileSet(
-	vector<char*>	&noa,
-	FILE			*flog,
-	FILE			*fcorr,
-	bool			NoFolds )
+    vector<char*>	&noa,
+    FILE			*flog,
+    FILE			*fcorr,
+    bool			NoFolds )
 {
-	if( !DskExists( noa[5] ) || !DskExists( noa[6] ) )
-		return;
+    if( !DskExists( noa[5] ) || !DskExists( noa[6] ) )
+        return;
 
 time_t t0 = time(NULL);
 char atime[32];
@@ -178,11 +178,11 @@ for(int x=0; x<w; x++) {
     for(int y=0; y<h; y++) {
         int n = rmap[x+w*y];
         if( n-10 >= Ntrans ) {
-	    printf("odd - n=%d, Ntrans=%d\n", n, Ntrans);
+        printf("odd - n=%d, Ntrans=%d\n", n, Ntrans);
             exit(-1);  // illegal transform number
             }
-	if( n >= 10 ) {
-	    sums[n-10].x += x;
+    if( n >= 10 ) {
+        sums[n-10].x += x;
             sums[n-10].y += y;
             pcount[n-10]++;
             }
@@ -197,7 +197,7 @@ for(int i=0; i<Ntrans; i++) {
     int ix = (int)sums[i].x; int iy = (int)sums[i].y;
     int patcha = -1;
     if( ix < w && iy < h )
-	patcha = fold_mask_a[ix+w*iy];
+    patcha = fold_mask_a[ix+w*iy];
     if( patcha <= 0 ) {
         printf("   WARNING: patch center not in patch at (%f %f) in patch %d of image 'above'?\n", sums[i].x, sums[i].y, patcha);
         printf("To reproduce, try this:\n");
@@ -210,7 +210,7 @@ for(int i=0; i<Ntrans; i++) {
     ix = (int)sums[i].x; iy = (int)sums[i].y;
     int patchb = -1;
     if( ix < w && iy < h )
-	patchb = fold_mask_b[ix+w*iy];
+    patchb = fold_mask_b[ix+w*iy];
     if( patchb <= 0 ) {
         printf("   WARNING: Point maps to (%f %f) in patch %d of image 'below'?\n", sums[i].x, sums[i].y, patchb);
         printf("To reproduce, try this:\n");
@@ -222,38 +222,38 @@ for(int i=0; i<Ntrans; i++) {
 
         fprintf(fcorr,"POINT %s::%d %f %f", noa[1], patcha, Center.x, Center.y);
         fprintf(fcorr," %s::%d %f %f\n", noa[2], patchb, sums[i].x, sums[i].y);
-	}
+    }
     }
 #endif
 
 for( int i = 0; i < Ntrans; ++i ) {
 
-	Point	p( sums[i].x / pcount[i], sums[i].y / pcount[i] );
-	int		mv, ix, iy;
+    Point	p( sums[i].x / pcount[i], sums[i].y / pcount[i] );
+    int		mv, ix, iy;
 
-	ix = int(p.x);
-	iy = int(p.y);
+    ix = int(p.x);
+    iy = int(p.y);
 
-	if( ix >= 0 && ix < w && iy >= 0 && iy < h )
-		mv = fold_mask_a[ix + w*iy];
-	else
-		mv = 0;
+    if( ix >= 0 && ix < w && iy >= 0 && iy < h )
+        mv = fold_mask_a[ix + w*iy];
+    else
+        mv = 0;
 
-	fprintf( fcorr,
-	"POINT %s::%d %f %f", noa[1], mv, p.x, p.y );
+    fprintf( fcorr,
+    "POINT %s::%d %f %f", noa[1], mv, p.x, p.y );
 
-	tfs[i].Transform( p );
+    tfs[i].Transform( p );
 
-	ix = int(p.x);
-	iy = int(p.y);
+    ix = int(p.x);
+    iy = int(p.y);
 
-	if( ix >= 0 && ix < w && iy >= 0 && iy < h )
-		mv = fold_mask_b[ix + w*iy];
-	else
-		mv = 0;
+    if( ix >= 0 && ix < w && iy >= 0 && iy < h )
+        mv = fold_mask_b[ix + w*iy];
+    else
+        mv = 0;
 
-	fprintf( fcorr,
-	" %s::%d %f %f\n", noa[2], mv, p.x, p.y );
+    fprintf( fcorr,
+    " %s::%d %f %f\n", noa[2], mv, p.x, p.y );
 }
 
 // Free all the stuff we don't need any more.  Not important to program results, but makes leak checking easier.
@@ -274,13 +274,13 @@ vector<char *>noa;  // non-option arguments
 for(int i=1; i<argc; i++) {
     // process arguments here
     if( argv[i][0] != '-' )
-	noa.push_back(argv[i]);
+    noa.push_back(argv[i]);
     if( strncmp(argv[i],"-f",2) == 0 )
-	WhereToWrite = strdup(argv[i]+2);
+    WhereToWrite = strdup(argv[i]+2);
     if( strcmp(argv[i],"-tr") == 0 )
-	Transpose = true;
+    Transpose = true;
     if( strcmp(argv[i],"-nf") == 0 )
-	NoFolds = true;
+    NoFolds = true;
     }
 string log_file = "align.log";
 
@@ -299,7 +299,7 @@ fprintf(flog,"\n");
 
 // open file for the corresponding points
 FILE	*fcorr =  FileOpenOrDie(
-		(WhereToWrite ? WhereToWrite : "corr_pts.txt"), "w", flog );
+        (WhereToWrite ? WhereToWrite : "corr_pts.txt"), "w", flog );
 
 for( int i = 0; i < noa.size(); ++i ) {
 
@@ -309,30 +309,30 @@ for( int i = 0; i < noa.size(); ++i ) {
 
     for( n = LS.Get( fp ); n > 0; n = LS.Get( fp ) ) {
 
-		//printf( "line is '%s'\n", LS.line );
+        //printf( "line is '%s'\n", LS.line );
 
-		char *p = strtok( LS.line, " \"\n" );
+        char *p = strtok( LS.line, " \"\n" );
 
-		if( p != NULL &&
-			(strstr( p, "deformable" ) || strstr( p, "ptest" )) ) {
+        if( p != NULL &&
+            (strstr( p, "deformable" ) || strstr( p, "ptest" )) ) {
 
-			// line starts with a token containing 'deformable' or 'ptest'.  THis is an alignment command
-			vector<char *>	args;
+            // line starts with a token containing 'deformable' or 'ptest'.  THis is an alignment command
+            vector<char *>	args;
 
-			for(
-				p = strtok( NULL, " \"\n" );
-				p != NULL;
-				p = strtok( NULL, " \"\n" ) ) {
+            for(
+                p = strtok( NULL, " \"\n" );
+                p != NULL;
+                p = strtok( NULL, " \"\n" ) ) {
 
-				//printf( "Token is '%s'\n", p );
+                //printf( "Token is '%s'\n", p );
 
-				if( p[0] != '-' )
-					args.push_back( p );
-			}
+                if( p[0] != '-' )
+                    args.push_back( p );
+            }
 
-			ReadAFileSet( args, flog, fcorr, NoFolds );
-		}
-	}
+            ReadAFileSet( args, flog, fcorr, NoFolds );
+        }
+    }
 
     fclose( fp );
 }
