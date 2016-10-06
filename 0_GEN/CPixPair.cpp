@@ -238,13 +238,13 @@ bool PixPair::Load(
 
     if( !aras || !bras ) {
         fprintf( flog,
-        "PixPair: Picture load failure.\n" );
+        "FAIL: PixPair: Picture load failure.\n" );
         goto exit;
     }
 
     if( wa != wb || ha != hb ) {
         fprintf( flog,
-        "PixPair: Nonmatching picture dimensions.\n" );
+        "FAIL: PixPair: Nonmatching picture dimensions.\n" );
         goto exit;
     }
 
@@ -438,7 +438,7 @@ bool PixPair::Load(
         if( ws * scl != wf || hs * scl != hf ) {
 
             fprintf( flog,
-            "PixPair: Dimensions not multiple of scale!\n" );
+            "FAIL: PixPair: Dimensions not multiple of scale!\n" );
             goto exit;
         }
 
