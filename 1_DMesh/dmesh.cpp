@@ -142,7 +142,7 @@ void Matches::Tabulate(
 
                 ra = fold_mask_a[ix + wf*iy];
 
-                if( ra <= 0 ) {
+                if( ra < 0 ) {
 
                     fprintf( flog,
                     "Tabulate: Rgn %d -> %d Tri %d:"
@@ -153,7 +153,7 @@ void Matches::Tabulate(
                     continue;
                 }
 
-                if( ra != vstat[istat].argn ) {
+                if( ra > 0 && ra != vstat[istat].argn ) {
 
                     fprintf( flog,
                     "Tabulate: Rgn %d -> %d Tri %d:"
@@ -186,7 +186,7 @@ void Matches::Tabulate(
 
                 rb = fold_mask_b[ix + wf*iy];
 
-                if( rb <= 0 ) {
+                if( rb < 0 ) {
 
                     fprintf( flog,
                     "Tabulate: Rgn %d -> %d Tri %d:"
@@ -197,7 +197,7 @@ void Matches::Tabulate(
                     continue;
                 }
 
-                if( rb != vstat[istat].brgn ) {
+                if( rb > 0 && rb != vstat[istat].brgn ) {
 
                     fprintf( flog,
                     "Tabulate: Rgn %d -> %d Tri %d:"
