@@ -12,6 +12,7 @@ HEADERS += \
     $$PWD/dmesh.h \
     $$PWD/ImproveMesh.h \
     $$PWD/InSectionOverlap.h \
+    $$PWD/janelia.h \
     $$PWD/RegionToRegionMap.h
 
 SOURCES += \
@@ -25,5 +26,6 @@ SOURCES += \
     $$PWD/dmesh_unused.cpp \
     $$PWD/ImproveMesh.cpp \
     $$PWD/InSectionOverlap.cpp \
+    $$PWD/janelia.cpp \
     $$PWD/RegionToRegionMap.cpp
 
