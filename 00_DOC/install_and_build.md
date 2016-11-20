@@ -59,9 +59,10 @@ PATH=$PATH:/groups/apig/tomo/lou_stuff/binaries
 PATH=$PATH:/groups/apig/tomo/commands
 export PATH
 
+# --- prior to 10/06/2016 ---
 # Set place to look for libpng14 library
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
-export LD_LIBRARY_PATH
+#LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+#export LD_LIBRARY_PATH
 
 # Disable Intel MKL internal threading
 export MKL_NUM_THREADS=1
@@ -95,10 +96,14 @@ if [ -f /usr/local/INTEL2016.sh ]; then
      . /usr/local/INTEL2016.sh
 fi
 export I_MPI_DEBUG=0
-export I_MPI_RENDEZVOUS_RDMA_WRITE=1
-export I_MPI_DEVICE=rdssm:OpenIB-iwarp
-export I_MPI_FALLBACK_DEVICE=0
-export I_MPI_USE_DYNAMIC_CONNECTIONS=0
+export I_MPI_FABRICS=shm:ofa
+export I_MPI_FALLBACK=disable
+# --- prior to 10/06/2016 ---
+# export I_MPI_RENDEZVOUS_RDMA_WRITE=1
+# export I_MPI_DEVICE=rdssm:OpenIB-iwarp
+# export I_MPI_FALLBACK_DEVICE=0
+# export I_MPI_USE_DYNAMIC_CONNECTIONS=0
+# --- older ---
 # export I_MPI_OFA_USE_XRC=1
 # export I_MPI_OFA_DYNAMIC_QPS=1
 
