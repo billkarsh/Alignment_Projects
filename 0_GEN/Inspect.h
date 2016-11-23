@@ -32,6 +32,15 @@ void ABOverlay(
     const char		*comp_png = NULL,
     FILE			*flog = stdout );
 
+void ABStitch(
+    const PixPair	&px,
+    const uint16*	rmap,
+    int				Ntrans,
+    const TAffine*	tfs,
+    const TAffine*	ifs,
+    const char		*comp_png = NULL,
+    FILE			*flog = stdout );
+
 void RunCorrView(
     const PixPair	&px,
     const uint16*	rmap,

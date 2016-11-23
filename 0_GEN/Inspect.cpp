@@ -202,7 +202,8 @@ void ABOverlay(
 
 // In this section...
 // (a) Accumulate centroid data for each mapping region.
-// (b) For each point in A that maps onto B:
+// (b) For each point in A that maps onto B, that is,
+//     for each point in the A-B intersection region:
 //		(1) Store its tfs number in bmap.
 //		(2) Store the targeted B pixel value in bpix.
 
@@ -396,6 +397,229 @@ void ABOverlay(
 
 // Write it out
     Raster32ToPngRGBA( comp_png, &raster2[0], w2, h2, flog );
+}
+
+/* --------------------------------------------------------------- */
+/* ABStitch ------------------------------------------------------ */
+/* --------------------------------------------------------------- */
+
+// Modification of ABOverlay to write composite as grayscale.
+//
+// If comp_png omitted, default is './comp.png'.
+//
+void ABStitch(
+    const PixPair	&px,
+    const uint16*	rmap,
+    int				Ntrans,
+    const TAffine*	tfs,
+    const TAffine*	ifs,
+    const char		*comp_png,
+    FILE			*flog )
+{
+    int		w		= px.wf,
+            h		= px.hf,
+            npix	= w * h;
+    int		xmin	= -1000,			// overlay img limits...
+            xmax	= w + 1000,
+            ymin	= -1000,
+            ymax	= h + 1000;
+    int		w2		= xmax - xmin + 1,	// ...and its dims
+            h2		= ymax - ymin + 1,
+            npix2	= w2 * h2;
+
+    if( !comp_png )
+        comp_png = "comp.png";
+
+// init overlay images
+
+    vector<uint8>	raster2( npix2, 0 );
+    vector<float>	bpix( npix2, 0.0 );
+
+// In this section...
+// (a) Accumulate centroid data for each mapping region.
+// (b) For each point in A that maps onto B:
+//     for each point in the A-B intersection region:
+//		(1) Store its tfs number in bmap.
+//		(2) Store the targeted B pixel value in bpix.
+
+    vector<uint16>	bmap( npix, 0 );
+    vector<Point>	ctr( Ntrans, Point(0.0, 0.0) );
+    vector<int>		ncpts( Ntrans, 0 );
+    MeanStd			m;
+    double			mean, std;
+
+    for( int y = 0; y < h; ++y ) {
+
+        for( int x = 0; x < w; ++x ) {
+
+            int		mv = rmap[x + w*y] - 10;
+
+            if( mv >= Ntrans ) {
+
+                fprintf( flog,
+                "ABStitch: ERROR - tform idx=%d, Ntrans=%d\n",
+                mv, Ntrans );
+
+                return;
+            }
+
+            if( mv >= 0 ) {
+
+                ctr[mv].x += x;
+                ctr[mv].y += y;
+                ++ncpts[mv];
+
+                Point p( x, y );
+                tfs[mv].Transform( p );
+
+                int	ix = (int)p.x;
+                int	iy = (int)p.y;
+
+                if( ix >= 0 && ix < w && iy >= 0 && iy < h )
+                    bmap[ix + w*iy] = mv + 10;
+
+                // slightly stricter test for interpolation
+                if( p.x >= 0.0 && p.x < w-1 &&
+                    p.y >= 0.0 && p.y < h-1 ) {
+
+                    double	pix =
+                    InterpolatePixel( p.x, p.y, *px.bvf_vfy, w );
+
+                    bpix[(x-xmin) + w2*(y-ymin)] = pix;
+                    m.Element( pix );
+                }
+            }
+        }
+    }
+
+// Finish centroids and transform them to B-coords.
+
+    for( int i = 0; i < Ntrans; ++i ) {
+
+        ctr[i].x /= ncpts[i];
+        ctr[i].y /= ncpts[i];
+
+        fprintf( flog,
+            "ABStitch: region %d, center (%f %f) in A,"
+            " npixels=%d\n",
+            i, ctr[i].x, ctr[i].y, ncpts[i] );
+
+        tfs[i].Transform( ctr[i] );
+
+        fprintf( flog, "ABStitch: Maps to (%f %f) in image B.\n",
+        ctr[i].x, ctr[i].y );
+    }
+
+// Now we scan the bmap and characterize the regions.
+//
+// (1) If the bmap has a defined entry, that pixel is already
+//		included in bpix, so skip it.
+//
+// (2) If the closest (by centroid) ifs maps back to A
+//		omit it.
+//
+// (3) Otherwise, B-pixels not in A are added to composite.
+
+    for( int i = 0; i < npix; ++i ) {
+
+        int		iy = i / w;
+        int		ix = i - w * iy;
+
+        // only work on undefined pixels
+
+        if( bmap[ix + w*iy] < 10 ) {
+
+            // if no transforms, can't even guess
+            if( Ntrans <= 0 )
+                continue;
+
+            double	dbest	= 1.0E30;
+            int		best	= -1;
+
+            for( int q = 0; q < Ntrans; ++q ) {
+
+                double	dx	= ix - ctr[q].x;
+                double	dy	= iy - ctr[q].y;
+                double	d	= dx*dx + dy*dy;
+
+                if( d < dbest ) {
+                    dbest	= d;
+                    best	= q;
+                }
+            }
+
+            // using best tform, inverse map back to A
+
+            Point	p( ix, iy );
+            ifs[best].Transform( p );
+
+            if( p.x >= 0.0 && p.x < w && p.y >= 0.0 && p.y < h ) {
+
+            }
+            else {
+
+                const vector<double>&	bv = *px.bvf_vfy;
+
+                // Subtract (xmin, ymin) to place
+                // in larger composite.
+
+                p.x -= xmin;
+                p.y -= ymin;
+
+                double	pix = bv[ix + w*iy];
+
+                DistributePixel( p.x, p.y, pix, &bpix[0], w2, h2 );
+                m.Element( pix );
+            }
+        }
+    }
+
+// Transfer bpix to composite.
+
+    m.Stats( mean, std );
+
+    if( std ) {
+
+        for( int i = 0; i < npix2; ++i ) {
+
+            if( bpix[i] != 0.0 ) {
+
+                int	pix = 127 + int((bpix[i] - mean)/std*40.0);
+
+                if( pix < 0 )
+                    pix = 0;
+                else if( pix > 255 )
+                    pix = 255;
+
+                raster2[i] = pix;
+            }
+        }
+    }
+
+// Now make copy of A.
+
+    const vector<double>&	av = *px.avf_vfy;
+
+    for( int i = 0; i < npix; ++i ) {
+
+        int	iy	= i / w;
+        int	ix	= i - w * iy;
+        int	pix	= 127 + int(40 * av[i]);
+
+        if( pix < 0 )
+            pix = 0;
+        else if( pix > 255 )
+            pix = 255;
+
+        ix -= xmin;
+        iy -= ymin;
+
+        if( ix >= 0 && ix < w2 && iy >= 0 && iy < h2 )
+            raster2[ix + w2*iy] = pix;
+    }
+
+// Write it out
+    Raster8ToPng8( comp_png, &raster2[0], w2, h2, flog );
 }
 
 /* --------------------------------------------------------------- */
