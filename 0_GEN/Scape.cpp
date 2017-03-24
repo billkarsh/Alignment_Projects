@@ -149,6 +149,10 @@ static void Downsample( uint8 *ras, int &w, int &h, int iscl )
         w0 = w,
         xo, yo, xr, yr;
 
+// Averaging is always over iscl x iscl blocks.
+// (xo,yo) allows the block to line up with the
+// right-bottom edge of the image.
+
     yr = iscl - h % iscl;
     xr = iscl - w % iscl;
 
