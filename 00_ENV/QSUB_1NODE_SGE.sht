@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# Purpose:
+# Emit Sun Grid Engine qsub parallel-environment command
+# requesting <n> slots on single machine.
+#
+# > QSUB_1NODE.sht iclient "jobname" "stdoutfile" ierrfile slots "command"
+#
+# iclient is an index identifying the context from which this script
+# has been called...It's used to select an execution time hint for
+# the scheduler (times in seconds).
+#
+# stdoutfile names your stdout file. The empty string, "", selects
+# /dev/null, which suppresses output.
+#
+# ierrfile is one of {0,1}. Zero joins stderr to stdout. One creates
+# an error file named "<jobname>.e".
+#
+# Aligner requires:
+# -N <jobname>	;jobname
+# -cwd			;execute in current working directory
+# -V			;pass current environment vars to job
+# -b y			;command $5 can be binary or script
+# -pe <name> n	;parallel environment to use, n slots
+#
+# Set variable usr_params according to your local cluster
+# requirements and policies. For example, you may be able
+# to direct billing to a particular account.
+
+
+req_params="-cwd -V -b y"
+
+usr_params=""
+
+pe_name="batch"
+
+client_time[1]=$((5*60))		# fsub (make.fm list)
+client_time[2]=$((5*60))		# ssub (make.same list)
+client_time[3]=$((10*60))		# dsub (make.down list)
+client_time[4]=$((20))			# msub (each lyr, fast)
+client_time[5]=$((6*60))		# subscapes-midZ (each pair)
+client_time[6]=$((2*60))		# subscapes-topZ
+client_time[7]=$((20*60))		# bsub (each D-block)
+client_time[8]=$((5*60))		# single-node solver
+client_time[9]=$((60))			# finish (deprecated)
+client_time[10]=$((10*60))		# submos (deprecated)
+
+client_time[30]=$((10*60))		# MRCSD1Lyr
+client_time[31]=$((10*60))		# GrayRanger
+client_time[32]=$((10*60))		# HEQLayers
+client_time[33]=$((10*60))		# HistAll
+client_time[34]=$((10*60))		# RGBMerge
+
+selected_time=${client_time[$1]}
+
+if [ "$selected_time" != "" ]
+then
+  time_hint="-l d_rt=$selected_time"
+else
+  time_hint=""
+fi
+
+if [ "$3" != "" ]
+then
+  outfile=$3
+else
+  outfile="/dev/null"
+fi
+
+if [ $4 == 0 ]
+then
+  errorcmd="-j y"
+else
+  errorcmd="-e $2.e"
+fi
+
+qsub $time_hint -N $2 $req_params $usr_params -o $outfile $errorcmd -pe $pe_name $5 $6
+
