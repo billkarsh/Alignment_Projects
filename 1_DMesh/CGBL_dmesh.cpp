@@ -46,12 +46,12 @@ static void PrintUsage()
 {
     fprintf( stderr,
     "\n"
-    "Usage: za.ia^zb.ib [ options ], where,\n"
+    "Usage: ptest za.ia^zb.ib [ options ], where,\n"
     "\n"
-    "    za >= 0 (arb=using -jtilea option),\n"
-    "    ia >= 0 (-1=Janelia usage, arb=using -jtilea option),\n"
-    "    zb >= 0 (arb=using -jtileb option),\n"
-    "    ib >= 0 (-1=Janelia usage, arb=using -jtileb option).\n"
+    "    za >= 0 (overridden by -jtilea option),\n"
+    "    ia >= 0 (overridden by -jtilea option; sets to -1),\n"
+    "    zb >= 0 (overridden by -jtileb option),\n"
+    "    ib >= 0 (overridden by -jtileb option; sets to -1).\n"
     "\n"
     "    Options:\n"
     "      -jtilea=<URL to tile-A JSON>\n"
