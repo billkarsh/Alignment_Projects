@@ -35,7 +35,7 @@ do
         for jb in $(ls -d * | grep -E 'D[0-9]{1,}_[0-9]{1,}')
         do
             cd $jb
-            QSUB_1NODE.sht 7 "x$jb-$lyr" "" 8 "cross_thisblock -script=../../scriptparams.txt"
+            QSUB_1NODE.sht 7 "x$jb-$lyr" "" 1 8 "cross_thisblock -script=../../scriptparams.txt"
             cd ..
         done
 

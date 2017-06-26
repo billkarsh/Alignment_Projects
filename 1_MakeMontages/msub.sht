@@ -20,7 +20,7 @@ do
     then
         cd $lyr/montage
 
-        QSUB_1NODE.sht 4 "mon-$lyr" "" 1 "./runlsq.sht"
+        QSUB_1NODE.sht 4 "mon-$lyr" "" 1 1 "./runlsq.sht"
 
         cd ../..
     fi

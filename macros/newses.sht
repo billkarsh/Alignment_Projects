@@ -1,5 +1,6 @@
 #!/bin/sh
 
+qlogin -l interactive=true -pe batch $1
 
-qlogin -l new=true,interactive=true -pe batch $1
+#bsub -n $1 -Is /bin/bash
 

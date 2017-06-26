@@ -32,7 +32,7 @@ do
 
             if [ -e make.down ]
             then
-                QSUB_1NODE.sht 3 "q$jb-$lyr" "-o /dev/null" $nslot "make -f make.down -j $nproc EXTRA='""'"
+                QSUB_1NODE.sht 3 "q$jb-$lyr" "" 1 $nslot "make -f make.down -j $nproc EXTRA='""'"
             fi
 
             cd ..

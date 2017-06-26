@@ -24,7 +24,7 @@ do
     if [ -d "$lyr" ]
     then
         cd $lyr
-        QSUB_1NODE.sht 1 "makefm-$lyr" "-o /dev/null" $nslot "make -f make.fm -j $nproc EXTRA='""'"
+        QSUB_1NODE.sht 1 "makefm-$lyr" "" 1 $nslot "make -f make.fm -j $nproc EXTRA='""'"
         cd ..
     fi
 done

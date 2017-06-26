@@ -6,5 +6,5 @@
 # > ./sfinish.sht
 
 
-QSUB_1NODE.sht 9 "finish" "" 8 "./finish.sht"
+QSUB_1NODE.sht 9 "finish" "" 1 8 "./finish.sht"
 

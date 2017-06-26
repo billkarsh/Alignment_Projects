@@ -9,6 +9,6 @@ setenv MRC_TRIM 12
 
 for i in $(seq $2 $3)
 do
-    QSUB_1NODE.sht 30 "sd-$i" "-j y -o out.txt" 1 "MRCSD1Lyr $1 -z=$i"
+    QSUB_1NODE.sht 30 "sd-$i" "out.txt" 0 1 "MRCSD1Lyr $1 -z=$i"
 done
 

@@ -53,7 +53,7 @@ else
 fi
 
 
-#QSUB_1NODE.sht 0 "del-$srcdir" "" 8 "tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0"
+#QSUB_1NODE.sht 0 "del-$srcdir" "" 0 8 "tar -zcf $dstdir/Plate1_0.tar.gz $srcdir/Plate1_0"
 
-#QSUB_1NODE.sht 0 "del-$srcdir" "" 8 "tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop"
+#QSUB_1NODE.sht 0 "del-$srcdir" "" 0 8 "tar -zxf $srcdir/Plate1_0.tar.gz -C $dsttop"
 

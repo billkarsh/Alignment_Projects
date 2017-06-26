@@ -344,7 +344,7 @@ void CArgs::LaunchWorkers( const vector<Layer> &vL )
         else {	// qsub for desired slots
 
             sprintf( buf,
-            "QSUB_1NODE.sht 8 \"lsqw\" \"\" %d"
+            "QSUB_1NODE.sht 8 \"lsqw\" \"\" 1 %d"
             " \"lsqw -nwks=%d -temp=%s"
             " -cache=%s -prior=%s"
             " -mode=%s -Wr=%c,%g -Etol=%g -iters=%d"
