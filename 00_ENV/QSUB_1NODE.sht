@@ -15,7 +15,7 @@
 # /dev/null, which suppresses output.
 #
 # ierrfile is one of {0,1}. Zero joins stderr to stdout. One creates
-# an error file named "<jobname>.e".
+# an error file named "<jobname>.err".
 
 
 QSUB_1NODE_SGE.sht "$1" "$2" "$3" "$4" "$5" "$6"
