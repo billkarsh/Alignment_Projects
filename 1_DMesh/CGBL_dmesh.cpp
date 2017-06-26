@@ -136,9 +136,7 @@ bool CGBL_dmesh::SetCmdLine( int argc, char* argv[] )
 
     for( int i = 1; i < argc; ++i ) {
 
-        if( !argv[i][0] )
-            ;
-        else if( argv[i][0] != '-' )
+        if( argv[i][0] != '-' )
             key = argv[i];
         else if( GetArgList( vD, "-Tdfm=", argv[i] ) ) {
 
