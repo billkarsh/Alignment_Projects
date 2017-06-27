@@ -6,7 +6,15 @@
 # Run this after bsub completes to compile tables
 # of block alignment errors, FAILs and make sizes.
 #
-# > ./breport.sht
+# > ./breport.sht <zmin> [zmax]
+
+
+if (($# == 1))
+then
+	last=$1
+else
+	last=$2
+fi
 
 
 ls -l ../*/D*/xD*.e* > BlockErrs.txt
@@ -18,4 +26,22 @@ grep FAIL ../*/D*/cross_thisblock.log > BlockFAIL.txt
 grep -e "Final coverage" ../*/D*/cross_thisblock.log > BlockCoverage.txt
 
 grep -e "PeakHunt: Best" ../*/D*/cross_thisblock.log > BlockTForms.txt
+
+rm -f BlockNoMakes.txt
+touch BlockNoMakes.txt
+
+for lyr in $(seq $1 $last)
+do
+	echo $lyr
+	if [ -d "../$lyr" ]
+	then
+		for jb in $(ls -d ../$lyr/* | grep -E 'D[0-9]{1,}_[0-9]{1,}')
+		do
+			if [ ! -e $jb/make.down ]
+			then
+				echo "$jb" >> BlockNoMakes.txt
+			fi
+		done
+	fi
+done
 
