@@ -5,7 +5,7 @@
 # - Sun Grid Engine execution environment, or,
 # - IBM Spectrum LSF execution environment.
 #
-# > QSUB_1NODE_XXX.sht iclient "jobname" "stdoutfile" ierrfile slots "command"
+# > QSUB_1NODE.sht iclient "jobname" "stdoutfile" ierrfile slots "command"
 #
 # iclient is an index identifying the context from which this script
 # has been called...It's used to select an execution time hint for
