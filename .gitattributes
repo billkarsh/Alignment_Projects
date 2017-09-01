@@ -1,0 +1,3 @@
+# Check all text files in and out with lf endings
+* text eol=lf
+
