@@ -1,0 +1,245 @@
+
+
+# ==========================
+# ==========================
+# Standard build definitions
+# ==========================
+# ==========================
+
+
+# =======================
+# text processing helpers
+# =======================
+
+empty :=
+comma := ,
+space := $(empty) $(empty)
+
+# =================
+# source code paths
+# =================
+
+# EDIT THIS--FORREST
+# My git alignment repo lives here:
+
+PATH_SRCCODE := /code/Alignment_Projects
+
+# DON'T EDIT THIS--
+# Subdirs within my git repo:
+
+PATH_GEN := $(PATH_SRCCODE)/0_GEN
+PATH_UTL := $(PATH_SRCCODE)/0_UTL
+PATH_XML := $(PATH_SRCCODE)/0_XML
+PATH_BK  := $(PATH_SRCCODE)/0_BK
+
+# DON'T EDIT THIS--
+# Archives built by repo:
+
+STATICLIBS_GEN := $(PATH_GEN)/genlib.a
+STATICLIBS_UTL := $(PATH_UTL)/utllib.a
+STATICLIBS_XML := $(PATH_XML)/xmllib.a
+
+# ==================
+# output binary path
+# ==================
+
+# EDIT THIS--
+# I want my alignment output binaries to live here:
+
+PATH_OUT := /code/Alignment_Projects/bin
+
+# =======================
+# 3rd party library paths
+# =======================
+
+# EDIT THIS IF NOT AT JANELIA FARM--
+# We unconditionally need libraries {libtiff, libpng, libz},
+# so you MAY have to install those yourself. We have some
+# docs about that in Alignment_Projects/00_Libraries.
+#
+# Further, we need the paths for their include files and their
+# archive files. At Janelia Farm, these are preinstalled in a
+# shared public directory; our definitions look like this:
+
+PATH_USR_LIB := /usr/lib/x86_64-linux-gnu
+STATICLIBS_TIF := $(PATH_USR_LIB)/libtiff.a
+STATICLIBS_PNG := $(PATH_USR_LIB)/libpng.a
+STATICLIBS_ZLB := $(PATH_USR_LIB)/libz.a
+STATICLIBS_JBIG := $(PATH_USR_LIB)/libjbig.a
+STATICLIBS_LZMA := $(PATH_USR_LIB)/liblzma.a
+STATICLIBS_JPEG := $(PATH_USR_LIB)/libjpeg.a
+
+# ===================
+# FFT library support
+# ===================
+
+# EDIT THIS IF NOT AT JANELIA FARM--
+# You need one and only one of the following two FFT packages:
+# {fftw3, intel_MKL}. The MKL library is preferred because the
+# code is fully reentrant, so multithreaded application code
+# can forego serialization and run faster.
+#
+# If using MKL, you don't need to define a real 'PATH_FFT_INC'
+# because your bash.rc file will likely run a script to set
+# environment variables like this:
+#
+# if [ -f /usr/local/INTEL2016.sh ]; then
+#      . /usr/local/INTEL2016.sh
+# fi
+#
+# The following lets us easily select either package. Note that
+# 'FLAGS_MKL' controls compiler switch 'ALN_USE_MKL' which tells
+# the code which API to call.
+
+MKL_AVAILABLE := 1
+
+ifeq ($(MKL_AVAILABLE), 1)
+
+PATH_FFT_INC   := " "
+STATICLIBS_FFT := -lmkl_intel_lp64 -lmkl_sequential -lmkl_core
+FLAGS_MKL      := -DALN_USE_MKL
+
+else
+
+PATH_FFT       := $(PATH_PUBLIC)/FFT
+PATH_FFT_INC   := $(PATH_FFT)/include
+PATH_FFT_LIB   := $(PATH_FFT)/lib
+STATICLIBS_FFT := $(PATH_FFT_LIB)/libfftw3.a
+FLAGS_MKL      :=
+
+endif
+
+# =============
+# include paths
+# =============
+
+INCLUDES_STD := -I$(PATH_TIF_INC) -I$(PATH_PNG_INC) -I$(PATH_GEN) -I$(PATH_UTL) -I$(PATH_XML) -I$(PATH_FFT_INC)
+
+# ==================
+# standard libraries
+# ==================
+
+# -l option searches usual hierarchy for static library, e.g.,
+# -lXXX searches for 'libXXX.a'. -L option adds dirs to the
+# search hierarchy for -l option.
+
+# jpeg:		jpeg image format
+# m:		math
+# c:		c runtime
+# rt:		posix libraries (e.g. semaphore support)
+# curl:		libcurl parser for Janelia command lines
+
+USING_CURL := 0
+
+ifeq ($(USING_CURL), 1)
+
+OTHERLIBS_STD := -pthread -lm -lc -lrt -lcurl 
+FLAGS_URL     := -DUSE_CURL
+
+else
+
+OTHERLIBS_STD := -pthread -lm -lc -lrt 
+FLAGS_URL     :=
+
+endif
+
+# ==============================
+# combine all standard libraries
+# ==============================
+
+# IMPORTANT:
+# Libraries must be listed such that those with greater dependency are first
+# and the more independent libraries are toward the tail of the list.
+
+LINKS_STD :=\
+ $(STATICLIBS_GEN)\
+ $(STATICLIBS_UTL)\
+ $(STATICLIBS_XML)\
+ $(STATICLIBS_TIF)\
+ $(STATICLIBS_PNG)\
+ $(STATICLIBS_ZLB)\
+ $(STATICLIBS_FFT)\
+ $(STATICLIBS_JBIG)\
+ $(STATICLIBS_LZMA)\
+ $(STATICLIBS_JPEG)\
+ $(OTHERLIBS_STD)
+
+# ===========
+# g++ options
+# ===========
+
+CC := g++
+
+# -DXXX:				define symbol XXX
+# TIXML_USE_STL:		tinyxml uses std library
+# O3:					optimizer level 3 (max)
+
+# The following optimizations allow a developer to make classes with methods that
+# are used in some applications and not others. As long as the extra functionality
+# is never referenced in a given application, it will be stripped out.
+
+# fdata-sections:		separate data symbols (for linker removal)
+# ffunction-sections:	separate func symbols (for linker removal)
+# -Wl,XXX:				XXX is a linker option
+# --gc-sections:		garbage-collect unreferenced input sections
+# --strip-all:			omit symbols from output (makes smaller exe)
+
+CFLAGS := -pthread $(FLAGS_MKL) $(FLAGS_URL) -DTIXML_USE_STL -O3 -fdata-sections -ffunction-sections
+
+LFLAGS := -Wl,--gc-sections -Wl,--strip-all
+
+OUTPUT = -o $(PATH_OUT)/$@
+
+# Enable following lines to debug with gdb or Valgrind
+
+#CFLAGS := -pthread $(FLAGS_MKL) $(FLAGS_URL) -DTIXML_USE_STL -O0 -g
+#LFLAGS :=
+
+# ==============
+# standard rules
+# ==============
+
+# Notes:
+# (1) Place '@' in front of a rule to silence echoing the rule in build log.
+#
+# (2) This include file is usually included at the top of a make file.
+# Hence, the targets defined here will be ahead of targets such as 'all'
+# in the make file that uses this include. The default target when make
+# is run with no named target is usually the first defined and we want
+# that to be 'all' instead of 'CHECK_TINYLIB'. We put a '.' in front
+# of a target name here to exclude it from the default target search.
+
+%.o : %.cpp
+	$(CC) $(CFLAGS) $(INCLUDES_STD) -c $< -o $@
+
+.CHECK_ALL_LIBS : .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
+
+.CHECK_GENLIB :
+	@ (cd $(PATH_GEN) && $(MAKE))
+
+.CHECK_UTLLIB :
+	@ (cd $(PATH_UTL) && $(MAKE))
+
+.CHECK_TNYLIB :
+	@ (cd $(PATH_XML) && $(MAKE))
+
+.PHONY : .CHECK_ALL_LIBS .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
+
+# =================
+# development rules
+# =================
+
+DEV_PATH := $(PATH_OUT)/devtest
+
+DEV_OUTPUT = -o $(DEV_PATH)/$@
+
+.DEV_MKDIR :
+	@ (mkdir -p $(DEV_PATH))
+
+.PHONY : .DEV_MKDIR
+
+# =============================================
+# =============================================
+# =============================================
+
+
