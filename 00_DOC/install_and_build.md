@@ -158,5 +158,11 @@ Scripts generally use bash shell (.sh), but I choose to name my files (.sht) for
 
 _fin_
 
+### Docker build instructions
 
+```
+docker build ($USER)\alignment_projects .
+```
+
+then you should have an ubuntu image with MKL installed and compiled binaries at \usr\local\bin
 
