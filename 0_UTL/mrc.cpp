@@ -27,6 +27,35 @@ void FreeMRC( vector<uint16*> &vras )
 }
 
 
+static void Flip( vector<uint16*> &vras, uint32 w, uint32 h )
+{
+// Flip vertically: Fiji historically read mrc images upside down
+// for efficiency, because that's how rows are stored in the file.
+// Fiji switched to right side up reading and rendering Apr 2016.
+
+    int	nras = vras.size(), np = w * h, nrow = h / 2;
+
+    for( int iras = 0; iras < nras; ++iras ) {
+
+        uint16	*v1 = vras[iras],
+                *v2 = v1 + (np - w);
+
+        for( int r = 0; r < nrow; ++r ) {
+
+            for( int c = 0; c < w; ++c ) {
+
+                int t = v1[c];
+                v1[c] = v2[c];
+                v2[c] = t;
+            }
+
+            v1 += w;
+            v2 -= w;
+        }
+    }
+}
+
+
 static void Transpose( vector<uint16*> &vras, uint32 &w, uint32 &h )
 {
 // swap pixels
@@ -184,6 +213,10 @@ int ReadRawMRCFile(
     }
 
     fclose( fp );
+
+// Enable flipping for Fiji versions later than Apr 2016
+
+//    Flip( vras, w, h );
 
     if( transpose )
         Transpose( vras, w, h );
