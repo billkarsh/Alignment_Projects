@@ -1,9 +1,10 @@
 #!/bin/sh
 
 # Purpose:
-# You enable (uncomment) the appropriate line to dispatch cluster commands to either a:
+# Enable (uncomment) one line to dispatch cluster commands to either:
 # - Sun Grid Engine execution environment, or,
-# - IBM Spectrum LSF execution environment.
+# - IBM Spectrum LSF execution environment, or,
+# - SLURM execution environment.
 #
 # > QSUB_1NODE.sht iclient "jobname" "stdoutfile" ierrfile slots "command"
 #
@@ -21,4 +22,6 @@
 QSUB_1NODE_SGE.sht "$1" "$2" "$3" "$4" "$5" "$6"
 
 #QSUB_1NODE_LSF.sht "$1" "$2" "$3" "$4" "$5" "$6"
+
+#QSUB_1NODE_SLM.sht "$1" "$2" "$3" "$4" "$5" "$6"
 

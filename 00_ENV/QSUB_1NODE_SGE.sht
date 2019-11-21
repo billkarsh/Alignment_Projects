@@ -20,7 +20,7 @@
 # -N <jobname>	;jobname
 # -cwd			;execute in current working directory
 # -V			;pass current environment vars to job
-# -b y			;command $5 can be binary or script
+# -b y			;command can be binary or script
 # -pe <name> n	;parallel environment to use, n slots
 #
 # Set variable usr_params according to your local cluster
