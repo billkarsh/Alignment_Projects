@@ -5,6 +5,7 @@
 # - Sun Grid Engine execution environment, or,
 # - IBM Spectrum LSF execution environment, or,
 # - SLURM execution environment.
+# - PBS/Torque execution environment.
 #
 # > QSUB_1NODE.sht iclient "jobname" "stdoutfile" ierrfile slots "command"
 #
@@ -24,4 +25,6 @@ QSUB_1NODE_SGE.sht "$1" "$2" "$3" "$4" "$5" "$6"
 #QSUB_1NODE_LSF.sht "$1" "$2" "$3" "$4" "$5" "$6"
 
 #QSUB_1NODE_SLM.sht "$1" "$2" "$3" "$4" "$5" "$6"
+
+#QSUB_1NODE_PBS.sht "$1" "$2" "$3" "$4" "$5" "$6"
 
