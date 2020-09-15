@@ -60,32 +60,29 @@ static void Transpose( vector<uint16*> &vras, uint32 &w, uint32 &h )
 {
 // swap pixels
 
-    int	nr = vras.size(), np = w * h;
+    uint32          n = w * h;
+    vector<uint16>  t( n );
 
-    for( int ir = 0; ir < nr; ++ir ) {
+    for( int ir = 0, nr = vras.size(); ir < nr; ++ir ) {
 
-        uint16	*raster = vras[ir];
+        uint16  *A = vras[ir];
 
-        for( int i = 0; i < np; ++i ) {
+        for( uint32 i = 0; i < n; ++i ) {
 
-            int	t;
-            int	y = i / w,
-                x = i - w * y,
-                k = y + h * x;
+            uint32  y = i / w,
+                    x = i - w * y;
 
-            t			= raster[k];
-            raster[k]	= raster[i];
-            raster[i]	= t;
+            t[y + h * x] = A[i];
         }
+
+        memcpy( &A[0], &t[0], n * sizeof(uint16) );
     }
 
 // swap w and h
 
-    uint32	t;
-
-    t = w;
+    n = w;
     w = h;
-    h = t;
+    h = n;
 }
 
 

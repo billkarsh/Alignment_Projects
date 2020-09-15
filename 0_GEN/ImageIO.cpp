@@ -330,27 +330,24 @@ static void Transpose( uint8* raster, uint32 &w, uint32 &h )
 {
 // swap pixels
 
-    int	np = w * h;
+    uint32          n = w * h;
+    vector<uint8>   t( n );
 
-    for( int i = 0; i < np; ++i ) {
+    for( uint32 i = 0; i < n; ++i ) {
 
-        int	t;
-        int	y = i / w,
-            x = i - w * y,
-            k = y + h * x;
+        uint32  y = i / w,
+                x = i - w * y;
 
-        t			= raster[k];
-        raster[k]	= raster[i];
-        raster[i]	= t;
+        t[y + h * x] = raster[i];
     }
+
+    memcpy( &raster[0], &t[0], n * sizeof(uint8) );
 
 // swap w and h
 
-    uint32	t;
-
-    t = w;
+    n = w;
     w = h;
-    h = t;
+    h = n;
 }
 
 /* --------------------------------------------------------------- */
