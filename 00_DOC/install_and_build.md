@@ -30,11 +30,9 @@ Repo URL: <https://github.com/billkarsh/Alignment_Projects>
 - All our make files have this include statement: `include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs`. So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
 `export ALN_LOCAL_MAKE_PATH=/groups/~location_of_my_std_defs`. *(Example bash_profile edits below)*.
 
-### Customize Cluster 'qsub' Calls
+### Customize Cluster 'qsub' Dispatch Calls
 
-- Copy files **00_ENV/QSUB_{1NODE,MNODE}.sht** to a directory defined in your PATH environment variable. These define how our software should submit 'qsub' commands to your local cluster Grid Engine. Edit them to add any installation specific parameters. In particular, set variable 'pe_name' in QSUB_1NODE.sht. In our case, 'batch' is the local pe_name of the Grid Engine script that allocates n slots on a single machine and then runs the target command there.
-
-- At Janelia, our cluster now employs user-estimated execution time hints to optimize scheduling. These have the form: `-l d_rt=<seconds>`. Rather than compiling any times into the C-code, I've assigned each caller a hard-coded identifer index that is sent to the QSUB scripts as a parameter. The QSUB script uses the parameter to look up an empirically determined time. You can edit the scripts to adjust times or to disable the mechanism as needed.
+- Copy files **00_ENV/QSUB_{1NODE,MNODE}.sht** to a directory defined in your PATH environment variable. These define how our software should submit 'qsub' commands to your local cluster OS. You should only need to select the appropriate cluster type in **QSUB_1NODE.sht**, and possibly edit the corresponding **QSUB_1NODE_XXX.sht** to make adjustments for your policies. You should not need to edit the projects that call these cluster dispatch files.
 
 - MPI is not required unless you need to solve very large stacks on multiple machines. To enable that your system administrator must set up your Grid Engine with the requisite "impi3" parallel environment. Folder **00_impi3** contains resources for that. This is invoked from the QSUB_MNODE.sht script.
 
