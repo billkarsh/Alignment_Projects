@@ -230,18 +230,18 @@ OUTPUT = -o $(PATH_OUT)/$@
 # of a target name here to exclude it from the default target search.
 
 %.o : %.cpp
-    $(CC) $(CFLAGS) $(INCLUDES_STD) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES_STD) -c $< -o $@
 
 .CHECK_ALL_LIBS : .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
 
 .CHECK_GENLIB :
-    @ (cd $(PATH_GEN) && $(MAKE))
+	@ (cd $(PATH_GEN) && $(MAKE))
 
 .CHECK_UTLLIB :
-    @ (cd $(PATH_UTL) && $(MAKE))
+	@ (cd $(PATH_UTL) && $(MAKE))
 
 .CHECK_TNYLIB :
-    @ (cd $(PATH_XML) && $(MAKE))
+	@ (cd $(PATH_XML) && $(MAKE))
 
 .PHONY : .CHECK_ALL_LIBS .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
 
@@ -254,7 +254,7 @@ DEV_PATH := $(PATH_OUT)/devtest
 DEV_OUTPUT = -o $(DEV_PATH)/$@
 
 .DEV_MKDIR :
-    @ (mkdir -p $(DEV_PATH))
+	@ (mkdir -p $(DEV_PATH))
 
 .PHONY : .DEV_MKDIR
 
