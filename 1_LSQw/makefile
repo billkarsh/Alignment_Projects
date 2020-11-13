@@ -1,6 +1,7 @@
 
 include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 
+ifeq ($(USING_MPI), 1)
 # If Valgrind (run as valgrind --leak-check=yes <mycmdline>)
 #CFLAGS = -g -O0
 #LFLAGS =
@@ -9,6 +10,7 @@ include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs
 # and add -mt_mpi switch to LFLAGS
 CC := mpicxx
 LFLAGS += -mt_mpi
+endif
 
 appname = lsqw
 
@@ -32,8 +34,8 @@ objs = ${files:.cpp=.o}
 all : $(appname)
 
 clean :
-	rm -f *.o
+    rm -f *.o
 
 $(appname) : .CHECK_GENLIB ${objs}
-	$(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
+    $(CC) $(LFLAGS) ${objs} $(LINKS_STD) $(OUTPUT)
 

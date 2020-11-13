@@ -255,7 +255,11 @@ static void _WriteRunlsqFile( const char *path, int z, bool final )
         fprintf( f, "lsq -temp=../ -zi=%d,%d"
         " -prior=../cross_wkspc/X_A_BIN_scaf -untwist"
         " -mode=A2A -Wr=R,0 -Etol=500 -iters=10000"
+#ifdef USE_MPI
         " -zpernode=200 -maxthreads=%d\n",
+#else
+        " -zpernode=200 -maxthreads=%d -local\n",
+#endif
         gArgs.zmin, gArgs.zmax, scr.slotspernode );
     }
 

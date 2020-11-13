@@ -1,12 +1,15 @@
 
 
+#ifdef USE_MPI
 #include	<mpi.h>		// put me ahead of all includes
+#endif
 
 #include	"lsq_MPI.h"
 
 #include	"Cmdline.h"
 
 #include	<stdlib.h>
+#include	<stdio.h>
 
 
 /* --------------------------------------------------------------- */
@@ -41,6 +44,7 @@ void MPIInit( int& argc, char**& argv )
 
     int	thrdtype = -1;
 
+#ifdef USE_MPI
     if( nwks > 1 ) {
 
         // Start MPI
@@ -50,6 +54,7 @@ void MPIInit( int& argc, char**& argv )
 
         MPI_Comm_rank( MPI_COMM_WORLD, &wkid );
     }
+#endif
 
 // Create log file 'lsqw_i'
 
@@ -61,6 +66,7 @@ void MPIInit( int& argc, char**& argv )
 
 // MPI sanity checks
 
+#ifdef USE_MPI
     if( nwks > 1 ) {
 
         // Verify worker count
@@ -94,6 +100,7 @@ void MPIInit( int& argc, char**& argv )
             exit( 42 );
         }
     }
+#endif
 
     printf( "Worker %d / %d\n", wkid, nwks );
 }
@@ -104,8 +111,10 @@ void MPIInit( int& argc, char**& argv )
 
 void MPIExit()
 {
+#ifdef USE_MPI
     if( nwks > 1 )
         MPI_Finalize();
+#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -116,8 +125,10 @@ void MPIExit()
 //
 void MPIWaitForOthers()
 {
+#ifdef USE_MPI
     if( nwks > 1 )
         MPI_Barrier( MPI_COMM_WORLD );
+#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -126,8 +137,12 @@ void MPIWaitForOthers()
 
 bool MPISend( void* buf, int bytes, int wdst, int tag )
 {
+#ifdef USE_MPI
     return MPI_SUCCESS ==
     MPI_Ssend( buf, bytes, MPI_CHAR, wdst, tag, MPI_COMM_WORLD );
+#else
+    return true;
+#endif
 }
 
 /* --------------------------------------------------------------- */
@@ -136,10 +151,14 @@ bool MPISend( void* buf, int bytes, int wdst, int tag )
 
 bool MPIRecv( void* buf, int bytes, int wsrc, int tag )
 {
+#ifdef USE_MPI
     MPI_Status	st;
 
     return MPI_SUCCESS ==
     MPI_Recv( buf, bytes, MPI_CHAR, wsrc, tag, MPI_COMM_WORLD, &st );
+#else
+    return true;
+#endif
 }
 
 

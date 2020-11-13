@@ -137,6 +137,21 @@ INCLUDES_STD := -I{$(PATH_TIF_INC),$(PATH_PNG_INC),$(PATH_FFT_INC),$(PATH_GEN),$
 # rt:		posix libraries (e.g. semaphore support)
 # curl:		libcurl parser for Janelia command lines
 
+# MPI is only used in the final solve step in 1_LSQ.
+# You can solve small stacks on one node without MPI.
+# If solving without MPI, be sure to set the -local
+# option in the final runlsq.sht script.
+
+USING_MPI := 1
+
+ifeq ($(USING_MPI), 1)
+
+CFLAGS += -DUSE_MPI
+
+endif
+
+# CURL is only used by the Janelia FlyTEM pipeline.
+
 USING_CURL := 0
 
 ifeq ($(USING_CURL), 1)
@@ -215,18 +230,18 @@ OUTPUT = -o $(PATH_OUT)/$@
 # of a target name here to exclude it from the default target search.
 
 %.o : %.cpp
-	$(CC) $(CFLAGS) $(INCLUDES_STD) -c $< -o $@
+    $(CC) $(CFLAGS) $(INCLUDES_STD) -c $< -o $@
 
 .CHECK_ALL_LIBS : .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
 
 .CHECK_GENLIB :
-	@ (cd $(PATH_GEN) && $(MAKE))
+    @ (cd $(PATH_GEN) && $(MAKE))
 
 .CHECK_UTLLIB :
-	@ (cd $(PATH_UTL) && $(MAKE))
+    @ (cd $(PATH_UTL) && $(MAKE))
 
 .CHECK_TNYLIB :
-	@ (cd $(PATH_XML) && $(MAKE))
+    @ (cd $(PATH_XML) && $(MAKE))
 
 .PHONY : .CHECK_ALL_LIBS .CHECK_GENLIB .CHECK_UTLLIB .CHECK_TNYLIB
 
@@ -239,7 +254,7 @@ DEV_PATH := $(PATH_OUT)/devtest
 DEV_OUTPUT = -o $(DEV_PATH)/$@
 
 .DEV_MKDIR :
-	@ (mkdir -p $(DEV_PATH))
+    @ (mkdir -p $(DEV_PATH))
 
 .PHONY : .DEV_MKDIR
 
