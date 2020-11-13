@@ -25,7 +25,7 @@
 # to direct billing to a particular account.
 
 
-req_params="--chdir=$PWD --export=ALL --cpus-per-task=1"
+req_params="--chdir=$PWD --export=ALL -p compute --qos=batch"
 
 usr_params=""
 
@@ -73,5 +73,5 @@ else
   errorcmd="-e $2.err"
 fi
 
-sbatch $time_limit -J "$2" $req_params $usr_params -o $outfile $errorcmd -n $5 --wrap "$6"
+sbatch $time_limit -J "$2" $req_params $usr_params -o $outfile $errorcmd --cpus-per-task=$5 --mem-per-cpu=10G --wrap "$6"
 
