@@ -91,8 +91,8 @@ STATICLIBS_ZLB := $(PATH_ZLB_LIB)/libz.a
 # because your bash.rc file will likely run a script to set
 # environment variables like this:
 #
-# if [ -f /usr/local/INTEL2016.sh ]; then
-#      . /usr/local/INTEL2016.sh
+# if [ -f /misc/local/INTEL2022.sh ]; then
+#      . /misc/local/INTEL2022.sh
 # fi
 #
 # The following lets us easily select either package. Note that

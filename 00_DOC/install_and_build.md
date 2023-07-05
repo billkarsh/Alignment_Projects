@@ -26,6 +26,8 @@ Repo URL: <https://github.com/billkarsh/Alignment_Projects>
     * If not at Janelia, then you need to point the PATH_XXX variables to your local copies of library and include directories for {libtiff, libpng, zlib}. You will also need to do that for the fftw package, unless you can use Intel MKL support for FFT operations. MKL is preferred because the code is fully re-entrant allowing more efficient multithreading.
     * Follow other instructions in aln_makefile_std_defs to link against libraries of your choice.
 
+>IMPORTANT:
+>There is a section in aln_makefile_std_defs called 'standard rules'. Some of these lines are indented. Those indents must be tab characters (not spaces). Be careful that your editor does not change tabs to spaces at the beginning of these lines!!
 
 - All our make files have this include statement: `include $(ALN_LOCAL_MAKE_PATH)/aln_makefile_std_defs`. So you must edit your bash_profile and define ALN_LOCAL_MAKE_PATH:
 `export ALN_LOCAL_MAKE_PATH=/groups/~location_of_my_std_defs`. *(Example bash_profile edits below)*.
@@ -90,8 +92,8 @@ fi
 
 
 # Use Intel compiler for MPI
-if [ -f /usr/local/INTEL2016.sh ]; then
-     . /usr/local/INTEL2016.sh
+if [ -f /misc/local/INTEL2022.sh ]; then
+     . /misc/local/INTEL2022.sh
 fi
 export I_MPI_DEBUG=0
 export I_MPI_FABRICS=shm:ofa
@@ -147,7 +149,7 @@ Standard way to make everything:
 
 ```
 > cd 00_ENV
-> make
+> make all
 ```
 
 ### Script type '.sht'
